@@ -21,11 +21,17 @@ import org.htmlcleaner.HtmlCleaner
 import org.htmlcleaner.SimpleHtmlSerializer
 import org.htmlcleaner.TagNode
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
+import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.net.URL
 
 
 class DownloaderActivity : AppCompatActivity() {
+
+    private val USER_AGENT: String = "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76K) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 Mobile Safari/535.19"
 
     private var isDownoading = false
     var name: String? = null
@@ -44,10 +50,11 @@ class DownloaderActivity : AppCompatActivity() {
 
     private fun addTestCode() {
         //Test Code
+        dataCenter.cacheMap.clear()
         downloaderTitleEditText.setText("Novel " + (dataCenter.cacheMap.size + 1))
-        downloaderPageCountEditText.setText("30")
+        downloaderPageCountEditText.setText("1")
         downloaderSearchTextEditText.setText("Next Chapter")
-        downloaderUrlEditText.setText("https://royalroadl.com/fiction/chapter/127131")
+        downloaderUrlEditText.setText("https://royalroadl.com/fiction/chapter/107872")
     }
 
     private fun addListeners() {
@@ -76,24 +83,19 @@ class DownloaderActivity : AppCompatActivity() {
         downloaderProgressBar.visibility = View.VISIBLE
         hideKeyboard()
         addMessage("Started Downloading...")
-        processUrl(url)
+        processUrlNew(url)
     }
 
     private fun processUrl(url: String) {
         Thread(Runnable {
             try {
-
-                Handler(Looper.getMainLooper()).post {
-                    addMessage("Downloading Url: " + url)
-                }
+                addMessage("Downloading Url: " + url)
                 val cleaner = HtmlCleaner()
                 val node = cleaner.clean(URL(url))
                 var title: String? = null
                 var newUrl: String? = null
 
-                Handler(Looper.getMainLooper()).post {
-                    addMessage("Reading its data...")
-                }
+
 
                 node.traverse({ _, htmlNode ->
                     if (htmlNode is TagNode) {
@@ -108,7 +110,7 @@ class DownloaderActivity : AppCompatActivity() {
 
                 if (newUrl != null && title != null && iterationCounter > 0) {
                     newUrl = cleanUrl(url, newUrl!!)
-                    val webPage = WebPage(newUrl!!, title)
+                    val webPage = WebPage(newUrl!!, title, null)
                     val serializer = SimpleHtmlSerializer(cleaner.properties)
                     webPage.pageData = serializer.getAsString(node)
                     cacheList.add(webPage)
@@ -160,13 +162,15 @@ class DownloaderActivity : AppCompatActivity() {
 
 
     private fun addMessage(msg: String) {
-        downloaderLog.append("\n" + msg)
-        val scrollAmount = downloaderLog.layout.getLineTop(downloaderLog.lineCount) - downloaderLog.height
-        // if there is no need to scroll, scrollAmount will be <=0
-        if (scrollAmount > 0)
-            downloaderLog.scrollTo(0, scrollAmount)
-        else
-            downloaderLog.scrollTo(0, 0)
+        Handler(Looper.getMainLooper()).post {
+            downloaderLog.append("\n" + msg)
+            val scrollAmount = downloaderLog.layout.getLineTop(downloaderLog.lineCount) - downloaderLog.height
+            // if there is no need to scroll, scrollAmount will be <=0
+            if (scrollAmount > 0)
+                downloaderLog.scrollTo(0, scrollAmount)
+            else
+                downloaderLog.scrollTo(0, 0)
+        }
     }
 
     private fun hideKeyboard() {
@@ -180,14 +184,28 @@ class DownloaderActivity : AppCompatActivity() {
     fun processUrlNew(url: String) {
         Thread(Runnable {
             try {
-                Handler(Looper.getMainLooper()).post {
-                    addMessage("Downloading Url: " + url)
+                addMessage("Downloading Url: " + url)
+                val doc = Jsoup.connect(url).userAgent(USER_AGENT).get()
+                addMessage("Reading Data...")
+                val title = doc.head().getElementsByTag("title").text()
+                var newUrl: String = doc.getElementsByTag("a")
+                        .firstOrNull { it.text().equals("Next Chapter") }
+                        ?.attr("href") ?: "#"
+
+                updateCSS(doc)
+
+                if (newUrl != "#" && iterationCounter > 0) {
+                    newUrl = cleanUrl(url, newUrl)
+                    val webPage = WebPage(newUrl, title, doc.outerHtml())
+                    cacheList.add(webPage)
+                    iterationCounter--
+                    addMessage("Downloaded - " + webPage.title + "\n" + "Url: " + webPage.url)
+                    Handler(Looper.getMainLooper()).post {
+                        processUrlNew(newUrl)
+                    }
+                } else {
+                    finishProcessing()
                 }
-                var doc = Jsoup.connect(url).get()
-                val title = doc.head().getElementsByTag("title").`val`()
-                val newUrl: String? = doc.getElementsByTag("a")
-                        .firstOrNull { it.`val`().equals("Next Chapter") }
-                        ?.attr("href")
 
 
             } catch (e: IOException) {
@@ -198,4 +216,49 @@ class DownloaderActivity : AppCompatActivity() {
             }
         }).start()
     }
+
+    private fun updateCSS(doc: Document) {
+        val elements = doc.head().getElementsByTag("link").filter { element -> element.hasAttr("rel") && element.attr("rel") == "stylesheet" }
+        for (element in elements) {
+            val cssFile = downloadCSS(element)
+            element.remove()
+            doc.head().appendElement("link").attr("rel", "stylesheet").attr("type", "text/css").attr("href", ""+cssFile.parentFile.name +"/"+ cssFile.name)
+        }
+    }
+
+    private fun downloadCSS(element: Element): File {
+        val uri = Uri.parse(element.absUrl("href"))
+        val path = filesDir
+
+        val dirName = uri.host.replace(Regex.fromLiteral("[^a-zA-Z0-9.-]"), "_")
+        val hostDir = File(path, dirName)
+        if (!hostDir.exists()) hostDir.mkdir()
+
+        val fileName = (uri.lastPathSegment + uri.toString().substringAfter("?", "")).replace(Regex.fromLiteral("[^a-zA-Z0-9.-]"), "_")
+        val cssFile = File(hostDir, fileName)
+        if (cssFile.exists()) return cssFile else addMessage("Downloading CSS: " + cssFile.name)
+
+        val doc = Jsoup.connect(uri.toString()).userAgent(USER_AGENT).ignoreContentType(true).get()
+        val stream = FileOutputStream(cssFile)
+        val content = doc.body().html()
+        stream.use { stream ->
+            stream.write(content.toByteArray())
+        }
+        return cssFile
+    }
+
+    private fun finishProcessing() {
+        Handler(Looper.getMainLooper()).post {
+            dataCenter.cacheMap.put(name!!, cacheList)
+            dataCenter.saveCacheMap()
+            downloaderFab.setImageResource(R.drawable.ic_check_black_24dp)
+            downloaderFab.tag = "downloadComplete"
+            downloaderFab.show()
+            downloaderProgressBar.visibility = View.GONE
+        }
+        addMessage("Download Complete.")
+        addMessage("Data has been saved.")
+        addMessage("Click on check or hit back to close!")
+    }
+
 }

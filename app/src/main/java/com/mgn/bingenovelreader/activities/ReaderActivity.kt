@@ -27,7 +27,9 @@ class ReaderActivity : AppCompatActivity() {
         webPages = dataCenter.cacheMap[title!!]
         webPages?.mapTo(urls) { it.url }
 
-        readerWebView.loadData(webPages!![position].pageData, "text/html; charset=utf-8", "UTF-8")
+        val internalFilePath = "file://" + filesDir.absolutePath + "/"
+
+        readerWebView.loadDataWithBaseURL(internalFilePath, webPages!![position].pageData, "text/html; charset=utf-8", "UTF-8", null)
     }
 
     fun setWebView() {
