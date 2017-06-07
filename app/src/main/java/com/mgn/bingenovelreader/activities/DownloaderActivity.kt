@@ -50,11 +50,11 @@ class DownloaderActivity : AppCompatActivity() {
 
     private fun addTestCode() {
         //Test Code
-        dataCenter.cacheMap.clear()
-        downloaderTitleEditText.setText("Novel " + (dataCenter.cacheMap.size + 1))
+        //dataCenter.cacheMap.clear()
+        downloaderTitleEditText.setText("Novel AC" + (dataCenter.cacheMap.size + 1))
         downloaderPageCountEditText.setText("1")
         downloaderSearchTextEditText.setText("Next Chapter")
-        downloaderUrlEditText.setText("https://royalroadl.com/fiction/chapter/107872")
+        downloaderUrlEditText.setText("http://www.wuxiaworld.com/absolute-choice-index/ac-chapter-351/")
     }
 
     private fun addListeners() {
@@ -196,7 +196,7 @@ class DownloaderActivity : AppCompatActivity() {
 
                 if (newUrl != "#" && iterationCounter > 0) {
                     newUrl = cleanUrl(url, newUrl)
-                    val webPage = WebPage(newUrl, title, doc.outerHtml())
+                    val webPage = WebPage(url, title, doc.outerHtml())
                     cacheList.add(webPage)
                     iterationCounter--
                     addMessage("Downloaded - " + webPage.title + "\n" + "Url: " + webPage.url)
