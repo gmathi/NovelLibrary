@@ -1,6 +1,7 @@
 package com.mgn.bingenovelreader
 
 import android.app.Application
+import com.mgn.bingenovelreader.database.DbHelper
 import com.mgn.bookmark.util.DataCenter
 
 
@@ -16,5 +17,7 @@ class BNRApplication : Application() {
     override fun onCreate() {
         dataCenter = DataCenter(applicationContext)
         super.onCreate()
+        val dbHelper = DbHelper(this)
+        dbHelper.
     }
 }
