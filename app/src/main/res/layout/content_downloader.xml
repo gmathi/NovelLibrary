@@ -64,7 +64,7 @@
                     android:id="@+id/downloaderUrlEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="URL -> Your novel link goes here"
+                    android:hint="URL -> Your novel chapter link goes here"
                     android:imeOptions="actionNext"
                     android:inputType="textUri"
                     android:textSize="12sp"/>
