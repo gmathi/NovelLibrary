@@ -159,8 +159,26 @@ class DownloaderActivity : AppCompatActivity() {
         for (element in elements) {
             val cssFile = downloadCSS(element)
             element.remove()
-            doc.head().appendElement("link").attr("rel", "stylesheet").attr("type", "text/css").attr("href", ""+cssFile.parentFile.name +"/"+ cssFile.name)
+            doc.head().appendElement("link").attr("rel", "stylesheet").attr("type", "text/css").attr("href", "" + cssFile.parentFile.name + "/" + cssFile.name)
         }
+    }
+
+    private fun getHostDir(doc: Document): File {
+        val uri = Uri.parse(doc.absUrl("href"))
+        val path = filesDir
+
+        val dirName = uri.host.replace(Regex.fromLiteral("[^a-zA-Z0-9.-]"), "_")
+        val hostDir = File(path, dirName)
+        if (!hostDir.exists()) hostDir.mkdir()
+
+        return hostDir
+    }
+
+    private fun getNovelDir(doc: Document, novelName: String): File {
+        val novelDir = File(getHostDir(doc), novelName.replace(Regex.fromLiteral("[^a-zA-Z0-9.-]"), "_"))
+        if (!novelDir.exists()) novelDir.mkdir()
+
+        return novelDir
     }
 
     private fun downloadCSS(element: Element): File {

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.mgn.bingenovelreader.activities.SearchActivity">
+
+    <org.cryse.widget.persistentsearch.PersistentSearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:elevation="4dp"
+        app:persistentSV_customToolbarHeight="64dp"
+        app:persistentSV_displayMode="toolbar"
+        app:persistentSV_editHintText="Search"
+        app:persistentSV_editHintTextColor="?android:textColorHint"
+        app:persistentSV_editTextColor="?android:textColorPrimary"
+        app:persistentSV_homeButtonMode="burger"
+        app:persistentSV_logoDrawable="@drawable/search_logo"
+        app:persistentSV_searchCardElevation="2dp"
+        app:persistentSV_searchTextColor="?android:textColorPrimary"/>
+
+    <View
+        android:id="@+id/searchViewBgTint"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.0"
+        android:background="#88000000"
+        android:elevation="2dp"
+        android:layerType="hardware"
+        android:visibility="gone"/>
+
+    <include layout="@layout/content_search"/>
+
+
+</android.support.design.widget.CoordinatorLayout>

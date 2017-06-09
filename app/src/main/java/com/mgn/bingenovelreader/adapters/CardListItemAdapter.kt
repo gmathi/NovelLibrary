@@ -45,4 +45,15 @@ class CardListItemAdapter(val context: Context, var cacheTitles: ArrayList<Strin
         notifyDataSetInvalidated()
     }
 
+    fun addItem(item: String) {
+        this.cacheTitles.add(item)
+        notifyDataSetInvalidated()
+    }
+
+
+    fun removeItem(item: String) {
+        this.cacheTitles.remove(item)
+        notifyDataSetInvalidated()
+    }
+
 }

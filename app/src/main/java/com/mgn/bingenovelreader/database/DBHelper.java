@@ -16,8 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class DbHelper extends SQLiteOpenHelper {
-    private static final String LOG = "DbHelper";
+public class DBHelper extends SQLiteOpenHelper {
+    private static final String LOG = "DBHelper";
 
     private static final int DATABASE_VERSION = 1;
 
@@ -91,7 +91,7 @@ public class DbHelper extends SQLiteOpenHelper {
     +    ")";
 
 
-    public DbHelper(Context context) {
+    public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
