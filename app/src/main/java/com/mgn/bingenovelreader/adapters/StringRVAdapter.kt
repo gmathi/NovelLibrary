@@ -8,7 +8,7 @@ import com.mgn.bingenovelreader.utils.inflate
 import kotlinx.android.synthetic.main.listitem_card_view.view.*
 
 
-class StringRVAdapter(val items: ArrayList<String>, val listener: (String) -> Unit): RecyclerView.Adapter<StringRVAdapter.ViewHolder>() {
+class StringRVAdapter(val items: ArrayList<String>, val listener: (String) -> Unit) : RecyclerView.Adapter<StringRVAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(parent.inflate(R.layout.listitem_card_view))
 
@@ -23,7 +23,13 @@ class StringRVAdapter(val items: ArrayList<String>, val listener: (String) -> Un
         }
     }
 
-    fun addItem(item:String) {
-        notifyItemRemoved(4)
+    //Or run post delayed with 0.5sec interval
+
+    fun updateData(newList: ArrayList<String>) {
+        items.clear()
+        for (item in newList) {
+            items.add(item)
+            notifyItemInserted(items.size)
+        }
     }
 }

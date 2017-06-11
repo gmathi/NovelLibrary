@@ -2,15 +2,19 @@ package com.mgn.bingenovelreader.activities
 
 import android.animation.Animator
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
 import android.view.animation.*
+import com.bumptech.glide.Glide
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.adapters.StringRVAdapter
+import com.mgn.bingenovelreader.network.NovelApi
 import com.mgn.bingenovelreader.utils.SimpleAnimationListener
 import com.mgn.bingenovelreader.utils.SuggestionsBuilder
-import com.mgn.bingenovelreader.utils.addToSerchHistory
+import com.mgn.bingenovelreader.utils.addToSearchHistory
 import com.mgn.bingenovelreader.utils.toast
 import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.android.synthetic.main.content_search.*
@@ -27,6 +31,9 @@ class SearchActivity : AppCompatActivity() {
 
         setRecyclerView()
         setSearchView()
+
+        loadingImageView.visibility = View.GONE
+        Glide.with(this).load("https://media.giphy.com/media/ADyQEh474eu0o/giphy.gif").into(loadingImageView)
     }
 
     private fun setSearchView() {
@@ -35,7 +42,8 @@ class SearchActivity : AppCompatActivity() {
         searchView.setSearchListener(object : PersistentSearchView.SearchListener {
 
             override fun onSearch(searchTerm: String?) {
-                searchTerm?.addToSerchHistory()
+                searchTerm?.addToSearchHistory()
+                searchNovels(searchTerm)
             }
 
             override fun onSearchExit() {}
@@ -101,6 +109,25 @@ class SearchActivity : AppCompatActivity() {
         searchRecyclerView.layoutAnimation = controller
         searchRecyclerView.adapter = adapter
     }
+
+    fun searchNovels(searchTerm: String?) {
+        //searchRecyclerView.visibility = View.INVISIBLE
+        loadingImageView.visibility = View.VISIBLE
+
+        Thread(Runnable {
+            searchTerm?.let {
+                list.clear()
+                val newList = ArrayList(NovelApi().search(it)["novel-updates"]?.map { it.name })
+                Handler(Looper.getMainLooper()).post {
+                    loadingImageView.visibility = View.GONE
+                    searchRecyclerView.visibility = View.VISIBLE
+                    (searchRecyclerView.adapter as StringRVAdapter).updateData(newList)
+
+                }
+            }
+        }).start()
+    }
+
 
     override fun onBackPressed() {
         if (searchView.isEditing) {

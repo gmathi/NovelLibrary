@@ -18,7 +18,7 @@ class SuggestionsBuilder : SearchSuggestionsBuilder {
         val searchHistory = dataCenter.loadSearchHistory()
         val items = ArrayList<String>()
 
-        //region commented filtering
+        //region commented suggestions
 //        if (query.startsWith("@")) {
 //            val peopleSuggestion = SearchItem(
 //                    "Search People: " + query.substring(1),

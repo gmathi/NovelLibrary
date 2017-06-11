@@ -9,19 +9,22 @@ import com.mgn.bingenovelreader.dataCenter
 
 
 fun ViewGroup.inflate(layoutRes: Int): View {
-    return LayoutInflater.from(context).inflate(layoutRes, this, false)
+    val view = LayoutInflater.from(context).inflate(layoutRes, this, false)
+    //view.layoutParams = RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT)
+    return view
 }
 
 fun Activity.toast(message: String) {
-    Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 }
 
 fun ArrayList<String>.addSearchTerm(searchTerm: String) {
 
 }
 
-fun String.addToSerchHistory() {
+fun String.addToSearchHistory() {
     val list = dataCenter.loadSearchHistory()
-    list.add(0, this)
+    if (!list.contains(this))
+        list.add(0, this)
     dataCenter.saveSearchHistory(list)
 }
