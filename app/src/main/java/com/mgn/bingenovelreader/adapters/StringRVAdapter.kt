@@ -24,7 +24,6 @@ class StringRVAdapter(val items: ArrayList<String>, val listener: (String) -> Un
     }
 
     //Or run post delayed with 0.5sec interval
-
     fun updateData(newList: ArrayList<String>) {
         items.clear()
         for (item in newList) {
@@ -32,4 +31,6 @@ class StringRVAdapter(val items: ArrayList<String>, val listener: (String) -> Un
             notifyItemInserted(items.size)
         }
     }
+
+
 }

@@ -24,9 +24,9 @@ class NovelApi {
                 novel.imageUrl = element.getElementsByTag("img").firstOrNull()?.attr("src")
                 novel.name = element.getElementsByTag("span").firstOrNull { it.hasClass("w-blog-entry-title-h") }?.text()
                 novel.rating = element.getElementsByTag("span").firstOrNull { it.hasClass("userrate") }?.text()?.replace("Rating: ", "")?.trim()?.toDouble()
-//                novel. = element.getElementsByTag("span").firstOrNull { it.className() === "s-genre" }?.children()?.map { it.text() }
+                novel.genres = element.getElementsByTag("span").firstOrNull { it.className() == "s-genre" }?.children()?.map { it.text() }
                 novel.shortDescription = element.getElementsByTag("div").firstOrNull { it.className() == "w-blog-entry-short" }?.textNodes()?.get(0)?.text()
-                novel.longDescription = element.getElementsByTag("span").firstOrNull { it.attr("style") == "display:none" }?.textNodes()?.map { it.text() }?.joinToString (separator = "\n"){ it }
+                novel.longDescription = element.getElementsByTag("span").firstOrNull { it.attr("style") == "display:none" }?.textNodes()?.map { it.text() }?.joinToString(separator = "\n") { it }
                 searchResults.add(novel)
             }
 
