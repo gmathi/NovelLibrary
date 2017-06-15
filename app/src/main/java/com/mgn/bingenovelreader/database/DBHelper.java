@@ -33,7 +33,7 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final String KEY_ID = "id";
     private static final String KEY_NAME = "name";
     private static final String KEY_URL = "url";
-    private static final String KEY_FICTION_ID = "fiction_id";
+    private static final String KEY_NOVEL_ID = "novel_id";
 
     // Table novel columns
     private static final String KEY_AUTHOR = "author";
@@ -43,12 +43,14 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final String KEY_LONG_DESCRIPTION = "long_description";
     private static final String KEY_IMAGE_DATA = "image_data";
     private static final String KEY_CURRENT_PAGE_URL = "current_page_url";
+
     // Table web_page columns
     private static final String KEY_TITLE = "title";
     private static final String KEY_FILE_NAME = "file_name";
 
     // Table novel_genre columns
     private static final String KEY_GENRE_ID = "genre_id";
+
     // novel table create statement
     private static final String CREATE_TABLE_NOVEL =
         "CREATE TABLE " + TABLE_NOVEL + " ("
@@ -70,8 +72,8 @@ public class DBHelper extends SQLiteOpenHelper {
     +    KEY_URL + " TEXT PRIMARY KEY, "
     +    KEY_TITLE + " TEXT, "
     +    KEY_FILE_NAME + " TEXT, "
-    +    KEY_FICTION_ID + " INTEGER, "
-    +    "FOREIGN KEY ("+KEY_FICTION_ID+") REFERENCES "+TABLE_NOVEL+"("+KEY_ID+")"
+    + KEY_NOVEL_ID + " INTEGER, "
+    +    "FOREIGN KEY ("+ KEY_NOVEL_ID +") REFERENCES "+TABLE_NOVEL+"("+KEY_ID+")"
     +    ")";
 
     // genre table create statement
@@ -84,9 +86,9 @@ public class DBHelper extends SQLiteOpenHelper {
     // novel_genre table create statement
     private static final String CREATE_TABLE_NOVEL_GENRE =
         "CREATE TABLE " + TABLE_NOVEL_GENRE + " ("
-    +    KEY_FICTION_ID + " INTEGER, "
+    + KEY_NOVEL_ID + " INTEGER, "
     +    KEY_GENRE_ID + " INTEGER, "
-    +    "FOREIGN KEY ("+KEY_FICTION_ID+") REFERENCES "+TABLE_NOVEL+"("+KEY_ID+"), "
+    +    "FOREIGN KEY ("+ KEY_NOVEL_ID +") REFERENCES "+TABLE_NOVEL+"("+KEY_ID+"), "
     +    "FOREIGN KEY ("+KEY_GENRE_ID+") REFERENCES "+TABLE_GENRE+"("+KEY_ID+")"
     +    ")";
 
@@ -241,7 +243,7 @@ public class DBHelper extends SQLiteOpenHelper {
         values.put(KEY_URL, arg.getUrl());
         values.put(KEY_TITLE, arg.getTitle());
         values.put(KEY_FILE_NAME, arg.getFileName());
-        values.put(KEY_FICTION_ID, arg.getFictionId());
+        values.put(KEY_NOVEL_ID, arg.getFictionId());
 
         return db.insert(TABLE_WEB_PAGE, null, values);
     }
@@ -264,7 +266,7 @@ public class DBHelper extends SQLiteOpenHelper {
         entry.setUrl(c.getString(c.getColumnIndex(KEY_URL)));
         entry.setTitle(c.getString(c.getColumnIndex(KEY_TITLE)));
         entry.setFileName(c.getString(c.getColumnIndex(KEY_FILE_NAME)));
-        entry.setFictionId(c.getLong(c.getColumnIndex(KEY_FICTION_ID)));
+        entry.setFictionId(c.getLong(c.getColumnIndex(KEY_NOVEL_ID)));
 
         return entry;
     }
@@ -285,7 +287,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 entry.setUrl(c.getString(c.getColumnIndex(KEY_URL)));
                 entry.setTitle(c.getString(c.getColumnIndex(KEY_TITLE)));
                 entry.setFileName(c.getString(c.getColumnIndex(KEY_FILE_NAME)));
-                entry.setFictionId(c.getLong(c.getColumnIndex(KEY_FICTION_ID)));
+                entry.setFictionId(c.getLong(c.getColumnIndex(KEY_NOVEL_ID)));
 
                 list.add(entry);
             } while (c.moveToNext());
@@ -302,7 +304,7 @@ public class DBHelper extends SQLiteOpenHelper {
         values.put(KEY_URL, arg.getUrl());
         values.put(KEY_TITLE, arg.getTitle());
         values.put(KEY_FILE_NAME, arg.getFileName());
-        values.put(KEY_FICTION_ID, arg.getFictionId());
+        values.put(KEY_NOVEL_ID, arg.getFictionId());
 
         // updating row
         return db.update(TABLE_WEB_PAGE, values, KEY_ID + " = ?",
@@ -398,7 +400,7 @@ public class DBHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(KEY_FICTION_ID, arg.getFictionId());
+        values.put(KEY_NOVEL_ID, arg.getFictionId());
         values.put(KEY_GENRE_ID, arg.getGenreId());
 
         return db.insert(TABLE_NOVEL_GENRE, null, values);
@@ -419,7 +421,7 @@ public class DBHelper extends SQLiteOpenHelper {
         }
 
         NovelGenre entry = new NovelGenre();
-        entry.setFictionId(c.getLong(c.getColumnIndex(KEY_FICTION_ID)));
+        entry.setFictionId(c.getLong(c.getColumnIndex(KEY_NOVEL_ID)));
         entry.setGenreId(c.getLong(c.getColumnIndex(KEY_GENRE_ID)));
 
         return entry;
@@ -438,7 +440,7 @@ public class DBHelper extends SQLiteOpenHelper {
         if (c.moveToFirst()) {
             do {
                 NovelGenre entry = new NovelGenre();
-                entry.setFictionId(c.getLong(c.getColumnIndex(KEY_FICTION_ID)));
+                entry.setFictionId(c.getLong(c.getColumnIndex(KEY_NOVEL_ID)));
                 entry.setGenreId(c.getLong(c.getColumnIndex(KEY_GENRE_ID)));
 
                 list.add(entry);
@@ -453,7 +455,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
         ContentValues values = new ContentValues();
 
-        values.put(KEY_FICTION_ID, arg.getFictionId());
+        values.put(KEY_NOVEL_ID, arg.getFictionId());
         values.put(KEY_GENRE_ID, arg.getGenreId());
 
         // updating row
