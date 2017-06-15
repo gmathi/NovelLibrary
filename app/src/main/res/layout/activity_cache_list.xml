@@ -30,7 +30,7 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
         android:tint="@android:color/white"
-        app:srcCompat="@drawable/ic_playlist_add_black_24dp"
+        app:srcCompat="@drawable/ic_playlist_add_black_vector"
         tools:layout_editor_absoluteX="333dp"/>
 
 </android.support.design.widget.CoordinatorLayout>

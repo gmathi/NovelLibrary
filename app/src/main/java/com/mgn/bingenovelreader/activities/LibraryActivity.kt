@@ -8,17 +8,23 @@ import kotlinx.android.synthetic.main.activity_library.*
 
 class LibraryActivity : AppCompatActivity() {
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_library)
         setSupportActionBar(toolbar)
 
         fabSearch.setOnClickListener { startSearchActivity() }
-
     }
 
     private fun startSearchActivity() {
         startActivity(Intent(this, SearchActivity::class.java))
+    }
+
+    override fun onPostResume() {
+        super.onPostResume()
+        if (fabMenu.isOpened)
+            fabMenu.close(true)
     }
 
 }

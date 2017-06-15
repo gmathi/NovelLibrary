@@ -206,7 +206,7 @@ class DownloaderActivity : AppCompatActivity() {
         Handler(Looper.getMainLooper()).post {
             dataCenter.cacheMap.put(name!!, cacheList)
             dataCenter.saveCacheMap()
-            downloaderFab.setImageResource(R.drawable.ic_check_black_24dp)
+            downloaderFab.setImageResource(R.drawable.ic_check_black_vector)
             downloaderFab.tag = "downloadComplete"
             downloaderFab.show()
             downloaderProgressBar.visibility = View.GONE

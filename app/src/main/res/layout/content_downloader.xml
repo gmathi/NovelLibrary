@@ -133,7 +133,7 @@
         app:layout_constraintBottom_toBottomOf="@id/downloaderCardView"
         app:layout_constraintEnd_toEndOf="parent"
         app:rippleColor="@android:color/holo_orange_light"
-        app:srcCompat="@drawable/ic_file_download_black_24dp"/>
+        app:srcCompat="@drawable/ic_file_download_black_vector"/>
 
     <ProgressBar
         android:id="@+id/downloaderProgressBar"
