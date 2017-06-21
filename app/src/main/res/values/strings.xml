@@ -92,5 +92,8 @@
         "For example, position the FAB to one side of stream of a cards so the FAB won’t interfere "
         "when a user tries to pick up one of cards.\n\n"
     </string>
+    <string name="title_activity_search">Search Novels</string>
+    <string name="title_activity_library">Library</string>
+    <string name="title_activity_download_queue">DownloadQueueActivity</string>
 
 </resources>

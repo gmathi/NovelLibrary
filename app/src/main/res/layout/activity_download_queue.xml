@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.mgn.bingenovelreader.activities.CacheListActivity">
+    tools:context="com.mgn.bingenovelreader.activities.DownloadQueueActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -21,7 +21,7 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_cache_list"/>
+    <include layout="@layout/content_download_queue"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
@@ -29,8 +29,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        android:tint="@android:color/white"
-        app:srcCompat="@drawable/ic_playlist_add_black_vector"
-        tools:layout_editor_absoluteX="333dp"/>
+        app:srcCompat="@android:drawable/ic_media_pause"/>
 
 </android.support.design.widget.CoordinatorLayout>

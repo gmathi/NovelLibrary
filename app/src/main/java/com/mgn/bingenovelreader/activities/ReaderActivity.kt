@@ -25,7 +25,7 @@ class ReaderActivity : AppCompatActivity() {
         title = intent.getStringExtra("title")
         if (title == null) finish()
         webPages = dataCenter.cacheMap[title!!]
-        webPages?.mapTo(urls) { it.url }
+        //webPages?.mapTo(urls) { it.url }
 
         val internalFilePath = "file://" + filesDir.absolutePath + "/"
 
