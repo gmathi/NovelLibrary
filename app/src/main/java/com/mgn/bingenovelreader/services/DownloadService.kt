@@ -19,6 +19,8 @@ import org.jsoup.nodes.Element
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 
 class DownloadService : IntentService(TAG) {
@@ -69,18 +71,26 @@ class DownloadService : IntentService(TAG) {
         val totalChapterCount = chapters.size
         if (chapters.isNotEmpty()) {
             sendBroadcastUpdate(novel.id, totalChapterCount, totalChapterCount - chapters.size)
+
+            val es = Executors.newCachedThreadPool()
             chapters.forEach {
                 if (dbHelper.getDownloadQueue(it.novelId).status.toInt() != Constants.STATUS_STOPPED) {
-                    //Thread(Runnable {
-                    val downloadSuccess = downloadChapter(it, hostDir, novelDir)
-                    if (downloadSuccess) {
-                        sendBroadcastUpdate(novel.id, totalChapterCount, dbHelper.getDownloadedChapterCount(novel.id))
-                    }
-                    //}).start()
+                    es.execute({
+                        val downloadSuccess = downloadChapter(it, hostDir, novelDir)
+                        if (downloadSuccess) {
+                            sendBroadcastUpdate(novel.id, totalChapterCount, dbHelper.getDownloadedChapterCount(novel.id))
+                        }
+                    })
                 }
             }
-        }
+            es.shutdown()
+            try {
+                es.awaitTermination(365, TimeUnit.DAYS)
+            } catch (e: InterruptedException) {
 
+            }
+        }
+        
         dbHelper.deleteDownloadQueue(downloadQueue.novelId)
         sendBroadcastDelete(downloadQueue.novelId)
     }
