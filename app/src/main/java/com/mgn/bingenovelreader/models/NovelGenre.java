@@ -1,24 +1,24 @@
 package com.mgn.bingenovelreader.models;
 
 public class NovelGenre {
-    private long id;
-    private long fictionId;
+    private long novelId;
     private long genreId;
-    
-    public void setId(long id) {
-        this.id = id;
+
+    public NovelGenre() {
+
+    }
+
+    public NovelGenre(long novelId, long genreId) {
+        this.novelId = novelId;
+        this.genreId = genreId;
     }
     
-    public long getId() {
-        return this.id;
+    public long getNovelId() {
+        return this.novelId;
     }
     
-    public long getFictionId() {
-        return this.fictionId;
-    }
-    
-    public void setFictionId(long fictionId) {
-        this.fictionId = fictionId;
+    public void setNovelId(long novelId) {
+        this.novelId = novelId;
     }
     
     public long getGenreId() {

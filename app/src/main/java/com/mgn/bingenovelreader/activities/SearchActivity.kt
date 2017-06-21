@@ -1,26 +1,31 @@
 package com.mgn.bingenovelreader.activities
 
 import android.animation.Animator
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
 import android.view.View
-import android.view.animation.*
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.SimpleTarget
+import com.bumptech.glide.request.transition.Transition
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.adapters.GenericAdapter
+import com.mgn.bingenovelreader.dbHelper
 import com.mgn.bingenovelreader.models.Novel
 import com.mgn.bingenovelreader.network.NovelApi
-import com.mgn.bingenovelreader.utils.SimpleAnimationListener
-import com.mgn.bingenovelreader.utils.SuggestionsBuilder
-import com.mgn.bingenovelreader.utils.addToSearchHistory
-import com.mgn.bingenovelreader.utils.toast
+import com.mgn.bingenovelreader.services.DownloadService
+import com.mgn.bingenovelreader.utils.*
+import com.mgn.bingenovelreader.utils.Constants.IMAGES_DIR_NAME
 import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.android.synthetic.main.content_search.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
+import java.io.File
+import java.io.FileOutputStream
 
 
 class SearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel> {
@@ -36,29 +41,12 @@ class SearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel> {
 
         loadingImageView.visibility = View.INVISIBLE
         Glide.with(this).load("https://media.giphy.com/media/ADyQEh474eu0o/giphy.gif").into(loadingImageView)
-        searchNovels("Realms")
+        //searchNovels("Realms")
     }
 
     private fun setRecyclerView() {
-        val llm = LinearLayoutManager(applicationContext)
-        val set = AnimationSet(true)
-        var animation: Animation = AlphaAnimation(0.0f, 1.0f)
-        animation.duration = 500
-        set.addAnimation(animation)
-        animation = TranslateAnimation(
-                Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF, 0.0f,
-                Animation.RELATIVE_TO_SELF, -1.0f, Animation.RELATIVE_TO_SELF, 0.0f
-        )
-        animation.setDuration(100)
-        set.addAnimation(animation)
-        val controller = LayoutAnimationController(set, 0.5f)
-
         adapter = GenericAdapter(items = ArrayList<Novel>(), layoutResId = R.layout.listitem_novel, listener = this)
-
-        searchRecyclerView.setHasFixedSize(true)
-        searchRecyclerView.layoutManager = llm
-        searchRecyclerView.layoutAnimation = controller
-        searchRecyclerView.adapter = adapter
+        searchRecyclerView.setDefaults(adapter)
     }
 
     private fun setSearchView() {
@@ -103,7 +91,7 @@ class SearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel> {
 
     }
 
-    fun searchNovels(searchTerm: String?) {
+    private fun searchNovels(searchTerm: String?) {
         searchRecyclerView.visibility = View.INVISIBLE
         loadingImageView.visibility = View.VISIBLE
 
@@ -123,18 +111,42 @@ class SearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel> {
 
     override fun onItemClick(item: Novel) {
         toast("${item.name} Clicked")
+        dbHelper.insertNovel(item)
     }
 
     override fun bind(item: Novel, itemView: View) {
-        Glide.with(this).load(item.imageUrl).into(itemView.novelImageView)
+        if (item.imageFilePath == null) {
+            Glide.with(this).asBitmap().load(item.imageUrl).into(object : SimpleTarget<Bitmap>() {
+                override fun onResourceReady(bitmap: Bitmap?, transition: Transition<in Bitmap>?) {
+                    itemView.novelImageView.setImageBitmap(bitmap)
+                    Thread(Runnable {
+                        val file = File(filesDir, IMAGES_DIR_NAME + "/" + Uri.parse(item.imageUrl).getFileName())
+                        val os = FileOutputStream(file)
+                        bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, os)
+                        item.imageFilePath = file.path
+                    }).start()
+                }
+            })
+        } else {
+            Glide.with(this).load(File(item.imageFilePath)).into(itemView.novelImageView)
+        }
+
         itemView.novelTitleTextView.text = item.name
-        itemView.novelRatingBar.rating = item.rating.toFloat()
-        itemView.novelRatingTextView.text = "(" + item.rating + ")"
+        if (item.rating != null) {
+            itemView.novelRatingBar.rating = item.rating!!.toFloat()
+            itemView.novelRatingTextView.text = "(" + item.rating + ")"
+        }
         itemView.novelGenreTextView.text = item.genres?.joinToString { it }
         itemView.novelDescriptionTextView.text = item.shortDescription
     }
 
     //endregion
+
+    private fun startDownloadService(novelId: Long) {
+        val serviceIntent = Intent(this, DownloadService::class.java)
+        serviceIntent.putExtra(Constants.NOVEL_ID, novelId)
+        startService(serviceIntent)
+    }
 
     override fun onBackPressed() {
         if (searchView.isEditing) {

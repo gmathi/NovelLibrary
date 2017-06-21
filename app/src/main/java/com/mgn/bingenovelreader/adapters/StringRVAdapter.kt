@@ -5,12 +5,12 @@ import android.view.View
 import android.view.ViewGroup
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.utils.inflate
-import kotlinx.android.synthetic.main.listitem_card_view.view.*
+import kotlinx.android.synthetic.main.listitem_string.view.*
 
 
 class StringRVAdapter(val items: ArrayList<String>, val listener: (String) -> Unit) : RecyclerView.Adapter<StringRVAdapter.ViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(parent.inflate(R.layout.listitem_card_view))
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(parent.inflate(R.layout.listitem_string))
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(items[position], listener)
 

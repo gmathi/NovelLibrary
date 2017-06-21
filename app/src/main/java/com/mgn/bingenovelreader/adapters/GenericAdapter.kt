@@ -10,14 +10,14 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder<T>(parent.inflate(layoutResId))
 
-    override fun onBindViewHolder(holder: ViewHolder<T>, position: Int) = holder.bind(items[position], listener)
+    override fun onBindViewHolder(holder: ViewHolder<T>, position: Int) = holder.bind(item = items[position], listener = listener)
 
     override fun getItemCount() = items.size
 
     class ViewHolder<T>(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(item: T, listener: Listener<T>) {
             with(itemView) { setOnClickListener { listener.onItemClick(item) } }
-            listener.bind(item, itemView)
+            listener.bind(item = item, itemView = itemView)
         }
     }
 
@@ -27,7 +27,51 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
     }
 
     fun updateData(newItems: ArrayList<T>) {
+        //Empty Current List --> Add All
+        if (items.size == 0) {
+            items.addAll(newItems)
+            notifyItemRangeInserted(0, items.size)
+            return
+        }
+
+        //Empty New List --> Remove All
+        if (newItems.size == 0) {
+            val size = items.size
+            items.clear()
+            notifyItemRangeRemoved(0, size)
+            return
+        }
+
+        //otherwise TODO: Revisit this
         items.clear()
         items.addAll(newItems)
+        notifyItemRangeChanged(0, items.size)
+
     }
+
+    fun updateItem(item: T) {
+        val index = items.indexOf(item)
+        if (index != -1) {
+            items.removeAt(index)
+            items.add(index, item)
+            notifyItemChanged(index)
+        }
+    }
+
+    fun removeItem(item: T) {
+        val index = items.indexOf(item)
+        if (index != -1) {
+            items.removeAt(index)
+            notifyItemRemoved(index)
+        }
+    }
+
+    fun insertItem(item: T, position: Int = -1) {
+        val index = items.indexOf(item)
+        if (index == -1) {
+            if (position != -1) items.add(position, item) else items.add(item)
+        } else
+            updateItem(item)
+    }
+
 }

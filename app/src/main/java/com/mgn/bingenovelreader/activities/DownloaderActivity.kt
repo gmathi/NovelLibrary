@@ -14,6 +14,7 @@ import android.view.inputmethod.InputMethodManager
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.dataCenter
 import com.mgn.bingenovelreader.models.WebPage
+import com.mgn.bingenovelreader.utils.writableFileName
 import kotlinx.android.synthetic.main.activity_downloader.*
 import kotlinx.android.synthetic.main.content_downloader.*
 import org.jsoup.Jsoup
@@ -185,11 +186,11 @@ class DownloaderActivity : AppCompatActivity() {
         val uri = Uri.parse(element.absUrl("href"))
         val path = filesDir
 
-        val dirName = uri.host.replace(Regex.fromLiteral("[^a-zA-Z0-9.-]"), "_")
+        val dirName = uri.host.writableFileName()
         val hostDir = File(path, dirName)
         if (!hostDir.exists()) hostDir.mkdir()
 
-        val fileName = (uri.lastPathSegment + uri.toString().substringAfter("?", "")).replace(Regex.fromLiteral("[^a-zA-Z0-9.-]"), "_")
+        val fileName = (uri.lastPathSegment + uri.toString().substringAfter("?", "")).writableFileName()
         val cssFile = File(hostDir, fileName)
         if (cssFile.exists()) return cssFile else addMessage("Downloading CSS: " + cssFile.name)
 
