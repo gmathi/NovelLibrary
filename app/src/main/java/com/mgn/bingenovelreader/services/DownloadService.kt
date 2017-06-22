@@ -19,8 +19,6 @@ import org.jsoup.nodes.Element
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 
 class DownloadService : IntentService(TAG) {
@@ -35,7 +33,7 @@ class DownloadService : IntentService(TAG) {
 
     override fun onHandleIntent(workIntent: Intent) {
         dbHelper = DBHelper(applicationContext)
-        android.os.Debug.waitForDebugger()
+        //android.os.Debug.waitForDebugger()
         if (!isDownloading) {
             isDownloading = true
             checkDownloadQueue()
@@ -57,42 +55,57 @@ class DownloadService : IntentService(TAG) {
         val hostDir = getHostDir(novel.url!!)
         val novelDir = getNovelDir(hostDir, novel.name!!)
 
-        var chapters: ArrayList<WebPage>
+        val chapters: ArrayList<WebPage>
+
+        //If chapter URLS were not downloaded
         if (downloadQueue.chapterUrlsCached == 0L) {
+
+            //download the chapter urls
             chapters = NovelApi().getChapterUrls(novel)
+
+            //Insert the webPages for future download (in-case they pause the download and start it later)
             if (chapters.isNotEmpty()) {
-                dbHelper.insertWebPages(chapters, novel.id)
+                chapters.asReversed().forEach {
+                    it.novelId = novel.id
+                    val dbWebPage = dbHelper.getWebPage(it.novelId, it.url)
+                    if (dbWebPage == null)
+                        dbHelper.createWebPage(it)
+                    else
+                        it.id = dbWebPage.id
+                }
             }
+
+            //Update database with chapters urls cached
             dbHelper.updateChapterUrlsCached(1, novel.id)
         } else {
             chapters = ArrayList<WebPage>(dbHelper.getAllWebPages(novel.id))
         }
 
         val totalChapterCount = chapters.size
-        if (chapters.isNotEmpty()) {
-            sendBroadcastUpdate(novel.id, totalChapterCount, totalChapterCount - chapters.size)
+        if (dbHelper.getNovel(novel.id) == null) { //If the novel was deleted
+            dbHelper.cleanupNovelData(novel.id)
+            return
+        }
 
-            val es = Executors.newCachedThreadPool()
-            chapters.forEach {
-                if (dbHelper.getDownloadQueue(it.novelId).status.toInt() != Constants.STATUS_STOPPED) {
-                    es.execute({
-                        val downloadSuccess = downloadChapter(it, hostDir, novelDir)
-                        if (downloadSuccess) {
-                            sendBroadcastUpdate(novel.id, totalChapterCount, dbHelper.getDownloadedChapterCount(novel.id))
+        run runDownloads@ {
+            if (chapters.isNotEmpty()) {
+                //sendBroadcastUpdate(novel.id, totalChapterCount, totalChapterCount - chapters.size)
+                chapters.forEach {
+                    val dq = dbHelper.getDownloadQueue(it.novelId)
+                    if (dq != null && dq.status.toInt() != Constants.STATUS_STOPPED) {
+                        if (it.filePath == null) {
+                            val downloadSuccess = downloadChapter(it, hostDir, novelDir)
+                            if (downloadSuccess)
+                                sendBroadcastUpdate(novel.id, totalChapterCount, dbHelper.getDownloadedChapterCount(novel.id))
                         }
-                    })
+                    } else
+                        return@runDownloads //If downloads stopped or novel is deleted from database
                 }
             }
-            es.shutdown()
-            try {
-                es.awaitTermination(365, TimeUnit.DAYS)
-            } catch (e: InterruptedException) {
-
-            }
+            //If all downloads completed
+            dbHelper.deleteDownloadQueue(downloadQueue.novelId)
+            sendBroadcastDownloadComplete(downloadQueue.novelId)
         }
-        
-        dbHelper.deleteDownloadQueue(downloadQueue.novelId)
-        sendBroadcastDelete(downloadQueue.novelId)
     }
 
     private fun downloadChapter(webPage: WebPage, hostDir: File, novelDir: File): Boolean {
@@ -104,7 +117,7 @@ class DownloadService : IntentService(TAG) {
             return false
         }
         updateCSS(doc, hostDir)
-        webPage.title += doc.head().getElementsByTag("title").text()
+        webPage.title = doc.head().getElementsByTag("title").text()
         val file = convertDocToFile(doc, File(novelDir, webPage.title!!.writableFileName()))
         webPage.filePath = file.path
         val id = dbHelper.updateWebPage(webPage)
@@ -178,11 +191,10 @@ class DownloadService : IntentService(TAG) {
         sendBroadcast(extras, Constants.DOWNLOAD_QUEUE_NOVEL_UPDATE)
     }
 
-    private fun sendBroadcastDelete(novelId: Long) {
-        val localIntent = Intent()
+    private fun sendBroadcastDownloadComplete(novelId: Long) {
         val extras = Bundle()
         extras.putLong(Constants.NOVEL_ID, novelId)
-        sendBroadcast(extras, Constants.DOWNLOAD_QUEUE_NOVEL_DELETE)
+        sendBroadcast(extras, Constants.DOWNLOAD_QUEUE_NOVEL_DOWNLOAD_COMPLETE)
     }
 
 }

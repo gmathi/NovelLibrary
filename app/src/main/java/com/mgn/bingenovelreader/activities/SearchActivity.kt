@@ -111,7 +111,9 @@ class SearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel> {
 
     override fun onItemClick(item: Novel) {
         toast("${item.name} Clicked")
-        dbHelper.insertNovel(item)
+        val novelId = dbHelper.insertNovel(item)
+        dbHelper.createDownloadQueue(novelId)
+        startDownloadService(novelId)
     }
 
     override fun bind(item: Novel, itemView: View) {

@@ -95,5 +95,6 @@
     <string name="title_activity_search">Search Novels</string>
     <string name="title_activity_library">Library</string>
     <string name="title_activity_download_queue">DownloadQueueActivity</string>
+    <string name="title_activity_novel_details">NovelDetailsActivity</string>
 
 </resources>

@@ -14,8 +14,6 @@ import com.mgn.bingenovelreader.models.NovelGenre;
 import com.mgn.bingenovelreader.models.WebPage;
 import com.mgn.bingenovelreader.utils.Constants;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -83,7 +81,8 @@ public class DBHelper extends SQLiteOpenHelper {
     // web_page table create statement
     private static final String CREATE_TABLE_WEB_PAGE =
             "CREATE TABLE " + TABLE_WEB_PAGE + " ("
-                    + KEY_URL + " TEXT PRIMARY KEY, "
+                    + KEY_ID + " INTEGER PRIMARY KEY, "
+                    + KEY_URL + " TEXT UNIQUE ON CONFLICT IGNORE, "
                     + KEY_CHAPTER + " TEXT, "
                     + KEY_TITLE + " TEXT, "
                     + KEY_FILE_PATH + " TEXT, "
@@ -316,6 +315,7 @@ public class DBHelper extends SQLiteOpenHelper {
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 entry = new WebPage();
+                entry.setId(cursor.getLong(cursor.getColumnIndex(KEY_ID)));
                 entry.setUrl(cursor.getString(cursor.getColumnIndex(KEY_URL)));
                 entry.setChapter(cursor.getString(cursor.getColumnIndex(KEY_CHAPTER)));
                 entry.setTitle(cursor.getString(cursor.getColumnIndex(KEY_TITLE)));
@@ -330,7 +330,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public List<WebPage> getAllWebPages(long novelId) {
         List<WebPage> list = new ArrayList<WebPage>();
         String selectQuery = "SELECT * FROM " + TABLE_WEB_PAGE + " WHERE "
-                + KEY_NOVEL_ID + " = " + novelId + " ORDER BY " + KEY_TITLE + " DESC";
+                + KEY_NOVEL_ID + " = " + novelId + " ORDER BY " + KEY_ID + " DESC";
         Log.d(LOG, selectQuery);
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -339,6 +339,7 @@ public class DBHelper extends SQLiteOpenHelper {
             if (cursor.moveToFirst()) {
                 do {
                     WebPage entry = new WebPage();
+                    entry.setId(cursor.getLong(cursor.getColumnIndex(KEY_ID)));
                     entry.setUrl(cursor.getString(cursor.getColumnIndex(KEY_URL)));
                     entry.setChapter(cursor.getString(cursor.getColumnIndex(KEY_CHAPTER)));
                     entry.setTitle(cursor.getString(cursor.getColumnIndex(KEY_TITLE)));
@@ -355,15 +356,12 @@ public class DBHelper extends SQLiteOpenHelper {
     public long updateWebPage(WebPage arg) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(KEY_URL, arg.getUrl());
-        values.put(KEY_CHAPTER, arg.getChapter());
         values.put(KEY_TITLE, arg.getTitle());
         values.put(KEY_FILE_PATH, arg.getFilePath());
-        values.put(KEY_NOVEL_ID, arg.getNovelId());
 
         // updating row
-        return db.update(TABLE_WEB_PAGE, values, KEY_NOVEL_ID + " = ? AND " + KEY_URL + " = \"" + arg.getUrl() + "\"",
-                new String[]{String.valueOf(arg.getNovelId())});
+        return db.update(TABLE_WEB_PAGE, values, KEY_ID + " = ? ",
+                new String[]{String.valueOf(arg.getId())});
     }
 
     public void deleteWebPage(long novelId) {
@@ -634,14 +632,14 @@ public class DBHelper extends SQLiteOpenHelper {
 
 
     // Custom Methods
-    public void insertNovel(Novel novel) {
+    public long insertNovel(Novel novel) {
         long novelId = createNovel(novel);
         if (novel.getGenres() != null && !novel.getGenres().isEmpty())
             for (String genre : novel.getGenres()) {
                 long genreId = createGenre(genre);
                 createNovelGenre(new NovelGenre(novelId, genreId));
             }
-
+        return novelId;
     }
 
     public List<String> getGenres(long novelId) {
@@ -678,22 +676,13 @@ public class DBHelper extends SQLiteOpenHelper {
         return dq;
     }
 
-    public void insertWebPages(@NotNull ArrayList<WebPage> webPages, long novelId) {
-        for (WebPage webPage : webPages) {
-            webPage.setNovelId(novelId);
-            if (getWebPage(novelId, webPage.getUrl()) == null)
-                createWebPage(webPage);
-        }
-    }
-
-    @NotNull
     public int getDownloadedChapterCount(long novelId) {
-        int currentChapterCount = 0;
         SQLiteDatabase db = this.getReadableDatabase();
         String selectQuery = "SELECT count(novel_id) FROM " + TABLE_WEB_PAGE + " WHERE "
                 + KEY_NOVEL_ID + " = " + novelId + " AND file_path IS NOT NULL";
         Log.d(LOG, selectQuery);
         Cursor cursor = db.rawQuery(selectQuery, null);
+        int currentChapterCount = 0;
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 currentChapterCount = cursor.getInt(0);
@@ -701,6 +690,20 @@ public class DBHelper extends SQLiteOpenHelper {
             cursor.close();
         }
         return currentChapterCount;
+    }
+
+    public void cleanupNovelData(long novelId) {
+        deleteNovel(novelId);
+        deleteWebPage(novelId);
+        deleteNovelGenre(novelId);
+        deleteDownloadQueue(novelId);
+    }
+
+    public void updateDownloadQueueStatus(int status) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_STATUS, status);
+        db.update(TABLE_DOWNLOAD_QUEUE, values, null, null);
     }
 }
 

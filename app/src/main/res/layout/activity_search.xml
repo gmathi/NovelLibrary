@@ -19,7 +19,7 @@
         app:persistentSV_editHintTextColor="?android:textColorHint"
         app:persistentSV_editTextColor="?android:textColorPrimary"
         app:persistentSV_homeButtonMode="arrow"
-        app:persistentSV_logoDrawable="@drawable/im_search_logo"
+        app:persistentSV_logoDrawable="@drawable/im_search_bg"
         app:persistentSV_searchCardElevation="2dp"
         app:persistentSV_searchTextColor="?android:textColorPrimary"/>
 

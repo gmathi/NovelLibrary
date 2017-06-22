@@ -15,6 +15,7 @@ class WebPage {
         this.pageData = pageData
     }
 
+    var id: Long? = -1
     var url: String? = null
     var title: String? = null
     var chapter: String? = null

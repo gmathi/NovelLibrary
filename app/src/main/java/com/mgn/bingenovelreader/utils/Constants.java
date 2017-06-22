@@ -35,10 +35,19 @@ public class Constants {
 
     //region Broadcast Actions
     public static final String DOWNLOAD_QUEUE_NOVEL_UPDATE = "novelUpdate";
-    public static final String DOWNLOAD_QUEUE_NOVEL_DELETE = "novelDelete";
+    public static final String DOWNLOAD_QUEUE_NOVEL_DOWNLOAD_COMPLETE = "novelDownloadComplete";
+    public static final String NOVEL_DELETED = "novelDeleted";
 
 
     //endregion
 
     public static final String IMAGES_DIR_NAME = "images";
+
+    //region Activity Codes
+    public static final int SEARCH_REQ_CODE = 1;
+    public static final int NOVEL_DETAILS_REQ_CODE = 2;
+    public static final int NOVEL_DETAILS_RES_CODE = 3;
+
+
+    //endregion
 }

@@ -12,6 +12,7 @@ import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.adapters.GenericAdapter
 import com.mgn.bingenovelreader.dbHelper
 import com.mgn.bingenovelreader.models.DownloadQueue
+import com.mgn.bingenovelreader.models.Novel
 import com.mgn.bingenovelreader.services.DownloadService
 import com.mgn.bingenovelreader.utils.Constants
 import com.mgn.bingenovelreader.utils.setDefaults
@@ -38,8 +39,29 @@ class DownloadQueueActivity : AppCompatActivity(), GenericAdapter.Listener<Downl
             }
         }
 
-        fab.setOnClickListener { view ->
-           // if (getDown)
+        if (dbHelper.firstDownloadableQueueItem != null) {
+            fab.setImageResource(R.drawable.ic_pause_black_vector)
+            fab.tag = "playing"
+        } else {
+            fab.setImageResource(R.drawable.ic_play_arrow_black_vector)
+            fab.tag = "paused"
+        }
+
+        fab.setOnClickListener {
+            if (!adapter.items.isEmpty()) {
+                if (fab.tag == "playing") {
+                    //pause all
+                    dbHelper.updateDownloadQueueStatus(Constants.STATUS_STOPPED)
+                    fab.setImageResource(R.drawable.ic_play_arrow_black_vector)
+                    fab.tag = "paused"
+                } else if (fab.tag == "paused") {
+                    //play all
+                    dbHelper.updateDownloadQueueStatus(Constants.STATUS_DOWNLOAD)
+                    fab.setImageResource(R.drawable.ic_pause_black_vector)
+                    fab.tag = "playing"
+                    startDownloadService(adapter.items[0].novelId)
+                }
+            }
         }
     }
 
@@ -52,11 +74,11 @@ class DownloadQueueActivity : AppCompatActivity(), GenericAdapter.Listener<Downl
     //region Adapter Listener Methods - onItemClick(), viewBinder()
     @SuppressLint("SetTextI18n")
     override fun bind(item: DownloadQueue, itemView: View) {
-        val novel = dbHelper.getNovel(item.novelId)
+        val novel = dbHelper.getNovel(item.novelId) as Novel?
         var chapterCountText = "(Waiting to download)"
         if (item.totalChapters.toInt() != -1)
             chapterCountText = "(${item.currentChapter}/${item.totalChapters})"
-        itemView.listItemTitle.text = "${novel.name} $chapterCountText"
+        itemView.listItemTitle.text = "${novel?.name} $chapterCountText"
     }
 
     override fun onItemClick(item: DownloadQueue) {
@@ -79,7 +101,7 @@ class DownloadQueueActivity : AppCompatActivity(), GenericAdapter.Listener<Downl
     fun registerReceiver() {
         val filter = IntentFilter()
         filter.addAction(Constants.DOWNLOAD_QUEUE_NOVEL_UPDATE)
-        filter.addAction(Constants.DOWNLOAD_QUEUE_NOVEL_DELETE)
+        filter.addAction(Constants.DOWNLOAD_QUEUE_NOVEL_DOWNLOAD_COMPLETE)
         filter.addCategory(Intent.CATEGORY_DEFAULT);
         registerReceiver(broadcastReceiver, filter)
     }
@@ -92,11 +114,17 @@ class DownloadQueueActivity : AppCompatActivity(), GenericAdapter.Listener<Downl
             dq.totalChapters = intent.extras.getInt(Constants.TOTAL_CHAPTERS_COUNT).toLong()
             adapter.updateItem(dq)
 
-        } else if (intent.action == Constants.DOWNLOAD_QUEUE_NOVEL_DELETE) {
+        } else if (intent.action == Constants.DOWNLOAD_QUEUE_NOVEL_DOWNLOAD_COMPLETE) {
             val dq = DownloadQueue()
             dq.novelId = intent.extras.getLong(Constants.NOVEL_ID)
             adapter.removeItem(dq)
         }
+    }
+
+    private fun startDownloadService(novelId: Long) {
+        val serviceIntent = Intent(this, DownloadService::class.java)
+        serviceIntent.putExtra(Constants.NOVEL_ID, novelId)
+        startService(serviceIntent)
     }
 
 }

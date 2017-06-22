@@ -45,8 +45,7 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
         //otherwise TODO: Revisit this
         items.clear()
         items.addAll(newItems)
-        notifyItemRangeChanged(0, items.size)
-
+        notifyDataSetChanged()
     }
 
     fun updateItem(item: T) {
@@ -65,6 +64,14 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
             notifyItemRemoved(index)
         }
     }
+
+    fun removeItemAt(position: Int) {
+        if (position != -1 && position < items.size) {
+            items.removeAt(position)
+            notifyItemRemoved(position)
+        }
+    }
+
 
     fun insertItem(item: T, position: Int = -1) {
         val index = items.indexOf(item)

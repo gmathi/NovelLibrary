@@ -1,7 +1,7 @@
 package com.mgn.bingenovelreader.models
 
 class Novel {
-    var id: Long = 0
+    var id: Long = -1
     var name: String? = null
     var url: String? = null
     var author: String? = null
@@ -12,6 +12,7 @@ class Novel {
     var imageFilePath: String? = null
     var currentPageUrl: String? = null
     var genres: List<String>? = null
+    var favorite: Int = 0
 
     override fun equals(o: Any?): Boolean {
         if (this === o) return true
