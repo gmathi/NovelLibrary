@@ -1,7 +1,9 @@
 package com.mgn.bingenovelreader
 
 import android.app.Application
+import android.os.Build
 import android.util.Log
+import android.webkit.WebView
 import com.mgn.bingenovelreader.database.DBHelper
 import com.mgn.bookmark.util.DataCenter
 import java.io.File
@@ -42,6 +44,10 @@ class BNRApplication : Application() {
             enableSSLSocket()
         } catch (e: Exception) {
             Log.e("BNRApplication", e.localizedMessage, e)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            WebView.setWebContentsDebuggingEnabled(true)
         }
     }
 

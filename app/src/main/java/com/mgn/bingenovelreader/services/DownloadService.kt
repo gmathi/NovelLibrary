@@ -159,11 +159,12 @@ class DownloadService : IntentService(TAG) {
         val file = File(dir, fileName)
         val response: Connection.Response?
         try {
+            if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: " + uri.toString())
             response = Jsoup.connect(uri.toString()).userAgent(USER_AGENT).ignoreContentType(true).execute()
             val bytes = response.bodyAsBytes()
             val bitmap = Util.getImage(bytes)
             val os = FileOutputStream(file)
-            bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, os)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os)
         } catch (e: Exception) {
             Log.e(TAG, uri.toString(), e)
             return null

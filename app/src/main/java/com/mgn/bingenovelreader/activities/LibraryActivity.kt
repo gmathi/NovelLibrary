@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
 import android.view.View
 import com.bumptech.glide.Glide
 import com.mgn.bingenovelreader.R
@@ -21,6 +22,7 @@ import java.io.File
 class LibraryActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
     lateinit var adapter: GenericAdapter<Novel>
+    var lastDeletedId: Long = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,7 +55,8 @@ class LibraryActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
     override fun onItemClick(item: Novel) {
         // toast("${item.name} Clicked")
-        startNovelDetailsActivity(item.id)
+        if (lastDeletedId != item.id)
+            startNovelDetailsActivity(item.id)
     }
 
     override fun bind(item: Novel, itemView: View) {
@@ -107,18 +110,18 @@ class LibraryActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
         if (resultCode == Constants.NOVEL_DETAILS_RES_CODE) {
             val novelId = data?.extras?.getLong(Constants.NOVEL_ID)
-            if (novelId != null)
+            if (novelId != null) {
+                lastDeletedId = novelId
                 adapter.removeItemAt(adapter.items.indexOfFirst { it.id == novelId })
+                Handler().postDelayed({ lastDeletedId = -1 }, 1500)
+            }
             return
         }
 
     }
 
     override fun manageBroadcasts(intent: Intent) {
-        if (intent.action == Constants.NOVEL_DELETED) {
-            val novelId = intent.extras.getLong(Constants.NOVEL_ID)
-            adapter.removeItemAt(adapter.items.indexOfFirst { it.id == novelId })
-        }
+        // No Intents to handle
     }
 
     override fun getBroadcastIntentActions(): ArrayList<String> {
