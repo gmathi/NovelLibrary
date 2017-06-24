@@ -2,8 +2,10 @@ package com.mgn.bingenovelreader.services
 
 import android.app.IntentService
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import com.mgn.bingenovelreader.database.DBHelper
 import com.mgn.bingenovelreader.models.DownloadQueue
 import com.mgn.bingenovelreader.models.Novel
@@ -11,8 +13,10 @@ import com.mgn.bingenovelreader.models.WebPage
 import com.mgn.bingenovelreader.network.NovelApi
 import com.mgn.bingenovelreader.utils.Constants
 import com.mgn.bingenovelreader.utils.HostNames.USER_AGENT
+import com.mgn.bingenovelreader.utils.Util
 import com.mgn.bingenovelreader.utils.getFileName
 import com.mgn.bingenovelreader.utils.writableFileName
+import org.jsoup.Connection
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -33,7 +37,7 @@ class DownloadService : IntentService(TAG) {
 
     override fun onHandleIntent(workIntent: Intent) {
         dbHelper = DBHelper(applicationContext)
-        //android.os.Debug.waitForDebugger()
+        android.os.Debug.waitForDebugger()
         if (!isDownloading) {
             isDownloading = true
             checkDownloadQueue()
@@ -52,8 +56,8 @@ class DownloadService : IntentService(TAG) {
 
 
     fun startDownload(novel: Novel, downloadQueue: DownloadQueue) {
-        val hostDir = getHostDir(novel.url!!)
-        val novelDir = getNovelDir(hostDir, novel.name!!)
+        val hostDir = Util.getHostDir(applicationContext, novel.url!!)
+        val novelDir = Util.getNovelDir(applicationContext, hostDir, novel.name!!)
 
         val chapters: ArrayList<WebPage>
 
@@ -69,7 +73,7 @@ class DownloadService : IntentService(TAG) {
                     it.novelId = novel.id
                     val dbWebPage = dbHelper.getWebPage(it.novelId, it.url)
                     if (dbWebPage == null)
-                        dbHelper.createWebPage(it)
+                        it.id = dbHelper.createWebPage(it)
                     else
                         it.id = dbWebPage.id
                 }
@@ -90,7 +94,7 @@ class DownloadService : IntentService(TAG) {
         run runDownloads@ {
             if (chapters.isNotEmpty()) {
                 //sendBroadcastUpdate(novel.id, totalChapterCount, totalChapterCount - chapters.size)
-                chapters.forEach {
+                chapters.asReversed().forEach {
                     val dq = dbHelper.getDownloadQueue(it.novelId)
                     if (dq != null && dq.status.toInt() != Constants.STATUS_STOPPED) {
                         if (it.filePath == null) {
@@ -102,6 +106,7 @@ class DownloadService : IntentService(TAG) {
                         return@runDownloads //If downloads stopped or novel is deleted from database
                 }
             }
+
             //If all downloads completed
             dbHelper.deleteDownloadQueue(downloadQueue.novelId)
             sendBroadcastDownloadComplete(downloadQueue.novelId)
@@ -113,10 +118,12 @@ class DownloadService : IntentService(TAG) {
         try {
             doc = NovelApi().getDocumentWithUserAgent(webPage.url!!)
         } catch (e: Exception) {
+            Log.e(TAG, webPage.url!!)
             e.printStackTrace()
             return false
         }
-        updateCSS(doc, hostDir)
+        downloadCSS(doc, hostDir)
+        downloadImages(doc, novelDir)
         webPage.title = doc.head().getElementsByTag("title").text()
         val file = convertDocToFile(doc, File(novelDir, webPage.title!!.writableFileName()))
         webPage.filePath = file.path
@@ -124,24 +131,8 @@ class DownloadService : IntentService(TAG) {
         return (id.toInt() != -1)
     }
 
-    private fun getHostDir(url: String): File {
-        val uri = Uri.parse(url)
-        val path = filesDir
 
-        val dirName = uri.host.writableFileName()
-        val hostDir = File(path, dirName)
-        if (!hostDir.exists()) hostDir.mkdir()
-
-        return hostDir
-    }
-
-    private fun getNovelDir(hostDir: File, novelName: String): File {
-        val novelDir = File(hostDir, novelName.writableFileName())
-        if (!novelDir.exists()) novelDir.mkdir()
-        return novelDir
-    }
-
-    private fun updateCSS(doc: Document, hostDir: File) {
+    private fun downloadCSS(doc: Document, hostDir: File) {
         val elements = doc.head().getElementsByTag("link").filter { element -> element.hasAttr("rel") && element.attr("rel") == "stylesheet" }
         for (element in elements) {
             val cssFile = downloadFile(element, hostDir)
@@ -149,6 +140,35 @@ class DownloadService : IntentService(TAG) {
             if (cssFile != null)
                 doc.head().appendElement("link").attr("rel", "stylesheet").attr("type", "text/css").attr("href", "" + cssFile.parentFile.name + "/" + cssFile.name)
         }
+    }
+
+    private fun downloadImages(doc: Document, novelDir: File) {
+        val elements = doc.getElementsByTag("img").filter { element -> element.hasAttr("src") }
+        for (element in elements) {
+            val imageFile = downloadImage(element, novelDir)
+            if (imageFile != null) {
+                element.removeAttr("src")
+                element.attr("src", "./${imageFile.name}")
+            }
+        }
+    }
+
+    private fun downloadImage(element: Element, dir: File): File? {
+        val uri = Uri.parse(element.attr("src"))
+        val fileName = uri.lastPathSegment.writableFileName()
+        val file = File(dir, fileName)
+        val response: Connection.Response?
+        try {
+            response = Jsoup.connect(uri.toString()).userAgent(USER_AGENT).ignoreContentType(true).execute()
+            val bytes = response.bodyAsBytes()
+            val bitmap = Util.getImage(bytes)
+            val os = FileOutputStream(file)
+            bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, os)
+        } catch (e: Exception) {
+            Log.e(TAG, uri.toString(), e)
+            return null
+        }
+        return file
     }
 
     private fun downloadFile(element: Element, dir: File): File? {
@@ -159,7 +179,7 @@ class DownloadService : IntentService(TAG) {
         try {
             doc = Jsoup.connect(uri.toString()).userAgent(USER_AGENT).ignoreContentType(true).get()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, uri.toString(), e)
             return null
         }
         return convertDocToFile(doc, file)

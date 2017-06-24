@@ -28,9 +28,9 @@ public class DownloadButton extends RelativeLayout {
 
         View view = inflate(getContext(), R.layout.download_button, this);
         // Initializing color values
-        mPrimaryColor = Util.getThemePrimaryColor(context);
-        mAccentColor = Util.getThemeAccentColor(context);
-        mAccentColorLight = Util.lighten(mAccentColor, 0.5f);
+        mPrimaryColor = Util.INSTANCE.getThemePrimaryColor(context);
+        mAccentColor = Util.INSTANCE.getThemeAccentColor(context);
+        mAccentColorLight = Util.INSTANCE.lighten(mAccentColor, 0.5f);
     }
 
 

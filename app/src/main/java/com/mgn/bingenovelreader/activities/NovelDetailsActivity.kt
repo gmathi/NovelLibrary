@@ -52,13 +52,13 @@ class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage>
         adapter = GenericAdapter(items = chapters, layoutResId = R.layout.listitem_string, listener = this)
         recyclerView.setDefaults(adapter)
 
-        setFab(R.color.colorAccent, R.drawable.ic_delete_black_vector, { broadcastNovelDelete() }, android.R.color.white)
+        setFab(R.color.colorAccent, R.drawable.ic_delete_black_vector, { deleteNovel() }, android.R.color.white)
         if (chapters.isEmpty()) {
             setLoadingView(R.drawable.no_chapters, "There are no chapters!! (╥﹏╥)")
             recyclerView.visibility = View.INVISIBLE
             enableLoadingView(true)
         } else {
-    //        setFab(R.color.colorAccent, R.drawable.ic_favorite_black_vector, null, android.R.color.white)
+            //        setFab(R.color.colorAccent, R.drawable.ic_favorite_black_vector, null, android.R.color.white)
         }
     }
 
@@ -69,18 +69,23 @@ class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage>
 
     override fun onItemClick(item: WebPage) {
         toast("${item.chapter} Clicked")
+        startReaderActivity(item.filePath)
     }
 
-    private fun broadcastNovelDelete() {
-        dbHelper.cleanupNovelData(novel!!.id)
-        val localIntent = Intent()
-        val extras = Bundle()
-        extras.putLong(Constants.NOVEL_ID, novel!!.id)
-        localIntent.action = Constants.NOVEL_DELETED
-        localIntent.putExtras(extras)
-        localIntent.addCategory(Intent.CATEGORY_DEFAULT)
-        sendBroadcast(localIntent)
-        setResult(Constants.NOVEL_DETAILS_RES_CODE, localIntent)
+    private fun startReaderActivity(filePath: String?) {
+        val intent = Intent(this, ReaderActivity::class.java)
+        intent.putExtra("filePath", filePath)
+        startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
+    }
+
+    private fun deleteNovel() {
+        Util.deleteNovel(this, novel)
+        val intent = Intent()
+        val bundle = Bundle()
+        bundle.putLong(Constants.NOVEL_ID, novel!!.id)
+        intent.putExtras(bundle)
+        setResult(Constants.NOVEL_DETAILS_RES_CODE, intent)
         finish()
     }
+
 }
