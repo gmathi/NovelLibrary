@@ -63,6 +63,15 @@
             android:taskAffinity=""
             android:theme="@style/SlidingAppTheme">
         </activity>
+        <activity
+            android:name=".activities.ReaderPagerActivity"
+            android:label="@string/title_activity_reader_pager"
+            android:parentActivityName=".activities.NovelDetailsActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.mgn.bingenovelreader.activities.NovelDetailsActivity"/>
+        </activity>
     </application>
 
 </manifest>

@@ -30,7 +30,7 @@ class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage>
         //Get Data From Intent & Database
         val novelId = intent.getLongExtra(Constants.NOVEL_ID, -1L)
         if (novelId != -1L) novel = dbHelper.getNovel(novelId)
-        if (novel != null) chapters = ArrayList(dbHelper.getAllWebPages(novelId))
+        if (novel != null) chapters = ArrayList(dbHelper.getAllReadableWebPages(novelId))
         else
             finish()
 
@@ -69,12 +69,13 @@ class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage>
 
     override fun onItemClick(item: WebPage) {
         toast("${item.chapter} Clicked")
-        startReaderActivity(item.filePath)
+        startReaderActivity(item)
     }
 
-    private fun startReaderActivity(filePath: String?) {
-        val intent = Intent(this, ReaderActivity::class.java)
-        intent.putExtra("filePath", filePath)
+    private fun startReaderActivity(webPage: WebPage) {
+        val intent = Intent(this, ReaderPagerActivity::class.java)
+        intent.putExtra(Constants.NOVEL_ID, webPage.novelId)
+        intent.putExtra(Constants.WEB_PAGE_ID, webPage.id)
         startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
     }
 

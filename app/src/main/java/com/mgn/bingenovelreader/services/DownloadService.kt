@@ -16,7 +16,6 @@ import com.mgn.bingenovelreader.utils.HostNames.USER_AGENT
 import com.mgn.bingenovelreader.utils.Util
 import com.mgn.bingenovelreader.utils.getFileName
 import com.mgn.bingenovelreader.utils.writableFileName
-import org.jsoup.Connection
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -127,6 +126,7 @@ class DownloadService : IntentService(TAG) {
         webPage.title = doc.head().getElementsByTag("title").text()
         val file = convertDocToFile(doc, File(novelDir, webPage.title!!.writableFileName()))
         webPage.filePath = file.path
+        webPage.url = doc.location()
         val id = dbHelper.updateWebPage(webPage)
         return (id.toInt() != -1)
     }
@@ -155,12 +155,12 @@ class DownloadService : IntentService(TAG) {
 
     private fun downloadImage(element: Element, dir: File): File? {
         val uri = Uri.parse(element.attr("src"))
-        val fileName = uri.lastPathSegment.writableFileName()
-        val file = File(dir, fileName)
-        val response: Connection.Response?
+        val file: File
         try {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: " + uri.toString())
-            response = Jsoup.connect(uri.toString()).userAgent(USER_AGENT).ignoreContentType(true).execute()
+            val fileName = uri.lastPathSegment.writableFileName()
+            file = File(dir, fileName)
+            val response = Jsoup.connect(uri.toString()).userAgent(USER_AGENT).ignoreContentType(true).execute()
             val bytes = response.bodyAsBytes()
             val bitmap = Util.getImage(bytes)
             val os = FileOutputStream(file)
@@ -174,10 +174,12 @@ class DownloadService : IntentService(TAG) {
 
     private fun downloadFile(element: Element, dir: File): File? {
         val uri = Uri.parse(element.absUrl("href"))
-        val fileName = uri.getFileName()
-        val file = File(dir, fileName)
-        val doc: Document?
+        val file: File
+        val doc: Document
         try {
+            if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: " + uri.toString())
+            val fileName = uri.getFileName()
+            file = File(dir, fileName)
             doc = Jsoup.connect(uri.toString()).userAgent(USER_AGENT).ignoreContentType(true).get()
         } catch (e: Exception) {
             Log.e(TAG, uri.toString(), e)

@@ -28,6 +28,7 @@ public class Constants {
 
     //region Intent Keys
     public static final String NOVEL_ID = "novelId";
+    public static final String WEB_PAGE_ID = "webPageId";
     public static final String TOTAL_CHAPTERS_COUNT = "totalChaptersCount";
     public static final String CURRENT_CHAPTER_COUNT = "currentChapterCount";
 

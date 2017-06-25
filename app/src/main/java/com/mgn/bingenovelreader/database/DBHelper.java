@@ -357,6 +357,7 @@ public class DBHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(KEY_TITLE, arg.getTitle());
+        values.put(KEY_URL, arg.getUrl());
         values.put(KEY_FILE_PATH, arg.getFilePath());
 
         // updating row
@@ -704,6 +705,32 @@ public class DBHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(KEY_STATUS, status);
         db.update(TABLE_DOWNLOAD_QUEUE, values, null, null);
+    }
+
+    public List<WebPage> getAllReadableWebPages(long novelId) {
+        List<WebPage> list = new ArrayList<WebPage>();
+        String selectQuery = "SELECT * FROM " + TABLE_WEB_PAGE + " WHERE "
+                + KEY_NOVEL_ID + " = " + novelId + " AND file_path IS NOT NULL ORDER BY " + KEY_ID + " ASC";
+        Log.d(LOG, selectQuery);
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    WebPage entry = new WebPage();
+                    entry.setId(cursor.getLong(cursor.getColumnIndex(KEY_ID)));
+                    entry.setUrl(cursor.getString(cursor.getColumnIndex(KEY_URL)));
+                    entry.setChapter(cursor.getString(cursor.getColumnIndex(KEY_CHAPTER)));
+                    entry.setTitle(cursor.getString(cursor.getColumnIndex(KEY_TITLE)));
+                    entry.setFilePath(cursor.getString(cursor.getColumnIndex(KEY_FILE_PATH)));
+                    entry.setNovelId(cursor.getLong(cursor.getColumnIndex(KEY_NOVEL_ID)));
+
+                    list.add(entry);
+                } while (cursor.moveToNext());
+            }
+        }
+        return list;
     }
 }
 

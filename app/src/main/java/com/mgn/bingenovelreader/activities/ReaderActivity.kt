@@ -23,6 +23,7 @@ class ReaderActivity : AppCompatActivity() {
     fun setWebView() {
         readerWebView.setWebViewClient(object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+
                 return false
             }
         })
