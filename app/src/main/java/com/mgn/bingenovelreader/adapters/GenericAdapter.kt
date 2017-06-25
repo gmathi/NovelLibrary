@@ -43,6 +43,14 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
         }
 
         //otherwise TODO: Revisit this
+//        if (newItems.size > items.size) {
+//            items.forEach { newItems.remove(it) }
+//            val size = items.size
+//            items.addAll(newItems)
+//            notifyItemRangeInserted(size - 1, newItems.size)
+//            return
+//        }
+
         items.clear()
         items.addAll(newItems)
         notifyDataSetChanged()

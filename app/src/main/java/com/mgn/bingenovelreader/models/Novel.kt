@@ -17,9 +17,7 @@ class Novel {
     override fun equals(o: Any?): Boolean {
         if (this === o) return true
         if (o == null || javaClass != o.javaClass) return false
-
         val novel = o as Novel?
-
         return if (name != null) name == novel!!.name else novel!!.name == null
     }
 

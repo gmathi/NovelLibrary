@@ -24,4 +24,11 @@ class WebPage {
     var novelId: Long = 0
     var pageData: String? = null
 
+    override fun equals(o: Any?): Boolean {
+        if (this === o) return true
+        if (o == null || javaClass != o.javaClass) return false
+        val webPage = o as WebPage?
+        return if (webPage != null) id == webPage.id else false
+    }
+
 }

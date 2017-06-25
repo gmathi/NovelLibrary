@@ -36,7 +36,7 @@ class DownloadService : IntentService(TAG) {
 
     override fun onHandleIntent(workIntent: Intent) {
         dbHelper = DBHelper(applicationContext)
-        android.os.Debug.waitForDebugger()
+        //android.os.Debug.waitForDebugger()
         if (!isDownloading) {
             isDownloading = true
             checkDownloadQueue()

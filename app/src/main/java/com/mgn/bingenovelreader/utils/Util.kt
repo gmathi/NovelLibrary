@@ -12,6 +12,7 @@ import android.util.Log
 import android.util.TypedValue
 import com.mgn.bingenovelreader.BuildConfig
 import com.mgn.bingenovelreader.R
+import com.mgn.bingenovelreader.database.getNovel
 import com.mgn.bingenovelreader.dbHelper
 import com.mgn.bingenovelreader.models.Novel
 import java.io.ByteArrayOutputStream
