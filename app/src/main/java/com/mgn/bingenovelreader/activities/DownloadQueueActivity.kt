@@ -10,6 +10,9 @@ import android.support.v7.app.AppCompatActivity
 import android.view.View
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.adapters.GenericAdapter
+import com.mgn.bingenovelreader.database.getAllDownloadQueue
+import com.mgn.bingenovelreader.database.getNovel
+import com.mgn.bingenovelreader.database.updateDownloadQueueStatus
 import com.mgn.bingenovelreader.dbHelper
 import com.mgn.bingenovelreader.models.DownloadQueue
 import com.mgn.bingenovelreader.models.Novel
@@ -39,7 +42,7 @@ class DownloadQueueActivity : AppCompatActivity(), GenericAdapter.Listener<Downl
             }
         }
 
-        if (dbHelper.firstDownloadableQueueItem != null) {
+        if (dbHelper.getFirstDownloadableQueueItem() != null) {
             fab.setImageResource(R.drawable.ic_pause_black_vector)
             fab.tag = "playing"
         } else {
@@ -66,7 +69,7 @@ class DownloadQueueActivity : AppCompatActivity(), GenericAdapter.Listener<Downl
     }
 
     private fun setRecyclerView() {
-        val items = dbHelper.allDownloadQueue
+        val items = dbHelper.getAllDownloadQueue()
         adapter = GenericAdapter(items = ArrayList(items), layoutResId = R.layout.listitem_string, listener = this)
         downloadQueueRecyclerView.setDefaults(adapter)
     }

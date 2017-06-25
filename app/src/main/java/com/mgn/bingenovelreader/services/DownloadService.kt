@@ -6,7 +6,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import com.mgn.bingenovelreader.database.DBHelper
+import com.mgn.bingenovelreader.database.*
 import com.mgn.bingenovelreader.models.DownloadQueue
 import com.mgn.bingenovelreader.models.Novel
 import com.mgn.bingenovelreader.models.WebPage
@@ -45,11 +45,12 @@ class DownloadService : IntentService(TAG) {
     }
 
     private fun checkDownloadQueue() {
-        var downloadQueue = dbHelper.firstDownloadableQueueItem
+        var downloadQueue = dbHelper.getFirstDownloadableQueueItem()
         while (downloadQueue != null) {
             val novel = dbHelper.getNovel(downloadQueue.novelId)
-            startDownload(novel, downloadQueue)
-            downloadQueue = dbHelper.firstDownloadableQueueItem
+            if (novel != null)
+                startDownload(novel, downloadQueue)
+            downloadQueue = dbHelper.getFirstDownloadableQueueItem()
         }
     }
 
@@ -70,7 +71,7 @@ class DownloadService : IntentService(TAG) {
             if (chapters.isNotEmpty()) {
                 chapters.asReversed().forEach {
                     it.novelId = novel.id
-                    val dbWebPage = dbHelper.getWebPage(it.novelId, it.url)
+                    val dbWebPage = dbHelper.getWebPage(it.novelId, it.url!!)
                     if (dbWebPage == null)
                         it.id = dbHelper.createWebPage(it)
                     else
@@ -126,7 +127,7 @@ class DownloadService : IntentService(TAG) {
         webPage.title = doc.head().getElementsByTag("title").text()
         val file = convertDocToFile(doc, File(novelDir, webPage.title!!.writableFileName()))
         webPage.filePath = file.path
-        webPage.url = doc.location()
+        webPage.redirectedUrl = doc.location()
         val id = dbHelper.updateWebPage(webPage)
         return (id.toInt() != -1)
     }

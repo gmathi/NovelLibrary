@@ -14,6 +14,7 @@ import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.adapters.GenericAdapter
+import com.mgn.bingenovelreader.database.createDownloadQueue
 import com.mgn.bingenovelreader.dbHelper
 import com.mgn.bingenovelreader.models.Novel
 import com.mgn.bingenovelreader.network.NovelApi

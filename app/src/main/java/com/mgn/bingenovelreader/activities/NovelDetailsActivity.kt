@@ -9,6 +9,8 @@ import android.util.TypedValue
 import android.view.View
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.adapters.GenericAdapter
+import com.mgn.bingenovelreader.database.getAllReadableWebPages
+import com.mgn.bingenovelreader.database.getNovel
 import com.mgn.bingenovelreader.dbHelper
 import com.mgn.bingenovelreader.models.Novel
 import com.mgn.bingenovelreader.models.WebPage

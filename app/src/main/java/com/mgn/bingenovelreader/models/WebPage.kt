@@ -17,6 +17,7 @@ class WebPage {
 
     var id: Long? = -1
     var url: String? = null
+    var redirectedUrl: String? = null
     var title: String? = null
     var chapter: String? = null
     var filePath: String? = null

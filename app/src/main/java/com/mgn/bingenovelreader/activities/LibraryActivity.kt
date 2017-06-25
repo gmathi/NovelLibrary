@@ -9,6 +9,7 @@ import android.view.View
 import com.bumptech.glide.Glide
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.adapters.GenericAdapter
+import com.mgn.bingenovelreader.database.getAllNovels
 import com.mgn.bingenovelreader.dbHelper
 import com.mgn.bingenovelreader.models.Novel
 import com.mgn.bingenovelreader.utils.Constants
@@ -96,9 +97,8 @@ class LibraryActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
             fabMenu.close(true)
     }
 
-    private fun getAllNovels(): MutableList<Novel>? {
-        val novels = dbHelper.allNovels
-        return novels
+    private fun getAllNovels(): List<Novel> {
+        return dbHelper.getAllNovels()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

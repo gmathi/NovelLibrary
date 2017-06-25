@@ -11,6 +11,8 @@ import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.mgn.bingenovelreader.R
+import com.mgn.bingenovelreader.database.getAllReadableWebPages
+import com.mgn.bingenovelreader.database.updateCurrentWebPageId
 import com.mgn.bingenovelreader.dbHelper
 import com.mgn.bingenovelreader.models.WebPage
 import com.mgn.bingenovelreader.utils.Constants
@@ -33,8 +35,11 @@ class ReaderPagerActivity : AppCompatActivity() {
         adapter = WebPageAdapter(supportFragmentManager, chapters, object : WebPageAdapter.Listener {
             override fun checkUrl(url: String?) {
                 if (url != null) {
-                    val index = chapters.indexOfFirst { it.url!!.contains(url) }
-                    if (index != -1) viewPager.currentItem = index
+                    val index = chapters.indexOfFirst { it.redirectedUrl!!.contains(url) }
+                    if (index != -1) {
+                        viewPager.currentItem = index
+                        dbHelper.updateCurrentWebPageId(chapters[index].novelId, chapters[index].id)
+                    }
                 }
             }
         })
