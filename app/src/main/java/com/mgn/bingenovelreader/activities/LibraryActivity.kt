@@ -5,13 +5,19 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
+import android.support.v4.content.ContextCompat
+import android.support.v4.graphics.drawable.DrawableCompat
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import com.bumptech.glide.Glide
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.adapters.GenericAdapter
+import com.mgn.bingenovelreader.database.createDownloadQueue
 import com.mgn.bingenovelreader.database.getAllNovels
 import com.mgn.bingenovelreader.dbHelper
 import com.mgn.bingenovelreader.models.Novel
+import com.mgn.bingenovelreader.services.DownloadService
 import com.mgn.bingenovelreader.utils.Constants
 import com.mgn.bingenovelreader.utils.setDefaults
 import kotlinx.android.synthetic.main.activity_library.*
@@ -130,5 +136,33 @@ class LibraryActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
         return actions
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_library, menu)
+        val drawable = DrawableCompat.wrap(menu.findItem(R.id.action_sync).icon)
+        DrawableCompat.setTint(drawable, ContextCompat.getColor(this, R.color.white))
+        menu.findItem(R.id.action_sync).icon = drawable
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.action_sync -> {
+                syncNovels()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun syncNovels() {
+        getAllNovels().forEach { dbHelper.createDownloadQueue(it.id) }
+        startDownloadService(1L)
+    }
+
+    private fun startDownloadService(novelId: Long) {
+        val serviceIntent = Intent(this, DownloadService::class.java)
+        serviceIntent.putExtra(Constants.NOVEL_ID, novelId)
+        startService(serviceIntent)
+    }
 
 }

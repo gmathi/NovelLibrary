@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Binge Novel Reader</string>
     <string name="action_settings">Settings</string>
+    <string name="action_sync">Sync for updates</string>
     <string name="title_activity_offline_downloader">OfflineDownloaderActivity</string>
     <string name="title_activity_downloader">Offline Novel Downloader</string>
     <string name="large_text">
