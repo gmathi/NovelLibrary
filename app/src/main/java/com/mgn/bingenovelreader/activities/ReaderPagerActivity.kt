@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentPagerAdapter
+import android.support.v4.view.ViewPager
 import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.View
@@ -19,7 +20,7 @@ import com.mgn.bingenovelreader.utils.Constants
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.fragment_reader.*
 
-class ReaderPagerActivity : AppCompatActivity() {
+class ReaderPagerActivity : AppCompatActivity(), ViewPager.OnPageChangeListener {
 
     private var adapter: WebPageAdapter? = null
     private var chapters = ArrayList<WebPage>()
@@ -43,12 +44,27 @@ class ReaderPagerActivity : AppCompatActivity() {
                 }
             }
         })
+
+        viewPager.addOnPageChangeListener(this)
         viewPager.adapter = adapter
 
         val webPageId = intent.getLongExtra(Constants.WEB_PAGE_ID, -1L)
         if (webPageId != -1L) {
             viewPager.currentItem = chapters.indexOfFirst { it.id == webPageId }
+            dbHelper.updateCurrentWebPageId(novelId, webPageId)
         }
+    }
+
+    override fun onPageSelected(position: Int) {
+        dbHelper.updateCurrentWebPageId(chapters[position].novelId, chapters[position].id)
+    }
+
+    override fun onPageScrollStateChanged(position: Int) {
+        //Do Nothing
+    }
+
+    override fun onPageScrolled(p0: Int, p1: Float, p2: Int) {
+        //Do Nothing
     }
 
 

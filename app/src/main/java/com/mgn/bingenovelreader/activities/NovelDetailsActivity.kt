@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Rect
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DividerItemDecoration
@@ -30,13 +31,11 @@ import java.io.FileInputStream
 class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage> {
 
     var novel: Novel? = null
-    var chapters: ArrayList<WebPage> = ArrayList()
-
     lateinit var adapter: GenericAdapter<WebPage>
     lateinit var broadcastReceiver: BroadcastReceiver
 
     override fun init(savedInstanceState: Bundle?) {
-
+        var chapters: ArrayList<WebPage> = ArrayList()
         //Get Data From Intent & Database
         run {
             val novelId = intent.getLongExtra(Constants.NOVEL_ID, -1L)
@@ -45,7 +44,6 @@ class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage>
             else
                 finish()
         }
-
         setContent(R.layout.content_novel_details)
         title = novel?.name
 
@@ -97,8 +95,28 @@ class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage>
     }
 
     override fun bind(item: WebPage, itemView: View) {
-        itemView.listItemTitle.text = item.title
-        itemView.listItemTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14.toFloat())
+        if (novel!!.currentWebPageId < item.id!!) {
+            itemView.novelDetailsOverlay.visibility = View.INVISIBLE
+            itemView.novelDetailsIcon.visibility = View.GONE
+        } else {
+            itemView.novelDetailsOverlay.visibility = View.VISIBLE
+            itemView.novelDetailsIcon.visibility = View.VISIBLE
+            itemView.novelDetailsIcon.setImageResource(R.drawable.ic_remove_red_eye_black_vector)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                itemView.novelDetailsIcon.drawable.mutate().setTint(ContextCompat.getColor(this, R.color.DimGray))
+            }
+        }
+        if (novel!!.currentWebPageId == item.id!!) {
+            itemView.novelDetailsOverlay.visibility = View.INVISIBLE
+            itemView.novelDetailsIcon.visibility = View.VISIBLE
+            itemView.novelDetailsIcon.setImageResource(R.drawable.ic_bookmark_black_vector)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                itemView.novelDetailsIcon.drawable.mutate().setTint(ContextCompat.getColor(this, android.R.color.holo_orange_light))
+            }
+        }
+
+        itemView.novelDetailsTitle.text = item.chapter + ": " + item.title
+        itemView.novelDetailsTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14.toFloat())
     }
 
     override fun onItemClick(item: WebPage) {
@@ -110,7 +128,7 @@ class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage>
         val intent = Intent(this, ReaderPagerActivity::class.java)
         intent.putExtra(Constants.NOVEL_ID, webPage.novelId)
         intent.putExtra(Constants.WEB_PAGE_ID, webPage.id)
-        startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
+        startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
     }
 
     private fun deleteNovel() {
@@ -128,6 +146,13 @@ class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage>
         registerReceiver()
     }
 
+    override fun onPostResume() {
+        super.onPostResume()
+        val index = adapter.items.indexOfFirst { it.id == novel?.currentWebPageId }
+        if (index != -1) recyclerView.smoothScrollToPosition(index)
+
+    }
+
     override fun onPause() {
         unregisterReceiver(broadcastReceiver)
         super.onPause()
@@ -138,6 +163,22 @@ class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage>
         filter.addAction(Constants.DOWNLOAD_QUEUE_NOVEL_UPDATE)
         filter.addCategory(Intent.CATEGORY_DEFAULT)
         registerReceiver(broadcastReceiver, filter)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == Constants.READER_ACT_REQ_CODE) {
+            refreshRecyclerView()
+        }
+
+    }
+
+    private fun refreshRecyclerView() {
+        novel = dbHelper.getNovel(novel!!.id)
+        val chapters = ArrayList(dbHelper.getAllReadableWebPages(novel!!.id))
+        adapter.updateData(chapters)
+        val index = chapters.indexOfFirst { it.id == novel?.currentWebPageId }
+        if (index != -1) recyclerView.smoothScrollToPosition(index)
     }
 
 }

@@ -48,6 +48,7 @@ public class Constants {
     public static final int SEARCH_REQ_CODE = 1;
     public static final int NOVEL_DETAILS_REQ_CODE = 2;
     public static final int NOVEL_DETAILS_RES_CODE = 3;
+    public static final int READER_ACT_REQ_CODE = 4;
 
 
     //endregion
