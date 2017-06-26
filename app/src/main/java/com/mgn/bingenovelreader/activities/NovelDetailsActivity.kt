@@ -9,11 +9,13 @@ import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
 import android.util.TypedValue
 import android.view.View
+import com.klinker.android.sliding.TouchlessScrollView
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.adapters.GenericAdapter
 import com.mgn.bingenovelreader.database.getAllReadableWebPages
@@ -148,9 +150,11 @@ class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage>
 
     override fun onPostResume() {
         super.onPostResume()
-        val index = adapter.items.indexOfFirst { it.id == novel?.currentWebPageId }
-        if (index != -1) recyclerView.smoothScrollToPosition(index)
-
+        Handler().postDelayed({
+            val index = adapter.items.indexOfFirst { it.id == novel?.currentWebPageId }
+            if (index != -1)
+                (findViewById(R.id.content_scroller) as TouchlessScrollView?)?.smoothScrollTo(0, recyclerView.getChildAt(index).y.toInt() - 100)
+        }, 400)
     }
 
     override fun onPause() {
@@ -170,7 +174,6 @@ class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage>
         if (requestCode == Constants.READER_ACT_REQ_CODE) {
             refreshRecyclerView()
         }
-
     }
 
     private fun refreshRecyclerView() {
@@ -178,7 +181,8 @@ class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage>
         val chapters = ArrayList(dbHelper.getAllReadableWebPages(novel!!.id))
         adapter.updateData(chapters)
         val index = chapters.indexOfFirst { it.id == novel?.currentWebPageId }
-        if (index != -1) recyclerView.smoothScrollToPosition(index)
+        if (index != -1)
+            (findViewById(R.id.content_scroller) as TouchlessScrollView?)?.smoothScrollTo(0, recyclerView.getChildAt(index).y.toInt())
     }
 
 }
