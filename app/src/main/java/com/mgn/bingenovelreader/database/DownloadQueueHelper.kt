@@ -99,7 +99,7 @@ fun DBHelper.updateChapterUrlsCached(chapterUrlsCached: Long, novelId: Long): Lo
     return this.writableDatabase.update(DBKeys.TABLE_DOWNLOAD_QUEUE, values, DBKeys.KEY_NOVEL_ID + " = ?", arrayOf(novelId.toString())).toLong()
 }
 
-fun DBHelper.updateDownloadQueueStatus(status: Int) {
+fun DBHelper.updateAllDownloadQueueStatuses(status: Int) {
     val values = ContentValues()
     values.put(DBKeys.KEY_STATUS, status)
     this.writableDatabase.update(DBKeys.TABLE_DOWNLOAD_QUEUE, values, null, null)

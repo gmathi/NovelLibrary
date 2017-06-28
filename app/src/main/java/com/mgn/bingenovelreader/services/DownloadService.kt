@@ -26,30 +26,38 @@ import java.util.*
 
 class DownloadService : IntentService(TAG) {
 
-    private var isDownloading = false
     lateinit var dbHelper: DBHelper
 
     //static components
     companion object {
         val TAG = "DownloadService"
+        var IS_DOWNLOADING = false
+        var NOVEL_ID = -1L
     }
 
     override fun onHandleIntent(workIntent: Intent) {
         dbHelper = DBHelper(applicationContext)
+
+        NOVEL_ID = workIntent.getLongExtra(Constants.NOVEL_ID, -1L)
         //android.os.Debug.waitForDebugger()
-        if (!isDownloading) {
-            isDownloading = true
+        if (!IS_DOWNLOADING) {
+            IS_DOWNLOADING = true
             checkDownloadQueue()
-            isDownloading = false
+            IS_DOWNLOADING = false
+            NOVEL_ID = -1L
         }
     }
 
     private fun checkDownloadQueue() {
         var downloadQueue = dbHelper.getFirstDownloadableQueueItem()
+        if (NOVEL_ID != -1L)
+            downloadQueue = dbHelper.getDownloadQueue(NOVEL_ID)
         while (downloadQueue != null) {
             val novel = dbHelper.getNovel(downloadQueue.novelId)
-            if (novel != null)
+            if (novel != null) {
+                NOVEL_ID = novel.id
                 startDownload(novel, downloadQueue)
+            }
             downloadQueue = dbHelper.getFirstDownloadableQueueItem()
         }
     }
@@ -57,7 +65,7 @@ class DownloadService : IntentService(TAG) {
 
     fun startDownload(novel: Novel, downloadQueue: DownloadQueue) {
         val hostDir = Util.getHostDir(applicationContext, novel.url!!)
-        val novelDir = Util.getNovelDir(applicationContext, hostDir, novel.name!!)
+        val novelDir = Util.getNovelDir(hostDir, novel.name!!)
 
         val chapters: ArrayList<WebPage>
 
@@ -118,7 +126,7 @@ class DownloadService : IntentService(TAG) {
         try {
             doc = NovelApi().getDocumentWithUserAgent(webPage.url!!)
         } catch (e: Exception) {
-            Log.e(TAG, webPage.url!!)
+            Log.w(TAG, webPage.url!!)
             e.printStackTrace()
             return false
         }
@@ -167,7 +175,7 @@ class DownloadService : IntentService(TAG) {
             val os = FileOutputStream(file)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os)
         } catch (e: Exception) {
-            Log.e(TAG, uri.toString(), e)
+            Log.w(TAG, uri.toString(), e)
             return null
         }
         return file
@@ -183,7 +191,7 @@ class DownloadService : IntentService(TAG) {
             file = File(dir, fileName)
             doc = Jsoup.connect(uri.toString()).userAgent(USER_AGENT).ignoreContentType(true).get()
         } catch (e: Exception) {
-            Log.e(TAG, uri.toString(), e)
+            Log.w(TAG, uri.toString(), e)
             return null
         }
         return convertDocToFile(doc, file)

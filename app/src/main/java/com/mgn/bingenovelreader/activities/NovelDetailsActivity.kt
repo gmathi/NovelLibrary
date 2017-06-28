@@ -26,6 +26,10 @@ import com.mgn.bingenovelreader.models.WebPage
 import com.mgn.bingenovelreader.utils.*
 import kotlinx.android.synthetic.main.content_novel_details.*
 import kotlinx.android.synthetic.main.listitem_novel_details.view.*
+import org.jetbrains.anko.Bold
+import org.jetbrains.anko.alert
+import org.jetbrains.anko.append
+import org.jetbrains.anko.buildSpanned
 import java.io.File
 import java.io.FileInputStream
 
@@ -75,7 +79,7 @@ class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage>
             }
         })
 
-        setFab(R.color.colorAccent, R.drawable.ic_delete_black_vector, { deleteNovel() }, android.R.color.white)
+        setFab(R.color.colorAccent, R.drawable.ic_delete_black_vector, { confirmDeleteAlert() }, android.R.color.white)
         if (chapters.isEmpty()) {
             setLoadingView(R.drawable.no_chapters, "There are no chapters!! (╥﹏╥)")
             recyclerView.visibility = View.INVISIBLE
@@ -133,6 +137,18 @@ class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage>
         startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
     }
 
+    private fun confirmDeleteAlert() {
+        //TODO: Need to make the text spannable
+        alert(buildSpanned {
+            append("Delete ")
+            append("${novel?.name}", Bold)
+            append("?")
+        }.toString(), "Confirm Delete") {
+            positiveButton("Yesh~") { deleteNovel() }
+            negativeButton("Never Mind!") { }
+        }.show()
+    }
+
     private fun deleteNovel() {
         Util.deleteNovel(this, novel)
         val intent = Intent()
@@ -184,5 +200,6 @@ class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage>
         if (index != -1)
             (findViewById(R.id.content_scroller) as TouchlessScrollView?)?.smoothScrollTo(0, recyclerView.getChildAt(index).y.toInt())
     }
+
 
 }

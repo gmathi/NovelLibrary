@@ -113,7 +113,7 @@ object Util {
         return hostDir
     }
 
-    fun getNovelDir(context: Context, hostDir: File, novelName: String): File {
+    fun getNovelDir(hostDir: File, novelName: String): File {
         val novelDir = File(hostDir, novelName.writableFileName())
         if (!novelDir.exists()) novelDir.mkdir()
         return novelDir
@@ -126,7 +126,7 @@ object Util {
     fun deleteNovel(context: Context, novel: Novel?) {
         if (novel == null) return
         val hostDir = getHostDir(context, novel.url!!)
-        val novelDir = getNovelDir(context, hostDir, novel.name!!)
+        val novelDir = getNovelDir(hostDir, novel.name!!)
         novelDir.deleteRecursively()
         dbHelper.cleanupNovelData(novel.id)
         broadcastNovelDelete(context, novel)

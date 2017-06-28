@@ -86,7 +86,7 @@ class LibraryActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
     }
 
     private fun startDownloadQueueActivity() {
-        startActivity(Intent(this, DownloadQueueActivity::class.java))
+        startActivityForResult(Intent(this, DownloadQueueActivity::class.java), Constants.DOWNLOAD_QUEUE_ACT_RES_CODE)
     }
 
     fun startNovelDetailsActivity(novelId: Long) {
@@ -122,6 +122,10 @@ class LibraryActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
                 Handler().postDelayed({ lastDeletedId = -1 }, 1500)
             }
             return
+        }
+
+        if (resultCode == Constants.DOWNLOAD_QUEUE_ACT_RES_CODE) {
+            adapter.updateData(ArrayList(dbHelper.getAllNovels()))
         }
 
     }

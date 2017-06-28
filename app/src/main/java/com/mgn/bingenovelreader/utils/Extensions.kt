@@ -50,6 +50,8 @@ fun <T> RecyclerView.setDefaults(adapter: GenericAdapter<T>): RecyclerView {
     val animator = SlideInRightAnimator(OvershootInterpolator(1f))
     animator.addDuration = 1000
     animator.removeDuration = 1000
+    animator.changeDuration = 0
+    animator.moveDuration = 1000
 
     this.setHasFixedSize(true)
     this.layoutManager = SnappingLinearLayoutManager(context)
