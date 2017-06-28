@@ -134,10 +134,13 @@ class DownloadService : IntentService(TAG) {
         downloadImages(doc, novelDir)
         webPage.title = doc.head().getElementsByTag("title").text()
         val file = convertDocToFile(doc, File(novelDir, webPage.title!!.writableFileName()))
-        webPage.filePath = file.path
-        webPage.redirectedUrl = doc.location()
-        val id = dbHelper.updateWebPage(webPage)
-        return (id.toInt() != -1)
+        if (file != null) {
+            webPage.filePath = file.path
+            webPage.redirectedUrl = doc.location()
+            val id = dbHelper.updateWebPage(webPage)
+            return (id.toInt() != -1)
+        }
+        return false
     }
 
 
@@ -197,12 +200,18 @@ class DownloadService : IntentService(TAG) {
         return convertDocToFile(doc, file)
     }
 
-    private fun convertDocToFile(doc: Document, file: File): File {
-        if (file.exists()) return file
-        val stream = FileOutputStream(file)
-        val content = doc.body().html()
-        stream.use { stream ->
-            stream.write(content.toByteArray())
+    private fun convertDocToFile(doc: Document, file: File): File? {
+        try {
+
+            if (file.exists()) return file
+            val stream = FileOutputStream(file)
+            val content = doc.body().html()
+            stream.use { stream ->
+                stream.write(content.toByteArray())
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "convertDocToFile: ${e.localizedMessage}", e)
+            return null
         }
         return file
     }

@@ -125,10 +125,17 @@ class DownloadQueueActivity : AppCompatActivity(), GenericAdapter.Listener<Downl
             if (item.status.toInt() == Constants.STATUS_DOWNLOAD) {
                 dbHelper.updateDownloadQueueStatus(Constants.STATUS_STOPPED.toLong(), item.novelId)
                 itemView.downloadPauseButton.setImageResource(R.drawable.ic_play_arrow_black_vector)
+                if (dbHelper.getFirstDownloadableQueueItem() == null) {
+                    fab.setImageResource(R.drawable.ic_play_arrow_black_vector)
+                    fab.tag = "paused"
+                }
+
             } else if (item.status.toInt() == Constants.STATUS_STOPPED) {
                 dbHelper.updateDownloadQueueStatus(Constants.STATUS_DOWNLOAD.toLong(), item.novelId)
                 itemView.downloadPauseButton.setImageResource(R.drawable.ic_pause_black_vector)
                 startDownloadService(item.novelId)
+                fab.setImageResource(R.drawable.ic_pause_black_vector)
+                fab.tag = "playing"
             }
         }
 
@@ -164,8 +171,6 @@ class DownloadQueueActivity : AppCompatActivity(), GenericAdapter.Listener<Downl
 
     private fun manageBroadcasts(intent: Intent) {
         if (intent.action == Constants.DOWNLOAD_QUEUE_NOVEL_UPDATE) {
-//            dq.currentChapter = intent.extras.getInt(Constants.CURRENT_CHAPTER_COUNT).toLong()
-//            dq.totalChapters = intent.extras.getInt(Constants.TOTAL_CHAPTERS_COUNT).toLong()
             val dq = dbHelper.getDownloadQueue(intent.extras.getLong(Constants.NOVEL_ID))
             if (dq != null)
                 adapter.updateItem(dq)
@@ -174,6 +179,10 @@ class DownloadQueueActivity : AppCompatActivity(), GenericAdapter.Listener<Downl
             val dq = DownloadQueue()
             dq.novelId = intent.extras.getLong(Constants.NOVEL_ID)
             adapter.removeItem(dq)
+            if (adapter.items.size == 0) {
+                fab.setImageResource(R.drawable.ic_play_arrow_black_vector)
+                fab.tag = "paused"
+            }
         }
     }
 
@@ -201,6 +210,10 @@ class DownloadQueueActivity : AppCompatActivity(), GenericAdapter.Listener<Downl
         setResult(Constants.DOWNLOAD_QUEUE_ACT_RES_CODE, Intent())
         val index = adapter.items.indexOfFirst { it.novelId == novel.id }
         if (index != -1) adapter.removeItemAt(index)
+        if (adapter.items.size == 0) {
+            fab.setImageResource(R.drawable.ic_play_arrow_black_vector)
+            fab.tag = "paused"
+        }
     }
 
 }
