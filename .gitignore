@@ -42,6 +42,7 @@ captures/
 
 # Keystore files
 *.jks
+*.keystore
 
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild
@@ -54,3 +55,8 @@ freeline.py
 freeline/
 freeline_project_description.json
 app/release/output.json
+
+.idea/inspectionProfiles/Project_Default.xml
+.idea/misc.xml
+
+keystore.properties

@@ -16,7 +16,7 @@ class CardListItemAdapter(val context: Context, var cacheTitles: ArrayList<Strin
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         var view: View? = convertView
         if (view == null)
-            view = LayoutInflater.from(context).inflate(R.layout.listitem_card_view, null)
+            view = LayoutInflater.from(context).inflate(R.layout.listitem_string, null)
 
         view!! // this throws a NPE if view is null
         val titleTextView: TextView = view.findViewById(R.id.listItemTitle) as TextView
@@ -42,6 +42,17 @@ class CardListItemAdapter(val context: Context, var cacheTitles: ArrayList<Strin
     fun updateData(newData: ArrayList<String>) {
         this.cacheTitles.clear()
         this.cacheTitles.addAll(newData)
+        notifyDataSetInvalidated()
+    }
+
+    fun addItem(item: String) {
+        this.cacheTitles.add(item)
+        notifyDataSetInvalidated()
+    }
+
+
+    fun removeItem(item: String) {
+        this.cacheTitles.remove(item)
         notifyDataSetInvalidated()
     }
 

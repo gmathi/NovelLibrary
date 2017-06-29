@@ -12,6 +12,7 @@ class DataCenter(context: Context) {
     val PREFS_FILENAME = "com.mgn.bookmark.preferences"
     val BOOKMARKS_LIST = "bookmarksList"
     val CACHE_LIST = "cacheList"
+    val SEARCH_HISTORY_LIST = "searchHistoryList"
 
     val prefs: SharedPreferences = context.getSharedPreferences(PREFS_FILENAME, 0)
 
@@ -26,12 +27,15 @@ class DataCenter(context: Context) {
     var cacheMap: HashMap<String, ArrayList<WebPage>> = HashMap()
 
     fun loadCacheMap() {
-       cacheMap = Gson().fromJson(cacheJson, object : TypeToken<HashMap<String, ArrayList<WebPage>>>() {}.type)
+        cacheMap = Gson().fromJson(cacheJson, object : TypeToken<HashMap<String, ArrayList<WebPage>>>() {}.type)
     }
 
     fun saveCacheMap() {
         cacheJson = Gson().toJson(cacheMap)
     }
 
+    fun loadSearchHistory(): ArrayList<String> = Gson().fromJson(prefs.getString(SEARCH_HISTORY_LIST, "[]"), object : TypeToken<ArrayList<String>>() {}.type)
+
+    fun saveSearchHistory(history: ArrayList<String>) = prefs.edit().putString(SEARCH_HISTORY_LIST, Gson().toJson(history)).apply()
 
 }

@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="com.mgn.bingenovelreader.activities.DownloaderActivity">
+    <item
+        android:id="@+id/action_sync"
+        android:icon="@drawable/ic_sync_black_vector"
+        android:title="@string/action_sync"
+        android:titleCondensed="Sync"
+        app:showAsAction="always"/>
+</menu>
