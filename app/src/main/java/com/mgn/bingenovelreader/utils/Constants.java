@@ -53,4 +53,6 @@ public class Constants {
 
 
     //endregion
+
+    public static final String[] allowedWebsites = {""};
 }

@@ -5,6 +5,7 @@ import android.os.Build
 import android.util.Log
 import android.webkit.WebView
 import com.mgn.bingenovelreader.database.DBHelper
+import com.mgn.bingenovelreader.utils.Constants
 import com.mgn.bookmark.util.DataCenter
 import java.io.File
 import java.security.KeyManagementException
@@ -40,35 +41,37 @@ class BNRApplication : Application() {
         if (!imagesDir.exists())
             imagesDir.mkdir()
 
-        try {
-            enableSSLSocket()
-        } catch (e: Exception) {
-            Log.e("BNRApplication", e.localizedMessage, e)
-        }
+        //try {
+        //    enableSSLSocket()
+        //} catch (e: Exception) {
+        //    Log.e("BNRApplication", e.localizedMessage, e)
+        //}
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true)
         }
     }
 
-    @Throws(KeyManagementException::class, NoSuchAlgorithmException::class)
-    fun enableSSLSocket() {
-        HttpsURLConnection.setDefaultHostnameVerifier { _, _ -> true }
-
-        val context = SSLContext.getInstance("TLS")
-        context.init(null, arrayOf<X509TrustManager>(object : X509TrustManager {
-            @Throws(CertificateException::class)
-            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {
-            }
-
-            @Throws(CertificateException::class)
-            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
-            }
-
-            override fun getAcceptedIssuers(): Array<X509Certificate?> {
-                return arrayOfNulls(0)
-            }
-        }), SecureRandom())
-        HttpsURLConnection.setDefaultSSLSocketFactory(context.socketFactory)
-    }
+//    @Throws(KeyManagementException::class, NoSuchAlgorithmException::class)
+//    fun enableSSLSocket() {
+//        HttpsURLConnection.setDefaultHostnameVerifier {
+//            hostName: String?, _ -> !Constants.allowedWebsites.contains(hostName)
+//        }
+//
+//        val context = SSLContext.getInstance("TLS")
+//        context.init(null, arrayOf<X509TrustManager>(object : X509TrustManager {
+//            @Throws(CertificateException::class)
+//            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {
+//            }
+//
+//            @Throws(CertificateException::class)
+//            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
+//            }
+//
+//            override fun getAcceptedIssuers(): Array<X509Certificate?> {
+//                return arrayOfNulls(0)
+//            }
+//        }), SecureRandom())
+//        HttpsURLConnection.setDefaultSSLSocketFactory(context.socketFactory)
+//    }
 }
