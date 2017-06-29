@@ -19,6 +19,7 @@ import com.klinker.android.sliding.TouchlessScrollView
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.adapters.GenericAdapter
 import com.mgn.bingenovelreader.database.getAllReadableWebPages
+import com.mgn.bingenovelreader.database.getDownloadQueue
 import com.mgn.bingenovelreader.database.getNovel
 import com.mgn.bingenovelreader.dbHelper
 import com.mgn.bingenovelreader.models.Novel
@@ -80,13 +81,10 @@ class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage>
         })
 
         setFab(R.color.colorAccent, R.drawable.ic_delete_black_vector, { confirmDeleteAlert() }, android.R.color.white)
-        if (chapters.isEmpty()) {
-            setLoadingView(R.drawable.no_chapters, "There are no chapters!! (╥﹏╥)")
-            recyclerView.visibility = View.INVISIBLE
-            enableLoadingView(true)
-        } else {
-            //        setFab(R.color.colorAccent, R.drawable.ic_favorite_black_vector, null, android.R.color.white)
-        }
+        val dq = dbHelper.getDownloadQueue(novel!!.id)
+        var message = if (dq != null) "Downloading… [{-_-}] ZZZzz zz z..." else "There are no chapters!! (╥﹏╥)"
+        setLoadingView(R.drawable.no_chapters, message)
+        enableLoadingView(chapters.isEmpty(), recyclerView)
 
         broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
@@ -95,6 +93,7 @@ class NovelDetailsActivity : SlidingActivity(), GenericAdapter.Listener<WebPage>
                     if (novelId == -1L || novelId != novel?.id) return
                     val newData = ArrayList(dbHelper.getAllReadableWebPages(novelId))
                     adapter.updateData(newData)
+                    enableLoadingView(adapter.items.isEmpty(), recyclerView)
                 }
             }
         }

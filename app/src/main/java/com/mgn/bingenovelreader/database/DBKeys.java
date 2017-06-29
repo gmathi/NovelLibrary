@@ -53,7 +53,7 @@ public class DBKeys {
                     + KEY_URL + " TEXT, "
                     + KEY_AUTHOR + " TEXT, "
                     + KEY_IMAGE_URL + " TEXT, "
-                    + KEY_RATING + " REAL, "
+                    + KEY_RATING + " TEXT, "
                     + KEY_SHORT_DESCRIPTION + " TEXT, "
                     + KEY_LONG_DESCRIPTION + " TEXT, "
                     + KEY_IMAGE_FILE_PATH + " TEXT, "

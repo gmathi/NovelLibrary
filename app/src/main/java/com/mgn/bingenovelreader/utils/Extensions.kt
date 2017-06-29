@@ -65,14 +65,15 @@ fun Uri.getFileName(): String {
     return (this.lastPathSegment + this.toString().substringAfter("?", "")).writableFileName()
 }
 
-fun Activity.setLoadingView(drawableRes: Int, message: String) {
+fun Activity.setLoadingView(drawableRes: Int, message: String?) {
     Glide.with(this).load(drawableRes).into(loadingImageView)
     loadingTextView.typeface = Typeface.createFromAsset(assets, "font/roboto_regular" + ".ttf")
     loadingTextView.text = message
 }
 
-fun Activity.enableLoadingView(enable: Boolean) {
-    loadingLayout.visibility = if (enable) View.VISIBLE else View.GONE
+fun Activity.enableLoadingView(enable: Boolean, otherView: View?) {
+    loadingLayout.visibility = if (enable) View.VISIBLE else View.INVISIBLE
+    otherView?.visibility = if (enable) View.INVISIBLE else View.VISIBLE
 }
 
 fun ContextWrapper.sendBroadcast(extras: Bundle, action: String) {

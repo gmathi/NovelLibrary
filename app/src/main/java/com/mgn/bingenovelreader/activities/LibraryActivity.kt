@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.support.v4.content.ContextCompat
 import android.support.v4.graphics.drawable.DrawableCompat
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -19,7 +20,9 @@ import com.mgn.bingenovelreader.dbHelper
 import com.mgn.bingenovelreader.models.Novel
 import com.mgn.bingenovelreader.services.DownloadService
 import com.mgn.bingenovelreader.utils.Constants
+import com.mgn.bingenovelreader.utils.enableLoadingView
 import com.mgn.bingenovelreader.utils.setDefaults
+import com.mgn.bingenovelreader.utils.setLoadingView
 import kotlinx.android.synthetic.main.activity_library.*
 import kotlinx.android.synthetic.main.content_library.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
@@ -47,13 +50,18 @@ class LibraryActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
                 }
             }
         }
+        //startDownloadService(-1L)
+        setLoadingView(R.drawable.no_library, "Waiting??\nGet something else to read! {•̃̾_•̃̾}")
+        enableLoadingView(adapter.items.isEmpty(), recyclerView)
+
     }
 
     private fun setRecyclerView() {
-        adapter = GenericAdapter(items = ArrayList(getAllNovels()), layoutResId = R.layout.listitem_novel, listener = this)
+        adapter = GenericAdapter(items = getAllNovels(), layoutResId = R.layout.listitem_novel, listener = this)
         recyclerView.setDefaults(adapter)
         swipeRefreshLayout.setOnRefreshListener {
-            adapter.updateData(ArrayList(getAllNovels()))
+            adapter.updateData(getAllNovels())
+            enableLoadingView(adapter.items.isEmpty(), recyclerView)
             swipeRefreshLayout.isRefreshing = false
         }
     }
@@ -71,8 +79,13 @@ class LibraryActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
             Glide.with(this).load(File(item.imageFilePath)).into(itemView.novelImageView)
         itemView.novelTitleTextView.text = item.name
         if (item.rating != null) {
-            itemView.novelRatingBar.rating = item.rating!!.toFloat()
-            itemView.novelRatingTextView.text = "(" + item.rating + ")"
+            try {
+                itemView.novelRatingBar.rating = item.rating!!.toFloat()
+            } catch (e: Exception) {
+                Log.w("Library Activity", "Rating: " + item.rating, e)
+            }
+            val ratingText = "(" + item.rating + ")"
+            itemView.novelRatingTextView.text = ratingText
         }
         itemView.novelGenreTextView.text = item.genres?.joinToString { it }
         itemView.novelDescriptionTextView.text = item.shortDescription
@@ -103,14 +116,15 @@ class LibraryActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
             fabMenu.close(true)
     }
 
-    private fun getAllNovels(): List<Novel> {
-        return dbHelper.getAllNovels()
+    private fun getAllNovels(): ArrayList<Novel> {
+        return ArrayList(dbHelper.getAllNovels())
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         //super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == Constants.SEARCH_REQ_CODE) {
-            adapter.updateData(ArrayList(getAllNovels()))
+            adapter.updateData(getAllNovels())
+            enableLoadingView(adapter.items.isEmpty(), recyclerView)
             return
         }
 
@@ -120,12 +134,14 @@ class LibraryActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
                 lastDeletedId = novelId
                 adapter.removeItemAt(adapter.items.indexOfFirst { it.id == novelId })
                 Handler().postDelayed({ lastDeletedId = -1 }, 1500)
+                enableLoadingView(adapter.items.isEmpty(), recyclerView)
             }
             return
         }
 
         if (resultCode == Constants.DOWNLOAD_QUEUE_ACT_RES_CODE) {
-            adapter.updateData(ArrayList(dbHelper.getAllNovels()))
+            adapter.updateData(getAllNovels())
+            enableLoadingView(adapter.items.isEmpty(), recyclerView)
         }
 
     }

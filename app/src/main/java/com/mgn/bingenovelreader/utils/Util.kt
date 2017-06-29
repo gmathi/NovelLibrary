@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -17,6 +18,8 @@ import com.mgn.bingenovelreader.dbHelper
 import com.mgn.bingenovelreader.models.Novel
 import java.io.ByteArrayOutputStream
 import java.io.File
+
+
 
 object Util {
 
@@ -140,5 +143,11 @@ object Util {
         localIntent.putExtras(extras)
         localIntent.addCategory(Intent.CATEGORY_DEFAULT)
         context.sendBroadcast(localIntent)
+    }
+
+    fun checkNetwork(appContext: Context): Boolean {
+        val connectivityManager = appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val netInfo = connectivityManager.activeNetworkInfo
+        return netInfo != null && netInfo.isConnected
     }
 }

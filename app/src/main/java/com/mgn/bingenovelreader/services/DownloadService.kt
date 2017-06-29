@@ -37,8 +37,13 @@ class DownloadService : IntentService(TAG) {
 
     override fun onHandleIntent(workIntent: Intent) {
         dbHelper = DBHelper(applicationContext)
-
         NOVEL_ID = workIntent.getLongExtra(Constants.NOVEL_ID, -1L)
+
+        if (!Util.checkNetwork(this)) {
+            onNoNetwork()
+            return
+        }
+
         //android.os.Debug.waitForDebugger()
         if (!IS_DOWNLOADING) {
             IS_DOWNLOADING = true
@@ -72,6 +77,10 @@ class DownloadService : IntentService(TAG) {
         //If chapter URLS were not downloaded
         if (downloadQueue.chapterUrlsCached == 0L) {
 
+            if (!Util.checkNetwork(this)) {
+                onNoNetwork()
+                return
+            }
             //download the chapter urls
             chapters = NovelApi().getChapterUrls(novel)
 
@@ -103,6 +112,10 @@ class DownloadService : IntentService(TAG) {
             if (chapters.isNotEmpty()) {
                 //sendBroadcastUpdate(novel.id, totalChapterCount, totalChapterCount - chapters.size)
                 chapters.asReversed().forEach {
+                    if (!Util.checkNetwork(this)) {
+                        onNoNetwork()
+                        return
+                    }
                     val dq = dbHelper.getDownloadQueue(it.novelId)
                     if (dq != null && dq.status.toInt() != Constants.STATUS_STOPPED) {
                         if (it.filePath == null) {
@@ -238,4 +251,10 @@ class DownloadService : IntentService(TAG) {
         sendBroadcast(extras, Constants.DOWNLOAD_QUEUE_NOVEL_DOWNLOAD_COMPLETE)
     }
 
+    private fun onNoNetwork() {
+        Log.e(TAG, "No Active Internet")
+        //toast("No Active Internet! (⋋▂⋌)")
+        dbHelper.updateAllDownloadQueueStatuses(Constants.STATUS_STOPPED)
+        sendBroadcastUpdate(-1L, 0, 0)
+    }
 }

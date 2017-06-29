@@ -6,7 +6,7 @@ class Novel {
     var url: String? = null
     var author: String? = null
     var imageUrl: String? = null
-    var rating: Double? = null
+    var rating: String? = null
     var shortDescription: String? = null
     var longDescription: String? = null
     var imageFilePath: String? = null

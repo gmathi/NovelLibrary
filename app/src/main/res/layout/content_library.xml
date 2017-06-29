@@ -5,6 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#ffffff"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.mgn.bingenovelreader.activities.LibraryActivity"
     tools:showIn="@layout/activity_library">
@@ -22,18 +23,10 @@
             android:layout_height="match_parent"/>
     </android.support.v4.widget.SwipeRefreshLayout>
 
-    <ImageView
-        android:id="@+id/loadingImageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minHeight="150dp"
-        android:minWidth="100dp"
+    <include
+        layout="@layout/layout_loading"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteX="142dp"
-        tools:layout_editor_absoluteY="151dp"/>
-
+        app:layout_constraintTop_toTopOf="parent"/>
 </android.support.constraint.ConstraintLayout>

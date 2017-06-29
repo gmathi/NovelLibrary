@@ -22,6 +22,7 @@ import com.mgn.bingenovelreader.services.DownloadService
 import com.mgn.bingenovelreader.utils.Constants
 import com.mgn.bingenovelreader.utils.Util
 import com.mgn.bingenovelreader.utils.setDefaults
+import com.mgn.bingenovelreader.utils.toast
 import kotlinx.android.synthetic.main.activity_download_queue.*
 import kotlinx.android.synthetic.main.content_download_queue.*
 import kotlinx.android.synthetic.main.listitem_download_queue.view.*
@@ -171,9 +172,19 @@ class DownloadQueueActivity : AppCompatActivity(), GenericAdapter.Listener<Downl
 
     private fun manageBroadcasts(intent: Intent) {
         if (intent.action == Constants.DOWNLOAD_QUEUE_NOVEL_UPDATE) {
-            val dq = dbHelper.getDownloadQueue(intent.extras.getLong(Constants.NOVEL_ID))
-            if (dq != null)
-                adapter.updateItem(dq)
+            val novelId = intent.extras.getLong(Constants.NOVEL_ID)
+            if (novelId == -1L) {
+                if (!Util.checkNetwork(this)) {
+                    toast("No Active Internet! (⋋▂⋌)")
+                    fab.setImageResource(R.drawable.ic_play_arrow_black_vector)
+                    fab.tag = "paused"
+                    adapter.updateData(ArrayList(dbHelper.getAllDownloadQueue()))
+                }
+            } else {
+                val dq = dbHelper.getDownloadQueue(novelId)
+                if (dq != null)
+                    adapter.updateItem(dq)
+            }
 
         } else if (intent.action == Constants.DOWNLOAD_QUEUE_NOVEL_DOWNLOAD_COMPLETE) {
             val dq = DownloadQueue()
