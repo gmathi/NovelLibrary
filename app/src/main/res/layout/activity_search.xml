@@ -16,11 +16,11 @@
         android:elevation="4dp"
         app:persistentSV_customToolbarHeight="64dp"
         app:persistentSV_displayMode="toolbar"
-        app:persistentSV_editHintText="Search"
+        app:persistentSV_editHintText="@string/search_novel"
         app:persistentSV_editHintTextColor="?android:textColorHint"
         app:persistentSV_editTextColor="?android:textColorPrimary"
         app:persistentSV_homeButtonMode="arrow"
-        app:persistentSV_logoDrawable="@drawable/im_search_bg"
+        app:persistentSV_logoString="@string/search_novel"
         app:persistentSV_searchCardElevation="2dp"
         app:persistentSV_searchTextColor="?android:textColorPrimary"/>
 

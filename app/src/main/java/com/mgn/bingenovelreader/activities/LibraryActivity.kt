@@ -38,6 +38,7 @@ class LibraryActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_library)
         setSupportActionBar(toolbar)
+        supportActionBar?.title = getString(R.string.title_activity_library)
 
         fabSearch.setOnClickListener { startSearchActivity() }
         fabDownload.setOnClickListener { startDownloadQueueActivity() }
