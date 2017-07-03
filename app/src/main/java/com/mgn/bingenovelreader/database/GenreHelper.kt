@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.util.Log
 import com.mgn.bingenovelreader.models.Genre
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 private val LOG = "GenreHelper"
@@ -27,15 +28,31 @@ fun DBHelper.getGenre(genreId: Long): Genre? {
     return getGenreFromQuery(selectQuery)
 }
 
-fun DBHelper.getGenres(novelId: Long): List<String> {
-    val novelGenres = getAllNovelGenre(novelId)
-    val genres = ArrayList<String>()
-    novelGenres.forEach {
-        val genre = getGenre(it.genreId)
-        if (genre != null)
-            genres.add(genre.name)
+//fun DBHelper.getGenres(novelId: Long): List<String> {
+//    val novelGenres = getAllNovelGenre(novelId)
+//    val genres = ArrayList<String>()
+//    novelGenres.forEach {
+//        val genre = getGenre(it.genreId)
+//        if (genre != null)
+//            genres.add(genre.name)
+//    }
+//    return genres
+//}
+
+fun DBHelper.getGenres(novelId: Long): List<String>? {
+    val selectQuery =  " SELECT group_concat(g.name) as Genres" +
+            " FROM novel_genre ng, genre g" +
+            " WHERE ng.genre_id = g.id AND ng.novel_id = $novelId" +
+            " GROUP BY ng.novel_id"
+    val cursor = this.readableDatabase.rawQuery(selectQuery, null)
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+           return Arrays.asList<String>(*cursor.getString(cursor.getColumnIndex("Genres")).split(",".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray())
+
+        }
+        cursor.close()
     }
-    return genres
+    return null
 }
 
 
@@ -91,5 +108,6 @@ fun DBHelper.deleteGenre(id: Long) {
     db.delete(DBKeys.TABLE_GENRE, DBKeys.KEY_ID + " = ?",
             arrayOf(id.toString()))
 }
+
 
 
