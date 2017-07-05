@@ -48,11 +48,6 @@
         <item name="fab_colorRipple">#1B5E20</item>
     </style>
 
-    <style name="SlidingAppTheme" parent="Theme.Sliding.DayNight">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-    </style>
 
 
 </resources>

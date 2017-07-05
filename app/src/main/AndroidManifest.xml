@@ -40,12 +40,12 @@
             android:label="@string/title_activity_download_queue"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
-        <activity
-            android:name=".activities.NovelDetailsActivity"
-            android:excludeFromRecents="true"
-            android:taskAffinity=""
-            android:theme="@style/SlidingAppTheme">
-        </activity>
+        <!--<activity-->
+            <!--android:name=".activities.NovelDetailsActivity"-->
+            <!--android:excludeFromRecents="true"-->
+            <!--android:taskAffinity=""-->
+            <!--android:theme="@style/SlidingAppTheme">-->
+        <!--</activity>-->
         <activity
             android:name=".activities.ReaderPagerActivity"
             android:label="@string/title_activity_reader_pager"

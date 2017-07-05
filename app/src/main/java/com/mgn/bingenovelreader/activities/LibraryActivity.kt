@@ -107,9 +107,9 @@ class LibraryActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
     }
 
     fun startNovelDetailsActivity(novelId: Long) {
-        val intent = Intent(this, NovelDetailsActivity::class.java)
-        intent.putExtra(Constants.NOVEL_ID, novelId)
-        startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
+//        val intent = Intent(this, NovelDetailsActivity::class.java)
+//        intent.putExtra(Constants.NOVEL_ID, novelId)
+//        startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
     }
 
     //endregion
