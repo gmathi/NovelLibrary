@@ -2,7 +2,7 @@ package com.mgn.bingenovelreader.database
 
 import android.content.ContentValues
 import android.util.Log
-import com.mgn.bingenovelreader.models.WebPage
+import com.mgn.bingenovelreader.model.WebPage
 import java.util.*
 
 private val LOG = "WebPageHelper"

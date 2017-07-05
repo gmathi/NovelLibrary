@@ -2,7 +2,7 @@ package com.mgn.bingenovelreader.database
 
 import android.content.ContentValues
 import android.util.Log
-import com.mgn.bingenovelreader.models.Genre
+import com.mgn.bingenovelreader.model.Genre
 import java.util.*
 import kotlin.collections.ArrayList
 

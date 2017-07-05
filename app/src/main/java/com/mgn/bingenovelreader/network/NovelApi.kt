@@ -1,10 +1,10 @@
 package com.mgn.bingenovelreader.network
 
-import com.mgn.bingenovelreader.models.Novel
-import com.mgn.bingenovelreader.models.WebPage
-import com.mgn.bingenovelreader.utils.Constants.NovelSites.NOVEL_UPDATES
-import com.mgn.bingenovelreader.utils.Constants.NovelSites.ROYAL_ROAD
-import com.mgn.bingenovelreader.utils.HostNames.USER_AGENT
+import com.mgn.bingenovelreader.model.Novel
+import com.mgn.bingenovelreader.model.WebPage
+import com.mgn.bingenovelreader.util.Constants.NovelSites.NOVEL_UPDATES
+import com.mgn.bingenovelreader.util.Constants.NovelSites.ROYAL_ROAD
+import com.mgn.bingenovelreader.network.HostNames.USER_AGENT
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.IOException
