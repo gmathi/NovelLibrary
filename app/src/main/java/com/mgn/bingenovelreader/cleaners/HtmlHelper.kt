@@ -20,7 +20,7 @@ open class HtmlHelper protected constructor() {
         fun getInstance(host: String): HtmlHelper {
             when {
                 host.contains(Constants.NovelSites.ROYAL_ROAD) -> return RoyalRoadHelper()
-
+                host.contains(Constants.NovelSites.KOBATOCHAN) -> return KobatochanCleaner()
             }
             return HtmlHelper()
         }

@@ -40,7 +40,7 @@ class DownloadService : IntentService(TAG) {
             return
         }
 
-        android.os.Debug.waitForDebugger()
+        //android.os.Debug.waitForDebugger()
         if (!IS_DOWNLOADING) {
             IS_DOWNLOADING = true
             checkDownloadQueue()

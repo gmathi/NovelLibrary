@@ -24,6 +24,7 @@ public class Constants {
     public static class NovelSites {
         public static final String NOVEL_UPDATES = "novelupdates.com";
         public static final String ROYAL_ROAD = "royalroadl.com";
+        public static final String KOBATOCHAN = "kobatochan.com";
     }
 
     //region DownloadQueue Status Values
