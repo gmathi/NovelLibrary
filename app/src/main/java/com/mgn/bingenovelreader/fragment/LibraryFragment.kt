@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v4.graphics.drawable.DrawableCompat
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.*
 import com.bumptech.glide.Glide
@@ -48,7 +49,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     }
 
     private fun setRecyclerView() {
-        activity.ac
+        (activity as AppCompatActivity).setSupportActionBar(toolbar)
         adapter = GenericAdapter(ArrayList(dbHelper.getAllNovels()), R.layout.listitem_novel, this)
         recyclerView.setDefaults(adapter)
         swipeRefreshLayout.setOnRefreshListener {
