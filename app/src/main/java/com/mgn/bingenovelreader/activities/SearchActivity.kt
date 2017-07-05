@@ -30,6 +30,7 @@ import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.android.synthetic.main.content_search.*
 import kotlinx.android.synthetic.main.listitem_novel_search.view.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
+import org.jsoup.helper.StringUtil
 import java.io.File
 import java.io.FileOutputStream
 
@@ -107,7 +108,8 @@ class SearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel> {
 
         Thread(Runnable {
             searchTerm?.let {
-                val newList = ArrayList(NovelApi().search(it)["novel-updates"])
+                val newList = ArrayList(NovelApi().search(it)[Constants.NovelSites.NOVEL_UPDATES])
+                newList.addAll(ArrayList(NovelApi().search(it)[Constants.NovelSites.ROYAL_ROAD]))
                 Handler(Looper.getMainLooper()).post {
                     enableLoadingView(false, searchRecyclerView)
                     adapter.updateData(newList)
@@ -143,8 +145,11 @@ class SearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel> {
         }
 
         itemView.novelTitleTextView.text = item.name
-        itemView.novelGenreTextView.text = item.genres?.joinToString { it }
         itemView.novelDescriptionTextView.text = item.shortDescription
+
+        var genresText = item.genres?.joinToString { it }
+        if (StringUtil.isBlank(genresText)) genresText = "N/A"
+        itemView.novelGenreTextView.text = genresText
 
         if (item.rating != null) {
             try {

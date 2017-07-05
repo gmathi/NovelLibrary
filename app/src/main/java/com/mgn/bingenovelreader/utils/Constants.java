@@ -21,6 +21,12 @@ package com.mgn.bingenovelreader.utils;
  */
 public class Constants {
 
+    public static class NovelSites {
+        public static final String NOVEL_UPDATES = "novelupdates.com";
+        public static final String ROYAL_ROAD = "royalroadl.com";
+        public static final String KOBATOCHAN = "kobatochan.com";
+    }
+
     //region DownloadQueue Status Values
     public static final int STATUS_DOWNLOAD = 0;
     public static final int STATUS_STOPPED = 1;

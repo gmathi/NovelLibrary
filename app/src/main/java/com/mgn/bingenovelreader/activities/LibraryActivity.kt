@@ -26,6 +26,7 @@ import com.mgn.bingenovelreader.utils.setLoadingView
 import kotlinx.android.synthetic.main.activity_library.*
 import kotlinx.android.synthetic.main.content_library.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
+import org.jsoup.helper.StringUtil
 import java.io.File
 
 
@@ -88,7 +89,9 @@ class LibraryActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
             val ratingText = "(" + item.rating + ")"
             itemView.novelRatingTextView.text = ratingText
         }
-        itemView.novelGenreTextView.text = item.genres?.joinToString { it }
+        var genresText = item.genres?.joinToString { it }
+        if (StringUtil.isBlank(genresText)) genresText = "N/A"
+        itemView.novelGenreTextView.text = genresText
         itemView.novelDescriptionTextView.text = item.shortDescription
     }
 

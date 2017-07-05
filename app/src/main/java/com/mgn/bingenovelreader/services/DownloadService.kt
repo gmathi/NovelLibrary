@@ -2,25 +2,21 @@ package com.mgn.bingenovelreader.services
 
 import android.app.IntentService
 import android.content.Intent
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import com.mgn.bingenovelreader.cleaners.HtmlHelper
 import com.mgn.bingenovelreader.database.*
 import com.mgn.bingenovelreader.models.DownloadQueue
 import com.mgn.bingenovelreader.models.Novel
 import com.mgn.bingenovelreader.models.WebPage
 import com.mgn.bingenovelreader.network.NovelApi
 import com.mgn.bingenovelreader.utils.Constants
-import com.mgn.bingenovelreader.utils.HostNames.USER_AGENT
 import com.mgn.bingenovelreader.utils.Util
-import com.mgn.bingenovelreader.utils.getFileName
 import com.mgn.bingenovelreader.utils.writableFileName
-import org.jsoup.Jsoup
+import org.jsoup.helper.StringUtil
 import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
 import java.io.File
-import java.io.FileOutputStream
 import java.util.*
 
 
@@ -69,8 +65,6 @@ class DownloadService : IntentService(TAG) {
 
 
     fun startDownload(novel: Novel, downloadQueue: DownloadQueue) {
-        val hostDir = Util.getHostDir(applicationContext, novel.url!!)
-        val novelDir = Util.getNovelDir(hostDir, novel.name!!)
 
         val chapters: ArrayList<WebPage>
 
@@ -82,7 +76,7 @@ class DownloadService : IntentService(TAG) {
                 return
             }
             //download the chapter urls
-            chapters = NovelApi().getChapterUrls(novel)
+            chapters = NovelApi().getChapterUrls(novel.url!!)
 
             //Insert the webPages for future download (in-case they pause the download and start it later)
             if (chapters.isNotEmpty()) {
@@ -107,6 +101,9 @@ class DownloadService : IntentService(TAG) {
             dbHelper.cleanupNovelData(novel.id)
             return
         }
+
+        val hostDir = Util.getHostDir(applicationContext, novel.url!!)
+        val novelDir = Util.getNovelDir(hostDir, novel.name!!)
 
         run runDownloads@ {
             if (chapters.isNotEmpty()) {
@@ -143,90 +140,25 @@ class DownloadService : IntentService(TAG) {
             e.printStackTrace()
             return false
         }
-        downloadCSS(doc, hostDir)
-        downloadImages(doc, novelDir)
-        webPage.title = doc.head().getElementsByTag("title").text()
-        val file = convertDocToFile(doc, File(novelDir, webPage.title!!.writableFileName()))
-        if (file != null) {
-            webPage.filePath = file.path
-            webPage.redirectedUrl = doc.location()
-            val id = dbHelper.updateWebPage(webPage)
-            return (id.toInt() != -1)
+
+        val uri = Uri.parse(doc.location())
+        if (!StringUtil.isBlank(uri.host)) {
+
+            val htmlHelper = HtmlHelper.getInstance(uri.host)
+            htmlHelper.removeJS(doc)
+            htmlHelper.downloadCSS(doc, hostDir)
+            htmlHelper.downloadImages(doc, novelDir)
+            htmlHelper.cleanDoc(doc)
+            webPage.title = htmlHelper.getTitle(doc)
+            val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPage.title!!.writableFileName()))
+            if (file != null) {
+                webPage.filePath = file.path
+                webPage.redirectedUrl = doc.location()
+                val id = dbHelper.updateWebPage(webPage)
+                return (id.toInt() != -1)
+            }
         }
         return false
-    }
-
-
-    private fun downloadCSS(doc: Document, hostDir: File) {
-        val elements = doc.head().getElementsByTag("link").filter { element -> element.hasAttr("rel") && element.attr("rel") == "stylesheet" }
-        for (element in elements) {
-            val cssFile = downloadFile(element, hostDir)
-            element.remove()
-            if (cssFile != null)
-                doc.head().appendElement("link").attr("rel", "stylesheet").attr("type", "text/css").attr("href", "" + cssFile.parentFile.name + "/" + cssFile.name)
-        }
-    }
-
-    private fun downloadImages(doc: Document, novelDir: File) {
-        val elements = doc.getElementsByTag("img").filter { element -> element.hasAttr("src") }
-        for (element in elements) {
-            val imageFile = downloadImage(element, novelDir)
-            if (imageFile != null) {
-                element.removeAttr("src")
-                element.attr("src", "./${imageFile.name}")
-            }
-        }
-    }
-
-    private fun downloadImage(element: Element, dir: File): File? {
-        val uri = Uri.parse(element.attr("src"))
-        val file: File
-        try {
-            if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: " + uri.toString())
-            val fileName = uri.lastPathSegment.writableFileName()
-            file = File(dir, fileName)
-            val response = Jsoup.connect(uri.toString()).userAgent(USER_AGENT).ignoreContentType(true).execute()
-            val bytes = response.bodyAsBytes()
-            val bitmap = Util.getImage(bytes)
-            val os = FileOutputStream(file)
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os)
-        } catch (e: Exception) {
-            Log.w(TAG, uri.toString(), e)
-            return null
-        }
-        return file
-    }
-
-    private fun downloadFile(element: Element, dir: File): File? {
-        val uri = Uri.parse(element.absUrl("href"))
-        val file: File
-        val doc: Document
-        try {
-            if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: " + uri.toString())
-            val fileName = uri.getFileName()
-            file = File(dir, fileName)
-            doc = Jsoup.connect(uri.toString()).userAgent(USER_AGENT).ignoreContentType(true).get()
-        } catch (e: Exception) {
-            Log.w(TAG, uri.toString(), e)
-            return null
-        }
-        return convertDocToFile(doc, file)
-    }
-
-    private fun convertDocToFile(doc: Document, file: File): File? {
-        try {
-
-            if (file.exists()) return file
-            val stream = FileOutputStream(file)
-            val content = doc.body().html()
-            stream.use { stream ->
-                stream.write(content.toByteArray())
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "convertDocToFile: ${e.localizedMessage}", e)
-            return null
-        }
-        return file
     }
 
     private fun sendBroadcast(extras: Bundle, action: String) {
@@ -253,7 +185,6 @@ class DownloadService : IntentService(TAG) {
 
     private fun onNoNetwork() {
         Log.e(TAG, "No Active Internet")
-        //toast("No Active Internet! (⋋▂⋌)")
         dbHelper.updateAllDownloadQueueStatuses(Constants.STATUS_STOPPED)
         sendBroadcastUpdate(-1L, 0, 0)
     }
