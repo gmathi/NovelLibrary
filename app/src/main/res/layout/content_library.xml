@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="#ffffff"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.mgn.bingenovelreader.activity.LibraryActivity"
+    tools:context="com.mgn.bingenovelreader.fragment.LibraryFragment"
     tools:showIn="@layout/activity_library">
 
     <android.support.v4.widget.SwipeRefreshLayout

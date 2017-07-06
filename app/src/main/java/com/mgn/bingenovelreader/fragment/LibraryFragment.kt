@@ -2,6 +2,7 @@ package com.mgn.bingenovelreader.fragment
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
 import android.support.v4.content.ContextCompat
 import android.support.v4.graphics.drawable.DrawableCompat
 import android.support.v7.app.AppCompatActivity
@@ -9,6 +10,7 @@ import android.util.Log
 import android.view.*
 import com.bumptech.glide.Glide
 import com.mgn.bingenovelreader.R
+import com.mgn.bingenovelreader.activities.NovelDetailsActivity
 import com.mgn.bingenovelreader.adapter.GenericAdapter
 import com.mgn.bingenovelreader.database.createDownloadQueue
 import com.mgn.bingenovelreader.database.getAllNovels
@@ -32,6 +34,7 @@ import java.io.File
 class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
     lateinit var adapter: GenericAdapter<Novel>
+    var lastDeletedId: Long = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,9 +66,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     //region Adapter Listener Methods - onItemClick(), viewBinder()
 
     override fun onItemClick(item: Novel) {
-        // toast("${item.name} Clicked")
-//        if (lastDeletedId != item.id)
-//            startNovelDetailsActivity(item.id)
+        if (lastDeletedId != item.id)
+            startNovelDetailsActivity(item.id)
     }
 
     override fun bind(item: Novel, itemView: View) {
@@ -146,4 +148,23 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     fun onNovelEvent(event: NovelEvent) {
     }
 
+
+    fun startNovelDetailsActivity(novelId: Long) {
+        val intent = Intent(activity, NovelDetailsActivity::class.java)
+        intent.putExtra(Constants.NOVEL_ID, novelId)
+        activity.startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (resultCode == Constants.NOVEL_DETAILS_RES_CODE) {
+            val novelId = data?.extras?.getLong(Constants.NOVEL_ID)
+            if (novelId != null) {
+                lastDeletedId = novelId
+                adapter.removeItemAt(adapter.items.indexOfFirst { it.id == novelId })
+                Handler().postDelayed({ lastDeletedId = -1 }, 1200)
+                enableLoadingView(adapter.items.isEmpty(), recyclerView)
+            }
+            return
+        }
+    }
 }

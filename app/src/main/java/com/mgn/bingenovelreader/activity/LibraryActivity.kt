@@ -41,8 +41,8 @@ class LibraryActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
         setSupportActionBar(toolbar)
         supportActionBar?.title = getString(R.string.title_activity_library)
 
-        fabSearch.setOnClickListener { startSearchActivity() }
-        fabDownload.setOnClickListener { startDownloadQueueActivity() }
+//        fabSearch.setOnClickListener { startSearchActivity() }
+//        fabDownload.setOnClickListener { startDownloadQueueActivity() }
         setRecyclerView()
 
         broadcastReceiver = object : BroadcastReceiver() {
@@ -116,8 +116,8 @@ class LibraryActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
     override fun onPostResume() {
         super.onPostResume()
-        if (fabMenu.isOpened)
-            fabMenu.close(true)
+//        if (fabMenu.isOpened)
+//            fabMenu.close(true)
     }
 
     private fun getAllNovels(): ArrayList<Novel> {

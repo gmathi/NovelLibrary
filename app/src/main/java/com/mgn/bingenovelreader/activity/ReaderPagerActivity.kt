@@ -1,24 +1,16 @@
 package com.mgn.bingenovelreader.activity
 
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentManager
-import android.support.v4.app.FragmentPagerAdapter
 import android.support.v4.view.ViewPager
 import android.support.v7.app.AppCompatActivity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import com.mgn.bingenovelreader.R
+import com.mgn.bingenovelreader.adapter.WebPageAdapter
 import com.mgn.bingenovelreader.database.getAllReadableWebPages
 import com.mgn.bingenovelreader.database.updateCurrentWebPageId
 import com.mgn.bingenovelreader.dbHelper
 import com.mgn.bingenovelreader.model.WebPage
 import com.mgn.bingenovelreader.util.Constants
 import kotlinx.android.synthetic.main.activity_reader_pager.*
-import kotlinx.android.synthetic.main.fragment_reader.*
 
 class ReaderPagerActivity : AppCompatActivity(), ViewPager.OnPageChangeListener {
 
@@ -67,71 +59,5 @@ class ReaderPagerActivity : AppCompatActivity(), ViewPager.OnPageChangeListener 
         //Do Nothing
     }
 
-
-    /**
-     * A WebView fragment containing a simple WebView.
-     */
-    class WebPageFragment : Fragment() {
-
-        var listener: WebPageAdapter.Listener? = null
-
-        override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
-                                  savedInstanceState: Bundle?): View? {
-            return inflater!!.inflate(R.layout.fragment_reader, container, false)
-        }
-
-        override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
-            super.onViewCreated(view, savedInstanceState)
-            val filePath = arguments.getString(FILE_PATH)
-            if (filePath == null) {
-
-            } else {
-                val internalFilePath = "file://$filePath"
-                readerWebView.loadUrl(internalFilePath)
-                setWebView()
-            }
-        }
-
-        fun setWebView() {
-            readerWebView.setWebViewClient(object : WebViewClient() {
-                override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                    listener?.checkUrl(url)
-                    return true
-                }
-            })
-        }
-
-        companion object {
-            private val FILE_PATH = "filePath"
-            fun newInstance(filePath: String?): WebPageFragment {
-                val fragment = WebPageFragment()
-                val args = Bundle()
-                args.putString(FILE_PATH, filePath)
-                fragment.arguments = args
-                return fragment
-            }
-        }
-    }
-
-    /**
-     * A [FragmentPagerAdapter] that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
-    class WebPageAdapter(fm: FragmentManager, val chapters: MutableList<WebPage>, val listener: Listener) : FragmentPagerAdapter(fm) {
-
-        override fun getItem(position: Int): Fragment {
-            val fragment = WebPageFragment.newInstance(chapters[position].filePath)
-            fragment.listener = listener
-            return fragment
-        }
-
-        override fun getCount(): Int {
-            return chapters.size
-        }
-
-        interface Listener {
-            fun checkUrl(url: String?)
-        }
-    }
 
 }

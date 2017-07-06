@@ -149,11 +149,9 @@ class DownloadService : IntentService(TAG) {
         if (!StringUtil.isBlank(uri.host)) {
 
             val htmlHelper = HtmlHelper.getInstance(uri.host)
-            htmlHelper.removeJS(doc)
-            htmlHelper.downloadCSS(doc, hostDir)
-            htmlHelper.downloadImages(doc, novelDir)
-            htmlHelper.cleanDoc(doc)
+            htmlHelper.clean(doc, hostDir, novelDir)
             webPage.title = htmlHelper.getTitle(doc)
+
             val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPage.title!!.writableFileName()))
             if (file != null) {
                 webPage.filePath = file.path

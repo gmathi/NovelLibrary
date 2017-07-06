@@ -21,6 +21,8 @@ package com.mgn.bingenovelreader.util;
  */
 public class Constants {
 
+    public static final String ROYAL_ROAD_SITE_THEME_ID = "siteThemeRoyalRoad";
+
     public static class NovelSites {
         public static final String NOVEL_UPDATES = "novelupdates.com";
         public static final String ROYAL_ROAD = "royalroadl.com";

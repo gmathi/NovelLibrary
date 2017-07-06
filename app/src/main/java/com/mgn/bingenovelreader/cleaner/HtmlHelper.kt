@@ -5,7 +5,10 @@ import android.net.Uri
 import android.util.Log
 import com.mgn.bingenovelreader.network.HostNames
 import com.mgn.bingenovelreader.service.DownloadService
-import com.mgn.bingenovelreader.util.*
+import com.mgn.bingenovelreader.util.Constants
+import com.mgn.bingenovelreader.util.Util
+import com.mgn.bingenovelreader.util.getFileName
+import com.mgn.bingenovelreader.util.writableFileName
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -27,6 +30,13 @@ open class HtmlHelper protected constructor() {
         }
     }
 
+    fun clean(doc: Document, hostDir: File, novelDir: File) {
+        removeJS(doc)
+        downloadCSS(doc, hostDir)
+        downloadImages(doc, novelDir)
+        cleanDoc(doc)
+        addTitle(doc)
+    }
 
     open fun removeJS(doc: Document) {
         doc.getElementsByTag("script").remove()
@@ -112,4 +122,5 @@ open class HtmlHelper protected constructor() {
     }
 
 
+    open fun addTitle(doc: Document) {}
 }

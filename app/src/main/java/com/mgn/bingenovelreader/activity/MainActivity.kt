@@ -1,9 +1,12 @@
 package com.mgn.bingenovelreader.activity
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentTransaction
+import android.support.v4.content.ContextCompat
+import android.support.v4.graphics.drawable.DrawableCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
@@ -23,7 +26,6 @@ import org.greenrobot.eventbus.ThreadMode
 
 
 class MainActivity : AppCompatActivity(), BottomNavigationView.OnNavigationItemSelectedListener {
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,6 +67,10 @@ class MainActivity : AppCompatActivity(), BottomNavigationView.OnNavigationItemS
             .commitAllowingStateLoss()
     }
 
+    override fun onBackPressed() {
+        finish()
+    }
+
     // region Event Bus
     override fun onStart() {
         super.onStart()
@@ -81,13 +87,23 @@ class MainActivity : AppCompatActivity(), BottomNavigationView.OnNavigationItemS
         if (event.type == EventType.COMPLETE) {
             val novel = dbHelper.getNovel(event.novelId)
             if (novel != null) {
-                Alerter.create(this)
+                val alerter = Alerter.create(this)
                     .setTitle(novel.name)
                     .setText("is up-to-date ｡◕ ‿ ◕｡")
                     .setIcon(R.drawable.ic_book_black_vector)
                     .setBackgroundColor(R.color.Orange)
                     .setDuration(5000)
-                    .show()
+//                if (novel.imageFilePath != null) {
+//                    val options = BitmapFactory.Options()
+//                    options.inPreferredConfig = Bitmap.Config.ARGB_8888
+//                    try {
+//                        val bitmap = BitmapFactory.decodeStream(FileInputStream(File(novel.imageFilePath)), null, options)
+//                        alerter.setIcon(bitmap)
+//                    } catch (e: Exception) {
+//                        e.printStackTrace()
+//                    }
+//                }
+                alerter.show()
             }
         }
     }
@@ -95,11 +111,20 @@ class MainActivity : AppCompatActivity(), BottomNavigationView.OnNavigationItemS
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
+        val drawable = DrawableCompat.wrap(menu?.findItem(R.id.action_settings)!!.icon)
+        DrawableCompat.setTint(drawable, ContextCompat.getColor(this, R.color.white))
+        menu.findItem(R.id.action_sync)?.icon = drawable
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        if (item?.itemId == R.id.action_settings)
+            startSettingsActivity()
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun startSettingsActivity() {
+        startActivity(Intent(this, SettingsActivity::class.java))
     }
 
 }
