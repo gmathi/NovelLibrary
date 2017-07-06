@@ -14,9 +14,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
+
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.adapter.GenericAdapter
 import com.mgn.bingenovelreader.database.createDownloadQueue
@@ -26,9 +28,11 @@ import com.mgn.bingenovelreader.model.Novel
 import com.mgn.bingenovelreader.network.NovelApi
 import com.mgn.bingenovelreader.service.DownloadService
 import com.mgn.bingenovelreader.util.*
+
 import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.android.synthetic.main.content_search.*
 import kotlinx.android.synthetic.main.listitem_novel_search.view.*
+
 import org.cryse.widget.persistentsearch.PersistentSearchView
 import org.jetbrains.anko.support.v4.toast
 import org.jsoup.helper.StringUtil
@@ -51,6 +55,7 @@ class SearchFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        //(activity as AppCompatActivity).setSupportActionBar(null)
         setRecyclerView()
         setSearchView()
 

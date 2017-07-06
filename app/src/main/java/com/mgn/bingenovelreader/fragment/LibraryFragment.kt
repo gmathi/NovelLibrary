@@ -45,11 +45,11 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         toolbar.title = getString(R.string.title_library)
+        (activity as AppCompatActivity).setSupportActionBar(toolbar)
         setRecyclerView()
     }
 
     private fun setRecyclerView() {
-        (activity as AppCompatActivity).setSupportActionBar(toolbar)
         adapter = GenericAdapter(ArrayList(dbHelper.getAllNovels()), R.layout.listitem_novel, this)
         recyclerView.setDefaults(adapter)
         swipeRefreshLayout.setOnRefreshListener {
