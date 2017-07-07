@@ -14,31 +14,44 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".activities.CacheListActivity"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-        <activity
-            android:name=".activities.CacheDetailsActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-        <activity
-            android:name=".activities.DownloaderActivity"
-            android:label="@string/title_activity_downloader"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-        <activity
-            android:name=".activities.ReaderActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-        <activity
-            android:name=".activities.SearchActivity"
+            android:name=".activity.SearchActivity"
             android:label="@string/title_activity_search"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
         <activity
-            android:name=".activities.LibraryActivity"
-            android:label="@string/title_activity_library"
+            android:name=".activity.LibraryActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+
+        <service
+            android:name=".service.DownloadService"
+            android:enabled="true"
+            android:exported="false">
+        </service>
+
+        <activity
+            android:name=".activity.DownloadQueueActivity"
+            android:label="@string/title_activity_download_queue"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+        <activity
+            android:name=".activities.NovelDetailsActivity"
+            android:label="@string/title_activity_novel_details"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+        <activity
+            android:name=".activity.ReaderPagerActivity"
+            android:label="@string/title_activity_reader_pager"
+            android:parentActivityName=".activity.NovelDetailsActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.mgn.bingenovelreader.activity.NovelDetailsActivity"/>
+        </activity>
+        <activity
+            android:name=".activity.MainActivity"
+            android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -46,32 +59,14 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
-        <service
-            android:name=".services.DownloadService"
-            android:enabled="true"
-            android:exported="false">
-        </service>
-
         <activity
-            android:name=".activities.DownloadQueueActivity"
-            android:label="@string/title_activity_download_queue"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-        <activity
-            android:name=".activities.NovelDetailsActivity"
-            android:excludeFromRecents="true"
-            android:taskAffinity=""
-            android:theme="@style/SlidingAppTheme">
-        </activity>
-        <activity
-            android:name=".activities.ReaderPagerActivity"
-            android:label="@string/title_activity_reader_pager"
-            android:parentActivityName=".activities.NovelDetailsActivity"
+            android:name=".activity.SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:parentActivityName=".activity.MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.mgn.bingenovelreader.activities.NovelDetailsActivity"/>
+                android:value="com.mgn.bingenovelreader.activity.MainActivity"/>
         </activity>
     </application>
 

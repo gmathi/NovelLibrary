@@ -3,7 +3,8 @@ package com.mgn.bingenovelreader.database
 import android.content.ContentValues
 import android.util.Log
 import com.mgn.bingenovelreader.database.DBKeys.KEY_CURRENT_WEB_PAGE_ID
-import com.mgn.bingenovelreader.models.Novel
+import com.mgn.bingenovelreader.model.Novel
+import org.jsoup.helper.StringUtil
 import java.util.*
 
 private val LOG = "NovelHelper"
@@ -78,11 +79,22 @@ fun DBHelper.getNovelId(novelName: String): Long {
 }
 
 fun DBHelper.getAllNovels(): List<Novel> {
-    val selectQuery = " SELECT n.id, n.name, n.url, n.rating, n.image_file_path, n.current_web_page_id," +
+
+//    val selectQuery = "select * from novel"
+//    " SELECT n.id, n.name, n.url, n.rating, n.image_file_path, n.current_web_page_id," +
+//            " group_concat(g.name) as Genres" +
+//            " FROM novel_genre ng, genre g, novel n" +
+//            " WHERE ng.genre_id = g.id AND ng.novel_id = n.id" +
+//            " GROUP BY ng.novel_id"
+
+    val selectQuery = "SELECT n.id, n.name, n.url, n.rating, n.image_file_path, n.current_web_page_id," +
             " group_concat(g.name) as Genres" +
-            " FROM novel_genre ng, genre g, novel n" +
-            " WHERE ng.genre_id = g.id AND ng.novel_id = n.id" +
-            " GROUP BY ng.novel_id"
+            " FROM novel n" +
+            " LEFT JOIN novel_genre ng" +
+            " ON ng.novel_id = n.id" +
+            " LEFT JOIN genre g" +
+            " ON ng.genre_id = g.id" +
+            " GROUP BY n.id"
 
     Log.d(LOG, selectQuery)
 
@@ -104,14 +116,22 @@ fun DBHelper.getAllNovels(): List<Novel> {
 //                novel.shortDescription = cursor.getString(cursor.getColumnIndex(KEY_SHORT_DESCRIPTION))
 //                novel.longDescription = cursor.getString(cursor.getColumnIndex(KEY_LONG_DESCRIPTION))
                 novel.currentWebPageId = cursor.getLong(cursor.getColumnIndex(KEY_CURRENT_WEB_PAGE_ID))
+                val genres = cursor.getString(cursor.getColumnIndex("Genres"))
+                if (!StringUtil.isBlank(genres))
+                    novel.genres = Arrays.asList<String>(*genres.split(",".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray())
+                //getGenres(novel.id)
 
-                novel.genres = Arrays.asList<String>(*cursor.getString(cursor.getColumnIndex("Genres")).split(",".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray())
 
                 list.add(novel)
             } while (cursor.moveToNext())
         }
         cursor.close()
     }
+
+    list.forEach {
+
+    }
+
 
     return list
 }

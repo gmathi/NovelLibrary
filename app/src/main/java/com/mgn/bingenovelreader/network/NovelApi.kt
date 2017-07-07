@@ -1,8 +1,10 @@
 package com.mgn.bingenovelreader.network
 
-import com.mgn.bingenovelreader.models.Novel
-import com.mgn.bingenovelreader.models.WebPage
-import com.mgn.bingenovelreader.utils.HostNames.USER_AGENT
+import com.mgn.bingenovelreader.model.Novel
+import com.mgn.bingenovelreader.model.WebPage
+import com.mgn.bingenovelreader.util.Constants.NovelSites.NOVEL_UPDATES
+import com.mgn.bingenovelreader.util.Constants.NovelSites.ROYAL_ROAD
+import com.mgn.bingenovelreader.network.HostNames.USER_AGENT
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.IOException
@@ -20,11 +22,41 @@ class NovelApi {
 
     fun search(searchTerms: String): Map<String, ArrayList<Novel>> {
         val searchResults = HashMap<String, ArrayList<Novel>>()
-        searchNovelUpdates(searchTerms)?.let { searchResults.put("novel-updates", it) }
+        searchNovelUpdates(searchTerms)?.let { searchResults.put(NOVEL_UPDATES, it) }
+        searchRoyalRoad(searchTerms)?.let { searchResults.put(ROYAL_ROAD, it) }
         return searchResults
     }
 
-    private fun searchNovelUpdates(searchTerms: String): ArrayList<Novel>? {
+
+    public fun searchRoyalRoad(searchTerms: String): ArrayList<Novel>? {
+        var searchResults: ArrayList<Novel>? = null
+        try {
+            searchResults = ArrayList()
+            val document = Jsoup.connect("https://royalroadl.com/fictions/search?keyword=$searchTerms&name=&author=&minPages=0&maxPages=10000&minRating=0&maxRating=5&status=ALL&orderBy=popularity&dir=desc&type=ALL").get()
+            val elements = document.body().getElementsByClass("search-item").filter { it.tagName() === "li" }
+            for (element in elements) {
+                val searchContentElement = element.getElementsByClass("search-content").firstOrNull()
+                if (searchContentElement != null) {
+                    val novel = Novel()
+                    val urlElement = searchContentElement?.getElementsByTag("a")?.firstOrNull()
+                    novel.name = urlElement?.text()
+                    novel.url = "https://www.royalroadl.com${urlElement?.attr("href")}"
+                    novel.imageUrl = element.getElementsByTag("img").firstOrNull()?.attr("src")
+                    novel.author = searchContentElement?.getElementsByClass("author")?.firstOrNull { it.tagName() == "span" }?.text()?.substring(3)
+                    novel.rating = "N/A"
+                    novel.longDescription = searchContentElement?.getElementsByTag("div")?.firstOrNull { it.hasClass("fiction-description") }?.text()
+                    novel.shortDescription = novel.longDescription?.split("\n")?.firstOrNull()
+                    searchResults.add(novel)
+                }
+            }
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return searchResults
+    }
+
+    public fun searchNovelUpdates(searchTerms: String): ArrayList<Novel>? {
         var searchResults: ArrayList<Novel>? = null
         try {
             searchResults = ArrayList()
@@ -48,21 +80,17 @@ class NovelApi {
         return searchResults
     }
 
-    public fun getChapterUrls(novel: Novel): ArrayList<WebPage> {
-        return getChapterUrls(novel.url!!)
-    }
-
     public fun getChapterUrls(url: String): ArrayList<WebPage> {
         var chapters = ArrayList<WebPage>()
         val host = URI(url).host
         when {
-            host.contains("novelupdates.com") -> getNUChapterUrls(url, chapters)
-            host.contains("royalroad.com") -> println("Not yet implemented for royal road")
+            host.contains(NOVEL_UPDATES) -> getNUChapterUrls(url, chapters)
+            host.contains(ROYAL_ROAD) -> getRRChapterUrls(url, chapters)
         }
         return chapters
     }
 
-    //Get Novel Updates Chapter URLs
+    //Get Novel-Updates Chapter URLs
     private fun getNUChapterUrls(url: String, chapters: ArrayList<WebPage>) {
         try {
             val document = getDocument(url)
@@ -77,6 +105,17 @@ class NovelApi {
                 val nextPageUrl = "${uri.scheme}://${uri.host}${uri.path}${nextPageElement[0].attr("href").replace("./", "")}"
                 getNUChapterUrls(nextPageUrl, chapters)
             }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
+
+    //Get RoyalRoad Chapter URLs
+    private fun getRRChapterUrls(url: String, chapters: ArrayList<WebPage>) {
+        try {
+            val document = Jsoup.connect(url).get()
+            val tableElement = document.body().getElementById("chapters")
+            tableElement?.getElementsByTag("a")?.filter { it.attributes().hasKey("href") }?.mapTo(chapters) { WebPage(url = "http://$ROYAL_ROAD${it.attr("href")}", chapter = it.text()) }
         } catch (e: IOException) {
             e.printStackTrace()
         }

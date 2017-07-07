@@ -2,7 +2,7 @@ package com.mgn.bingenovelreader.database
 
 import android.content.ContentValues
 import android.util.Log
-import com.mgn.bingenovelreader.models.NovelGenre
+import com.mgn.bingenovelreader.model.NovelGenre
 import java.util.*
 
 private val LOG = "NovelGenreHelper"
