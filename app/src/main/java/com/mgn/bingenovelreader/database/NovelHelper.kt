@@ -3,7 +3,7 @@ package com.mgn.bingenovelreader.database
 import android.content.ContentValues
 import android.util.Log
 import com.mgn.bingenovelreader.database.DBKeys.KEY_CURRENT_WEB_PAGE_ID
-import com.mgn.bingenovelreader.models.Novel
+import com.mgn.bingenovelreader.model.Novel
 import org.jsoup.helper.StringUtil
 import java.util.*
 

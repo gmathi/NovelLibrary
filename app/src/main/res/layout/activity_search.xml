@@ -6,7 +6,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#fefefe"
-    tools:context="com.mgn.bingenovelreader.activities.SearchActivity">
+    tools:context="com.mgn.bingenovelreader.activity.SearchActivity">
+
+    <!--<com.mancj.materialsearchbar.MaterialSearchBar-->
+        <!--app:mt_speechMode="true"-->
+        <!--app:mt_hint="Custom hint"-->
+        <!--app:mt_maxSuggestionsCount="10"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:id="@+id/searchBar" />-->
 
     <org.cryse.widget.persistentsearch.PersistentSearchView
         android:id="@+id/searchView"
@@ -19,7 +27,6 @@
         app:persistentSV_editHintText="@string/search_novel"
         app:persistentSV_editHintTextColor="?android:textColorHint"
         app:persistentSV_editTextColor="?android:textColorPrimary"
-        app:persistentSV_homeButtonMode="arrow"
         app:persistentSV_logoString="@string/search_novel"
         app:persistentSV_searchCardElevation="2dp"
         app:persistentSV_searchTextColor="?android:textColorPrimary"/>

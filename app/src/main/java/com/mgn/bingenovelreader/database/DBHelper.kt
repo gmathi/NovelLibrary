@@ -4,10 +4,10 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
-import com.mgn.bingenovelreader.models.DownloadQueue
-import com.mgn.bingenovelreader.models.Novel
-import com.mgn.bingenovelreader.models.NovelGenre
-import com.mgn.bingenovelreader.utils.Constants
+import com.mgn.bingenovelreader.model.DownloadQueue
+import com.mgn.bingenovelreader.model.Novel
+import com.mgn.bingenovelreader.model.NovelGenre
+import com.mgn.bingenovelreader.util.Constants
 
 
 class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAME, null, DBKeys.DATABASE_VERSION) {

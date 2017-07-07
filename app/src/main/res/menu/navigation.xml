@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_library"
+        android:icon="@drawable/ic_book_black_vector"
+        android:title="@string/title_library"/>
+
+    <item
+        android:id="@+id/navigation_search"
+        android:icon="@drawable/ic_search_black"
+        android:title="@string/title_search"/>
+
+    <item
+        android:id="@+id/navigation_downloads"
+        android:icon="@drawable/ic_file_download_black_vector"
+        android:title="@string/title_downloads"/>
+
+</menu>
