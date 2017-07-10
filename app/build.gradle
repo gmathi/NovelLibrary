@@ -61,7 +61,7 @@ dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     compile 'com.google.code.gson:gson:2.8.0'
-    compile 'org.jsoup:jsoup:1.10.2'
+    compile 'org.jsoup:jsoup:1.10.3'
     compile 'org.cryse.widget:persistentsearchview:1.0.4@aar'
     compile 'com.github.mancj:MaterialSearchBar:0.7'
     compile 'com.github.bumptech.glide:glide:4.0.0-RC0'
