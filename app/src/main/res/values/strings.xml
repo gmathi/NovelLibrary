@@ -1,5 +1,29 @@
 <resources>
 
+    <string-array name="search_tab_titles">
+        <item>Active-Popular</item>
+        <item>Best-Rated</item>
+        <item>Complete</item>
+    </string-array>
+
+    <string-array name="search_results_tab_titles">
+        <item>Novel-Updates</item>
+        <item>RoyalRoad</item>
+    </string-array>
+
+    <string-array name="novel_details_tab_titles">
+        <item>info</item>
+        <item>stats</item>
+        <item>episodes</item>
+        <item>extras</item>
+        <item>reviews</item>
+    </string-array>
+
+
+    <!--<item>Latest Updates</item>-->
+    <!--<item>Active-Only Ranking</item>-->
+
+
     <string name="title_activity_reader_pager">Reader Pager Activity</string>
 
     <string name="title_activity_search">Search Novels</string>
@@ -83,14 +107,37 @@
     <string name="pref_header_notifications">Notifications</string>
 
     <string name="pref_title_new_message_notifications">New message notifications</string>
-
+    pref_title_dark_theme
     <string name="pref_title_ringtone">Ringtone</string>
     <string name="pref_ringtone_silent">Silent</string>
 
     <string name="pref_title_vibrate">Vibrate</string>
 
-    <string name="pref_title_dark_theme">Dark Theme</string>
-    <string name="pref_description_dark_theme">Only RoyalRoadl.com supported</string>
+    <string name="pref_title_dark_theme">Dark Page Theme</string>
+    <string name="pref_description_dark_theme">Only RoyalRoadl.com supported for now.</string>
+    <string name="pref_title_experimental_download">Lighting Fast Downloads (Experimental) </string>
+    <string name="pref_description_experimental_download">Downloads really fast. Your device may freeze for a while.</string>
+    <string name="pref_title_queue_novel_downloads">Queue Novel Downloads </string>
+    <string name="pref_description_queue_novel_downloads">Downloads novels one after the another. If disabled, max of 5 novels with be downloaded simultaneously. </string>
+    <string name="pref_title_download_latest_first">Download Latest First</string>
+    <string name="pref_description_download_latest_first">Download the latest chapter first.</string>
+
+    <string name="title_activity_nav_drawer">NavDrawerActivity</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="action_favourite">Favourite</string>
+    <string name="action_bookmark">Bookmark</string>
+
+    <!-- Transition Names -->
+    <string name="transition_user_banner" translatable="false">trans_banner_img</string>
+    <string name="transition_image_preview" translatable="false">trans_image_preview</string>
+    <string name="title_activity_novel_details_new">NovelDetailsNewActivity</string>
+    <string name="synopsis">Synopsis</string>
+    <string name="genres">Genres</string>
+    <string name="chapters">Chapters</string>
+    <string name="legal">Legal</string>
+    <string name="title_activity_chapters">Chapters</string>
 
 
 </resources>

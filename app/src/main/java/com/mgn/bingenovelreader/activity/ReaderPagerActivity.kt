@@ -2,7 +2,6 @@ package com.mgn.bingenovelreader.activity
 
 import android.os.Bundle
 import android.support.v4.view.ViewPager
-import android.support.v7.app.AppCompatActivity
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.adapter.WebPageAdapter
 import com.mgn.bingenovelreader.database.getAllReadableWebPages
@@ -12,7 +11,7 @@ import com.mgn.bingenovelreader.model.WebPage
 import com.mgn.bingenovelreader.util.Constants
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 
-class ReaderPagerActivity : AppCompatActivity(), ViewPager.OnPageChangeListener {
+class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener {
 
     private var adapter: WebPageAdapter? = null
     private var chapters = ArrayList<WebPage>()

@@ -13,17 +13,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity
-            android:name=".activity.SearchActivity"
-            android:label="@string/title_activity_search"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-        <activity
-            android:name=".activity.LibraryActivity"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-
         <service
             android:name=".service.DownloadService"
             android:enabled="true"
@@ -31,28 +20,41 @@
         </service>
 
         <activity
-            android:name=".activity.DownloadQueueActivity"
-            android:label="@string/title_activity_download_queue"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-        <activity
             android:name=".activities.NovelDetailsActivity"
             android:label="@string/title_activity_novel_details"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/DarkTheme_DarkSide">
         </activity>
+        <activity
+            android:name=".activities.SearchResultsActivity"
+            android:label="@string/title_activity_novel_details"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
+            android:name=".activity.ImagePreviewActivity"
+            android:label=""
+            android:theme="@style/AppImagePreview"/>
         <activity
             android:name=".activity.ReaderPagerActivity"
             android:label="@string/title_activity_reader_pager"
             android:parentActivityName=".activity.NovelDetailsActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/DarkTheme_DarkSide">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.mgn.bingenovelreader.activity.NovelDetailsActivity"/>
         </activity>
         <activity
-            android:name=".activity.MainActivity"
-            android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:name=".activity.SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:parentActivityName=".activity.NavDrawerActivity"
+            android:theme="@style/DarkTheme_DarkSide">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.mgn.bingenovelreader.activity.NavDrawerActivity"/>
+        </activity>
+        <activity
+            android:name=".activity.NavDrawerActivity"
+            android:label="@string/title_activity_nav_drawer"
+            android:theme="@style/DarkTheme_DarkSide">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -60,13 +62,14 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.SettingsActivity"
-            android:label="@string/title_activity_settings"
-            android:parentActivityName=".activity.MainActivity"
+            android:name=".activity.NovelDetailsActivity"
+            android:label="@string/title_activity_novel_details_new"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
+            android:name=".activity.ChaptersActivity"
+            android:label="@string/title_activity_chapters"
             android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.mgn.bingenovelreader.activity.MainActivity"/>
         </activity>
     </application>
 

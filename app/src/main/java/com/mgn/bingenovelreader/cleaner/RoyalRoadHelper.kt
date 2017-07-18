@@ -1,7 +1,9 @@
 package com.mgn.bingenovelreader.cleaner
 
+import android.net.Uri
 import com.mgn.bingenovelreader.util.Constants
 import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
 import java.io.File
 
 
@@ -21,6 +23,12 @@ class RoyalRoadHelper : HtmlHelper() {
             contentElement?.siblingElements()?.remove()
             contentElement = contentElement?.parent()
         } while (contentElement?.tagName() != "body")
+    }
+
+    override fun downloadImage(element: Element, dir: File): File? {
+        val uri = Uri.parse(element.attr("src"))
+        if (uri.toString().contains("uploads/avatars")) return null
+        else return super.downloadImage(element, dir)
     }
 
     override fun addTitle(doc: Document) {

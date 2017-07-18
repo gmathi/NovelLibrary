@@ -70,6 +70,33 @@ fun DBHelper.getAllWebPages(novelId: Long): List<WebPage> {
     return list
 }
 
+fun DBHelper.getAllWebPagesToDownload(novelId: Long): List<WebPage> {
+    val list = ArrayList<WebPage>()
+    val selectQuery = "SELECT * FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novelId + " AND file_path IS NULL ORDER BY " + DBKeys.KEY_ID + " ASC"
+    Log.d(LOG, selectQuery)
+    val cursor = this.readableDatabase.rawQuery(selectQuery, null)
+
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+            do {
+                val webPage = WebPage()
+                webPage.id = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ID))
+                webPage.url = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL))
+                webPage.redirectedUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_REDIRECT_URL))
+                webPage.chapter = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER))
+                webPage.title = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_TITLE))
+                webPage.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
+                webPage.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
+
+                list.add(webPage)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+    }
+    return list
+}
+
+
 fun DBHelper.getAllReadableWebPages(novelId: Long): List<WebPage> {
     val list = ArrayList<WebPage>()
     val selectQuery = "SELECT * FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novelId + " AND file_path IS NOT NULL ORDER BY " + DBKeys.KEY_ID + " ASC"

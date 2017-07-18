@@ -2,9 +2,7 @@ package com.mgn.bingenovelreader.network
 
 import com.mgn.bingenovelreader.model.Novel
 import com.mgn.bingenovelreader.model.WebPage
-import com.mgn.bingenovelreader.util.Constants.NovelSites.NOVEL_UPDATES
-import com.mgn.bingenovelreader.util.Constants.NovelSites.ROYAL_ROAD
-import com.mgn.bingenovelreader.network.HostNames.USER_AGENT
+import com.mgn.bingenovelreader.network.HostNames.*
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.IOException
@@ -27,6 +25,27 @@ class NovelApi {
         return searchResults
     }
 
+    fun searchRoyalRoadUrl(searchUrl: String): ArrayList<Novel>? {
+        var searchResults: ArrayList<Novel>? = null
+        try {
+            searchResults = ArrayList()
+            val document = Jsoup.connect(searchUrl).get()
+            val elements = document.body().getElementsByClass("fiction-list-item").filter { it.tagName() === "div" }
+            for (element in elements) {
+                val novel = Novel()
+                val urlElement = element.getElementsByTag("a")?.firstOrNull()
+                novel.name = urlElement?.text()
+                novel.url = "https://www.royalroadl.com${urlElement?.attr("href")}"
+                novel.imageUrl = element.getElementsByTag("img").firstOrNull()?.attr("src")
+                novel.rating = element.getElementsByClass("star").firstOrNull { it.tagName() == "span" }?.attr("title")
+                searchResults.add(novel)
+            }
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return searchResults
+    }
 
     public fun searchRoyalRoad(searchTerms: String): ArrayList<Novel>? {
         var searchResults: ArrayList<Novel>? = null
@@ -38,13 +57,13 @@ class NovelApi {
                 val searchContentElement = element.getElementsByClass("search-content").firstOrNull()
                 if (searchContentElement != null) {
                     val novel = Novel()
-                    val urlElement = searchContentElement?.getElementsByTag("a")?.firstOrNull()
+                    val urlElement = searchContentElement.getElementsByTag("a")?.firstOrNull()
                     novel.name = urlElement?.text()
                     novel.url = "https://www.royalroadl.com${urlElement?.attr("href")}"
                     novel.imageUrl = element.getElementsByTag("img").firstOrNull()?.attr("src")
-                    novel.author = searchContentElement?.getElementsByClass("author")?.firstOrNull { it.tagName() == "span" }?.text()?.substring(3)
+                    novel.author = searchContentElement.getElementsByClass("author")?.firstOrNull { it.tagName() == "span" }?.text()?.substring(3)
                     novel.rating = "N/A"
-                    novel.longDescription = searchContentElement?.getElementsByTag("div")?.firstOrNull { it.hasClass("fiction-description") }?.text()
+                    novel.longDescription = searchContentElement.getElementsByTag("div")?.firstOrNull { it.hasClass("fiction-description") }?.text()
                     novel.shortDescription = novel.longDescription?.split("\n")?.firstOrNull()
                     searchResults.add(novel)
                 }
@@ -115,10 +134,89 @@ class NovelApi {
         try {
             val document = Jsoup.connect(url).get()
             val tableElement = document.body().getElementById("chapters")
-            tableElement?.getElementsByTag("a")?.filter { it.attributes().hasKey("href") }?.mapTo(chapters) { WebPage(url = "http://$ROYAL_ROAD${it.attr("href")}", chapter = it.text()) }
+            tableElement?.getElementsByTag("a")?.filter { it.attributes().hasKey("href") }?.asReversed()?.mapTo(chapters) { WebPage(url = "http://$ROYAL_ROAD${it.attr("href")}", chapter = it.text()) }
         } catch (e: IOException) {
             e.printStackTrace()
         }
     }
+
+    fun getNovelDetails(url: String): Novel? {
+        var novel: Novel? = null
+        val host = URI(url).host
+        when {
+            host.contains(NOVEL_UPDATES) -> novel = getNUNovelDetails(url)
+            host.contains(ROYAL_ROAD) -> novel = getRRNovelDetails(url)
+        }
+        return novel
+    }
+
+    private fun getNUNovelDetails(url: String): Novel? {
+        var novel: Novel? = null
+        try {
+            val document = getDocumentWithUserAgent(url)
+            novel = Novel()
+            novel.name = document.getElementsByClass("seriestitlenu").firstOrNull()?.text()
+            novel.imageUrl = document.getElementsByClass("seriesimg").firstOrNull()?.getElementsByTag("img")?.attr("src")
+            novel.genres = document.body().getElementById("seriesgenre").allElements.map { it.text() }
+
+            novel.metaData.put("Author(s)",
+                document.getElementsByClass("genre").filter { it.id() == "authtag" }.map { it.text() }.joinToString(", "))
+            novel.metaData.put("Artist(s)",
+                document.getElementsByClass("genre").filter { it.id() == "artiststag" }.map { it.text() }.joinToString(", "))
+            novel.metaData.put("Year",
+                document.getElementById("edityear").text())
+            novel.metaData.put("Type",
+                document.getElementsByClass("genre type").firstOrNull()?.text())
+            novel.metaData.put("Tags",
+                document.getElementsByClass("genre").filter { it.id() == "etagme" }.map { it.text() }.joinToString(", "))
+            novel.metaData.put("Language",
+                document.getElementById("showlang").text())
+            novel.metaData.put("Status in Country of Origin",
+                document.getElementById("editstatus").text())
+            novel.metaData.put("Licensed (in English)",
+                document.getElementById("showlicensed").text())
+            novel.metaData.put("Licensed (in English)",
+                document.getElementById("showlicensed").text())
+            novel.metaData.put("Completely Translated",
+                document.getElementById("showtranslated").text())
+            novel.metaData.put("Original Publisher",
+                document.getElementsByClass("genre").filter { it.id() == "myopub" }.map { it.text() }.joinToString(", "))
+            novel.metaData.put("Completely Translated",
+                document.getElementById("showtranslated").text())
+            novel.metaData.put("English Publisher",
+                document.getElementsByClass("genre").filter { it.id() == "myepub" }.map { it.text() }.joinToString(", "))
+            novel.metaData.put("Associated Names",
+                document.getElementById("editassociated").text())
+
+
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return novel
+    }
+
+
+    public fun getRRNovelDetails(url: String): Novel? {
+        var novel: Novel? = null
+        try {
+            val document = getDocumentWithUserAgent(url)
+            novel = Novel()
+
+            novel.name = document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("name") && it.attr("name") == "twitter:title" }?.attr("content")
+            novel.imageUrl = document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("property") && it.attr("property") == "og:image" }?.attr("content")
+            novel.rating = document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("property") && it.attr("property") == "books:rating:value" }?.attr("content")
+            novel.longDescription = document.body().getElementsByAttributeValue("property", "description").firstOrNull { it.tagName() == "div" }?.text()
+            novel.genres = document.body().getElementsByAttributeValue("property", "genre")?.map { it.text() }
+            novel.metaData.put("Author(s)",
+                document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("property") && it.attr("property") == "books:author" }?.attr("content"))
+
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return novel
+    }
+
 
 }

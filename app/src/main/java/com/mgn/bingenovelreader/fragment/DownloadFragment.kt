@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
@@ -12,17 +11,18 @@ import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.mgn.bingenovelreader.R
+import com.mgn.bingenovelreader.activity.NavDrawerActivity
 import com.mgn.bingenovelreader.adapter.GenericAdapter
 import com.mgn.bingenovelreader.database.*
 import com.mgn.bingenovelreader.dbHelper
 import com.mgn.bingenovelreader.event.EventType
 import com.mgn.bingenovelreader.event.NovelEvent
+import com.mgn.bingenovelreader.extension.setDefaults
 import com.mgn.bingenovelreader.model.DownloadQueue
 import com.mgn.bingenovelreader.model.Novel
 import com.mgn.bingenovelreader.service.DownloadService
 import com.mgn.bingenovelreader.util.Constants
-import com.mgn.bingenovelreader.util.Util
-import com.mgn.bingenovelreader.util.setDefaults
+import com.mgn.bingenovelreader.util.Utils
 import kotlinx.android.synthetic.main.activity_download_queue.*
 import kotlinx.android.synthetic.main.content_download_queue.*
 import kotlinx.android.synthetic.main.listitem_download_queue.view.*
@@ -53,10 +53,10 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         toolbar.title = getString(R.string.title_downloads)
-        (activity as AppCompatActivity).setSupportActionBar(toolbar)
+        (activity as NavDrawerActivity).setToolbar(toolbar)
         setRecyclerView()
 
-        if (DownloadService.IS_DOWNLOADING) {
+        if (DownloadService.isDownloading()) {
             fab.setImageResource(R.drawable.ic_pause_black_vector)
             fab.tag = "playing"
         } else {
@@ -76,7 +76,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
                     dbHelper.updateAllDownloadQueueStatuses(Constants.STATUS_DOWNLOAD)
                     fab.setImageResource(R.drawable.ic_pause_black_vector)
                     fab.tag = "playing"
-                    startDownloadService(adapter.items[0].novelId)
+                    startDownloadService(-1L)
                 }
                 adapter.updateData(ArrayList(dbHelper.getAllDownloadQueue()))
             }
@@ -104,7 +104,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
 
     //region Adapter Listener Methods - onItemClick(), viewBinder()
     @SuppressLint("SetTextI18n")
-    override fun bind(item: DownloadQueue, itemView: View) {
+    override fun bind(item: DownloadQueue, itemView: View, position: Int) {
         val novel = dbHelper.getNovel(item.novelId)
         itemView.novelName.text = novel?.name
         if (novel?.imageFilePath != null)
@@ -112,9 +112,11 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
 
 
 
-        if (item.status.toInt() == Constants.STATUS_DOWNLOAD) {
+        if (DownloadService.isDownloading(item.novelId)) {
+            item.status = Constants.STATUS_DOWNLOAD
             itemView.downloadPauseButton.setImageResource(R.drawable.ic_pause_black_vector)
         } else {
+            item.status = Constants.STATUS_STOPPED
             itemView.downloadPauseButton.setImageResource(R.drawable.ic_play_arrow_black_vector)
         }
         val totalChapterCount = dbHelper.getAllWebPages(novelId = novel?.id!!).count()
@@ -125,22 +127,24 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
             itemView.downloadProgress.text = "Waiting to download…"
         }
 
-        val preText = if (DownloadService.NOVEL_ID != novel.id) "In Queue - " else "Downloading: "
+        val preText = if (DownloadService.isDownloading(novel.id)) "Downloading: " else "In Queue - "
         val displayText = preText + itemView.downloadProgress.text.toString()
         itemView.downloadProgress.text = displayText
 
         itemView.downloadPauseButton.setOnClickListener {
-            if (item.status.toInt() == Constants.STATUS_DOWNLOAD) {
-                dbHelper.updateDownloadQueueStatus(Constants.STATUS_STOPPED.toLong(), item.novelId)
+            if (item.status == Constants.STATUS_DOWNLOAD) {
+                dbHelper.updateDownloadQueueStatus(Constants.STATUS_STOPPED, item.novelId)
                 itemView.downloadPauseButton.setImageResource(R.drawable.ic_play_arrow_black_vector)
+                item.status = Constants.STATUS_STOPPED
                 if (dbHelper.getFirstDownloadableQueueItem() == null) {
                     fab.setImageResource(R.drawable.ic_play_arrow_black_vector)
                     fab.tag = "paused"
                 }
 
-            } else if (item.status.toInt() == Constants.STATUS_STOPPED) {
-                dbHelper.updateDownloadQueueStatus(Constants.STATUS_DOWNLOAD.toLong(), item.novelId)
+            } else if (item.status == Constants.STATUS_STOPPED) {
+                dbHelper.updateDownloadQueueStatus(Constants.STATUS_DOWNLOAD, item.novelId)
                 itemView.downloadPauseButton.setImageResource(R.drawable.ic_pause_black_vector)
+                item.status = Constants.STATUS_DOWNLOAD
                 startDownloadService(item.novelId)
                 fab.setImageResource(R.drawable.ic_pause_black_vector)
                 fab.tag = "playing"
@@ -167,7 +171,6 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
 
 
     private fun confirmDeleteAlert(novel: Novel) {
-        //TODO: Need to make the text spannable
         alert(buildSpanned {
             append("Delete ")
             append("${novel.name}", Bold)
@@ -179,7 +182,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
     }
 
     private fun deleteNovel(novel: Novel) {
-        Util.deleteNovel(context, novel)
+        Utils.deleteNovel(context, novel)
         val index = adapter.items.indexOfFirst { it.novelId == novel.id }
         if (index != -1) adapter.removeItemAt(index)
         if (adapter.items.size == 0) {
@@ -203,7 +206,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
         when (event.type) {
             EventType.UPDATE -> {
                 if (event.novelId == -1L) {
-                    if (!Util.checkNetwork(context)) {
+                    if (!Utils.checkNetwork(context)) {
                         toast("No Active Internet! (⋋▂⋌)")
                         fab.setImageResource(R.drawable.ic_play_arrow_black_vector)
                         fab.tag = "paused"

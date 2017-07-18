@@ -23,15 +23,9 @@ public class Constants {
 
     public static final String ROYAL_ROAD_SITE_THEME_ID = "siteThemeRoyalRoad";
 
-    public static class NovelSites {
-        public static final String NOVEL_UPDATES = "novelupdates.com";
-        public static final String ROYAL_ROAD = "royalroadl.com";
-        public static final String KOBATOCHAN = "kobatochan.com";
-    }
-
     //region DownloadQueue Status Values
-    public static final int STATUS_DOWNLOAD = 0;
-    public static final int STATUS_STOPPED = 1;
+    public static final Long STATUS_DOWNLOAD = 0L;
+    public static final Long STATUS_STOPPED = 1L;
     //endregion
 
     //region Intent Keys
@@ -62,9 +56,7 @@ public class Constants {
 
     //endregion
 
-    public static final String allowedWebsites = "2.gravatar.com " +
-            "www.novelupdates.com " +
-            "guqintranslations.wordpress.com " +
-            "www.royalroadl.com" +
-            "www.isohungrytls.com ";
+    public static final String NO_NETWORK = "No Network";
+
+
 }

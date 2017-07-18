@@ -5,29 +5,27 @@ import android.os.Bundle
 import android.os.Handler
 import android.support.v4.content.ContextCompat
 import android.support.v4.graphics.drawable.DrawableCompat
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.*
 import com.bumptech.glide.Glide
 import com.mgn.bingenovelreader.R
-import com.mgn.bingenovelreader.activities.NovelDetailsActivity
+import com.mgn.bingenovelreader.activity.NavDrawerActivity
+import com.mgn.bingenovelreader.activity.NovelDetailsActivity
 import com.mgn.bingenovelreader.adapter.GenericAdapter
 import com.mgn.bingenovelreader.database.createDownloadQueue
 import com.mgn.bingenovelreader.database.getAllNovels
 import com.mgn.bingenovelreader.dbHelper
 import com.mgn.bingenovelreader.event.NovelEvent
+import com.mgn.bingenovelreader.extension.setDefaults
 import com.mgn.bingenovelreader.model.Novel
 import com.mgn.bingenovelreader.service.DownloadService
 import com.mgn.bingenovelreader.util.Constants
-import com.mgn.bingenovelreader.util.enableLoadingView
-import com.mgn.bingenovelreader.util.setDefaults
 import kotlinx.android.synthetic.main.activity_library.*
-import kotlinx.android.synthetic.main.content_library.*
+import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-import org.jsoup.helper.StringUtil
 import java.io.File
 
 
@@ -48,7 +46,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         toolbar.title = getString(R.string.title_library)
-        (activity as AppCompatActivity).setSupportActionBar(toolbar)
+        (activity as NavDrawerActivity).setToolbar(toolbar)
         setRecyclerView()
     }
 
@@ -57,7 +55,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         recyclerView.setDefaults(adapter)
         swipeRefreshLayout.setOnRefreshListener {
             adapter.updateData(ArrayList(dbHelper.getAllNovels()))
-            enableLoadingView(adapter.items.isEmpty(), recyclerView)
             swipeRefreshLayout.isRefreshing = false
         }
     }
@@ -67,26 +64,25 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
     override fun onItemClick(item: Novel) {
         if (lastDeletedId != item.id)
-            startNovelDetailsActivity(item.id)
+            startNovelDetailsActivity(item)
     }
 
-    override fun bind(item: Novel, itemView: View) {
+    override fun bind(item: Novel, itemView: View, position: Int) {
         if (item.imageFilePath != null)
             Glide.with(this).load(File(item.imageFilePath)).into(itemView.novelImageView)
         itemView.novelTitleTextView.text = item.name
         if (item.rating != null) {
+            var ratingText = "(N/A)"
             try {
-                itemView.novelRatingBar.rating = item.rating!!.toFloat()
+                val rating = item.rating!!.toFloat()
+                itemView.novelRatingBar.rating = rating
+                ratingText = "(" + String.format("%.1f", rating) + ")"
             } catch (e: Exception) {
                 Log.w("Library Activity", "Rating: " + item.rating, e)
             }
-            val ratingText = "(" + item.rating + ")"
-            itemView.novelRatingTextView.text = ratingText
+            itemView.novelRatingText.text = ratingText
         }
-        var genresText = item.genres?.joinToString { it }
-        if (StringUtil.isBlank(genresText)) genresText = "N/A"
-        itemView.novelGenreTextView.text = genresText
-        itemView.novelDescriptionTextView.text = item.shortDescription
+
     }
 
     //endregion
@@ -136,7 +132,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     override fun onResume() {
         super.onResume()
         adapter.updateData(ArrayList(dbHelper.getAllNovels()))
-        enableLoadingView(adapter.items.isEmpty(), recyclerView)
     }
 
     override fun onStop() {
@@ -146,12 +141,15 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onNovelEvent(event: NovelEvent) {
+        print(event.novelId)
     }
 
 
-    fun startNovelDetailsActivity(novelId: Long) {
+    fun startNovelDetailsActivity(novel: Novel) {
         val intent = Intent(activity, NovelDetailsActivity::class.java)
-        intent.putExtra(Constants.NOVEL_ID, novelId)
+        val bundle = Bundle()
+        bundle.putSerializable("novel", novel)
+        intent.putExtras(bundle)
         activity.startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
     }
 
@@ -162,7 +160,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
                 lastDeletedId = novelId
                 adapter.removeItemAt(adapter.items.indexOfFirst { it.id == novelId })
                 Handler().postDelayed({ lastDeletedId = -1 }, 1200)
-                enableLoadingView(adapter.items.isEmpty(), recyclerView)
             }
             return
         }

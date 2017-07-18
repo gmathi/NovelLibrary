@@ -4,7 +4,26 @@
         android:defaultValue="false"
         android:key="isDarkTheme"
         android:summary="@string/pref_description_dark_theme"
-        android:title="@string/pref_title_dark_theme"/>
+        android:title="@string/"/>
+
+    <!--<SwitchPreference-->
+        <!--android:defaultValue="true"-->
+        <!--android:key="downloadLatestFirst"-->
+        <!--android:summary="@string/pref_description_download_latest_first"-->
+        <!--android:title="@string/pref_title_dark_theme"/>-->
+
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="experimentalDownload"
+        android:summary="@string/pref_description_experimental_download"
+        android:title="@string/pref_title_experimental_download"/>
+
+
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="queueNovelDownloads"
+        android:summary="@string/pref_description_queue_novel_downloads"
+        android:title="@string/pref_title_queue_novel_downloads"/>
 
     <!--<SwitchPreference-->
     <!--android:defaultValue="true"-->

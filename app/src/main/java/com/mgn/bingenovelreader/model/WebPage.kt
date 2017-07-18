@@ -24,11 +24,22 @@ class WebPage {
     var novelId: Long = 0
     var pageData: String? = null
 
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null || javaClass != o.javaClass) return false
-        val webPage = o as WebPage?
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || javaClass != other.javaClass) return false
+        val webPage = other as WebPage?
         return if (webPage != null) id == webPage.id else false
+    }
+
+    fun copyFrom(other: WebPage) {
+        id = other.id
+        url = other.url
+        redirectedUrl = other.redirectedUrl
+        title = other.title
+        chapter = other.chapter
+        filePath = other.filePath
+        novelId = other.novelId
+        pageData = other.pageData
     }
 
 }

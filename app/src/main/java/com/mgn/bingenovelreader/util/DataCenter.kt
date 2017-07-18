@@ -14,8 +14,11 @@ class DataCenter(context: Context) {
     private val BOOKMARKS_LIST = "bookmarksList"
     private val CACHE_LIST = "cacheList"
     private val SEARCH_HISTORY_LIST = "searchHistoryList"
-    private val IS_DARK_THEME = "isDarkTheme"
 
+    private val IS_DARK_THEME = "isDarkTheme"
+    private val DOWNLOAD_LATEST_FIRST = "downloadLatestFirst"
+    private val EXPERIMENTAL_DOWNLOAD = "experimentalDownload"
+    private val QUEUE_NOVEL_DOWNLOADS = "queueNovelDownloads"
 
     val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -45,4 +48,15 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(IS_DARK_THEME, false)
         set(value) = prefs.edit().putBoolean(IS_DARK_THEME, value).apply()
 
+    var downloadLatestFirst: Boolean
+        get() = prefs.getBoolean(DOWNLOAD_LATEST_FIRST, false)
+        set(value) = prefs.edit().putBoolean(DOWNLOAD_LATEST_FIRST, value).apply()
+
+    var experimentalDownload: Boolean
+        get() = prefs.getBoolean(EXPERIMENTAL_DOWNLOAD, false)
+        set(value) = prefs.edit().putBoolean(EXPERIMENTAL_DOWNLOAD, value).apply()
+
+    var queueNovelDownloads: Boolean
+        get() = prefs.getBoolean(QUEUE_NOVEL_DOWNLOADS, true)
+        set(value) = prefs.edit().putBoolean(QUEUE_NOVEL_DOWNLOADS, value).apply()
 }
