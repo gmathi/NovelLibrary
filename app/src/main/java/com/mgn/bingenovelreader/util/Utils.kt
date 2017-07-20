@@ -146,9 +146,9 @@ object Utils {
         context.sendBroadcast(localIntent)
     }
 
-    fun checkNetwork(appContext: Context): Boolean {
-        val connectivityManager = appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val netInfo = connectivityManager.activeNetworkInfo
+    fun checkNetwork(context: Context): Boolean {
+        val connectivityManager = context.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
+        val netInfo = connectivityManager?.activeNetworkInfo
         return netInfo != null && netInfo.isConnected
     }
 }
