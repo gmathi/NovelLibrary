@@ -26,6 +26,8 @@ public class Constants {
     //region DownloadQueue Status Values
     public static final Long STATUS_DOWNLOAD = 0L;
     public static final Long STATUS_STOPPED = 1L;
+    public static final Long STATUS_COMPLETE = 2L;
+
     //endregion
 
     //region Intent Keys
@@ -52,11 +54,13 @@ public class Constants {
     public static final int NOVEL_DETAILS_RES_CODE = 3;
     public static final int READER_ACT_REQ_CODE = 4;
     public static final int DOWNLOAD_QUEUE_ACT_RES_CODE = 5;
+    public static final int CHAPTER_ACT_REQ_CODE = 6;
 
 
     //endregion
 
     public static final String NO_NETWORK = "No Network";
+
 
 
 }

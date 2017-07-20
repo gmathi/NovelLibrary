@@ -51,6 +51,7 @@ fun <T> RecyclerView.setDefaults(adapter: GenericAdapter<T>): RecyclerView {
     this.setHasFixedSize(true)
     this.layoutManager = SnappingLinearLayoutManager(context)
     this.itemAnimator = animator
+    adapter.setHasStableIds(true)
     this.adapter = adapter
 
     return this

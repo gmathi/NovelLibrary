@@ -30,7 +30,7 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, val host
         try {
             if (isNetworkDown()) throw InterruptedException(Constants.NO_NETWORK)
             if (downloadChapter(webPage, hostDir, novelDir)) {
-                EventBus.getDefault().post(NovelEvent(EventType.UPDATE, webPage.novelId))
+                EventBus.getDefault().post(NovelEvent(EventType.UPDATE, webPage.novelId, webPage))
             }
         } catch (e: InterruptedException) {
             Log.w(TAG, "Interrupting the Thread: ${webPage.novelId}, ${e.localizedMessage}")

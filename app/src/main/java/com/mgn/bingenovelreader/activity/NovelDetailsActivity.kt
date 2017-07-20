@@ -1,5 +1,6 @@
 package com.mgn.bingenovelreader.activity
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -12,19 +13,24 @@ import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.text.style.RelativeSizeSpan
 import android.util.Log
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.Theme
 import com.bumptech.glide.Glide
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.database.getNovel
+import com.mgn.bingenovelreader.database.updateNovel
 import com.mgn.bingenovelreader.dbHelper
 import com.mgn.bingenovelreader.extension.applyFont
+import com.mgn.bingenovelreader.extension.startChaptersActivity
 import com.mgn.bingenovelreader.extension.startImagePreviewActivity
-import com.mgn.bingenovelreader.extension.toast
 import com.mgn.bingenovelreader.model.Novel
 import com.mgn.bingenovelreader.network.NovelApi
+import com.mgn.bingenovelreader.util.Constants
 import com.mgn.bingenovelreader.util.Utils
 import kotlinx.android.synthetic.main.activity_novel_details.*
 import kotlinx.android.synthetic.main.content_novel_details.*
@@ -44,7 +50,7 @@ class NovelDetailsActivity : AppCompatActivity() {
 
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setTitle(novel.name)
+        supportActionBar?.title = novel.name
 
         if (novel.id != -1L)
             setupViews()
@@ -53,7 +59,7 @@ class NovelDetailsActivity : AppCompatActivity() {
             getNovelInfo()
         }
 
-        swipeRefreshLayout.setOnRefreshListener { getNovelInfo() }
+        swipeRefreshLayout.setOnRefreshListener { getNovelInfoDB(); getNovelInfo() }
     }
 
     fun getNovelInfoDB() {
@@ -63,20 +69,30 @@ class NovelDetailsActivity : AppCompatActivity() {
 
     fun getNovelInfo() {
         if (!Utils.checkNetwork(this)) {
-            progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), "No Active Internet!", "Try Again", {
-                progressLayout.showLoading()
-                getNovelInfo()
-            })
+            if (novel.id == -1L) {
+                setupViews()
+                swipeRefreshLayout.isRefreshing = false
+            } else {
+                progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), "No Active Internet!", "Try Again", {
+                    progressLayout.showLoading()
+                    getNovelInfo()
+                })
+            }
             return
         }
 
         Thread(Runnable {
             val downloadedNovel = NovelApi().getNovelDetails(novel.url!!)
             novel.copyFrom(downloadedNovel)
+            if (novel.id != -1L) dbHelper.updateNovel(novel)
             Handler(Looper.getMainLooper()).post {
-                setupViews()
-                progressLayout.showContent()
-                swipeRefreshLayout.isRefreshing = false
+                try {
+                    setupViews()
+                    progressLayout.showContent()
+                    swipeRefreshLayout.isRefreshing = false
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }).start()
     }
@@ -94,7 +110,7 @@ class NovelDetailsActivity : AppCompatActivity() {
         setNovelAddToLibraryButton()
         setNovelGenre()
         setNovelDescription()
-        novelDetailsChaptersLayout.setOnClickListener { toast("Chapters Clicked!!") }
+        novelDetailsChaptersLayout.setOnClickListener { startChaptersActivity(novel) }
     }
 
     private fun setNovelImage() {
@@ -129,13 +145,29 @@ class NovelDetailsActivity : AppCompatActivity() {
 
     private fun setNovelAddToLibraryButton() {
         if (novel.id == -1L) {
+            resetAddToLibraryButton()
             novelDetailsDownloadButton.setOnClickListener {
+                addNovelToDB()
                 disableAddToLibraryButton()
             }
         } else disableAddToLibraryButton()
     }
 
+    private fun addNovelToDB() {
+        if (novel.id == -1L) {
+            novel.id = dbHelper.insertNovel(novel)
+        }
+    }
+
+    fun resetAddToLibraryButton() {
+        novelDetailsDownloadButton.setText(getString(R.string.add_to_library))
+        novelDetailsDownloadButton.setIconResource(R.drawable.ic_library_add_white_vector)
+        novelDetailsDownloadButton.setBackgroundColor(ContextCompat.getColor(this@NovelDetailsActivity, android.R.color.transparent))
+        novelDetailsDownloadButton.isClickable = true
+    }
+
     fun disableAddToLibraryButton() {
+        invalidateOptionsMenu()
         novelDetailsDownloadButton.setText("In Library")
         novelDetailsDownloadButton.setIconResource(R.drawable.ic_local_library_white_vector)
         novelDetailsDownloadButton.setBackgroundColor(ContextCompat.getColor(this@NovelDetailsActivity, R.color.Green))
@@ -184,9 +216,48 @@ class NovelDetailsActivity : AppCompatActivity() {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_novel_details, menu)
+        return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        menu?.getItem(0)?.isVisible = novel.id != -1L
+        return super.onPrepareOptionsMenu(menu)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         if (item?.itemId == android.R.id.home) finish()
+        else if (item?.itemId == R.id.action_delete_novel) confirmNovelDelete()
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun confirmNovelDelete() {
+        MaterialDialog.Builder(this)
+            .title(getString(R.string.confirm_remove))
+            .content(getString(R.string.confirm_remove_description))
+            .positiveText(getString(R.string.remove))
+            .negativeText(getString(R.string.cancel))
+            .icon(ContextCompat.getDrawable(this, R.drawable.ic_delete_white_vector))
+            .typeface("source_sans_pro_regular.ttf", "source_sans_pro_regular.ttf")
+            .theme(Theme.DARK)
+            .onPositive { _, _ -> deleteNovel() }
+            .show()
+    }
+
+    private fun deleteNovel() {
+        dbHelper.cleanupNovelData(novel.id)
+        novel.id = -1L
+        setNovelAddToLibraryButton()
+        invalidateOptionsMenu()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == Constants.CHAPTER_ACT_REQ_CODE) {
+            getNovelInfoDB()
+            setNovelAddToLibraryButton()
+        }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
 }

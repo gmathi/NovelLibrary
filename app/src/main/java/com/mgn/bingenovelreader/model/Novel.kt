@@ -14,7 +14,6 @@ class Novel : Serializable {
     var imageFilePath: String? = null
     var genres: List<String>? = null
     var currentWebPageId: Long = -1
-    var chapterCount: String? = null
     var metaData: HashMap<String, String?> = HashMap()
 
     override fun equals(other: Any?): Boolean {
@@ -31,12 +30,17 @@ class Novel : Serializable {
     fun copyFrom(otherNovel: Novel?) {
         if (otherNovel != null) {
             id = if (otherNovel.id != -1L) otherNovel.id else id
+            url = if (otherNovel.url != null) otherNovel.url else url
             name = if (otherNovel.name != null) otherNovel.name else name
-            metaData = otherNovel.metaData
+            author = if (otherNovel.author != null) otherNovel.author else author
             genres = if (otherNovel.genres != null) otherNovel.genres else genres
             rating = if (otherNovel.rating != null) otherNovel.rating else rating
             imageUrl = if (otherNovel.imageUrl != null) otherNovel.imageUrl else imageUrl
+            imageFilePath = if (otherNovel.imageFilePath != null) otherNovel.imageFilePath else imageFilePath
             longDescription = if (otherNovel.longDescription != null) otherNovel.longDescription else longDescription
+            shortDescription = if (otherNovel.shortDescription != null) otherNovel.shortDescription else shortDescription
+            currentWebPageId = if (otherNovel.currentWebPageId != -1L) otherNovel.currentWebPageId else currentWebPageId
+            metaData = if (!otherNovel.metaData.isEmpty()) otherNovel.metaData else metaData
         }
     }
 

@@ -4,10 +4,8 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
-import com.mgn.bingenovelreader.model.DownloadQueue
 import com.mgn.bingenovelreader.model.Novel
 import com.mgn.bingenovelreader.model.NovelGenre
-import com.mgn.bingenovelreader.util.Constants
 
 
 class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAME, null, DBKeys.DATABASE_VERSION) {
@@ -35,7 +33,19 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAM
         onCreate(db)
     }
 
+    fun removeAll() {
+        // db.delete(String tableName, String whereClause, String[] whereArgs);
+        // If whereClause is null, it will delete all rows.
+        val db = writableDatabase
+        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_NOVEL)
+        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_WEB_PAGE)
+        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_GENRE)
+        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_NOVEL_GENRE)
+        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_DOWNLOAD_QUEUE)
 
+        // create new tables
+        onCreate(db)
+    }
 
     // Custom Methods
     fun insertNovel(novel: Novel): Long {

@@ -70,7 +70,7 @@ class PopularNovelsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     }
 
     private fun searchNovels() {
-        if (!Utils.checkNetwork(context)) {
+        if (!Utils.checkNetwork(activity)) {
             progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), "No Active Internet!", "Try Again", {
                 progressLayout.showLoading()
                 searchNovels()
@@ -121,9 +121,13 @@ class PopularNovelsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
                 override fun onResourceReady(bitmap: Bitmap?, transition: Transition<in Bitmap>?) {
                     itemView.novelImageView.setImageBitmap(bitmap)
                     Thread(Runnable {
-                        val os = FileOutputStream(file)
-                        bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, os)
-                        item.imageFilePath = file.path
+                        try {
+                            val os = FileOutputStream(file)
+                            bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, os)
+                            item.imageFilePath = file.path
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                     }).start()
                 }
             })

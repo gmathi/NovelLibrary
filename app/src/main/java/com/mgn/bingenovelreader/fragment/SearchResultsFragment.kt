@@ -34,6 +34,8 @@ class SearchResultsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     lateinit var searchTerm: String
     lateinit var resultType: String
 
+    var downloadThread: Thread? = null
+
     companion object {
         fun newInstance(searchTerms: String, resultType: String): SearchResultsFragment {
             val bundle = Bundle()
@@ -73,7 +75,7 @@ class SearchResultsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     }
 
     private fun searchNovels() {
-        if (!Utils.checkNetwork(context)) {
+        if (!Utils.checkNetwork(activity)) {
             progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), "No Active Internet!", "Try Again", {
                 progressLayout.showLoading()
                 searchNovels()
@@ -81,7 +83,7 @@ class SearchResultsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
             return
         }
 
-        Thread(Runnable {
+        downloadThread = Thread(Runnable {
             val resultsMap = NovelApi().search(searchTerm)
             var results: ArrayList<Novel>? = resultsMap[resultType]
             if (results == null) results = ArrayList()
@@ -91,7 +93,8 @@ class SearchResultsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
                     swipeRefreshLayout.isRefreshing = false
                 }
             }
-        }).start()
+        })
+        downloadThread!!.start()
     }
 
     fun loadSearchResults(results: ArrayList<Novel>) {
@@ -124,9 +127,13 @@ class SearchResultsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
                 override fun onResourceReady(bitmap: Bitmap?, transition: Transition<in Bitmap>?) {
                     itemView.novelImageView.setImageBitmap(bitmap)
                     Thread(Runnable {
-                        val os = FileOutputStream(file)
-                        bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, os)
-                        item.imageFilePath = file.path
+                        try {
+                            val os = FileOutputStream(file)
+                            bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, os)
+                            item.imageFilePath = file.path
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                     }).start()
                 }
             })
@@ -137,7 +144,7 @@ class SearchResultsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
         //Other Data Fields
         itemView.novelTitleTextView.text = item.name
-        if (item.rating != null) {
+        if (item.rating != null && item.rating != "N/A") {
             var ratingText = "(N/A)"
             try {
                 val rating = item.rating!!.toFloat()
@@ -173,6 +180,11 @@ class SearchResultsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         bundle.putSerializable("novel", novel)
         intent.putExtras(bundle)
         activity.startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        downloadThread?.interrupt()
     }
 
 

@@ -138,6 +138,26 @@
     <string name="chapters">Chapters</string>
     <string name="legal">Legal</string>
     <string name="title_activity_chapters">Chapters</string>
+    <string name="downloaded">Downloaded:</string>
+    <string name="downloading">Downloading</string>
+    <string name="downlaoded">Downloaded</string>
+    <string name="clear_data">Clear Data</string>
+    <string name="clear">Clear</string>
+    <string name="clear_data_description">Clears the cache, files and database</string>
+    <string name="sync">Sync</string>
+    <string name="download">Download</string>
+    <string name="delete_novel">Delete Novel</string>
+    <string name="remove_from_library">Remove From Library</string>
+    <string name="cancel">Cancel</string>
+    <string name="remove">Remove</string>
+    <string name="confirm_remove">Confirm Remove</string>
+    <string name="confirm_remove_description">Novel will be removed from the library while also deleting all its chapters</string>
+    <string name="remove_from_downloads">Remove From Downloads?</string>
+    <string name="add_to_library">Add To Library</string>
+    <string name="sort_chapters">Sort Chapters</string>
+    <string name="sort">Sort</string>
+    <string name="clearing_data">Clearing Data</string>
+    <string name="please_wait">Please wait…</string>
 
 
 </resources>

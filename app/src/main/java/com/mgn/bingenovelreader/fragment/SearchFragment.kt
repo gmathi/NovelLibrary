@@ -16,11 +16,9 @@ import com.mgn.bingenovelreader.extension.hideSoftKeyboard
 import com.mgn.bingenovelreader.model.Novel
 import com.mgn.bingenovelreader.util.SimpleAnimationListener
 import com.mgn.bingenovelreader.util.SuggestionsBuilder
-import com.mgn.bingenovelreader.util.Utils
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.fragment_search.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
-import org.jetbrains.anko.support.v4.toast
 
 
 class SearchFragment : BaseFragment() {
@@ -60,16 +58,16 @@ class SearchFragment : BaseFragment() {
         searchView.setSearchListener(object : PersistentSearchView.SearchListener {
 
             override fun onSearch(searchTerm: String?) {
-                if (!Utils.checkNetwork(context)) {
-                    toast("No Active Internet! (⋋▂⋌)")
+//                if (!Utils.checkNetwork(activity)) {
+//                    //toast("No Active Internet! (⋋▂⋌)")
+//                } else {
+                searchTerm?.addToSearchHistory()
+                if (searchTerm != null) {
+                    searchNovels(searchTerm)
                 } else {
-                    searchTerm?.addToSearchHistory()
-                    if (searchTerm != null) {
-                        searchNovels(searchTerm)
-                    } else {
-                        // Throw a empty search
-                    }
+                    // Throw a empty search
                 }
+//                }
             }
 
             override fun onSearchEditOpened() {

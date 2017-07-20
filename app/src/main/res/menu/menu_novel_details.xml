@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="com.mgn.bingenovelreader.fragment.LibraryFragment">
+    <item
+        android:id="@+id/action_delete_novel"
+        android:icon="@drawable/ic_delete_white_vector"
+        android:title="@string/remove_from_library"
+        android:titleCondensed="@string/remove"
+        app:showAsAction="always"/>
+</menu>

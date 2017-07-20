@@ -34,6 +34,7 @@ public class DBKeys {
     static final String KEY_CHAPTER = "chapter";
     static final String KEY_FILE_PATH = "file_path";
     static final String KEY_REDIRECT_URL = "redirect_url";
+    static final String KEY_IS_READ = "is_read";
 
     // Table novel_genre columns
     static final String KEY_GENRE_ID = "genre_id";
@@ -70,6 +71,7 @@ public class DBKeys {
                     + KEY_CHAPTER + " TEXT, "
                     + KEY_TITLE + " TEXT, "
                     + KEY_FILE_PATH + " TEXT, "
+                    + KEY_IS_READ + " INTEGER, "
                     + KEY_NOVEL_ID + " INTEGER, "
                     + "FOREIGN KEY (" + KEY_NOVEL_ID + ") REFERENCES " + TABLE_NOVEL + "(" + KEY_ID + ")"
                     + ")";

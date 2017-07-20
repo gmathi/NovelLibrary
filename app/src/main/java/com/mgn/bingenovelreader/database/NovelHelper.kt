@@ -139,7 +139,7 @@ fun DBHelper.getAllNovels(): List<Novel> {
 fun DBHelper.updateNovel(novel: Novel): Long {
     val values = ContentValues()
 
-    values.put(DBKeys.KEY_ID, novel.id)
+    //values.put(DBKeys.KEY_ID, novel.id)
     values.put(DBKeys.KEY_NAME, novel.name)
     values.put(DBKeys.KEY_URL, novel.url)
     values.put(DBKeys.KEY_AUTHOR, novel.author)
@@ -147,8 +147,8 @@ fun DBHelper.updateNovel(novel: Novel): Long {
     values.put(DBKeys.KEY_RATING, novel.rating)
     values.put(DBKeys.KEY_SHORT_DESCRIPTION, novel.shortDescription)
     values.put(DBKeys.KEY_LONG_DESCRIPTION, novel.longDescription)
-    values.put(DBKeys.KEY_IMAGE_FILE_PATH, novel.imageFilePath)
-    values.put(DBKeys.KEY_CURRENT_WEB_PAGE_ID, novel.currentWebPageId)
+    //values.put(DBKeys.KEY_IMAGE_FILE_PATH, novel.imageFilePath)
+    //values.put(DBKeys.KEY_CURRENT_WEB_PAGE_ID, novel.currentWebPageId)
 
     // updating row
     return this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novel.id.toString())).toLong()

@@ -124,7 +124,7 @@
                                 fancy:fb_defaultColor="@android:color/transparent"
                                 fancy:fb_focusColor="@color/ripple_color"
                                 fancy:fb_iconResource="@drawable/ic_library_add_white_vector"
-                                fancy:fb_text="Add To Library"/>
+                                fancy:fb_text="@string/add_to_library"/>
 
                         </LinearLayout>
 

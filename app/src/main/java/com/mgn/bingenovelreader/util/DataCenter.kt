@@ -45,7 +45,7 @@ class DataCenter(context: Context) {
     fun saveSearchHistory(history: ArrayList<String>) = prefs.edit().putString(SEARCH_HISTORY_LIST, Gson().toJson(history)).apply()
 
     var isDarkTheme: Boolean
-        get() = prefs.getBoolean(IS_DARK_THEME, false)
+        get() = prefs.getBoolean(IS_DARK_THEME, true)
         set(value) = prefs.edit().putBoolean(IS_DARK_THEME, value).apply()
 
     var downloadLatestFirst: Boolean
@@ -53,7 +53,7 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putBoolean(DOWNLOAD_LATEST_FIRST, value).apply()
 
     var experimentalDownload: Boolean
-        get() = prefs.getBoolean(EXPERIMENTAL_DOWNLOAD, false)
+        get() = prefs.getBoolean(EXPERIMENTAL_DOWNLOAD, true)
         set(value) = prefs.edit().putBoolean(EXPERIMENTAL_DOWNLOAD, value).apply()
 
     var queueNovelDownloads: Boolean

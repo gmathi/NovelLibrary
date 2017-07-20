@@ -4,11 +4,14 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.Theme
 import com.bumptech.glide.Glide
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.activity.NavDrawerActivity
@@ -29,11 +32,6 @@ import kotlinx.android.synthetic.main.listitem_download_queue.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-import org.jetbrains.anko.Bold
-import org.jetbrains.anko.append
-import org.jetbrains.anko.buildSpanned
-import org.jetbrains.anko.support.v4.alert
-import org.jetbrains.anko.support.v4.toast
 import java.io.File
 
 
@@ -56,7 +54,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
         (activity as NavDrawerActivity).setToolbar(toolbar)
         setRecyclerView()
 
-        if (DownloadService.isDownloading()) {
+        if (DownloadService.isDownloading) {
             fab.setImageResource(R.drawable.ic_pause_black_vector)
             fab.tag = "playing"
         } else {
@@ -77,6 +75,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
                     fab.setImageResource(R.drawable.ic_pause_black_vector)
                     fab.tag = "playing"
                     startDownloadService(-1L)
+
                 }
                 adapter.updateData(ArrayList(dbHelper.getAllDownloadQueue()))
             }
@@ -110,9 +109,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
         if (novel?.imageFilePath != null)
             Glide.with(this).load(File(novel.imageFilePath)).into(itemView.novelIcon)
 
-
-
-        if (DownloadService.isDownloading(item.novelId)) {
+        if (DownloadService.novelId == item.novelId) {
             item.status = Constants.STATUS_DOWNLOAD
             itemView.downloadPauseButton.setImageResource(R.drawable.ic_pause_black_vector)
         } else {
@@ -124,10 +121,10 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
             val displayText = "${dbHelper.getAllReadableWebPages(novel.id).count()}/$totalChapterCount"
             itemView.downloadProgress.text = displayText
         } else {
-            itemView.downloadProgress.text = "Waiting to download…"
+            itemView.downloadProgress.text = "Waiting to start…"
         }
 
-        val preText = if (DownloadService.isDownloading(novel.id)) "Downloading: " else "In Queue - "
+        val preText = if (DownloadService.novelId == novel.id) "Downloading: " else "In Queue - "
         val displayText = preText + itemView.downloadProgress.text.toString()
         itemView.downloadProgress.text = displayText
 
@@ -171,14 +168,15 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
 
 
     private fun confirmDeleteAlert(novel: Novel) {
-        alert(buildSpanned {
-            append("Delete ")
-            append("${novel.name}", Bold)
-            append("?")
-        }.toString(), "Confirm Delete") {
-            positiveButton("Yesh~") { deleteNovel(novel) }
-            negativeButton("Never Mind!") { }
-        }.show()
+        MaterialDialog.Builder(activity)
+            .title(getString(R.string.remove_from_downloads))
+            .positiveText(getString(R.string.remove))
+            .negativeText(getString(R.string.cancel))
+            .icon(ContextCompat.getDrawable(activity, R.drawable.ic_delete_white_vector))
+            .typeface("source_sans_pro_regular.ttf", "source_sans_pro_regular.ttf")
+            .theme(Theme.DARK)
+            .onPositive { _, _ -> deleteNovel(novel) }
+            .show()
     }
 
     private fun deleteNovel(novel: Novel) {
@@ -206,8 +204,8 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
         when (event.type) {
             EventType.UPDATE -> {
                 if (event.novelId == -1L) {
-                    if (!Utils.checkNetwork(context)) {
-                        toast("No Active Internet! (⋋▂⋌)")
+                    if (!Utils.checkNetwork(activity)) {
+                        //toast("No Active Internet! (⋋▂⋌)")
                         fab.setImageResource(R.drawable.ic_play_arrow_black_vector)
                         fab.tag = "paused"
                         adapter.updateData(ArrayList(dbHelper.getAllDownloadQueue()))

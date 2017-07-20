@@ -19,9 +19,9 @@ public class HostNames {
             "www.royalroadl.com " +
             "www.isohungrytls.com ";
 
-    private static final String[] ALLOWED_HOST_NAMES_ARRAY =
-            {
+    private static final String[] ALLOWED_HOST_NAMES_ARRAY = {
                     "postimg.org",
+                    "lightnovelbastion.com",
                     "fonts.googleapis.com",
                     "royalroadl.com",
                     "ggpht.com",
@@ -29,7 +29,8 @@ public class HostNames {
                     "imgur.com",
                     "novelupdates.com",
                     "wordpress.com",
-                    "isohungrytls.com"
+                    "isohungrytls.com",
+                    "kobatochan.com"
             };
 
     public static boolean isVerifiedHost(String hostName) {

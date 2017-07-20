@@ -7,7 +7,7 @@ import android.support.v4.view.ViewCompat
 import android.util.AttributeSet
 import android.view.View
 
-@Suppress("unused")
+@Suppress("unused", "UNUSED_PARAMETER", "OverridingDeprecatedMember", "DEPRECATION")
 class ScrollAwareFab(context: Context, attrs: AttributeSet) : FloatingActionButton.Behavior() {
 
     override fun onStartNestedScroll(coordinatorLayout: CoordinatorLayout,

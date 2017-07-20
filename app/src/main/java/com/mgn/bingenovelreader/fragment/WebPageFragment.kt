@@ -1,7 +1,10 @@
 package com.mgn.bingenovelreader.fragment
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,16 +12,22 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.adapter.WebPageAdapter
+import com.mgn.bingenovelreader.cleaner.HtmlHelper
 import com.mgn.bingenovelreader.dataCenter
+import com.mgn.bingenovelreader.model.WebPage
+import com.mgn.bingenovelreader.network.NovelApi
 import com.mgn.bingenovelreader.util.Constants
+import com.mgn.bingenovelreader.util.Utils
 import kotlinx.android.synthetic.main.fragment_reader.*
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import java.io.File
 
 
 class WebPageFragment : Fragment() {
 
     var listener: WebPageAdapter.Listener? = null
+    var webPage: WebPage? = null
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -27,19 +36,46 @@ class WebPageFragment : Fragment() {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val filePath = arguments.getString(FILE_PATH)
-        if (filePath == null) {
+        webPage = arguments.getSerializable(WEB_PAGE) as WebPage?
+        if (webPage == null) activity.finish()
 
-        } else {
-            val internalFilePath = "file://$filePath"
 
-            if (filePath.contains("royalroadl.com")) {
+        if (webPage!!.filePath != null) {
+            val internalFilePath = "file://${webPage!!.filePath}"
+            if (webPage!!.filePath!!.contains("royalroadl.com")) {
                 applyRoyalRoadTheme(internalFilePath)
             } else {
                 readerWebView.loadUrl(internalFilePath)
             }
+        } else
+            downloadWebPage()
+        setWebView()
+    }
 
-            setWebView()
+    private fun downloadWebPage() {
+        progressLayout.showLoading()
+        if (!Utils.checkNetwork(activity)) {
+            progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), "No Active Internet!", "Try Again", {
+                downloadWebPage()
+            })
+            return
+        }
+
+        Thread(Runnable {
+            val doc = NovelApi().getDocumentWithUserAgent(webPage!!.url!!)
+            val cleaner = HtmlHelper.getInstance(doc.location())
+            cleaner.removeJS(doc)
+            cleaner.cleanDoc(doc)
+            Handler(Looper.getMainLooper()).post {
+                loadDocument(doc)
+            }
+        }).start()
+    }
+
+    private fun loadDocument(doc: Document) {
+        if (activity != null && (!isRemoving || !isDetached)) {
+            progressLayout.showContent()
+            readerWebView.loadDataWithBaseURL(doc.location(), doc.outerHtml(), "text/html", "UTF-8", null)
         }
     }
 
@@ -55,11 +91,11 @@ class WebPageFragment : Fragment() {
     }
 
     companion object {
-        private val FILE_PATH = "filePath"
-        fun newInstance(filePath: String?): WebPageFragment {
+        private val WEB_PAGE = "webPage"
+        fun newInstance(webPage: WebPage): WebPageFragment {
             val fragment = WebPageFragment()
             val args = Bundle()
-            args.putString(FILE_PATH, filePath)
+            args.putSerializable(WEB_PAGE, webPage)
             fragment.arguments = args
             return fragment
         }
