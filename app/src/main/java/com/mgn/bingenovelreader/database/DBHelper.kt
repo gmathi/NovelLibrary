@@ -4,10 +4,8 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
-import com.mgn.bingenovelreader.model.DownloadQueue
 import com.mgn.bingenovelreader.model.Novel
 import com.mgn.bingenovelreader.model.NovelGenre
-import com.mgn.bingenovelreader.util.Constants
 
 
 class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAME, null, DBKeys.DATABASE_VERSION) {
@@ -35,6 +33,20 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAM
         onCreate(db)
     }
 
+    fun removeAll() {
+        // db.delete(String tableName, String whereClause, String[] whereArgs);
+        // If whereClause is null, it will delete all rows.
+        val db = writableDatabase
+        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_NOVEL)
+        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_WEB_PAGE)
+        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_GENRE)
+        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_NOVEL_GENRE)
+        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_DOWNLOAD_QUEUE)
+
+        // create new tables
+        onCreate(db)
+    }
+
     // Custom Methods
     fun insertNovel(novel: Novel): Long {
         val novelId = createNovel(novel)
@@ -45,25 +57,6 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAM
         return novelId
     }
 
-
-    fun getFirstDownloadableQueueItem(): DownloadQueue? {
-        val selectQuery = "SELECT * FROM " + DBKeys.TABLE_DOWNLOAD_QUEUE + " WHERE " + DBKeys.KEY_STATUS + " = " + Constants.STATUS_DOWNLOAD + " ORDER BY " + DBKeys.KEY_NOVEL_ID + " ASC LIMIT 1"
-        Log.d(LOG, selectQuery)
-        val cursor = this.readableDatabase.rawQuery(selectQuery, null)
-        var dq: DownloadQueue? = null
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                dq = DownloadQueue()
-                dq.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
-                dq.status = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_STATUS))
-                dq.totalChapters = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_TOTAL_CHAPTERS))
-                dq.currentChapter = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CURRENT_CHAPTER))
-                dq.chapterUrlsCached = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CHAPTER_URLS_CACHED))
-            }
-            cursor.close()
-        }
-        return dq
-    }
 
     fun getDownloadedChapterCount(novelId: Long): Int {
         val selectQuery = "SELECT count(novel_id) FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novelId + " AND file_path IS NOT NULL"

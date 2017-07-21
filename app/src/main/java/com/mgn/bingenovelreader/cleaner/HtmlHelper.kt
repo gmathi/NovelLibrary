@@ -3,12 +3,11 @@ package com.mgn.bingenovelreader.cleaner
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
+import com.mgn.bingenovelreader.extension.getFileName
+import com.mgn.bingenovelreader.extension.writableFileName
 import com.mgn.bingenovelreader.network.HostNames
 import com.mgn.bingenovelreader.service.DownloadService
-import com.mgn.bingenovelreader.util.Constants
-import com.mgn.bingenovelreader.util.Util
-import com.mgn.bingenovelreader.util.getFileName
-import com.mgn.bingenovelreader.util.writableFileName
+import com.mgn.bingenovelreader.util.Utils
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -23,8 +22,9 @@ open class HtmlHelper protected constructor() {
     companion object {
         fun getInstance(host: String): HtmlHelper {
             when {
-                host.contains(Constants.NovelSites.ROYAL_ROAD) -> return RoyalRoadHelper()
-                host.contains(Constants.NovelSites.KOBATOCHAN) -> return KobatochanCleaner()
+                host.contains(HostNames.ROYAL_ROAD) -> return RoyalRoadHelper()
+                host.contains(HostNames.GRAVITY_TALES) -> return GravityTalesHelper()
+            //host.contains(HostNames.KOBATOCHAN) -> return KobatochanCleaner()
             }
             return HtmlHelper()
         }
@@ -50,6 +50,8 @@ open class HtmlHelper protected constructor() {
                 element.removeAttr("href")
                 element.attr("href", "../" + cssFile.name)
                 //doc.head().appendElement("link").attr("rel", "stylesheet").attr("type", "text/css").attr("href", "../" + cssFile.name)
+            } else {
+                element.remove()
             }
         }
     }
@@ -107,11 +109,11 @@ open class HtmlHelper protected constructor() {
             file = File(dir, fileName)
             val response = Jsoup.connect(uri.toString()).userAgent(HostNames.USER_AGENT).ignoreContentType(true).execute()
             val bytes = response.bodyAsBytes()
-            val bitmap = Util.getImage(bytes)
+            val bitmap = Utils.getImage(bytes)
             val os = FileOutputStream(file)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os)
         } catch (e: Exception) {
-            Log.w(DownloadService.TAG, uri.toString(), e)
+            Log.v(DownloadService.TAG, uri.toString(), e)
             return null
         }
         return file
@@ -121,6 +123,9 @@ open class HtmlHelper protected constructor() {
         return doc.head().getElementsByTag("title").text()
     }
 
-
     open fun addTitle(doc: Document) {}
+
+    open fun toggleTheme(isDark: Boolean, doc: Document): Document {
+        return doc
+    }
 }

@@ -1,33 +1,349 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<android.support.constraint.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fancy="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:showIn="@layout/activity_novel_details"
-    tools:context="com.mgn.bingenovelreader.activity.NovelDetailsActivity">
+    tools:context="com.mgn.bingenovelreader.activity.NovelDetailsActivity"
+    tools:showIn="@layout/activity_novel_details">
 
-    <android.support.v7.widget.CardView
+
+    <com.nguyenhoanglam.progresslayout.ProgressLayout
+        android:id="@+id/progressLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp">
+        android:layout_height="match_parent">
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recyclerView"
+        <android.support.v4.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefreshLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:nestedScrollingEnabled="false"/>
+            android:layout_height="match_parent">
 
-        <include
-            layout="@layout/layout_loading"
-            android:visibility="gone"/>
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-    </android.support.v7.widget.CardView>
 
-</RelativeLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/default_margin"
+                    android:orientation="vertical">
+
+                    <RelativeLayout
+                        android:id="@+id/novelDetailsHeader"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="@dimen/default_margin">
+
+                        <ImageView
+                            android:id="@+id/novelDetailsImage"
+                            android:layout_width="125dp"
+                            android:layout_height="180dp"
+                            android:layout_alignParentLeft="true"
+                            android:layout_alignParentStart="true"
+                            android:layout_alignParentTop="true"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentTop="true"
+                            android:layout_marginLeft="@dimen/default_margin"
+                            android:layout_marginStart="@dimen/default_margin"
+                            android:layout_toEndOf="@id/novelDetailsImage"
+                            android:layout_toRightOf="@id/novelDetailsImage"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/novelDetailsName"
+                                android:layout_width="match_parent"
+                                android:layout_height="50dp"
+                                android:maxLines="2"
+                                android:textColor="@color/white"
+                                android:textSize="17sp"/>
+
+                            <TextView
+                                android:id="@+id/novelDetailsAuthor"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:maxLines="2"
+                                android:layout_marginBottom="4dp"
+                                android:textSize="14sp"
+                                />
+
+                            <TextView
+                                android:id="@+id/novelDetailsStatus"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="2dp"
+                                android:textSize="14sp"
+                                />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="8dp"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <RatingBar
+                                    android:id="@+id/novelDetailsRatingBar"
+                                    style="@style/Widget.AppCompat.RatingBar.Small"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="21sp"
+                                    android:layout_marginTop="2dp"
+                                    android:numStars="5"
+                                    android:progressTint="@color/Gold"
+                                    android:secondaryProgressTint="@android:color/transparent"
+                                    tools:rating="3.6"/>
+
+                                <TextView
+                                    android:id="@+id/novelDetailsRatingText"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginLeft="2dp"
+                                    android:layout_marginStart="2dp"
+                                    android:gravity="center_vertical|start"
+                                    android:textIsSelectable="false"
+                                    android:textSize="14sp"
+                                    android:textStyle="italic"
+                                    tools:text="(3.6)"/>
+
+                            </LinearLayout>
+
+                            <mehdi.sakout.fancybuttons.FancyButton
+                                android:id="@+id/novelDetailsDownloadButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="20dp"
+                                android:layout_marginTop="@dimen/default_margin"
+                                android:padding="5dp"
+                                fancy:fb_borderColor="#FFFFFF"
+                                fancy:fb_borderWidth="2dp"
+                                fancy:fb_defaultColor="@android:color/transparent"
+                                fancy:fb_focusColor="@color/ripple_color"
+                                fancy:fb_iconResource="@drawable/ic_library_add_white_vector"
+                                fancy:fb_text="@string/add_to_library"/>
+
+                        </LinearLayout>
+
+                        <ImageView
+                            android:id="@+id/openInBrowserButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_marginEnd="@dimen/default_margin"
+                            android:layout_alignParentRight="true"
+                            android:layout_marginTop="95dp"
+                            app:srcCompat="@drawable/ic_open_in_browser_white_vector"
+                            tools:ignore="NotSibling"
+                            android:layout_marginRight="@dimen/default_margin"/>
+
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/SlateGray"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/black_transparent"
+                        android:orientation="vertical"
+                        android:padding="@dimen/default_margin">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="@string/genres"
+                            android:textAllCaps="true"
+                            android:textColor="@color/white"
+                            android:textSize="12sp"
+                            android:textStyle="bold"/>
+
+                        <HorizontalScrollView
+                            android:id="@+id/novelDetailsGenresList"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minHeight="30dp"
+                            android:scrollbars="none"
+                            android:textSize="14sp">
+
+                            <LinearLayout
+                                android:id="@+id/novelDetailsGenresLayout"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+
+                            </LinearLayout>
+
+                        </HorizontalScrollView>
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/SlateGray"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/default_margin">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="@string/synopsis"
+                            android:textAllCaps="true"
+                            android:textColor="@color/white"
+                            android:textSize="12sp"
+                            android:textStyle="bold"/>
+
+                        <TextView
+                            android:id="@+id/novelDetailsDescription"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minHeight="30dp"
+                            android:textColorLink="@color/RoyalBlue"
+                            android:textSize="14sp"
+                            />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/SlateGray"/>
+
+                    <RelativeLayout
+                        android:id="@+id/novelDetailsChaptersLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/black_transparent"
+                        android:minHeight="30dp"
+                        android:padding="@dimen/default_margin">
+
+                        <ImageView
+                            android:id="@+id/novelDetailsChapterIcon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentLeft="true"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            app:srcCompat="@drawable/ic_library_books_white_vector"/>
+
+
+                        <TextView
+                            android:id="@+id/novelDetailsChapters"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_margin="@dimen/default_margin"
+                            android:layout_marginBottom="8dp"
+                            android:layout_toEndOf="@id/novelDetailsChapterIcon"
+                            android:layout_toRightOf="@id/novelDetailsChapterIcon"
+                            android:text="@string/chapters"
+                            android:textAllCaps="true"
+                            android:textColor="@color/white"
+                            android:textSize="12sp"
+                            android:textStyle="bold"/>
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_alignParentRight="true"
+                            android:layout_centerVertical="true"
+                            app:srcCompat="@drawable/ic_chevron_right_white_vector"/>
+
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/SlateGray"/>
+
+                    <RelativeLayout
+                        android:id="@+id/novelDetailsMetadataLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="30dp"
+                        android:padding="@dimen/default_margin">
+
+                        <ImageView
+                            android:id="@+id/novelDetailsMetadataIcon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentLeft="true"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            app:srcCompat="@drawable/ic_art_track_white_vector"/>
+
+                        <ImageView
+                            android:id="@+id/novelDetailsMetadataChevron"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_alignParentRight="true"
+                            android:layout_centerVertical="true"
+                            app:srcCompat="@drawable/ic_chevron_right_white_vector"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginLeft="@dimen/default_margin"
+                            android:layout_marginRight="@dimen/default_margin"
+                            android:layout_toEndOf="@id/novelDetailsMetadataIcon"
+                            android:layout_toLeftOf="@id/novelDetailsMetadataChevron"
+                            android:layout_toRightOf="@id/novelDetailsMetadataIcon"
+                            android:layout_toStartOf="@id/novelDetailsMetadataChevron"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/novelDetailsMetadataTitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/more_information"
+                                android:textAllCaps="true"
+                                android:textColor="@color/white"
+                                android:textSize="12sp"
+                                android:textStyle="bold"/>
+
+                            <TextView
+                                android:id="@+id/novelDetailsMetadataDescription"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/more_info_description"
+                                android:textSize="12sp"/>
+
+                        </LinearLayout>
+
+
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/SlateGray"/>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="30dp"/>
+
+
+                </LinearLayout>
+
+            </ScrollView>
+        </android.support.v4.widget.SwipeRefreshLayout>
+    </com.nguyenhoanglam.progresslayout.ProgressLayout>
+
+
+</android.support.constraint.ConstraintLayout>

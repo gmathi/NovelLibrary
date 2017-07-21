@@ -3,6 +3,7 @@ package com.mgn.bingenovelreader.database
 import android.content.ContentValues
 import android.util.Log
 import com.mgn.bingenovelreader.model.DownloadQueue
+import com.mgn.bingenovelreader.util.Constants
 import java.util.*
 
 
@@ -99,7 +100,7 @@ fun DBHelper.updateChapterUrlsCached(chapterUrlsCached: Long, novelId: Long): Lo
     return this.writableDatabase.update(DBKeys.TABLE_DOWNLOAD_QUEUE, values, DBKeys.KEY_NOVEL_ID + " = ?", arrayOf(novelId.toString())).toLong()
 }
 
-fun DBHelper.updateAllDownloadQueueStatuses(status: Int) {
+fun DBHelper.updateAllDownloadQueueStatuses(status: Long) {
     val values = ContentValues()
     values.put(DBKeys.KEY_STATUS, status)
     this.writableDatabase.update(DBKeys.TABLE_DOWNLOAD_QUEUE, values, null, null)
@@ -108,4 +109,25 @@ fun DBHelper.updateAllDownloadQueueStatuses(status: Int) {
 fun DBHelper.deleteDownloadQueue(novelId: Long) {
     this.writableDatabase.delete(DBKeys.TABLE_DOWNLOAD_QUEUE, DBKeys.KEY_NOVEL_ID + " = ?", arrayOf(novelId.toString()))
 }
+
+
+fun DBHelper.getFirstDownloadableQueueItem(): DownloadQueue? {
+    val selectQuery = "SELECT * FROM " + DBKeys.TABLE_DOWNLOAD_QUEUE + " WHERE " + DBKeys.KEY_STATUS + " = " + Constants.STATUS_DOWNLOAD + " ORDER BY " + DBKeys.KEY_NOVEL_ID + " ASC LIMIT 1"
+    Log.d(LOG, selectQuery)
+    val cursor = this.readableDatabase.rawQuery(selectQuery, null)
+    var dq: DownloadQueue? = null
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+            dq = DownloadQueue()
+            dq.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
+            dq.status = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_STATUS))
+            dq.totalChapters = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_TOTAL_CHAPTERS))
+            dq.currentChapter = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CURRENT_CHAPTER))
+            dq.chapterUrlsCached = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CHAPTER_URLS_CACHED))
+        }
+        cursor.close()
+    }
+    return dq
+}
+
 

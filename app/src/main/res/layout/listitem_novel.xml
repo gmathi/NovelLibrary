@@ -3,103 +3,96 @@
                 xmlns:app="http://schemas.android.com/apk/res-auto"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:padding="@dimen/default_padding_list_item">
 
-    <android.support.v7.widget.CardView
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp">
+        android:layout_height="60dp"
+        android:background="@drawable/corner_radius_novel_item"
+        android:padding="4dp">
 
-        <android.support.constraint.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:orientation="vertical">
+        <android.support.v7.widget.CardView
+            android:id="@+id/novelImageViewLayout"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            app:cardCornerRadius="26dp">
 
             <ImageView
                 android:id="@+id/novelImageView"
-                android:layout_width="100dp"
-                android:layout_height="150dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="1dp"
+                android:scaleType="centerCrop"
+                />
+        </android.support.v7.widget.CardView>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="@dimen/default_margin"
+            android:layout_marginLeft="@dimen/default_margin"
+            android:layout_marginRight="@dimen/default_margin"
+            android:layout_marginStart="@dimen/default_margin"
+            android:layout_marginTop="2dp"
+            android:layout_toEndOf="@id/novelImageViewLayout"
+            android:layout_toRightOf="@id/novelImageViewLayout"
+            android:orientation="vertical">
+
+
+            <TextView
+                android:id="@+id/novelTitleTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:ellipsize="end"
+                android:gravity="center_vertical|start"
+                android:maxLines="1"
+                android:textColor="@color/white"
+                android:textIsSelectable="false"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="Realms of Firmament"/>
 
             <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:orientation="vertical"
-                android:padding="8dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/novelImageView"
-                app:layout_constraintTop_toTopOf="parent">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-
-                <TextView
-                    android:id="@+id/novelTitleTextView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:gravity="center_vertical|start"
-                    android:maxLines="2"
-                    android:textColor="@android:color/black"
-                    android:textIsSelectable="false"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    tools:text="Realms of Firmament"/>
+                <RatingBar
+                    android:id="@+id/novelRatingBar"
+                    style="@style/Widget.AppCompat.RatingBar.Small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="21sp"
+                    android:layout_marginTop="2dp"
+                    android:numStars="5"
+                    android:progressTint="@color/Gold"
+                    android:secondaryProgressTint="@android:color/transparent"
+                    tools:rating="3.6"/>
 
                 <TextView
-                    android:id="@+id/novelGenreTextView"
+                    android:id="@+id/novelRatingText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
+                    android:layout_marginLeft="2dp"
+                    android:layout_marginStart="2dp"
                     android:gravity="center_vertical|start"
-                    android:maxLines="2"
                     android:textIsSelectable="false"
-                    android:textSize="14sp"/>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="8dp"
-                    android:orientation="horizontal">
-
-                    <RatingBar
-                        android:id="@+id/novelRatingBar"
-                        style="@style/Widget.AppCompat.RatingBar.Small"
-                        android:layout_width="wrap_content"
-                        android:layout_height="21sp"
-                        tools:rating="3.6"/>
-
-                    <TextView
-                        android:id="@+id/novelRatingTextView"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical|start"
-                        android:textIsSelectable="false"
-                        android:textSize="14sp"
-                        android:textStyle="italic"
-                        tools:text="(3.6)"/>
-
-                </LinearLayout>
-
-
-                <TextView
-                    android:id="@+id/novelDescriptionTextView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical|start"
-                    android:maxLines="4"
-                    android:textIsSelectable="false"
-                    android:visibility="gone"
-                    android:textSize="14sp"/>
-
+                    android:textSize="12sp"
+                    android:textStyle="italic"
+                    tools:text="(3.6)"/>
 
             </LinearLayout>
-        </android.support.constraint.ConstraintLayout>
-    </android.support.v7.widget.CardView>
+
+
+        </LinearLayout>
+
+    </RelativeLayout>
 </RelativeLayout>

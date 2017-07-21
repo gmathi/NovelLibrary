@@ -5,8 +5,9 @@ import android.os.Build
 import android.util.Log
 import android.webkit.WebView
 import com.mgn.bingenovelreader.database.DBHelper
-import com.mgn.bingenovelreader.util.Constants
+import com.mgn.bingenovelreader.network.HostNames
 import com.mgn.bookmark.util.DataCenter
+import com.squareup.leakcanary.LeakCanary
 import java.io.File
 import java.security.KeyManagementException
 import java.security.NoSuchAlgorithmException
@@ -37,6 +38,11 @@ class BNRApplication : Application() {
         dbHelper = DBHelper(applicationContext)
         super.onCreate()
 
+        if (LeakCanary.isInAnalyzerProcess(this)) {
+            return
+        }
+        LeakCanary.install(this)
+
         val imagesDir = File(filesDir, "images")
         if (!imagesDir.exists())
             imagesDir.mkdir()
@@ -56,7 +62,7 @@ class BNRApplication : Application() {
     fun enableSSLSocket() {
         HttpsURLConnection.setDefaultHostnameVerifier {
             hostName: String?, _ ->
-            if (hostName != null) Constants.allowedWebsites.contains(hostName) else false
+            if (hostName != null) HostNames.isVerifiedHost(hostName) else false
         }
 
         val context = SSLContext.getInstance("TLS")

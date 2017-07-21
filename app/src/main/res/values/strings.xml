@@ -1,96 +1,92 @@
 <resources>
 
-    <string name="title_activity_reader_pager">Reader Pager Activity</string>
+    <string-array name="search_tab_titles">
+        <item>Popular-Now</item>
+        <item>Best-Rated</item>
+        <item>Active-Ranked</item>
+    </string-array>
 
-    <string name="title_activity_search">Search Novels</string>
-    <string name="title_activity_library">Library</string>
-    <string name="title_activity_download_queue">My Downloads</string>
-    <string name="title_activity_novel_details">My Novel</string>
-    <string name="app_name">Binge Novel Reader</string>
+    <string-array name="search_results_tab_titles">
+        <item>Novel-Updates</item>
+        <item>RoyalRoad</item>
+    </string-array>
+
+
+    <!--<item>Latest Updates</item>-->
+    <!--<item>Active-Only Ranking</item>-->
+    <string name="app_name" translatable="false">Royal Novels</string>
+
+    <string name="title_activity_nav_drawer" translatable="false">@string/app_name</string>
+    <string name="title_activity_reader_pager" translatable="false">Reader Pager</string>
+    <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
+    <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
+    <string name="transition_user_banner" translatable="false">trans_banner_img</string>
+    <string name="transition_image_preview" translatable="false">trans_image_preview</string>
+
+
+    <string name="title_activity_novel_details">Novel</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="title_activity_chapters">Chapters</string>
+    <string name="title_activity_meta_data">More Information</string>
+    <string name="title_activity_legal">Legal Information</string>
+
+
     <string name="action_settings">Settings</string>
     <string name="action_sync">Sync for updates</string>
-    <string name="search_novel">Search Novel</string>
-    <string name="title_activity_main">MainActivity</string>
+    <string name="action_favourite">Favourite</string>
+    <string name="action_bookmark">Bookmark</string>
+
 
     <string name="title_library">Library</string>
     <string name="title_search">Search</string>
     <string name="title_downloads">Downloads</string>
-    <string name="title_activity_settings">Settings</string>
+
 
     <!-- Strings related to Settings -->
+    <!--<string name="pref_title_dark_theme">Dark Page Theme</string>-->
+    <!--<string name="pref_description_dark_theme">Only RoyalRoadl.com supported for now.</string>-->
+    <!--<string name="pref_title_experimental_download">Lighting Fast Downloads (Experimental) </string>-->
+    <!--<string name="pref_description_experimental_download">Downloads really fast. Your device may freeze for a while.</string>-->
+    <!--<string name="pref_title_queue_novel_downloads">Queue Novel Downloads </string>-->
+    <!--<string name="pref_description_queue_novel_downloads">Downloads novels one after the another. If disabled, max of 5 novels with be downloaded simultaneously. </string>-->
+    <!--<string name="pref_title_download_latest_first">Download Latest First</string>-->
+    <!--<string name="pref_description_download_latest_first">Download the latest chapter first.</string>-->
 
-    <!-- Example General settings -->
-    <string name="pref_header_general">General</string>
 
-    <string name="pref_title_social_recommendations">Enable social recommendations</string>
-    <string name="pref_description_social_recommendations">Recommendations for people to contact
-        based on your message history
-    </string>
+    <!-- Transition Names -->
+    <string name="synopsis">Synopsis</string>
+    <string name="genres">Genres</string>
+    <string name="chapters">Chapters</string>
+    <string name="legal">Legal</string>
 
-    <string name="pref_title_display_name">Display name</string>
-    <string name="pref_default_display_name">John Smith</string>
+    <string name="download">Download</string>
+    <string name="downloaded">Downloaded</string>
+    <string name="downloading">Downloading</string>
 
-    <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
-    <string-array name="pref_example_list_titles">
-        <item>Always</item>
-        <item>When possible</item>
-        <item>Never</item>
-    </string-array>
-    <string-array name="pref_example_list_values">
-        <item>1</item>
-        <item>0</item>
-        <item>-1</item>
-    </string-array>
-
-    <!-- Example settings for Data & Sync -->
-    <string name="pref_header_data_sync">Data &amp; sync</string>
-
-    <string name="pref_title_sync_frequency">Sync frequency</string>
-    <string-array name="pref_sync_frequency_titles">
-        <item>15 minutes</item>
-        <item>30 minutes</item>
-        <item>1 hour</item>
-        <item>3 hours</item>
-        <item>6 hours</item>
-        <item>Never</item>
-    </string-array>
-    <string-array name="pref_sync_frequency_values">
-        <item>15</item>
-        <item>30</item>
-        <item>60</item>
-        <item>180</item>
-        <item>360</item>
-        <item>-1</item>
-    </string-array>
-
-    <string-array name="list_preference_entries">
-        <item>Entry 1</item>
-        <item>Entry 2</item>
-        <item>Entry 3</item>
-    </string-array>
-
-    <string-array name="list_preference_entry_values">
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-    </string-array>
-
-    <string-array name="multi_select_list_preference_default_value"/>
-
-    <string name="pref_title_system_sync_settings">System sync settings</string>
-
-    <!-- Example settings for Notifications -->
-    <string name="pref_header_notifications">Notifications</string>
-
-    <string name="pref_title_new_message_notifications">New message notifications</string>
-
-    <string name="pref_title_ringtone">Ringtone</string>
-    <string name="pref_ringtone_silent">Silent</string>
-
-    <string name="pref_title_vibrate">Vibrate</string>
-
-    <string name="pref_title_dark_theme">Dark Theme</string>
-    <string name="pref_description_dark_theme">Only RoyalRoadl.com supported</string>
+    <string name="clear">Clear</string>
+    <string name="clear_data">Clear Data</string>
+    <string name="clear_data_description">Clears the cache, files and database</string>
+    <string name="sync">Sync</string>
+    <string name="remove_from_library">Remove From Library</string>
+    <string name="cancel">Cancel</string>
+    <string name="remove">Remove</string>
+    <string name="confirm_remove">Confirm Remove</string>
+    <string name="confirm_remove_description">Novel will be removed from the library while also deleting all its chapters</string>
+    <string name="remove_from_downloads">Remove From Downloads?</string>
+    <string name="add_to_library">Add To Library</string>
+    <string name="sort">Sort</string>
+    <string name="sort_chapters">Sort Chapters</string>
+    <string name="clearing_data">Clearing Data</string>
+    <string name="please_wait">Please wait…</string>
+    <string name="theme">Theme</string>
+    <string name="toggle_theme">Toggle Theme</string>
+    <string name="close_menu">Close Menu</string>
+    <string name="close">Close</string>
+    <string name="text_size">Text Size</string>
+    <string name="more_information">More Information</string>
+    <string name="more_info_description">Artists, Licensing, Translators, …</string>
+    <string name="app_description">Your One Stop For All Novels</string>
+    <string name="search_novel">Search Novel</string>
 
 
 </resources>

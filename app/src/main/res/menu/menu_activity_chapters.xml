@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="com.mgn.bingenovelreader.fragment.LibraryFragment">
+    <item
+        android:id="@+id/action_sort"
+        android:icon="@drawable/ic_sort_white_vector"
+        android:title="@string/sort_chapters"
+        android:titleCondensed="@string/sort"
+        app:showAsAction="always"/>
+</menu>

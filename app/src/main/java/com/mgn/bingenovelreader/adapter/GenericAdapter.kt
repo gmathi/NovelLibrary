@@ -3,26 +3,28 @@ package com.mgn.bingenovelreader.adapter
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
-import com.mgn.bingenovelreader.util.inflate
+import com.mgn.bingenovelreader.extension.inflate
+
+
 
 
 class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val listener: Listener<T>) : RecyclerView.Adapter<GenericAdapter.ViewHolder<T>>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder<T>(parent.inflate(layoutResId))
 
-    override fun onBindViewHolder(holder: ViewHolder<T>, position: Int) = holder.bind(item = items[position], listener = listener)
+    override fun onBindViewHolder(holder: ViewHolder<T>, position: Int) = holder.bind(item = items[position], listener = listener, position = position)
 
     override fun getItemCount() = items.size
 
     class ViewHolder<T>(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        fun bind(item: T, listener: Listener<T>) {
+        fun bind(item: T, listener: Listener<T>, position: Int) {
             with(itemView) { setOnClickListener { listener.onItemClick(item) } }
-            listener.bind(item = item, itemView = itemView)
+            listener.bind(item = item, itemView = itemView, position = position)
         }
     }
 
     interface Listener<in T> {
-        fun bind(item: T, itemView: View)
+        fun bind(item: T, itemView: View, position: Int)
         fun onItemClick(item: T)
     }
 
@@ -87,6 +89,10 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
             if (position != -1) items.add(position, item) else items.add(item)
         } else
             updateItem(item)
+    }
+
+    override fun getItemId(position: Int): Long {
+        return position.toLong()
     }
 
 }

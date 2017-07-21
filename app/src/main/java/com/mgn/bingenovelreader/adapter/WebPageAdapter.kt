@@ -14,7 +14,7 @@ import com.mgn.bingenovelreader.model.WebPage
 class WebPageAdapter(fm: FragmentManager, val chapters: MutableList<WebPage>, val listener: Listener) : FragmentPagerAdapter(fm) {
 
     override fun getItem(position: Int): Fragment {
-        val fragment = WebPageFragment.newInstance(chapters[position].filePath)
+        val fragment = WebPageFragment.newInstance(chapters[position])
         fragment.listener = listener
         return fragment
     }

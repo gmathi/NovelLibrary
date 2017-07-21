@@ -21,17 +21,13 @@ package com.mgn.bingenovelreader.util;
  */
 public class Constants {
 
-    public static final String ROYAL_ROAD_SITE_THEME_ID = "siteThemeRoyalRoad";
 
-    public static class NovelSites {
-        public static final String NOVEL_UPDATES = "novelupdates.com";
-        public static final String ROYAL_ROAD = "royalroadl.com";
-        public static final String KOBATOCHAN = "kobatochan.com";
-    }
 
     //region DownloadQueue Status Values
-    public static final int STATUS_DOWNLOAD = 0;
-    public static final int STATUS_STOPPED = 1;
+    public static final Long STATUS_DOWNLOAD = 0L;
+    public static final Long STATUS_STOPPED = 1L;
+    public static final Long STATUS_COMPLETE = 2L;
+
     //endregion
 
     //region Intent Keys
@@ -58,13 +54,14 @@ public class Constants {
     public static final int NOVEL_DETAILS_RES_CODE = 3;
     public static final int READER_ACT_REQ_CODE = 4;
     public static final int DOWNLOAD_QUEUE_ACT_RES_CODE = 5;
+    public static final int CHAPTER_ACT_REQ_CODE = 6;
+    public static final int METADATA_ACT_REQ_CODE = 6;
 
 
     //endregion
 
-    public static final String allowedWebsites = "2.gravatar.com " +
-            "www.novelupdates.com " +
-            "guqintranslations.wordpress.com " +
-            "www.royalroadl.com" +
-            "www.isohungrytls.com ";
+    public static final String NO_NETWORK = "No Network";
+
+
+
 }
