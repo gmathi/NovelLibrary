@@ -25,6 +25,15 @@ class NovelApi {
         return searchResults
     }
 
+    fun searchUrl(url: String): ArrayList<Novel>? {
+        val host = URI(url).host
+        when {
+            host.contains(ROYAL_ROAD) -> return searchRoyalRoadUrl(url)
+            host.contains(NOVEL_UPDATES) -> return searchNovelUpdatesUrl(url)
+        }
+        return null
+    }
+
     fun searchRoyalRoadUrl(searchUrl: String): ArrayList<Novel>? {
         var searchResults: ArrayList<Novel>? = null
         try {
@@ -38,6 +47,27 @@ class NovelApi {
                 novel.url = "https://www.royalroadl.com${urlElement?.attr("href")}"
                 novel.imageUrl = element.getElementsByTag("img").firstOrNull()?.attr("src")
                 novel.rating = element.getElementsByClass("star").firstOrNull { it.tagName() == "span" }?.attr("title")
+                searchResults.add(novel)
+            }
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return searchResults
+    }
+
+    fun searchNovelUpdatesUrl(searchUrl: String): ArrayList<Novel>? {
+        var searchResults: ArrayList<Novel>? = null
+        try {
+            searchResults = ArrayList()
+            val document = getDocument(searchUrl)
+            val elements = document.body().getElementsByClass("bdrank").filter { it.tagName() === "tr" }
+            for (element in elements) {
+                val novel = Novel()
+                novel.url = element.getElementsByTag("a").firstOrNull()?.attr("href")
+                novel.imageUrl = element.getElementsByTag("img").firstOrNull()?.attr("src")
+                novel.name = element.getElementsByTag("img").firstOrNull()?.attr("alt")
+                novel.rating = element.getElementsByTag("div").firstOrNull { it.hasAttr("title")  && it.attr("title").contains("Rating: ")}?.attr("title")?.replace("Rating: ", "")?.trim()
                 searchResults.add(novel)
             }
 
@@ -61,7 +91,7 @@ class NovelApi {
                     novel.name = urlElement?.text()
                     novel.url = "https://www.royalroadl.com${urlElement?.attr("href")}"
                     novel.imageUrl = element.getElementsByTag("img").firstOrNull()?.attr("src")
-                    novel.author = searchContentElement.getElementsByClass("author")?.firstOrNull { it.tagName() == "span" }?.text()?.substring(3)
+                    novel.metaData.put("Author(s)", searchContentElement.getElementsByClass("author")?.firstOrNull { it.tagName() == "span" }?.text()?.substring(3))
                     novel.rating = "N/A"
                     novel.longDescription = searchContentElement.getElementsByTag("div")?.firstOrNull { it.hasClass("fiction-description") }?.text()
                     novel.shortDescription = novel.longDescription?.split("\n")?.firstOrNull()
@@ -150,14 +180,14 @@ class NovelApi {
         return novel
     }
 
-    private fun getNUNovelDetails(url: String): Novel? {
+    fun getNUNovelDetails(url: String): Novel? {
         var novel: Novel? = null
         try {
             val document = getDocumentWithUserAgent(url)
             novel = Novel()
             novel.name = document.getElementsByClass("seriestitlenu").firstOrNull()?.text()
             novel.imageUrl = document.getElementsByClass("seriesimg").firstOrNull()?.getElementsByTag("img")?.attr("src")
-            novel.genres = document.body().getElementById("seriesgenre").allElements.map { it.text() }
+            novel.genres = document.body().getElementById("seriesgenre")?.children()?.map { it.text() }
 
             novel.metaData.put("Author(s)",
                 document.getElementsByClass("genre").filter { it.id() == "authtag" }.map { it.text() }.joinToString(", "))
@@ -189,7 +219,6 @@ class NovelApi {
                 document.getElementById("editassociated").text())
 
 
-
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -197,7 +226,7 @@ class NovelApi {
     }
 
 
-    public fun getRRNovelDetails(url: String): Novel? {
+    fun getRRNovelDetails(url: String): Novel? {
         var novel: Novel? = null
         try {
             val document = getDocumentWithUserAgent(url)
@@ -210,7 +239,6 @@ class NovelApi {
             novel.genres = document.body().getElementsByAttributeValue("property", "genre")?.map { it.text() }
             novel.metaData.put("Author(s)",
                 document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("property") && it.attr("property") == "books:author" }?.attr("content"))
-
 
         } catch (e: IOException) {
             e.printStackTrace()

@@ -73,7 +73,7 @@ dependencies {
     compile 'com.github.rubensousa:floatingtoolbar:1.4.4'
     compile 'com.github.chrisbanes:PhotoView:2.1.2'
     compile 'com.github.medyo:fancybuttons:1.8.3'
-    compile ('com.afollestad.material-dialogs:core:0.9.4.5', {
+    compile('com.afollestad.material-dialogs:core:0.9.4.5', {
         exclude group: 'com.android.support'
     })
 

@@ -2,6 +2,7 @@ package com.mgn.bingenovelreader.activity
 
 import android.content.Context
 import android.os.Bundle
+import android.view.MenuItem
 import com.afollestad.materialdialogs.MaterialDialog
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.dataCenter
@@ -72,6 +73,11 @@ class SettingsActivity : BaseActivity() {
         } else {
             return false
         }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        if (item?.itemId == android.R.id.home) finish()
+        return super.onOptionsItemSelected(item)
     }
 
 

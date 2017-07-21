@@ -2,16 +2,22 @@ package com.mgn.bingenovelreader.activity
 
 import android.os.Bundle
 import android.support.v4.view.ViewPager
+import android.view.MenuItem
+import android.widget.SeekBar
+import com.afollestad.materialdialogs.MaterialDialog
+import com.github.rubensousa.floatingtoolbar.FloatingToolbar
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.adapter.WebPageAdapter
+import com.mgn.bingenovelreader.dataCenter
 import com.mgn.bingenovelreader.database.updateCurrentWebPageId
 import com.mgn.bingenovelreader.database.updateWebPageReadStatus
 import com.mgn.bingenovelreader.dbHelper
+import com.mgn.bingenovelreader.fragment.WebPageFragment
 import com.mgn.bingenovelreader.model.Novel
 import com.mgn.bingenovelreader.model.WebPage
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 
-class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener {
+class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, FloatingToolbar.ItemClickListener, SeekBar.OnSeekBarChangeListener {
 
     var novel: Novel? = null
     var webPage: WebPage? = null
@@ -61,6 +67,8 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener {
             dbHelper.updateWebPageReadStatus(webPage!!)
         }
 
+        floatingToolbar.attachFab(fab)
+        floatingToolbar.setClickListener(this)
 
 //        val novelId = intent.getLongExtra(Constants.NOVEL_ID, -1L)
 //        if (novelId == -1L) finish()
@@ -105,6 +113,46 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener {
     override fun onPageScrolled(p0: Int, p1: Float, p2: Int) {
         //Do Nothing
     }
+
+
+    override fun onItemLongClick(item: MenuItem?) {
+
+    }
+
+    override fun onItemClick(item: MenuItem?) {
+        when (item?.itemId) {
+            R.id.action_dark_theme -> toggleDarkTheme()
+            R.id.action_font_size -> changeTextSize()
+        }
+    }
+
+    private fun toggleDarkTheme() {
+        dataCenter.isDarkTheme = !dataCenter.isDarkTheme
+        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.reloadPage()
+    }
+
+    fun changeTextSize() {
+        val dialog = MaterialDialog.Builder(this)
+            .title(R.string.text_size)
+            .customView(R.layout.dialog_text_slider, true)
+            .build()
+        dialog.show()
+        dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.setOnSeekBarChangeListener(this)
+        dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.progress = dataCenter.textSize
+    }
+
+    //region SeekBar Progress Listener
+    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+        dataCenter.textSize = progress
+        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.changeTextSize(progress)
+    }
+
+    override fun onStartTrackingTouch(p0: SeekBar?) {
+    }
+
+    override fun onStopTrackingTouch(p0: SeekBar?) {
+    }
+    //endregion
 
 
 }

@@ -19,6 +19,7 @@ class DataCenter(context: Context) {
     private val DOWNLOAD_LATEST_FIRST = "downloadLatestFirst"
     private val EXPERIMENTAL_DOWNLOAD = "experimentalDownload"
     private val QUEUE_NOVEL_DOWNLOADS = "queueNovelDownloads"
+    private val TEXT_SIZE = "textSize"
 
     val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -59,4 +60,8 @@ class DataCenter(context: Context) {
     var queueNovelDownloads: Boolean
         get() = prefs.getBoolean(QUEUE_NOVEL_DOWNLOADS, true)
         set(value) = prefs.edit().putBoolean(QUEUE_NOVEL_DOWNLOADS, value).apply()
+
+    var textSize: Int
+        get() = prefs.getInt(QUEUE_NOVEL_DOWNLOADS, 0)
+        set(value) = prefs.edit().putInt(QUEUE_NOVEL_DOWNLOADS, value).apply()
 }

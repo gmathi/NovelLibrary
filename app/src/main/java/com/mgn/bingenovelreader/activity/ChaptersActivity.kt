@@ -108,7 +108,7 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
         progressLayout.showContent()
         swipeRefreshLayout.isRefreshing = false
 
-        downloadLabel.applyFont(assets)
+        downloadLabel.applyFont(assets).text = getString(R.string.downloaded) + ": "
         updateChapterCount()
         setDownloadButton()
         invalidateOptionsMenu()

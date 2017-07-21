@@ -15,9 +15,9 @@ import com.mgn.bingenovelreader.network.HostNames
 class NavPageListener : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment? {
         when (position) {
-            0 -> return PopularNovelsFragment.newInstance("https://royalroadl.com/fictions/active-popular")
-            1 -> return PopularNovelsFragment.newInstance("https://royalroadl.com/fictions/best-rated")
-            2 -> return PopularNovelsFragment.newInstance("https://royalroadl.com/fictions/complete")
+            0 -> return PopularNovelsFragment.newInstance("http://www.novelupdates.com/series-ranking/?rank=popmonth")
+            1 -> return PopularNovelsFragment.newInstance("http://www.novelupdates.com/series-ranking/?rank=popular")
+            2 -> return PopularNovelsFragment.newInstance("http://www.novelupdates.com/series-ranking/?rank=sixmonths")
             3 -> return PopularNovelsFragment.newInstance("https://royalroadl.com/fictions/complete")
             4 -> return PopularNovelsFragment.newInstance("https://royalroadl.com/fictions/complete")
             else -> return null

@@ -23,7 +23,8 @@ open class HtmlHelper protected constructor() {
         fun getInstance(host: String): HtmlHelper {
             when {
                 host.contains(HostNames.ROYAL_ROAD) -> return RoyalRoadHelper()
-                host.contains(HostNames.KOBATOCHAN) -> return KobatochanCleaner()
+                host.contains(HostNames.GRAVITY_TALES) -> return GravityTalesHelper()
+            //host.contains(HostNames.KOBATOCHAN) -> return KobatochanCleaner()
             }
             return HtmlHelper()
         }
@@ -122,6 +123,9 @@ open class HtmlHelper protected constructor() {
         return doc.head().getElementsByTag("title").text()
     }
 
-
     open fun addTitle(doc: Document) {}
+
+    open fun toggleTheme(isDark: Boolean, doc: Document): Document {
+        return doc
+    }
 }

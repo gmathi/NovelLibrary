@@ -37,7 +37,7 @@
             <!--android:title="Search"/>-->
             <item
                 android:id="@+id/nav_settings"
-                android:icon="@drawable/ic_settings_black_vector"
+                android:icon="@drawable/ic_settings_white_vector"
                 android:title="@string/title_activity_settings"/>
             <item
                 android:id="@+id/nav_legal"

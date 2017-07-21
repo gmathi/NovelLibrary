@@ -21,11 +21,11 @@ public class DBKeys {
     static final String KEY_NOVEL_ID = "novel_id";
 
     // Table novel columns
-    static final String KEY_AUTHOR = "author";
     static final String KEY_IMAGE_URL = "image_url";
     static final String KEY_RATING = "rating";
     static final String KEY_SHORT_DESCRIPTION = "short_description";
     static final String KEY_LONG_DESCRIPTION = "long_description";
+    static final String KEY_METADATA = "metadata";
     static final String KEY_IMAGE_FILE_PATH = "image_file_path";
     static final String KEY_CURRENT_WEB_PAGE_ID = "current_web_page_id";
 
@@ -52,12 +52,12 @@ public class DBKeys {
                     + KEY_ID + " INTEGER PRIMARY KEY, "
                     + KEY_NAME + " TEXT, "
                     + KEY_URL + " TEXT, "
-                    + KEY_AUTHOR + " TEXT, "
                     + KEY_IMAGE_URL + " TEXT, "
                     + KEY_RATING + " TEXT, "
                     + KEY_SHORT_DESCRIPTION + " TEXT, "
                     + KEY_LONG_DESCRIPTION + " TEXT, "
                     + KEY_IMAGE_FILE_PATH + " TEXT, "
+                    + KEY_METADATA + " TEXT, "
                     + KEY_CURRENT_WEB_PAGE_ID + " INTEGER, "
                     + "FOREIGN KEY (" + KEY_CURRENT_WEB_PAGE_ID + ") REFERENCES " + TABLE_WEB_PAGE + "(" + KEY_ID + ")"
                     + ")";

@@ -79,7 +79,7 @@ class PopularNovelsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         }
 
         Thread(Runnable {
-            val results = NovelApi().searchRoyalRoadUrl(searchUrl)
+            val results = NovelApi().searchUrl(searchUrl)
             if (results != null) {
                 Handler(Looper.getMainLooper()).post {
                     if (isVisible && (!isDetached || !isRemoving)) {

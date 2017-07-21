@@ -54,7 +54,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
         (activity as NavDrawerActivity).setToolbar(toolbar)
         setRecyclerView()
 
-        if (DownloadService.isDownloading) {
+        if (DownloadService.isDownloading && adapter.items.isNotEmpty()) {
             fab.setImageResource(R.drawable.ic_pause_black_vector)
             fab.tag = "playing"
         } else {
@@ -85,7 +85,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
 
 
     private fun setRecyclerView() {
-        val items = dbHelper.getAllDownloadQueue()
+        val items = dbHelper.getAllDownloadQueue().filter { it.status != Constants.STATUS_COMPLETE }
         adapter = GenericAdapter(ArrayList(items), R.layout.listitem_download_queue, this)
         recyclerView.setDefaults(adapter)
         recyclerView.addItemDecoration(object : DividerItemDecoration(context, DividerItemDecoration.VERTICAL) {
@@ -169,7 +169,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
 
     private fun confirmDeleteAlert(novel: Novel) {
         MaterialDialog.Builder(activity)
-            .title(getString(R.string.remove_from_downloads))
+            .content(getString(R.string.remove_from_downloads))
             .positiveText(getString(R.string.remove))
             .negativeText(getString(R.string.cancel))
             .icon(ContextCompat.getDrawable(activity, R.drawable.ic_delete_white_vector))
@@ -180,7 +180,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
     }
 
     private fun deleteNovel(novel: Novel) {
-        Utils.deleteNovel(context, novel)
+        dbHelper.deleteDownloadQueue(novel.id)
         val index = adapter.items.indexOfFirst { it.novelId == novel.id }
         if (index != -1) adapter.removeItemAt(index)
         if (adapter.items.size == 0) {

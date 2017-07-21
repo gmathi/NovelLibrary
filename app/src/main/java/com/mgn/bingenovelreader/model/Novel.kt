@@ -6,7 +6,6 @@ class Novel : Serializable {
     var id: Long = -1
     var name: String? = null
     var url: String? = null
-    var author: String? = null
     var imageUrl: String? = null
     var rating: String? = null
     var shortDescription: String? = null
@@ -32,7 +31,6 @@ class Novel : Serializable {
             id = if (otherNovel.id != -1L) otherNovel.id else id
             url = if (otherNovel.url != null) otherNovel.url else url
             name = if (otherNovel.name != null) otherNovel.name else name
-            author = if (otherNovel.author != null) otherNovel.author else author
             genres = if (otherNovel.genres != null) otherNovel.genres else genres
             rating = if (otherNovel.rating != null) otherNovel.rating else rating
             imageUrl = if (otherNovel.imageUrl != null) otherNovel.imageUrl else imageUrl

@@ -68,6 +68,7 @@
                                 android:id="@+id/novelDetailsAuthor"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:maxLines="2"
                                 android:layout_marginBottom="4dp"
                                 android:textSize="14sp"
                                 />
@@ -128,6 +129,17 @@
 
                         </LinearLayout>
 
+                        <ImageView
+                            android:id="@+id/openInBrowserButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_marginEnd="@dimen/default_margin"
+                            android:layout_alignParentRight="true"
+                            android:layout_marginTop="95dp"
+                            app:srcCompat="@drawable/ic_open_in_browser_white_vector"
+                            tools:ignore="NotSibling"
+                            android:layout_marginRight="@dimen/default_margin"/>
 
                     </RelativeLayout>
 
@@ -249,6 +261,71 @@
                             android:layout_alignParentRight="true"
                             android:layout_centerVertical="true"
                             app:srcCompat="@drawable/ic_chevron_right_white_vector"/>
+
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/SlateGray"/>
+
+                    <RelativeLayout
+                        android:id="@+id/novelDetailsMetadataLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="30dp"
+                        android:padding="@dimen/default_margin">
+
+                        <ImageView
+                            android:id="@+id/novelDetailsMetadataIcon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentLeft="true"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            app:srcCompat="@drawable/ic_art_track_white_vector"/>
+
+                        <ImageView
+                            android:id="@+id/novelDetailsMetadataChevron"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_alignParentRight="true"
+                            android:layout_centerVertical="true"
+                            app:srcCompat="@drawable/ic_chevron_right_white_vector"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginLeft="@dimen/default_margin"
+                            android:layout_marginRight="@dimen/default_margin"
+                            android:layout_toEndOf="@id/novelDetailsMetadataIcon"
+                            android:layout_toLeftOf="@id/novelDetailsMetadataChevron"
+                            android:layout_toRightOf="@id/novelDetailsMetadataIcon"
+                            android:layout_toStartOf="@id/novelDetailsMetadataChevron"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/novelDetailsMetadataTitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/more_information"
+                                android:textAllCaps="true"
+                                android:textColor="@color/white"
+                                android:textSize="12sp"
+                                android:textStyle="bold"/>
+
+                            <TextView
+                                android:id="@+id/novelDetailsMetadataDescription"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/more_info_description"
+                                android:textSize="12sp"/>
+
+                        </LinearLayout>
+
 
                     </RelativeLayout>
 

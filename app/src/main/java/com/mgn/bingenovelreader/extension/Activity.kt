@@ -10,6 +10,7 @@ import android.widget.Toast
 import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.activity.ChaptersActivity
 import com.mgn.bingenovelreader.activity.ImagePreviewActivity
+import com.mgn.bingenovelreader.activity.MetaDataActivity
 import com.mgn.bingenovelreader.activity.ReaderPagerActivity
 import com.mgn.bingenovelreader.model.Novel
 import com.mgn.bingenovelreader.model.WebPage
@@ -44,6 +45,15 @@ fun Activity.startChaptersActivity(novel: Novel) {
     intent.putExtras(bundle)
     startActivityForResult(intent, Constants.CHAPTER_ACT_REQ_CODE)
 }
+
+fun Activity.startMetadataActivity(novel: Novel) {
+    val intent = Intent(this, MetaDataActivity::class.java)
+    val bundle = Bundle()
+    bundle.putSerializable("novel", novel)
+    intent.putExtras(bundle)
+    startActivityForResult(intent, Constants.METADATA_ACT_REQ_CODE)
+}
+
 
 fun Activity.startReaderPagerActivity(novel: Novel, webPage: WebPage, chapters: ArrayList<WebPage>?) {
     val intent = Intent(this, ReaderPagerActivity::class.java)

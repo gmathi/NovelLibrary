@@ -1,6 +1,7 @@
 package com.mgn.bingenovelreader.activity
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -28,6 +29,7 @@ import com.mgn.bingenovelreader.dbHelper
 import com.mgn.bingenovelreader.extension.applyFont
 import com.mgn.bingenovelreader.extension.startChaptersActivity
 import com.mgn.bingenovelreader.extension.startImagePreviewActivity
+import com.mgn.bingenovelreader.extension.startMetadataActivity
 import com.mgn.bingenovelreader.model.Novel
 import com.mgn.bingenovelreader.network.NovelApi
 import com.mgn.bingenovelreader.util.Constants
@@ -56,9 +58,8 @@ class NovelDetailsActivity : AppCompatActivity() {
             setupViews()
         else {
             progressLayout.showLoading()
-            getNovelInfo()
         }
-
+        getNovelInfo()
         swipeRefreshLayout.setOnRefreshListener { getNovelInfoDB(); getNovelInfo() }
     }
 
@@ -111,6 +112,8 @@ class NovelDetailsActivity : AppCompatActivity() {
         setNovelGenre()
         setNovelDescription()
         novelDetailsChaptersLayout.setOnClickListener { startChaptersActivity(novel) }
+        novelDetailsMetadataLayout.setOnClickListener { startMetadataActivity(novel) }
+        openInBrowserButton.setOnClickListener { openInBrowser() }
     }
 
     private fun setNovelImage() {
@@ -121,10 +124,10 @@ class NovelDetailsActivity : AppCompatActivity() {
     }
 
     private fun setNovelAuthor() {
-        novel.author = novel.metaData["Author(s)"]
-        if (novel.author != null) {
-            val ss1 = SpannableString("by " + novel.author)
-            ss1.setSpan(RelativeSizeSpan(1.2f), 3, novel.author!!.length, 0)
+        val author = novel.metaData["Author(s)"]
+        if (author != null) {
+            val ss1 = SpannableString("by " + author)
+            ss1.setSpan(RelativeSizeSpan(1.2f), 3, author.length, 0)
             novelDetailsAuthor.applyFont(assets).text = ss1
         }
     }
@@ -147,8 +150,8 @@ class NovelDetailsActivity : AppCompatActivity() {
         if (novel.id == -1L) {
             resetAddToLibraryButton()
             novelDetailsDownloadButton.setOnClickListener {
-                addNovelToDB()
                 disableAddToLibraryButton()
+                addNovelToDB()
             }
         } else disableAddToLibraryButton()
     }
@@ -214,6 +217,11 @@ class NovelDetailsActivity : AppCompatActivity() {
             novelDetailsDescription.applyFont(assets).text = ss2
             novelDetailsDescription.movementMethod = LinkMovementMethod.getInstance()
         }
+    }
+
+    private fun openInBrowser() {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(novel.url))
+        startActivity(intent)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-
-    <declare-styleable name="ExpandableLayout">
-        <attr name="canExpand" format="boolean"/>
-        <attr name="startExpanded" format="boolean"/>
-    </declare-styleable>
-
-
     <!-- style -->
     <declare-styleable name="root_color">
         <attr name="root_color" format="reference|color"/>

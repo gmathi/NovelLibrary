@@ -21,7 +21,7 @@ package com.mgn.bingenovelreader.util;
  */
 public class Constants {
 
-    public static final String ROYAL_ROAD_SITE_THEME_ID = "siteThemeRoyalRoad";
+
 
     //region DownloadQueue Status Values
     public static final Long STATUS_DOWNLOAD = 0L;
@@ -55,6 +55,7 @@ public class Constants {
     public static final int READER_ACT_REQ_CODE = 4;
     public static final int DOWNLOAD_QUEUE_ACT_RES_CODE = 5;
     public static final int CHAPTER_ACT_REQ_CODE = 6;
+    public static final int METADATA_ACT_REQ_CODE = 6;
 
 
     //endregion

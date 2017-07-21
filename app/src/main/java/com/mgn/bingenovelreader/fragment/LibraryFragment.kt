@@ -3,8 +3,6 @@ package com.mgn.bingenovelreader.fragment
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
-import android.support.v4.content.ContextCompat
-import android.support.v4.graphics.drawable.DrawableCompat
 import android.util.Log
 import android.view.*
 import com.bumptech.glide.Glide
@@ -89,10 +87,10 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
     //region Sync Code
     override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
-        menuInflater.inflate(R.menu.menu_library, menu)
-        val drawable = DrawableCompat.wrap(menu.findItem(R.id.action_sync).icon)
-        DrawableCompat.setTint(drawable, ContextCompat.getColor(context, R.color.white))
-        menu.findItem(R.id.action_sync).icon = drawable
+//        menuInflater.inflate(R.menu.menu_library, menu)
+//        val drawable = DrawableCompat.wrap(menu.findItem(R.id.action_sync).icon)
+//        DrawableCompat.setTint(drawable, ContextCompat.getColor(context, R.color.white))
+//        menu.findItem(R.id.action_sync).icon = drawable
         super.onCreateOptionsMenu(menu, menuInflater)
     }
 
@@ -103,12 +101,12 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
-            R.id.action_sync -> {
-                syncNovels()
-                return true
-            }
-        }
+//        when (item?.itemId) {
+//            R.id.action_sync -> {
+//                syncNovels()
+//                return true
+//            }
+//        }
         return super.onOptionsItemSelected(item)
     }
 

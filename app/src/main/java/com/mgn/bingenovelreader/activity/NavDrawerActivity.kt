@@ -14,6 +14,7 @@ import com.mgn.bingenovelreader.R
 import com.mgn.bingenovelreader.fragment.DownloadFragment
 import com.mgn.bingenovelreader.fragment.LibraryFragment
 import com.mgn.bingenovelreader.fragment.SearchFragment
+import com.mgn.bingenovelreader.util.Utils
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -22,18 +23,18 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_nav_drawer)
-
         navigationView.setNavigationItemSelectedListener(this)
-        loadFragment(R.id.nav_search)
+
+        if (Utils.checkNetwork(this))
+            loadFragment(R.id.nav_search)
+        else
+            loadFragment(R.id.nav_library)
     }
 
     override fun onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START)
         } else {
-
-            //super.onBackPressed()
-
             finish()
         }
     }
