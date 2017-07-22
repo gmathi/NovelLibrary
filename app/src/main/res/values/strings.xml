@@ -1,4 +1,34 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+       Important please do not change the order of the string-arrays or generally anything unless it's text you're translating
+
+       What You'll Need:
+
+       1. A good text editor I recommend Atom (https://atom.io/), Sublime (https://www.sublimetext.com/), Brackets (http://brackets.io/) if you want to use something else no problem
+       2. A little knowledge on basic HTML things like <p> <b> <i> <br/> since there are certain parts I used a bit of html to format information https://www.w3schools.com/tags/
+       3. Know what character escaping is, because you cannot use characters like ' or , or ; or & or $ or % e.t.c without escaping them. e.g.
+          What\'s Trending should become What\'s Trending (Refer to http://www.ascii.cl/htmlcodes.htm look at the HTML Name Column for some conventions) not what i am looking for?
+
+       Just a quick note for translators, if you see some text that has %s or %d or %f just leave those as they are those are place holders:
+       %s - is a place holder for text most likely coming from NovelLibrary, e.g. %s liked your status post -> will be eCookie or Josh liked your status post
+       %d - is a place holder for a number, e.g. You have %d notifications -> will be You have 1 or 3 or 10 notifications
+       %f - is also a place holder for a decimal number works exactly as the others mentioned above
+
+       I know different languages have different rules like RTL so if you need to change the positions/order of %s or %d or %f you can still do so just don't remove the % sign
+       N.B. If any of the tags <string name="abc" translatable="false" ></string> have an attribute labeled translatable="false" it means you should not translate it!
+       So you can just omit those fields
+
+       Special Cases:
+       1. There are some cases I used <![CDATA[ some text here ]]>  CDATA sections are used to escape blocks of text containing characters that would otherwise be regarded as markup.
+       The only delimiter that is recognized in a CDATA section is the "]]>" string that ends the CDATA section. CDATA sections cannot be nested.
+       Their primary purpose is for including material such as XML fragments, without needing to escape all the delimiters.
+
+       Uploading your files:
+       You may just send the files directly and the file name should be something like strings_en.xml for english and strings_fr.xml for french respective of your locale
+       To All Translators I am very grateful for your help! :)
+   -->
+
 
     <string-array name="search_tab_titles">
         <item>Popular-Now</item>
@@ -11,24 +41,34 @@
         <item>RoyalRoad</item>
     </string-array>
 
+    <string-array name="settings_list">
+        <item>@string/clear_data</item>
+        <item>@string/copyright_notice</item>
+        <item>@string/donate_developer</item>
+        <item>@string/libraries_used</item>
+        <item>@string/about_us</item>
+    </string-array>
+
 
     <!--<item>Latest Updates</item>-->
     <!--<item>Active-Only Ranking</item>-->
-    <string name="app_name" translatable="false">Royal Novels</string>
+    <string name="app_name" translatable="false">Novel Library</string>
 
     <string name="title_activity_nav_drawer" translatable="false">@string/app_name</string>
     <string name="title_activity_reader_pager" translatable="false">Reader Pager</string>
+    <string name="title_activity_libraries_used" translatable="false">@string/libraries_used</string>
+    <string name="title_activity_copyright" translatable="false">@string/copyright_notice</string>
+
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
     <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
     <string name="transition_user_banner" translatable="false">trans_banner_img</string>
     <string name="transition_image_preview" translatable="false">trans_image_preview</string>
-
+    <string name="dev_email" translatable="false">gmathi.developer@gmail.com</string>
 
     <string name="title_activity_novel_details">Novel</string>
     <string name="title_activity_settings">Settings</string>
     <string name="title_activity_chapters">Chapters</string>
     <string name="title_activity_meta_data">More Information</string>
-    <string name="title_activity_legal">Legal Information</string>
 
 
     <string name="action_settings">Settings</string>
@@ -41,6 +81,7 @@
     <string name="title_search">Search</string>
     <string name="title_downloads">Downloads</string>
 
+    <string name="app_description">Your One Stop For All Novels</string>
 
     <!-- Strings related to Settings -->
     <!--<string name="pref_title_dark_theme">Dark Page Theme</string>-->
@@ -63,6 +104,8 @@
     <string name="downloaded">Downloaded</string>
     <string name="downloading">Downloading</string>
 
+    <string name="no_internet">No Active Internet!</string>
+    <string name="try_again">Try Again</string>
     <string name="clear">Clear</string>
     <string name="clear_data">Clear Data</string>
     <string name="clear_data_description">Clears the cache, files and database</string>
@@ -85,8 +128,39 @@
     <string name="text_size">Text Size</string>
     <string name="more_information">More Information</string>
     <string name="more_info_description">Artists, Licensing, Translators, …</string>
-    <string name="app_description">Your One Stop For All Novels</string>
     <string name="search_novel">Search Novel</string>
+    <string name="bug_report">Report Bug</string>
+    <string name="copyright_notice">Copyright Notice</string>
+    <string name="donate_developer">Donate Developer</string>
+    <string name="about_us">About Us</string>
+    <string name="libraries_used">Libraries Used</string>
+    <string name="donate">Donate</string>
+    <string name="donation_email_body">Thanks for all the work. I would like to see this in the next version and here is my donation.</string>
+    <string name="content_restricted">Content Restricted!</string>
+    <string name="lock_hint">Hidden buttons to unlock the content. Good Luck finding them!!</string>
+
+
+    <string name="copyright_content" tools:ignore="TypographyQuotes">
+        "Novel Library is an application for providing search results aggregation services for "
+        "novel readers. All contents on Novel Library are shared by readers or automatically "
+        "searched and collated from the Internet by the program. Novel Library does not produce any content. \n\n"
+
+        "Copyright of all contents on Novel Library application belongs to both the author and "
+        "the publisher. If you have any questions about the copyright of the content, please contact "
+        "us and we will contact you for the first time and withdraw the content. \n\n"
+
+        "All Contents on the Novel Library Application represent the views of the author personally, "
+        "and do not represent the position of the application. We do not bear legal responsibility. "
+        "If you find any content violated the law, please report to us and we will review it. \n\n"
+
+        "contact: gmathi.developer@gmail.com\n"
+
+    </string>
+
+    <string name="donate_content" tools:ignore="TypographyQuotes">
+        "Donations would help speed up the releases with new features. "
+        "You can send your donate using the GMail application to gmathi.developer@gmail.com "
+    </string>
 
 
 </resources>

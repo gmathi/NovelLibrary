@@ -16,7 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
-        app:srcCompat="@drawable/bg_nav_header"/>
+        app:srcCompat="@drawable/gradient_nav_header"/>
 
     <LinearLayout
         android:layout_width="match_parent"

@@ -6,7 +6,7 @@
     android:id="@+id/navCoordinatorLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.mgn.bingenovelreader.activity.NavDrawerActivity">
+    tools:context=".activity.NavDrawerActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"

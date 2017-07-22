@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.mgn.bingenovelreader">
+          package="io.github.gmathi.novellibrary">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.CLEAR_APP_CACHE"/>
 
     <application
-        android:name=".BNRApplication"
+        android:name=".NovelLibraryApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -21,7 +21,7 @@
         </service>
 
         <activity
-            android:name=".activities.NovelDetailsActivity"
+            android:name=".activity.NovelDetailsActivity"
             android:label="@string/title_activity_novel_details"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
@@ -60,14 +60,14 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.LegalActivity"
-            android:label="@string/title_activity_legal"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:name=".activity.LibrariesUsedActivity"
+            android:label="@string/title_activity_libraries_used"
+            android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
             android:name=".activity.CopyrightActivity"
             android:label="@string/title_activity_copyright"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/DarkTheme_DarkSide">
         </activity>
     </application>
 

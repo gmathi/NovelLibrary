@@ -21,7 +21,20 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_settings"/>
+    <include layout="@layout/content_recycler_view"/>
 
+    <View
+        android:id="@+id/hiddenLeftButton"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_gravity="start|bottom"
+        android:background="@android:color/transparent"/>
+
+    <View
+        android:id="@+id/hiddenRightButton"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_gravity="end|bottom"
+        android:background="@android:color/transparent"/>
 
 </android.support.design.widget.CoordinatorLayout>
