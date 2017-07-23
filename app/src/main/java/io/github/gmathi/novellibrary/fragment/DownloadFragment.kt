@@ -13,8 +13,8 @@ import android.view.ViewGroup
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.Theme
 import com.bumptech.glide.Glide
-import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
@@ -38,6 +38,7 @@ import java.io.File
 class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> {
 
     lateinit var adapter: GenericAdapter<DownloadQueue>
+    private val ignoreUpdates = ArrayList<Long>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,10 +56,10 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
         setRecyclerView()
 
         if (DownloadService.isDownloading && adapter.items.isNotEmpty()) {
-            fab.setImageResource(R.drawable.ic_pause_black_vector)
+            fab.setImageResource(R.drawable.ic_pause_white_vector)
             fab.tag = "playing"
         } else {
-            fab.setImageResource(R.drawable.ic_play_arrow_black_vector)
+            fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
             fab.tag = "paused"
         }
 
@@ -67,12 +68,14 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
                 if (fab.tag == "playing") {
                     //pause all
                     dbHelper.updateAllDownloadQueueStatuses(Constants.STATUS_STOPPED)
-                    fab.setImageResource(R.drawable.ic_play_arrow_black_vector)
+                    ignoreUpdates.addAll(adapter.items.map { it.novelId })
+                    fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
                     fab.tag = "paused"
                 } else if (fab.tag == "paused") {
                     //play all
                     dbHelper.updateAllDownloadQueueStatuses(Constants.STATUS_DOWNLOAD)
-                    fab.setImageResource(R.drawable.ic_pause_black_vector)
+                    ignoreUpdates.clear()
+                    fab.setImageResource(R.drawable.ic_pause_white_vector)
                     fab.tag = "playing"
                     startDownloadService(-1L)
 
@@ -111,10 +114,10 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
 
         if (DownloadService.novelId == item.novelId) {
             item.status = Constants.STATUS_DOWNLOAD
-            itemView.downloadPauseButton.setImageResource(R.drawable.ic_pause_black_vector)
+            itemView.downloadPauseButton.setImageResource(R.drawable.ic_pause_white_vector)
         } else {
             item.status = Constants.STATUS_STOPPED
-            itemView.downloadPauseButton.setImageResource(R.drawable.ic_play_arrow_black_vector)
+            itemView.downloadPauseButton.setImageResource(R.drawable.ic_play_arrow_white_vector)
         }
         val totalChapterCount = dbHelper.getAllWebPages(novelId = novel?.id!!).count()
         if (totalChapterCount != 0) {
@@ -131,19 +134,21 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
         itemView.downloadPauseButton.setOnClickListener {
             if (item.status == Constants.STATUS_DOWNLOAD) {
                 dbHelper.updateDownloadQueueStatus(Constants.STATUS_STOPPED, item.novelId)
-                itemView.downloadPauseButton.setImageResource(R.drawable.ic_play_arrow_black_vector)
+                ignoreUpdates.add(item.novelId)
+                itemView.downloadPauseButton.setImageResource(R.drawable.ic_play_arrow_white_vector)
                 item.status = Constants.STATUS_STOPPED
                 if (dbHelper.getFirstDownloadableQueueItem() == null) {
-                    fab.setImageResource(R.drawable.ic_play_arrow_black_vector)
+                    fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
                     fab.tag = "paused"
                 }
 
             } else if (item.status == Constants.STATUS_STOPPED) {
                 dbHelper.updateDownloadQueueStatus(Constants.STATUS_DOWNLOAD, item.novelId)
-                itemView.downloadPauseButton.setImageResource(R.drawable.ic_pause_black_vector)
+                ignoreUpdates.remove(item.novelId)
+                itemView.downloadPauseButton.setImageResource(R.drawable.ic_pause_white_vector)
                 item.status = Constants.STATUS_DOWNLOAD
                 startDownloadService(item.novelId)
-                fab.setImageResource(R.drawable.ic_pause_black_vector)
+                fab.setImageResource(R.drawable.ic_pause_white_vector)
                 fab.tag = "playing"
             }
         }
@@ -184,7 +189,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
         val index = adapter.items.indexOfFirst { it.novelId == novel.id }
         if (index != -1) adapter.removeItemAt(index)
         if (adapter.items.size == 0) {
-            fab.setImageResource(R.drawable.ic_play_arrow_black_vector)
+            fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
             fab.tag = "paused"
         }
     }
@@ -206,13 +211,13 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
                 if (event.novelId == -1L) {
                     if (!Utils.checkNetwork(activity)) {
                         //toast("No Active Internet! (⋋▂⋌)")
-                        fab.setImageResource(R.drawable.ic_play_arrow_black_vector)
+                        fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
                         fab.tag = "paused"
                         adapter.updateData(ArrayList(dbHelper.getAllDownloadQueue()))
                     }
                 } else {
                     val dq = dbHelper.getDownloadQueue(event.novelId)
-                    if (dq != null)
+                    if (dq != null && !ignoreUpdates.contains(event.novelId))
                         adapter.updateItem(dq)
                 }
             }
@@ -221,7 +226,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
                 dq.novelId = event.novelId
                 adapter.removeItem(dq)
                 if (adapter.items.size == 0) {
-                    fab.setImageResource(R.drawable.ic_play_arrow_black_vector)
+                    fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
                     fab.tag = "paused"
                 }
             }

@@ -20,33 +20,33 @@ import io.github.gmathi.novellibrary.extension.setDefaults
 import io.github.gmathi.novellibrary.model.Library
 import kotlinx.android.synthetic.main.activity_libraries_used.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
-import kotlinx.android.synthetic.main.listitem_settings.view.*
+import kotlinx.android.synthetic.main.listitem_title_subtitle.view.*
 import org.jsoup.helper.StringUtil
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 
-class LibrariesUsedActivity : AppCompatActivity(), GenericAdapter.Listener<Library> {
+class ContributionsActivity : AppCompatActivity(), GenericAdapter.Listener<Library> {
 
     lateinit var adapter: GenericAdapter<Library>
-    lateinit var librariesUsed: ArrayList<Library>
+    lateinit var contributors: ArrayList<Library>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_libraries_used)
         setSupportActionBar(toolbar)
-        val libraries = getLibraryData()
-        if (libraries == null) finish()
-        librariesUsed = ArrayList(libraries!!.filter { it != null }.map { it!! })
+        val contributorsList = getContributorsData()
+        if (contributorsList == null) finish()
+        contributors = ArrayList(contributorsList!!.filter { it != null }.map { it!! })
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setRecyclerView()
     }
 
-    private fun getLibraryData(): ArrayList<Library?>? {
+    private fun getContributorsData(): ArrayList<Library?>? {
         val reader: BufferedReader
         val stringBuilder = StringBuilder()
         try {
-            reader = BufferedReader(InputStreamReader(assets.open("libraries.json")))
+            reader = BufferedReader(InputStreamReader(assets.open("contributors.json")))
             var mLine = reader.readLine()
             while (mLine != null) {
                 stringBuilder.append(mLine)
@@ -61,7 +61,7 @@ class LibrariesUsedActivity : AppCompatActivity(), GenericAdapter.Listener<Libra
     }
 
     private fun setRecyclerView() {
-        adapter = GenericAdapter(items = librariesUsed, layoutResId = R.layout.listitem_settings, listener = this)
+        adapter = GenericAdapter(items = contributors, layoutResId = R.layout.listitem_title_subtitle, listener = this)
         recyclerView.setDefaults(adapter)
         recyclerView.addItemDecoration(object : DividerItemDecoration(this, DividerItemDecoration.VERTICAL) {
 
@@ -78,8 +78,9 @@ class LibrariesUsedActivity : AppCompatActivity(), GenericAdapter.Listener<Libra
     }
 
     override fun bind(item: Library, itemView: View, position: Int) {
-        itemView.settingsTitle.applyFont(assets).text = item.name
-        itemView.settingsChevron.visibility = if (!StringUtil.isBlank(item.link)) View.VISIBLE else View.INVISIBLE
+        itemView.title.applyFont(assets).text = item.name
+        itemView.subtitle.applyFont(assets).text = item.description
+        itemView.chevron.visibility = if (!StringUtil.isBlank(item.link)) View.VISIBLE else View.INVISIBLE
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
         else ContextCompat.getColor(this, android.R.color.transparent))
     }

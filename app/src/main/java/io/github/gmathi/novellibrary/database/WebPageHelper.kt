@@ -2,6 +2,8 @@ package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
 import android.util.Log
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.WebPage
 import java.util.*
 
@@ -18,6 +20,7 @@ fun DBHelper.createWebPage(webPage: WebPage): Long {
     values.put(DBKeys.KEY_FILE_PATH, webPage.filePath)
     values.put(DBKeys.KEY_NOVEL_ID, webPage.novelId)
     values.put(DBKeys.KEY_IS_READ, webPage.isRead)
+    values.put(DBKeys.KEY_METADATA, Gson().toJson(webPage.metaData))
 
     return db.insert(DBKeys.TABLE_WEB_PAGE, null, values)
 }
@@ -39,6 +42,7 @@ fun DBHelper.getWebPage(novelId: Long, url: String): WebPage? {
             webPage.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
             webPage.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
             webPage.isRead = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_IS_READ))
+            webPage.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
         }
         cursor.close()
     }
@@ -64,6 +68,7 @@ fun DBHelper.getAllWebPages(novelId: Long): List<WebPage> {
                 webPage.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
                 webPage.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
                 webPage.isRead = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_IS_READ))
+                webPage.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
 
                 list.add(webPage)
             } while (cursor.moveToNext())
@@ -91,6 +96,7 @@ fun DBHelper.getAllWebPagesToDownload(novelId: Long): List<WebPage> {
                 webPage.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
                 webPage.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
                 webPage.isRead = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_IS_READ))
+                webPage.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
 
                 list.add(webPage)
             } while (cursor.moveToNext())
@@ -119,6 +125,7 @@ fun DBHelper.getAllReadableWebPages(novelId: Long): List<WebPage> {
                 webPage.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
                 webPage.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
                 webPage.isRead = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_IS_READ))
+                webPage.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
 
                 list.add(webPage)
             } while (cursor.moveToNext())
@@ -134,6 +141,7 @@ fun DBHelper.updateWebPage(webPage: WebPage): Long {
     values.put(DBKeys.KEY_TITLE, webPage.title)
     values.put(DBKeys.KEY_REDIRECT_URL, webPage.redirectedUrl)
     values.put(DBKeys.KEY_FILE_PATH, webPage.filePath)
+    values.put(DBKeys.KEY_METADATA, Gson().toJson(webPage.metaData))
 
     return this.writableDatabase.update(DBKeys.TABLE_WEB_PAGE, values, DBKeys.KEY_ID + " = ? ", arrayOf(webPage.id.toString())).toLong()
 }
@@ -141,7 +149,6 @@ fun DBHelper.updateWebPage(webPage: WebPage): Long {
 fun DBHelper.updateWebPageReadStatus(webPage: WebPage): Long {
     val values = ContentValues()
     values.put(DBKeys.KEY_IS_READ, webPage.isRead)
-
     return this.writableDatabase.update(DBKeys.TABLE_WEB_PAGE, values, DBKeys.KEY_ID + " = ? ", arrayOf(webPage.id.toString())).toLong()
 }
 

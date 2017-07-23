@@ -14,6 +14,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
@@ -78,12 +79,24 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
     }
 
     private fun getChapters() {
-        if (!Utils.checkNetwork(this)) {
-            chapters = ArrayList(dbHelper.getAllWebPages(novel.id))
+        chapters = ArrayList(dbHelper.getAllWebPages(novel.id))
+        if (chapters!= null && !chapters!!.isEmpty()) {
             updateData()
             progressLayout.showContent()
-            return
+        } else {
+            if (!Utils.checkNetwork(this)) {
+                progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+                    progressLayout.showLoading()
+                    getChapters()
+                })
+                return
+            } else {
+                Toast.makeText(this, getString(R.string.chapters_loading_message), Toast.LENGTH_LONG).show()
+            }
         }
+
+        if (downloadThread != null && downloadThread!!.isAlive && !downloadThread!!.isInterrupted)
+            downloadThread!!.interrupt()
 
         downloadThread = Thread(Runnable {
             chapters = NovelApi().getChapterUrls(novel.url!!)
@@ -258,7 +271,7 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
         if (novel.id == -1L) novel.id = dbHelper.insertNovel(novel)
         dbHelper.createDownloadQueue(novel.id)
         dbHelper.updateDownloadQueueStatus(Constants.STATUS_DOWNLOAD, novel.id)
-        chapters!!.forEach {
+        chapters!!.asReversed().forEach {
             it.novelId = novel.id
             val dbWebPage = dbHelper.getWebPage(it.novelId, it.url!!)
             if (dbWebPage == null)
@@ -266,7 +279,6 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
             else
                 it.copyFrom(dbWebPage)
         }
-        dbHelper.updateChapterUrlsCached(1L, novel.id)
         addToDownloads()
     }
 

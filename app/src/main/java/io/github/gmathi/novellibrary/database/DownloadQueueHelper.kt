@@ -2,9 +2,12 @@ package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
 import android.util.Log
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.DownloadQueue
 import io.github.gmathi.novellibrary.util.Constants
 import java.util.*
+import kotlin.collections.HashMap
 
 
 private val LOG = "DownloadQueueHelper"
@@ -16,9 +19,7 @@ fun DBHelper.createDownloadQueue(novelId: Long): Boolean {
     val values = ContentValues()
     values.put(DBKeys.KEY_NOVEL_ID, novelId)
     values.put(DBKeys.KEY_STATUS, 0)
-    values.put(DBKeys.KEY_TOTAL_CHAPTERS, -1)
-    values.put(DBKeys.KEY_CURRENT_CHAPTER, -1)
-    values.put(DBKeys.KEY_CHAPTER_URLS_CACHED, 0)
+    values.put(DBKeys.KEY_METADATA, Gson().toJson(HashMap<String, String?>()))
 
     this.writableDatabase.insert(DBKeys.TABLE_DOWNLOAD_QUEUE, null, values)
     return true
@@ -34,9 +35,7 @@ fun DBHelper.getDownloadQueue(novelId: Long): DownloadQueue? {
             dq = DownloadQueue()
             dq.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
             dq.status = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_STATUS))
-            dq.totalChapters = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_TOTAL_CHAPTERS))
-            dq.currentChapter = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CURRENT_CHAPTER))
-            dq.chapterUrlsCached = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CHAPTER_URLS_CACHED))
+            dq.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<java.util.HashMap<String, String>>() {}.type)
         }
         cursor.close()
     }
@@ -56,9 +55,7 @@ fun DBHelper.getAllDownloadQueue(): List<DownloadQueue> {
                 val dq = DownloadQueue()
                 dq.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
                 dq.status = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_STATUS))
-                dq.totalChapters = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_TOTAL_CHAPTERS))
-                dq.currentChapter = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CURRENT_CHAPTER))
-                dq.chapterUrlsCached = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CHAPTER_URLS_CACHED))
+                dq.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<java.util.HashMap<String, String>>() {}.type)
 
                 list.add(dq)
             } while (cursor.moveToNext())
@@ -73,9 +70,7 @@ fun DBHelper.updateDownloadQueue(downloadQueue: DownloadQueue): Long {
     val values = ContentValues()
     values.put(DBKeys.KEY_NOVEL_ID, downloadQueue.novelId)
     values.put(DBKeys.KEY_STATUS, downloadQueue.status)
-    values.put(DBKeys.KEY_TOTAL_CHAPTERS, downloadQueue.totalChapters)
-    values.put(DBKeys.KEY_CURRENT_CHAPTER, downloadQueue.currentChapter)
-    values.put(DBKeys.KEY_CHAPTER_URLS_CACHED, downloadQueue.chapterUrlsCached)
+    values.put(DBKeys.KEY_METADATA, Gson().toJson(downloadQueue.metaData))
 
     // updating row
     return this.writableDatabase.update(DBKeys.TABLE_DOWNLOAD_QUEUE, values, DBKeys.KEY_NOVEL_ID + " = ?", arrayOf(downloadQueue.novelId.toString())).toLong()
@@ -84,19 +79,6 @@ fun DBHelper.updateDownloadQueue(downloadQueue: DownloadQueue): Long {
 fun DBHelper.updateDownloadQueueStatus(status: Long, novelId: Long): Long {
     val values = ContentValues()
     values.put(DBKeys.KEY_STATUS, status)
-    return this.writableDatabase.update(DBKeys.TABLE_DOWNLOAD_QUEUE, values, DBKeys.KEY_NOVEL_ID + " = ?", arrayOf(novelId.toString())).toLong()
-}
-
-fun DBHelper.updateDownloadQueueChapterCount(totalChapters: Long, currentChapter: Long, novelId: Long): Long {
-    val values = ContentValues()
-    values.put(DBKeys.KEY_TOTAL_CHAPTERS, totalChapters)
-    values.put(DBKeys.KEY_CURRENT_CHAPTER, currentChapter)
-    return this.writableDatabase.update(DBKeys.TABLE_DOWNLOAD_QUEUE, values, DBKeys.KEY_NOVEL_ID + " = ?", arrayOf(novelId.toString())).toLong()
-}
-
-fun DBHelper.updateChapterUrlsCached(chapterUrlsCached: Long, novelId: Long): Long {
-    val values = ContentValues()
-    values.put(DBKeys.KEY_CHAPTER_URLS_CACHED, chapterUrlsCached)
     return this.writableDatabase.update(DBKeys.TABLE_DOWNLOAD_QUEUE, values, DBKeys.KEY_NOVEL_ID + " = ?", arrayOf(novelId.toString())).toLong()
 }
 
@@ -121,9 +103,7 @@ fun DBHelper.getFirstDownloadableQueueItem(): DownloadQueue? {
             dq = DownloadQueue()
             dq.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
             dq.status = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_STATUS))
-            dq.totalChapters = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_TOTAL_CHAPTERS))
-            dq.currentChapter = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CURRENT_CHAPTER))
-            dq.chapterUrlsCached = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CHAPTER_URLS_CACHED))
+            dq.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<java.util.HashMap<String, String>>() {}.type)
         }
         cursor.close()
     }

@@ -65,6 +65,11 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
+            android:name=".activity.ContributionsActivity"
+            android:label="@string/title_activity_contributions"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
             android:name=".activity.CopyrightActivity"
             android:label="@string/title_activity_copyright"
             android:theme="@style/DarkTheme_DarkSide">

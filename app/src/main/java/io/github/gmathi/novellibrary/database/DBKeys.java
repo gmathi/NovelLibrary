@@ -18,6 +18,7 @@ public class DBKeys {
     static final String KEY_ID = "id";
     static final String KEY_NAME = "name";
     static final String KEY_URL = "url";
+    static final String KEY_METADATA = "metadata";
     static final String KEY_NOVEL_ID = "novel_id";
 
     // Table novel columns
@@ -25,7 +26,6 @@ public class DBKeys {
     static final String KEY_RATING = "rating";
     static final String KEY_SHORT_DESCRIPTION = "short_description";
     static final String KEY_LONG_DESCRIPTION = "long_description";
-    static final String KEY_METADATA = "metadata";
     static final String KEY_IMAGE_FILE_PATH = "image_file_path";
     static final String KEY_CURRENT_WEB_PAGE_ID = "current_web_page_id";
 
@@ -70,6 +70,7 @@ public class DBKeys {
                     + KEY_REDIRECT_URL + " TEXT UNIQUE ON CONFLICT IGNORE, "
                     + KEY_CHAPTER + " TEXT, "
                     + KEY_TITLE + " TEXT, "
+                    + KEY_METADATA + " TEXT, "
                     + KEY_FILE_PATH + " TEXT, "
                     + KEY_IS_READ + " INTEGER, "
                     + KEY_NOVEL_ID + " INTEGER, "
@@ -97,9 +98,7 @@ public class DBKeys {
             "CREATE TABLE " + TABLE_DOWNLOAD_QUEUE + " ("
                     + KEY_NOVEL_ID + " INTEGER PRIMARY KEY, "
                     + KEY_STATUS + " INTEGER, "
-                    + KEY_TOTAL_CHAPTERS + " INTEGER, "
-                    + KEY_CHAPTER_URLS_CACHED + " INTEGER, "
-                    + KEY_CURRENT_CHAPTER + " INTEGER"
+                    + KEY_METADATA + " TEXT"
                     + ")";
 
 }

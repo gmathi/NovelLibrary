@@ -16,10 +16,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extension.applyFont
-import io.github.gmathi.novellibrary.extension.setDefaults
-import io.github.gmathi.novellibrary.extension.startCopyrightActivity
-import io.github.gmathi.novellibrary.extension.startLibrariesUsedActivity
+import io.github.gmathi.novellibrary.extension.*
 import kotlinx.android.synthetic.main.activity_settings.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_settings.view.*
@@ -76,6 +73,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             getString(R.string.copyright_notice) -> startCopyrightActivity()
             getString(R.string.donate_developer) -> donateDeveloperDialog()
             getString(R.string.libraries_used) -> startLibrariesUsedActivity()
+            getString(R.string.contributions) -> startContributionsActivity()
             getString(R.string.about_us) -> aboutUsDialog()
         }
     }
@@ -101,7 +99,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             .content(getString(R.string.clear_data_description))
             .positiveText(R.string.clear)
             .negativeText(R.string.cancel)
-            .onPositive { dialog, which ->
+            .onPositive { dialog, _ ->
                 run {
                     val progressDialog = MaterialDialog.Builder(this)
                         .title(getString(R.string.clearing_data))
@@ -114,7 +112,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     dialog.dismiss()
                 }
             }
-            .onNegative { dialog, which ->
+            .onNegative { dialog, _ ->
                 run {
                     dialog.dismiss()
                 }
@@ -157,7 +155,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             .positiveText(R.string.donate)
             .onPositive { _, _ ->
                 run {
-                    emailTo(getString(R.string.dev_email), "[DONATION]", getString(R.string.donation_email_body), "Select GMail…");
+                    emailTo(getString(R.string.dev_email), "[DONATION]", getString(R.string.donation_email_body), "Select GMail…")
                 }
             }.show()
     }

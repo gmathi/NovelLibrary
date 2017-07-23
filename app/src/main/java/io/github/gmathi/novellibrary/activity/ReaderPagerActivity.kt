@@ -1,5 +1,7 @@
 package io.github.gmathi.novellibrary.activity
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.support.v4.view.ViewPager
 import android.view.MenuItem
@@ -123,6 +125,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
         when (item?.itemId) {
             R.id.action_dark_theme -> toggleDarkTheme()
             R.id.action_font_size -> changeTextSize()
+            R.id.action_report_page -> reportPage()
         }
     }
 
@@ -140,6 +143,21 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
         dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.setOnSeekBarChangeListener(this)
         dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.progress = dataCenter.textSize
     }
+
+    private fun reportPage() {
+        val url = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.getUrl()
+        if (url != null) {
+            val uri = Uri.parse("mailto:${getString(R.string.dev_email)}")
+                .buildUpon()
+                .appendQueryParameter("subject", "[IMPROVEMENT]")
+                .appendQueryParameter("body", "Url: $url \n Please improve the viewing experience of this page.")
+                .build()
+
+            val emailIntent = Intent(Intent.ACTION_SENDTO, uri)
+            startActivity(Intent.createChooser(emailIntent, "Email With…"))
+        }
+    }
+
 
     //region SeekBar Progress Listener
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {

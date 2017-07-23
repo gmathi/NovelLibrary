@@ -171,7 +171,7 @@ class NovelDetailsActivity : AppCompatActivity() {
 
     fun disableAddToLibraryButton() {
         invalidateOptionsMenu()
-        novelDetailsDownloadButton.setText("In Library")
+        novelDetailsDownloadButton.setText(getString(R.string.in_library))
         novelDetailsDownloadButton.setIconResource(R.drawable.ic_local_library_white_vector)
         novelDetailsDownloadButton.setBackgroundColor(ContextCompat.getColor(this@NovelDetailsActivity, R.color.Green))
         novelDetailsDownloadButton.isClickable = false

@@ -72,3 +72,8 @@ fun Activity.startLibrariesUsedActivity() {
     startActivity(intent)
 }
 
+fun Activity.startContributionsActivity() {
+    val intent = Intent(this, ContributionsActivity::class.java)
+    startActivity(intent)
+}
+

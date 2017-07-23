@@ -3,6 +3,9 @@
 
     <changelogversion versionName="0.1.beta" changeDate="July 23, 2017">
         <changelogtext>Initial Beta release.</changelogtext>
+        <changelogbug>Chapters List: 1000 Chapters take about 20~30 secs to load</changelogbug>
+        <changelogbug>Downloads List: Pausing download has unstable behaviour</changelogbug>
+
     </changelogversion>
 
 </changelog>

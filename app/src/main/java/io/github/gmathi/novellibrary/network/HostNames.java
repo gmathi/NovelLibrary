@@ -20,6 +20,7 @@ public class HostNames {
             "www.isohungrytls.com ";
 
     private static final String[] ALLOWED_HOST_NAMES_ARRAY = {
+                    "royalroadlupload.blob.core.windows.net",
                     "postimg.org",
                     "lightnovelbastion.com",
                     "fonts.googleapis.com",

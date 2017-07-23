@@ -149,4 +149,10 @@ class WebPageFragment : Fragment() {
             applyTheme(doc!!, doc!!.location())
         }
     }
+
+    fun getUrl(): String? {
+        if (webPage?.redirectedUrl != null) return webPage?.redirectedUrl
+        if (doc?.location() != null) doc?.location()
+        return webPage?.url
+    }
 }

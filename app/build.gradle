@@ -12,7 +12,7 @@ android {
     compileSdkVersion 26
     buildToolsVersion "26.0.0"
     defaultConfig {
-        applicationId "com.mgn.bingenovelreader"
+        applicationId "io.github.gmathi.novellibrary"
         minSdkVersion 16
         targetSdkVersion 26
         versionCode 5
@@ -34,6 +34,7 @@ android {
 
         debug {
             //buildConfigField "boolean", "IS_DEBUG", "true"
+            pseudoLocalesEnabled true
         }
 
         release {

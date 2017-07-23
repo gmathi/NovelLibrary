@@ -31,9 +31,9 @@
 
 
     <string-array name="search_tab_titles">
-        <item>Popular-Now</item>
-        <item>Best-Rated</item>
-        <item>Active-Ranked</item>
+        <item>Beliebt</item>
+        <item>Höchstbewertet</item>
+        <item>Aktive</item>
     </string-array>
 
     <string-array name="search_results_tab_titles">
@@ -58,7 +58,6 @@
     <string name="title_activity_nav_drawer" translatable="false">@string/app_name</string>
     <string name="title_activity_reader_pager" translatable="false">Reader Pager</string>
     <string name="title_activity_libraries_used" translatable="false">@string/libraries_used</string>
-    <string name="title_activity_contributions" translatable="false">@string/contributions</string>
     <string name="title_activity_copyright" translatable="false">@string/copyright_notice</string>
 
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
@@ -68,21 +67,20 @@
     <string name="dev_email" translatable="false">gmathi.developer@gmail.com</string>
 
     <string name="title_activity_novel_details">Novel</string>
-    <string name="title_activity_settings">Settings</string>
-    <string name="title_activity_chapters">Chapters</string>
-    <string name="title_activity_meta_data">More Information</string>
+    <string name="title_activity_settings">Einstellungen</string>
+    <string name="title_activity_chapters">Kapitel</string>
+    <string name="title_activity_meta_data">Mehr Informationen</string>
 
 
-    <string name="action_settings">Settings</string>
-    <string name="action_sync">Sync for updates</string>
-    <string name="action_favourite">Favourite</string>
-    <string name="action_bookmark">Bookmark</string>
+    <string name="action_settings">Einstellungen</string>
+    <string name="action_sync">Sync für Updates</string>
+    <string name="action_favourite">Favoriten</string>
+    <string name="action_bookmark">Lesezeichen</string>
 
 
-    <string name="title_library">Library</string>
-    <string name="title_search">Search</string>
+    <string name="title_library">Bücherei</string>
+    <string name="title_search">Suche</string>
     <string name="title_downloads">Downloads</string>
-
     <string name="app_description">Your One Stop For All Novels</string>
 
     <!-- Strings related to Settings -->
@@ -99,50 +97,50 @@
     <!-- Transition Names -->
     <string name="synopsis">Synopsis</string>
     <string name="genres">Genres</string>
-    <string name="chapters">Chapters</string>
-    <string name="legal">Legal</string>
+    <string name="chapters">Kapitel</string>
+    <string name="legal">Rechtliches</string>
 
     <string name="download">Download</string>
     <string name="downloaded">Downloaded</string>
     <string name="downloading">Downloading</string>
-    <string name="chapters_loading_message">Loading might take time, depending on the number of chapters</string>
+    <string name="chapters_loading_message">Die Beladung kann je nach Anzahl der Kapitel Zeit in Anspruch nehmen</string>
 
-    <string name="no_internet">No Active Internet!</string>
-    <string name="try_again">Try Again</string>
-    <string name="clear">Clear</string>
-    <string name="clear_data">Clear Cache &amp; Data</string>
-    <string name="clear_data_description">Clears the cache, files and database</string>
+    <string name="no_internet">Keine Verbindung!</string>
+    <string name="try_again">Versuche es nochmal</string>
+    <string name="clear">Löschen</string>
+    <string name="clear_data">Daten löschen</string>
+    <string name="clear_data_description">Cache, Dateien und Datenbank löschen</string>
     <string name="sync">Sync</string>
-    <string name="remove_from_library">Remove From Library</string>
-    <string name="cancel">Cancel</string>
-    <string name="remove">Remove</string>
-    <string name="confirm_remove">Confirm Remove</string>
-    <string name="confirm_remove_description">Novel will be removed from the library while also deleting all its chapters</string>
-    <string name="remove_from_downloads">Remove From Downloads?</string>
-    <string name="add_to_library">Add To Library</string>
-    <string name="in_library">In Library</string>
-    <string name="sort">Sort</string>
-    <string name="sort_chapters">Sort Chapters</string>
-    <string name="clearing_data">Clearing Data</string>
-    <string name="please_wait">Please wait…</string>
-    <string name="theme">Theme</string>
-    <string name="toggle_theme">Toggle Theme</string>
-    <string name="close_menu">Close Menu</string>
-    <string name="close">Close</string>
-    <string name="text_size">Text Size</string>
-    <string name="more_information">More Information</string>
-    <string name="more_info_description">Artists, Licensing, Translators, …</string>
-    <string name="search_novel">Search Novel</string>
-    <string name="bug_report">Report Bug</string>
-    <string name="copyright_notice">Copyright Notice</string>
-    <string name="donate_developer">Donate Developer</string>
-    <string name="about_us">About Us</string>
-    <string name="libraries_used">Libraries Used</string>
-    <string name="contributions">Contributions</string>
-    <string name="donate">Donate</string>
-    <string name="donation_email_body">Thanks for all the work. I would like to see this in the next version and here is my donation.</string>
-    <string name="content_restricted">Content Restricted!</string>
-    <string name="lock_hint">Hidden buttons to unlock the content. Good Luck finding them!!</string>
+    <string name="remove_from_library">Aus Bibliothek entfernen</string>
+    <string name="cancel">Abbruch</string>
+    <string name="remove">Löschen</string>
+    <string name="confirm_remove">Löschen bestätigen</string>
+    <string name="confirm_remove_description">Novel und alle Kapitel werden gelöscht</string>
+    <string name="remove_from_downloads">Aus Downloads entfernen?</string>
+    <string name="add_to_library">Zur Bibliothek hinzufügen</string>
+    <string name="in_library">In der Bibliothek</string>
+    <string name="sort">Sortieren</string>
+    <string name="sort_chapters">Kapitel sortieren</string>
+    <string name="clearing_data">Lösche Daten</string>
+    <string name="please_wait">Bitte warten</string>
+    <string name="theme">Thema</string>
+    <string name="toggle_theme">Thema aktivieren/deaktivieren</string>
+    <string name="close_menu">Menü schließen</string>
+    <string name="close">Schließen</string>
+    <string name="text_size">Textgröße</string>
+    <string name="more_information">Mehr Informationen</string>
+    <string name="more_info_description">Künstler, Lizenzen, Übersetzer, …</string>
+    <string name="search_novel">Suche Novel</string>
+    <string name="bug_report">Bug melden</string>
+    <string name="copyright_notice">Copyright-Bemerkung</string>
+    <string name="donate_developer">Spenden an Entwickler</string>
+    <string name="about_us">Über uns</string>
+    <string name="libraries_used">Benutzte Bibliotheken</string>
+    <string name="contributions">Beiträge</string>
+    <string name="donate">Spenden</string>
+    <string name="donation_email_body">Vielen Dank für all die Arbeit. >Ich würde Folgendes gerne in der nächsten Version sehen und hier ist meine Spende.</string>
+    <string name="content_restricted">Inhalt beschränkt!</string>
+    <string name="lock_hint">Versteckte Buttons um den beschränkten Inhalt zu erhalten. Viel Glück beim Finden!!</string>
 
 
     <string name="copyright_content" tools:ignore="TypographyQuotes">
@@ -163,10 +161,9 @@
     </string>
 
     <string name="donate_content" tools:ignore="TypographyQuotes">
-        "Donations would help speed up the releases with new features. "
+        "Spenden helfen bei der Entwicklung und Veröffentlichung neuer Funktionen. "
         "You can send your donate using the GMail application to gmathi.developer@gmail.com "
     </string>
-
 
 
 </resources>
