@@ -53,19 +53,6 @@
 
     <!--<item>Latest Updates</item>-->
     <!--<item>Active-Only Ranking</item>-->
-    <string name="app_name" translatable="false">Novel Library</string>
-
-    <string name="title_activity_nav_drawer" translatable="false">@string/app_name</string>
-    <string name="title_activity_reader_pager" translatable="false">Reader Pager</string>
-    <string name="title_activity_libraries_used" translatable="false">@string/libraries_used</string>
-    <string name="title_activity_copyright" translatable="false">@string/copyright_notice</string>
-
-    <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
-    <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
-    <string name="transition_user_banner" translatable="false">trans_banner_img</string>
-    <string name="transition_image_preview" translatable="false">trans_image_preview</string>
-    <string name="dev_email" translatable="false">gmathi.developer@gmail.com</string>
-
     <string name="title_activity_novel_details">Novel</string>
     <string name="title_activity_settings">Einstellungen</string>
     <string name="title_activity_chapters">Kapitel</string>
