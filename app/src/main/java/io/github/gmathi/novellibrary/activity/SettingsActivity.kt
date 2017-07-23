@@ -62,7 +62,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     override fun bind(item: String, itemView: View, position: Int) {
         itemView.settingsTitle.applyFont(assets).text = item
-        itemView.settingsChevron.visibility = if (position == 1 || position == 3) View.VISIBLE else View.INVISIBLE
+        itemView.settingsChevron.visibility = if (position == 1 || position == 3 || position == 4) View.VISIBLE else View.INVISIBLE
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
         else ContextCompat.getColor(this, android.R.color.transparent))
     }
