@@ -1,0 +1,67 @@
+[
+  {
+    "name": "Persistent Search v1.0.4",
+    "description": "A library that implements Google Play like PersistentSearch view.",
+    "link": "https://github.com/crysehillmes/PersistentSearchView"
+  },
+  {
+    "name": "Glide v4.0.0-RC1",
+    "description": "An image loading and caching library for Android focused on smooth scrolling",
+    "link": "https://github.com/bumptech/glide"
+  },
+  {
+    "name": "RecyclerView Animators v2.2.6",
+    "description": "RecyclerView Animators is an Android library that allows developers to easily create RecyclerView with animations.",
+    "link": "https://github.com/wasabeef/recyclerview-animators"
+  },
+  {
+    "name": "EventBus v3.0.0",
+    "description": "Android optimized event bus that simplifies communication between Activities, Fragments, Threads, Services, etc. Less code, better quality",
+    "link": "https://github.com/greenrobot/EventBus"
+  },
+  {
+    "name": "SmartTabLayout v1.6.1",
+    "description": "A custom ViewPager title strip which gives continuous feedback to the user when scrolling.",
+    "link": "https://github.com/ogaclejapan/SmartTabLayout"
+  },
+  {
+    "name": "Progress Layout v1.0.1",
+    "description": "An extension of RelativeLayout that helps show loading, empty and error layout.",
+    "link": "https://github.com/nguyenhoanglam/ProgressLayout"
+  },
+  {
+    "name": "Floating Toolbar v1.4.4",
+    "description": "A toolbar that morphs from a FloatingActionButton, Inspired by the material design spec: https://material.io/guidelines/components/buttons-floating-action-button.html.",
+    "link": "https://github.com/rubensousa/FloatingToolbar"
+  },
+  {
+    "name": "PhotoView v2.1.2",
+    "description": "PhotoView aims to help produce an easily usable implementation of a zooming Android ImageView.",
+    "link": "https://github.com/chrisbanes/PhotoView"
+  },
+  {
+    "name": "Material Dialogs: Core v0.9.4.5",
+    "description": "A beautiful, fluid, and customizable dialogs API.",
+    "link": "https://github.com/afollestad/material-dialogs"
+  },
+  {
+    "name": "Material Tap Target Prompt",
+    "description": "A Tap Target implementation in Android based on Material Design Onboarding guidelines.",
+    "link": "https://github.com/sjwall/MaterialTapTargetPrompt"
+  },
+  {
+    "name": "ChangeLog Library",
+    "description": "ChangeLog Library provides an easy way to display a change log in your Android app.",
+    "link": "https://github.com/gabrielemariotti/changeloglib"
+  },
+  {
+    "name": "google-gson v2.8.0",
+    "description": "A Java serialization/deserialization library to convert Java Objects into JSON and back",
+    "link": "https://github.com/google/gson"
+  },
+  {
+    "name": "jsoup: Java HTML Parser v1.10.3",
+    "description": "jsoup is a Java library for working with real-world HTML. It provides a very convenient API for extracting and manipulating data, using the best of DOM, CSS, and jquery-like methods.",
+    "link": "https://jsoup.org/"
+  },
+]

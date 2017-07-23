@@ -1,10 +1,33 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto"
       xmlns:tools="http://schemas.android.com/tools"
-      tools:context="com.mgn.bingenovelreader.activity.ReaderPagerActivity">
+      tools:context=".activity.ReaderPagerActivity">
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="@string/action_settings"
-        app:showAsAction="never"/>
+        android:id="@+id/action_dark_theme"
+        android:icon="@drawable/ic_wb_incandescent_white_vector"
+        android:title="@string/toggle_theme"
+        android:titleCondensed="@string/theme"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/action_font_size"
+        android:icon="@drawable/ic_text_fields_white_vector"
+        android:title="@string/text_size"
+        android:titleCondensed="@string/text_size"
+        />
+
+    <item
+        android:id="@+id/action_report_page"
+        android:icon="@drawable/ic_bug_report_white_vector"
+        android:title="@string/bug_report"
+        android:titleCondensed="@string/bug_report"
+        />
+
+    <item
+        android:id="@+id/action_close"
+        android:icon="@drawable/ic_close_white_vector"
+        android:title="@string/close_menu"
+        android:titleCondensed="@string/close"
+        />
+
 </menu>

@@ -1,0 +1,156 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+       Important please do not change the order of the string-arrays or generally anything unless it's text you're translating
+
+       What You'll Need:
+
+       1. A good text editor I recommend Atom (https://atom.io/), Sublime (https://www.sublimetext.com/), Brackets (http://brackets.io/) if you want to use something else no problem
+       2. A little knowledge on basic HTML things like <p> <b> <i> <br/> since there are certain parts I used a bit of html to format information https://www.w3schools.com/tags/
+       3. Know what character escaping is, because you cannot use characters like ' or , or ; or & or $ or % e.t.c without escaping them. e.g.
+          What\'s Trending should become What\'s Trending (Refer to http://www.ascii.cl/htmlcodes.htm look at the HTML Name Column for some conventions) not what i am looking for?
+
+       Just a quick note for translators, if you see some text that has %s or %d or %f just leave those as they are those are place holders:
+       %s - is a place holder for text most likely coming from NovelLibrary, e.g. %s liked your status post -> will be eCookie or Josh liked your status post
+       %d - is a place holder for a number, e.g. You have %d notifications -> will be You have 1 or 3 or 10 notifications
+       %f - is also a place holder for a decimal number works exactly as the others mentioned above
+
+       I know different languages have different rules like RTL so if you need to change the positions/order of %s or %d or %f you can still do so just don't remove the % sign
+       N.B. If any of the tags <string name="abc" translatable="false" ></string> have an attribute labeled translatable="false" it means you should not translate it!
+       So you can just omit those fields
+
+       Special Cases:
+       1. There are some cases I used <![CDATA[ some text here ]]>  CDATA sections are used to escape blocks of text containing characters that would otherwise be regarded as markup.
+       The only delimiter that is recognized in a CDATA section is the "]]>" string that ends the CDATA section. CDATA sections cannot be nested.
+       Their primary purpose is for including material such as XML fragments, without needing to escape all the delimiters.
+
+       Uploading your files:
+       You may just send the files directly and the file name should be something like strings_en.xml for english and strings_fr.xml for french respective of your locale
+       To All Translators I am very grateful for your help! :)
+   -->
+
+
+    <string-array name="search_tab_titles">
+        <item>Beliebt</item>
+        <item>Höchstbewertet</item>
+        <item>Aktive</item>
+    </string-array>
+
+    <string-array name="search_results_tab_titles">
+        <item>Novel-Updates</item>
+        <item>RoyalRoad</item>
+    </string-array>
+
+    <string-array name="settings_list">
+        <item>@string/clear_data</item>
+        <item>@string/copyright_notice</item>
+        <item>@string/donate_developer</item>
+        <item>@string/libraries_used</item>
+        <item>@string/contributions</item>
+        <item>@string/about_us</item>
+    </string-array>
+
+
+    <!--<item>Latest Updates</item>-->
+    <!--<item>Active-Only Ranking</item>-->
+    <string name="title_activity_novel_details">Novel</string>
+    <string name="title_activity_settings">Einstellungen</string>
+    <string name="title_activity_chapters">Kapitel</string>
+    <string name="title_activity_meta_data">Mehr Informationen</string>
+
+
+    <string name="action_settings">Einstellungen</string>
+    <string name="action_sync">Sync für Updates</string>
+    <string name="action_favourite">Favoriten</string>
+    <string name="action_bookmark">Lesezeichen</string>
+
+
+    <string name="title_library">Bücherei</string>
+    <string name="title_search">Suche</string>
+    <string name="title_downloads">Downloads</string>
+    <string name="app_description">Your One Stop For All Novels</string>
+
+    <!-- Strings related to Settings -->
+    <!--<string name="pref_title_dark_theme">Dark Page Theme</string>-->
+    <!--<string name="pref_description_dark_theme">Only RoyalRoadl.com supported for now.</string>-->
+    <!--<string name="pref_title_experimental_download">Lighting Fast Downloads (Experimental) </string>-->
+    <!--<string name="pref_description_experimental_download">Downloads really fast. Your device may freeze for a while.</string>-->
+    <!--<string name="pref_title_queue_novel_downloads">Queue Novel Downloads </string>-->
+    <!--<string name="pref_description_queue_novel_downloads">Downloads novels one after the another. If disabled, max of 5 novels with be downloaded simultaneously. </string>-->
+    <!--<string name="pref_title_download_latest_first">Download Latest First</string>-->
+    <!--<string name="pref_description_download_latest_first">Download the latest chapter first.</string>-->
+
+
+    <!-- Transition Names -->
+    <string name="synopsis">Synopsis</string>
+    <string name="genres">Genres</string>
+    <string name="chapters">Kapitel</string>
+    <string name="legal">Rechtliches</string>
+
+    <string name="download">Download</string>
+    <string name="downloaded">Downloaded</string>
+    <string name="downloading">Downloading</string>
+    <string name="chapters_loading_message">Die Beladung kann je nach Anzahl der Kapitel Zeit in Anspruch nehmen</string>
+
+    <string name="no_internet">Keine Verbindung!</string>
+    <string name="try_again">Versuche es nochmal</string>
+    <string name="clear">Löschen</string>
+    <string name="clear_data">Daten löschen</string>
+    <string name="clear_data_description">Cache, Dateien und Datenbank löschen</string>
+    <string name="sync">Sync</string>
+    <string name="remove_from_library">Aus Bibliothek entfernen</string>
+    <string name="cancel">Abbruch</string>
+    <string name="remove">Löschen</string>
+    <string name="confirm_remove">Löschen bestätigen</string>
+    <string name="confirm_remove_description">Novel und alle Kapitel werden gelöscht</string>
+    <string name="remove_from_downloads">Aus Downloads entfernen?</string>
+    <string name="add_to_library">Zur Bibliothek hinzufügen</string>
+    <string name="in_library">In der Bibliothek</string>
+    <string name="sort">Sortieren</string>
+    <string name="sort_chapters">Kapitel sortieren</string>
+    <string name="clearing_data">Lösche Daten</string>
+    <string name="please_wait">Bitte warten</string>
+    <string name="theme">Thema</string>
+    <string name="toggle_theme">Thema aktivieren/deaktivieren</string>
+    <string name="close_menu">Menü schließen</string>
+    <string name="close">Schließen</string>
+    <string name="text_size">Textgröße</string>
+    <string name="more_information">Mehr Informationen</string>
+    <string name="more_info_description">Künstler, Lizenzen, Übersetzer, …</string>
+    <string name="search_novel">Suche Novel</string>
+    <string name="bug_report">Bug melden</string>
+    <string name="copyright_notice">Copyright-Bemerkung</string>
+    <string name="donate_developer">Spenden an Entwickler</string>
+    <string name="about_us">Über uns</string>
+    <string name="libraries_used">Benutzte Bibliotheken</string>
+    <string name="contributions">Beiträge</string>
+    <string name="donate">Spenden</string>
+    <string name="donation_email_body">Vielen Dank für all die Arbeit. >Ich würde Folgendes gerne in der nächsten Version sehen und hier ist meine Spende.</string>
+    <string name="content_restricted">Inhalt beschränkt!</string>
+    <string name="lock_hint">Versteckte Buttons um den beschränkten Inhalt zu erhalten. Viel Glück beim Finden!!</string>
+
+
+    <string name="copyright_content" tools:ignore="TypographyQuotes">
+        "Novel Library is an application for providing search results aggregation services for "
+        "novel readers. All contents on Novel Library are shared by readers or automatically "
+        "searched and collated from the Internet by the program. Novel Library does not produce any content. \n\n"
+
+        "Copyright of all contents on Novel Library application belongs to both the author and "
+        "the publisher. If you have any questions about the copyright of the content, please contact "
+        "us and we will contact you for the first time and withdraw the content. \n\n"
+
+        "All Contents on the Novel Library Application represent the views of the author personally, "
+        "and do not represent the position of the application. We do not bear legal responsibility. "
+        "If you find any content violated the law, please report to us and we will review it. \n\n"
+
+        "contact: gmathi.developer@gmail.com\n"
+
+    </string>
+
+    <string name="donate_content" tools:ignore="TypographyQuotes">
+        "Spenden helfen bei der Entwicklung und Veröffentlichung neuer Funktionen. "
+        "You can send your donate using the GMail application to gmathi.developer@gmail.com "
+    </string>
+
+
+</resources>

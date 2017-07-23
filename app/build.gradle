@@ -12,11 +12,11 @@ android {
     compileSdkVersion 26
     buildToolsVersion "26.0.0"
     defaultConfig {
-        applicationId "com.mgn.bingenovelreader"
+        applicationId "io.github.gmathi.novellibrary"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 5
-        versionName "0.2.0"
+        versionCode 1
+        versionName "0.1.beta"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -34,6 +34,7 @@ android {
 
         debug {
             //buildConfigField "boolean", "IS_DEBUG", "true"
+            pseudoLocalesEnabled true
         }
 
         release {
@@ -61,18 +62,26 @@ dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     compile 'com.google.code.gson:gson:2.8.0'
-    compile 'org.jsoup:jsoup:1.10.2'
+    compile 'org.jsoup:jsoup:1.10.3'
     compile 'org.cryse.widget:persistentsearchview:1.0.4@aar'
-    compile 'com.github.mancj:MaterialSearchBar:0.7'
-    compile 'com.github.bumptech.glide:glide:4.0.0-RC0'
-    compile 'com.github.clans:fab:1.6.4'
+    compile 'com.github.bumptech.glide:glide:4.0.0-RC1'
     compile 'jp.wasabeef:recyclerview-animators:2.2.6'
-    compile "org.jetbrains.anko:anko:0.10.1"
-    compile 'com.yun.ospl:jtabstrip:1.5.7'
     compile 'org.greenrobot:eventbus:3.0.0'
-    compile 'com.tapadoo.android:alerter:1.0.9'
+    compile 'com.ogaclejapan.smarttablayout:library:1.6.1@aar'
+    compile 'com.github.nguyenhoanglam:ProgressLayout:1.0.1'
+    compile 'com.github.rubensousa:floatingtoolbar:1.4.4'
+    compile 'com.github.chrisbanes:PhotoView:2.1.2'
+    compile 'com.github.medyo:fancybuttons:1.8.3'
+    compile('com.afollestad.material-dialogs:core:0.9.4.5', {
+        exclude group: 'com.android.support'
+    })
+    compile 'com.github.gabrielemariotti.changeloglib:changelog:2.1.0'
 
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.0.0-RC0'
+    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5.1'
+    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
+    testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
+
+    kapt 'com.github.bumptech.glide:compiler:4.0.0-RC1'
 
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     implementation 'com.android.support:design:26.0.0-beta2'

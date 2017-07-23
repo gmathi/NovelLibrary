@@ -5,15 +5,22 @@
     android:id="@+id/constraintLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.mgn.bingenovelreader.activity.ReaderPagerActivity$WebPageFragment">
+    tools:context=".activity.ReaderPagerActivity$WebPageFragment">
 
-    <WebView
-        android:id="@+id/readerWebView"
+    <com.nguyenhoanglam.progresslayout.ProgressLayout
+        android:id="@+id/progressLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        android:layout_height="match_parent">
+
+        <WebView
+            android:id="@+id/readerWebView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+    </com.nguyenhoanglam.progresslayout.ProgressLayout>
 
 </android.support.constraint.ConstraintLayout>

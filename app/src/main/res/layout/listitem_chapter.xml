@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/black_transparent"
+                android:padding="@dimen/default_padding_list_item">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp">
+
+        <ImageView
+            android:id="@+id/chapterStatusImage"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_margin="@dimen/default_margin"
+            android:scaleType="centerInside"/>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="@dimen/default_margin"
+            android:layout_marginLeft="@dimen/default_margin"
+            android:layout_marginRight="@dimen/default_margin"
+            android:layout_marginStart="@dimen/default_margin"
+            android:layout_marginTop="2dp"
+            android:layout_toEndOf="@id/chapterStatusImage"
+            android:layout_toRightOf="@id/chapterStatusImage"
+            android:orientation="vertical">
+
+
+            <TextView
+                android:id="@+id/chapterTitleTextView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="8dp"
+                android:ellipsize="end"
+                android:gravity="center_vertical|start"
+                android:maxLines="2"
+                android:textColor="@color/white"
+                android:textIsSelectable="false"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="Realms of Firmament"/>
+
+
+        </LinearLayout>
+
+        <View
+            android:id="@+id/chapterOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:alpha="0.5"/>
+
+    </RelativeLayout>
+</RelativeLayout>

@@ -1,29 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.mgn.bingenovelreader">
+          package="io.github.gmathi.novellibrary">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.CLEAR_APP_CACHE"/>
 
     <application
-        android:name=".BNRApplication"
+        android:name=".NovelLibraryApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity
-            android:name=".activity.SearchActivity"
-            android:label="@string/title_activity_search"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-        <activity
-            android:name=".activity.LibraryActivity"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-
         <service
             android:name=".service.DownloadService"
             android:enabled="true"
@@ -31,28 +21,28 @@
         </service>
 
         <activity
-            android:name=".activity.DownloadQueueActivity"
-            android:label="@string/title_activity_download_queue"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:name=".activity.NovelDetailsActivity"
+            android:label="@string/title_activity_novel_details"
+            android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activities.NovelDetailsActivity"
-            android:label="@string/title_activity_novel_details"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
+            android:name=".activity.ImagePreviewActivity"
+            android:label=""
+            android:theme="@style/AppImagePreview"/>
         <activity
             android:name=".activity.ReaderPagerActivity"
             android:label="@string/title_activity_reader_pager"
-            android:parentActivityName=".activity.NovelDetailsActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.mgn.bingenovelreader.activity.NovelDetailsActivity"/>
+            android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.MainActivity"
-            android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:name=".activity.SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
+            android:name=".activity.NavDrawerActivity"
+            android:label="@string/title_activity_nav_drawer"
+            android:theme="@style/DarkTheme_DarkSide">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -60,13 +50,29 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.SettingsActivity"
-            android:label="@string/title_activity_settings"
-            android:parentActivityName=".activity.MainActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.mgn.bingenovelreader.activity.MainActivity"/>
+            android:name=".activity.ChaptersActivity"
+            android:label="@string/title_activity_chapters"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
+            android:name=".activity.MetaDataActivity"
+            android:label="@string/title_activity_meta_data"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
+            android:name=".activity.LibrariesUsedActivity"
+            android:label="@string/title_activity_libraries_used"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
+            android:name=".activity.ContributionsActivity"
+            android:label="@string/title_activity_contributions"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
+            android:name=".activity.CopyrightActivity"
+            android:label="@string/title_activity_copyright"
+            android:theme="@style/DarkTheme_DarkSide">
         </activity>
     </application>
 

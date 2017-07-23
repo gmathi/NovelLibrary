@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="colorPrimary">#263238</color>
-    <color name="colorPrimaryDark">#185262</color>
-    <color name="colorAccent">@color/OrangeRed</color>
 
     <color name="black_overlay">#66000000</color>
+    <color name="black_transparent">#14000000</color>
 
     // Custom colors
     <integer name="colorGridColumnWidth">65</integer>
@@ -168,5 +166,6 @@
     <color name="yellow">#FFFF00</color>
     <color name="Yellow">#FFFF00</color>
     <color name="YellowGreen">#9ACD32</color>
+    <color name="ripple_color">#8cc9f8</color>
 
 </resources>

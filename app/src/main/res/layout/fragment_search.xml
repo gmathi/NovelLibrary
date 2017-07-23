@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navCoordinatorLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.NavDrawerActivity">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+        <!--Layout not displaying properly? add gravity to bottom-->
+
+        <org.cryse.widget.persistentsearch.PersistentSearchView
+            android:id="@+id/searchView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="@dimen/default_margin"
+            android:layout_marginStart="@dimen/default_margin"
+            android:layout_marginEnd="@dimen/default_margin"
+            android:elevation="4dp"
+            app:persistentSV_customToolbarHeight="64dp"
+            app:persistentSV_displayMode="toolbar"
+            app:persistentSV_editHintText="@string/search_novel"
+            app:persistentSV_editHintTextColor="@color/gray"
+            app:persistentSV_homeButtonColor="@color/gray"
+            app:persistentSV_homeButtonMode="burger"
+            app:persistentSV_logoString="@string/search_novel"
+            app:persistentSV_searchCardElevation="2dp"/>
+
+
+        <com.ogaclejapan.smarttablayout.SmartTabLayout
+            android:id="@+id/tabStrip"
+            android:layout_width="wrap_content"
+            android:layout_height="?actionBarSize"
+            android:layout_gravity="center"
+            android:clipToPadding="false"
+            android:paddingBottom="4dp"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
+            app:stl_defaultTabTextColor="@color/white"
+            app:stl_defaultTabTextHorizontalPadding="24dp"
+            app:stl_indicatorColor="@color/colorAccent"
+            app:stl_indicatorCornerRadius="1.5dp"
+            app:stl_indicatorInterpolation="smart"
+            app:stl_indicatorThickness="3dp"
+            app:stl_underlineColor="@android:color/transparent"/>
+
+    </android.support.design.widget.AppBarLayout>
+
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        />
+
+    <View
+        android:id="@+id/searchViewBgTint"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.0"
+        android:background="#88000000"
+        android:layerType="hardware"
+        android:visibility="gone"/>
+
+
+</android.support.design.widget.CoordinatorLayout>
