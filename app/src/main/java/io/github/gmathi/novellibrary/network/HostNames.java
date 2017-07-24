@@ -9,7 +9,7 @@ public class HostNames {
     public static final String GRAVITY_TALES = "gravitytales.com";
 
     @SuppressWarnings("HardcodedFileSeparator")
-    public static final String USER_AGENT = "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76K) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 Mobile Safari/535.19";
+    public static final String USER_AGENT = "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Mobile Safari/537.36";
 
     public static final String ALLOWED_HOST_NAMES = " fonts.googleapis.com forum.royalroadl.com yt3.ggpht.com www.gravatar.com i.imgur.com " +
             "cdn.royalroadl.com " +

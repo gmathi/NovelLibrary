@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.extension
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.view.View
@@ -74,6 +75,11 @@ fun Activity.startLibrariesUsedActivity() {
 
 fun Activity.startContributionsActivity() {
     val intent = Intent(this, ContributionsActivity::class.java)
+    startActivity(intent)
+}
+
+fun Activity.openInBrowser(url: String) {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
     startActivity(intent)
 }
 

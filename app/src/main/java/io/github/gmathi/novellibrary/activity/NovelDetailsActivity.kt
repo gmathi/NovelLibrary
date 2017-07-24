@@ -1,7 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -26,10 +25,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extension.applyFont
-import io.github.gmathi.novellibrary.extension.startChaptersActivity
-import io.github.gmathi.novellibrary.extension.startImagePreviewActivity
-import io.github.gmathi.novellibrary.extension.startMetadataActivity
+import io.github.gmathi.novellibrary.extension.*
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
@@ -113,7 +109,7 @@ class NovelDetailsActivity : AppCompatActivity() {
         setNovelDescription()
         novelDetailsChaptersLayout.setOnClickListener { startChaptersActivity(novel) }
         novelDetailsMetadataLayout.setOnClickListener { startMetadataActivity(novel) }
-        openInBrowserButton.setOnClickListener { openInBrowser() }
+        openInBrowserButton.setOnClickListener { openInBrowser(novel.url!!) }
     }
 
     private fun setNovelImage() {
@@ -217,11 +213,6 @@ class NovelDetailsActivity : AppCompatActivity() {
             novelDetailsDescription.applyFont(assets).text = ss2
             novelDetailsDescription.movementMethod = LinkMovementMethod.getInstance()
         }
-    }
-
-    private fun openInBrowser() {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(novel.url))
-        startActivity(intent)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
