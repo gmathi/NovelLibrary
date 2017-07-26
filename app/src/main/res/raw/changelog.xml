@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
-    <changelogversion versionName="0.2.beta" changeDate="July 23, 2017">
-        <changelogtext>Beta v0.2</changelogtext>
-        <changelogimprovement>Reader: Night Mode (experimental, limited support)</changelogimprovement>
-        <changelogimprovement>Chapters List: Faster Loading</changelogimprovement>
-        <changelogimprovement>Authors, Translators, Publishers linked to find more of their works (More Information Screen)</changelogimprovement>
-        <changelogbug>Downloads List: Pausing download has unstable behaviour</changelogbug>
-
+    <changelogversion versionName="0.2.beta" changeDate="07/26/2017">
+        <changelogtext>[b]New![/b] Authors, Translators, Publishers linked to find more of their works (More Information Screen)</changelogtext>
+        <changelogtext>[b]New![/b] Chapters load faster than before (1000 chaps in 4~5s)</changelogtext>
+        <changelogtext>Bug Fixes to support lower end phones and other major crashes</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.1.beta" changeDate="July 23, 2017">
+    <changelogversion versionName="0.1.beta" changeDate="07/23/2017">
         <changelogtext>Initial Beta release.</changelogtext>
         <changelogimprovement>Reader: Night Mode (experimental, limited support)</changelogimprovement>
         <changelogbug>Chapters List: 1000 Chapters take about 20~30 secs to load</changelogbug>

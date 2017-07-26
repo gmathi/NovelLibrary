@@ -60,6 +60,7 @@
     <string name="title_activity_libraries_used" translatable="false">@string/libraries_used</string>
     <string name="title_activity_contributions" translatable="false">@string/contributions</string>
     <string name="title_activity_copyright" translatable="false">@string/copyright_notice</string>
+    <string name="title_activity_search_results" translatable="false">SearchResultsActivity</string>
 
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
     <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
@@ -168,7 +169,6 @@
         "Donations would help speed up the releases with new features. "
         "You can send your donate using the GMail application to gmathi.developer@gmail.com "
     </string>
-    <string name="title_activity_search_results">SearchResultsActivity</string>
     <string name="app_exit">Press Back again to exit Novel Library</string>
 
 

@@ -21,6 +21,7 @@ class DataCenter(context: Context) {
     private val QUEUE_NOVEL_DOWNLOADS = "queueNovelDownloads"
     private val LOCK_ROYAL_ROAD = "lockRoyalRoad"
     private val IS_FIRST_APP_OPEN = "isFirstAppOpen"
+    private val APP_VERSION_CODE = "appVersionCode"
     private val TEXT_SIZE = "textSize"
 
     val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -75,5 +76,8 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(IS_FIRST_APP_OPEN, true)
         set(value) = prefs.edit().putBoolean(IS_FIRST_APP_OPEN, value).apply()
 
+    var appVersionCode: Int
+        get() = prefs.getInt(QUEUE_NOVEL_DOWNLOADS, 0)
+        set(value) = prefs.edit().putInt(QUEUE_NOVEL_DOWNLOADS, value).apply()
 
 }

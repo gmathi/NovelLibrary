@@ -10,6 +10,7 @@ import android.support.v4.view.GravityCompat
 import android.support.v7.widget.Toolbar
 import android.view.MenuItem
 import com.afollestad.materialdialogs.MaterialDialog
+import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.fragment.DownloadFragment
@@ -33,12 +34,12 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         else
             loadFragment(R.id.nav_library)
 
-        if (dataCenter.appLoadingForTheFirstTime) {
+        if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
                 .title("Change Log")
                 .customView(R.layout.dialog_change_log, true)
                 .show()
-            dataCenter.appLoadingForTheFirstTime = false
+            dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
 
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
