@@ -74,6 +74,11 @@
             android:label="@string/title_activity_copyright"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
+        <activity
+            android:name=".activity.SearchUrlActivity"
+            android:label="@string/title_activity_search_results"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
     </application>
 
 </manifest>

@@ -1,5 +1,7 @@
 package io.github.gmathi.novellibrary.network
 
+import android.net.Uri
+import android.util.Log
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.HostNames.*
@@ -7,6 +9,10 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.IOException
 import java.net.URI
+import java.util.*
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 class NovelApi {
 
@@ -67,7 +73,7 @@ class NovelApi {
                 novel.url = element.getElementsByTag("a").firstOrNull()?.attr("href")
                 novel.imageUrl = element.getElementsByTag("img").firstOrNull()?.attr("src")
                 novel.name = element.getElementsByTag("img").firstOrNull()?.attr("alt")
-                novel.rating = element.getElementsByTag("div").firstOrNull { it.hasAttr("title")  && it.attr("title").contains("Rating: ")}?.attr("title")?.replace("Rating: ", "")?.trim()
+                novel.rating = element.getElementsByTag("div").firstOrNull { it.hasAttr("title") && it.attr("title").contains("Rating: ") }?.attr("title")?.replace("Rating: ", "")?.trim()
                 searchResults.add(novel)
             }
 
@@ -133,31 +139,31 @@ class NovelApi {
         var chapters = ArrayList<WebPage>()
         val host = URI(url).host
         when {
-            host.contains(NOVEL_UPDATES) -> getNUChapterUrls(url, chapters)
+            host.contains(NOVEL_UPDATES) -> getNUChapterUrlsNew(url, chapters)
             host.contains(ROYAL_ROAD) -> getRRChapterUrls(url, chapters)
         }
         return chapters
     }
 
     //Get Novel-Updates Chapter URLs
-    private fun getNUChapterUrls(url: String, chapters: ArrayList<WebPage>) {
-        try {
-            val document = getDocument(url)
-            val tableElement = document.body().getElementsByAttributeValueMatching("id", "myTable").firstOrNull { it.tagName() === "table" }
-            val elements = tableElement?.getElementsByClass("chp-release")?.filter { it.tagName() == "a" }
-            if (elements != null)
-                (0..elements.size).filter { it % 2 == 1 }.mapTo(chapters) { WebPage(url = elements[it].attr("href"), chapter = elements[it].text()) }
-
-            val nextPageElement = document.body().getElementsByClass("next_page").filter { it.text() == "→" }
-            if (nextPageElement.isNotEmpty()) {
-                val uri = URI(url)
-                val nextPageUrl = "${uri.scheme}://${uri.host}${uri.path}${nextPageElement[0].attr("href").replace("./", "")}"
-                getNUChapterUrls(nextPageUrl, chapters)
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-    }
+//    private fun getNUChapterUrls(url: String, chapters: ArrayList<WebPage>) {
+//        try {
+//            val document = getDocument(url)
+//            val tableElement = document.body().getElementsByAttributeValueMatching("id", "myTable").firstOrNull { it.tagName() === "table" }
+//            val elements = tableElement?.getElementsByClass("chp-release")?.filter { it.tagName() == "a" }
+//            if (elements != null)
+//                (0..elements.size).filter { it % 2 == 1 }.mapTo(chapters) { WebPage(url = elements[it].attr("href"), chapter = elements[it].text()) }
+//
+//            val nextPageElement = document.body().getElementsByClass("next_page").filter { it.text() == "→" }
+//            if (nextPageElement.isNotEmpty()) {
+//                val uri = URI(url)
+//                val nextPageUrl = "${uri.scheme}://${uri.host}${uri.path}${nextPageElement[0].attr("href").replace("./", "")}"
+//                getNUChapterUrls(nextPageUrl, chapters)
+//            }
+//        } catch (e: IOException) {
+//            e.printStackTrace()
+//        }
+//    }
 
     //Get RoyalRoad Chapter URLs
     private fun getRRChapterUrls(url: String, chapters: ArrayList<WebPage>) {
@@ -192,17 +198,19 @@ class NovelApi {
 
 
             novel.metaData.put("Author(s)",
-                document.getElementsByClass("genre").filter { it.id() == "authtag" }.map { it.text() }.joinToString(", "))
+                document.getElementsByClass("genre").filter { it.id() == "authtag" }.map { it.outerHtml() }.joinToString(", "))
             novel.metaData.put("Artist(s)",
-                document.getElementsByClass("genre").filter { it.id() == "artiststag" }.map { it.text() }.joinToString(", "))
+                document.getElementsByClass("genre").filter { it.id() == "artiststag" }.map { it.outerHtml() }.joinToString(", "))
+            novel.metaData.put("Genre(s)",
+                document.getElementsByClass("genre").filter { it.hasAttr("gid") }.map { it.outerHtml() }.joinToString(", "))
             novel.metaData.put("Year",
                 document.getElementById("edityear").text())
             novel.metaData.put("Type",
-                document.getElementsByClass("genre type").firstOrNull()?.text())
+                document.getElementsByClass("genre type").firstOrNull()?.outerHtml())
             novel.metaData.put("Tags",
-                document.getElementsByClass("genre").filter { it.id() == "etagme" }.map { it.text() }.joinToString(", "))
+                document.getElementsByClass("genre").filter { it.id() == "etagme" }.map { it.outerHtml() }.joinToString(", "))
             novel.metaData.put("Language",
-                document.getElementById("showlang").text())
+                document.getElementsByClass("genre lang").firstOrNull { it.tagName() == "a" && it.hasAttr("lid") }?.outerHtml())
             novel.metaData.put("Status in Country of Origin",
                 document.getElementById("editstatus").text())
             novel.metaData.put("Licensed (in English)",
@@ -210,13 +218,13 @@ class NovelApi {
             novel.metaData.put("Licensed (in English)",
                 document.getElementById("showlicensed").text())
             novel.metaData.put("Completely Translated",
-                document.getElementById("showtranslated").text())
+                document.getElementById("showtranslated").outerHtml())
             novel.metaData.put("Original Publisher",
-                document.getElementsByClass("genre").filter { it.id() == "myopub" }.map { it.text() }.joinToString(", "))
+                document.getElementsByClass("genre").filter { it.id() == "myopub" }.map { it.outerHtml() }.joinToString(", "))
             novel.metaData.put("Completely Translated",
                 document.getElementById("showtranslated").text())
             novel.metaData.put("English Publisher",
-                document.getElementsByClass("genre").filter { it.id() == "myepub" }.map { it.text() }.joinToString(", "))
+                document.getElementsByClass("genre").filter { it.id() == "myepub" }.map { it.outerHtml() }.joinToString(", "))
             novel.metaData.put("Associated Names",
                 document.getElementById("editassociated").text())
 
@@ -246,6 +254,68 @@ class NovelApi {
             e.printStackTrace()
         }
         return novel
+    }
+
+
+    //Get Novel-Updates Chapter URLs
+    private fun getNUChapterUrlsNew(url: String, chapters: ArrayList<WebPage>) {
+        try {
+            val document = getDocumentWithUserAgent(url)
+            getNUChapterUrlsFromDoc(document, chapters)
+            val pageUrls = getNUPageUrlsNew(document)
+
+            if (pageUrls.isNotEmpty()) {
+                val poolSize = Math.min(10, pageUrls.size)
+                val threadPool = Executors.newFixedThreadPool(poolSize) as ThreadPoolExecutor
+                pageUrls.forEach {
+                    threadPool.execute({
+                        val doc = getDocumentWithUserAgent(it)
+                        getNUChapterUrlsFromDoc(doc, chapters)
+                    })
+                }
+                threadPool.shutdown()
+                try {
+                    threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)
+                } catch (e: InterruptedException) {
+                    Log.w("NovelApi", "Thread pool executor interrupted~")
+                }
+            }
+            Collections.sort(chapters) { webPage2, webPage1 ->
+                Uri.parse(webPage2.url).lastPathSegment.toInt().compareTo(Uri.parse(webPage1.url).lastPathSegment.toInt())
+            }
+            Collections.reverse(chapters)
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun getNUChapterUrlsFromDoc(doc: Document, chapters: ArrayList<WebPage>) {
+        val tableElement = doc.body().getElementsByAttributeValueMatching("id", "myTable").firstOrNull { it.tagName() === "table" }
+        val elements = tableElement?.getElementsByClass("chp-release")?.filter { it.tagName() == "a" }
+        if (elements != null)
+            (0..elements.size).filter { it % 2 == 1 }.mapTo(chapters) { WebPage(url = elements[it].attr("href"), chapter = elements[it].text()) }
+    }
+
+    private fun getNUPageUrlsNew(doc: Document): ArrayList<String> {
+        val uri = URI(doc.location())
+        val basePath = "${uri.scheme}://${uri.host}${uri.path}"
+        val pageUrls = ArrayList<String>()
+        val pageElements = doc.body().getElementsByClass("digg_pagination").firstOrNull { it.tagName() == "div" }?.children()?.filter { it.tagName() == "a" && it.hasAttr("href") }
+        var maxPageNum = 1
+        pageElements?.forEach {
+            val href = it.attr("href") // ./?pg=19 is an example
+            if (href.contains("./?pg=")) {
+                val pageNum = href.replace("./?pg=", "").toInt()
+                if (maxPageNum < pageNum)
+                    maxPageNum = pageNum
+            }
+        }
+        if (maxPageNum == 2) {
+            pageUrls.add(basePath + "?pg=2")
+        } else if (maxPageNum > 2)
+            (2..maxPageNum).mapTo(pageUrls) { basePath + "?pg=" + it }
+
+        return pageUrls
     }
 
 

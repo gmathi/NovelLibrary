@@ -31,7 +31,7 @@ import java.io.File
 import java.io.FileOutputStream
 
 
-class SearchResultsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
+class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
     lateinit var searchTerm: String
     lateinit var resultType: String
@@ -39,11 +39,11 @@ class SearchResultsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     var downloadThread: Thread? = null
 
     companion object {
-        fun newInstance(searchTerms: String, resultType: String): SearchResultsFragment {
+        fun newInstance(searchTerms: String, resultType: String): SearchTermFragment {
             val bundle = Bundle()
             bundle.putString("searchTerm", searchTerms)
             bundle.putString("resultType", resultType)
-            val fragment = SearchResultsFragment()
+            val fragment = SearchTermFragment()
             fragment.arguments = bundle
             return fragment
         }
@@ -91,6 +91,8 @@ class SearchResultsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
             return
         }
 
+        if (downloadThread != null && downloadThread!!.isAlive && !downloadThread!!.isInterrupted)
+            downloadThread!!.interrupt()
         downloadThread = Thread(Runnable {
             val resultsMap = NovelApi().search(searchTerm)
             var results: ArrayList<Novel>? = resultsMap[resultType]

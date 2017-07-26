@@ -1,7 +1,5 @@
 package io.github.gmathi.novellibrary.activity
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.support.v4.view.ViewPager
 import android.view.MenuItem
@@ -14,6 +12,9 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.updateCurrentWebPageId
 import io.github.gmathi.novellibrary.database.updateWebPageReadStatus
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extension.openInBrowser
+import io.github.gmathi.novellibrary.extension.sendEmail
+import io.github.gmathi.novellibrary.extension.shareUrl
 import io.github.gmathi.novellibrary.fragment.WebPageFragment
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
@@ -40,9 +41,9 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
         if (novel == null || webPage == null) finish()
 
         adapter = WebPageAdapter(supportFragmentManager, chapters, object : WebPageAdapter.Listener {
-            override fun checkUrl(url: String?) {
+            override fun checkUrl(url: String?): Boolean {
                 if (url != null) {
-                    val index = chapters.indexOfFirst { it.redirectedUrl!!.contains(url) }
+                    val index = chapters.indexOfFirst { it.redirectedUrl != null && it.redirectedUrl!!.contains(url) }
                     if (index != -1) {
                         viewPager.currentItem = index
                         val webPage = chapters[index]
@@ -53,8 +54,9 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
                             webPage.isRead = 1
                             dbHelper.updateWebPageReadStatus(webPage)
                         }
-                    }
-                }
+                        return true
+                    } else return false
+                } else return false
             }
         })
 
@@ -126,6 +128,8 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
             R.id.action_dark_theme -> toggleDarkTheme()
             R.id.action_font_size -> changeTextSize()
             R.id.action_report_page -> reportPage()
+            R.id.action_open_in_browser -> inBrowser()
+            R.id.action_share -> share()
         }
     }
 
@@ -147,14 +151,23 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
     private fun reportPage() {
         val url = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.getUrl()
         if (url != null) {
-            val uri = Uri.parse("mailto:${getString(R.string.dev_email)}")
-                .buildUpon()
-                .appendQueryParameter("subject", "[IMPROVEMENT]")
-                .appendQueryParameter("body", "Url: $url \n Please improve the viewing experience of this page.")
-                .build()
+            val email = getString(R.string.dev_email)
+            val subject = "[IMPROVEMENT]"
+            val body = "Url: $url \n" + " Please improve the viewing experience of this page."
+            sendEmail(email, subject, body)
+        }
+    }
 
-            val emailIntent = Intent(Intent.ACTION_SENDTO, uri)
-            startActivity(Intent.createChooser(emailIntent, "Email With…"))
+    private fun inBrowser() {
+        val url = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.getUrl()
+        if (url != null)
+            openInBrowser(url)
+    }
+
+    private fun share() {
+        val url = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.getUrl()
+        if (url != null) {
+            shareUrl(url)
         }
     }
 

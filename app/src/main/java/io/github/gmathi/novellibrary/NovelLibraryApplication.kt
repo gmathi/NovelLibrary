@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary
 
 import android.app.Application
 import android.os.Build
+import android.support.v7.app.AppCompatDelegate
 import android.util.Log
 import android.webkit.WebView
 import com.squareup.leakcanary.LeakCanary
@@ -37,6 +38,7 @@ class NovelLibraryApplication : Application() {
         dataCenter = DataCenter(applicationContext)
         dbHelper = DBHelper(applicationContext)
         super.onCreate()
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
 
         if (LeakCanary.isInAnalyzerProcess(this)) {
             return

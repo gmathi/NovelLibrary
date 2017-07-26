@@ -1,8 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
-import android.content.Intent
 import android.graphics.Rect
-import android.net.Uri
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
@@ -16,6 +14,7 @@ import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.extension.applyFont
+import io.github.gmathi.novellibrary.extension.openInBrowser
 import io.github.gmathi.novellibrary.extension.setDefaults
 import io.github.gmathi.novellibrary.model.Library
 import kotlinx.android.synthetic.main.activity_libraries_used.*
@@ -88,11 +87,6 @@ class ContributionsActivity : AppCompatActivity(), GenericAdapter.Listener<Libra
     override fun onItemClick(item: Library) {
         if (!StringUtil.isBlank(item.link))
             openInBrowser(item.link!!)
-    }
-
-    private fun openInBrowser(url: String) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        startActivity(intent)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {

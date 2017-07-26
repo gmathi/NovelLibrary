@@ -1,16 +1,16 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.NavigationView
+import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentTransaction
-import android.support.v4.content.ContextCompat
 import android.support.v4.view.GravityCompat
 import android.support.v7.widget.Toolbar
 import android.view.MenuItem
 import com.afollestad.materialdialogs.MaterialDialog
+import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.fragment.DownloadFragment
@@ -18,9 +18,11 @@ import io.github.gmathi.novellibrary.fragment.LibraryFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
+import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
 
+    var snackBar: Snackbar? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,20 +34,25 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         else
             loadFragment(R.id.nav_library)
 
-        if (dataCenter.appLoadingForTheFirstTime) {
+        if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
                 .title("Change Log")
                 .customView(R.layout.dialog_change_log, true)
                 .show()
-            dataCenter.appLoadingForTheFirstTime = false
+            dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
+
+        snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
     }
 
     override fun onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START)
         } else {
-            finish()
+            if (snackBar != null && snackBar!!.isShown)
+                finish()
+            else
+                snackBar?.show()
         }
     }
 
@@ -97,11 +104,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     fun setToolbar(toolbar: Toolbar?) {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        val indicator = ContextCompat.getDrawable(this, R.drawable.ic_menu_black_vector)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            indicator.mutate().setTint(ContextCompat.getColor(this, R.color.white))
-        }
-        supportActionBar?.setHomeAsUpIndicator(indicator)
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu_white_vector)
     }
 
     private fun startSettingsActivity() {
