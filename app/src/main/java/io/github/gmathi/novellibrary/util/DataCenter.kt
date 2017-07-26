@@ -57,7 +57,7 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putBoolean(DOWNLOAD_LATEST_FIRST, value).apply()
 
     var experimentalDownload: Boolean
-        get() = prefs.getBoolean(EXPERIMENTAL_DOWNLOAD, true)
+        get() = prefs.getBoolean(EXPERIMENTAL_DOWNLOAD, false)
         set(value) = prefs.edit().putBoolean(EXPERIMENTAL_DOWNLOAD, value).apply()
 
     var queueNovelDownloads: Boolean

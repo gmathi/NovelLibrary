@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.network
 
-import android.net.Uri
 import android.util.Log
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
@@ -10,9 +9,8 @@ import org.jsoup.nodes.Document
 import java.io.IOException
 import java.net.URI
 import java.util.*
-import java.util.concurrent.Executors
-import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.*
+import kotlin.collections.ArrayList
 
 class NovelApi {
 
@@ -135,8 +133,8 @@ class NovelApi {
         return searchResults
     }
 
-    public fun getChapterUrls(url: String): ArrayList<WebPage> {
-        var chapters = ArrayList<WebPage>()
+    fun getChapterUrls(url: String): ArrayList<WebPage> {
+        val chapters = ArrayList<WebPage>()
         val host = URI(url).host
         when {
             host.contains(NOVEL_UPDATES) -> getNUChapterUrlsNew(url, chapters)
@@ -261,39 +259,40 @@ class NovelApi {
     private fun getNUChapterUrlsNew(url: String, chapters: ArrayList<WebPage>) {
         try {
             val document = getDocumentWithUserAgent(url)
-            getNUChapterUrlsFromDoc(document, chapters)
+            chapters.addAll(getNUChapterUrlsFromDoc(document))
             val pageUrls = getNUPageUrlsNew(document)
 
             if (pageUrls.isNotEmpty()) {
                 val poolSize = Math.min(10, pageUrls.size)
                 val threadPool = Executors.newFixedThreadPool(poolSize) as ThreadPoolExecutor
-                pageUrls.forEach {
-                    threadPool.execute({
+                val futureList = ArrayList<Future<ArrayList<WebPage>>>()
+                pageUrls.asSequence().forEach {
+                    val callable = Callable<ArrayList<WebPage>> {
                         val doc = getDocumentWithUserAgent(it)
-                        getNUChapterUrlsFromDoc(doc, chapters)
-                    })
+                        getNUChapterUrlsFromDoc(doc)
+                    }
+                    futureList.add(threadPool.submit(callable))
                 }
                 threadPool.shutdown()
                 try {
                     threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)
+                    futureList.asSequence().forEach { chapters.addAll(it.get()) }
                 } catch (e: InterruptedException) {
                     Log.w("NovelApi", "Thread pool executor interrupted~")
                 }
             }
-            Collections.sort(chapters) { webPage2, webPage1 ->
-                Uri.parse(webPage2.url).lastPathSegment.toInt().compareTo(Uri.parse(webPage1.url).lastPathSegment.toInt())
-            }
-            Collections.reverse(chapters)
         } catch (e: IOException) {
             e.printStackTrace()
         }
     }
 
-    private fun getNUChapterUrlsFromDoc(doc: Document, chapters: ArrayList<WebPage>) {
+    private fun getNUChapterUrlsFromDoc(doc: Document): ArrayList<WebPage> {
+        val chapters = ArrayList<WebPage>()
         val tableElement = doc.body().getElementsByAttributeValueMatching("id", "myTable").firstOrNull { it.tagName() === "table" }
         val elements = tableElement?.getElementsByClass("chp-release")?.filter { it.tagName() == "a" }
         if (elements != null)
             (0..elements.size).filter { it % 2 == 1 }.mapTo(chapters) { WebPage(url = elements[it].attr("href"), chapter = elements[it].text()) }
+        return chapters
     }
 
     private fun getNUPageUrlsNew(doc: Document): ArrayList<String> {

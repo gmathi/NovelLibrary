@@ -42,13 +42,24 @@
     </string-array>
 
     <string-array name="settings_list">
-        <item>@string/clear_data</item>
+        <item>@string/general</item>
         <item>@string/copyright_notice</item>
         <item>@string/donate_developer</item>
         <item>@string/libraries_used</item>
         <item>@string/contributions</item>
         <item>@string/about_us</item>
     </string-array>
+
+    <string-array name="general_titles_list">
+        <item>@string/clear_data</item>
+        <item>@string/faster_downloads</item>
+    </string-array>
+
+    <string-array name="general_subtitles_list">
+        <item>@string/clear_data_description</item>
+        <item>@string/faster_downloads_description</item>
+    </string-array>
+
 
 
     <!--<item>Latest Updates</item>-->
@@ -61,6 +72,8 @@
     <string name="title_activity_contributions" translatable="false">@string/contributions</string>
     <string name="title_activity_copyright" translatable="false">@string/copyright_notice</string>
     <string name="title_activity_search_results" translatable="false">SearchResultsActivity</string>
+    <string name="title_activity_general_settings" translatable="false">@string/general</string>
+
 
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
     <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
@@ -170,6 +183,9 @@
         "You can send your donate using the GMail application to gmathi.developer@gmail.com "
     </string>
     <string name="app_exit">Press Back again to exit Novel Library</string>
+    <string name="general">General</string>
+    <string name="faster_downloads">Faster Downloads</string>
+    <string name="faster_downloads_description">Downloads really fast but your device may lag/freeze while downloading.</string>
 
 
 </resources>

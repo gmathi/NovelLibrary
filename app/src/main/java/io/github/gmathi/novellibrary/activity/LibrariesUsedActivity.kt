@@ -78,7 +78,7 @@ class LibrariesUsedActivity : AppCompatActivity(), GenericAdapter.Listener<Libra
 
     override fun bind(item: Library, itemView: View, position: Int) {
         itemView.settingsTitle.applyFont(assets).text = item.name
-        itemView.settingsChevron.visibility = if (!StringUtil.isBlank(item.link)) View.VISIBLE else View.INVISIBLE
+        itemView.chevron.visibility = if (!StringUtil.isBlank(item.link)) View.VISIBLE else View.INVISIBLE
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
         else ContextCompat.getColor(this, android.R.color.transparent))
     }

@@ -13,12 +13,10 @@ import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extension.*
 import kotlinx.android.synthetic.main.activity_settings.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_settings.view.*
-import java.io.File
 
 
 class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
@@ -60,14 +58,14 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     override fun bind(item: String, itemView: View, position: Int) {
         itemView.settingsTitle.applyFont(assets).text = item
-        itemView.settingsChevron.visibility = if (position == 1 || position == 3 || position == 4) View.VISIBLE else View.INVISIBLE
+        itemView.chevron.visibility = if (position == 0 || position == 1 || position == 3 || position == 4) View.VISIBLE else View.INVISIBLE
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
         else ContextCompat.getColor(this, android.R.color.transparent))
     }
 
     override fun onItemClick(item: String) {
         when (item) {
-            getString(R.string.clear_data) -> deleteFilesDialog()
+            getString(R.string.general) -> startGeneralSettingsActivity()
             getString(R.string.copyright_notice) -> startCopyrightActivity()
             getString(R.string.donate_developer) -> donateDeveloperDialog()
             getString(R.string.libraries_used) -> startLibrariesUsedActivity()
@@ -87,62 +85,6 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         if (item?.itemId == R.id.action_report_page)
             sendEmail("gmathi.developer@gmail.com", "[BUG REPORT]", "Bug Report: \n //Add Your Bug Details Below \n")
         return super.onOptionsItemSelected(item)
-    }
-    //endregion
-
-    //region Delete Files
-    fun deleteFilesDialog() {
-        MaterialDialog.Builder(this)
-            .title(getString(R.string.clear_data))
-            .content(getString(R.string.clear_data_description))
-            .positiveText(R.string.clear)
-            .negativeText(R.string.cancel)
-            .onPositive { dialog, _ ->
-                run {
-                    val progressDialog = MaterialDialog.Builder(this)
-                        .title(getString(R.string.clearing_data))
-                        .content(getString(R.string.please_wait))
-                        .progress(true, 0)
-                        .cancelable(false)
-                        .canceledOnTouchOutside(false)
-                        .show()
-                    deleteFiles(progressDialog)
-                    dialog.dismiss()
-                }
-            }
-            .onNegative { dialog, _ ->
-                run {
-                    dialog.dismiss()
-                }
-            }
-            .show()
-    }
-
-    fun deleteFiles(dialog: MaterialDialog) {
-        try {
-            deleteDir(cacheDir)
-            deleteDir(filesDir)
-            dbHelper.removeAll()
-            dataCenter.saveSearchHistory(ArrayList())
-            dialog.dismiss()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-    }
-
-    fun deleteDir(dir: File?): Boolean {
-        if (dir != null && dir.isDirectory) {
-            val children = dir.list()
-            for (i in children.indices) {
-                deleteDir(File(dir, children[i]))
-            }
-            return dir.delete()
-        } else if (dir != null && dir.isFile) {
-            return dir.delete()
-        } else {
-            return false
-        }
     }
     //endregion
 
