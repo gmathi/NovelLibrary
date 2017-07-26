@@ -17,6 +17,20 @@
         />
 
     <item
+        android:id="@+id/action_open_in_browser"
+        android:icon="@drawable/ic_open_in_browser_white_vector"
+        android:title="@string/open_in_browser"
+        android:titleCondensed="@string/open_in_browser"
+        />
+
+    <item
+        android:id="@+id/action_share"
+        android:icon="@drawable/ic_share_white_vector"
+        android:title="@string/share"
+        android:titleCondensed="@string/share"
+        />
+
+    <item
         android:id="@+id/action_report_page"
         android:icon="@drawable/ic_bug_report_white_vector"
         android:title="@string/bug_report"

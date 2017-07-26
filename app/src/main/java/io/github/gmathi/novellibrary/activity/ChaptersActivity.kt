@@ -23,6 +23,7 @@ import io.github.gmathi.novellibrary.event.EventType
 import io.github.gmathi.novellibrary.event.NovelEvent
 import io.github.gmathi.novellibrary.extension.applyFont
 import io.github.gmathi.novellibrary.extension.setDefaults
+import io.github.gmathi.novellibrary.extension.shareUrl
 import io.github.gmathi.novellibrary.extension.startReaderPagerActivity
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
@@ -80,7 +81,7 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
 
     private fun getChapters() {
         chapters = ArrayList(dbHelper.getAllWebPages(novel.id))
-        if (chapters!= null && !chapters!!.isEmpty()) {
+        if (chapters != null && !chapters!!.isEmpty()) {
             updateData()
             progressLayout.showContent()
         } else {
@@ -222,6 +223,14 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 itemView.chapterStatusImage.drawable?.mutate()?.setTint(ContextCompat.getColor(this, R.color.Orange))
             }
+        }
+
+        itemView.setOnLongClickListener {
+            if (item.redirectedUrl != null)
+                shareUrl(item.redirectedUrl!!)
+            else
+                shareUrl(item.url!!)
+            true
         }
     }
 

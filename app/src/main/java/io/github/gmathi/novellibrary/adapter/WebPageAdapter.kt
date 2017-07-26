@@ -24,6 +24,6 @@ class WebPageAdapter(fm: FragmentManager, val chapters: MutableList<WebPage>, va
     }
 
     interface Listener {
-        fun checkUrl(url: String?)
+        fun checkUrl(url: String?): Boolean
     }
 }

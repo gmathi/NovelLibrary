@@ -29,15 +29,16 @@ import java.io.File
 import java.io.FileOutputStream
 
 
-class PopularNovelsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
+class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
     lateinit var searchUrl: String
+    var downloadThread: Thread? = null
 
     companion object {
-        fun newInstance(url: String): PopularNovelsFragment {
+        fun newInstance(url: String): SearchUrlFragment {
             val bundle = Bundle()
             bundle.putString("url", url)
-            val fragment = PopularNovelsFragment()
+            val fragment = SearchUrlFragment()
             fragment.arguments = bundle
             return fragment
         }
@@ -78,7 +79,9 @@ class PopularNovelsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
             return
         }
 
-        Thread(Runnable {
+        if (downloadThread != null && downloadThread!!.isAlive && !downloadThread!!.isInterrupted)
+            downloadThread!!.interrupt()
+        downloadThread = Thread(Runnable {
             val results = NovelApi().searchUrl(searchUrl)
             if (results != null) {
                 Handler(Looper.getMainLooper()).post {
@@ -88,7 +91,8 @@ class PopularNovelsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
                     }
                 }
             }
-        }).start()
+        })
+        downloadThread!!.start()
     }
 
     fun loadSearchResults(results: ArrayList<Novel>) {
@@ -173,6 +177,11 @@ class PopularNovelsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         bundle.putSerializable("novel", novel)
         intent.putExtras(bundle)
         activity.startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        downloadThread?.interrupt()
     }
 
 

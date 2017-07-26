@@ -53,6 +53,7 @@ public class Constants {
     public static final int NOVEL_DETAILS_REQ_CODE = 2;
     public static final int NOVEL_DETAILS_RES_CODE = 3;
     public static final int READER_ACT_REQ_CODE = 4;
+    public static final int SEARCH_RESULTS_ACT_REQ_CODE = 4;
     public static final int DOWNLOAD_QUEUE_ACT_RES_CODE = 5;
     public static final int CHAPTER_ACT_REQ_CODE = 6;
     public static final int METADATA_ACT_REQ_CODE = 6;

@@ -30,6 +30,7 @@ class WebPageFragment : Fragment() {
     var listener: WebPageAdapter.Listener? = null
     var webPage: WebPage? = null
     var doc: Document? = null
+    var downloadThread: Thread? = null
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -62,23 +63,27 @@ class WebPageFragment : Fragment() {
             } else {
                 readerWebView.loadUrl(internalFilePath)
             }
-        } else
-            downloadWebPage()
+        } else {
+            if (webPage != null && webPage!!.url != null)
+                downloadWebPage(webPage!!.url!!)
+        }
         setWebView()
     }
 
-    private fun downloadWebPage() {
+    private fun downloadWebPage(url: String) {
         progressLayout.showLoading()
         if (!Utils.checkNetwork(activity)) {
             progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
-                downloadWebPage()
+                downloadWebPage(url)
             })
             return
         }
 
-        Thread(Runnable {
+        if (downloadThread != null && downloadThread!!.isAlive && !downloadThread!!.isInterrupted)
+            downloadThread!!.interrupt()
+        downloadThread = Thread(Runnable {
             try {
-                val doc = NovelApi().getDocumentWithUserAgent(webPage!!.url!!)
+                val doc = NovelApi().getDocumentWithUserAgent(url)
                 val cleaner = HtmlHelper.getInstance(doc.location())
                 cleaner.removeJS(doc)
                 cleaner.cleanDoc(doc)
@@ -89,7 +94,8 @@ class WebPageFragment : Fragment() {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        }).start()
+        })
+        downloadThread!!.start()
     }
 
     private fun loadDocument(doc: Document) {
@@ -105,8 +111,11 @@ class WebPageFragment : Fragment() {
         readerWebView.webViewClient = object : WebViewClient() {
             @Suppress("OverridingDeprecatedMember")
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                listener?.checkUrl(url)
-                return true
+                if (listener != null && listener!!.checkUrl(url)) return true
+                if (url != null) {
+                    downloadWebPage(url); return true
+                }
+                return false
             }
         }
         changeTextSize(dataCenter.textSize)
@@ -145,7 +154,7 @@ class WebPageFragment : Fragment() {
         if (webPage!!.filePath != null) {
             val internalFilePath = "file://${webPage!!.filePath}"
             applyTheme(internalFilePath)
-        } else {
+        } else if (doc != null) {
             applyTheme(doc!!, doc!!.location())
         }
     }
@@ -154,5 +163,10 @@ class WebPageFragment : Fragment() {
         if (webPage?.redirectedUrl != null) return webPage?.redirectedUrl
         if (doc?.location() != null) doc?.location()
         return webPage?.url
+    }
+
+    override fun onPause() {
+        super.onPause()
+        downloadThread?.interrupt()
     }
 }

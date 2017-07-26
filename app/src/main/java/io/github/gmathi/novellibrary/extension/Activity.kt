@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.extension
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.view.View
@@ -62,6 +63,16 @@ fun Activity.startReaderPagerActivity(novel: Novel, webPage: WebPage, chapters: 
     startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
 }
 
+
+fun Activity.startSearchResultsActivity(title: String, url: String) {
+    val intent = Intent(this, SearchUrlActivity::class.java)
+    val bundle = Bundle()
+    bundle.putString("title", title)
+    bundle.putString("url", url)
+    intent.putExtras(bundle)
+    startActivityForResult(intent, Constants.SEARCH_RESULTS_ACT_REQ_CODE)
+}
+
 fun Activity.startCopyrightActivity() {
     val intent = Intent(this, CopyrightActivity::class.java)
     startActivity(intent)
@@ -77,3 +88,24 @@ fun Activity.startContributionsActivity() {
     startActivity(intent)
 }
 
+fun Activity.openInBrowser(url: String) {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+    startActivity(intent)
+}
+
+fun Activity.sendEmail(email: String, subject:String, body: String) {
+    val mailTo = "mailto:" + email +
+        "?&subject=" + Uri.encode(subject) +
+        "&body=" + Uri.encode(body)
+    val emailIntent = Intent(Intent.ACTION_VIEW)
+    emailIntent.data = Uri.parse(mailTo)
+    startActivity(emailIntent)
+}
+
+fun Activity.shareUrl(url: String) {
+    val i = Intent(Intent.ACTION_SEND)
+    i.type = "text/plain"
+    i.putExtra(Intent.EXTRA_SUBJECT, "Sharing URL")
+    i.putExtra(Intent.EXTRA_TEXT, url)
+    startActivity(Intent.createChooser(i, "Share URL"))
+}

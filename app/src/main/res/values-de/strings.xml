@@ -119,6 +119,8 @@
     <string name="more_info_description">Künstler, Lizenzen, Übersetzer, …</string>
     <string name="search_novel">Suche Novel</string>
     <string name="bug_report">Bug melden</string>
+    <string name="open_in_browser">Im Browser öffnen</string>
+    <string name="share">Aktie</string>
     <string name="copyright_notice">Copyright-Bemerkung</string>
     <string name="donate_developer">Spenden an Entwickler</string>
     <string name="about_us">Über uns</string>
@@ -151,6 +153,6 @@
         "Spenden helfen bei der Entwicklung und Veröffentlichung neuer Funktionen. "
         "You can send your donate using the GMail application to gmathi.developer@gmail.com "
     </string>
-
+    <string name="app_exit">Drücken Sie erneut, um die neuartige Bibliothek zu beenden</string>
 
 </resources>

@@ -6,7 +6,6 @@ import android.util.Log
 import io.github.gmathi.novellibrary.extension.getFileName
 import io.github.gmathi.novellibrary.extension.writableFileName
 import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.service.DownloadService
 import io.github.gmathi.novellibrary.util.Utils
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -24,6 +23,7 @@ open class HtmlHelper protected constructor() {
             when {
                 host.contains(HostNames.ROYAL_ROAD) -> return RoyalRoadHelper()
                 host.contains(HostNames.GRAVITY_TALES) -> return GravityTalesHelper()
+                host.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
             //host.contains(HostNames.KOBATOCHAN) -> return KobatochanCleaner()
             }
             return HtmlHelper()
@@ -31,10 +31,10 @@ open class HtmlHelper protected constructor() {
     }
 
     fun clean(doc: Document, hostDir: File, novelDir: File) {
+        cleanDoc(doc)
         removeJS(doc)
         downloadCSS(doc, hostDir)
         downloadImages(doc, novelDir)
-        cleanDoc(doc)
         addTitle(doc)
     }
 
@@ -113,7 +113,7 @@ open class HtmlHelper protected constructor() {
             val os = FileOutputStream(file)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os)
         } catch (e: Exception) {
-            Log.v(DownloadService.TAG, uri.toString(), e)
+            Utils.debug(TAG, "Exception Downloading Image: $uri")
             return null
         }
         return file

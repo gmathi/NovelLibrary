@@ -1,2 +1,2 @@
-# Binge Novel Reader
-A Novel Reader for reading offline.
+# Novel Library
+One stop for reading all novels
