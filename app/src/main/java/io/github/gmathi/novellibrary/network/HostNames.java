@@ -7,6 +7,8 @@ public class HostNames {
     public static final String ROYAL_ROAD = "royalroadl.com";
     public static final String KOBATOCHAN = "kobatochan.com";
     public static final String GRAVITY_TALES = "gravitytales.com";
+    public static final String WUXIA_WORLD = "wuxiaworld.com";
+
 
     @SuppressWarnings("HardcodedFileSeparator")
     public static final String USER_AGENT = "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Mobile Safari/537.36";
@@ -20,6 +22,7 @@ public class HostNames {
             "www.isohungrytls.com ";
 
     private static final String[] ALLOWED_HOST_NAMES_ARRAY = {
+                    "patreon.com",
                     "royalroadlupload.blob.core.windows.net",
                     "postimg.org",
                     "lightnovelbastion.com",

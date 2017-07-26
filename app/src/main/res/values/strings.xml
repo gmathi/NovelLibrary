@@ -134,6 +134,8 @@
     <string name="more_info_description">Artists, Licensing, Translators, …</string>
     <string name="search_novel">Search Novel</string>
     <string name="bug_report">Report Bug</string>
+    <string name="open_in_browser">Open in Browser</string>
+    <string name="share">Share</string>
     <string name="copyright_notice">Copyright Notice</string>
     <string name="donate_developer">Donate Developer</string>
     <string name="about_us">About Us</string>
@@ -166,7 +168,8 @@
         "Donations would help speed up the releases with new features. "
         "You can send your donate using the GMail application to gmathi.developer@gmail.com "
     </string>
-
+    <string name="title_activity_search_results">SearchResultsActivity</string>
+    <string name="app_exit">Press Back again to exit Novel Library</string>
 
 
 </resources>

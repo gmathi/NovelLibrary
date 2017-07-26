@@ -1,17 +1,18 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
+import android.text.Html
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
-import android.text.style.RelativeSizeSpan
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -29,13 +30,14 @@ import io.github.gmathi.novellibrary.extension.*
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.TextViewLinkHandler
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_novel_details.*
 import kotlinx.android.synthetic.main.content_novel_details.*
 import java.io.File
 
 
-class NovelDetailsActivity : AppCompatActivity() {
+class NovelDetailsActivity : AppCompatActivity(), TextViewLinkHandler.OnClickListener {
 
     lateinit var novel: Novel
 
@@ -122,9 +124,13 @@ class NovelDetailsActivity : AppCompatActivity() {
     private fun setNovelAuthor() {
         val author = novel.metaData["Author(s)"]
         if (author != null) {
-            val ss1 = SpannableString("by " + author)
-            ss1.setSpan(RelativeSizeSpan(1.2f), 3, author.length, 0)
-            novelDetailsAuthor.applyFont(assets).text = ss1
+//            author = "by " + author
+//            val ss1 = SpannableString("by " + author)
+//            ss1.setSpan(RelativeSizeSpan(1.2f), 3, author.length, 0)
+//            novelDetailsAuthor.applyFont(assets).text = ss1
+            novelDetailsAuthor.movementMethod = TextViewLinkHandler(this)
+            novelDetailsAuthor.applyFont(assets).text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+                Html.fromHtml(author, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(author)
         }
     }
 
@@ -257,6 +263,10 @@ class NovelDetailsActivity : AppCompatActivity() {
             setNovelAddToLibraryButton()
         }
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onLinkClicked(title: String, url: String) {
+        startSearchResultsActivity(title, url)
     }
 
 }

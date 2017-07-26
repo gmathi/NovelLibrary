@@ -22,8 +22,8 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.event.EventType
 import io.github.gmathi.novellibrary.event.NovelEvent
 import io.github.gmathi.novellibrary.extension.applyFont
-import io.github.gmathi.novellibrary.extension.openInBrowser
 import io.github.gmathi.novellibrary.extension.setDefaults
+import io.github.gmathi.novellibrary.extension.shareUrl
 import io.github.gmathi.novellibrary.extension.startReaderPagerActivity
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
@@ -227,9 +227,9 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
 
         itemView.setOnLongClickListener {
             if (item.redirectedUrl != null)
-                openInBrowser(item.redirectedUrl!!)
+                shareUrl(item.redirectedUrl!!)
             else
-                openInBrowser(item.url!!)
+                shareUrl(item.url!!)
             true
         }
     }

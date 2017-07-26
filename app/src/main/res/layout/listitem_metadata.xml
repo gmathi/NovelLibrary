@@ -39,6 +39,7 @@
                 android:maxLines="5"
                 android:minHeight="40dp"
                 android:padding="8dp"
+                android:textColorLink="@color/white"
                 android:textIsSelectable="true"/>
 
 

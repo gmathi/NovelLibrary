@@ -1,8 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
-import android.content.Intent
 import android.graphics.Rect
-import android.net.Uri
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DividerItemDecoration
@@ -87,7 +85,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         if (item?.itemId == android.R.id.home) finish()
         if (item?.itemId == R.id.action_report_page)
-            emailTo("gmathi.developer@gmail.com", "[BUG REPORT]", "Bug Report: \n //Add Your Bug Details Below \n", "Email Bug with…")
+            sendEmail("gmathi.developer@gmail.com", "[BUG REPORT]", "Bug Report: \n //Add Your Bug Details Below \n")
         return super.onOptionsItemSelected(item)
     }
     //endregion
@@ -155,20 +153,9 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             .positiveText(R.string.donate)
             .onPositive { _, _ ->
                 run {
-                    emailTo(getString(R.string.dev_email), "[DONATION]", getString(R.string.donation_email_body), "Select GMail…")
+                    sendEmail(getString(R.string.dev_email), "[DONATION]", getString(R.string.donation_email_body))
                 }
             }.show()
-    }
-
-    private fun emailTo(email: String, subject: String, body: String, intentChooseTitle: String) {
-        val uri = Uri.parse("mailto:$email")
-            .buildUpon()
-            .appendQueryParameter("subject", subject)
-            .appendQueryParameter("body", body)
-            .build()
-
-        val emailIntent = Intent(Intent.ACTION_SENDTO, uri)
-        startActivity(Intent.createChooser(emailIntent, intentChooseTitle))
     }
 
     private fun aboutUsDialog() {

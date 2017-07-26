@@ -198,17 +198,19 @@ class NovelApi {
 
 
             novel.metaData.put("Author(s)",
-                document.getElementsByClass("genre").filter { it.id() == "authtag" }.map { it.text() }.joinToString(", "))
+                document.getElementsByClass("genre").filter { it.id() == "authtag" }.map { it.outerHtml() }.joinToString(", "))
             novel.metaData.put("Artist(s)",
-                document.getElementsByClass("genre").filter { it.id() == "artiststag" }.map { it.text() }.joinToString(", "))
+                document.getElementsByClass("genre").filter { it.id() == "artiststag" }.map { it.outerHtml() }.joinToString(", "))
+            novel.metaData.put("Genre(s)",
+                document.getElementsByClass("genre").filter { it.hasAttr("gid") }.map { it.outerHtml() }.joinToString(", "))
             novel.metaData.put("Year",
                 document.getElementById("edityear").text())
             novel.metaData.put("Type",
-                document.getElementsByClass("genre type").firstOrNull()?.text())
+                document.getElementsByClass("genre type").firstOrNull()?.outerHtml())
             novel.metaData.put("Tags",
-                document.getElementsByClass("genre").filter { it.id() == "etagme" }.map { it.text() }.joinToString(", "))
+                document.getElementsByClass("genre").filter { it.id() == "etagme" }.map { it.outerHtml() }.joinToString(", "))
             novel.metaData.put("Language",
-                document.getElementById("showlang").text())
+                document.getElementsByClass("genre lang").firstOrNull { it.tagName() == "a" && it.hasAttr("lid") }?.outerHtml())
             novel.metaData.put("Status in Country of Origin",
                 document.getElementById("editstatus").text())
             novel.metaData.put("Licensed (in English)",
@@ -216,13 +218,13 @@ class NovelApi {
             novel.metaData.put("Licensed (in English)",
                 document.getElementById("showlicensed").text())
             novel.metaData.put("Completely Translated",
-                document.getElementById("showtranslated").text())
+                document.getElementById("showtranslated").outerHtml())
             novel.metaData.put("Original Publisher",
-                document.getElementsByClass("genre").filter { it.id() == "myopub" }.map { it.text() }.joinToString(", "))
+                document.getElementsByClass("genre").filter { it.id() == "myopub" }.map { it.outerHtml() }.joinToString(", "))
             novel.metaData.put("Completely Translated",
                 document.getElementById("showtranslated").text())
             novel.metaData.put("English Publisher",
-                document.getElementsByClass("genre").filter { it.id() == "myepub" }.map { it.text() }.joinToString(", "))
+                document.getElementsByClass("genre").filter { it.id() == "myepub" }.map { it.outerHtml() }.joinToString(", "))
             novel.metaData.put("Associated Names",
                 document.getElementById("editassociated").text())
 
@@ -279,7 +281,8 @@ class NovelApi {
                 }
             }
             Collections.sort(chapters) { webPage2, webPage1 ->
-                Uri.parse(webPage2.url).lastPathSegment.toInt().compareTo(Uri.parse(webPage1.url).lastPathSegment.toInt()) }
+                Uri.parse(webPage2.url).lastPathSegment.toInt().compareTo(Uri.parse(webPage1.url).lastPathSegment.toInt())
+            }
             Collections.reverse(chapters)
         } catch (e: IOException) {
             e.printStackTrace()
