@@ -46,7 +46,7 @@ fun <T> RecyclerView.setDefaults(adapter: GenericAdapter<T>): RecyclerView {
     animator.addDuration = 1000
     animator.removeDuration = 1000
     animator.changeDuration = 0
-    animator.moveDuration = 1000
+    animator.moveDuration = 200
 
     this.setHasFixedSize(true)
     this.layoutManager = SnappingLinearLayoutManager(context)

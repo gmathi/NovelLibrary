@@ -68,7 +68,7 @@ class NovelDetailsActivity : AppCompatActivity(), TextViewLinkHandler.OnClickLis
 
     fun getNovelInfo() {
         if (!Utils.checkNetwork(this)) {
-            if (novel.id == -1L) {
+            if (novel.id != -1L) {
                 setupViews()
                 swipeRefreshLayout.isRefreshing = false
             } else {

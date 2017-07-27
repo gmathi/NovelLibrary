@@ -3,33 +3,40 @@ package io.github.gmathi.novellibrary.fragment
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
+import android.support.v4.view.MotionEventCompat
+import android.support.v7.widget.helper.ItemTouchHelper
 import android.util.Log
 import android.view.*
+import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
-import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.createDownloadQueue
 import io.github.gmathi.novellibrary.database.getAllNovels
+import io.github.gmathi.novellibrary.database.updateOrderId
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.event.NovelEvent
 import io.github.gmathi.novellibrary.extension.setDefaults
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.service.DownloadService
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.SimpleItemTouchHelperCallback
+import io.github.gmathi.novellibrary.util.SimpleItemTouchListener
 import kotlinx.android.synthetic.main.activity_library.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
-import kotlinx.android.synthetic.main.listitem_novel.view.*
+import kotlinx.android.synthetic.main.listitem_library.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import java.io.File
 
 
-class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
+class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleItemTouchListener {
 
     lateinit var adapter: GenericAdapter<Novel>
+    lateinit var touchHelper: ItemTouchHelper
     var lastDeletedId: Long = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,9 +56,13 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     }
 
     private fun setRecyclerView() {
-        adapter = GenericAdapter(ArrayList(dbHelper.getAllNovels()), R.layout.listitem_novel, this)
+        adapter = GenericAdapter(ArrayList(dbHelper.getAllNovels()), R.layout.listitem_library, this)
+        val callback = SimpleItemTouchHelperCallback(this)
+        touchHelper = ItemTouchHelper(callback)
+        touchHelper.attachToRecyclerView(recyclerView)
         recyclerView.setDefaults(adapter)
         swipeRefreshLayout.setOnRefreshListener {
+            updateOrderIds()
             adapter.updateData(ArrayList(dbHelper.getAllNovels()))
             swipeRefreshLayout.isRefreshing = false
         }
@@ -79,6 +90,14 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
                 Log.w("Library Activity", "Rating: " + item.rating, e)
             }
             itemView.novelRatingText.text = ratingText
+        }
+
+        itemView.reorderButton.setOnTouchListener { v, event ->
+            if (MotionEventCompat.getActionMasked(event) ==
+                MotionEvent.ACTION_DOWN) {
+                touchHelper.startDrag(recyclerView.getChildViewHolder(itemView))
+            }
+            false
         }
 
     }
@@ -132,6 +151,11 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         adapter.updateData(ArrayList(dbHelper.getAllNovels()))
     }
 
+    override fun onPause() {
+        super.onPause()
+        updateOrderIds()
+    }
+
     override fun onStop() {
         EventBus.getDefault().unregister(this)
         super.onStop()
@@ -162,4 +186,37 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
             return
         }
     }
+
+    override fun onItemDismiss(viewHolderPosition: Int) {
+        MaterialDialog.Builder(activity)
+            .title(getString(R.string.confirm_remove))
+            .content(getString(R.string.confirm_remove_description))
+            .positiveText(R.string.remove)
+            .negativeText(R.string.cancel)
+            .onPositive { dialog, _ ->
+                run {
+                    adapter.onItemDismiss(viewHolderPosition)
+                    dialog.dismiss()
+                }
+            }
+            .onNegative { dialog, _ ->
+                run {
+                    adapter.notifyDataSetChanged()
+                    dialog.dismiss()
+                }
+            }
+            .show()
+    }
+
+    override fun onItemMove(source: Int, target: Int) {
+        adapter.onItemMove(source, target)
+    }
+
+    private fun updateOrderIds() {
+        if (adapter.items.isNotEmpty())
+            for (i in 0..adapter.items.size - 1) {
+                dbHelper.updateOrderId(adapter.items[i].id, i.toLong())
+            }
+    }
+
 }

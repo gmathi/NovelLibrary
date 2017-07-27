@@ -53,11 +53,13 @@
     <string-array name="general_titles_list">
         <item>@string/clear_data</item>
         <item>@string/faster_downloads</item>
+        <item>@string/first_screen_library</item>
     </string-array>
 
     <string-array name="general_subtitles_list">
         <item>@string/clear_data_description</item>
         <item>@string/faster_downloads_description</item>
+        <item>@string/first_screen_library_description</item>
     </string-array>
 
 
@@ -186,6 +188,8 @@
     <string name="general">General</string>
     <string name="faster_downloads">Faster Downloads</string>
     <string name="faster_downloads_description">Downloads really fast but your device may lag/freeze while downloading.</string>
+    <string name="first_screen_library">Make “Library” main screen</string>
+    <string name="first_screen_library_description">If turned off “Search” will be main screen instead.</string>
 
 
 </resources>

@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.activity
 import android.os.Bundle
 import android.support.v4.view.ViewPager
 import android.view.MenuItem
+import android.view.View
 import android.widget.SeekBar
 import com.afollestad.materialdialogs.MaterialDialog
 import com.github.rubensousa.floatingtoolbar.FloatingToolbar
@@ -74,6 +75,11 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
         floatingToolbar.attachFab(fab)
         floatingToolbar.setClickListener(this)
 
+        fabClean.setOnClickListener {
+            (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).cleanPage()
+            fabClean.visibility = View.GONE
+        }
+
 //        val novelId = intent.getLongExtra(Constants.NOVEL_ID, -1L)
 //        if (novelId == -1L) finish()
 //
@@ -108,6 +114,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
             webPage.isRead = 1
             dbHelper.updateWebPageReadStatus(webPage)
         }
+        fabClean.visibility = View.VISIBLE
     }
 
     override fun onPageScrollStateChanged(position: Int) {
@@ -153,7 +160,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
         if (url != null) {
             val email = getString(R.string.dev_email)
             val subject = "[IMPROVEMENT]"
-            val body = "Url: $url \n" + " Please improve the viewing experience of this page."
+            val body = "Url: $url \n Please improve the viewing experience of this page."
             sendEmail(email, subject, body)
         }
     }

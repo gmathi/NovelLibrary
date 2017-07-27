@@ -19,6 +19,7 @@ class RoyalRoadHelper : HtmlHelper() {
     }
 
     override fun cleanDoc(doc: Document) {
+        removeJS(doc)
         var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("chapter-content") }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
         do {

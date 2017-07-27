@@ -4,6 +4,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
 import io.github.gmathi.novellibrary.extension.inflate
+import java.util.*
 
 
 
@@ -82,7 +83,6 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
         }
     }
 
-
     fun insertItem(item: T, position: Int = -1) {
         val index = items.indexOf(item)
         if (index == -1) {
@@ -91,4 +91,22 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
             updateItem(item)
     }
 
+    fun onItemDismiss(position: Int) {
+        items.removeAt(position)
+        notifyDataSetChanged()
+    }
+
+    fun onItemMove(fromPosition: Int, toPosition: Int): Boolean {
+        if (fromPosition < toPosition) {
+            for (i in fromPosition..toPosition - 1) {
+                Collections.swap(items, i, i + 1)
+            }
+        } else {
+            for (i in fromPosition downTo toPosition + 1) {
+                Collections.swap(items, i, i - 1)
+            }
+        }
+        notifyItemMoved(fromPosition, toPosition)
+        return true
+    }
 }

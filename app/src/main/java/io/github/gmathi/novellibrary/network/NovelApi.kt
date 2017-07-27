@@ -8,6 +8,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.IOException
 import java.net.URI
+import java.net.URLEncoder
 import java.util.*
 import java.util.concurrent.*
 import kotlin.collections.ArrayList
@@ -23,6 +24,7 @@ class NovelApi {
     }
 
     fun search(searchTerms: String): Map<String, ArrayList<Novel>> {
+        val searchTerms = URLEncoder.encode(searchTerms, "UTF-8")
         val searchResults = HashMap<String, ArrayList<Novel>>()
         searchNovelUpdates(searchTerms)?.let { searchResults.put(NOVEL_UPDATES, it) }
         searchRoyalRoad(searchTerms)?.let { searchResults.put(ROYAL_ROAD, it) }
@@ -133,14 +135,13 @@ class NovelApi {
         return searchResults
     }
 
-    fun getChapterUrls(url: String): ArrayList<WebPage> {
-        val chapters = ArrayList<WebPage>()
+    fun getChapterUrls(url: String): ArrayList<WebPage>? {
         val host = URI(url).host
         when {
-            host.contains(NOVEL_UPDATES) -> getNUChapterUrlsNew(url, chapters)
-            host.contains(ROYAL_ROAD) -> getRRChapterUrls(url, chapters)
+            host.contains(NOVEL_UPDATES) -> return getNUChapterUrlsNew(url)
+            host.contains(ROYAL_ROAD) -> return getRRChapterUrls(url)
         }
-        return chapters
+        return null
     }
 
     //Get Novel-Updates Chapter URLs
@@ -164,14 +165,17 @@ class NovelApi {
 //    }
 
     //Get RoyalRoad Chapter URLs
-    private fun getRRChapterUrls(url: String, chapters: ArrayList<WebPage>) {
+    private fun getRRChapterUrls(url: String): ArrayList<WebPage>? {
+        var chapters: ArrayList<WebPage>? = null
         try {
             val document = Jsoup.connect(url).get()
+            chapters = ArrayList<WebPage>()
             val tableElement = document.body().getElementById("chapters")
             tableElement?.getElementsByTag("a")?.filter { it.attributes().hasKey("href") }?.asReversed()?.mapTo(chapters) { WebPage(url = "http://$ROYAL_ROAD${it.attr("href")}", chapter = it.text()) }
         } catch (e: IOException) {
             e.printStackTrace()
         }
+        return chapters
     }
 
     fun getNovelDetails(url: String): Novel? {
@@ -256,9 +260,11 @@ class NovelApi {
 
 
     //Get Novel-Updates Chapter URLs
-    private fun getNUChapterUrlsNew(url: String, chapters: ArrayList<WebPage>) {
+    private fun getNUChapterUrlsNew(url: String): ArrayList<WebPage>? {
+        var chapters: ArrayList<WebPage>? = null
         try {
             val document = getDocumentWithUserAgent(url)
+            chapters = ArrayList<WebPage>()
             chapters.addAll(getNUChapterUrlsFromDoc(document))
             val pageUrls = getNUPageUrlsNew(document)
 
@@ -276,7 +282,7 @@ class NovelApi {
                 threadPool.shutdown()
                 try {
                     threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)
-                    futureList.asSequence().forEach { chapters.addAll(it.get()) }
+                    futureList.asSequence().forEach { chapters!!.addAll(it.get()) }
                 } catch (e: InterruptedException) {
                     Log.w("NovelApi", "Thread pool executor interrupted~")
                 }
@@ -284,6 +290,7 @@ class NovelApi {
         } catch (e: IOException) {
             e.printStackTrace()
         }
+        return chapters
     }
 
     private fun getNUChapterUrlsFromDoc(doc: Document): ArrayList<WebPage> {

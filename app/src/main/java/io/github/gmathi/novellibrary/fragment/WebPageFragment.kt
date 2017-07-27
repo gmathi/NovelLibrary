@@ -58,11 +58,6 @@ class WebPageFragment : Fragment() {
 
         if (webPage!!.filePath != null) {
             val internalFilePath = "file://${webPage!!.filePath}"
-            if (webPage!!.filePath!!.contains("royalroadl.com")) {
-                applyTheme(internalFilePath)
-            } else {
-                readerWebView.loadUrl(internalFilePath)
-            }
         } else {
             if (webPage != null && webPage!!.url != null)
                 downloadWebPage(webPage!!.url!!)
@@ -86,7 +81,6 @@ class WebPageFragment : Fragment() {
                 val doc = NovelApi().getDocumentWithUserAgent(url)
                 val cleaner = HtmlHelper.getInstance(doc.location())
                 cleaner.removeJS(doc)
-                cleaner.cleanDoc(doc)
                 cleaner.toggleTheme(dataCenter.isDarkTheme, doc)
                 Handler(Looper.getMainLooper()).post {
                     loadDocument(doc)
@@ -169,4 +163,6 @@ class WebPageFragment : Fragment() {
         super.onPause()
         downloadThread?.interrupt()
     }
+    }
+
 }

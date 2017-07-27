@@ -8,6 +8,7 @@ public class HostNames {
     public static final String KOBATOCHAN = "kobatochan.com";
     public static final String GRAVITY_TALES = "gravitytales.com";
     public static final String WUXIA_WORLD = "wuxiaworld.com";
+    public static final String WORD_PRESS = "wordpress.com";
 
 
     @SuppressWarnings("HardcodedFileSeparator")

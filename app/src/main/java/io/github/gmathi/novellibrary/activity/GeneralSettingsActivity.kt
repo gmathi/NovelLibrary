@@ -69,6 +69,10 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
             itemView.widgetSwitch.visibility = View.VISIBLE
             itemView.widgetSwitch.isChecked = dataCenter.experimentalDownload
             itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.experimentalDownload = value }
+        } else if (position == 2) {
+            itemView.widgetSwitch.visibility = View.VISIBLE
+            itemView.widgetSwitch.isChecked = dataCenter.loadLibraryScreen
+            itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.loadLibraryScreen = value }
         }
 
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)

@@ -31,7 +31,7 @@
 
 
     <string-array name="search_tab_titles">
-        <item>Beliebt</item>
+         <item>Beliebt</item>
         <item>Höchstbewertet</item>
         <item>Aktive</item>
     </string-array>
@@ -42,7 +42,7 @@
     </string-array>
 
     <string-array name="settings_list">
-        <item>@string/clear_data</item>
+        <item>@string/general</item>
         <item>@string/copyright_notice</item>
         <item>@string/donate_developer</item>
         <item>@string/libraries_used</item>
@@ -50,9 +50,21 @@
         <item>@string/about_us</item>
     </string-array>
 
+    <string-array name="general_titles_list">
+        <item>@string/clear_data</item>
+        <item>@string/faster_downloads</item>
+    </string-array>
+
+    <string-array name="general_subtitles_list">
+        <item>@string/clear_data_description</item>
+        <item>@string/faster_downloads_description</item>
+    </string-array>
+
+
 
     <!--<item>Latest Updates</item>-->
     <!--<item>Active-Only Ranking</item>-->
+
     <string name="title_activity_novel_details">Novel</string>
     <string name="title_activity_settings">Einstellungen</string>
     <string name="title_activity_chapters">Kapitel</string>
@@ -65,9 +77,10 @@
     <string name="action_bookmark">Lesezeichen</string>
 
 
-    <string name="title_library">Bücherei</string>
+    <string name="title_library">Bibliothek</string>
     <string name="title_search">Suche</string>
     <string name="title_downloads">Downloads</string>
+
     <string name="app_description">Your One Stop For All Novels</string>
 
     <!-- Strings related to Settings -->
@@ -85,33 +98,33 @@
     <string name="synopsis">Synopsis</string>
     <string name="genres">Genres</string>
     <string name="chapters">Kapitel</string>
-    <string name="legal">Rechtliches</string>
+    <string name="legal">Legales</string>
 
     <string name="download">Download</string>
     <string name="downloaded">Downloaded</string>
     <string name="downloading">Downloading</string>
-    <string name="chapters_loading_message">Die Beladung kann je nach Anzahl der Kapitel Zeit in Anspruch nehmen</string>
+    <string name="chapters_loading_message">Abhängig von der Zahl der Kapitel dauert der Ladevorgang</string>
 
-    <string name="no_internet">Keine Verbindung!</string>
+    <string name="no_internet">Keine aktive Internetverbindung!</string>
     <string name="try_again">Versuche es nochmal</string>
     <string name="clear">Löschen</string>
-    <string name="clear_data">Daten löschen</string>
-    <string name="clear_data_description">Cache, Dateien und Datenbank löschen</string>
+    <string name="clear_data">Lösche Cache und Daten</string>
+    <string name="clear_data_description">Lösche Cache, Dateien und Datenbank</string>
     <string name="sync">Sync</string>
     <string name="remove_from_library">Aus Bibliothek entfernen</string>
-    <string name="cancel">Abbruch</string>
-    <string name="remove">Löschen</string>
-    <string name="confirm_remove">Löschen bestätigen</string>
-    <string name="confirm_remove_description">Novel und alle Kapitel werden gelöscht</string>
+    <string name="cancel">Beenden</string>
+    <string name="remove">Entfernen</string>
+    <string name="confirm_remove">Entfernen bestätigen</string>
+    <string name="confirm_remove_description">Novel und all ihre Kapitel werden aus der Bibliothek entfernt</string>
     <string name="remove_from_downloads">Aus Downloads entfernen?</string>
     <string name="add_to_library">Zur Bibliothek hinzufügen</string>
-    <string name="in_library">In der Bibliothek</string>
+    <string name="in_library">In Bibliothel</string>
     <string name="sort">Sortieren</string>
-    <string name="sort_chapters">Kapitel sortieren</string>
-    <string name="clearing_data">Lösche Daten</string>
-    <string name="please_wait">Bitte warten</string>
-    <string name="theme">Thema</string>
-    <string name="toggle_theme">Thema aktivieren/deaktivieren</string>
+    <string name="sort_chapters">Sortiere Kapitel</string>
+    <string name="clearing_data">Löschen Daten</string>
+    <string name="please_wait">Bitte warten…</string>
+    <string name="theme">Theme</string>
+    <string name="toggle_theme">Theme umschalten</string>
     <string name="close_menu">Menü schließen</string>
     <string name="close">Schließen</string>
     <string name="text_size">Textgröße</string>
@@ -120,16 +133,16 @@
     <string name="search_novel">Suche Novel</string>
     <string name="bug_report">Bug melden</string>
     <string name="open_in_browser">Im Browser öffnen</string>
-    <string name="share">Aktie</string>
+    <string name="share">Teilen</string>
     <string name="copyright_notice">Copyright-Bemerkung</string>
     <string name="donate_developer">Spenden an Entwickler</string>
     <string name="about_us">Über uns</string>
     <string name="libraries_used">Benutzte Bibliotheken</string>
-    <string name="contributions">Beiträge</string>
+    <string name="contributions">Einbringungen</string>
     <string name="donate">Spenden</string>
-    <string name="donation_email_body">Vielen Dank für all die Arbeit. >Ich würde Folgendes gerne in der nächsten Version sehen und hier ist meine Spende.</string>
+    <string name="donation_email_body">Vielen Dank für all die Arbeit. Ich würde Folgendes gerne in der nächsten Version sehen und hier ist meine Spende.</string>
     <string name="content_restricted">Inhalt beschränkt!</string>
-    <string name="lock_hint">Versteckte Buttons um den beschränkten Inhalt zu erhalten. Viel Glück beim Finden!!</string>
+    <string name="lock_hint">Versteckte Buttons finden um den beschränkten Inhalt zu erhalten. Viel Glück!!</string>
 
 
     <string name="copyright_content" tools:ignore="TypographyQuotes">
@@ -150,9 +163,13 @@
     </string>
 
     <string name="donate_content" tools:ignore="TypographyQuotes">
-        "Spenden helfen bei der Entwicklung und Veröffentlichung neuer Funktionen. "
-        "You can send your donate using the GMail application to gmathi.developer@gmail.com "
+        "Spenden helfen bei der Entwicklung und Veröffentlichung neuer Funktionen."
+        "Spenden sind über die GMail Anwendung an gmathi.developer@gmail.com möglich"
     </string>
-    <string name="app_exit">Drücken Sie erneut, um die neuartige Bibliothek zu beenden</string>
+    <string name="app_exit">Nochmal Zurück um App zu beenden</string>
+    <string name="general">Allgemein</string>
+    <string name="faster_downloads">Schnellere Downloads</string>
+    <string name="faster_downloads_description">Sehr schnelle Downloads aber führt evtl. zu Abstürzen</string>
+
 
 </resources>

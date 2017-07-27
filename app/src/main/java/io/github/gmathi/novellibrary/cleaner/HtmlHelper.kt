@@ -24,6 +24,7 @@ open class HtmlHelper protected constructor() {
                 host.contains(HostNames.ROYAL_ROAD) -> return RoyalRoadHelper()
                 host.contains(HostNames.GRAVITY_TALES) -> return GravityTalesHelper()
                 host.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
+                host.contains(HostNames.WORD_PRESS) -> return WordPressHelper()
             //host.contains(HostNames.KOBATOCHAN) -> return KobatochanCleaner()
             }
             return HtmlHelper()
@@ -31,8 +32,6 @@ open class HtmlHelper protected constructor() {
     }
 
     fun clean(doc: Document, hostDir: File, novelDir: File) {
-        cleanDoc(doc)
-        removeJS(doc)
         downloadCSS(doc, hostDir)
         downloadImages(doc, novelDir)
         addTitle(doc)

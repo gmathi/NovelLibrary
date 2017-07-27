@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+    <changelogversion versionName="0.2.beta" changeDate="07/27/2017">
+        <changelogtext>[b]New![/b] Added suppot for wordpress.com for clean and regular pages with [b]Night Mode[/b] support</changelogtext>
+        <changelogtext>[b]Fix[/b] - Chapters indexed properly</changelogtext>
+        <changelogtext>[b]Fix[/b] - Screen is kept alive on Reading Screen</changelogtext>
+        <changelogtext>[b]Fix[/b] - Option to enable faster loading so app doesn't freeze on lower end devices. OFF by default</changelogtext>
+        <changelogtext>Bug Fixes for reported crashes!</changelogtext>
+    </changelogversion>
+
     <changelogversion versionName="0.2.beta" changeDate="07/26/2017">
         <changelogtext>[b]New![/b] Authors, Translators, Publishers linked to find more of their works (More Information Screen)</changelogtext>
         <changelogtext>[b]New![/b] Chapters load faster than before (1000 chaps in 4~5s)</changelogtext>

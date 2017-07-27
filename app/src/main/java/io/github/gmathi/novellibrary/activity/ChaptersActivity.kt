@@ -45,6 +45,7 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
     lateinit var adapter: GenericAdapter<WebPage>
     var downloadThread: Thread? = null
     var chapters: ArrayList<WebPage>? = ArrayList()
+    var sorted: Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,11 +101,14 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
             downloadThread!!.interrupt()
 
         downloadThread = Thread(Runnable {
-            chapters = NovelApi().getChapterUrls(novel.url!!)
-            if (novel.id != -1L) syncWithChaptersFromDB()
-            Handler(Looper.getMainLooper()).post {
-                if (chapters == null) chapters = ArrayList()
-                updateData()
+            val chapterList = NovelApi().getChapterUrls(novel.url!!)
+            if (chapterList != null && chapterList.isNotEmpty()) {
+                Handler(Looper.getMainLooper()).post {
+                    chapters = chapterList
+                    if (novel.id != -1L) syncWithChaptersFromDB()
+                    if (chapters == null) chapters = ArrayList()
+                    updateData()
+                }
             }
         })
         downloadThread!!.start()
@@ -119,7 +123,7 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
 
     @SuppressLint("SetTextI18n")
     private fun updateData() {
-        adapter.updateData(chapters!!)
+        adapter.updateData(ArrayList(chapters!!.asReversed()))
         scrollToBookmark()
         progressLayout.showContent()
         swipeRefreshLayout.isRefreshing = false
@@ -135,7 +139,9 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
         chaptersDownloadButton.setOnClickListener {
             progressLayout.showLoading()
             setToDownloadingButton()
-            addChaptersToDB()
+            Thread(Runnable {
+                addChaptersToDB()
+            }).start()
         }
 
         setToDownloadButton()
@@ -288,13 +294,17 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
             else
                 it.copyFrom(dbWebPage)
         }
-        addToDownloads()
+        Handler(Looper.getMainLooper()).post {
+            addToDownloads()
+        }
     }
 
     private fun addToDownloads() {
-        adapter.notifyDataSetChanged()
-        startDownloadService(novel.id)
-        progressLayout.showContent()
+        if (!isFinishing) {
+            adapter.notifyDataSetChanged()
+            startDownloadService(novel.id)
+            progressLayout.showContent()
+        }
     }
 
     private fun startDownloadService(novelId: Long) {
@@ -316,6 +326,7 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         if (item?.itemId == android.R.id.home) finish()
         else if (item?.itemId == R.id.action_sort) {
+            sorted = !sorted
             val newChapters = ArrayList<WebPage>(adapter.items.asReversed())
             adapter.updateData(newChapters)
         }
@@ -326,7 +337,10 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
         if (requestCode == Constants.READER_ACT_REQ_CODE) {
             if (novel.id != -1L) novel = dbHelper.getNovel(novel.id)!!
             syncWithChaptersFromDB()
-            adapter.updateData(chapters!!)
+            if (sorted)
+                adapter.updateData(ArrayList(chapters!!.reversed()))
+            else
+                adapter.updateData(chapters!!)
             adapter.notifyDataSetChanged()
             scrollToBookmark()
         }

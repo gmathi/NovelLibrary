@@ -20,7 +20,7 @@ class DataCenter(context: Context) {
     private val EXPERIMENTAL_DOWNLOAD = "experimentalDownload"
     private val QUEUE_NOVEL_DOWNLOADS = "queueNovelDownloads"
     private val LOCK_ROYAL_ROAD = "lockRoyalRoad"
-    private val IS_FIRST_APP_OPEN = "isFirstAppOpen"
+    private val LOAD_LIBRARY_SCREEN = "loadLibraryScreen"
     private val APP_VERSION_CODE = "appVersionCode"
     private val TEXT_SIZE = "textSize"
 
@@ -72,9 +72,9 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(LOCK_ROYAL_ROAD, true)
         set(value) = prefs.edit().putBoolean(LOCK_ROYAL_ROAD, value).apply()
 
-    var appLoadingForTheFirstTime: Boolean
-        get() = prefs.getBoolean(IS_FIRST_APP_OPEN, true)
-        set(value) = prefs.edit().putBoolean(IS_FIRST_APP_OPEN, value).apply()
+    var loadLibraryScreen: Boolean
+        get() = prefs.getBoolean(LOAD_LIBRARY_SCREEN, false)
+        set(value) = prefs.edit().putBoolean(LOAD_LIBRARY_SCREEN, value).apply()
 
     var appVersionCode: Int
         get() = prefs.getInt(QUEUE_NOVEL_DOWNLOADS, 0)
