@@ -31,6 +31,7 @@ class WebPageFragment : Fragment() {
     var webPage: WebPage? = null
     var doc: Document? = null
     var downloadThread: Thread? = null
+    var isCleaned: Boolean = false
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -47,9 +48,11 @@ class WebPageFragment : Fragment() {
                 run {
                     if (scrollY > oldScrollY && scrollY > 0) {
                         activity.floatingToolbar.hide()
+                   //     activity.fabClean.hide()
                         activity.fab.hide()
                     }
                     if (scrollY < oldScrollY) {
+                   //     activity.fabClean.show()
                         activity.fab.show()
                     }
                 }
@@ -58,6 +61,7 @@ class WebPageFragment : Fragment() {
 
         if (webPage!!.filePath != null) {
             val internalFilePath = "file://${webPage!!.filePath}"
+            applyTheme(internalFilePath)
         } else {
             if (webPage != null && webPage!!.url != null)
                 downloadWebPage(webPage!!.url!!)
@@ -80,7 +84,8 @@ class WebPageFragment : Fragment() {
             try {
                 val doc = NovelApi().getDocumentWithUserAgent(url)
                 val cleaner = HtmlHelper.getInstance(doc.location())
-                cleaner.removeJS(doc)
+//                cleaner.removeJS(doc)
+//                cleaner.cleanDoc(doc)
                 cleaner.toggleTheme(dataCenter.isDarkTheme, doc)
                 Handler(Looper.getMainLooper()).post {
                     loadDocument(doc)
@@ -102,6 +107,7 @@ class WebPageFragment : Fragment() {
 
     fun setWebView() {
         //readerWebView.setOnClickListener { if (!floatingToolbar.isShowing) floatingToolbar.show() else floatingToolbar.hide() }
+        readerWebView.settings.javaScriptEnabled = true
         readerWebView.webViewClient = object : WebViewClient() {
             @Suppress("OverridingDeprecatedMember")
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
@@ -146,8 +152,7 @@ class WebPageFragment : Fragment() {
 
     fun reloadPage() {
         if (webPage!!.filePath != null) {
-            val internalFilePath = "file://${webPage!!.filePath}"
-            applyTheme(internalFilePath)
+            applyTheme("file://${webPage!!.filePath}")
         } else if (doc != null) {
             applyTheme(doc!!, doc!!.location())
         }
@@ -163,6 +168,31 @@ class WebPageFragment : Fragment() {
         super.onPause()
         downloadThread?.interrupt()
     }
+
+    fun cleanPage() {
+        if (!isCleaned) {
+            readerWebView.settings.javaScriptEnabled = false
+            if (webPage?.filePath != null) {
+                cleanPage("file://${webPage!!.filePath}")
+            } else if (doc != null && doc!!.location() != null) {
+                cleanPage(doc!!, doc!!.location())
+            }
+            isCleaned = true
+        }
     }
 
+    fun cleanPage(internalFilePath: String) {
+        val input = File(internalFilePath.substring(7))
+        val doc = Jsoup.parse(input, "UTF-8", internalFilePath)
+        cleanPage(doc, internalFilePath)
+    }
+
+    fun cleanPage(doc: Document, internalFilePath: String) {
+        HtmlHelper.getInstance(doc.location()).toggleTheme(dataCenter.isDarkTheme, doc)
+        HtmlHelper.getInstance(doc.location()).cleanDoc(doc)
+        readerWebView.loadDataWithBaseURL(
+            internalFilePath,
+            doc.outerHtml(),
+            "text/html", "UTF-8", null)
+    }
 }
