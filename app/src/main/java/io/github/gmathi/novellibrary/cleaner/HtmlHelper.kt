@@ -24,6 +24,7 @@ open class HtmlHelper protected constructor() {
                 host.contains(HostNames.ROYAL_ROAD) -> return RoyalRoadHelper()
                 host.contains(HostNames.GRAVITY_TALES) -> return GravityTalesHelper()
                 host.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
+                host.contains(HostNames.WORD_PRESS) -> return WordPressHelper()
             //host.contains(HostNames.KOBATOCHAN) -> return KobatochanCleaner()
             }
             return HtmlHelper()
@@ -31,10 +32,10 @@ open class HtmlHelper protected constructor() {
     }
 
     fun clean(doc: Document, hostDir: File, novelDir: File) {
-        cleanDoc(doc)
-        removeJS(doc)
+       // removeJS(doc)
         downloadCSS(doc, hostDir)
         downloadImages(doc, novelDir)
+       // additionalProcessing(doc)
         addTitle(doc)
     }
 
@@ -56,7 +57,7 @@ open class HtmlHelper protected constructor() {
         }
     }
 
-    open fun cleanDoc(doc: Document) {
+    open fun additionalProcessing(doc: Document) {
 
     }
 
@@ -101,7 +102,7 @@ open class HtmlHelper protected constructor() {
     }
 
     open fun downloadImage(element: Element, dir: File): File? {
-        val uri = Uri.parse(element.attr("src"))
+        val uri = Uri.parse(element.absUrl("src"))
         val file: File
         try {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: " + uri.toString())

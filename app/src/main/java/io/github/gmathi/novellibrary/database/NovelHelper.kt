@@ -99,7 +99,7 @@ fun DBHelper.getAllNovels(): List<Novel> {
 //        " ON ng.genre_id = g.id" +
 //        " GROUP BY n.id"
 
-    val selectQuery = "select * from novel"
+    val selectQuery = "select * from novel ORDER BY " + DBKeys.KEY_ORDER_ID + " ASC"
 
     Log.d(LOG, selectQuery)
 
@@ -121,6 +121,7 @@ fun DBHelper.getAllNovels(): List<Novel> {
                 novel.longDescription = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_LONG_DESCRIPTION))
                 novel.imageFilePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_IMAGE_FILE_PATH))
                 novel.currentWebPageId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CURRENT_WEB_PAGE_ID))
+                novel.orderId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
                 list.add(novel)
             } while (cursor.moveToNext())
         }
@@ -162,6 +163,12 @@ fun DBHelper.updateNovel(novel: Novel): Long {
     return this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novel.id.toString())).toLong()
 }
 
+fun DBHelper.updateOrderId(novelId: Long, orderId: Long) {
+    val values = ContentValues()
+    values.put(DBKeys.KEY_ORDER_ID, orderId)
+    this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
+}
+
 fun DBHelper.updateCurrentWebPageId(novelId: Long, currentWebPageId: Long?) {
     val values = ContentValues()
     values.put(DBKeys.KEY_CURRENT_WEB_PAGE_ID, currentWebPageId)
@@ -171,3 +178,4 @@ fun DBHelper.updateCurrentWebPageId(novelId: Long, currentWebPageId: Long?) {
 fun DBHelper.deleteNovel(id: Long) {
     this.writableDatabase.delete(DBKeys.TABLE_NOVEL, DBKeys.KEY_ID + " = ?", arrayOf(id.toString()))
 }
+

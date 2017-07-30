@@ -3,7 +3,13 @@ package io.github.gmathi.novellibrary.database;
 
 public class DBKeys {
 
-    static final int DATABASE_VERSION = 1;
+    static final int VER_NOVEL_ORDER_ID = 2;
+    static final int INITIAL_VERSION = 1;
+
+
+    static final int DATABASE_VERSION = VER_NOVEL_ORDER_ID;
+
+
 
     static final String DATABASE_NAME = "bnr_db";
 
@@ -20,6 +26,7 @@ public class DBKeys {
     static final String KEY_URL = "url";
     static final String KEY_METADATA = "metadata";
     static final String KEY_NOVEL_ID = "novel_id";
+    static final String KEY_ORDER_ID = "order_id";
 
     // Table novel columns
     static final String KEY_IMAGE_URL = "image_url";
@@ -59,6 +66,7 @@ public class DBKeys {
                     + KEY_IMAGE_FILE_PATH + " TEXT, "
                     + KEY_METADATA + " TEXT, "
                     + KEY_CURRENT_WEB_PAGE_ID + " INTEGER, "
+                    + KEY_ORDER_ID + " INTEGER, "
                     + "FOREIGN KEY (" + KEY_CURRENT_WEB_PAGE_ID + ") REFERENCES " + TABLE_WEB_PAGE + "(" + KEY_ID + ")"
                     + ")";
 

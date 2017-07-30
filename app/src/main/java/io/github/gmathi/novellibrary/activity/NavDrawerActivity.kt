@@ -16,9 +16,9 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.fragment.DownloadFragment
 import io.github.gmathi.novellibrary.fragment.LibraryFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
-import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
+import org.cryse.widget.persistentsearch.PersistentSearchView
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
 
@@ -29,10 +29,10 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         setContentView(R.layout.activity_nav_drawer)
         navigationView.setNavigationItemSelectedListener(this)
 
-        if (Utils.checkNetwork(this))
-            loadFragment(R.id.nav_search)
-        else
+        if (dataCenter.loadLibraryScreen)
             loadFragment(R.id.nav_library)
+        else
+            loadFragment(R.id.nav_search)
 
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
@@ -49,6 +49,15 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START)
         } else {
+            val existingFrag = supportFragmentManager.findFragmentByTag(SearchFragment::class.toString())
+            if (existingFrag != null) {
+                val searchView = existingFrag.view?.findViewById<PersistentSearchView>(R.id.searchView)
+                if (searchView != null && (searchView.isEditing || searchView.isSearching)) {
+                    searchView.closeSearch()
+                    return
+                }
+            }
+
             if (snackBar != null && snackBar!!.isShown)
                 finish()
             else

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?selectableItemBackground"
+                android:padding="@dimen/default_padding_list_item">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@drawable/corner_radius_novel_item"
+        android:padding="4dp">
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/novelImageViewLayout"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            app:cardCornerRadius="26dp">
+
+            <ImageView
+                android:id="@+id/novelImageView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="1dp"
+                android:scaleType="centerCrop"
+                />
+        </android.support.v7.widget.CardView>
+
+        <ImageView
+            android:id="@+id/reorderButton"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentEnd="true"
+            app:srcCompat="@drawable/ic_reorder_white_vector"
+            android:layout_centerVertical="true"
+            android:scaleType="centerInside"
+            android:layout_alignParentRight="true"/>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="@dimen/default_margin"
+            android:layout_marginLeft="@dimen/default_margin"
+            android:layout_marginRight="@dimen/default_margin"
+            android:layout_marginStart="@dimen/default_margin"
+            android:layout_marginTop="2dp"
+            android:layout_toEndOf="@id/novelImageViewLayout"
+            android:layout_toLeftOf="@id/reorderButton"
+            android:layout_toRightOf="@id/novelImageViewLayout"
+            android:layout_toStartOf="@id/reorderButton"
+            android:orientation="vertical">
+
+
+            <TextView
+                android:id="@+id/novelTitleTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:ellipsize="end"
+                android:gravity="center_vertical|start"
+                android:maxLines="1"
+                android:textColor="@color/white"
+                android:textIsSelectable="false"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="Realms of Firmament"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <RatingBar
+                    android:id="@+id/novelRatingBar"
+                    style="@style/Widget.AppCompat.RatingBar.Small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="21sp"
+                    android:layout_marginTop="2dp"
+                    android:numStars="5"
+                    android:progressTint="@color/Gold"
+                    android:secondaryProgressTint="@android:color/transparent"
+                    tools:rating="3.6"/>
+
+                <TextView
+                    android:id="@+id/novelRatingText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="2dp"
+                    android:layout_marginStart="2dp"
+                    android:gravity="center_vertical|start"
+                    android:textIsSelectable="false"
+                    android:textSize="12sp"
+                    android:textStyle="italic"
+                    tools:text="(3.6)"/>
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+    </RelativeLayout>
+</RelativeLayout>

@@ -10,7 +10,6 @@ import io.github.gmathi.novellibrary.model.WebPage
 
 class DataCenter(context: Context) {
 
-    private val PREFS_FILENAME = "com.mgn.bookmark.preferences"
     private val BOOKMARKS_LIST = "bookmarksList"
     private val CACHE_LIST = "cacheList"
     private val SEARCH_HISTORY_LIST = "searchHistoryList"
@@ -20,9 +19,11 @@ class DataCenter(context: Context) {
     private val EXPERIMENTAL_DOWNLOAD = "experimentalDownload"
     private val QUEUE_NOVEL_DOWNLOADS = "queueNovelDownloads"
     private val LOCK_ROYAL_ROAD = "lockRoyalRoad"
-    private val IS_FIRST_APP_OPEN = "isFirstAppOpen"
+    private val LOAD_LIBRARY_SCREEN = "loadLibraryScreen"
     private val APP_VERSION_CODE = "appVersionCode"
     private val TEXT_SIZE = "textSize"
+    private val CLEAN_PAGES = "cleanPages"
+    private val JAVASCRIPT = "javascript"
 
     val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -57,7 +58,7 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putBoolean(DOWNLOAD_LATEST_FIRST, value).apply()
 
     var experimentalDownload: Boolean
-        get() = prefs.getBoolean(EXPERIMENTAL_DOWNLOAD, true)
+        get() = prefs.getBoolean(EXPERIMENTAL_DOWNLOAD, false)
         set(value) = prefs.edit().putBoolean(EXPERIMENTAL_DOWNLOAD, value).apply()
 
     var queueNovelDownloads: Boolean
@@ -65,19 +66,26 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putBoolean(QUEUE_NOVEL_DOWNLOADS, value).apply()
 
     var textSize: Int
-        get() = prefs.getInt(QUEUE_NOVEL_DOWNLOADS, 0)
-        set(value) = prefs.edit().putInt(QUEUE_NOVEL_DOWNLOADS, value).apply()
+        get() = prefs.getInt(TEXT_SIZE, 0)
+        set(value) = prefs.edit().putInt(TEXT_SIZE, value).apply()
 
     var lockRoyalRoad: Boolean
         get() = prefs.getBoolean(LOCK_ROYAL_ROAD, true)
         set(value) = prefs.edit().putBoolean(LOCK_ROYAL_ROAD, value).apply()
 
-    var appLoadingForTheFirstTime: Boolean
-        get() = prefs.getBoolean(IS_FIRST_APP_OPEN, true)
-        set(value) = prefs.edit().putBoolean(IS_FIRST_APP_OPEN, value).apply()
+    var loadLibraryScreen: Boolean
+        get() = prefs.getBoolean(LOAD_LIBRARY_SCREEN, false)
+        set(value) = prefs.edit().putBoolean(LOAD_LIBRARY_SCREEN, value).apply()
 
     var appVersionCode: Int
-        get() = prefs.getInt(QUEUE_NOVEL_DOWNLOADS, 0)
-        set(value) = prefs.edit().putInt(QUEUE_NOVEL_DOWNLOADS, value).apply()
+        get() = prefs.getInt(APP_VERSION_CODE, 0)
+        set(value) = prefs.edit().putInt(APP_VERSION_CODE, value).apply()
 
+    var cleanChapters: Boolean
+        get() = prefs.getBoolean(CLEAN_PAGES, false)
+        set(value) = prefs.edit().putBoolean(CLEAN_PAGES, value).apply()
+
+    var javascriptDisabled: Boolean
+        get() = prefs.getBoolean(JAVASCRIPT, false)
+        set(value) = prefs.edit().putBoolean(JAVASCRIPT, value).apply()
 }

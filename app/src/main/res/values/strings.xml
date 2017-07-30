@@ -36,18 +36,36 @@
         <item>Active-Ranked</item>
     </string-array>
 
-    <string-array name="search_results_tab_titles">
+    <string-array name="search_results_tab_titles" translatable="false">
         <item>Novel-Updates</item>
         <item>RoyalRoad</item>
+        <item>WLN-Updates</item>
     </string-array>
 
-    <string-array name="settings_list">
-        <item>@string/clear_data</item>
+    <string-array name="settings_list" translatable="false">
+        <item>@string/general</item>
         <item>@string/copyright_notice</item>
         <item>@string/donate_developer</item>
         <item>@string/libraries_used</item>
         <item>@string/contributions</item>
+        <item>@string/changelog</item>
         <item>@string/about_us</item>
+    </string-array>
+
+    <string-array name="general_titles_list" translatable="false">
+        <item>@string/clear_data</item>
+        <item>@string/faster_downloads</item>
+        <item>@string/first_screen_library</item>
+        <item>@string/clean_pages</item>
+        <item>@string/disable_javascript</item>
+    </string-array>
+
+    <string-array name="general_subtitles_list" translatable="false">
+        <item>@string/clear_data_description</item>
+        <item>@string/faster_downloads_description</item>
+        <item>@string/first_screen_library_description</item>
+        <item>@string/clean_pages_description</item>
+        <item>@string/disable_javascript_description</item>
     </string-array>
 
 
@@ -61,6 +79,8 @@
     <string name="title_activity_contributions" translatable="false">@string/contributions</string>
     <string name="title_activity_copyright" translatable="false">@string/copyright_notice</string>
     <string name="title_activity_search_results" translatable="false">SearchResultsActivity</string>
+    <string name="title_activity_general_settings" translatable="false">@string/general</string>
+
 
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
     <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
@@ -170,6 +190,17 @@
         "You can send your donate using the GMail application to gmathi.developer@gmail.com "
     </string>
     <string name="app_exit">Press Back again to exit Novel Library</string>
+    <string name="general">General</string>
+    <string name="faster_downloads">Faster Downloads</string>
+    <string name="faster_downloads_description">Downloads really fast but your device may lag/freeze while downloading.</string>
+    <string name="first_screen_library">Make “Library” main screen</string>
+    <string name="first_screen_library_description">If turned off “Search” will be main screen instead.</string>
+    <string name="clean_pages">Clean Chapters</string>
+    <string name="clean_pages_description">Clean chapters before loading them.</string>
+    <string name="failed_to_load_url">Failed getting content!</string>
+    <string name="disable_javascript">Disable Javascript</string>
+    <string name="disable_javascript_description">Some websites redirect to ads in when javascript is enabled</string>
+    <string name="changelog">Change Log</string>
 
 
 </resources>

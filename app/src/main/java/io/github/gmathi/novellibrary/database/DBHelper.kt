@@ -22,15 +22,29 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAM
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+
+        var version = oldVersion
+
+        if (version == DBKeys.INITIAL_VERSION) {
+            db.execSQL("ALTER TABLE " + DBKeys.TABLE_NOVEL + " ADD COLUMN " + DBKeys.KEY_ORDER_ID + " INTEGER")
+            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_ORDER_ID + "=" + DBKeys.KEY_ID)
+            version++
+        }
+
+        if (version == DBKeys.VER_NOVEL_ORDER_ID) {
+            //In Case the version is updated again!
+        }
+
+
         // on upgrade drop older tables
-        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_NOVEL)
-        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_WEB_PAGE)
-        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_GENRE)
-        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_NOVEL_GENRE)
-        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_DOWNLOAD_QUEUE)
+//        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_NOVEL)
+//        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_WEB_PAGE)
+//        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_GENRE)
+//        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_NOVEL_GENRE)
+//        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_DOWNLOAD_QUEUE)
 
         // create new tables
-        onCreate(db)
+        //onCreate(db)
     }
 
     fun removeAll() {

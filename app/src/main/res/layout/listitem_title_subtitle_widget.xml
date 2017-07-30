@@ -3,26 +3,47 @@
                 xmlns:app="http://schemas.android.com/apk/res-auto"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
+                android:layout_height="wrap_content"
                 android:background="@color/black_transparent"
+                android:minHeight="70dp"
                 android:padding="@dimen/default_padding_list_item">
 
-
-    <ImageView
-        android:id="@+id/chevron"
+    <FrameLayout
+        android:id="@+id/widget"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         android:layout_marginEnd="@dimen/default_margin"
-        android:layout_marginStart="@dimen/default_margin"
-        app:srcCompat="@drawable/ic_chevron_right_white_vector"/>
+        android:layout_marginStart="@dimen/default_margin">
+
+
+        <ImageView
+            android:id="@+id/widgetChevron"
+            android:layout_width="wrap_content"
+            android:layout_gravity="center"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/ic_chevron_right_white_vector"/>
+
+        <Switch
+            android:id="@+id/widgetSwitch"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/widgetButton"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
+    </FrameLayout>
 
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_alignWithParentIfMissing="true"
         android:layout_marginEnd="@dimen/default_margin"
@@ -30,16 +51,16 @@
         android:layout_marginRight="@dimen/default_margin"
         android:layout_marginStart="@dimen/default_margin"
         android:layout_marginTop="2dp"
-        android:layout_toLeftOf="@id/chevron"
-        android:layout_toStartOf="@id/chevron"
+        android:layout_toLeftOf="@id/widget"
+        android:layout_toStartOf="@id/widget"
         android:orientation="vertical">
 
 
         <TextView
-            android:id="@+id/settingsTitle"
+            android:id="@+id/title"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="8dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
             android:ellipsize="end"
             android:gravity="center_vertical|start"
             android:maxLines="2"
@@ -47,6 +68,17 @@
             android:textIsSelectable="false"
             android:textSize="17sp"
             android:textStyle="bold"
+            tools:text="Realms of Firmament"/>
+
+        <TextView
+            android:id="@+id/subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:gravity="center_vertical|start"
+            android:maxLines="9"
+            android:textIsSelectable="false"
+            android:textSize="15sp"
             tools:text="Realms of Firmament"/>
 
 

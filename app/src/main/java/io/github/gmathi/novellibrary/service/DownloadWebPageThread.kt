@@ -55,6 +55,13 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, val host
 
             val htmlHelper = HtmlHelper.getInstance(uri.host)
             htmlHelper.clean(doc, hostDir, novelDir)
+
+//            val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+//            if (prefs.getBoolean("cleanPages", false)) {
+//                htmlHelper.removeJS(doc)
+//                htmlHelper.additionalProcessing(doc)
+//            }
+
             webPage.title = htmlHelper.getTitle(doc)
 
             val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPage.title!!.writableFileName()))

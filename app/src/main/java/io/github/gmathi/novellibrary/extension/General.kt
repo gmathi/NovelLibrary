@@ -46,7 +46,7 @@ fun <T> RecyclerView.setDefaults(adapter: GenericAdapter<T>): RecyclerView {
     animator.addDuration = 1000
     animator.removeDuration = 1000
     animator.changeDuration = 0
-    animator.moveDuration = 1000
+    animator.moveDuration = 200
 
     this.setHasFixedSize(true)
     this.layoutManager = SnappingLinearLayoutManager(context)
@@ -76,6 +76,11 @@ fun TextView.applyFont(assetManager: AssetManager): TextView {
 fun TextView.setTypeface(style: Int): TextView {
     setTypeface(typeface, style)
     return this
+}
+
+
+private fun  String?.contains(chapter: String?): Boolean {
+    return (this != null) && (chapter != null) && this.contains(chapter)
 }
 
 

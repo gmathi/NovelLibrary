@@ -2,7 +2,9 @@ package io.github.gmathi.novellibrary.activity
 
 import android.os.Bundle
 import android.support.v4.view.ViewPager
+import android.view.KeyEvent
 import android.view.MenuItem
+import android.webkit.WebView
 import android.widget.SeekBar
 import com.afollestad.materialdialogs.MaterialDialog
 import com.github.rubensousa.floatingtoolbar.FloatingToolbar
@@ -20,6 +22,7 @@ import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 
+
 class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, FloatingToolbar.ItemClickListener, SeekBar.OnSeekBarChangeListener {
 
     var novel: Novel? = null
@@ -31,6 +34,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader_pager)
+        //window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         novel = intent.getSerializableExtra("novel") as Novel?
         webPage = intent.getSerializableExtra("webPage") as WebPage?
@@ -74,30 +78,11 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
         floatingToolbar.attachFab(fab)
         floatingToolbar.setClickListener(this)
 
-//        val novelId = intent.getLongExtra(Constants.NOVEL_ID, -1L)
-//        if (novelId == -1L) finish()
-//
-//        chapters = ArrayList<WebPage>(dbHelper.getAllReadableWebPages(novelId))
-//        adapter = WebPageAdapter(supportFragmentManager, chapters, object : WebPageAdapter.Listener {
-//            override fun checkUrl(url: String?) {
-//                if (url != null) {
-//                    val index = chapters.indexOfFirst { it.redirectedUrl!!.contains(url) }
-//                    if (index != -1) {
-//                        viewPager.currentItem = index
-//                        dbHelper.updateCurrentWebPageId(chapters[index].novelId, chapters[index].id)
-//                    }
-//                }
-//            }
-//        })
-//
-//        viewPager.addOnPageChangeListener(this)
-//        viewPager.adapter = adapter
-//
-//        val webPageId = intent.getLongExtra(Constants.WEB_PAGE_ID, -1L)
-//        if (webPageId != -1L) {
-//            viewPager.currentItem = chapters.indexOfFirst { it.id == webPageId }
-//            dbHelper.updateCurrentWebPageId(novelId, webPageId)
-//        }
+        fabClean.setOnClickListener {
+            (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).cleanPage()
+            fabClean.hide()
+        }
+
     }
 
     override fun onPageSelected(position: Int) {
@@ -108,6 +93,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
             webPage.isRead = 1
             dbHelper.updateWebPageReadStatus(webPage)
         }
+        fabClean.show()
     }
 
     override fun onPageScrollStateChanged(position: Int) {
@@ -135,7 +121,8 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
 
     private fun toggleDarkTheme() {
         dataCenter.isDarkTheme = !dataCenter.isDarkTheme
-        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.reloadPage()
+        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.applyTheme()
+        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.loadDocument()
     }
 
     fun changeTextSize() {
@@ -153,7 +140,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
         if (url != null) {
             val email = getString(R.string.dev_email)
             val subject = "[IMPROVEMENT]"
-            val body = "Url: $url \n" + " Please improve the viewing experience of this page."
+            val body = "Url: $url \n Please improve the viewing experience of this page."
             sendEmail(email, subject, body)
         }
     }
@@ -185,5 +172,26 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
     }
     //endregion
 
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val action = event.action
+        val keyCode = event.keyCode
+        val webView = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
+        when (keyCode) {
+            KeyEvent.KEYCODE_VOLUME_UP -> {
+                if (action == KeyEvent.ACTION_DOWN) {
+                    webView?.pageUp(false)
+                }
+                return true
+            }
+            KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                if (action == KeyEvent.ACTION_DOWN) {
+                    webView?.pageDown(false)
+                }
+                return true
+            }
+            else -> return super.dispatchKeyEvent(event)
+        }
+    }
 
 }

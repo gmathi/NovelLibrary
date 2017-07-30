@@ -15,8 +15,8 @@ android {
         applicationId "io.github.gmathi.novellibrary"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 2
-        versionName "0.2.beta"
+        versionCode 7
+        versionName "0.3.0.beta"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -79,7 +79,7 @@ dependencies {
         exclude group: 'com.android.support'
     })
     compile 'com.github.gabrielemariotti.changeloglib:changelog:2.1.0'
-    //compile 'org.bluecabin.textoo:textoo:1.0.1'
+    compile 'co.metalab.asyncawait:asyncawait:1.0.0'
 
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5.1'
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
@@ -93,7 +93,12 @@ dependencies {
 
 repositories {
     mavenCentral()
+    maven { url "https://maven.google.com" }
     maven { url "https://jitpack.io" }
+    jcenter()
 }
-buildscript {
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
 }
