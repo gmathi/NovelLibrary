@@ -18,6 +18,7 @@ import io.github.gmathi.novellibrary.fragment.LibraryFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
+import org.cryse.widget.persistentsearch.PersistentSearchView
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
 
@@ -48,6 +49,15 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START)
         } else {
+            val existingFrag = supportFragmentManager.findFragmentByTag(SearchFragment::class.toString())
+            if (existingFrag != null) {
+                val searchView = existingFrag.view?.findViewById<PersistentSearchView>(R.id.searchView)
+                if (searchView != null && (searchView.isEditing || searchView.isSearching)) {
+                    searchView.closeSearch()
+                    return
+                }
+            }
+
             if (snackBar != null && snackBar!!.isShown)
                 finish()
             else

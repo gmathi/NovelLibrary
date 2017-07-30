@@ -13,8 +13,7 @@ class WuxiaWorldHelper : HtmlHelper() {
         super.downloadCSS(doc, downloadDir)
     }
 
-    override fun cleanDoc(doc: Document) {
-        removeJS(doc)
+    override fun additionalProcessing(doc: Document) {
         var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasAttr("itemprop") && it.attr("itemprop") == "articleBody" }
         if (contentElement != null && contentElement.children().size >= 2) {
             contentElement.child(contentElement.children().size - 1).remove()
@@ -24,6 +23,7 @@ class WuxiaWorldHelper : HtmlHelper() {
             contentElement?.siblingElements()?.remove()
             contentElement = contentElement?.parent()
         } while (contentElement?.tagName() != "body")
+        doc.getElementById("custom-background-css")?.remove()
     }
 
     override fun downloadImage(element: Element, dir: File): File? {
@@ -37,16 +37,19 @@ class WuxiaWorldHelper : HtmlHelper() {
         doc.getElementsByTag("noscript").remove()
     }
 
-//    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
-//        if (isDark) {
-//            doc.head().append("<style id=\"darkTheme\">" +
-//                "body { background-color:#131313; color:rgba(255, 255, 255, 0.8); } </style> ")
-//        } else {
-//            doc.head().getElementById("darkTheme")?.remove()
-//        }
-//
-//        return doc
-//    }
+    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
+        if (isDark) {
+            doc.head().getElementById("darkTheme")?.remove()
+            doc.head().append("<style id=\"darkTheme\">" +
+                "body { background-color:#131313; color:rgba(255, 255, 255, 0.8); } </style> ")
+        } else {
+            doc.head().getElementById("darkTheme")?.remove()
+            doc.head().append("<style id=\"darkTheme\">" +
+                "body { background-color:rgba(255, 255, 255, 0.8); color:#131313; } </style> ")
+        }
+
+        return doc
+    }
 
     override fun addTitle(doc: Document) {
     }

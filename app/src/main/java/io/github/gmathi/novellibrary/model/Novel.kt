@@ -13,7 +13,9 @@ class Novel : Serializable {
     var imageFilePath: String? = null
     var genres: List<String>? = null
     var currentWebPageId: Long = -1
+    var orderId: Long = -1
     var metaData: HashMap<String, String?> = HashMap()
+
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -38,6 +40,7 @@ class Novel : Serializable {
             longDescription = if (otherNovel.longDescription != null) otherNovel.longDescription else longDescription
             shortDescription = if (otherNovel.shortDescription != null) otherNovel.shortDescription else shortDescription
             currentWebPageId = if (otherNovel.currentWebPageId != -1L) otherNovel.currentWebPageId else currentWebPageId
+            orderId = if (otherNovel.orderId != -1L) otherNovel.orderId else orderId
             metaData = if (!otherNovel.metaData.isEmpty()) otherNovel.metaData else metaData
         }
     }

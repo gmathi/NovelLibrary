@@ -31,36 +31,10 @@
 
 
     <string-array name="search_tab_titles">
-         <item>Beliebt</item>
+        <item>Beliebt</item>
         <item>Höchstbewertet</item>
         <item>Aktive</item>
     </string-array>
-
-    <string-array name="search_results_tab_titles">
-        <item>Novel-Updates</item>
-        <item>RoyalRoad</item>
-    </string-array>
-
-    <string-array name="settings_list">
-        <item>@string/general</item>
-        <item>@string/copyright_notice</item>
-        <item>@string/donate_developer</item>
-        <item>@string/libraries_used</item>
-        <item>@string/contributions</item>
-        <item>@string/about_us</item>
-    </string-array>
-
-    <string-array name="general_titles_list">
-        <item>@string/clear_data</item>
-        <item>@string/faster_downloads</item>
-    </string-array>
-
-    <string-array name="general_subtitles_list">
-        <item>@string/clear_data_description</item>
-        <item>@string/faster_downloads_description</item>
-    </string-array>
-
-
 
     <!--<item>Latest Updates</item>-->
     <!--<item>Active-Only Ranking</item>-->
@@ -170,6 +144,14 @@
     <string name="general">Allgemein</string>
     <string name="faster_downloads">Schnellere Downloads</string>
     <string name="faster_downloads_description">Sehr schnelle Downloads aber führt evtl. zu Abstürzen</string>
+    <string name="first_screen_library">“Bibliothek” Hauptbildschirm erstellen</string>  
+    <string name="first_screen_library_description">Wenn ausgeschaltet ist, wird “Search” stattdessen Hauptbildschirm.</string>
+    <string name="clean_pages">Saubere Kapitel</string>
+    <string name="clean_pages_description">Setzt die Kapitel, bevor sie geladen werden.</string>
+    <string name="failed_to_load_url">Fehler beim Abrufen des Inhalts!</string>
+    <string name="disable_javascript">Javascript deaktivieren</string>
+    <string name="disable_javascript_description">Einige Websites verteilen auf Anzeigen, wenn Javascript aktiviert ist</string>
+    <string name="changelog">Änderungsprotokoll</string>
 
 
 </resources>

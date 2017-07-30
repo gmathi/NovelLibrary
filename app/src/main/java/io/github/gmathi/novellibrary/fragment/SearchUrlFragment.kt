@@ -116,27 +116,30 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
     override fun bind(item: Novel, itemView: View, position: Int) {
         itemView.novelImageView.setImageResource(android.R.color.transparent)
-        val file = File(activity.filesDir, Constants.IMAGES_DIR_NAME + "/" + Uri.parse(item.imageUrl).getFileName())
-        if (file.exists())
-            item.imageFilePath = file.path
 
-        if (item.imageFilePath == null) {
-            Glide.with(this).asBitmap().load(item.imageUrl).into(object : SimpleTarget<Bitmap>() {
-                override fun onResourceReady(bitmap: Bitmap?, transition: Transition<in Bitmap>?) {
-                    itemView.novelImageView.setImageBitmap(bitmap)
-                    Thread(Runnable {
-                        try {
-                            val os = FileOutputStream(file)
-                            bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, os)
-                            item.imageFilePath = file.path
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }).start()
-                }
-            })
-        } else {
-            Glide.with(this).load(File(item.imageFilePath)).into(itemView.novelImageView)
+        if (item.imageUrl != null) {
+            val file = File(activity.filesDir, Constants.IMAGES_DIR_NAME + "/" + Uri.parse(item.imageUrl).getFileName())
+            if (file.exists())
+                item.imageFilePath = file.path
+
+            if (item.imageFilePath == null) {
+                Glide.with(this).asBitmap().load(item.imageUrl).into(object : SimpleTarget<Bitmap>() {
+                    override fun onResourceReady(bitmap: Bitmap?, transition: Transition<in Bitmap>?) {
+                        itemView.novelImageView.setImageBitmap(bitmap)
+                        Thread(Runnable {
+                            try {
+                                val os = FileOutputStream(file)
+                                bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, os)
+                                item.imageFilePath = file.path
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }).start()
+                    }
+                })
+            } else {
+                Glide.with(this).load(File(item.imageFilePath)).into(itemView.novelImageView)
+            }
         }
 
         //Other Data Fields

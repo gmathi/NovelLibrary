@@ -70,6 +70,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             getString(R.string.donate_developer) -> donateDeveloperDialog()
             getString(R.string.libraries_used) -> startLibrariesUsedActivity()
             getString(R.string.contributions) -> startContributionsActivity()
+            getString(R.string.changelog) -> showChangeLog()
             getString(R.string.about_us) -> aboutUsDialog()
         }
     }
@@ -120,6 +121,13 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             hiddenRightButton.visibility = View.GONE
             hiddenLeftButton.visibility = View.GONE
         }
+    }
+
+    private fun showChangeLog() {
+        MaterialDialog.Builder(this)
+            .title("Change Log")
+            .customView(R.layout.dialog_change_log, true)
+            .show()
     }
 
 }

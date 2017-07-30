@@ -2,8 +2,8 @@ package io.github.gmathi.novellibrary.extension
 
 import android.support.v4.app.Fragment
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
-import io.github.gmathi.novellibrary.fragment.SearchUrlFragment
 import io.github.gmathi.novellibrary.fragment.SearchTermFragment
+import io.github.gmathi.novellibrary.fragment.SearchUrlFragment
 import io.github.gmathi.novellibrary.network.HostNames
 
 //region Fragment Page Listeners
@@ -43,6 +43,7 @@ class SearchResultsListener(val searchTerms: String) : GenericFragmentStatePager
         when (position) {
             0 -> return SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_UPDATES)
             1 -> return SearchTermFragment.newInstance(searchTerms, HostNames.ROYAL_ROAD)
+            2 -> return SearchTermFragment.newInstance(searchTerms, HostNames.WLN_UPDATES)
             else -> return null
         }
     }

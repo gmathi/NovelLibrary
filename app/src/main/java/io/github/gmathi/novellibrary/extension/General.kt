@@ -79,3 +79,8 @@ fun TextView.setTypeface(style: Int): TextView {
 }
 
 
+private fun  String?.contains(chapter: String?): Boolean {
+    return (this != null) && (chapter != null) && this.contains(chapter)
+}
+
+

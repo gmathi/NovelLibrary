@@ -15,8 +15,8 @@ android {
         applicationId "io.github.gmathi.novellibrary"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 3
-        versionName "0.2.1.beta"
+        versionCode 7
+        versionName "0.3.0.beta"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -93,7 +93,12 @@ dependencies {
 
 repositories {
     mavenCentral()
+    maven { url "https://maven.google.com" }
     maven { url "https://jitpack.io" }
+    jcenter()
 }
-buildscript {
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
 }

@@ -115,20 +115,20 @@ class NovelDetailsActivity : AppCompatActivity(), TextViewLinkHandler.OnClickLis
     }
 
     private fun setNovelImage() {
-        if (novel.imageFilePath != null)
-            Glide.with(this).load(File(novel.imageFilePath)).into(novelDetailsImage) else
-            Glide.with(this).load(novel.imageUrl).into(novelDetailsImage)
-        novelDetailsImage.setOnClickListener { startImagePreviewActivity(novel.imageUrl, novel.imageFilePath, novelDetailsImage) }
+        if (novel.imageUrl != null) {
+            if (novel.imageFilePath != null)
+                Glide.with(this).load(File(novel.imageFilePath)).into(novelDetailsImage)
+            else if (Utils.checkNetwork(this))
+                Glide.with(this).load(novel.imageUrl).into(novelDetailsImage)
+            novelDetailsImage.setOnClickListener { startImagePreviewActivity(novel.imageUrl, novel.imageFilePath, novelDetailsImage) }
+        }
     }
 
     private fun setNovelAuthor() {
         val author = novel.metaData["Author(s)"]
         if (author != null) {
-//            author = "by " + author
-//            val ss1 = SpannableString("by " + author)
-//            ss1.setSpan(RelativeSizeSpan(1.2f), 3, author.length, 0)
-//            novelDetailsAuthor.applyFont(assets).text = ss1
             novelDetailsAuthor.movementMethod = TextViewLinkHandler(this)
+            @Suppress("DEPRECATION")
             novelDetailsAuthor.applyFont(assets).text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
                 Html.fromHtml(author, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(author)
         }
@@ -181,11 +181,12 @@ class NovelDetailsActivity : AppCompatActivity(), TextViewLinkHandler.OnClickLis
 
 
     private fun setNovelGenre() {
-        if (novel.genres != null) {
+        novelDetailsGenresLayout.removeAllViews()
+        if (novel.genres != null && novel.genres!!.isNotEmpty()) {
             novel.genres!!.forEach {
                 novelDetailsGenresLayout.addView(getGenreTextView(it))
             }
-        }
+        } else novelDetailsGenresLayout.addView(getGenreTextView("N/A"))
     }
 
     fun getGenreTextView(genre: String): TextView {

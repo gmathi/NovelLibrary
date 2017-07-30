@@ -66,6 +66,7 @@ public class DBKeys {
                     + KEY_IMAGE_FILE_PATH + " TEXT, "
                     + KEY_METADATA + " TEXT, "
                     + KEY_CURRENT_WEB_PAGE_ID + " INTEGER, "
+                    + KEY_ORDER_ID + " INTEGER, "
                     + "FOREIGN KEY (" + KEY_CURRENT_WEB_PAGE_ID + ") REFERENCES " + TABLE_WEB_PAGE + "(" + KEY_ID + ")"
                     + ")";
 

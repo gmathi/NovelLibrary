@@ -18,8 +18,7 @@ class RoyalRoadHelper : HtmlHelper() {
         doc.head().getElementsByTag("link").firstOrNull { it.hasAttr("href") && it.attr("href") == "../Site.css" }
     }
 
-    override fun cleanDoc(doc: Document) {
-        removeJS(doc)
+    override fun additionalProcessing(doc: Document) {
         var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("chapter-content") }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
         do {

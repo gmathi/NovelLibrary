@@ -32,8 +32,10 @@ open class HtmlHelper protected constructor() {
     }
 
     fun clean(doc: Document, hostDir: File, novelDir: File) {
+       // removeJS(doc)
         downloadCSS(doc, hostDir)
         downloadImages(doc, novelDir)
+       // additionalProcessing(doc)
         addTitle(doc)
     }
 
@@ -55,7 +57,7 @@ open class HtmlHelper protected constructor() {
         }
     }
 
-    open fun cleanDoc(doc: Document) {
+    open fun additionalProcessing(doc: Document) {
 
     }
 
@@ -100,7 +102,7 @@ open class HtmlHelper protected constructor() {
     }
 
     open fun downloadImage(element: Element, dir: File): File? {
-        val uri = Uri.parse(element.attr("src"))
+        val uri = Uri.parse(element.absUrl("src"))
         val file: File
         try {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: " + uri.toString())

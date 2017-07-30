@@ -121,6 +121,7 @@ fun DBHelper.getAllNovels(): List<Novel> {
                 novel.longDescription = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_LONG_DESCRIPTION))
                 novel.imageFilePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_IMAGE_FILE_PATH))
                 novel.currentWebPageId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CURRENT_WEB_PAGE_ID))
+                novel.orderId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
                 list.add(novel)
             } while (cursor.moveToNext())
         }

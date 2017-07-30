@@ -9,9 +9,9 @@ import org.jsoup.nodes.Document
 import java.io.IOException
 import java.net.URI
 import java.net.URLEncoder
-import java.util.*
 import java.util.concurrent.*
-import kotlin.collections.ArrayList
+import java.util.regex.Pattern
+
 
 class NovelApi {
 
@@ -23,19 +23,12 @@ class NovelApi {
         return Jsoup.connect(url).userAgent(USER_AGENT).get()
     }
 
-    fun search(searchTerms: String): Map<String, ArrayList<Novel>> {
-        val searchTerms = URLEncoder.encode(searchTerms, "UTF-8")
-        val searchResults = HashMap<String, ArrayList<Novel>>()
-        searchNovelUpdates(searchTerms)?.let { searchResults.put(NOVEL_UPDATES, it) }
-        searchRoyalRoad(searchTerms)?.let { searchResults.put(ROYAL_ROAD, it) }
-        return searchResults
-    }
-
     fun searchUrl(url: String): ArrayList<Novel>? {
         val host = URI(url).host
         when {
             host.contains(ROYAL_ROAD) -> return searchRoyalRoadUrl(url)
             host.contains(NOVEL_UPDATES) -> return searchNovelUpdatesUrl(url)
+            host.contains(WLN_UPDATES) -> return searchWlnUpdatesUrl(url)
         }
         return null
     }
@@ -83,7 +76,26 @@ class NovelApi {
         return searchResults
     }
 
-    public fun searchRoyalRoad(searchTerms: String): ArrayList<Novel>? {
+    fun searchWlnUpdatesUrl(url: String): ArrayList<Novel>? {
+        var searchResults: ArrayList<Novel>? = null
+        try {
+            searchResults = ArrayList()
+            val document = getDocumentWithUserAgent(URLEncoder.encode(url, "UTF-8"))
+            val elements = document.body().getElementsByTag("td")
+            for (element in elements) {
+                val novel = Novel()
+                novel.url = element.getElementsByTag("a").firstOrNull()?.absUrl("href")
+                novel.name = element.getElementsByTag("a").firstOrNull()?.text()
+                searchResults.add(novel)
+            }
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return searchResults
+    }
+
+    fun searchRoyalRoad(searchTerms: String): ArrayList<Novel>? {
         var searchResults: ArrayList<Novel>? = null
         try {
             searchResults = ArrayList()
@@ -111,7 +123,7 @@ class NovelApi {
         return searchResults
     }
 
-    public fun searchNovelUpdates(searchTerms: String): ArrayList<Novel>? {
+    fun searchNovelUpdates(searchTerms: String): ArrayList<Novel>? {
         var searchResults: ArrayList<Novel>? = null
         try {
             searchResults = ArrayList()
@@ -135,11 +147,31 @@ class NovelApi {
         return searchResults
     }
 
+    fun searchWlnUpdates(searchTerms: String): ArrayList<Novel>? {
+        var searchResults: ArrayList<Novel>? = null
+        try {
+            searchResults = ArrayList()
+            val document = getDocument("https://www.wlnupdates.com/search?title=" + searchTerms)
+            val elements = document.body().getElementsByTag("td")
+            for (element in elements) {
+                val novel = Novel()
+                novel.url = element.getElementsByTag("a").firstOrNull()?.absUrl("href")
+                novel.name = element.getElementsByTag("a").firstOrNull()?.text()
+                searchResults.add(novel)
+            }
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return searchResults
+    }
+
     fun getChapterUrls(url: String): ArrayList<WebPage>? {
         val host = URI(url).host
         when {
             host.contains(NOVEL_UPDATES) -> return getNUChapterUrlsNew(url)
             host.contains(ROYAL_ROAD) -> return getRRChapterUrls(url)
+            host.contains(WLN_UPDATES) -> return getWLNUChapterUrls(url)
         }
         return null
     }
@@ -178,12 +210,26 @@ class NovelApi {
         return chapters
     }
 
+    private fun getWLNUChapterUrls(url: String): ArrayList<WebPage>? {
+        var chapters: ArrayList<WebPage>? = null
+        try {
+            val document = Jsoup.connect(url).get()
+            chapters = ArrayList<WebPage>()
+            val trElements = document.body().getElementsByTag("tr")?.filter { it.id() == "release-entry" }
+            trElements?.asReversed()?.mapTo(chapters) { WebPage(url = it.child(0).child(0).attr("href"), chapter = it.getElementsByClass("numeric").map { it.text() }.joinToString(separator = ".")) }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return chapters
+    }
+
     fun getNovelDetails(url: String): Novel? {
         var novel: Novel? = null
         val host = URI(url).host
         when {
             host.contains(NOVEL_UPDATES) -> novel = getNUNovelDetails(url)
             host.contains(ROYAL_ROAD) -> novel = getRRNovelDetails(url)
+            host.contains(WLN_UPDATES) -> novel = getWlnNovelDetails(url)
         }
         return novel
     }
@@ -215,8 +261,6 @@ class NovelApi {
                 document.getElementsByClass("genre lang").firstOrNull { it.tagName() == "a" && it.hasAttr("lid") }?.outerHtml())
             novel.metaData.put("Status in Country of Origin",
                 document.getElementById("editstatus").text())
-            novel.metaData.put("Licensed (in English)",
-                document.getElementById("showlicensed").text())
             novel.metaData.put("Licensed (in English)",
                 document.getElementById("showlicensed").text())
             novel.metaData.put("Completely Translated",
@@ -258,6 +302,95 @@ class NovelApi {
         return novel
     }
 
+    fun getWlnNovelDetails(url: String): Novel? {
+        var novel: Novel? = null
+        try {
+            val document = getDocumentWithUserAgent(url)
+            novel = Novel()
+
+            novel.name = document.body().getElementsByTag("h2")?.firstOrNull()?.text()
+            novel.imageUrl = document.body().getElementsByClass("coverimg")?.firstOrNull { it.tagName() == "img" }?.absUrl("src")
+
+            val scriptContent = document.getElementsByTag("script")?.outerHtml()
+            if (scriptContent != null) {
+                val p = Pattern.compile("initialRating\\s[:]\\s(.*?),", Pattern.DOTALL or Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE or Pattern.MULTILINE) // Regex for the value of the key
+                val m = p.matcher(scriptContent)
+                if (m.find()) {
+                    novel.rating = m.group(1)
+                    try {
+                        novel.rating = (novel.rating!!.toInt() / 2).toString()
+                    } catch (e: Exception) {
+                    }
+                }
+            }
+
+            novel.longDescription = document.body().getElementsByClass("description")?.firstOrNull { it.tagName() == "span" }?.getElementsByTag("p")?.text()
+            novel.genres = document.body().getElementsByTag("a")?.filter { it.hasAttr("href") && it.attr("href").contains("/genre-id/") }?.map { it.text() }
+
+            novel.metaData.put("Author(s)",
+                document.getElementsByTag("span")?.filter { it.id() == "author" }?.map {
+                    val linkElement = it.getElementsByTag("a")?.firstOrNull()
+                    if (linkElement != null) {
+                        "<a href=\"${it.getElementsByTag("a")?.firstOrNull()?.absUrl("href")}\">${it.getElementsByTag("a")?.firstOrNull()?.text()}</a>"
+                    } else {
+                        it.text()
+                    }
+                }?.joinToString(", "))
+
+            novel.metaData.put("Artist(s)",
+                document.getElementsByTag("span")?.filter { it.id() == "illustrators" }?.map {
+                    val linkElement = it.getElementsByTag("a")?.firstOrNull()
+                    if (linkElement != null) {
+                        "<a href=\"${it.getElementsByTag("a")?.firstOrNull()?.absUrl("href")}\">${it.getElementsByTag("a")?.firstOrNull()?.text()}</a>"
+                    } else {
+                        it.text()
+                    }
+                }?.joinToString(", "))
+
+            novel.metaData.put("Tags",
+                document.getElementsByTag("span")?.filter { it.id() == "tag" }?.map {
+                    val linkElement = it.getElementsByTag("a")?.firstOrNull()
+                    if (linkElement != null) {
+                        "<a href=\"${it.getElementsByTag("a")?.firstOrNull()?.absUrl("href")}\">${it.getElementsByTag("a")?.firstOrNull()?.text()}</a>"
+                    } else {
+                        it.text()
+                    }
+                }?.joinToString(", "))
+
+            novel.metaData.put("Genre(s)",
+                document.body().getElementsByTag("a")?.filter { it.hasAttr("href") && it.attr("href").contains("/genre-id/") }?.map { "<a href=\"${it.absUrl("href")}\">${it.text()}</a>" }?.joinToString(", "))
+            novel.metaData.put("Type",
+                document.getElementById("type")?.getElementsByClass("dropitem-text")?.text())
+            novel.metaData.put("Language",
+                document.getElementById("orig_lang")?.text())
+            novel.metaData.put("Country of Origin",
+                document.getElementById("origin_loc")?.getElementsByClass("dropitem-text")?.text())
+            novel.metaData.put("Status in Country of Origin",
+                document.getElementById("orig_status")?.text())
+            novel.metaData.put("Licensed (in English)",
+                document.getElementById("license_en")?.getElementsByClass("dropitem-text")?.text())
+            novel.metaData.put("Publisher(s)",
+                document.getElementsByTag("span")?.filter { it.id() == "publisher" }?.map { "<a href=\"${it.getElementsByTag("a")?.firstOrNull()?.absUrl("href")}\">${it.getElementsByTag("a")?.firstOrNull()?.text()}</a>" }?.joinToString(", "))
+            novel.metaData.put("OEL/Translated",
+                document.getElementById("tl_type")?.text())
+            novel.metaData.put("Demographic",
+                document.getElementById("demographic")?.text())
+            novel.metaData.put("General Text",
+                document.getElementById("region")?.getElementsByClass("dropitem-text")?.text())
+            novel.metaData.put("Initial publish date",
+                document.getElementById("pub_date")?.text())
+            novel.metaData.put("Alternate Names",
+                document.getElementsByTag("span")?.filter { it.id() == "altnames" }?.map { it.text() }?.joinToString(", "))
+            novel.metaData.put("Homepage",
+                document.getElementById("website")?.getElementsByTag("a")?.firstOrNull()?.outerHtml())
+
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return novel
+    }
+
 
     //Get Novel-Updates Chapter URLs
     private fun getNUChapterUrlsNew(url: String): ArrayList<WebPage>? {
@@ -274,8 +407,14 @@ class NovelApi {
                 val futureList = ArrayList<Future<ArrayList<WebPage>>>()
                 pageUrls.asSequence().forEach {
                     val callable = Callable<ArrayList<WebPage>> {
-                        val doc = getDocumentWithUserAgent(it)
-                        getNUChapterUrlsFromDoc(doc)
+                        try {
+                            val doc = getDocumentWithUserAgent(it)
+                            getNUChapterUrlsFromDoc(doc)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            ArrayList<WebPage>()
+                        }
+
                     }
                     futureList.add(threadPool.submit(callable))
                 }

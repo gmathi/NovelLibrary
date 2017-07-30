@@ -73,6 +73,26 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
             itemView.widgetSwitch.visibility = View.VISIBLE
             itemView.widgetSwitch.isChecked = dataCenter.loadLibraryScreen
             itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.loadLibraryScreen = value }
+        } else if (position == 3) {
+            itemView.widgetSwitch.visibility = View.VISIBLE
+            itemView.widgetSwitch.isChecked = dataCenter.cleanChapters
+            itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
+                dataCenter.cleanChapters = value
+                if (value) {
+                    dataCenter.javascriptDisabled = value
+                    adapter.notifyDataSetChanged()
+                }
+            }
+        } else if (position == 4) {
+            itemView.widgetSwitch.visibility = View.VISIBLE
+            itemView.widgetSwitch.isChecked = dataCenter.javascriptDisabled
+            itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
+                dataCenter.javascriptDisabled = value
+                if (!value) {
+                    dataCenter.cleanChapters = value
+                    adapter.notifyDataSetChanged()
+                }
+            }
         }
 
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)

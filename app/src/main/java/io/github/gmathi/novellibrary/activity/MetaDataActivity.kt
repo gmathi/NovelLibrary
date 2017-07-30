@@ -18,10 +18,10 @@ import kotlinx.android.synthetic.main.content_chapters.*
 import kotlinx.android.synthetic.main.listitem_metadata.view.*
 import java.util.*
 
-class MetaDataActivity : AppCompatActivity(), GenericAdapter.Listener<Map.Entry<String, String>>, TextViewLinkHandler.OnClickListener {
+class MetaDataActivity : AppCompatActivity(), GenericAdapter.Listener<Map.Entry<String, String?>>, TextViewLinkHandler.OnClickListener {
 
     lateinit var novel: Novel
-    lateinit var adapter: GenericAdapter<Map.Entry<String, String>>
+    lateinit var adapter: GenericAdapter<Map.Entry<String, String?>>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,20 +38,23 @@ class MetaDataActivity : AppCompatActivity(), GenericAdapter.Listener<Map.Entry<
     }
 
     private fun setRecyclerView() {
-        adapter = GenericAdapter(items = (ArrayList(novel.metaData.entries) as ArrayList<Map.Entry<String, String>>), layoutResId = R.layout.listitem_metadata, listener = this)
+        adapter = GenericAdapter(items = (ArrayList(novel.metaData.entries) as ArrayList<Map.Entry<String, String?>>), layoutResId = R.layout.listitem_metadata, listener = this)
         recyclerView.setDefaults(adapter)
         swipeRefreshLayout.setOnRefreshListener { swipeRefreshLayout.isRefreshing = false }
     }
 
-    override fun bind(item: Map.Entry<String, String>, itemView: View, position: Int) {
+    override fun bind(item: Map.Entry<String, String?>, itemView: View, position: Int) {
         itemView.metadataKey.applyFont(assets).text = item.key.toUpperCase(Locale.getDefault())
         itemView.metadataValue.applyFont(assets)
-        itemView.metadataValue.movementMethod = TextViewLinkHandler(this)
-        itemView.metadataValue.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-            Html.fromHtml(item.value, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(item.value)
+        if (item.value != null) {
+            itemView.metadataValue.movementMethod = TextViewLinkHandler(this)
+            @Suppress("DEPRECATION")
+            itemView.metadataValue.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+                Html.fromHtml(item.value, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(item.value)
+        }
     }
 
-    override fun onItemClick(item: Map.Entry<String, String>) {
+    override fun onItemClick(item: Map.Entry<String, String?>) {
 
     }
 

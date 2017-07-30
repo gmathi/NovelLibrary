@@ -1,8 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
-    <changelogversion versionName="0.2.beta" changeDate="07/27/2017">
-        <changelogtext>[b]New![/b] Added suppot for wordpress.com for clean and regular pages with [b]Night Mode[/b] support</changelogtext>
+
+    <changelogversion versionName="0.3.beta" changeDate="07/30/2017">
+        <changelogtext>[b]New![/b] Reorder the novels in your library</changelogtext>
+        <changelogtext>[b]New![/b] Swipe right to delete novels in your library</changelogtext>
+        <changelogtext>[b]New![/b] Added [i]WLN-Updates.com[/i] to the search results (Experimental)</changelogtext>
+        <changelogtext>[b]New![/b] Added more options in General Settings to turn of javascript &amp; clean pages. OFF by default</changelogtext>
+        <changelogtext>[b]New![/b] Added [b]Night Mode[/b] support to Wuxia World &amp; Gravity Tales Novels</changelogtext>
+        <changelogtext>[b]New![/b] Use [b]Volume Buttons[/b] to Scroll up &amp; down a chapter</changelogtext>
+        <changelogtext>[i]Fix[/i] - Images flickering</changelogtext>
+        <changelogtext>[i]Fix[/i] - Share the correct link when redirected from announcement posts</changelogtext>
+        <changelogtext>[i]Fix[/i] - Crashes &amp; Chapters not loading on Reading Screen</changelogtext>
+        <changelogtext>[i]Fix[/i] - Crashes on novels with too many chapters</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion versionName="0.2.1.beta" changeDate="07/27/2017">
+        <changelogtext>[b]New![/b] Added support for wordpress.com for clean and regular pages with [b]Night Mode[/b] support</changelogtext>
         <changelogtext>[b]Fix[/b] - Chapters indexed properly</changelogtext>
         <changelogtext>[b]Fix[/b] - Screen is kept alive on Reading Screen</changelogtext>
         <changelogtext>[b]Fix[/b] - Option to enable faster loading so app doesn't freeze on lower end devices. OFF by default</changelogtext>
@@ -19,7 +34,7 @@
         <changelogtext>Initial Beta release.</changelogtext>
         <changelogimprovement>Reader: Night Mode (experimental, limited support)</changelogimprovement>
         <changelogbug>Chapters List: 1000 Chapters take about 20~30 secs to load</changelogbug>
-        <changelogbug>Downloads List: Pausing download has unstable behaviour</changelogbug>
+        <changelogbug>Downloads List: Pausing downloadChapters has unstable behaviour</changelogbug>
 
     </changelogversion>
 
