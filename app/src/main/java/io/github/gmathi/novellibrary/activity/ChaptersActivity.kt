@@ -5,8 +5,6 @@ import android.content.Intent
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DividerItemDecoration
@@ -15,6 +13,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import co.metalab.asyncawait.async
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
@@ -43,8 +42,9 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
 
     lateinit var novel: Novel
     lateinit var adapter: GenericAdapter<WebPage>
-    var downloadThread: Thread? = null
-    var chapters: ArrayList<WebPage>? = ArrayList()
+    lateinit var chapters: ArrayList<WebPage>
+
+    var sorted: Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,8 +56,8 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
         val dbNovel = dbHelper.getNovel(novel.name!!)
         if (dbNovel != null) novel.copyFrom(dbNovel)
 
-        progressLayout.showLoading()
         setRecyclerView()
+        getChaptersFromDB()
         getChapters()
 
     }
@@ -79,39 +79,52 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
         swipeRefreshLayout.setOnRefreshListener { getChapters() }
     }
 
-    private fun getChapters() {
-        chapters = ArrayList(dbHelper.getAllWebPages(novel.id))
-        if (chapters != null && !chapters!!.isEmpty()) {
-            updateData()
-            progressLayout.showContent()
-        } else {
-            if (!Utils.checkNetwork(this)) {
-                progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
-                    progressLayout.showLoading()
-                    getChapters()
-                })
-                return
-            } else {
-                Toast.makeText(this, getString(R.string.chapters_loading_message), Toast.LENGTH_LONG).show()
+    private fun getChaptersFromDB() {
+        async {
+            progressLayout.showLoading()
+            chapters = await { ArrayList(dbHelper.getAllWebPages(novel.id)) }
+            if (chapters.isNotEmpty()) {
+                updateData()
+                progressLayout.showContent()
             }
         }
+    }
 
-        if (downloadThread != null && downloadThread!!.isAlive && !downloadThread!!.isInterrupted)
-            downloadThread!!.interrupt()
-
-        downloadThread = Thread(Runnable {
-            chapters = NovelApi().getChapterUrls(novel.url!!)
-            if (novel.id != -1L) syncWithChaptersFromDB()
-            Handler(Looper.getMainLooper()).post {
-                if (chapters == null) chapters = ArrayList()
-                updateData()
+    private fun getChapters() {
+        async chapters@ {
+            //Network check and show error only if loading spinner is visible
+            if (!Utils.checkNetwork(this@ChaptersActivity)) {
+                if (progressLayout.isLoading)
+                    progressLayout.showError(ContextCompat.getDrawable(this@ChaptersActivity, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+                        progressLayout.showLoading()
+                        getChapters()
+                    })
+                return@chapters
+            } else {
+                if (progressLayout.isLoading)
+                    Toast.makeText(this@ChaptersActivity, getString(R.string.chapters_loading_message), Toast.LENGTH_LONG).show()
             }
-        })
-        downloadThread!!.start()
+
+            //Download latest chapters from network
+            try {
+                val chapterList = await { NovelApi().getChapterUrls(novel.url!!) }
+                if (chapterList != null)
+                    chapters = chapterList
+            } catch (e: Exception) {
+                if (progressLayout.isLoading)
+                    progressLayout.showError(ContextCompat.getDrawable(this@ChaptersActivity, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
+                        progressLayout.showLoading()
+                        getChapters()
+                    })
+            }
+
+            if (novel.id != -1L) await { syncWithChaptersFromDB() }
+            updateData()
+        }
     }
 
     private fun syncWithChaptersFromDB() {
-        chapters!!.forEach {
+        chapters.forEach {
             val webPage = dbHelper.getWebPage(novel.id, it.url!!)
             if (webPage != null) it.copyFrom(webPage)
         }
@@ -119,42 +132,47 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
 
     @SuppressLint("SetTextI18n")
     private fun updateData() {
-        adapter.updateData(chapters!!)
+        if (sorted)
+            adapter.updateData(ArrayList(chapters.asReversed()))
+        else
+            adapter.updateData(chapters)
+
         scrollToBookmark()
         progressLayout.showContent()
         swipeRefreshLayout.isRefreshing = false
 
         downloadLabel.applyFont(assets).text = getString(R.string.downloaded) + ": "
         updateChapterCount()
-        setDownloadButton()
+        updateDownloadButtonState()
         invalidateOptionsMenu()
     }
 
-    private fun setDownloadButton() {
+    //region DownloadButton States
 
-        chaptersDownloadButton.setOnClickListener {
-            progressLayout.showLoading()
-            setToDownloadingButton()
-            addChaptersToDB()
-        }
-
+    private fun updateDownloadButtonState() {
+        chaptersDownloadButton.setOnClickListener { downloadChapters() }
         setToDownloadButton()
-        if (novel.id != -1L) {
-            val dq = dbHelper.getDownloadQueue(novel.id)
-            val readableWebPages = dbHelper.getAllReadableWebPages(novel.id)
 
-            if (dq != null) {
-                if (dq.status == Constants.STATUS_DOWNLOAD) {
-                    setToDownloadingButton()
-                } else if (dq.status == Constants.STATUS_COMPLETE) {
-                    if (readableWebPages.size != chapters!!.size)
-                        setToSyncButton()
-                    else
-                        setToDownloadCompleteButton()
+        if (novel.id != -1L) {
+
+            async {
+                val dq = await { dbHelper.getDownloadQueue(novel.id) }
+                val readableWebPages = await { dbHelper.getAllReadableWebPages(novel.id) }
+
+                if (dq != null) {
+                    if (dq.status == Constants.STATUS_DOWNLOAD) {
+                        setToDownloadingButton()
+                    } else if (dq.status == Constants.STATUS_COMPLETE) {
+                        if (readableWebPages.size != chapters.size)
+                            setToSyncButton()
+                        else
+                            setToDownloadCompleteButton()
+                    }
                 }
             }
         }
     }
+
 
     private fun setToDownloadButton() {
         chaptersDownloadButton.isClickable = true
@@ -189,16 +207,17 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
         chaptersDownloadButton.setText(getString(R.string.sync))
     }
 
+    //endregion
 
     @SuppressLint("SetTextI18n")
     override fun bind(item: WebPage, itemView: View, position: Int) {
 
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            itemView.chapterStatusImage.drawable?.mutate()?.setTint(ContextCompat.getColor(this, R.color.White))
-//        }
-
         if (item.filePath != null) {
-            itemView.chapterTitleTextView.text = item.title
+
+            if ((item.title != null) && (item.chapter != null) && item.title!!.contains(item.chapter!!))
+                itemView.chapterTitleTextView.text = item.title
+            else itemView.chapterTitleTextView.text = "${item.chapter}: ${item.title}"
+
             itemView.chapterStatusImage.setImageResource(R.drawable.ic_beenhere_white_vector)
         } else {
             itemView.chapterTitleTextView.text = item.chapter
@@ -235,7 +254,16 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
     }
 
     override fun onItemClick(item: WebPage) {
-        startReaderPagerActivity(novel, item, chapters)
+        val index = chapters.indexOf(item)
+        val smallerData = ArrayList<WebPage>()
+
+        val transferLimit = 30
+        (index - transferLimit-1..index + transferLimit)
+            .asSequence()
+            .filter { it >= 0 && it < chapters.size }
+            .mapTo(smallerData) { chapters[it] }
+
+        startReaderPagerActivity(novel, item, smallerData)
     }
 
     override fun onResume() {
@@ -252,9 +280,14 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
     fun onWebPageDownload(event: NovelEvent) {
         if (novel.id == event.novelId) {
             if (EventType.UPDATE == event.type) {
-                updateChapterCount()
                 if (event.webPage != null) {
+                    val index = chapters.indexOf(event.webPage!!)
+                    if (index != -1) {
+                        chapters.removeAt(index)
+                        chapters.add(index, event.webPage!!)
+                    }
                     adapter.updateItem(event.webPage!!)
+                    updateChapterCount()
                 }
 
             } else if (event.type == EventType.COMPLETE) {
@@ -267,34 +300,43 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
     @SuppressLint("SetTextI18n")
     private fun updateChapterCount() {
         if (novel.id != -1L) {
-            val webPages = dbHelper.getAllReadableWebPages(novel.id)
-            val allPages = dbHelper.getAllWebPages(novel.id)
-            chaptersDownloadStatus.applyFont(assets).text = "${webPages.size}/${chapters?.size}"
-            if (allPages == webPages) setToDownloadCompleteButton()
+            val webPages = chapters.filter { it.filePath != null }.count()
+            chaptersDownloadStatus.applyFont(assets).text = "${webPages}/${chapters.size}"
+            if (chapters.size == webPages) setToDownloadCompleteButton()
         } else {
-            chaptersDownloadStatus.applyFont(assets).text = "0/${chapters?.size}"
+            chaptersDownloadStatus.applyFont(assets).text = "0/${chapters.size}"
         }
     }
 
-    private fun addChaptersToDB() {
-        if (novel.id == -1L) novel.id = dbHelper.insertNovel(novel)
-        dbHelper.createDownloadQueue(novel.id)
-        dbHelper.updateDownloadQueueStatus(Constants.STATUS_DOWNLOAD, novel.id)
-        chapters!!.asReversed().forEach {
-            it.novelId = novel.id
-            val dbWebPage = dbHelper.getWebPage(it.novelId, it.url!!)
-            if (dbWebPage == null)
-                it.id = dbHelper.createWebPage(it)
-            else
-                it.copyFrom(dbWebPage)
-        }
-        addToDownloads()
-    }
+    private fun downloadChapters() {
+        async {
+            progressLayout.showLoading()
+            setToDownloadingButton()
 
-    private fun addToDownloads() {
-        adapter.notifyDataSetChanged()
-        startDownloadService(novel.id)
-        progressLayout.showContent()
+            //Add Chapters to database
+            await {
+                if (novel.id == -1L)
+                    novel.id = dbHelper.insertNovel(novel)
+                dbHelper.createDownloadQueue(novel.id)
+                dbHelper.updateDownloadQueueStatus(Constants.STATUS_DOWNLOAD, novel.id)
+
+                chapters.asReversed().forEach {
+                    it.novelId = novel.id
+                    val dbWebPage = dbHelper.getWebPage(it.novelId, it.url!!)
+                    if (dbWebPage == null)
+                        it.id = dbHelper.createWebPage(it)
+                    else
+                        it.copyFrom(dbWebPage)
+                }
+            }
+
+            //Add to Downloads by calling Download Service
+            if (!isFinishing) {
+                adapter.notifyDataSetChanged()
+                startDownloadService(novel.id)
+                progressLayout.showContent()
+            }
+        }
     }
 
     private fun startDownloadService(novelId: Long) {
@@ -316,6 +358,7 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         if (item?.itemId == android.R.id.home) finish()
         else if (item?.itemId == R.id.action_sort) {
+            sorted = !sorted
             val newChapters = ArrayList<WebPage>(adapter.items.asReversed())
             adapter.updateData(newChapters)
         }
@@ -326,7 +369,10 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
         if (requestCode == Constants.READER_ACT_REQ_CODE) {
             if (novel.id != -1L) novel = dbHelper.getNovel(novel.id)!!
             syncWithChaptersFromDB()
-            adapter.updateData(chapters!!)
+            if (sorted)
+                adapter.updateData(ArrayList(chapters.reversed()))
+            else
+                adapter.updateData(chapters)
             adapter.notifyDataSetChanged()
             scrollToBookmark()
         }
@@ -342,10 +388,10 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
         }
     }
 
-    override fun onStop() {
-        super.onStop()
-        if (downloadThread != null && downloadThread!!.isAlive)
-            downloadThread!!.interrupt()
+    override fun onDestroy() {
+        super.onDestroy()
+        async.cancelAll()
     }
+
 
 }

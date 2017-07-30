@@ -5,7 +5,7 @@ import org.jsoup.nodes.Document
 
 class KobatochanCleaner : HtmlHelper() {
 
-    override fun cleanDoc(doc: Document) {
+    override fun additionalProcessing(doc: Document) {
         var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
         do {
             contentElement?.siblingElements()?.remove()

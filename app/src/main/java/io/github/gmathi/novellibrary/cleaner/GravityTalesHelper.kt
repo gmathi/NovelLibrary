@@ -5,16 +5,7 @@ import org.jsoup.nodes.Document
 
 class GravityTalesHelper : HtmlHelper() {
 
-//    private val  ROYAL_ROAD_SITE_THEME_ID: String = "siteThemeRoyalRoad"
-
-//    override fun downloadCSS(doc: Document, downloadDir: File) {
-//        doc.head().append("<link id=\"${ROYAL_ROAD_SITE_THEME_ID}\" href=\"/Content/Themes/Bootstrap/Site-dark.css\" rel=\"stylesheet\">")
-//        //doc.head().getElementsByTag("link").firstOrNull { it.hasAttr("href") && it.attr("href") == "/Content/Themes/Bootstrap/Site.css" }?.remove()
-//        super.downloadCSS(doc, downloadDir)
-//        doc.head().getElementsByTag("link").firstOrNull { it.hasAttr("href") && it.attr("href") == "../Site.css" }
-//    }
-
-    override fun cleanDoc(doc: Document) {
+    override fun additionalProcessing(doc: Document) {
         var contentElement = doc.body().getElementById("chapterContent")
         //contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
         do {
@@ -23,5 +14,15 @@ class GravityTalesHelper : HtmlHelper() {
         } while (contentElement?.tagName() != "body")
     }
 
+    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
+        if (isDark) {
+            doc.head().append("<style id=\"darkTheme\">" +
+                ".container.wrap {background-color:#131313;} body { background-color:#131313; color:rgba(255, 255, 255, 0.8); } </style> ")
+        } else {
+            doc.head().getElementById("darkTheme")?.remove()
+        }
+
+        return doc
+    }
 
 }

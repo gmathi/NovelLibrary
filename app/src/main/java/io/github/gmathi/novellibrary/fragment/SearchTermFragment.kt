@@ -29,6 +29,7 @@ import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
 import java.io.File
 import java.io.FileOutputStream
+import java.net.URLEncoder
 
 
 class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
@@ -78,7 +79,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
     private fun searchNovels() {
 
-        if (resultType == HostNames.ROYAL_ROAD && dataCenter.lockRoyalRoad)  {
+        if (resultType == HostNames.ROYAL_ROAD && dataCenter.lockRoyalRoad) {
             progressLayout.showEmpty(ContextCompat.getDrawable(context, R.drawable.ic_phonelink_lock_white_vector), getString(R.string.content_restricted))
             return
         }
@@ -94,8 +95,16 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         if (downloadThread != null && downloadThread!!.isAlive && !downloadThread!!.isInterrupted)
             downloadThread!!.interrupt()
         downloadThread = Thread(Runnable {
-            val resultsMap = NovelApi().search(searchTerm)
-            var results: ArrayList<Novel>? = resultsMap[resultType]
+
+            val searchTerms = URLEncoder.encode(searchTerm, "UTF-8")
+            var results: ArrayList<Novel>? = null
+            if (resultType == HostNames.NOVEL_UPDATES)
+                results = NovelApi().searchNovelUpdates(searchTerms)
+            else if (resultType == HostNames.ROYAL_ROAD)
+                results = NovelApi().searchRoyalRoad(searchTerms)
+            else if (resultType == HostNames.WLN_UPDATES)
+                results = NovelApi().searchWlnUpdates(searchTerms)
+
             if (results == null) results = ArrayList()
             Handler(Looper.getMainLooper()).post {
                 if (isVisible && (!isDetached || !isRemoving)) {
@@ -128,29 +137,31 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
     override fun bind(item: Novel, itemView: View, position: Int) {
         itemView.novelImageView.setImageResource(android.R.color.transparent)
-        val file = File(activity.filesDir, Constants.IMAGES_DIR_NAME + "/" + Uri.parse(item.imageUrl).getFileName())
-        if (file.exists())
-            item.imageFilePath = file.path
 
-        if (item.imageFilePath == null) {
-            Glide.with(this).asBitmap().load(item.imageUrl).into(object : SimpleTarget<Bitmap>() {
-                override fun onResourceReady(bitmap: Bitmap?, transition: Transition<in Bitmap>?) {
-                    itemView.novelImageView.setImageBitmap(bitmap)
-                    Thread(Runnable {
-                        try {
-                            val os = FileOutputStream(file)
-                            bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, os)
-                            item.imageFilePath = file.path
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }).start()
-                }
-            })
-        } else {
-            Glide.with(this).load(File(item.imageFilePath)).into(itemView.novelImageView)
+        if (item.imageUrl != null) {
+            val file = File(activity.filesDir, Constants.IMAGES_DIR_NAME + "/" + Uri.parse(item.imageUrl).getFileName())
+            if (file.exists())
+                item.imageFilePath = file.path
+
+            if (item.imageFilePath == null) {
+                Glide.with(this).asBitmap().load(item.imageUrl).into(object : SimpleTarget<Bitmap>() {
+                    override fun onResourceReady(bitmap: Bitmap?, transition: Transition<in Bitmap>?) {
+                        itemView.novelImageView.setImageBitmap(bitmap)
+                        Thread(Runnable {
+                            try {
+                                val os = FileOutputStream(file)
+                                bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, os)
+                                item.imageFilePath = file.path
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }).start()
+                    }
+                })
+            } else {
+                Glide.with(this).load(File(item.imageFilePath)).into(itemView.novelImageView)
+            }
         }
-
 
         //Other Data Fields
         itemView.novelTitleTextView.text = item.name

@@ -73,6 +73,11 @@ fun Activity.startSearchResultsActivity(title: String, url: String) {
     startActivityForResult(intent, Constants.SEARCH_RESULTS_ACT_REQ_CODE)
 }
 
+fun Activity.startGeneralSettingsActivity() {
+    val intent = Intent(this, GeneralSettingsActivity::class.java)
+    startActivity(intent)
+}
+
 fun Activity.startCopyrightActivity() {
     val intent = Intent(this, CopyrightActivity::class.java)
     startActivity(intent)

@@ -7,6 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
+    android:keepScreenOn="true"
     tools:context=".activity.ReaderPagerActivity">
 
     <!--<android.support.design.widget.AppBarLayout-->
@@ -41,7 +42,7 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:layout_gravity="bottom"
-        app:floatingMenu="@menu/menu_reader_pager" />
+        app:floatingMenu="@menu/menu_reader_pager"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
@@ -49,6 +50,14 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@drawable/ic_call_to_action_white_vector" />
+        app:srcCompat="@drawable/ic_call_to_action_white_vector"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabClean"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_margin="@dimen/fab_margin"
+        app:srcCompat="@drawable/ic_layers_clear_white_vector"/>
 
 </android.support.design.widget.CoordinatorLayout>

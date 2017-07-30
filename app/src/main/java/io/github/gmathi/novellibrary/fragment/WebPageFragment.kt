@@ -2,8 +2,6 @@ package io.github.gmathi.novellibrary.fragment
 
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
@@ -11,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import co.metalab.asyncawait.async
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.WebPageAdapter
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
@@ -27,10 +26,22 @@ import java.io.File
 
 class WebPageFragment : Fragment() {
 
+    companion object {
+        private val WEB_PAGE = "webPage"
+        fun newInstance(webPage: WebPage): WebPageFragment {
+            val fragment = WebPageFragment()
+            val args = Bundle()
+            args.putSerializable(WEB_PAGE, webPage)
+            fragment.arguments = args
+            return fragment
+        }
+    }
+
+    lateinit var webPage: WebPage
+    lateinit var doc: Document
+
     var listener: WebPageAdapter.Listener? = null
-    var webPage: WebPage? = null
-    var doc: Document? = null
-    var downloadThread: Thread? = null
+    var isCleaned: Boolean = false
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -39,9 +50,19 @@ class WebPageFragment : Fragment() {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        webPage = arguments.getSerializable(WEB_PAGE) as WebPage?
-        if (webPage == null) activity.finish()
 
+        isCleaned = false
+        //Get WebPage from Intent
+        val intentWebPage = arguments.getSerializable(WEB_PAGE) as WebPage?
+        if (intentWebPage == null) activity.finish()
+        else webPage = intentWebPage
+
+        //Hide the clean button
+        if (dataCenter.cleanChapters) {
+            activity.fabClean.hide()
+        }
+
+        //Setup Scrolling Fab
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             readerWebView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
                 run {
@@ -56,93 +77,98 @@ class WebPageFragment : Fragment() {
             }
         }
 
-        if (webPage!!.filePath != null) {
-            val internalFilePath = "file://${webPage!!.filePath}"
-            if (webPage!!.filePath!!.contains("royalroadl.com")) {
-                applyTheme(internalFilePath)
-            } else {
-                readerWebView.loadUrl(internalFilePath)
-            }
-        } else {
-            if (webPage != null && webPage!!.url != null)
-                downloadWebPage(webPage!!.url!!)
-        }
+        //Setup WebView
         setWebView()
+
+        loadData()
+
+        swipeRefreshLayout.setOnRefreshListener { loadData() }
     }
 
-    private fun downloadWebPage(url: String) {
-        progressLayout.showLoading()
-        if (!Utils.checkNetwork(activity)) {
-            progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
-                downloadWebPage(url)
-            })
-            return
+    fun loadData() {
+        //Load with downloaded HTML File
+        if (webPage.filePath != null) {
+            val internalFilePath = "file://${webPage.filePath}"
+            val input = File(internalFilePath.substring(7))
+
+            var url = webPage.redirectedUrl
+            if (url == null) url = internalFilePath
+
+            doc = Jsoup.parse(input, "UTF-8", url)
+            if (dataCenter.cleanChapters) cleanPage() else
+                loadDocument()
+            swipeRefreshLayout.isRefreshing = false
         }
-
-        if (downloadThread != null && downloadThread!!.isAlive && !downloadThread!!.isInterrupted)
-            downloadThread!!.interrupt()
-        downloadThread = Thread(Runnable {
-            try {
-                val doc = NovelApi().getDocumentWithUserAgent(url)
-                val cleaner = HtmlHelper.getInstance(doc.location())
-                cleaner.removeJS(doc)
-                cleaner.cleanDoc(doc)
-                cleaner.toggleTheme(dataCenter.isDarkTheme, doc)
-                Handler(Looper.getMainLooper()).post {
-                    loadDocument(doc)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        })
-        downloadThread!!.start()
-    }
-
-    private fun loadDocument(doc: Document) {
-        if (activity != null && (!isRemoving || !isDetached)) {
-            this.doc = doc
-            progressLayout.showContent()
-            readerWebView.loadDataWithBaseURL(doc.location(), doc.outerHtml(), "text/html", "UTF-8", null)
+        //Load from Internet
+        else {
+            if (webPage.url != null)
+                downloadWebPage(webPage.url!!)
         }
     }
 
     fun setWebView() {
-        //readerWebView.setOnClickListener { if (!floatingToolbar.isShowing) floatingToolbar.show() else floatingToolbar.hide() }
+        readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled
         readerWebView.webViewClient = object : WebViewClient() {
             @Suppress("OverridingDeprecatedMember")
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                if (listener != null && listener!!.checkUrl(url)) return true
-                if (url != null) {
-                    downloadWebPage(url); return true
+                //First page
+                if (url == doc.location()) {
+                    return true
                 }
+
+                //Handle the known links like next and previous chapter if downloaded
+                if (listener != null && listener!!.checkUrl(url)) return true
+
+                //Any other urls that are not part of the index
+                if (url != null) {
+                    downloadWebPage(url)
+                    return true
+                }
+
+                //If everything else fails, default loading of the WebView
                 return false
             }
         }
         changeTextSize(dataCenter.textSize)
     }
 
-    companion object {
-        private val WEB_PAGE = "webPage"
-        fun newInstance(webPage: WebPage): WebPageFragment {
-            val fragment = WebPageFragment()
-            val args = Bundle()
-            args.putSerializable(WEB_PAGE, webPage)
-            fragment.arguments = args
-            return fragment
+    private fun downloadWebPage(url: String) {
+        async download@ {
+
+            try {
+                progressLayout.showLoading()
+
+                //If no network
+                if (!Utils.checkNetwork(activity)) {
+                    progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+                        downloadWebPage(url)
+                    })
+                    return@download
+                }
+
+                doc = await { NovelApi().getDocumentWithUserAgent(url) }
+                val cleaner = HtmlHelper.getInstance(doc.location())
+                if (dataCenter.cleanChapters) {
+                    cleaner.removeJS(doc)
+                    cleaner.additionalProcessing(doc)
+                    HtmlHelper.getInstance(doc.location()).additionalProcessing(doc)
+                } else {
+                    isCleaned = false
+                    activity.fabClean.show()
+                }
+
+                loadDocument()
+                swipeRefreshLayout.isRefreshing = false
+                progressLayout.showContent()
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                if (isResumed && !isRemoving && !isDetached)
+                    progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
+                        downloadWebPage(url)
+                    })
+            }
         }
-    }
-
-    private fun applyTheme(internalFilePath: String) {
-        val input = File(internalFilePath.substring(7))
-        val doc = Jsoup.parse(input, "UTF-8", internalFilePath)
-        applyTheme(doc, internalFilePath)
-    }
-
-    private fun applyTheme(doc: Document, internalFilePath: String) {
-        readerWebView.loadDataWithBaseURL(
-            internalFilePath,
-            HtmlHelper.getInstance(doc.location()).toggleTheme(dataCenter.isDarkTheme, doc).outerHtml(),
-            "text/html", "UTF-8", null)
     }
 
     fun changeTextSize(size: Int) {
@@ -150,23 +176,39 @@ class WebPageFragment : Fragment() {
         settings.textZoom = (size + 50) * 2
     }
 
-    fun reloadPage() {
-        if (webPage!!.filePath != null) {
-            val internalFilePath = "file://${webPage!!.filePath}"
-            applyTheme(internalFilePath)
-        } else if (doc != null) {
-            applyTheme(doc!!, doc!!.location())
-        }
+    fun loadDocument() {
+        readerWebView.loadDataWithBaseURL(
+            doc.location(),
+            doc.outerHtml(),
+            "text/html", "UTF-8", null)
+    }
+
+    fun applyTheme() {
+        HtmlHelper.getInstance(doc.location()).toggleTheme(dataCenter.isDarkTheme, doc)
     }
 
     fun getUrl(): String? {
-        if (webPage?.redirectedUrl != null) return webPage?.redirectedUrl
-        if (doc?.location() != null) doc?.location()
-        return webPage?.url
+        if (doc.location() != null) return doc.location()
+        return webPage.url
     }
 
-    override fun onPause() {
-        super.onPause()
-        downloadThread?.interrupt()
+
+    fun cleanPage() {
+        if (!isCleaned) {
+            progressLayout.showLoading()
+            readerWebView.settings.javaScriptEnabled = false
+            HtmlHelper.getInstance(doc.location()).removeJS(doc)
+            HtmlHelper.getInstance(doc.location()).additionalProcessing(doc)
+            applyTheme()
+            loadDocument()
+            progressLayout.showContent()
+            isCleaned = true
+        }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        async.cancelAll()
+    }
+
 }
