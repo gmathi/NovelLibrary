@@ -1,12 +1,22 @@
 [
   {
     "name": "@eCookie",
-    "description": "Translations in German Language.",
+    "description": "Translations in German Language",
     "link": ""
   },
   {
     "name": "@sunnypack",
-    "description": "Application Description.",
+    "description": "Application Description",
+    "link": ""
+  },
+  {
+    "name": "@wax911",
+    "description": "Application Theme",
+    "link": "https://wax911.github.io/"
+  },
+  {
+    "name": "@@Yotsuba Mayumi",
+    "description": "Translations in Spanish Language",
     "link": ""
   }
 
