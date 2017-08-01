@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
-    <changelogversion
-        changeDate="08/01/2017"
-        versionName="0.3.2.beta">
-        <changelogtext>[b] Neu! [/b] Spanische Übersetzung für die App hinzugefügt</changelogtext>
+    <changelogversion versionName="0.3.2.beta" changeDate="08/01/2017">
+        <changelogtext>[b] Neu! [/b] Spanische Übersetzung für die App</changelogtext>
+        <changelogtext>[b] Neu! [/b] Portugiesische Übersetzung für die App </changelogtext>
+        <changelogtext>[i] Fix [/i] - Wuxia World Reinigung löschte auch den Inhalt der Kapitel!</changelogtext>
         <changelogtext>[i] Fix [/i] - Bug Fixes für gemeldete Abstürze!</changelogtext>
     </changelogversion>
 

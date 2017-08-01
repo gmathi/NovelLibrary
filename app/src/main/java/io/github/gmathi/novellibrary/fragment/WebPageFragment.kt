@@ -154,7 +154,6 @@ class WebPageFragment : Fragment() {
                     cleaner.removeJS(doc)
                     cleaner.additionalProcessing(doc)
                     cleaner.toggleTheme(dataCenter.isDarkTheme, doc)
-                    HtmlHelper.getInstance(doc.location()).additionalProcessing(doc)
                 } else {
                     isCleaned = false
                     activity.fabClean.show()

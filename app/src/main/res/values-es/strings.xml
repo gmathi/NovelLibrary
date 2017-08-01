@@ -1,0 +1,154 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+       Important please do not change the order of the string-arrays or generally anything unless it's text you're translating
+
+       What You'll Need:
+
+       1. A good text editor I recommend Atom (https://atom.io/), Sublime (https://www.sublimetext.com/), Brackets (http://brackets.io/) if you want to use something else no problem
+       2. A little knowledge on basic HTML things like <p> <b> <i> <br/> since there are certain parts I used a bit of html to format information https://www.w3schools.com/tags/
+       3. Know what character escaping is, because you cannot use characters like ' or , or ; or & or $ or % e.t.c without escaping them. e.g.
+          What\'s Trending should become What\'s Trending (Refer to http://www.ascii.cl/htmlcodes.htm look at the HTML Name Column for some conventions) not what i am looking for?
+
+       Just a quick note for translators, if you see some text that has %s or %d or %f just leave those as they are those are place holders:
+       %s - is a place holder for text most likely coming from NovelLibrary, e.g. %s liked your status post -> will be eCookie or Josh liked your status post
+       %d - is a place holder for a number, e.g. You have %d notifications -> will be You have 1 or 3 or 10 notifications
+       %f - is also a place holder for a decimal number works exactly as the others mentioned above
+
+       I know different languages have different rules like RTL so if you need to change the positions/order of %s or %d or %f you can still do so just don't remove the % sign
+       N.B. If any of the tags <string name="abc" translatable="false" ></string> have an attribute labeled translatable="false" it means you should not translate it!
+       So you can just omit those fields
+
+       Special Cases:
+       1. There are some cases I used <![CDATA[ some text here ]]>  CDATA sections are used to escape blocks of text containing characters that would otherwise be regarded as markup.
+       The only delimiter that is recognized in a CDATA section is the "]]>" string that ends the CDATA section. CDATA sections cannot be nested.
+       Their primary purpose is for including material such as XML fragments, without needing to escape all the delimiters.
+
+       Uploading your files:
+       You may just send the files directly and the file name should be something like strings_en.xml for english and strings_fr.xml for french respective of your locale
+       To All Translators I am very grateful for your help! :)
+   -->
+
+
+    <string-array name="search_tab_titles">
+        <item>Popular-Ahora</item>
+        <item>Mejor-Calificadas</item>
+        <item>Clasificación-de-Activas</item>
+    </string-array>
+
+    <string name="title_activity_novel_details">Novela</string>
+    <string name="title_activity_settings">Configuración</string>
+    <string name="title_activity_chapters">Capítulos</string>
+    <string name="title_activity_meta_data">Más Información</string>
+
+
+    <string name="action_settings">Congiguración</string>
+    <string name="action_sync">Sincronizar para actualizar</string>
+    <string name="action_favourite">Favorito</string>
+    <string name="action_bookmark">Marcador</string>
+
+
+    <string name="title_library">Librería</string>
+    <string name="title_search">Busqueda</string>
+    <string name="title_downloads">Descarga</string>
+
+    <string name="app_description">Una aplicación para todas tus novelas</string>
+
+    <!-- Strings related to Settings -->
+    <!--<string name="pref_title_dark_theme">Tema Página Nocturna</string>-->
+    <!--<string name="pref_description_dark_theme">Solo RoyalRoadl.com funciona por ahora</string>-->
+    <!--<string name="pref_title_experimental_download">Descarga Rápida (Experimental) </string>-->
+    <!--<string name="pref_description_experimental_download">Descarga rápido. Es posible que la aplicación se congele durante un tiempo.</string>-->
+    <!--<string name="pref_title_queue_novel_downloads">Reservar descargas de novelas </string>-->
+    <!--<string name="pref_description_queue_novel_downloads">Descarga novelas una después de la otra. Si está inhabilitado, se descargararán simultáneamente un máximo de 5 novelas. </string>-->
+    <!--<string name="pref_title_download_latest_first">Descargar Reciente Primero</string>-->
+    <!--<string name="pref_description_download_latest_first">Descargar el capítulo mas reciente primero.</string>-->
+
+
+    <!-- Transition Names -->
+    <string name="synopsis">Resumen</string>
+    <string name="genres">Generos</string>
+    <string name="chapters">Capítulos</string>
+    <string name="legal">Legal</string>
+
+    <string name="download">Descargar</string>
+    <string name="downloaded">Descargado</string>
+    <string name="downloading">Descargando</string>
+    <string name="chapters_loading_message">Cargar puede tardarse, dependiendo del numero de capítulos</string>
+
+    <string name="no_internet">No hay internet!</string>
+    <string name="try_again">Intente de nuevo</string>
+    <string name="clear">Borrar</string>
+    <string name="clear_data">Borrar la Data y el Cache</string>
+    <string name="clear_data_description">Borra el Cache, los archivos y la base de datos</string>
+    <string name="sync">Sincronizar</string>
+    <string name="remove_from_library">Remover de Librería</string>
+    <string name="cancel">Cancelar</string>
+    <string name="remove">Remover</string>
+    <string name="confirm_remove">Confirmación para Remover</string>
+    <string name="confirm_remove_description">La novela sera removida de la Librería y todos sus capítulos seran borrados</string>
+    <string name="remove_from_downloads">Remover de Descargas?</string>
+    <string name="add_to_library">Añadir a Librería</string>
+    <string name="in_library">En Librería</string>
+    <string name="sort">Ordenar</string>
+    <string name="sort_chapters">Ordenar Capitulos</string>
+    <string name="clearing_data">Borrando Data</string>
+    <string name="please_wait">Por favor espere…</string>
+    <string name="theme">Tema</string>
+    <string name="toggle_theme">Alternar Tema</string>
+    <string name="close_menu">Cerrar Menú</string>
+    <string name="close">Cerrar</string>
+    <string name="text_size">Tamaño del Texto</string>
+    <string name="more_information">Más Información</string>
+    <string name="more_info_description">Artistas, Licencia, Traductores, …</string>
+    <string name="search_novel">Buscar Novela</string>
+    <string name="bug_report">Reportar Erorres</string>
+    <string name="open_in_browser">Abrir en Navegador</string>
+    <string name="share">Compartir</string>
+    <string name="copyright_notice">Notificación de Derechos de Autor</string>
+    <string name="donate_developer">Donar al Desarrollador</string>
+    <string name="about_us">Sobre Nosotros</string>
+    <string name="libraries_used">Librerías Usadas</string>
+    <string name="contributions">Contribuciones</string>
+    <string name="donate">Donar</string>
+    <string name="donation_email_body">Gracias por el esfuerzo. Me gustaría ver esto en la proxima versión y aquí dejo una donación.</string>
+    <string name="content_restricted">Contenido Restringido!</string>
+    <string name="lock_hint">Hay botones ocultos para encontrar el contenido. Que tengas suerte al buscarlos!!</string>
+
+
+    <string name="copyright_content" tools:ignore="TypographyQuotes">
+        "Novel Library es una aplicación para proporcionar servicios de agregación de resultados de búsqueda para "
+        "lectores de novelas. Todos los contenidos de Novel Library son compartidos por los lectores o automáticamente "
+        "buscados y compilados de la internet por el programa. Novel Library no produce el contenido. \n\n"
+
+        "Los derechos de autor de todos los contenidos de la aplicación Novel Library pertenecen tanto al autor como a "
+        "la casa editorial. Si tiene alguna pregunta sobre los derechos de autor del contenido, póngase en contacto con "
+        "nosotros y nosotros nos pondremos en contacto y removeremos el contenido. \n\n"
+
+        "Todos condtenido de la aplicación Novel Library representa la perspectiva personal del autor, "
+        "y no representa la posición de la aplicación. No tenemos responsabilidad legal. "
+        "Si encuentra algún contenido que viole la ley, por favor informenos y lo revisaremos. \n\n"
+
+        "contacto: gmathi.developer@gmail.com\n"
+
+    </string>
+
+    <string name="donate_content" tools:ignore="TypographyQuotes">
+        "Donaciones contribuyen a actualizaciones más frecuentes con mayor contenido. "
+        "Puedes usar el correo electronico para enviar donaciones a gmathi.developer@gmail.com "
+    </string>
+    <string name="app_exit">Presione Regresar de nuevo para salir de la aplicación</string>
+    <string name="general">General</string>
+    <string name="faster_downloads">Descargas más rapidas</string>
+    <string name="faster_downloads_description">Descarga a mayor velocidad pero se puede congelar la aplicación.</string>
+    <string name="first_screen_library">Hacer “Librería” la pantalla principal</string>
+    <string name="first_screen_library_description">Si está desactivado, “Buscar” será la pantalla principal.</string>
+    <string name="clean_pages">Limpiar Capítulos</string>
+    <string name="clean_pages_description">Limpia los capítulos antes de cargarlos.</string>
+    <string name="failed_to_load_url">Error al recibir contenido!</string>
+    <string name="disable_javascript">Desactivar Javascript</string>
+    <string name="disable_javascript_description">Cuando javascript está permitido, algunos sitios web redireccionan a anuncios</string>
+    <string name="changelog">Registro de cambios</string>
+
+
+</resources>
