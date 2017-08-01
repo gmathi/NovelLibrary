@@ -20,7 +20,7 @@ import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.event.EventType
 import io.github.gmathi.novellibrary.event.NovelEvent
-import io.github.gmathi.novellibrary.extension.setDefaults
+import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.model.DownloadQueue
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.service.DownloadService

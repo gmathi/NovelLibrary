@@ -14,9 +14,6 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.updateCurrentWebPageId
 import io.github.gmathi.novellibrary.database.updateWebPageReadStatus
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extension.openInBrowser
-import io.github.gmathi.novellibrary.extension.sendEmail
-import io.github.gmathi.novellibrary.extension.shareUrl
 import io.github.gmathi.novellibrary.fragment.WebPageFragment
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage

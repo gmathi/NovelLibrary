@@ -23,8 +23,8 @@ import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.database.updateOrderId
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.event.NovelEvent
-import io.github.gmathi.novellibrary.extension.getFileName
-import io.github.gmathi.novellibrary.extension.setDefaults
+import io.github.gmathi.novellibrary.util.getFileName
+import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.service.DownloadService
 import io.github.gmathi.novellibrary.util.Constants

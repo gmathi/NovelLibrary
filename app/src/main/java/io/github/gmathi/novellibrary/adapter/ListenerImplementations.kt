@@ -1,7 +1,6 @@
-package io.github.gmathi.novellibrary.extension
+package io.github.gmathi.novellibrary.adapter
 
 import android.support.v4.app.Fragment
-import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.fragment.SearchTermFragment
 import io.github.gmathi.novellibrary.fragment.SearchUrlFragment
 import io.github.gmathi.novellibrary.network.HostNames

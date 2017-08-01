@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+    <changelogversion versionName="0.3.2.beta" changeDate="08/01/2017">
+        <changelogtext>[b]New![/b] Added Spanish Translation for the app</changelogtext>
+        <changelogtext>[b]New![/b] Added Portuguese Translation for the app</changelogtext>
+        <changelogtext>[i]Fix[/i] - Wuxia World cleaning also deleted the chapters content!</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion versionName="0.3.1.beta" changeDate="07/31/2017">
+        <changelogtext>[b]New![/b] Added Confetti for secret unlock</changelogtext>
+        <changelogtext>[i]Fix[/i] - Reading page crash on swiping to next/previous screen</changelogtext>
+        <changelogtext>[i]Fix[/i] - Wuxia world pages night mode not working properly</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
 
     <changelogversion versionName="0.3.beta" changeDate="07/30/2017">
         <changelogtext>[b]New![/b] Reorder the novels in your library</changelogtext>
@@ -34,7 +47,7 @@
         <changelogtext>Initial Beta release.</changelogtext>
         <changelogimprovement>Reader: Night Mode (experimental, limited support)</changelogimprovement>
         <changelogbug>Chapters List: 1000 Chapters take about 20~30 secs to load</changelogbug>
-        <changelogbug>Downloads List: Pausing downloadChapters has unstable behaviour</changelogbug>
+        <changelogbug>Downloads List: Pausing the downloading chapters has unstable behaviour</changelogbug>
 
     </changelogversion>
 

@@ -26,12 +26,13 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extension.*
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.network.getNovelDetails
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.TextViewLinkHandler
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.applyFont
 import kotlinx.android.synthetic.main.activity_novel_details.*
 import kotlinx.android.synthetic.main.content_novel_details.*
 import java.io.File

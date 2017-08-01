@@ -62,6 +62,8 @@ class WebPageFragment : Fragment() {
             activity.fabClean.hide()
         }
 
+        doc = Jsoup.parse("<html></html>", webPage.url)
+
         //Setup Scrolling Fab
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             readerWebView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
@@ -151,7 +153,7 @@ class WebPageFragment : Fragment() {
                 if (dataCenter.cleanChapters) {
                     cleaner.removeJS(doc)
                     cleaner.additionalProcessing(doc)
-                    HtmlHelper.getInstance(doc.location()).additionalProcessing(doc)
+                    cleaner.toggleTheme(dataCenter.isDarkTheme, doc)
                 } else {
                     isCleaned = false
                     activity.fabClean.show()

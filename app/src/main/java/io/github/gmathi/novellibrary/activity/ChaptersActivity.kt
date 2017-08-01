@@ -20,16 +20,15 @@ import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.event.EventType
 import io.github.gmathi.novellibrary.event.NovelEvent
-import io.github.gmathi.novellibrary.extension.applyFont
-import io.github.gmathi.novellibrary.extension.setDefaults
-import io.github.gmathi.novellibrary.extension.shareUrl
-import io.github.gmathi.novellibrary.extension.startReaderPagerActivity
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.service.DownloadService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.applyFont
+import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_chapters.*
 import kotlinx.android.synthetic.main.content_chapters.*
 import kotlinx.android.synthetic.main.listitem_chapter.view.*
@@ -366,15 +365,19 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == Constants.READER_ACT_REQ_CODE) {
-            if (novel.id != -1L) novel = dbHelper.getNovel(novel.id)!!
-            syncWithChaptersFromDB()
-            if (sorted)
-                adapter.updateData(ArrayList(chapters.reversed()))
-            else
-                adapter.updateData(chapters)
-            adapter.notifyDataSetChanged()
-            scrollToBookmark()
+        try {
+            if (requestCode == Constants.READER_ACT_REQ_CODE) {
+                if (novel.id != -1L) novel = dbHelper.getNovel(novel.id)!!
+                syncWithChaptersFromDB()
+                if (sorted)
+                    adapter.updateData(ArrayList(chapters.reversed()))
+                else
+                    adapter.updateData(chapters)
+                adapter.notifyDataSetChanged()
+                scrollToBookmark()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
 
         super.onActivityResult(requestCode, resultCode, data)

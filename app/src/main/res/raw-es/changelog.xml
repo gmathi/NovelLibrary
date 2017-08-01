@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<changelog bulletedList="true">
+
+    <changelogversion versionName="0.3.2.beta" changeDate="08/01/2017">
+        <changelogtext>[b]Nuevo![/b] Se agregó traducción al español para la aplicación</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Se agregó la traducción al portugués para la aplicación</changelogtext>
+        <changelogtext>[i]Correción[/i] - Wuxia World también eliminó el contenido de los capítulos!</changelogtext>
+        <changelogtext>[i]Correción[/i] - Correcciones de errores para los informes &amp; ¡Accidentes no reportados!</changelogtext>
+    </changelogversion>
+
+    <changelogversion versionName="0.3.1.beta" changeDate="07/31/2017">
+        <changelogtext>[b]New![/b] Confetti añadido para desbloqueo secreto</changelogtext>
+        <changelogtext>[i]Fix[/i] - Error de lectura de la página al pasar a la pantalla siguiente / anterior</changelogtext>
+        <changelogtext>[i]Fix[/i] - El modo nocturno de Wuxia world pages no funciona correctamente</changelogtext>
+        <changelogtext>[i]Fix[/i] - Correcciones de errores para los informes &amp; ¡Accidentes no reportados!</changelogtext>
+    </changelogversion>
+
+    <changelogversion versionName="0.3.beta" changeDate="07/29/2017">
+        <changelogtext>[b]Nuevo![/b] Organiza las novelas en tu librería</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Desliza hacia la derecha para eliminar novelas de tu librería</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Agregado [i]WLN-Updates.com[/i] a los resultados de búsqueda (Experimental)</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Agregadas más opciones para javascript &amp; limpiar paginas. APAGADO por defecto</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Agregado compatibilidad [b]Modo Nocturno[/b] para Wuxia World &amp; Gravity Tales Novels</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Usa [b]Botones de Volúmen[/b] para navegar hacia arríba o abajo dentro de un capítulo</changelogtext>
+        <changelogtext>[i]Correción[/i] - Imagenes borrosas</changelogtext>
+        <changelogtext>[i]Correción[/i] - Compartir el enlace correcto al ser redirigido desde un anuncio</changelogtext>
+        <changelogtext>[i]Correción[/i] - Crash de aplicación &amp; capitulos no cargan en modo lector</changelogtext>
+        <changelogtext>[i]Correción[/i] - Crash en novelas con muchos capítulos</changelogtext>
+        <changelogtext>[i]Correción[/i] - Correciones de bugs para crash de aplicación reportados!</changelogtext>
+    </changelogversion>
+
+    <changelogversion versionName="0.2.1.beta" changeDate="07/27/2017">
+        <changelogtext>[b]Nuevo![/b] Añadida compatibilidad para páginas limpias y regulares de wordpress.com en [b]Modo Nocturno[/b]</changelogtext>
+        <changelogtext>[b]Correción[/b] - Capítulos indexados apropiadamente</changelogtext>
+        <changelogtext>[b]Correción[/b] - La pantalla se mantiene encendida en modo lector</changelogtext>
+        <changelogtext>[b]Correción[/b] - Opción para activar carga más rápida por lo que la aplicación no crashea en equipos de gama baja.Apagada por defecto</changelogtext>
+        <changelogtext>Correciones de bugs para crash de aplicación reportados!</changelogtext>
+    </changelogversion>
+
+    <changelogversion versionName="0.2.beta" changeDate="07/26/2017">
+        <changelogtext>[b]Nuevo![/b] Vínculos para encontrar más obras de autores, traductores y editores(más información en pantalla)</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Mayor velocidad en carga de capítulos(1000 caps en 4~5 segundos)</changelogtext>
+        <changelogtext>Arreglos de bugs para compatibilidad con teléfonos de gama baja y otros crash de aplicación importantes</changelogtext>
+    </changelogversion>
+
+    <changelogversion versionName="0.1.beta" changeDate="07/23/2017">
+        <changelogtext>Version Beta Inicial.</changelogtext>
+        <changelogimprovement>Lector: Modo nocturno (experimental, compatibilidad limitada)</changelogimprovement>
+        <changelogbug>Lista de capítulos: 1000 capítulos tardan 20~30 segundos en cargar</changelogbug>
+        <changelogbug>Lista de descargas: pausar descargas activas produce errores</changelogbug>
+
+    </changelogversion>
+
+</changelog>

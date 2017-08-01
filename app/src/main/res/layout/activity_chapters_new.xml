@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.mgn.bingenovelreader.activity.SettingsActivity">
+    tools:context="io.github.gmathi.novellibrary.activity.ChaptersNewActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -21,25 +21,6 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_recycler_view"/>
-
-    <View
-        android:id="@+id/hiddenLeftButton"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_gravity="start|bottom"
-        android:background="@android:color/transparent"/>
-
-    <View
-        android:id="@+id/hiddenRightButton"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_gravity="end|bottom"
-        android:background="@android:color/transparent"/>
-
-    <nl.dionsegijn.konfetti.KonfettiView
-        android:id="@+id/viewKonfetti"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+    <include layout="@layout/content_chapters_new"/>
 
 </android.support.design.widget.CoordinatorLayout>

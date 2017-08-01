@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
+import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
@@ -13,10 +14,13 @@ import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.extension.*
+import io.github.gmathi.novellibrary.util.applyFont
+import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_settings.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_settings.view.*
+import nl.dionsegijn.konfetti.models.Shape
+import nl.dionsegijn.konfetti.models.Size
 
 
 class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
@@ -92,13 +96,15 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private fun donateDeveloperDialog() {
         MaterialDialog.Builder(this)
             .title(getString(R.string.donate_developer))
-            .content(getString(R.string.donate_content))
-            .positiveText(R.string.donate)
-            .onPositive { _, _ ->
-                run {
-                    sendEmail(getString(R.string.dev_email), "[DONATION]", getString(R.string.donation_email_body))
-                }
-            }.show()
+            //.content(getString(R.string.donate_content))
+            .content("I am happy that you want to donate! For now, please spread the word and share the app with fellow novel lovers!")
+            //.positiveText(R.string.donate)
+//            .onPositive { _, _ ->
+//                run {
+//                    sendEmail(getString(R.string.dev_email), "[DONATION]", getString(R.string.donation_email_body))
+//                }
+//            }
+            .show()
     }
 
     private fun aboutUsDialog() {
@@ -116,10 +122,31 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     private fun checkUnlockStatus() {
-        if (rightButtonCounter >=5 && leftButtonCounter >= 5) {
+        if (rightButtonCounter >= 5 && leftButtonCounter >= 5) {
             dataCenter.lockRoyalRoad = false
             hiddenRightButton.visibility = View.GONE
             hiddenLeftButton.visibility = View.GONE
+            viewKonfetti.build()
+                .addColors(Color.YELLOW, Color.GREEN, Color.MAGENTA)
+                .setDirection(0.0, 359.0)
+                .setSpeed(1f, 5f)
+                .setFadeOutEnabled(true)
+                .setTimeToLive(2000L)
+                .addShapes(Shape.RECT, Shape.CIRCLE)
+                .addSizes(Size(12))
+                .setPosition(-50f, viewKonfetti.width + 50f, -50f, -50f)
+                .stream(300, 5000L)
+        } else {
+            viewKonfetti.build()
+                .addColors(Color.YELLOW, Color.GREEN, Color.MAGENTA)
+                .setDirection(0.0, 359.0)
+                .setSpeed(1f, 5f)
+                .setFadeOutEnabled(true)
+                .setTimeToLive(100L)
+                .addShapes(Shape.RECT, Shape.CIRCLE)
+                .addSizes(Size(12))
+                .setPosition(-50f, viewKonfetti.width + 50f, -50f, -50f)
+                .stream(300, 5000L)
         }
     }
 
