@@ -97,7 +97,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         MaterialDialog.Builder(this)
             .title(getString(R.string.donate_developer))
             //.content(getString(R.string.donate_content))
-            .content("I am happy that you want to donate! For now, please spread the word and share the app with fellow novel lovers!")
+            .content(getString(R.string.donations_description_new))
             //.positiveText(R.string.donate)
 //            .onPositive { _, _ ->
 //                run {
