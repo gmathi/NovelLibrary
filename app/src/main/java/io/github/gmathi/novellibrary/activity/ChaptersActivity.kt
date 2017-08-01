@@ -365,15 +365,19 @@ class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == Constants.READER_ACT_REQ_CODE) {
-            if (novel.id != -1L) novel = dbHelper.getNovel(novel.id)!!
-            syncWithChaptersFromDB()
-            if (sorted)
-                adapter.updateData(ArrayList(chapters.reversed()))
-            else
-                adapter.updateData(chapters)
-            adapter.notifyDataSetChanged()
-            scrollToBookmark()
+        try {
+            if (requestCode == Constants.READER_ACT_REQ_CODE) {
+                if (novel.id != -1L) novel = dbHelper.getNovel(novel.id)!!
+                syncWithChaptersFromDB()
+                if (sorted)
+                    adapter.updateData(ArrayList(chapters.reversed()))
+                else
+                    adapter.updateData(chapters)
+                adapter.notifyDataSetChanged()
+                scrollToBookmark()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
 
         super.onActivityResult(requestCode, resultCode, data)

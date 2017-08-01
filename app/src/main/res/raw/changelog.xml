@@ -3,6 +3,8 @@
 
     <changelogversion versionName="0.3.2.beta" changeDate="08/01/2017">
         <changelogtext>[b]New![/b] Added Spanish Translation for the app</changelogtext>
+        <changelogtext>[b]New![/b] Added Portuguese Translation for the app</changelogtext>
+        <changelogtext>[i]Fix[/i] - Wuxia World cleaning also deleted the chapters content!</changelogtext>
         <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
     </changelogversion>
 
@@ -45,7 +47,7 @@
         <changelogtext>Initial Beta release.</changelogtext>
         <changelogimprovement>Reader: Night Mode (experimental, limited support)</changelogimprovement>
         <changelogbug>Chapters List: 1000 Chapters take about 20~30 secs to load</changelogbug>
-        <changelogbug>Downloads List: Pausing downloadChapters has unstable behaviour</changelogbug>
+        <changelogbug>Downloads List: Pausing the downloading chapters has unstable behaviour</changelogbug>
 
     </changelogversion>
 
