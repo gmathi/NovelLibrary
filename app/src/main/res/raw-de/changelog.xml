@@ -1,40 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+    <changelogversion
+        changeDate="08/01/2017"
+        versionName="0.3.2.beta">
+        <changelogtext>[b] Neu! [/b] Spanische Übersetzung für die App hinzugefügt</changelogtext>
+        <changelogtext>[i] Fix [/i] - Bug Fixes für gemeldete Abstürze!</changelogtext>
+    </changelogversion>
 
-        <changelogversion versionName = "0.3.beta" changeDate = "07/30/2017">
-                <changelogtext> [b] Neu! [/b] Die Romane in deiner Bibliothek </changelogtext> neu anordnen
-                <changelogtext> [b] Neu! [/b] Wischen Sie rechts, um Romane in Ihrer Bibliothek zu löschen </changelogtext>
-                <changelogtext> [b] Neu! [/b] Added [i] WLN-Updates.com [/i] zu den Suchergebnissen (Experimental) </changelogtext>
-                <changelogtext> [b] Neu! [/b] Weitere Optionen in den allgemeinen Einstellungen hinzugefügt, um Javascript &amp; Saubere Seiten. OFF standardmäßig </changelogtext>
-                <changelogtext> [b] Neu! [/b] Hinzugefügt [b] Nachtmodus [/b] Unterstützung für Wuxia World &amp; Gravity Tales Romane </changelogtext>
-                <changelogtext> [b] Neu! [/b] Verwenden Sie [b] Lautstärketasten [/b], um nach oben zu springen und zu spielen. Ein Kapitel </changelogtext>
-                <changelogtext> [i] Fix [/i] - Bilder flackern </changelogtext>
-                <changelogtext> [i] Fix [/i] - Teilen Sie den korrekten Link, wenn Sie von Ankündigungsposten </changelogtext> umgeleitet werden
-                <changelogtext> [i] Fix [/i] - Abstürze &amp; Kapitel, die nicht auf Leseschirm geladen werden </changelogtext>
-                <changelogtext> [i] Fix [/i] - Abstürze auf Romane mit zu vielen Kapiteln </changelogtext>
-                <changelogtext> [i] Fix [/i] - Bug Fixes für gemeldete Abstürze! </changelogtext>
-         </changelogversion>
+    <changelogversion changeDate="07/31/2017" versionName="0.3.1.beta">
+        <changelogtext>[b] Neu! ![/b] Confetti für Geheimnis freischalten</changelogtext>
+        <changelogtext>[i] Fix [/i] - Reading page crash beim Swiping zum nächsten / vorherigen Bildschirm</changelogtext>
+        <changelogtext>[i] Fix [/i] - Wuxia World Seiten Nacht Modus funktioniert nicht richtig</changelogtext>
+        <changelogtext>[i] Fix [/i] - Bug Fixes für gemeldete Abstürze!</changelogtext>
+    </changelogversion>
 
-        <changelogversion versionName = "0.2.1.beta" changeDate = "07/27/2017">
-            <changelogtext> [b] Neu! [/b] Unterstützung für WordPress.com für saubere und reguläre Seiten mit [b] Nachtmodus [/b] Unterstützung </changelogtext>
-            <changelogtext> [b] Fix [/b] - Die korrekt indizierten Kapitel </changelogtext>
-            <changelogtext> [b] Fix [/b] - Der Bildschirm wird auf dem Leseschirm </changelogtext> lebendig gehalten
-            <changelogtext> [b] Fix [/b] - Option, um ein schnelleres Laden zu ermöglichen, so dass die App bei den unteren Endgeräten nicht einfriert. OFF standardmäßig </changelogtext>
-            <changelogtext> Fehlerkorrekturen für gemeldete Abstürze! </changelogtext>
-        </changelogversion>
 
-        <changelogversion versionName = "0.2.beta" changeDate = "07/26/2017">
-            <changelogtext> [b] Neu! [/b] Autoren, Übersetzer, Verlage verknüpft, um mehr von ihren Werken zu finden (More Information Screen) </changelogtext>
-            <changelogtext> [b] Neu! [/b] Die Kapitel laden schneller als zuvor (1000chaps in 4 ~ 5s) </changelogtext>
-            <changelogtext> Fehlerbehebungen zur Unterstützung von untergeordneten Telefonen und anderen großen Abstürzen </changelogtext>
-        </changelogversion>
+    <changelogversion changeDate="07/30/2017" versionName="0.3.beta">
+        <changelogtext>[b] Neu! [/b] Die Romane in deiner Bibliothek</changelogtext> neu anordnen
+        <changelogtext>[b] Neu! [/b] Wischen Sie rechts, um Romane in Ihrer Bibliothek zu löschen</changelogtext>
+        <changelogtext>[b] Neu! [/b] Added [i] WLN-Updates.com [/i] zu den Suchergebnissen (Experimental)</changelogtext>
+        <changelogtext>[b] Neu! [/b] Weitere Optionen in den allgemeinen Einstellungen hinzugefügt, um Javascript &amp; Saubere Seiten. OFF standardmäßig</changelogtext>
+        <changelogtext>[b] Neu! [/b] Hinzugefügt [b] Nachtmodus [/b] Unterstützung für Wuxia World &amp; Gravity Tales Romane</changelogtext>
+        <changelogtext>[b] Neu! [/b] Verwenden Sie [b] Lautstärketasten [/b], um nach oben zu springen und zu spielen. Ein Kapitel</changelogtext>
+        <changelogtext>[i] Fix [/i] - Bilder flackern</changelogtext>
+        <changelogtext>[i] Fix [/i] - Teilen Sie den korrekten Link, wenn Sie von Ankündigungsposten</changelogtext> umgeleitet werden
+        <changelogtext>[i] Fix [/i] - Abstürze &amp; Kapitel, die nicht auf Leseschirm geladen werden</changelogtext>
+        <changelogtext>[i] Fix [/i] - Abstürze auf Romane mit zu vielen Kapiteln</changelogtext>
+        <changelogtext>[i] Fix [/i] - Bug Fixes für gemeldete Abstürze!</changelogtext>
+    </changelogversion>
 
-        <changelogversion versionName = "0.1.beta" changeDate = "07/23/2017">
-            <changelogtext> Initiale Beta-Version </changelogtext>
-            <changelogimprovement> Leser: Nachtmodus (experimentell, begrenzte Unterstützung) </changelogimprovement>
-            <changelogbug> Kapitelliste: 1000 Kapitel dauertca. 20 ~ 30 Sekunden zum Laden </changelogbug>
-            <changelogbug> Downloads Liste: Pausieren von downloadchapters hat ein instabiles Verhalten </changelogbug>
-        </changelogversion>
+        
+    <changelogversion changeDate="07/27/2017" versionName="0.2.1.beta">
+        <changelogtext>[b] Neu! [/b] Unterstützung für WordPress.com für saubere und reguläre Seiten mit [b] Nachtmodus [/b] Unterstützung</changelogtext>
+        <changelogtext>[b] Fix [/b] - Die korrekt indizierten Kapitel</changelogtext>
+        <changelogtext>[b] Fix [/b] - Der Bildschirm wird auf dem Leseschirm</changelogtext> lebendig gehalten
+        <changelogtext>[b] Fix [/b] - Option, um ein schnelleres Laden zu ermöglichen, so dass die App bei den unteren Endgeräten nicht einfriert. OFF standardmäßig</changelogtext>
+        <changelogtext>Fehlerkorrekturen für gemeldete Abstürze!</changelogtext>
+    </changelogversion>
+
+        
+    <changelogversion changeDate="07/26/2017" versionName="0.2.beta">
+        <changelogtext>[b] Neu! [/b] Autoren, Übersetzer, Verlage verknüpft, um mehr von ihren Werken zu finden (More Information Screen)</changelogtext>
+        <changelogtext>[b] Neu! [/b] Die Kapitel laden schneller als zuvor (1000chaps in 4 ~ 5s)</changelogtext>
+        <changelogtext>Fehlerbehebungen zur Unterstützung von untergeordneten Telefonen und anderen großen Abstürzen</changelogtext>
+    </changelogversion>
+
+        
+    <changelogversion changeDate="07/23/2017" versionName="0.1.beta">
+        <changelogtext>Initiale Beta-Version</changelogtext>
+        <changelogimprovement>Leser: Nachtmodus (experimentell, begrenzte Unterstützung)</changelogimprovement>
+        <changelogbug>Kapitelliste: 1000 Kapitel dauertca. 20 ~ 30 Sekunden zum Laden</changelogbug>
+        <changelogbug>Downloads Liste: Pausieren von downloadchapters hat ein instabiles Verhalten</changelogbug>
+    </changelogversion>
 
 </changelog>

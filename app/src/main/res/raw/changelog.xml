@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+    <changelogversion versionName="0.3.2.beta" changeDate="08/01/2017">
+        <changelogtext>[b]New![/b] Added Spanish Translation for the app</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion versionName="0.3.1.beta" changeDate="07/31/2017">
+        <changelogtext>[b]New![/b] Added Confetti for secret unlock</changelogtext>
+        <changelogtext>[i]Fix[/i] - Reading page crash on swiping to next/previous screen</changelogtext>
+        <changelogtext>[i]Fix[/i] - Wuxia world pages night mode not working properly</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
 
     <changelogversion versionName="0.3.beta" changeDate="07/30/2017">
         <changelogtext>[b]New![/b] Reorder the novels in your library</changelogtext>

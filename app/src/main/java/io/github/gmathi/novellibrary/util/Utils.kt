@@ -15,7 +15,6 @@ import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extension.writableFileName
 import io.github.gmathi.novellibrary.model.Novel
 import java.io.ByteArrayOutputStream
 import java.io.File
