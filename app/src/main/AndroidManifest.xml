@@ -84,6 +84,11 @@
             android:label="@string/title_activity_general_settings"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
+        <activity
+            android:name=".activity.ChaptersNewActivity"
+            android:label="@string/title_activity_chapters_new"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
     </application>
 
 </manifest>

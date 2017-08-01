@@ -10,7 +10,7 @@ import io.github.gmathi.novellibrary.database.updateWebPage
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.event.EventType
 import io.github.gmathi.novellibrary.event.NovelEvent
-import io.github.gmathi.novellibrary.extension.writableFileName
+import io.github.gmathi.novellibrary.util.writableFileName
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants

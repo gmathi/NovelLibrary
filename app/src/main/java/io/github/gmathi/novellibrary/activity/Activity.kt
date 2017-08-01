@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.extension
+package io.github.gmathi.novellibrary.activity
 
 import android.app.Activity
 import android.content.Intent
@@ -9,7 +9,6 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.*
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.util.Constants

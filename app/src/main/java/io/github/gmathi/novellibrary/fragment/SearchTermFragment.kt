@@ -18,13 +18,12 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.extension.getFileName
-import io.github.gmathi.novellibrary.extension.setDefaults
 import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.network.*
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.getFileName
+import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
 import java.io.File

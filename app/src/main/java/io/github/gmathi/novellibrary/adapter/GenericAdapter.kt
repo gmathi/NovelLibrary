@@ -3,7 +3,7 @@ package io.github.gmathi.novellibrary.adapter
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
-import io.github.gmathi.novellibrary.extension.inflate
+import io.github.gmathi.novellibrary.util.inflate
 import java.util.*
 
 

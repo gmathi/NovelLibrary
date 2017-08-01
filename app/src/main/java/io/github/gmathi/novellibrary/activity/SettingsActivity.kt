@@ -14,7 +14,8 @@ import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.extension.*
+import io.github.gmathi.novellibrary.util.applyFont
+import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_settings.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_settings.view.*
@@ -95,13 +96,15 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private fun donateDeveloperDialog() {
         MaterialDialog.Builder(this)
             .title(getString(R.string.donate_developer))
-            .content(getString(R.string.donate_content))
-            .positiveText(R.string.donate)
-            .onPositive { _, _ ->
-                run {
-                    sendEmail(getString(R.string.dev_email), "[DONATION]", getString(R.string.donation_email_body))
-                }
-            }.show()
+            //.content(getString(R.string.donate_content))
+            .content("I am happy that you want to donate! For now, please spread the word and share the app with fellow novel lovers!")
+            //.positiveText(R.string.donate)
+//            .onPositive { _, _ ->
+//                run {
+//                    sendEmail(getString(R.string.dev_email), "[DONATION]", getString(R.string.donation_email_body))
+//                }
+//            }
+            .show()
     }
 
     private fun aboutUsDialog() {
@@ -119,7 +122,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     private fun checkUnlockStatus() {
-        if (rightButtonCounter >=5 && leftButtonCounter >= 5) {
+        if (rightButtonCounter >= 5 && leftButtonCounter >= 5) {
             dataCenter.lockRoyalRoad = false
             hiddenRightButton.visibility = View.GONE
             hiddenLeftButton.visibility = View.GONE

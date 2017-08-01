@@ -13,9 +13,8 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.extension.applyFont
-import io.github.gmathi.novellibrary.extension.openInBrowser
-import io.github.gmathi.novellibrary.extension.setDefaults
+import io.github.gmathi.novellibrary.util.applyFont
+import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.model.Library
 import kotlinx.android.synthetic.main.activity_libraries_used.*
 import kotlinx.android.synthetic.main.content_recycler_view.*

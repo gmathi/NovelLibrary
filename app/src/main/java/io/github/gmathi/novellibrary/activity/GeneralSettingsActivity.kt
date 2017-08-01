@@ -13,8 +13,8 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extension.applyFont
-import io.github.gmathi.novellibrary.extension.setDefaults
+import io.github.gmathi.novellibrary.util.applyFont
+import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_settings.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_title_subtitle_widget.view.*

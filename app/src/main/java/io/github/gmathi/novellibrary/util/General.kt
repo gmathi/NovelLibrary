@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.extension
+package io.github.gmathi.novellibrary.util
 
 import android.content.ContextWrapper
 import android.content.Intent
@@ -14,7 +14,6 @@ import android.view.animation.OvershootInterpolator
 import android.widget.TextView
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.util.SnappingLinearLayoutManager
 import jp.wasabeef.recyclerview.animators.SlideInRightAnimator
 
 

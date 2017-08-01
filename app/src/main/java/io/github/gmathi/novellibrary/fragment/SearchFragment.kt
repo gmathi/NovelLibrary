@@ -9,10 +9,9 @@ import android.view.ViewGroup
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
-import io.github.gmathi.novellibrary.extension.NavPageListener
-import io.github.gmathi.novellibrary.extension.SearchResultsListener
-import io.github.gmathi.novellibrary.extension.addToSearchHistory
-import io.github.gmathi.novellibrary.extension.hideSoftKeyboard
+import io.github.gmathi.novellibrary.adapter.NavPageListener
+import io.github.gmathi.novellibrary.adapter.SearchResultsListener
+import io.github.gmathi.novellibrary.util.addToSearchHistory
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.SimpleAnimationListener
 import io.github.gmathi.novellibrary.util.SuggestionsBuilder

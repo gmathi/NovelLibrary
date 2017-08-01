@@ -80,7 +80,7 @@
     <string name="title_activity_copyright" translatable="false">@string/copyright_notice</string>
     <string name="title_activity_search_results" translatable="false">SearchResultsActivity</string>
     <string name="title_activity_general_settings" translatable="false">@string/general</string>
-
+    <string name="title_activity_chapters_new" translatable="false">ChaptersNewActivity</string>
 
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
     <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>

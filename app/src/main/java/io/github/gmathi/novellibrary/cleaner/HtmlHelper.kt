@@ -3,8 +3,8 @@ package io.github.gmathi.novellibrary.cleaner
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
-import io.github.gmathi.novellibrary.extension.getFileName
-import io.github.gmathi.novellibrary.extension.writableFileName
+import io.github.gmathi.novellibrary.util.getFileName
+import io.github.gmathi.novellibrary.util.writableFileName
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.Utils
 import org.jsoup.Jsoup
