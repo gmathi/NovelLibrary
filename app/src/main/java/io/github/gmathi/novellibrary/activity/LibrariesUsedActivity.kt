@@ -3,7 +3,6 @@ package io.github.gmathi.novellibrary.activity
 import android.graphics.Rect
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
 import android.util.Log
@@ -13,9 +12,9 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.model.Library
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
-import io.github.gmathi.novellibrary.model.Library
 import kotlinx.android.synthetic.main.activity_libraries_used.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_settings.view.*
@@ -24,7 +23,7 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 
-class LibrariesUsedActivity : AppCompatActivity(), GenericAdapter.Listener<Library> {
+class LibrariesUsedActivity : BaseActivity(), GenericAdapter.Listener<Library> {
 
     lateinit var adapter: GenericAdapter<Library>
     lateinit var librariesUsed: ArrayList<Library>

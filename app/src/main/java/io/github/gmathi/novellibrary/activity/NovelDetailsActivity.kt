@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
 import android.text.Html
 import android.text.Spannable
 import android.text.SpannableString
@@ -38,7 +37,7 @@ import kotlinx.android.synthetic.main.content_novel_details.*
 import java.io.File
 
 
-class NovelDetailsActivity : AppCompatActivity(), TextViewLinkHandler.OnClickListener {
+class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener {
 
     lateinit var novel: Novel
 

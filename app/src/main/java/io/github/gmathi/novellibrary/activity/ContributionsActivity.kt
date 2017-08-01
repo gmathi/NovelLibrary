@@ -24,7 +24,7 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 
-class ContributionsActivity : AppCompatActivity(), GenericAdapter.Listener<Library> {
+class ContributionsActivity : BaseActivity(), GenericAdapter.Listener<Library> {
 
     lateinit var adapter: GenericAdapter<Library>
     lateinit var contributors: ArrayList<Library>

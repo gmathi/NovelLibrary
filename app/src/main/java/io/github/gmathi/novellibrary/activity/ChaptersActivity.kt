@@ -6,7 +6,6 @@ import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
 import android.view.Menu
@@ -36,7 +35,7 @@ import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
-class ChaptersActivity : AppCompatActivity(), GenericAdapter.Listener<WebPage> {
+class ChaptersActivity : BaseActivity(), GenericAdapter.Listener<WebPage> {
 
 
     lateinit var novel: Novel
