@@ -72,6 +72,14 @@ fun Activity.startSearchResultsActivity(title: String, url: String) {
     startActivityForResult(intent, Constants.SEARCH_RESULTS_ACT_REQ_CODE)
 }
 
+fun Activity.startSettingsActivity() {
+    startActivityForResult(Intent(this, SettingsActivity::class.java), Constants.SETTINGS_ACT_REQ_CODE)
+}
+
+fun Activity.startLanguagesActivity() {
+    startActivityForResult(Intent(this, LanguageActivity::class.java), Constants.LANG_ACT_REQ_CODE)
+}
+
 fun Activity.startGeneralSettingsActivity() {
     val intent = Intent(this, GeneralSettingsActivity::class.java)
     startActivity(intent)

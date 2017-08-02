@@ -89,6 +89,11 @@
             android:label="@string/title_activity_chapters_new"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
+        <activity
+            android:name=".activity.LanguageActivity"
+            android:label="@string/title_activity_language"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
     </application>
 
 </manifest>

@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.os.Build
 import android.support.v7.app.AppCompatDelegate
@@ -69,10 +70,12 @@ class NovelLibraryApplication : Application() {
 
         val context = SSLContext.getInstance("TLS")
         context.init(null, arrayOf<X509TrustManager>(object : X509TrustManager {
+            @SuppressLint("TrustAllX509TrustManager")
             @Throws(CertificateException::class)
             override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {
             }
 
+            @SuppressLint("TrustAllX509TrustManager")
             @Throws(CertificateException::class)
             override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
             }
@@ -83,4 +86,5 @@ class NovelLibraryApplication : Application() {
         }), SecureRandom())
         HttpsURLConnection.setDefaultSSLSocketFactory(context.socketFactory)
     }
+
 }

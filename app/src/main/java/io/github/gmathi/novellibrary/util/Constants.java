@@ -57,13 +57,16 @@ public class Constants {
     public static final int CHAPTER_ACT_REQ_CODE = 7;
     public static final int METADATA_ACT_REQ_CODE = 8;
     public static final int SETTINGS_ACT_REQ_CODE = 9;
+    public static final int LANG_ACT_REQ_CODE = 11;
 
     public static final int SETTINGS_ACT_RES_CODE = 10;
+    public static final int LANG_ACT_RES_CODE = 12;
 
 
     //endregion
 
     public static final String NO_NETWORK = "No Network";
+
 
 
 }

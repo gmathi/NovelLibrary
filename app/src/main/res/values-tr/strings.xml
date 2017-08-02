@@ -1,0 +1,194 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+       Important please do not change the order of the string-arrays or generally anything unless it's text you're translating
+
+       What You'll Need:
+
+       1. A good text editor I recommend Atom (https://atom.io/), Sublime (https://www.sublimetext.com/), Brackets (http://brackets.io/) if you want to use something else no problem
+       2. A little knowledge on basic HTML things like <p> <b> <i> <br/> since there are certain parts I used a bit of html to format information https://www.w3schools.com/tags/
+       3. Know what character escaping is, because you cannot use characters like ' or , or ; or & or $ or % e.t.c without escaping them. e.g.
+          What\'s Trending should become What\'s Trending (Refer to http://www.ascii.cl/htmlcodes.htm look at the HTML Name Column for some conventions) not what i am looking for?
+
+       Just a quick note for translators, if you see some text that has %s or %d or %f just leave those as they are those are place holders:
+       %s - is a place holder for text most likely coming from NovelLibrary, e.g. %s liked your status post -> will be eCookie or Josh liked your status post
+       %d - is a place holder for a number, e.g. You have %d notifications -> will be You have 1 or 3 or 10 notifications
+       %f - is also a place holder for a decimal number works exactly as the others mentioned above
+
+       I know different languages have different rules like RTL so if you need to change the positions/order of %s or %d or %f you can still do so just don't remove the % sign
+       N.B. If any of the tags <string name="abc" translatable="false" ></string> have an attribute labeled translatable="false" it means you should not translate it!
+       So you can just omit those fields
+
+       Special Cases:
+       1. There are some cases I used <![CDATA[ some text here ]]>  CDATA sections are used to escape blocks of text containing characters that would otherwise be regarded as markup.
+       The only delimiter that is recognized in a CDATA section is the "]]>" string that ends the CDATA section. CDATA sections cannot be nested.
+       Their primary purpose is for including material such as XML fragments, without needing to escape all the delimiters.
+
+       Uploading your files:
+       You may just send the files directly and the file name should be something like strings_en.xml for english and strings_fr.xml for french respective of your locale
+       To All Translators I am very grateful for your help! :)
+   -->
+
+
+   <string-array name="search_tab_titles">
+       <item>Popüler-Olanlar</item>
+       <item>En-Beğenilenler</item>
+       <item>Yeni-Çıkanlar</item>
+   </string-array>
+
+    <string-array name="search_results_tab_titles" translatable="false">
+        <item>Novel-Updates</item>
+        <item>RoyalRoad</item>
+        <item>WLN-Updates</item>
+    </string-array>
+
+    <string-array name="settings_list" translatable="false">
+        <item>@string/general</item>
+        <item>@string/language</item>
+        <item>@string/copyright_notice</item>
+        <item>@string/donate_developer</item>
+        <item>@string/libraries_used</item>
+        <item>@string/contributions</item>
+        <item>@string/changelog</item>
+        <item>@string/about_us</item>
+    </string-array>
+
+    <string-array name="general_titles_list" translatable="false">
+        <item>@string/clear_data</item>
+        <item>@string/faster_downloads</item>
+        <item>@string/first_screen_library</item>
+        <item>@string/clean_pages</item>
+        <item>@string/disable_javascript</item>
+    </string-array>
+
+    <string-array name="general_subtitles_list" translatable="false">
+        <item>@string/clear_data_description</item>
+        <item>@string/faster_downloads_description</item>
+        <item>@string/first_screen_library_description</item>
+        <item>@string/clean_pages_description</item>
+        <item>@string/disable_javascript_description</item>
+    </string-array>
+
+
+    <!--<item>Latest Updates</item>-->
+    <!--<item>Active-Only Ranking</item>-->
+
+
+    <string name="title_activity_novel_details">Roman</string>
+    <string name="title_activity_settings">Ayarlar</string>
+    <string name="title_activity_chapters">Bölümler</string>
+    <string name="title_activity_meta_data">Detaylı Bilgi</string>
+
+
+    <string name="action_settings">Ayarlar</string>
+    <string name="action_sync">Güncellemeler için eşitle</string>
+    <string name="action_favourite">Favorilere Ekle</string>
+    <string name="action_bookmark">İşaretle</string>
+
+
+    <string name="title_library">Kütüphane</string>
+    <string name="title_search">Arama</string>
+    <string name="title_downloads">İndirmeler</string>
+
+    <string name="app_description">Bütün Romanlar İçin Tek Durağınız</string>
+
+    <!-- Strings related to Settings -->
+    <!--<string name="pref_title_dark_theme">Dark Page Theme</string>-->
+    <!--<string name="pref_description_dark_theme">Only RoyalRoadl.com supported for now.</string>-->
+    <!--<string name="pref_title_experimental_download">Lighting Fast Downloads (Experimental) </string>-->
+    <!--<string name="pref_description_experimental_download">Downloads really fast. Your device may freeze for a while.</string>-->
+    <!--<string name="pref_title_queue_novel_downloads">Queue Novel Downloads </string>-->
+    <!--<string name="pref_description_queue_novel_downloads">Downloads novels one after the another. If disabled, max of 5 novels with be downloaded simultaneously. </string>-->
+    <!--<string name="pref_title_download_latest_first">Download Latest First</string>-->
+    <!--<string name="pref_description_download_latest_first">Download the latest chapter first.</string>-->
+
+
+    <!-- Transition Names -->
+    <string name="synopsis">Özet</string>
+    <string name="genres">Türler</string>
+    <string name="chapters">Bölümler</string>
+    <string name="legal">Yasal</string>
+
+    <string name="download">İndir</string>
+    <string name="downloaded">İndirildi</string>
+    <string name="downloading">İndiriliyor</string>
+    <string name="chapters_loading_message">Bölüm sayısına bağlı olarak yükleme biraz zaman alabilir.</string>
+
+    <string name="no_internet">Ağa Bağlı Değilsiniz!</string>
+    <string name="try_again">Yeniden Deneyiniz</string>
+    <string name="clear">Temizle</string>
+    <string name="clear_data">Önbelleği &amp; Verileri Temizle</string>
+    <string name="clear_data_description">Önbelleği, verileri ve dosyaları siler.</string>
+    <string name="sync">Eşitleme</string>
+    <string name="remove_from_library">Kütüphaneden Kaldır</string>
+    <string name="cancel">İptal</string>
+    <string name="remove">Kaldır</string>
+    <string name="confirm_remove">Kaldırmayı Onayla</string>
+    <string name="confirm_remove_description">Roman kütüphaneden kaldırlacak ve tüm bölümleri silinecektir.</string>
+    <string name="remove_from_downloads">İndirilenlerden silinsin mı?</string>
+    <string name="add_to_library">Kütüphaneye Ekle</string>
+    <string name="in_library">Kütüphanede</string>
+    <string name="sort">Sırala</string>
+    <string name="sort_chapters">Bölümleri Sırala</string>
+    <string name="clearing_data">Veriler Temizleniyor</string>
+    <string name="please_wait">Lütfen Bekleyiniz…</string>
+    <string name="theme">Tema</string>
+    <string name="toggle_theme">Tema Değiştir</string>
+    <string name="close_menu">Menüyü Kapat</string>
+    <string name="close">Kapat</string>
+    <string name="text_size">Metin Boyutu</string>
+    <string name="more_information">Detaylı Bilgi</string>
+    <string name="more_info_description">Yazar, Lisans Bilgisi, Çevirmen, …</string>
+    <string name="search_novel">Roman Ara</string>
+    <string name="bug_report">Hata Bildir</string>
+    <string name="open_in_browser">Tarayıcıda Aç</string>
+    <string name="share">Paylaş</string>
+    <string name="copyright_notice">Telif Bildirimi</string>
+    <string name="donate_developer">Bağışta Bulunun</string>
+    <string name="about_us">Hakkımızda</string>
+    <string name="libraries_used">Kullanılmış Olan Kütüphaneler</string>
+    <string name="contributions">Katkıda Bulunanlar</string>
+    <string name="donate">Bağışla</string>
+    <string name="donation_email_body">Yaptıklarınız için teşekkür ederim. Bunu ilerideki sürümlerde de görmek isterim. Bu da bağışım.</string>
+    <string name="content_restricted">Kısıtlanmış İçerik!</string>
+    <string name="lock_hint">Açmak için gerekli olan tuşlar gizlenmiş durumda. Arayışında bol şans dilerim!</string>
+
+
+    <string name="copyright_content" tools:ignore="TypographyQuotes">
+      "Novel Library, roman okurları için arama yapma ve toplanma hizmetidir. "
+      "Novel Library içindeki tüm içerikler okurlar tarafından paylaşımıştır ya da İnternet üzerinden"
+      "program ile araştırılmış ve derlenmiştir. Novel Library içerik üretmemektedir. \n\n"
+
+      "Novel Library Uygulamasındaki tüm içeriklerin telif hakkı yazar ve yayımcıya aittir."
+      "Herhangi bir içeriğin telif hakkı ile ilgili bir sorununuz olursa lütfen bizimle iletişime geçiniz,"
+      "geri dönüş yapılacak ve uygun önlemler alınacaktır. \n\n"
+
+      "Novel Library Uygulamasındaki tüm içerikler yazarlarının kişisel görüşünü olup, "
+      "uygulamayı herhangi bir şekilde temsil etmemektedir. Yasal sorumluluk kabul etmemekteyiz. "
+      "Yasa dışı bir içeriğe rastlarsanız lütfen gözden geçirmemiz için bize bildirin. \n\n"
+
+      "İletişim: gmathi.developer@gmail.com\n"
+
+    </string>
+
+    <string name="donate_content" tools:ignore="TypographyQuotes">
+      "Bağışlarınız yeni içeriklerin daha hızlı gelmesini sağlayacaktır. "
+      "Bağışınızı GMail uygulaması üzerinden gmathi.developer@gmail.com 'a gönderebilirsiniz"
+    </string>
+    <string name="app_exit">Novel Library\'den çıkmak için Geri tuşuna tekrar basın.</string>
+    <string name="general">Genel</string>
+    <string name="faster_downloads">Daha Hızlı İndirme</string>
+    <string name="faster_downloads_description">İndirme hızını oldukça yükseltir ancak bu işlem sırasında cihazınız takılabilir/donabilir.</string>
+    <string name="first_screen_library">“Kütüphane”yi Ana Ekran Yap</string>
+    <string name="first_screen_library_description">Eğer kapalıysa “Arama” ekranı ana ekran olarak görünür.</string>
+    <string name="clean_pages">Bölümleri Temizle</string>
+    <string name="clean_pages_description">Yüklemeden önce bölümleri temizler.</string>
+    <string name="failed_to_load_url">İçeriğe Erişilemedi!</string>
+    <string name="disable_javascript">Javascript\'i Devre Dışı Bırak</string>
+    <string name="disable_javascript_description">Bazı internet siteleri Javascript açıkken reklamlara yönlendirebilir.</string>
+    <string name="changelog">Değişiklikler</string>
+    <string name="donations_description_new">Bağışta bulunmak istemenize sevindim. Bu uygulamayı başka roman severelere de anlatıp bilgiyi paylaş!</string>
+    <string name="language">Dil</string>
+    <string name="languages_supported">Languages Supported</string>
+
+</resources>

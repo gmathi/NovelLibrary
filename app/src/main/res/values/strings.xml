@@ -44,6 +44,7 @@
 
     <string-array name="settings_list" translatable="false">
         <item>@string/general</item>
+        <item>@string/languages_supported</item>
         <item>@string/copyright_notice</item>
         <item>@string/donate_developer</item>
         <item>@string/libraries_used</item>
@@ -81,6 +82,8 @@
     <string name="title_activity_search_results" translatable="false">SearchResultsActivity</string>
     <string name="title_activity_general_settings" translatable="false">@string/general</string>
     <string name="title_activity_chapters_new" translatable="false">ChaptersNewActivity</string>
+    <string name="title_activity_language" translatable="false">LanguageActivity</string>
+
 
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
     <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
@@ -202,6 +205,7 @@
     <string name="disable_javascript_description">Some websites redirect to ads in when javascript is enabled</string>
     <string name="changelog">Change Log</string>
     <string name="donations_description_new">I am happy that you want to donate! For now, please spread the word and share the app with fellow novel lovers!</string>
-
+    <string name="language">Language</string>
+    <string name="languages_supported">Languages Supported</string>
 
 </resources>
