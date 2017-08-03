@@ -3,10 +3,10 @@ package io.github.gmathi.novellibrary.cleaner
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
-import io.github.gmathi.novellibrary.util.getFileName
-import io.github.gmathi.novellibrary.util.writableFileName
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.getFileName
+import io.github.gmathi.novellibrary.util.writableFileName
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -25,7 +25,7 @@ open class HtmlHelper protected constructor() {
                 host.contains(HostNames.GRAVITY_TALES) -> return GravityTalesHelper()
                 host.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
                 host.contains(HostNames.WORD_PRESS) -> return WordPressHelper()
-            //host.contains(HostNames.KOBATOCHAN) -> return KobatochanCleaner()
+                host.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
             }
             return HtmlHelper()
         }
