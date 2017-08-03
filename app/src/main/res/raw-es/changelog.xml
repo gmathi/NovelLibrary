@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+    <changelogversion versionName="0.3.3.beta" changeDate="08/03/2017">
+        <changelogtext>[b]Nuevo![/b] Agregado compatibilidad [b]Modo Nocturno[/b] para Circus Translations Novels</changelogtext>
+    </changelogversion>
+
     <changelogversion versionName="0.3.2.beta" changeDate="08/01/2017">
         <changelogtext>[b]Nuevo![/b] Se agregó traducción al español para la aplicación</changelogtext>
         <changelogtext>[b]Nuevo![/b] Se agregó la traducción al portugués para la aplicación</changelogtext>

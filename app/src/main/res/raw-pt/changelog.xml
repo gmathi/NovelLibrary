@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+    <changelogversion versionName="0.3.3.beta" changeDate="08/03/2017">
+        <changelogtext>[b]Novo![/b] Suporte para [b]Modo Noturno[/b] adicionado a séries do Circus Translations</changelogtext>
+    </changelogversion>
+
     <changelogversion versionName="0.3.2.beta" changeDate="08/01/2017">
         <changelogtext>[b]Novo![/b] Tradução Espanhola adicionada ao aplicativo</changelogtext>
         <changelogtext>[b]Novo![/b] Tradução Portuguesa adicionada ao aplicativo</changelogtext>

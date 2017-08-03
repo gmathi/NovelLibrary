@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+    <changelogversion versionName="0.3.3.beta" changeDate="08/03/2017">
+        <changelogtext>[b] Neu! [/b] Hinzugefügt [b] Nachtmodus [/b] Unterstützung für Circus Translations Romane</changelogtext>
+    </changelogversion>
+
     <changelogversion versionName="0.3.2.beta" changeDate="08/01/2017">
         <changelogtext>[b]Neu![/b] Spanische Übersetzung hinzugefügt</changelogtext>
         <changelogtext>[b]Neu![/b] Portugiesische Übersetzung hinzugefügt</changelogtext>
