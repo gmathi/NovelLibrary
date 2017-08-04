@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+    <changelogversion versionName="0.4.beta" changeDate="08/03/2017">
+        <changelogtext>[b]Neu![/b] Die Kapitel laden schneller und können einzeln heruntergeladen werden (Bisher heruntergeladene Kapitel werden gelöscht, um das neue Design zu unterstützen)</changelogtext>
+        <changelogtext>[b]Neu![/b] Die Kapitel können gelesen / ungelesen </changelogtext>
+        <changelogtext>[b]Neu![/b] Türkisch Übersetzung hinzugefügt</changelogtext>
+        <changelogtext>[b]Neu![/b] Hinzugefügt [b] Nachtmodus [/b] Unterstützung für KobatoChan Romane</changelogtext>
+    </changelogversion>
+
     <changelogversion versionName="0.3.3.beta" changeDate="08/03/2017">
-        <changelogtext>[b] Neu! [/b] Hinzugefügt [b] Nachtmodus [/b] Unterstützung für Circus Translations Romane</changelogtext>
+        <changelogtext>[b]Neu![/b] Hinzugefügt [b] Nachtmodus [/b] Unterstützung für Circus Translations Romane</changelogtext>
     </changelogversion>
 
     <changelogversion versionName="0.3.2.beta" changeDate="08/01/2017">

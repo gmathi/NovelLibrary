@@ -14,6 +14,7 @@ class Novel : Serializable {
     var genres: List<String>? = null
     var currentWebPageId: Long = -1
     var orderId: Long = -1
+    var chapterCount = 0L
     var metaData: HashMap<String, String?> = HashMap()
 
 
@@ -40,6 +41,7 @@ class Novel : Serializable {
             longDescription = if (otherNovel.longDescription != null) otherNovel.longDescription else longDescription
             shortDescription = if (otherNovel.shortDescription != null) otherNovel.shortDescription else shortDescription
             currentWebPageId = if (otherNovel.currentWebPageId != -1L) otherNovel.currentWebPageId else currentWebPageId
+            chapterCount = if (otherNovel.chapterCount != 0L) otherNovel.chapterCount else chapterCount
             orderId = if (otherNovel.orderId != -1L) otherNovel.orderId else orderId
             metaData = if (!otherNovel.metaData.isEmpty()) otherNovel.metaData else metaData
         }

@@ -93,26 +93,3 @@ fun NovelApi.getNUChapterUrlsFromDoc(doc: Document): ArrayList<WebPage> {
         (0..elements.size).filter { it % 2 == 1 }.mapTo(chapters) { WebPage(url = elements[it].attr("href"), chapter = elements[it].text()) }
     return chapters
 }
-
-fun NovelApi.getNUPageUrlsNew(doc: Document): ArrayList<String> {
-    val uri = URI(doc.location())
-    val basePath = "${uri.scheme}://${uri.host}${uri.path}"
-    val pageUrls = ArrayList<String>()
-    val pageElements = doc.body().getElementsByClass("digg_pagination").firstOrNull { it.tagName() == "div" }?.children()?.filter { it.tagName() == "a" && it.hasAttr("href") }
-    var maxPageNum = 1
-    pageElements?.forEach {
-        val href = it.attr("href") // ./?pg=19 is an example
-        if (href.contains("./?pg=")) {
-            val pageNum = href.replace("./?pg=", "").toInt()
-            if (maxPageNum < pageNum)
-                maxPageNum = pageNum
-        }
-    }
-    if (maxPageNum == 2) {
-        pageUrls.add(basePath + "?pg=2")
-    } else if (maxPageNum > 2)
-        (2..maxPageNum).mapTo(pageUrls) { basePath + "?pg=" + it }
-
-    return pageUrls
-}
-

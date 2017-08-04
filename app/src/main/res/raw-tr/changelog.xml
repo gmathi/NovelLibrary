@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+    <changelogversion versionName="0.4.beta" changeDate="08/03/2017">
+        <changelogtext>[b]Yeni![/b] Bölümler daha hızlı yüklenir ve ayrı ayrı indirilebilir (önceden indirilen bölümler yeni tasarımın desteklenmesi için silinir)</changelogtext>
+        <changelogtext>[b]Yeni![/b] Bölümler okunmuş / okunmamış olarak işaretlenebilir</changelogtext>
+        <changelogtext>[b]Yeni![/b] Uygulama için Türkçe Çeviri eklendi</changelogtext>
+        <changelogtext>[b]Yeni![/b] Kobatochan Romanlara [b] Gece Modu [/ b] Desteği eklendi</changelogtext>
+    </changelogversion>
+
+    <changelogversion versionName="0.3.3.beta" changeDate="08/03/2017">
+        <changelogtext>[b]Yeni![/b] Circus Translations Romanlarına [b] Gece Modu [/ b] Desteği eklendi</changelogtext>
+    </changelogversion>
+
     <changelogversion versionName="0.3.2.beta" changeDate="01/08/2017">
         <changelogtext>[b]Yeni![/b] Uygulamaya İspanyolca Çeviri eklendi</changelogtext>
         <changelogtext>[b]Yeni![/b] Uygulamaya Portekizce Çeviri eklendi</changelogtext>

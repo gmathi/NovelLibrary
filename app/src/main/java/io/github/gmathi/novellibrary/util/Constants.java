@@ -66,7 +66,6 @@ public class Constants {
     //endregion
 
     public static final String NO_NETWORK = "No Network";
-
-
-
+    public static final Integer CHAPTER_PAGE_SIZE = 15;
+    public static final String DOWNLOADING = "Downloading";
 }

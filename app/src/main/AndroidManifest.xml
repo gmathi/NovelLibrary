@@ -15,7 +15,12 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <service
-            android:name=".service.DownloadService"
+            android:name=".service.DownloadNovelService"
+            android:enabled="true"
+            android:exported="false">
+        </service>
+        <service
+            android:name=".service.DownloadChapterService"
             android:enabled="true"
             android:exported="false">
         </service>
@@ -88,6 +93,7 @@
             android:name=".activity.ChaptersNewActivity"
             android:label="@string/title_activity_chapters_new"
             android:theme="@style/DarkTheme_DarkSide">
+
         </activity>
         <activity
             android:name=".activity.LanguageActivity"

@@ -36,6 +36,7 @@ class MetaDataActivity : BaseActivity(), GenericAdapter.Listener<Map.Entry<Strin
     }
 
     private fun setRecyclerView() {
+        @Suppress("UNCHECKED_CAST")
         adapter = GenericAdapter(items = (ArrayList(novel.metaData.entries) as ArrayList<Map.Entry<String, String?>>), layoutResId = R.layout.listitem_metadata, listener = this)
         recyclerView.setDefaults(adapter)
         swipeRefreshLayout.setOnRefreshListener { swipeRefreshLayout.isRefreshing = false }

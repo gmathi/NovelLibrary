@@ -31,7 +31,8 @@ public class HostNames {
             "cloudflare.com",
             "wp.com",
             "scatterdrift.com",
-            "discordapp.com"
+            "discordapp.com",
+            "www.webnovel.com"
     };
 
     public static boolean isVerifiedHost(String hostName) {

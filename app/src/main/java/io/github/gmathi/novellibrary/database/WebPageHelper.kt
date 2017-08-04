@@ -4,12 +4,16 @@ import android.content.ContentValues
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.util.Constants
 import java.util.*
+import kotlin.collections.ArrayList
 
 private val LOG = "WebPageHelper"
 
 fun DBHelper.createWebPage(webPage: WebPage): Long {
+
     val db = this.writableDatabase
 
     val values = ContentValues()
@@ -20,9 +24,87 @@ fun DBHelper.createWebPage(webPage: WebPage): Long {
     values.put(DBKeys.KEY_FILE_PATH, webPage.filePath)
     values.put(DBKeys.KEY_NOVEL_ID, webPage.novelId)
     values.put(DBKeys.KEY_IS_READ, webPage.isRead)
+    values.put(DBKeys.KEY_ORDER_ID, webPage.orderId)
     values.put(DBKeys.KEY_METADATA, Gson().toJson(webPage.metaData))
 
     return db.insert(DBKeys.TABLE_WEB_PAGE, null, values)
+}
+
+fun DBHelper.addWebPages(webPages: ArrayList<WebPage>, novel: Novel, pageNum: Int) {
+    for (i in 0..webPages.size - 1) {
+        val orderId = (novel.chapterCount - (Constants.CHAPTER_PAGE_SIZE * pageNum) - 1 - i)
+        val webPage = getWebPage(novel.id, orderId)
+        if (webPage == null) {
+            webPages[i].orderId = orderId
+            webPages[i].novelId = novel.id
+            createWebPage(webPages[i])
+        }
+    }
+}
+
+fun DBHelper.getWebPageByWebPageId(webPageId: Long): WebPage? {
+    val db = this.readableDatabase
+    val selectQuery = "SELECT  * FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_ID + " = " + webPageId
+    Log.d(LOG, selectQuery)
+    var webPage: WebPage? = null
+    val cursor = db.rawQuery(selectQuery, null)
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+            webPage = WebPage()
+            webPage.id = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ID))
+            webPage.url = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL))
+            webPage.redirectedUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_REDIRECT_URL))
+            webPage.chapter = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER))
+            webPage.title = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_TITLE))
+            webPage.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
+            webPage.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
+            webPage.isRead = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_IS_READ))
+            webPage.orderId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
+            webPage.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
+        }
+        cursor.close()
+    }
+    return webPage
+}
+
+fun DBHelper.getWebPage(novelId: Long, orderId: Long): WebPage? {
+    val db = this.readableDatabase
+    val selectQuery = "SELECT  * FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novelId + " AND " + DBKeys.KEY_ORDER_ID + " = " + orderId
+    Log.d(LOG, selectQuery)
+    var webPage: WebPage? = null
+    val cursor = db.rawQuery(selectQuery, null)
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+            webPage = WebPage()
+            webPage.id = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ID))
+            webPage.url = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL))
+            webPage.redirectedUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_REDIRECT_URL))
+            webPage.chapter = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER))
+            webPage.title = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_TITLE))
+            webPage.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
+            webPage.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
+            webPage.isRead = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_IS_READ))
+            webPage.orderId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
+            webPage.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
+        }
+        cursor.close()
+    }
+    return webPage
+}
+
+
+fun DBHelper.getLatestWebPageOrderId(novelId: Long): Long {
+    val db = this.readableDatabase
+    val selectQuery = "SELECT  * FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novelId + " ORDER BY " + DBKeys.KEY_ORDER_ID + " DESC LIMIT 1"
+    Log.d(LOG, selectQuery)
+    val cursor = db.rawQuery(selectQuery, null)
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+            return cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
+        }
+        cursor.close()
+    }
+    return -1L
 }
 
 fun DBHelper.getWebPage(novelId: Long, url: String): WebPage? {
@@ -42,11 +124,44 @@ fun DBHelper.getWebPage(novelId: Long, url: String): WebPage? {
             webPage.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
             webPage.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
             webPage.isRead = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_IS_READ))
+            webPage.orderId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
             webPage.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
         }
         cursor.close()
     }
     return webPage
+}
+
+fun DBHelper.getWebPages(novel: Novel, pageNum: Int): ArrayList<WebPage> {
+    val list = ArrayList<WebPage>()
+    val orderIdStartIndex = novel.chapterCount - (Constants.CHAPTER_PAGE_SIZE * pageNum) - 1
+    val selectQuery = "SELECT * FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novel.id + " AND " + DBKeys.KEY_ORDER_ID + " <= " + orderIdStartIndex + " AND " + DBKeys.KEY_ORDER_ID + " >= " +(orderIdStartIndex - 15) + " ORDER BY " + DBKeys.KEY_ORDER_ID + " DESC"
+    Log.d(LOG, selectQuery)
+    val db = this.readableDatabase
+    val cursor = db.rawQuery(selectQuery, null)
+
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+            do {
+                val webPage = WebPage()
+                webPage.id = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ID))
+                webPage.url = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL))
+                webPage.redirectedUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_REDIRECT_URL))
+                webPage.chapter = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER))
+                webPage.title = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_TITLE))
+                webPage.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
+                webPage.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
+                webPage.isRead = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_IS_READ))
+                webPage.orderId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
+                webPage.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
+
+                list.add(webPage)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+    }
+    return list
+
 }
 
 fun DBHelper.getAllWebPages(novelId: Long): List<WebPage> {
@@ -68,6 +183,7 @@ fun DBHelper.getAllWebPages(novelId: Long): List<WebPage> {
                 webPage.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
                 webPage.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
                 webPage.isRead = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_IS_READ))
+                webPage.orderId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
                 webPage.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
 
                 list.add(webPage)
@@ -96,6 +212,7 @@ fun DBHelper.getAllWebPagesToDownload(novelId: Long): List<WebPage> {
                 webPage.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
                 webPage.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
                 webPage.isRead = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_IS_READ))
+                webPage.orderId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
                 webPage.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
 
                 list.add(webPage)
@@ -125,6 +242,7 @@ fun DBHelper.getAllReadableWebPages(novelId: Long): List<WebPage> {
                 webPage.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
                 webPage.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
                 webPage.isRead = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_IS_READ))
+                webPage.orderId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
                 webPage.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
 
                 list.add(webPage)
@@ -156,4 +274,6 @@ fun DBHelper.updateWebPageReadStatus(webPage: WebPage): Long {
 fun DBHelper.deleteWebPage(novelId: Long) {
     this.writableDatabase.delete(DBKeys.TABLE_WEB_PAGE, DBKeys.KEY_NOVEL_ID + " = ?", arrayOf(novelId.toString()))
 }
+
+
 

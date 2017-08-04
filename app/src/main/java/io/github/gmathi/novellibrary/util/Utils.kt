@@ -90,6 +90,12 @@ object Utils {
         }
     }
 
+    fun warning(tag: String, message: String, throwable: Throwable) {
+        if (BuildConfig.DEBUG) {
+            Log.w(tag, message, throwable)
+        }
+    }
+
     fun error(tag: String, message: String) {
         if (BuildConfig.DEBUG) {
             Log.e(tag, message)

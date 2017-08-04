@@ -36,6 +36,7 @@
         <item>Ativos Recentemente</item>
     </string-array>
 
+
     <string name="title_activity_novel_details">Série</string>
     <string name="title_activity_settings">Configurações</string>
     <string name="title_activity_chapters">Capítulos</string>
@@ -140,16 +141,31 @@
     <string name="general">Geral</string>
     <string name="faster_downloads">Downloads mais Rápidos</string>
     <string name="faster_downloads_description">Acelera consideravelmente os downloads, mas seu dispositivo pode lagar/congelar durante os downloads.</string>
-    <string name="first_screen_library">Tornar “Biblioteca” a tela principal</string>
-    <string name="first_screen_library_description">Se desativado, a tela principal será “Pesquisa”.</string>
+    <string name="first_screen_library">Tornar "Biblioteca" a tela principal</string>
+    <string name="first_screen_library_description">Se desativado, a tela principal será "Pesquisa".</string>
     <string name="clean_pages">Limpar Capítulos</string>
     <string name="clean_pages_description">Limpar capítulos antes de carregá-los.</string>
     <string name="failed_to_load_url">Falha na obtenção do conteúdo!</string>
     <string name="disable_javascript">Desativar Javascript</string>
     <string name="disable_javascript_description">Alguns websites redirecionam para propagandas quando javascipt está ativo</string>
     <string name="changelog">Últimas Modificações</string>
-    <string name="donations_description_new">I am happy that you want to donate! For now, please spread the word and share the app with fellow novel lovers!</string>
-    <string name="language">Language</string>
-    <string name="languages_supported">Languages Supported</string>
+    <string name="donations_description_new">Estou feliz que você quer doar! Por enquanto, por favor fale sobre e compartilhe o aplicativo com outros amantes da leitura!</string>
+    <string name="language">Linguagem</string>
+    <string name="languages_supported">Línguas Suportadas</string>
+    <string name="download_chapters">Baixar Capítulos</string>
+    <string name="mark_read">Marcar como Lido</string>
+    <string name="mark_unread">Marcar como Não Lido</string>
+    <string name="unread">Não Lido</string>
+    <string name="read">Lido</string>
+    <string name="chapters_selected">%d Selecionado</string>
+    <string name="okay">OK</string>
+    <string name="confirm_action">Confirmar Ação</string>
+    <string name="mark_chapters_unread_dialog_content">Marcar capítulos como não lidos?</string>
+    <string name="mark_chapters_read_dialog_content">Marcar capítulos como lidos?</string>
+    <string name="download_chapters_dialog_content">Baixar capítulos? \n Nota: O download de capítulos não pode ser pausado/cancelado.</string>
+    <string name="alert">Alerta</string>
+    <string name="novel_not_in_library_dialog_content">A série precisa ser adicionada à biblioteca antes que capítulos possam ser baixados individualmente!</string>
+    <string name="download_all_chapters_dialog_content">Gerenciar série usando gerenciador de downloads. Baixar todos os capítulos?</string>
+    <string name="background_chapter_downloads">Download de capítulos iniciado em segundo plano</string>
 
 </resources>

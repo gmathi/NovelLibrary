@@ -36,40 +36,6 @@
        <item>Yeni-Çıkanlar</item>
    </string-array>
 
-    <string-array name="search_results_tab_titles" translatable="false">
-        <item>Novel-Updates</item>
-        <item>RoyalRoad</item>
-        <item>WLN-Updates</item>
-    </string-array>
-
-    <string-array name="settings_list" translatable="false">
-        <item>@string/general</item>
-        <item>@string/language</item>
-        <item>@string/copyright_notice</item>
-        <item>@string/donate_developer</item>
-        <item>@string/libraries_used</item>
-        <item>@string/contributions</item>
-        <item>@string/changelog</item>
-        <item>@string/about_us</item>
-    </string-array>
-
-    <string-array name="general_titles_list" translatable="false">
-        <item>@string/clear_data</item>
-        <item>@string/faster_downloads</item>
-        <item>@string/first_screen_library</item>
-        <item>@string/clean_pages</item>
-        <item>@string/disable_javascript</item>
-    </string-array>
-
-    <string-array name="general_subtitles_list" translatable="false">
-        <item>@string/clear_data_description</item>
-        <item>@string/faster_downloads_description</item>
-        <item>@string/first_screen_library_description</item>
-        <item>@string/clean_pages_description</item>
-        <item>@string/disable_javascript_description</item>
-    </string-array>
-
-
     <!--<item>Latest Updates</item>-->
     <!--<item>Active-Only Ranking</item>-->
 
@@ -189,6 +155,21 @@
     <string name="changelog">Değişiklikler</string>
     <string name="donations_description_new">Bağışta bulunmak istemenize sevindim. Bu uygulamayı başka roman severelere de anlatıp bilgiyi paylaş!</string>
     <string name="language">Dil</string>
-    <string name="languages_supported">Languages Supported</string>
+    <string name="languages_supported">Desteklenen Diller</string>
+    <string name="download_chapters">Bölümleri İndirin</string>
+    <string name="mark_read">İşaretle</string>
+    <string name="mark_unread">Okunmamış Olarak İşaretle</string>
+    <string name="unread">Okunmamış</string>
+    <string name="read">Oku</string>
+    <string name="chapters_selected">%d Seçili</string>
+    <string name="okay">Tamam</string>
+    <string name="confirm_action">İşlemi Onaylayın</string>
+    <string name="mark_chapters_unread_dialog_content">Bölümleri okunmamış olarak işaretle?</string>
+    <string name="mark_chapters_read_dialog_content">Bölümleri işaretle mi?</string>
+    <string name="download_chapters_dialog_content">Bölümleri indirin? \n Not: Bölüm siteleri duraklatılamaz / durdurulamaz.</string>
+    <string name="alert">Uyarı</string>
+    <string name="novel_not_in_library_dialog_content">Bölümlerin ayrı indirilebilmesi için kitaplığa eklenmesi gerekiyor!</string>
+    <string name="download_all_chapters_dialog_content">Yeni indirme işlemlerini indirme yöneticisini kullanarak yönetin. Tüm Bölümleri İndirin?</string>
+    <string name="background_chapter_downloads">Arka plan bölümü indirmeler başladı</string>
 
 </resources>

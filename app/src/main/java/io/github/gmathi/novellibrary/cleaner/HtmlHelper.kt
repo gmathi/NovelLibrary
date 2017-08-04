@@ -2,7 +2,6 @@ package io.github.gmathi.novellibrary.cleaner
 
 import android.graphics.Bitmap
 import android.net.Uri
-import android.util.Log
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.getFileName
@@ -26,16 +25,17 @@ open class HtmlHelper protected constructor() {
                 host.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
                 host.contains(HostNames.WORD_PRESS) -> return WordPressHelper()
                 host.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
+                host.contains(HostNames.KOBATOCHAN) -> return KobatochanHelper()
             }
             return HtmlHelper()
         }
     }
 
     fun clean(doc: Document, hostDir: File, novelDir: File) {
-       // removeJS(doc)
+        // removeJS(doc)
         downloadCSS(doc, hostDir)
         downloadImages(doc, novelDir)
-       // additionalProcessing(doc)
+        // additionalProcessing(doc)
         addTitle(doc)
     }
 
@@ -71,7 +71,7 @@ open class HtmlHelper protected constructor() {
             file = File(dir, fileName)
             doc = Jsoup.connect(uri.toString()).userAgent(HostNames.USER_AGENT).ignoreContentType(true).get()
         } catch (e: Exception) {
-            Log.w(TAG, "Uri: $uri", e)
+            Utils.warning(TAG, "Uri: $uri", e)
             return null
         }
         return convertDocToFile(doc, file)
@@ -84,7 +84,7 @@ open class HtmlHelper protected constructor() {
             val content = doc.toString()
             stream.use { it.write(content.toByteArray()) }
         } catch (e: Exception) {
-            Log.w(TAG, "convertDocToFile: ${file.name}", e)
+            Utils.warning(TAG, "convertDocToFile: ${file.name}", e)
             return null
         }
         return file

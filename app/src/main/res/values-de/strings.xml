@@ -148,9 +148,24 @@
     <string name="failed_to_load_url">Konnte Inhalte nicht laden!</string>
     <string name="disable_javascript">Javascript abschalten</string>
     <string name="disable_javascript_description">Manche Websiten schalten Werbung wenn Javascript aktiv ist</string>
-    <string name="changelog">Change Log</string>
-    <string name="donations_description_new">I am happy that you want to donate! For now, please spread the word and share the app with fellow novel lovers!</string>
-    <string name="language">Language</string>
-    <string name="languages_supported">Languages Supported</string>
+    <string name="changelog">Änderungsprotokoll</string>
+    <string name="donations_description_new">Ich bin froh, dass du spenden willst! Für jetzt, bitte verbreiten Sie das Wort und teilen Sie die App mit anderen Romanliebhabern!</string>
+    <string name="language">Sprache</string>
+    <string name="languages_supported">Unterstützte Sprachen</string>
+    <string name="download_chapters">Herunterladen von Kapiteln</string>
+    <string name="mark_read">Markieren</string>
+    <string name="mark_unread">Ungelesen markieren</string>
+    <string name="unread">Ungelesen</string>
+    <string name="read">Lesen</string>
+    <string name="chapters_selected">%d Ausgewählt</string>
+    <string name="okay">OK</string>
+    <string name="confirm_action">Aktion bestätigen</string>
+    <string name="mark_chapters_unread_dialog_content">Markieren Sie die Kapitel ungelesen?</string>
+    <string name="mark_chapters_read_dialog_content">Markenkapitel lesen?</string>
+    <string name="download_chapters_dialog_content">Kapitel herunterladen? \n Hinweis: Kapitel-Downloads können nicht pausiert / gestoppt werden</string>
+    <string name="alert">Alert</string>
+    <string name="novel_not_in_library_dialog_content">Neu muss der Bibliothek hinzugefügt werden, bevor Kapitel einzeln heruntergeladen werden können</string>
+    <string name="download_all_chapters_dialog_content">Verwalten Sie neuartige Downloads mit dem Download-Manager. Laden Sie alle Kapitel?</string>
+    <string name="background_chapter_downloads">Hintergrund-Kapitel-Downloads wurde gestartet</string>
 
 </resources>

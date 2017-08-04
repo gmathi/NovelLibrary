@@ -17,13 +17,12 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.event.EventType
-import io.github.gmathi.novellibrary.event.NovelEvent
+import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterUrls
-import io.github.gmathi.novellibrary.service.DownloadService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.applyFont
@@ -236,7 +235,7 @@ class ChaptersActivity : BaseActivity(), GenericAdapter.Listener<WebPage> {
 
         if (novel.currentWebPageId != -1L && novel.currentWebPageId == item.id) {
             itemView.chapterOverlay.setBackgroundColor(ContextCompat.getColor(this, android.R.color.transparent))
-            itemView.chapterStatusImage.setImageResource(R.drawable.ic_bookmark_white_vector)
+            itemView.chapterStatusImage.setImageResource(R.drawable.ic_bookmark_orange_vector)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 itemView.chapterStatusImage.drawable?.mutate()?.setTint(ContextCompat.getColor(this, R.color.Orange))
             }
@@ -331,16 +330,10 @@ class ChaptersActivity : BaseActivity(), GenericAdapter.Listener<WebPage> {
             //Add to Downloads by calling Download Service
             if (!isFinishing) {
                 adapter.notifyDataSetChanged()
-                startDownloadService(novel.id)
+                startNovelDownloadService(novel.id)
                 progressLayout.showContent()
             }
         }
-    }
-
-    private fun startDownloadService(novelId: Long) {
-        val serviceIntent = Intent(this, DownloadService::class.java)
-        serviceIntent.putExtra(Constants.NOVEL_ID, novelId)
-        startService(serviceIntent)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

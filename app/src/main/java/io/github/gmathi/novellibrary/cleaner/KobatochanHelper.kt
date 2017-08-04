@@ -6,26 +6,18 @@ import org.jsoup.nodes.Element
 import java.io.File
 
 
-class WuxiaWorldHelper : HtmlHelper() {
-
-
-    override fun downloadCSS(doc: Document, downloadDir: File) {
-        super.downloadCSS(doc, downloadDir)
-    }
+class KobatochanHelper : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
-        var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasAttr("itemprop") && it.attr("itemprop") == "articleBody" }
-//        if (contentElement != null && contentElement.children().size >= 2) {
-//            contentElement.child(contentElement.children().size - 1).remove()
-//            contentElement.child(0).remove()
-//        }
+        var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
+        contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
         do {
             contentElement?.siblingElements()?.remove()
             contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
             contentElement = contentElement?.parent()
         } while (contentElement?.tagName() != "body")
         contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
-        doc.getElementById("custom-background-css")?.remove()
+        doc.head().children().remove()
     }
 
     override fun downloadImage(element: Element, dir: File): File? {
@@ -51,9 +43,6 @@ class WuxiaWorldHelper : HtmlHelper() {
         }
 
         return doc
-    }
-
-    override fun addTitle(doc: Document) {
     }
 
 }
