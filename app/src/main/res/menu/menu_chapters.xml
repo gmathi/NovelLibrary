@@ -1,0 +1,12 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="com.mgn.bingenovelreader.fragment.LibraryFragment">
+    <item
+        android:id="@+id/action_download"
+        android:icon="@drawable/ic_cloud_download_white_vector"
+        android:title="@string/download_chapters"
+        android:titleCondensed="@string/download"
+        app:showAsAction="ifRoom"/>
+
+</menu>

@@ -1,13 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
-    <changelogversion versionName="0.3.2.beta" changeDate="08/01/2017">
-        <changelogtext>[b]Novo![/b] Tradução Espanhola adicionada ao aplicativo</changelogtext>
-        <changelogtext>[b]Novo![/b] Tradução Portuguesa adicionada ao aplicativo</changelogtext>
-        <changelogtext>[i]Correção[/i] - Limpeza no Wuxia World também deletava o conteúdo do capítulo!</changelogtext>
-        <changelogtext>[i]Correção[/i] - Correções para crashes reportados e não reportados!</changelogtext>
+    <changelogversion versionName="0.4.beta" changeDate="08/03/2017">
+        <changelogtext>[b]Novo![/b] Capítulos carregam mais rápidamente e podem ser baixados individualmente</changelogtext>
+        <changelogtext>[b]Novo![/b] Capítulos podem ser marcados como lidos/não lidos</changelogtext>
+        <changelogtext>[b]Novo![/b] Tradução Turca adicionada para o aplicativo</changelogtext>
+        <changelogtext>[b]Novo![/b] Adicionado suporte a [b]Modo Noturno[/b] a séries de Kobatochan</changelogtext>
     </changelogversion>
 
+    <changelogversion versionName="0.3.3.beta" changeDate="08/03/2017">
+        <changelogtext>[b]Novo![/b] Adicionado suporte a [b]Modo Noturno[/b] a séries de Circus Translations</changelogtext>
+    </changelogversion>
+
+    <changelogversion versionName="0.3.2.beta" changeDate="08/01/2017">
+        <changelogtext>[b]Novo![/b] Tradução Espanhola adicionada para o aplicativo</changelogtext>
+        <changelogtext>[b]Novo![/b] Tradução Portuguesa adicionada para o aplicativo</changelogtext>
+        <changelogtext>[i]Correção[/i] - Limpeza no Wuxia World também deletava o conteúdo dos capítulos!</changelogtext>
+        <changelogtext>[i]Correção[/i] - Correções para crashes reportados e não reportados!</changelogtext>
+    </changelogversion>
 
     <changelogversion versionName="0.3.1.beta" changeDate="07/31/2017">
         <changelogtext>[b]Novo![/b] Confetes adicionados para desbloqueio secreto</changelogtext>

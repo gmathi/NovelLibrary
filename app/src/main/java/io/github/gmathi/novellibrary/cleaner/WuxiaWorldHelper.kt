@@ -15,10 +15,10 @@ class WuxiaWorldHelper : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
         var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasAttr("itemprop") && it.attr("itemprop") == "articleBody" }
-        if (contentElement != null && contentElement.children().size >= 2) {
-            contentElement.child(contentElement.children().size - 1).remove()
-            contentElement.child(0).remove()
-        }
+//        if (contentElement != null && contentElement.children().size >= 2) {
+//            contentElement.child(contentElement.children().size - 1).remove()
+//            contentElement.child(0).remove()
+//        }
         do {
             contentElement?.siblingElements()?.remove()
             contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }

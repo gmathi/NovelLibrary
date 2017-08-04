@@ -44,6 +44,7 @@
 
     <string-array name="settings_list" translatable="false">
         <item>@string/general</item>
+        <item>@string/languages_supported</item>
         <item>@string/copyright_notice</item>
         <item>@string/donate_developer</item>
         <item>@string/libraries_used</item>
@@ -80,7 +81,9 @@
     <string name="title_activity_copyright" translatable="false">@string/copyright_notice</string>
     <string name="title_activity_search_results" translatable="false">SearchResultsActivity</string>
     <string name="title_activity_general_settings" translatable="false">@string/general</string>
-    <string name="title_activity_chapters_new" translatable="false">ChaptersNewActivity</string>
+    <string name="title_activity_chapters_new" translatable="false">@string/chapters</string>
+    <string name="title_activity_language" translatable="false">LanguageActivity</string>
+
 
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
     <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
@@ -201,6 +204,24 @@
     <string name="disable_javascript">Disable Javascript</string>
     <string name="disable_javascript_description">Some websites redirect to ads in when javascript is enabled</string>
     <string name="changelog">Change Log</string>
+    <string name="donations_description_new">I am happy that you want to donate! For now, please spread the word and share the app with fellow novel lovers!</string>
+    <string name="language">Language</string>
+    <string name="languages_supported">Languages Supported</string>
+    <string name="download_chapters">Download Chapters</string>
+    <string name="mark_read">Mark Read</string>
+    <string name="mark_unread">Mark Unread</string>
+    <string name="unread">Unread</string>
+    <string name="read">Read</string>
+    <string name="chapters_selected">%d Selected</string>
+    <string name="okay">OK</string>
+    <string name="confirm_action">Confirm Action</string>
+    <string name="mark_chapters_unread_dialog_content">Mark chapters unread?</string>
+    <string name="mark_chapters_read_dialog_content">Mark chapters read?</string>
+    <string name="download_chapters_dialog_content">Download chapters? \n Note: Chapter downloads cannot be paused/stopped.</string>
+    <string name="alert">Alert</string>
+    <string name="novel_not_in_library_dialog_content">Novel needs to be added to library, before chapters can be downloaded individually!</string>
+    <string name="download_all_chapters_dialog_content">Manage novel downloads using download manager. Download All Chapters?</string>
+    <string name="background_chapter_downloads">Background chapter downloads started</string>
 
 
 </resources>

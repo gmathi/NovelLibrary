@@ -49,7 +49,7 @@
                 <item name="colorAccent">@color/colorAccent</item>
                 <item name="card_color">@color/colorLightKnight</item>
                 <item name="drawer_color">@color/colorPrimaryText</item>
-
+                <item name="windowActionModeOverlay">true</item>
                 <item name="android:windowTranslucentStatus">false</item>
                 <item name="android:windowBackground">@color/colorDarkKnight</item>
                 <item name="android:textColorPrimary">@color/colorPrimaryText</item>

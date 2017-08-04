@@ -10,13 +10,14 @@ public class HostNames {
     public static final String WUXIA_WORLD = "wuxiaworld.com";
     public static final String WORD_PRESS = "wordpress.com";
     public static final String WLN_UPDATES = "wlnupdates.com";
+    public static final String CIRCUS_TRANSLATIONS = "circustranslations.com";
 
     @SuppressWarnings("HardcodedFileSeparator")
     public static final String USER_AGENT = "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Mobile Safari/537.36";
 
     private static final String[] ALLOWED_HOST_NAMES_ARRAY = {
             NOVEL_UPDATES, ROYAL_ROAD, KOBATOCHAN, GRAVITY_TALES, WUXIA_WORLD,
-            WORD_PRESS, WLN_UPDATES,
+            WORD_PRESS, WLN_UPDATES, CIRCUS_TRANSLATIONS,
             "patreon.com",
             "royalroadlupload.blob.core.windows.net",
             "postimg.org",
@@ -30,7 +31,8 @@ public class HostNames {
             "cloudflare.com",
             "wp.com",
             "scatterdrift.com",
-            "discordapp.com"
+            "discordapp.com",
+            "www.webnovel.com"
     };
 
     public static boolean isVerifiedHost(String hostName) {

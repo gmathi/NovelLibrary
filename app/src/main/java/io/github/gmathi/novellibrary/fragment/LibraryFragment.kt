@@ -22,11 +22,11 @@ import io.github.gmathi.novellibrary.database.createDownloadQueue
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.database.updateOrderId
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.event.NovelEvent
+import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.util.getFileName
 import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.service.DownloadService
+import io.github.gmathi.novellibrary.service.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.SimpleItemTouchListener
@@ -171,7 +171,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     private fun startDownloadService(novelId: Long) {
-        val serviceIntent = Intent(activity, DownloadService::class.java)
+        val serviceIntent = Intent(activity, DownloadNovelService::class.java)
         serviceIntent.putExtra(Constants.NOVEL_ID, novelId)
         activity.startService(serviceIntent)
     }

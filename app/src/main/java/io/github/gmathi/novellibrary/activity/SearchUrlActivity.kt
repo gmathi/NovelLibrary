@@ -3,13 +3,12 @@ package io.github.gmathi.novellibrary.activity
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentTransaction
-import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.fragment.SearchUrlFragment
 import kotlinx.android.synthetic.main.activity_search_results.*
 
-class SearchUrlActivity : AppCompatActivity() {
+class SearchUrlActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

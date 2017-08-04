@@ -26,6 +26,7 @@ class WebPage : Serializable {
     var novelId: Long = -1L
     var pageData: String? = null
     var isRead: Int = 0
+    var orderId: Long = -1L
     var metaData: HashMap<String, String?> = HashMap()
 
     override fun equals(other: Any?): Boolean {
@@ -46,6 +47,7 @@ class WebPage : Serializable {
             novelId = if (other.novelId != -1L) other.novelId else novelId
             pageData = if (other.pageData != null) other.pageData else pageData
             isRead = if (other.isRead != 0) other.isRead else isRead
+            orderId = if (other.orderId != -1L) other.orderId else orderId
             metaData = if (!other.metaData.isEmpty()) other.metaData else metaData
         }
     }

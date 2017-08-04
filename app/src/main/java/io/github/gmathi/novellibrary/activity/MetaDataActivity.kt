@@ -2,22 +2,21 @@ package io.github.gmathi.novellibrary.activity
 
 import android.os.Build
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.text.Html
 import android.view.MenuItem
 import android.view.View
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.util.applyFont
-import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.TextViewLinkHandler
+import io.github.gmathi.novellibrary.util.applyFont
+import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_meta_data.*
 import kotlinx.android.synthetic.main.content_chapters.*
 import kotlinx.android.synthetic.main.listitem_metadata.view.*
 import java.util.*
 
-class MetaDataActivity : AppCompatActivity(), GenericAdapter.Listener<Map.Entry<String, String?>>, TextViewLinkHandler.OnClickListener {
+class MetaDataActivity : BaseActivity(), GenericAdapter.Listener<Map.Entry<String, String?>>, TextViewLinkHandler.OnClickListener {
 
     lateinit var novel: Novel
     lateinit var adapter: GenericAdapter<Map.Entry<String, String?>>
@@ -37,6 +36,7 @@ class MetaDataActivity : AppCompatActivity(), GenericAdapter.Listener<Map.Entry<
     }
 
     private fun setRecyclerView() {
+        @Suppress("UNCHECKED_CAST")
         adapter = GenericAdapter(items = (ArrayList(novel.metaData.entries) as ArrayList<Map.Entry<String, String?>>), layoutResId = R.layout.listitem_metadata, listener = this)
         recyclerView.setDefaults(adapter)
         swipeRefreshLayout.setOnRefreshListener { swipeRefreshLayout.isRefreshing = false }

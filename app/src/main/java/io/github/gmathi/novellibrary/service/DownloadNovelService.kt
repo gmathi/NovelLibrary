@@ -6,20 +6,20 @@ import android.util.Log
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.getFirstDownloadableQueueItem
 import io.github.gmathi.novellibrary.database.updateAllDownloadQueueStatuses
-import io.github.gmathi.novellibrary.event.EventType
-import io.github.gmathi.novellibrary.event.NovelEvent
+import io.github.gmathi.novellibrary.model.EventType
+import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import org.greenrobot.eventbus.EventBus
 
 
-class DownloadService : IntentService(TAG) {
+class DownloadNovelService : IntentService(TAG) {
 
     lateinit var dbHelper: DBHelper
 
     //static components
     companion object {
-        val TAG = "DownloadService"
+        val TAG = "DownloadNovelService"
 
         var isDownloading: Boolean = false
         var novelId: Long = -2L
@@ -31,7 +31,7 @@ class DownloadService : IntentService(TAG) {
         novelId = workIntent.getLongExtra(Constants.NOVEL_ID, -1L)
         isDownloading = true
 
-        //android.os.Debug.waitForDebugger()
+       // android.os.Debug.waitForDebugger()
 
         if (isNetworkDown()) return
 

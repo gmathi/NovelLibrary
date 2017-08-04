@@ -4,11 +4,9 @@ import android.content.Context
 import android.util.Log
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
-import io.github.gmathi.novellibrary.event.EventType
-import io.github.gmathi.novellibrary.event.NovelEvent
-import io.github.gmathi.novellibrary.model.DownloadQueue
-import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import org.greenrobot.eventbus.EventBus
@@ -42,7 +40,7 @@ class DownloadNovel(val context: Context, val novelId: Long, val dbHelper: DBHel
     fun startDownload(novel: Novel, downloadQueue: DownloadQueue) {
         if (isNetworkDown()) throw InterruptedException(Constants.NO_NETWORK)
 
-        val chapters = getChapters(downloadQueue, url = novel.url!!)
+        val chapters = NovelApi().getChapterUrls(novel.url!!)?.asReversed() ?: return
 
         //If the novel was deleted
         if (dbHelper.getNovel(novel.id) == null) {
@@ -59,20 +57,30 @@ class DownloadNovel(val context: Context, val novelId: Long, val dbHelper: DBHel
 
         run downloadChapters@ {
 
-            chapters.forEach {
+            (0..chapters.size - 1).forEach {
+
+                val webPage = dbHelper.getWebPage(novel.id, chapters[it].url!!) ?: chapters[it]
+                if (webPage.id == -1L) {
+                    webPage.orderId = it.toLong()
+                    webPage.novelId = novel.id
+                    webPage.id = dbHelper.createWebPage(webPage)
+                }
+
+                if (webPage.filePath != null) return@forEach
                 if (isNetworkDown()) throw InterruptedException(Constants.NO_NETWORK)
 
-                val dq = dbHelper.getDownloadQueue(it.novelId)
+                val dq = dbHelper.getDownloadQueue(webPage.novelId)
                 if (dq != null && dq.status == Constants.STATUS_DOWNLOAD) {
 
                     if (dataCenter.experimentalDownload) {
-                        threadPool?.execute(DownloadWebPageThread(context, it, hostDir, novelDir))
+                        threadPool?.execute(DownloadWebPageThread(context, webPage, hostDir, novelDir))
                     } else {
-                        threadPool?.submit(DownloadWebPageThread(context, it, hostDir, novelDir))?.get()
+                        threadPool?.submit(DownloadWebPageThread(context, webPage, hostDir, novelDir))?.get()
                     }
                 } else
                     return@downloadChapters //If downloads stopped or novel is deleted from database
             }
+
             threadPool?.shutdown()
             try {
                 threadPool?.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)
@@ -115,12 +123,12 @@ class DownloadNovel(val context: Context, val novelId: Long, val dbHelper: DBHel
 //            dbHelper.updateChapterUrlsCached(1, downloadQueue.novelId)
 //            return chapters
 //        } else {
-            return dbHelper.getAllWebPagesToDownload(downloadQueue.novelId)
+        return dbHelper.getAllWebPagesToDownload(downloadQueue.novelId)
 //        }
     }
 
     private fun onNoNetwork() {
-        Log.e(DownloadService.TAG, Constants.NO_NETWORK)
+        Log.e(DownloadNovelService.TAG, Constants.NO_NETWORK)
         dbHelper.updateDownloadQueueStatus(Constants.STATUS_STOPPED.toLong(), novelId)
         EventBus.getDefault().post(NovelEvent(EventType.UPDATE, -1L))
     }

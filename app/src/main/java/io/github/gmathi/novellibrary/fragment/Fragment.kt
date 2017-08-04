@@ -10,3 +10,7 @@ fun Fragment.hideSoftKeyboard() {
     inputMethodManager.hideSoftInputFromWindow(activity.window.decorView.windowToken, 0)
 }
 
+fun Fragment.isFragmentActive(): Boolean {
+    return activity != null && isResumed && !isRemoving && !isDetached
+}
+

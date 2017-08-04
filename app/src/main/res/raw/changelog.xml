@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+    <changelogversion versionName="0.4.beta" changeDate="08/03/2017">
+        <changelogtext>[b]New![/b] Chapters load faster, and can be downloaded individually (Previously downloaded chapters are deleted to support new design)</changelogtext>
+        <changelogtext>[b]New![/b] Chapters can be marked read/unread</changelogtext>
+        <changelogtext>[b]New![/b] Added Turkish Translation for the app</changelogtext>
+        <changelogtext>[b]New![/b] Added [b]Night Mode[/b] support to Kobatochan Novels</changelogtext>
+    </changelogversion>
+
+    <changelogversion versionName="0.3.3.beta" changeDate="08/03/2017">
+        <changelogtext>[b]New![/b] Added [b]Night Mode[/b] support to Circus Translations Novels</changelogtext>
+    </changelogversion>
+
     <changelogversion versionName="0.3.2.beta" changeDate="08/01/2017">
         <changelogtext>[b]New![/b] Added Spanish Translation for the app</changelogtext>
         <changelogtext>[b]New![/b] Added Portuguese Translation for the app</changelogtext>
