@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import co.metalab.asyncawait.async
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ChaptersNewActivity
+import io.github.gmathi.novellibrary.activity.shareUrl
 import io.github.gmathi.novellibrary.activity.startReaderPagerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.addWebPages
@@ -186,6 +187,14 @@ class ChapterFragment : BaseFragment(), GenericAdapter.Listener<WebPage> {
                 (activity as ChaptersNewActivity).addToUpdateSet(item)
             else
                 (activity as ChaptersNewActivity).removeFromUpdateSet(item)
+        }
+
+        itemView.setOnLongClickListener {
+            if (item.redirectedUrl != null)
+                activity.shareUrl(item.redirectedUrl!!)
+            else
+                activity.shareUrl(item.url!!)
+            true
         }
     }
 

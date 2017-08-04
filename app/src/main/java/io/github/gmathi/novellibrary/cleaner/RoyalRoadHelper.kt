@@ -1,7 +1,6 @@
 package io.github.gmathi.novellibrary.cleaner
 
 import android.net.Uri
-import io.github.gmathi.novellibrary.dataCenter
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
@@ -9,13 +8,8 @@ import java.io.File
 
 class RoyalRoadHelper : HtmlHelper() {
 
-    val ROYAL_ROAD_SITE_THEME_ID = "siteThemeRoyalRoad"
-
     override fun downloadCSS(doc: Document, downloadDir: File) {
-        doc.head().append("<link id=\"$ROYAL_ROAD_SITE_THEME_ID\" href=\"/Content/Themes/Bootstrap/Site-dark.css\" rel=\"stylesheet\">")
-        //doc.head().getElementsByTag("link").firstOrNull { it.hasAttr("href") && it.attr("href") == "/Content/Themes/Bootstrap/Site.css" }?.remove()
         super.downloadCSS(doc, downloadDir)
-        doc.head().getElementsByTag("link").firstOrNull { it.hasAttr("href") && it.attr("href") == "../Site.css" }
     }
 
     override fun additionalProcessing(doc: Document) {
@@ -23,8 +17,11 @@ class RoyalRoadHelper : HtmlHelper() {
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
         do {
             contentElement?.siblingElements()?.remove()
+            contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
             contentElement = contentElement?.parent()
         } while (contentElement?.tagName() != "body")
+        contentElement.classNames()?.forEach { contentElement?.removeClass(it) }
+        doc.head().children().remove()
     }
 
     override fun downloadImage(element: Element, dir: File): File? {
@@ -33,29 +30,22 @@ class RoyalRoadHelper : HtmlHelper() {
         else return super.downloadImage(element, dir)
     }
 
-    override fun addTitle(doc: Document) {
-
-
+    override fun removeJS(doc: Document) {
+        super.removeJS(doc)
+        doc.getElementsByTag("noscript").remove()
     }
 
     override fun toggleTheme(isDark: Boolean, doc: Document): Document {
-        val element = doc.head().getElementById(ROYAL_ROAD_SITE_THEME_ID)
-        if (element != null) {
-            element.removeAttr("href")
-            if (dataCenter.isDarkTheme)
-                element.attr("href", "../Site-dark.css")
-            else
-                element.attr("href", "../Site.css")
+        if (isDark) {
+            doc.head().getElementById("darkTheme")?.remove()
+            doc.head().append("<style id=\"darkTheme\">" +
+                "body { background-color:#131313; color:rgba(255, 255, 255, 0.8); font-family: 'Open Sans',sans-serif; line-height: 1.5; padding:20px;} </style> ")
         } else {
-            if (isDark)
-                doc.head().getElementsByTag("link").firstOrNull {
-                    it.hasAttr("href") && it.attr("href") == "/Content/Themes/Bootstrap/Site.css"
-                }?.attr("href", "/Content/Themes/Bootstrap/Site-dark.css")
-            else
-                doc.head().getElementsByTag("link").firstOrNull {
-                    it.hasAttr("href") && it.attr("href") == "/Content/Themes/Bootstrap/Site-dark.css"
-                }?.attr("href", "/Content/Themes/Bootstrap/Site.css")
+            doc.head().getElementById("darkTheme")?.remove()
+            doc.head().append("<style id=\"darkTheme\">" +
+                "body { background-color:rgba(255, 255, 255, 0.8); color:#131313; font-family: 'Open Sans',sans-serif; line-height: 1.5; padding:20px;} </style> ")
         }
+
         return doc
     }
 
