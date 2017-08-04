@@ -1,32 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
-    <changelogversion versionName="0.4.beta" changeDate="08/03/2017">
+    <changelogversion
+        changeDate="08/04/2017"
+        versionName="0.4.1.beta">
+        <changelogtext>[b]New![/b] Novels can be shared from 'Novel Details'</changelogtext>
+        <changelogimprovement>[i]Fix[/i] - Royal Road chapters duplication!</changelogimprovement>
+        <changelogimprovement>[i]Fix[/i] - Royal Road chapters night mode support</changelogimprovement>
+        <changelogimprovement>[i]Fix[/i] - Design color changes</changelogimprovement>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/03/2017"
+        versionName="0.4.beta">
         <changelogtext>[b]Novo![/b] Capítulos carregam mais rápidamente e podem ser baixados individualmente</changelogtext>
         <changelogtext>[b]Novo![/b] Capítulos podem ser marcados como lidos/não lidos</changelogtext>
         <changelogtext>[b]Novo![/b] Tradução Turca adicionada para o aplicativo</changelogtext>
         <changelogtext>[b]Novo![/b] Adicionado suporte a [b]Modo Noturno[/b] a séries de Kobatochan</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.3.beta" changeDate="08/03/2017">
+    <changelogversion
+        changeDate="08/03/2017"
+        versionName="0.3.3.beta">
         <changelogtext>[b]Novo![/b] Adicionado suporte a [b]Modo Noturno[/b] a séries de Circus Translations</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.2.beta" changeDate="08/01/2017">
+    <changelogversion
+        changeDate="08/01/2017"
+        versionName="0.3.2.beta">
         <changelogtext>[b]Novo![/b] Tradução Espanhola adicionada para o aplicativo</changelogtext>
         <changelogtext>[b]Novo![/b] Tradução Portuguesa adicionada para o aplicativo</changelogtext>
         <changelogtext>[i]Correção[/i] - Limpeza no Wuxia World também deletava o conteúdo dos capítulos!</changelogtext>
         <changelogtext>[i]Correção[/i] - Correções para crashes reportados e não reportados!</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.1.beta" changeDate="07/31/2017">
+    <changelogversion
+        changeDate="07/31/2017"
+        versionName="0.3.1.beta">
         <changelogtext>[b]Novo![/b] Confetes adicionados para desbloqueio secreto</changelogtext>
         <changelogtext>[i]Correção[/i] - Crash na página de leitura deslizando para tela anterior/próxima</changelogtext>
         <changelogtext>[i]Correção[/i] - Modo noturno nas páginas do Wuxia World não funcionando adequadamente</changelogtext>
         <changelogtext>[i]Correção[/i] - Correções para crashes reportados e não reportados!</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.beta" changeDate="07/30/2017">
+    <changelogversion
+        changeDate="07/30/2017"
+        versionName="0.3.beta">
         <changelogtext>[b]Novo![/b] Reordene as séries em sua biblioteca</changelogtext>
         <changelogtext>[b]Novo![/b] Deslize para a direita para deletar séries da sua biblioteca</changelogtext>
         <changelogtext>[b]Novo![/b] [i]WLN-Updates.com[/i] adicionado para os resultados da pesquisa (Experimental)</changelogtext>
@@ -40,7 +59,9 @@
         <changelogtext>[i]Correção[/i] - Correções para crashes reportados!</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.2.1.beta" changeDate="07/27/2017">
+    <changelogversion
+        changeDate="07/27/2017"
+        versionName="0.2.1.beta">
         <changelogtext>[b]Novo![/b] Suporte a limpar páginas e ao [b]Modo Noturno[/b] adicionado para o wordpress.com</changelogtext>
         <changelogtext>[b]Correção[/b] - Capítulos indexados adequadamente</changelogtext>
         <changelogtext>[b]Correção[/b] - Tela é mantida ativa na Tela de Leitura</changelogtext>
@@ -48,13 +69,17 @@
         <changelogtext>Correções para crashes reportados!</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.2.beta" changeDate="07/26/2017">
+    <changelogversion
+        changeDate="07/26/2017"
+        versionName="0.2.beta">
         <changelogtext>[b]Novo![/b] Links para descobrir outros trabalhos de Autores, Tradutores e Publishers(Tela de Mais Informações)</changelogtext>
         <changelogtext>[b]Novo![/b] Capítulos carregam mais rápido (1000 capítulos em 4~5s)</changelogtext>
         <changelogtext>Correções para suportar dispositivos menos potentes e outras correções para crashes maiores</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.1.beta" changeDate="07/23/2017">
+    <changelogversion
+        changeDate="07/23/2017"
+        versionName="0.1.beta">
         <changelogtext>Lançamento Beta inicial.</changelogtext>
         <changelogimprovement>Leitor: Modo Noturno (experimental, suporte limitado)</changelogimprovement>
         <changelogbug>Lista de Capítulos: 1000 Capítulos levam entre 20 e 30 segundos para carregar</changelogbug>

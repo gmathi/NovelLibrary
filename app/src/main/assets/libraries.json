@@ -64,4 +64,19 @@
     "description": "jsoup is a Java library for working with real-world HTML. It provides a very convenient API for extracting and manipulating data, using the best of DOM, CSS, and jquery-like methods.",
     "link": "https://jsoup.org/"
   },
+  {
+    "name": "Async/Await v1.0.0",
+    "description": "async/await for Android built upon coroutines introduced in Kotlin 1.1",
+    "link": "https://github.com/metalabdesign/AsyncAwait"
+  },
+  {
+    "name": "SuperToasts Library v2.0",
+    "description": "A library that extends the Android toast framework.",
+    "link": "https://github.com/JohnPersano/SuperToasts"
+  },
+  {
+    "name": "Konfetti 🎊 v1.0.2",
+    "description": "Celebrate more with this lightweight confetti particle system 🎊 Create realistic confetti by implementing this easy to use library.",
+    "link": "https://github.com/DanielMartinus/Konfetti"
+  }
 ]

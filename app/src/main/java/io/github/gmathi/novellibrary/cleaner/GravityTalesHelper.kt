@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.cleaner;
+package io.github.gmathi.novellibrary.cleaner
 
 import org.jsoup.nodes.Document
 

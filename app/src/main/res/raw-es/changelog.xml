@@ -1,32 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
-<changelogversion versionName="0.4.beta" changeDate="08/03/2017">
+    <changelogversion
+        changeDate="08/04/2017"
+        versionName="0.4.1.beta">
+        <changelogtext>[b]New![/b] Novels can be shared from 'Novel Details'</changelogtext>
+        <changelogimprovement>[i]Fix[/i] - Royal Road chapters duplication!</changelogimprovement>
+        <changelogimprovement>[i]Fix[/i] - Royal Road chapters night mode support</changelogimprovement>
+        <changelogimprovement>[i]Fix[/i] - Design color changes</changelogimprovement>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/03/2017"
+        versionName="0.4.beta">
         <changelogtext>[b]Nuevo![/b] Mayor velocidad de carga de capitulos y pueden ser descargados individualmente</changelogtext>
         <changelogtext>[b]Nuevo![/b] Capítulos pueden ser marcados como leído/no leído</changelogtext>
         <changelogtext>[b]Nuevo![/b] Agregada traducción al turco para la aplicación</changelogtext>
         <changelogtext>[b]Nuevo![/b] Agregada compatibilidad en []Modo Nocturno[] para Kobatochan Novels</changelogtext>
     </changelogversion>
-	
-<changelogversion versionName="0.3.3.beta" changeDate="08/03/2017">
+
+    <changelogversion
+        changeDate="08/03/2017"
+        versionName="0.3.3.beta">
         <changelogtext>[b]Nuevo![/b] Agregada compatibilidad en []Modo Nocturno[] para Circus Translations Novels</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.2.beta" changeDate="08/01/2017">
+    <changelogversion
+        changeDate="08/01/2017"
+        versionName="0.3.2.beta">
         <changelogtext>[b]Nuevo![/b] Agregada traducción al español para la aplicación</changelogtext>
         <changelogtext>[b]Nuevo![/b] Agregada traducción al portugués para la aplicación</changelogtext>
         <changelogtext>[i]Correción[/i] - Limpieza también elimina contenido de capítulos de Wuxia World</changelogtext>
         <changelogtext>[i]Correción[/i] - Correciones de bugs para crash de aplicación reportados y no reportados!</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.1.beta" changeDate="07/31/2017">
+    <changelogversion
+        changeDate="07/31/2017"
+        versionName="0.3.1.beta">
         <changelogtext>[b]Nuevo![/b] Agregado confetti al descubrir contenido oculto</changelogtext>
         <changelogtext>[i]Correción[/i] - Crash de aplicación en modo lector al deslizar a pantalla anterior/siguiente</changelogtext>
         <changelogtext>[i]Correción[/i] - Páginas de Wuxia World no funcionan apropiadamente en modo nocturno</changelogtext>
         <changelogtext>[i]Correción[/i] - Correciones de bugs para crash de aplicación reportados y no reportados!</changelogtext>
     </changelogversion>
-	
-    <changelogversion versionName="0.3.beta" changeDate="07/29/2017">
+
+    <changelogversion
+        changeDate="07/29/2017"
+        versionName="0.3.beta">
         <changelogtext>[b]Nuevo![/b] Organiza las novelas en tu librería</changelogtext>
         <changelogtext>[b]Nuevo![/b] Desliza hacia la derecha para eliminar novelas de tu librer&iacute;a</changelogtext>
         <changelogtext>[b]Nuevo![/b] Agregado [i]WLN-Updates.com[/i] a los resultados de búsqueda (Experimental)</changelogtext>
@@ -40,7 +59,9 @@
         <changelogtext>[i]Correción[/i] - Correciones de bugs para crash de aplicación reportados!</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.2.1.beta" changeDate="07/27/2017">
+    <changelogversion
+        changeDate="07/27/2017"
+        versionName="0.2.1.beta">
         <changelogtext>[b]Nuevo![/b] Añadida compatibilidad para p&aacute;ginas limpias y regulares de wordpress.com en [b]Modo Nocturno[/b]</changelogtext>
         <changelogtext>[b]Correción[/b] - Capítulos indexados apropiadamente</changelogtext>
         <changelogtext>[b]Correción[/b] - La pantalla se mantiene encendida en modo lector</changelogtext>
@@ -48,13 +69,17 @@
         <changelogtext>Correciones de bugs para crash de aplicación reportados!</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.2.beta" changeDate="07/26/2017">
+    <changelogversion
+        changeDate="07/26/2017"
+        versionName="0.2.beta">
         <changelogtext>[b]Nuevo![/b] V&iacute;nculos para encontrar más obras de autores, traductores y editores(más información en pantalla)</changelogtext>
         <changelogtext>[b]Nuevo![/b] Mayor velocidad en carga de capítulos(1000 caps en 4~5 segundos)</changelogtext>
         <changelogtext>Arreglos de bugs para compatibilidad con teléfonos de gama baja y otros crash de aplicación importantes</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.1.beta" changeDate="07/23/2017">
+    <changelogversion
+        changeDate="07/23/2017"
+        versionName="0.1.beta">
         <changelogtext>Version Beta Inicial.</changelogtext>
         <changelogimprovement>Lector: Modo nocturno (experimental, compatibilidad limitada)</changelogimprovement>
         <changelogbug>Lista de cap&iacute;tulos: 1000 capítulos tardan 20~30 segundos en cargar</changelogbug>

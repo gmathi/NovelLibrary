@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<changelog bulletedList="true">
+
+    <changelogversion
+        changeDate="08/04/2017"
+        versionName="0.4.1.beta">
+        <changelogtext>[b]New![/b] Novels can be shared from 'Novel Details'</changelogtext>
+        <changelogimprovement>[i]Fix[/i] - Royal Road chapters duplication!</changelogimprovement>
+        <changelogimprovement>[i]Fix[/i] - Royal Road chapters night mode support</changelogimprovement>
+        <changelogimprovement>[i]Fix[/i] - Design color changes</changelogimprovement>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/03/2017"
+        versionName="0.4.beta">
+        <changelogtext>[b]Novum![/b] Capites celerius patefaciunt, et seiunctim tenere possint</changelogtext>
+        <changelogtext>[b]Novum![/b] Capites signare lectum / non lectum possit</changelogtext>
+        <changelogtext>[b]Novum![/b] Translatio Turcorum addendum est</changelogtext>
+        <changelogtext>[b]Novum![/b] Auxilium per Kobatochan Novels [b]Modus Nocte[/b] addendum est</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/03/2017"
+        versionName="0.3.3.beta">
+        <changelogtext>[b]Novum![/b] Auxilium per Circus Translations Novels [b]Modus Nocte[/b] addendum est</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/01/2017"
+        versionName="0.3.2.beta">
+        <changelogtext>[b]Novum![/b] Translatio Hispanicus addendum est</changelogtext>
+        <changelogtext>[b]Novum![/b] Translatio Portuguese addendum est</changelogtext>
+        <changelogtext>[i]Emendatio[/i] - Wuxia World tergens quoque capites deletum est!</changelogtext>
+        <changelogtext>[i]Emendatio[/i] - Errores redintegraverunt per defectis enuntiaverunt &amp; non enuntiaverunt!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="07/31/2017"
+        versionName="0.3.1.beta">
+        <changelogtext>[b]Novum![/b] Confetti per secretum recludent</changelogtext>
+        <changelogtext>[i]Emendatio[/i] - Tabula Legens defectes quando lapse ad post/prior tabula</changelogtext>
+        <changelogtext>[i]Emendatio[/i] - Wuxia world paginae Modus Nocte non recte operans</changelogtext>
+        <changelogtext>[i]Emendatio[/i] - Errores redintegraverunt per defectis enuntiaverunt &amp; non enuntiaverunt!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="07/30/2017"
+        versionName="0.3.beta">
+        <changelogtext>[b]Novum![/b] Reordine novellae in bibliotheca tua</changelogtext>
+        <changelogtext>[b]Novum![/b] Lapse dextra ut novellum delere ab bibliotheca tua</changelogtext>
+        <changelogtext>[b]Novum![/b] Auxilium de [i]WLN-Updates.com[/i] addendum est (Experimentalis)</changelogtext>
+        <changelogtext>[b]Novum![/b] Plus optiones in Optiones Generalis addendum est ut javascript debilus &amp; paginam tergam sit. Default 'OFF' est.</changelogtext>
+        <changelogtext>[b]Novum![/b] Auxilium per Wuxia World &amp; Gravity Tales Novels [b]Modus Nocte[/b] addendum est</changelogtext>
+        <changelogtext>[b]Novum![/b] Utre [b]Bullae Amplitudinis[/b] ut caput super &amp; pessus trahere</changelogtext>
+        <changelogtext>[i]Emendatio[/i] - Picturae coruscans</changelogtext>
+        <changelogtext>[i]Emendatio[/i] - Partire recte connexionem si ex praeconiae venis</changelogtext>
+        <changelogtext>[i]Emendatio[/i] - Defectes &amp; Capites non patefaciens in Tabula Legens</changelogtext>
+        <changelogtext>[i]Emendatio[/i] - Defectes in novellae cum capitis etiam multis</changelogtext>
+        <changelogtext>[i]Emendatio[/i] - Errores redintegraverunt per defectis enuntiaverunt!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="07/27/2017"
+        versionName="0.2.1.beta">
+        <changelogtext>[b]Novum![/b] Ausilium pro wordpress.com pro tersus paginae cum [b]Modus Nocte[/b] addendum est</changelogtext>
+        <changelogtext>[b]Emendatio[/b] - Capites recte ordinant</changelogtext>
+        <changelogtext>[b]Emendatio[/b] - Tabula semper operosus est dum legens.</changelogtext>
+        <changelogtext>[b]Emendatio[/b] - Optio celerius patefaciens ut in insumptuosis machinis non retardent. Default 'OFF' est.</changelogtext>
+        <changelogtext>Errores redintegraverunt per defectis enuntiaverunt!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="07/26/2017"
+        versionName="0.2.beta">
+        <changelogtext>[b]Novum![/b] Auctores, Interpretates, Librarii ligabantur pro alia operibus suis (Vide Amplius Indicium)</changelogtext>
+        <changelogtext>[b]Novum![/b] Capites celerius patefaciunt (Milia Capites in IV~V punctoribus temporis)</changelogtext>
+        <changelogtext>Errores redintegraverunt ut insumptuosae machinae utiles sunt</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="07/23/2017"
+        versionName="0.1.beta">
+        <changelogtext>Versio Beta Principialis.</changelogtext>
+        <changelogimprovement>Legens: Modus nocte (experimentalis, auxilio limitata)</changelogimprovement>
+        <changelogbug>Index Capitorem: Milia Capites patefaciunt in XX~XXX punctoribus temporis</changelogbug>
+        <changelogbug>Index Tenens: Intermittens capites tenens non operat</changelogbug>
+
+    </changelogversion>
+
+</changelog>

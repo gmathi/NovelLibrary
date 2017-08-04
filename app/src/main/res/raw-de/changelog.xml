@@ -1,32 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
-    <changelogversion versionName="0.4.beta" changeDate="08/03/2017">
+    <changelogversion
+        changeDate="08/04/2017"
+        versionName="0.4.1.beta">
+        <changelogtext>[b]New![/b] Novels can be shared from 'Novel Details'</changelogtext>
+        <changelogimprovement>[i]Fix[/i] - Royal Road chapters duplication!</changelogimprovement>
+        <changelogimprovement>[i]Fix[/i] - Royal Road chapters night mode support</changelogimprovement>
+        <changelogimprovement>[i]Fix[/i] - Design color changes</changelogimprovement>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/03/2017"
+        versionName="0.4.beta">
         <changelogtext>[b]Neu![/b] Die Kapitel laden schneller und können einzeln heruntergeladen werden (Bisher heruntergeladene Kapitel werden gelöscht, um das neue Design zu unterstützen)</changelogtext>
-        <changelogtext>[b]Neu![/b] Die Kapitel können gelesen / ungelesen </changelogtext>
+        <changelogtext>[b]Neu![/b] Die Kapitel können gelesen / ungelesen</changelogtext>
         <changelogtext>[b]Neu![/b] Türkisch Übersetzung hinzugefügt</changelogtext>
         <changelogtext>[b]Neu![/b] Hinzugefügt [b] Nachtmodus [/b] Unterstützung für KobatoChan Romane</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.3.beta" changeDate="08/03/2017">
+    <changelogversion
+        changeDate="08/03/2017"
+        versionName="0.3.3.beta">
         <changelogtext>[b]Neu![/b] Hinzugefügt [b] Nachtmodus [/b] Unterstützung für Circus Translations Romane</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.2.beta" changeDate="08/01/2017">
+    <changelogversion
+        changeDate="08/01/2017"
+        versionName="0.3.2.beta">
         <changelogtext>[b]Neu![/b] Spanische Übersetzung hinzugefügt</changelogtext>
         <changelogtext>[b]Neu![/b] Portugiesische Übersetzung hinzugefügt</changelogtext>
         <changelogtext>[i]Fix[/i] - Säubern von Wuxia World Inhalten löschte ganzes Kapitel!</changelogtext>
         <changelogtext>[i]Fix[/i] - Bug Fixes von gemeldeten Abstürzen!</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.1.beta" changeDate="07/31/2017">
+    <changelogversion
+        changeDate="07/31/2017"
+        versionName="0.3.1.beta">
         <changelogtext>[b]Neu![/b] Konfetti beim Freischalten des versteckten Inhalts</changelogtext>
         <changelogtext>[i]Fix[/i] - Absturz beim Wischen für vorheriges/nächstes Kapitel</changelogtext>
         <changelogtext>[i]Fix[/i] - Nachtmodus bei Wuxia World Seiten</changelogtext>
         <changelogtext>[i]Fix[/i] - Bug Fixes von gemeldeten Abstürzen!</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.beta" changeDate="07/30/2017">
+    <changelogversion
+        changeDate="07/30/2017"
+        versionName="0.3.beta">
         <changelogtext>[b]Neu![/b] Eigene Sortierung der Novels in der Bibliothek</changelogtext>
         <changelogtext>[b]Neu![/b] Wische nach rechts um Novels aus der Bibliothek zu löschen</changelogtext>
         <changelogtext>[b]Neu![/b] [i]WLN-Updates.com[/i] zu Suchergebnissen hinzugefügt (Experimentell)</changelogtext>
@@ -40,7 +59,9 @@
         <changelogtext>[i]Fix[/i] - Bug Fixes von gemeldeten Abstürzen!</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.2.1.beta" changeDate="07/27/2017">
+    <changelogversion
+        changeDate="07/27/2017"
+        versionName="0.2.1.beta">
         <changelogtext>[b]Neu![/b] Unterstützt wordpress.com mit gesäubertenn Seiten und zusätzlichem Nachtmodus</changelogtext>
         <changelogtext>[b]Fix[/b] - Kapitelindizierung</changelogtext>
         <changelogtext>[b]Fix[/b] - Bildschirm schaltet sich nicht mehr beim Lesen aus</changelogtext>
@@ -48,16 +69,20 @@
         <changelogtext>Bug Fixes von gemeldeten Abstürzen!</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.2.beta" changeDate="07/26/2017">
+    <changelogversion
+        changeDate="07/26/2017"
+        versionName="0.2.beta">
         <changelogtext>[b]Neu![/b] Autoren, Übersetzer, Kapitel sind verlinkt um weitere Werke zu finden</changelogtext>
         <changelogtext>[b]Neu![/b] Kapitel laden schneller als davor (1000 Kapitel in 4-5 Sekunden)</changelogtext>
         <changelogtext>Bug Fixes um Lower-End-Geräte zu unterstützen und weitere Behebungen von Fehlern</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.1.beta" changeDate="07/23/2017">
+    <changelogversion
+        changeDate="07/23/2017"
+        versionName="0.1.beta">
         <changelogtext>Erstrelease Beta.</changelogtext>
         <changelogimprovement>Nachmodus</changelogimprovement>
-        <changelogbug> Kapitelliste braucht 20-30 Sekunden für Ladevorgang bei >1000 Kapiteln</changelogbug>
+        <changelogbug>Kapitelliste braucht 20-30 Sekunden für Ladevorgang bei >1000 Kapiteln</changelogbug>
         <changelogbug>Anhalten des Downloadvorgangs führt zu instabilen Verhalten</changelogbug>
 
     </changelogversion>

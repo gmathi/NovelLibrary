@@ -84,7 +84,7 @@ fun NovelApi.getRRChapterCount(url: String): Int {
 fun NovelApi.getRRChapterCount(document: Document): Int {
     try {
         val tableElement = document.body().getElementById("chapters")
-        val chapters = tableElement?.getElementsByTag("a")
+        val chapters = tableElement?.getElementsByTag("a")?.filter { it.attributes().hasKey("href") }
         if (chapters != null) return chapters.size
     } catch (e: IOException) {
         e.printStackTrace()
