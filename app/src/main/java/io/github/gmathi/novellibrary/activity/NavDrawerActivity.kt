@@ -116,9 +116,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu_white_vector)
     }
 
-    private fun startSettingsActivity() {
-        startActivity(Intent(this, SettingsActivity::class.java))
-    }
+
 
 
 }

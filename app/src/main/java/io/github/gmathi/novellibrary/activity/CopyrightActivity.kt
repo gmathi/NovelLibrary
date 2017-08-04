@@ -8,7 +8,7 @@ import io.github.gmathi.novellibrary.util.applyFont
 import kotlinx.android.synthetic.main.activity_copyright.*
 import kotlinx.android.synthetic.main.content_copyright.*
 
-class CopyrightActivity : AppCompatActivity() {
+class CopyrightActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

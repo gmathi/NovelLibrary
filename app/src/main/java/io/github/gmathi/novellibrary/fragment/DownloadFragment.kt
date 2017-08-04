@@ -18,12 +18,12 @@ import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.event.EventType
-import io.github.gmathi.novellibrary.event.NovelEvent
+import io.github.gmathi.novellibrary.model.EventType
+import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.model.DownloadQueue
 import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.service.DownloadService
+import io.github.gmathi.novellibrary.service.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_download_queue.*
@@ -55,7 +55,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
         (activity as NavDrawerActivity).setToolbar(toolbar)
         setRecyclerView()
 
-        if (DownloadService.isDownloading && adapter.items.isNotEmpty()) {
+        if (DownloadNovelService.isDownloading && adapter.items.isNotEmpty()) {
             fab.setImageResource(R.drawable.ic_pause_white_vector)
             fab.tag = "playing"
         } else {
@@ -112,7 +112,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
         if (novel?.imageFilePath != null)
             Glide.with(this).load(File(novel.imageFilePath)).into(itemView.novelIcon)
 
-        if (DownloadService.novelId == item.novelId) {
+        if (DownloadNovelService.novelId == item.novelId) {
             item.status = Constants.STATUS_DOWNLOAD
             itemView.downloadPauseButton.setImageResource(R.drawable.ic_pause_white_vector)
         } else {
@@ -127,7 +127,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
             itemView.downloadProgress.text = "Waiting to start…"
         }
 
-        val preText = if (DownloadService.novelId == novel.id) "Downloading: " else "In Queue - "
+        val preText = if (DownloadNovelService.novelId == novel.id) "Downloading: " else "In Queue - "
         val displayText = preText + itemView.downloadProgress.text.toString()
         itemView.downloadProgress.text = displayText
 
@@ -160,13 +160,13 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
 
     override fun onItemClick(item: DownloadQueue) {
         // Do Nothing
-        //        val serviceIntent = Intent(this, DownloadService::class.java)
+        //        val serviceIntent = Intent(this, DownloadNovelService::class.java)
         //        startService(serviceIntent)
     }
     //endregion
 
     private fun startDownloadService(novelId: Long) {
-        val serviceIntent = Intent(activity, DownloadService::class.java)
+        val serviceIntent = Intent(activity, DownloadNovelService::class.java)
         serviceIntent.putExtra(Constants.NOVEL_ID, novelId)
         activity.startService(serviceIntent)
     }

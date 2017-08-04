@@ -36,22 +36,19 @@
         <item>Aktive</item>
     </string-array>
 
-    <!--<item>Latest Updates</item>-->
-    <!--<item>Active-Only Ranking</item>-->
-
     <string name="title_activity_novel_details">Novel</string>
     <string name="title_activity_settings">Einstellungen</string>
     <string name="title_activity_chapters">Kapitel</string>
     <string name="title_activity_meta_data">Mehr Informationen</string>
 
 
-    <string name="action_settings">Einstellungen</string>
+   <string name="action_settings">Einstellungen</string>
     <string name="action_sync">Sync für Updates</string>
     <string name="action_favourite">Favoriten</string>
     <string name="action_bookmark">Lesezeichen</string>
 
 
-    <string name="title_library">Bibliothek</string>
+   <string name="title_library">Bibliothek</string>
     <string name="title_search">Suche</string>
     <string name="title_downloads">Downloads</string>
 
@@ -72,14 +69,14 @@
     <string name="synopsis">Synopsis</string>
     <string name="genres">Genres</string>
     <string name="chapters">Kapitel</string>
-    <string name="legal">Legales</string>
+    <string name="legal">Rechtliches</string>
 
-    <string name="download">Download</string>
+   <string name="download">Download</string>
     <string name="downloaded">Downloaded</string>
     <string name="downloading">Downloading</string>
-    <string name="chapters_loading_message">Abhängig von der Zahl der Kapitel dauert der Ladevorgang</string>
+    <string name="chapters_loading_message">Abhängig von der Anzahl der Kapitel dauert der Ladevorgang</string>
 
-    <string name="no_internet">Keine aktive Internetverbindung!</string>
+        <string name="no_internet">Keine aktive Internetverbindung!</string>
     <string name="try_again">Versuche es nochmal</string>
     <string name="clear">Löschen</string>
     <string name="clear_data">Lösche Cache und Daten</string>
@@ -92,7 +89,7 @@
     <string name="confirm_remove_description">Novel und all ihre Kapitel werden aus der Bibliothek entfernt</string>
     <string name="remove_from_downloads">Aus Downloads entfernen?</string>
     <string name="add_to_library">Zur Bibliothek hinzufügen</string>
-    <string name="in_library">In Bibliothel</string>
+    <string name="in_library">In Bibliothek</string>
     <string name="sort">Sortieren</string>
     <string name="sort_chapters">Sortiere Kapitel</string>
     <string name="clearing_data">Löschen Daten</string>
@@ -136,22 +133,39 @@
 
     </string>
 
-    <string name="donate_content" tools:ignore="TypographyQuotes">
+   <string name="donate_content" tools:ignore="TypographyQuotes">
         "Spenden helfen bei der Entwicklung und Veröffentlichung neuer Funktionen."
         "Spenden sind über die GMail Anwendung an gmathi.developer@gmail.com möglich"
     </string>
-    <string name="app_exit">Nochmal Zurück um App zu beenden</string>
+     <string name="app_exit">Nochmal Zurück um App zu beenden</string>
     <string name="general">Allgemein</string>
     <string name="faster_downloads">Schnellere Downloads</string>
     <string name="faster_downloads_description">Sehr schnelle Downloads aber führt evtl. zu Abstürzen</string>
-    <string name="first_screen_library">“Bibliothek” Hauptbildschirm erstellen</string>  
-    <string name="first_screen_library_description">Wenn ausgeschaltet ist, wird “Search” stattdessen Hauptbildschirm.</string>
-    <string name="clean_pages">Saubere Kapitel</string>
-    <string name="clean_pages_description">Setzt die Kapitel, bevor sie geladen werden.</string>
-    <string name="failed_to_load_url">Fehler beim Abrufen des Inhalts!</string>
-    <string name="disable_javascript">Javascript deaktivieren</string>
-    <string name="disable_javascript_description">Einige Websites verteilen auf Anzeigen, wenn Javascript aktiviert ist</string>
+    <string name="first_screen_library">Bibliothek als Homescreen</string>
+    <string name="first_screen_library_description">Falls ausgeschaltet, “Suche” als neuer Homescreen</string>
+    <string name="clean_pages">Säubere Kapitel</string>
+    <string name="clean_pages_description">Säubere Kapitel und entferne alles außer Text vor dem Laden.</string>
+    <string name="failed_to_load_url">Konnte Inhalte nicht laden!</string>
+    <string name="disable_javascript">Javascript abschalten</string>
+    <string name="disable_javascript_description">Manche Websiten schalten Werbung wenn Javascript aktiv ist</string>
     <string name="changelog">Änderungsprotokoll</string>
-
+    <string name="donations_description_new">Ich bin froh, dass du spenden willst! Für jetzt, bitte verbreiten Sie das Wort und teilen Sie die App mit anderen Romanliebhabern!</string>
+    <string name="language">Sprache</string>
+    <string name="languages_supported">Unterstützte Sprachen</string>
+    <string name="download_chapters">Herunterladen von Kapiteln</string>
+    <string name="mark_read">Markieren</string>
+    <string name="mark_unread">Ungelesen markieren</string>
+    <string name="unread">Ungelesen</string>
+    <string name="read">Lesen</string>
+    <string name="chapters_selected">%d Ausgewählt</string>
+    <string name="okay">OK</string>
+    <string name="confirm_action">Aktion bestätigen</string>
+    <string name="mark_chapters_unread_dialog_content">Markieren Sie die Kapitel ungelesen?</string>
+    <string name="mark_chapters_read_dialog_content">Markenkapitel lesen?</string>
+    <string name="download_chapters_dialog_content">Kapitel herunterladen? \n Hinweis: Kapitel-Downloads können nicht pausiert / gestoppt werden</string>
+    <string name="alert">Alert</string>
+    <string name="novel_not_in_library_dialog_content">Neu muss der Bibliothek hinzugefügt werden, bevor Kapitel einzeln heruntergeladen werden können</string>
+    <string name="download_all_chapters_dialog_content">Verwalten Sie neuartige Downloads mit dem Download-Manager. Laden Sie alle Kapitel?</string>
+    <string name="background_chapter_downloads">Hintergrund-Kapitel-Downloads wurde gestartet</string>
 
 </resources>

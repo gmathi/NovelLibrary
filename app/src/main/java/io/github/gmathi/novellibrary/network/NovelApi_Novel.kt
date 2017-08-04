@@ -26,7 +26,7 @@ fun NovelApi.getNUNovelDetails(url: String): Novel? {
         novel.imageUrl = document.getElementsByClass("seriesimg").firstOrNull()?.getElementsByTag("img")?.attr("src")
         novel.genres = document.body().getElementById("seriesgenre")?.children()?.map { it.text() }
         novel.longDescription = document.body().getElementById("editdescription")?.text()
-
+        novel.chapterCount = getNUChapterCount(document).toLong()
 
         novel.metaData.put("Author(s)",
             document.getElementsByClass("genre").filter { it.id() == "authtag" }.map { it.outerHtml() }.joinToString(", "))
@@ -76,6 +76,8 @@ fun NovelApi.getRRNovelDetails(url: String): Novel? {
         novel.rating = document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("property") && it.attr("property") == "books:rating:value" }?.attr("content")
         novel.longDescription = document.body().getElementsByAttributeValue("property", "description").firstOrNull { it.tagName() == "div" }?.text()
         novel.genres = document.body().getElementsByAttributeValue("property", "genre")?.map { it.text() }
+        novel.chapterCount = getRRChapterCount(document).toLong()
+
         novel.metaData.put("Author(s)",
             document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("property") && it.attr("property") == "books:author" }?.attr("content"))
 
@@ -109,6 +111,7 @@ fun NovelApi.getWlnNovelDetails(url: String): Novel? {
 
         novel.longDescription = document.body().getElementsByClass("description")?.firstOrNull { it.tagName() == "span" }?.getElementsByTag("p")?.text()
         novel.genres = document.body().getElementsByTag("a")?.filter { it.hasAttr("href") && it.attr("href").contains("/genre-id/") }?.map { it.text() }
+        novel.chapterCount = getWLNUChapterCount(document).toLong()
 
         novel.metaData.put("Author(s)",
             document.getElementsByTag("span")?.filter { it.id() == "author" }?.map {

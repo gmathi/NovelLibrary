@@ -6,6 +6,7 @@ import android.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.WebPage
+import java.util.*
 
 
 class DataCenter(context: Context) {
@@ -24,6 +25,7 @@ class DataCenter(context: Context) {
     private val TEXT_SIZE = "textSize"
     private val CLEAN_PAGES = "cleanPages"
     private val JAVASCRIPT = "javascript"
+    private val LANGUAGE = "language"
 
     val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -88,4 +90,8 @@ class DataCenter(context: Context) {
     var javascriptDisabled: Boolean
         get() = prefs.getBoolean(JAVASCRIPT, false)
         set(value) = prefs.edit().putBoolean(JAVASCRIPT, value).apply()
+
+    var language: String
+        get() = prefs.getString(LANGUAGE, Locale.getDefault().toString())
+        set(value) = prefs.edit().putString(LANGUAGE, value).apply()
 }

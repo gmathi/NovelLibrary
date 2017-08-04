@@ -8,13 +8,13 @@ import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.updateDownloadQueueStatus
 import io.github.gmathi.novellibrary.database.updateWebPage
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.event.EventType
-import io.github.gmathi.novellibrary.event.NovelEvent
-import io.github.gmathi.novellibrary.util.writableFileName
+import io.github.gmathi.novellibrary.model.EventType
+import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.writableFileName
 import org.greenrobot.eventbus.EventBus
 import org.jsoup.helper.StringUtil
 import org.jsoup.nodes.Document
@@ -29,6 +29,7 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, val host
         super.run()
         try {
             if (isNetworkDown()) throw InterruptedException(Constants.NO_NETWORK)
+            if (webPage.filePath != null) return
             if (downloadChapter(webPage, hostDir, novelDir)) {
                 EventBus.getDefault().post(NovelEvent(EventType.UPDATE, webPage.novelId, webPage))
             }
@@ -45,7 +46,7 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, val host
         try {
             doc = NovelApi().getDocumentWithUserAgent(webPage.url!!)
         } catch (e: Exception) {
-            Log.w(DownloadService.TAG, webPage.url!!)
+            Log.w(DownloadNovelService.TAG, webPage.url!!)
             e.printStackTrace()
             return false
         }
@@ -68,6 +69,8 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, val host
             if (file != null) {
                 webPage.filePath = file.path
                 webPage.redirectedUrl = doc.location()
+                if (webPage.metaData.containsKey(Constants.DOWNLOADING))
+                    webPage.metaData.remove(Constants.DOWNLOADING)
                 val id = DBHelper(context).updateWebPage(webPage)
                 return (id.toInt() != -1)
             }
@@ -76,7 +79,7 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, val host
     }
 
     private fun onNoNetwork() {
-        Log.e(DownloadService.TAG, Constants.NO_NETWORK)
+        Log.e(DownloadNovelService.TAG, Constants.NO_NETWORK)
         dbHelper.updateDownloadQueueStatus(Constants.STATUS_STOPPED.toLong(), webPage.novelId)
         EventBus.getDefault().post(NovelEvent(EventType.UPDATE, -1L))
     }

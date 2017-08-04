@@ -1,12 +1,10 @@
 package io.github.gmathi.novellibrary.activity
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
 import android.text.Html
 import android.text.Spannable
 import android.text.SpannableString
@@ -19,6 +17,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.Theme
 import com.bumptech.glide.Glide
@@ -38,7 +37,7 @@ import kotlinx.android.synthetic.main.content_novel_details.*
 import java.io.File
 
 
-class NovelDetailsActivity : AppCompatActivity(), TextViewLinkHandler.OnClickListener {
+class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener {
 
     lateinit var novel: Novel
 
@@ -69,10 +68,8 @@ class NovelDetailsActivity : AppCompatActivity(), TextViewLinkHandler.OnClickLis
 
     fun getNovelInfo() {
         if (!Utils.checkNetwork(this)) {
-            if (novel.id != -1L) {
-                setupViews()
+            if (novel.id == -1L) {
                 swipeRefreshLayout.isRefreshing = false
-            } else {
                 progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
                     progressLayout.showLoading()
                     getNovelInfo()
@@ -81,22 +78,26 @@ class NovelDetailsActivity : AppCompatActivity(), TextViewLinkHandler.OnClickLis
             return
         }
 
-        Thread(Runnable {
-            val downloadedNovel = NovelApi().getNovelDetails(novel.url!!)
-            novel.copyFrom(downloadedNovel)
-            if (novel.id != -1L) dbHelper.updateNovel(novel)
-            Handler(Looper.getMainLooper()).post {
-                try {
-                    setupViews()
-                    progressLayout.showContent()
-                    swipeRefreshLayout.isRefreshing = false
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+        async {
+            try {
+                val downloadedNovel = await { NovelApi().getNovelDetails(novel.url!!) }
+                novel.copyFrom(downloadedNovel)
+                if (novel.id != -1L) await { dbHelper.updateNovel(novel) }
+                setupViews()
+                progressLayout.showContent()
+                swipeRefreshLayout.isRefreshing = false
+            } catch (e: Exception) {
+                e.printStackTrace()
+                if (novel.id == -1L)
+                    progressLayout.showError(ContextCompat.getDrawable(this@NovelDetailsActivity, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
+                        progressLayout.showLoading()
+                        getNovelInfo()
+                    })
             }
-        }).start()
+        }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun setupViews() {
         setNovelImage()
         novelDetailsName.applyFont(assets).text = novel.name
@@ -110,7 +111,10 @@ class NovelDetailsActivity : AppCompatActivity(), TextViewLinkHandler.OnClickLis
         setNovelAddToLibraryButton()
         setNovelGenre()
         setNovelDescription()
-        novelDetailsChaptersLayout.setOnClickListener { startChaptersActivity(novel) }
+        novelDetailsChapters.text = getString(R.string.chapters) + " (${novel.chapterCount})"
+        novelDetailsChaptersLayout.setOnClickListener {
+            if (novel.chapterCount != 0L) startChaptersActivity(novel)
+        }
         novelDetailsMetadataLayout.setOnClickListener { startMetadataActivity(novel) }
         openInBrowserButton.setOnClickListener { openInBrowser(novel.url!!) }
     }
@@ -269,6 +273,11 @@ class NovelDetailsActivity : AppCompatActivity(), TextViewLinkHandler.OnClickLis
 
     override fun onLinkClicked(title: String, url: String) {
         startSearchResultsActivity(title, url)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        async.cancelAll()
     }
 
 }

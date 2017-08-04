@@ -24,6 +24,7 @@ fun DBHelper.createNovel(novel: Novel): Long {
     values.put(DBKeys.KEY_SHORT_DESCRIPTION, novel.shortDescription)
     values.put(DBKeys.KEY_LONG_DESCRIPTION, novel.longDescription)
     values.put(DBKeys.KEY_IMAGE_FILE_PATH, novel.imageFilePath)
+    values.put(DBKeys.KEY_CHAPTER_COUNT, novel.chapterCount)
     values.put(DBKeys.KEY_CURRENT_WEB_PAGE_ID, novel.currentWebPageId)
 
     return db.insert(DBKeys.TABLE_NOVEL, null, values)
@@ -56,6 +57,7 @@ fun DBHelper.getNovelFromQuery(selectQuery: String): Novel? {
             novel.shortDescription = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_SHORT_DESCRIPTION))
             novel.longDescription = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_LONG_DESCRIPTION))
             novel.imageFilePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_IMAGE_FILE_PATH))
+            novel.chapterCount = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CHAPTER_COUNT))
             novel.currentWebPageId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CURRENT_WEB_PAGE_ID))
         }
         cursor.close()
@@ -121,6 +123,7 @@ fun DBHelper.getAllNovels(): List<Novel> {
                 novel.longDescription = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_LONG_DESCRIPTION))
                 novel.imageFilePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_IMAGE_FILE_PATH))
                 novel.currentWebPageId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CURRENT_WEB_PAGE_ID))
+                novel.chapterCount = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CHAPTER_COUNT))
                 novel.orderId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
                 list.add(novel)
             } while (cursor.moveToNext())
@@ -147,6 +150,8 @@ fun DBHelper.updateNovel(novel: Novel): Long {
     values.put(DBKeys.KEY_IMAGE_URL, novel.imageUrl)
     values.put(DBKeys.KEY_RATING, novel.rating)
     values.put(DBKeys.KEY_SHORT_DESCRIPTION, novel.shortDescription)
+    if (novel.chapterCount != 0L)
+        values.put(DBKeys.KEY_CHAPTER_COUNT, novel.chapterCount)
     values.put(DBKeys.KEY_LONG_DESCRIPTION, novel.longDescription)
     if (novel.imageFilePath != null)
         values.put(DBKeys.KEY_IMAGE_FILE_PATH, novel.imageFilePath)

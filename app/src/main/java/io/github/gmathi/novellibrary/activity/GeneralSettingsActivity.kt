@@ -122,23 +122,17 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
             .positiveText(R.string.clear)
             .negativeText(R.string.cancel)
             .onPositive { dialog, _ ->
-                run {
-                    val progressDialog = MaterialDialog.Builder(this)
-                        .title(getString(R.string.clearing_data))
-                        .content(getString(R.string.please_wait))
-                        .progress(true, 0)
-                        .cancelable(false)
-                        .canceledOnTouchOutside(false)
-                        .show()
-                    deleteFiles(progressDialog)
-                    dialog.dismiss()
-                }
+                val progressDialog = MaterialDialog.Builder(this)
+                    .title(getString(R.string.clearing_data))
+                    .content(getString(R.string.please_wait))
+                    .progress(true, 0)
+                    .cancelable(false)
+                    .canceledOnTouchOutside(false)
+                    .show()
+                deleteFiles(progressDialog)
+                dialog.dismiss()
             }
-            .onNegative { dialog, _ ->
-                run {
-                    dialog.dismiss()
-                }
-            }
+            .onNegative { dialog, _ -> dialog.dismiss() }
             .show()
     }
 

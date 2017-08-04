@@ -4,10 +4,12 @@ package io.github.gmathi.novellibrary.database;
 public class DBKeys {
 
     static final int VER_NOVEL_ORDER_ID = 2;
+    static final int VER_WEB_PAGE_ORDER_ID = 3;
+
     static final int INITIAL_VERSION = 1;
 
 
-    static final int DATABASE_VERSION = VER_NOVEL_ORDER_ID;
+    static final int DATABASE_VERSION = VER_WEB_PAGE_ORDER_ID;
 
 
 
@@ -35,6 +37,8 @@ public class DBKeys {
     static final String KEY_LONG_DESCRIPTION = "long_description";
     static final String KEY_IMAGE_FILE_PATH = "image_file_path";
     static final String KEY_CURRENT_WEB_PAGE_ID = "current_web_page_id";
+    static final String KEY_CHAPTER_COUNT = "chapter_count";
+
 
     // Table web_page columns
     static final String KEY_TITLE = "title";
@@ -67,6 +71,7 @@ public class DBKeys {
                     + KEY_METADATA + " TEXT, "
                     + KEY_CURRENT_WEB_PAGE_ID + " INTEGER, "
                     + KEY_ORDER_ID + " INTEGER, "
+                    + KEY_CHAPTER_COUNT + " INTEGER, "
                     + "FOREIGN KEY (" + KEY_CURRENT_WEB_PAGE_ID + ") REFERENCES " + TABLE_WEB_PAGE + "(" + KEY_ID + ")"
                     + ")";
 
@@ -74,14 +79,15 @@ public class DBKeys {
     static final String CREATE_TABLE_WEB_PAGE =
             "CREATE TABLE " + TABLE_WEB_PAGE + " ("
                     + KEY_ID + " INTEGER PRIMARY KEY, "
-                    + KEY_URL + " TEXT UNIQUE ON CONFLICT IGNORE, "
-                    + KEY_REDIRECT_URL + " TEXT UNIQUE ON CONFLICT IGNORE, "
+                    + KEY_URL + " TEXT, "
+                    + KEY_REDIRECT_URL + " TEXT, "
                     + KEY_CHAPTER + " TEXT, "
                     + KEY_TITLE + " TEXT, "
                     + KEY_METADATA + " TEXT, "
                     + KEY_FILE_PATH + " TEXT, "
                     + KEY_IS_READ + " INTEGER, "
                     + KEY_NOVEL_ID + " INTEGER, "
+                    + KEY_ORDER_ID + " INTEGER, "
                     + "FOREIGN KEY (" + KEY_NOVEL_ID + ") REFERENCES " + TABLE_NOVEL + "(" + KEY_ID + ")"
                     + ")";
 

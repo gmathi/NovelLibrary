@@ -62,7 +62,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     override fun bind(item: String, itemView: View, position: Int) {
         itemView.settingsTitle.applyFont(assets).text = item
-        itemView.chevron.visibility = if (position == 0 || position == 1 || position == 3 || position == 4) View.VISIBLE else View.INVISIBLE
+        itemView.chevron.visibility = if (position == 0 || position == 1 || position == 2 || position == 4 || position == 5) View.VISIBLE else View.INVISIBLE
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
         else ContextCompat.getColor(this, android.R.color.transparent))
     }
@@ -70,6 +70,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     override fun onItemClick(item: String) {
         when (item) {
             getString(R.string.general) -> startGeneralSettingsActivity()
+            getString(R.string.languages_supported) -> startLanguagesActivity()
             getString(R.string.copyright_notice) -> startCopyrightActivity()
             getString(R.string.donate_developer) -> donateDeveloperDialog()
             getString(R.string.libraries_used) -> startLibrariesUsedActivity()
@@ -97,7 +98,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         MaterialDialog.Builder(this)
             .title(getString(R.string.donate_developer))
             //.content(getString(R.string.donate_content))
-            .content("I am happy that you want to donate! For now, please spread the word and share the app with fellow novel lovers!")
+            .content(getString(R.string.donations_description_new))
             //.positiveText(R.string.donate)
 //            .onPositive { _, _ ->
 //                run {

@@ -11,10 +11,10 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.NavPageListener
 import io.github.gmathi.novellibrary.adapter.SearchResultsListener
-import io.github.gmathi.novellibrary.util.addToSearchHistory
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.SimpleAnimationListener
 import io.github.gmathi.novellibrary.util.SuggestionsBuilder
+import io.github.gmathi.novellibrary.util.addToSearchHistory
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.fragment_search.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
@@ -57,16 +57,12 @@ class SearchFragment : BaseFragment() {
         searchView.setSearchListener(object : PersistentSearchView.SearchListener {
 
             override fun onSearch(searchTerm: String?) {
-//                if (!Utils.checkNetwork(activity)) {
-//                    //toast("No Active Internet! (⋋▂⋌)")
-//                } else {
                 searchTerm?.addToSearchHistory()
                 if (searchTerm != null) {
                     searchNovels(searchTerm)
                 } else {
                     // Throw a empty search
                 }
-//                }
             }
 
             override fun onSearchEditOpened() {
@@ -122,7 +118,7 @@ class SearchFragment : BaseFragment() {
     private fun searchNovels(searchTerm: String) {
         val titles = resources.getStringArray(R.array.search_results_tab_titles)
         val searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, SearchResultsListener(searchTerm))
-        viewPager.offscreenPageLimit = 2
+        viewPager.offscreenPageLimit = 3
         viewPager.adapter = searchPageAdapter
         tabStrip.setViewPager(viewPager)
     }

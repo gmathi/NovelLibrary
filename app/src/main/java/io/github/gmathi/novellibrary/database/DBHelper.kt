@@ -28,13 +28,21 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAM
         if (version == DBKeys.INITIAL_VERSION) {
             db.execSQL("ALTER TABLE " + DBKeys.TABLE_NOVEL + " ADD COLUMN " + DBKeys.KEY_ORDER_ID + " INTEGER")
             db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_ORDER_ID + "=" + DBKeys.KEY_ID)
-            version++
+            version = DBKeys.VER_NOVEL_ORDER_ID
         }
 
         if (version == DBKeys.VER_NOVEL_ORDER_ID) {
-            //In Case the version is updated again!
+            db.execSQL("ALTER TABLE " + DBKeys.TABLE_NOVEL + " ADD COLUMN " + DBKeys.KEY_CHAPTER_COUNT + " INTEGER")
+            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_CHAPTER_COUNT + "=0")
+            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_CURRENT_WEB_PAGE_ID + "=-1")
+            db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_WEB_PAGE)
+            db.execSQL(DBKeys.CREATE_TABLE_WEB_PAGE)
+            version = DBKeys.VER_WEB_PAGE_ORDER_ID
         }
 
+        if (version == DBKeys.VER_WEB_PAGE_ORDER_ID) {
+            //In Case the version is updated again!
+        }
 
         // on upgrade drop older tables
 //        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_NOVEL)

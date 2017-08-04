@@ -183,13 +183,13 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 //        if (dbHelper.getNovel(item.name!!) == null) {
 //            val novelId = dbHelper.insertNovel(item)
 //            dbHelper.createDownloadQueue(novelId)
-//            startDownloadService(novelId)
+//            startNovelDownloadService(novelId)
 //            adapter.updateItem(item)
 //        }
 //    }
 //
-//    private fun startDownloadService(novelId: Long) {
-//        val serviceIntent = Intent(activity, DownloadService::class.java)
+//    private fun startNovelDownloadService(novelId: Long) {
+//        val serviceIntent = Intent(activity, DownloadNovelService::class.java)
 //        serviceIntent.putExtra(Constants.NOVEL_ID, novelId)
 //        activity.startService(serviceIntent)
 //    }

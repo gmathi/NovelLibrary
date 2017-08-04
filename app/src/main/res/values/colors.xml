@@ -167,5 +167,6 @@
     <color name="Yellow">#FFFF00</color>
     <color name="YellowGreen">#9ACD32</color>
     <color name="ripple_color">#8cc9f8</color>
+    <color name="fancy_button_border_color">@color/SlateGray</color>
 
 </resources>

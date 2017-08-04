@@ -44,25 +44,25 @@
 
     <string name="action_settings">Congiguración</string>
     <string name="action_sync">Sincronizar para actualizar</string>
-    <string name="action_favourite">Favorito</string>
+    <string name="action_favourite">Favoritos</string>
     <string name="action_bookmark">Marcador</string>
 
 
     <string name="title_library">Librería</string>
-    <string name="title_search">Busqueda</string>
+    <string name="title_search">Búsqueda</string>
     <string name="title_downloads">Descarga</string>
 
     <string name="app_description">Una aplicación para todas tus novelas</string>
 
     <!-- Strings related to Settings -->
-    <!--<string name="pref_title_dark_theme">Tema Página Nocturna</string>-->
-    <!--<string name="pref_description_dark_theme">Solo RoyalRoadl.com funciona por ahora</string>-->
-    <!--<string name="pref_title_experimental_download">Descarga Rápida (Experimental) </string>-->
-    <!--<string name="pref_description_experimental_download">Descarga rápido. Es posible que la aplicación se congele durante un tiempo.</string>-->
-    <!--<string name="pref_title_queue_novel_downloads">Reservar descargas de novelas </string>-->
-    <!--<string name="pref_description_queue_novel_downloads">Descarga novelas una después de la otra. Si está inhabilitado, se descargararán simultáneamente un máximo de 5 novelas. </string>-->
-    <!--<string name="pref_title_download_latest_first">Descargar Reciente Primero</string>-->
-    <!--<string name="pref_description_download_latest_first">Descargar el capítulo mas reciente primero.</string>-->
+    <!--<string name="pref_title_dark_theme">Dark Page Theme</string>-->
+    <!--<string name="pref_description_dark_theme">Only RoyalRoadl.com supported for now.</string>-->
+    <!--<string name="pref_title_experimental_download">Lighting Fast Downloads (Experimental) </string>-->
+    <!--<string name="pref_description_experimental_download">Downloads really fast. Your device may freeze for a while.</string>-->
+    <!--<string name="pref_title_queue_novel_downloads">Queue Novel Downloads </string>-->
+    <!--<string name="pref_description_queue_novel_downloads">Downloads novels one after the another. If disabled, max of 5 novels with be downloaded simultaneously. </string>-->
+    <!--<string name="pref_title_download_latest_first">Download Latest First</string>-->
+    <!--<string name="pref_description_download_latest_first">Download the latest chapter first.</string>-->
 
 
     <!-- Transition Names -->
@@ -74,7 +74,7 @@
     <string name="download">Descargar</string>
     <string name="downloaded">Descargado</string>
     <string name="downloading">Descargando</string>
-    <string name="chapters_loading_message">Cargar puede tardarse, dependiendo del numero de capítulos</string>
+    <string name="chapters_loading_message">Cargar puede tardarse, dependiendo del número de capítulos</string>
 
     <string name="no_internet">No hay internet!</string>
     <string name="try_again">Intente de nuevo</string>
@@ -117,19 +117,19 @@
 
 
     <string name="copyright_content" tools:ignore="TypographyQuotes">
-        "Novel Library es una aplicación para proporcionar servicios de agregación de resultados de búsqueda para "
-        "lectores de novelas. Todos los contenidos de Novel Library son compartidos por los lectores o automáticamente "
-        "buscados y compilados de la internet por el programa. Novel Library no produce el contenido. \n\n"
+        "Novel Library is an application for providing search results aggregation services for "
+        "novel readers. All contents on Novel Library are shared by readers or automatically "
+        "searched and collated from the Internet by the program. Novel Library does not produce any content. \n\n"
 
-        "Los derechos de autor de todos los contenidos de la aplicación Novel Library pertenecen tanto al autor como a "
-        "la casa editorial. Si tiene alguna pregunta sobre los derechos de autor del contenido, póngase en contacto con "
-        "nosotros y nosotros nos pondremos en contacto y removeremos el contenido. \n\n"
+        "Copyright of all contents on Novel Library application belongs to both the author and "
+        "the publisher. If you have any questions about the copyright of the content, please contact "
+        "us and we will contact you for the first time and withdraw the content. \n\n"
 
-        "Todos condtenido de la aplicación Novel Library representa la perspectiva personal del autor, "
-        "y no representa la posición de la aplicación. No tenemos responsabilidad legal. "
-        "Si encuentra algún contenido que viole la ley, por favor informenos y lo revisaremos. \n\n"
+        "All Contents on the Novel Library Application represent the views of the author personally, "
+        "and do not represent the position of the application. We do not bear legal responsibility. "
+        "If you find any content violated the law, please report to us and we will review it. \n\n"
 
-        "contacto: gmathi.developer@gmail.com\n"
+        "contact: gmathi.developer@gmail.com\n"
 
     </string>
 
@@ -137,18 +137,37 @@
         "Donaciones contribuyen a actualizaciones más frecuentes con mayor contenido. "
         "Puedes usar el correo electronico para enviar donaciones a gmathi.developer@gmail.com "
     </string>
+	
     <string name="app_exit">Presione Regresar de nuevo para salir de la aplicación</string>
     <string name="general">General</string>
     <string name="faster_downloads">Descargas más rapidas</string>
     <string name="faster_downloads_description">Descarga a mayor velocidad pero se puede congelar la aplicación.</string>
-    <string name="first_screen_library">Hacer “Librería” la pantalla principal</string>
-    <string name="first_screen_library_description">Si está desactivado, “Buscar” será la pantalla principal.</string>
+    <string name="first_screen_library">Hacer "Librería" la pantalla principal</string>
+    <string name="first_screen_library_description">Si está desactivado, "Buscar" será la pantalla principal.</string>
     <string name="clean_pages">Limpiar Capítulos</string>
     <string name="clean_pages_description">Limpia los capítulos antes de cargarlos.</string>
     <string name="failed_to_load_url">Error al recibir contenido!</string>
     <string name="disable_javascript">Desactivar Javascript</string>
     <string name="disable_javascript_description">Cuando javascript está permitido, algunos sitios web redireccionan a anuncios</string>
     <string name="changelog">Registro de cambios</string>
+    <string name="donations_description_new">Me alegra que desees donar! Por ahora difunde y comparte la aplicación con compañeros amantes de novelas!</string>
+    <string name="language">Idioma</string>
+    <string name="languages_supported">Idiomas compatibles</string>
+    <string name="download_chapters">Descargar capítulos</string>
+    <string name="mark_read">Mark Read</string>
+    <string name="mark_unread">Marcar como no leído</string>
+    <string name="unread">No leído</string>
+    <string name="read">Leído</string>
+    <string name="chapters_selected">%d Seleccionados</string>
+    <string name="okay">OK</string>
+    <string name="confirm_action">Confirmar acción</string>
+    <string name="mark_chapters_unread_dialog_content">Marcar capítulos como no leídos?</string>
+    <string name="mark_chapters_read_dialog_content">Marcar capítulos como leídos?</string>
+    <string name="download_chapters_dialog_content">Descargar capítulos? \n Nota: Descarga de capítulos no puede ser pausada/detenida.</string>
+    <string name="alert">Alerta</string>
+    <string name="novel_not_in_library_dialog_content">Las novelas deben ser agregadas a la librería antes, para poder descargar capitulos individualmente!</string>
+    <string name="download_all_chapters_dialog_content">Maneja descarga de novelas usando el gestor de descarga. Descargar todos los capitulos?</string>
+    <string name="background_chapter_downloads">Iniciada descarga de capítulos en segundo plano.</string>
 
 
 </resources>
