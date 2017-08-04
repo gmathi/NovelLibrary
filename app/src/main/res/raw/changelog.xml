@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+    <changelogversion versionName="0.4.1.beta" changeDate="08/04/2017">
+        <changelogtext>[b]New![/b] Novels can be shared from 'Novel Details'</changelogtext>
+        <changelogimprovement>[i]Fix[/i] - </changelogimprovement>
+        <changelogimprovement>[i]Fix[/i] - Royal Road chapters night mode support</changelogimprovement>
+        <changelogimprovement>[i]Fix[/i] - Design color changes</changelogimprovement>
+    </changelogversion>
+
     <changelogversion versionName="0.4.beta" changeDate="08/03/2017">
         <changelogtext>[b]New![/b] Chapters load faster, and can be downloaded individually (Previously downloaded chapters are deleted to support new design)</changelogtext>
         <changelogtext>[b]New![/b] Chapters can be marked read/unread</changelogtext>
