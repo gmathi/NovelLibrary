@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+    <changelogversion versionName="0.5.beta" changeDate="08/04/2017">
+        <changelogtext>[b]New![/b] Chapters with announcement posts also work in offline mode</changelogtext>
+        <changelogtext>[b]New![/b] Chapters with announcement posts also work in offline mode</changelogtext>
+        <changelogtext>[b]New![/b] Chapters with announcement posts also work in offline mode</changelogtext>
+        <changelogtext>[b]New![/b] Cleaning supported for more novel sites</changelogtext>
+        <changelogtext>[b]New![/b] Downloading status for the chapters</changelogtext>
+        <changelogimprovement>[i]Fix[/i] - Bookmark and greying out read chapters are stable</changelogimprovement>
+        <changelogimprovement>[i]Fix[/i] - App not responding on Gravity tales novels</changelogimprovement>
+        <changelogimprovement>[i]Fix[/i] - UI material design guidelines</changelogimprovement>
+        <changelogimprovement>[i]Fix[/i] -  Bug Fixes for reported &amp; unreported crashes!</changelogimprovement>
+    </changelogversion>
+
+
     <changelogversion versionName="0.4.1.beta" changeDate="08/04/2017">
         <changelogtext>[b]New![/b] Novels can be shared from 'Novel Details'</changelogtext>
         <changelogimprovement>[i]Fix[/i] - </changelogimprovement>

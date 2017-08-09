@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.service
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import com.google.gson.Gson
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.updateDownloadQueueStatus
@@ -56,27 +57,54 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, val host
 
             val htmlHelper = HtmlHelper.getInstance(uri.host)
             htmlHelper.clean(doc, hostDir, novelDir)
-
-//            val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-//            if (prefs.getBoolean("cleanPages", false)) {
-//                htmlHelper.removeJS(doc)
-//                htmlHelper.additionalProcessing(doc)
-//            }
-
             webPage.title = htmlHelper.getTitle(doc)
+            val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPage.title!!.writableFileName())) ?: return false
+            webPage.filePath = file.path
+            webPage.redirectedUrl = doc.location()
 
-            val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPage.title!!.writableFileName()))
-            if (file != null) {
-                webPage.filePath = file.path
-                webPage.redirectedUrl = doc.location()
-                if (webPage.metaData.containsKey(Constants.DOWNLOADING))
-                    webPage.metaData.remove(Constants.DOWNLOADING)
-                val id = DBHelper(context).updateWebPage(webPage)
-                return (id.toInt() != -1)
+            val otherLinks = htmlHelper.getLinkedChapters(doc)
+            if (otherLinks.isNotEmpty()) {
+                val otherWebPages = ArrayList<WebPage>()
+                otherLinks.asSequence().forEach {
+                    val otherWebPage = downloadOtherChapterLinks(it, hostDir, novelDir) ?: return@forEach
+                    otherWebPages.add(otherWebPage)
+                }
+                webPage.metaData.put(Constants.MD_OTHER_LINKED_WEB_PAGES, Gson().toJson(otherWebPages))
             }
+
+            if (webPage.metaData.containsKey(Constants.DOWNLOADING))
+                webPage.metaData.remove(Constants.DOWNLOADING)
+            val id = DBHelper(context).updateWebPage(webPage)
+            return (id.toInt() != -1)
         }
         return false
     }
+
+    private fun downloadOtherChapterLinks(otherChapterLink: String, hostDir: File, novelDir: File): WebPage? {
+
+        val doc: Document
+        try {
+            doc = NovelApi().getDocumentWithUserAgent(otherChapterLink)
+        } catch (e: Exception) {
+            Log.w(DownloadNovelService.TAG, otherChapterLink)
+            e.printStackTrace()
+            return null
+        }
+
+        val uri = Uri.parse(doc.location())
+        if (StringUtil.isBlank(uri.host)) return null
+
+        val otherWebPage = WebPage(doc.location(), doc.title())
+        val htmlHelper = HtmlHelper.getInstance(uri.host)
+        htmlHelper.clean(doc, hostDir, novelDir)
+        otherWebPage.title = htmlHelper.getTitle(doc)
+
+        val file = htmlHelper.convertDocToFile(doc, File(novelDir, otherWebPage.title!!.writableFileName())) ?: return null
+        otherWebPage.filePath = file.path
+        otherWebPage.redirectedUrl = doc.location()
+        return otherWebPage
+    }
+
 
     private fun onNoNetwork() {
         Log.e(DownloadNovelService.TAG, Constants.NO_NETWORK)

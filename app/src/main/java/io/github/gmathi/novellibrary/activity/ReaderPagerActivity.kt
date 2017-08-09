@@ -8,6 +8,8 @@ import android.webkit.WebView
 import android.widget.SeekBar
 import com.afollestad.materialdialogs.MaterialDialog
 import com.github.rubensousa.floatingtoolbar.FloatingToolbar
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.WebPageAdapter
 import io.github.gmathi.novellibrary.dataCenter
@@ -17,6 +19,7 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.WebPageFragment
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.util.Constants
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 
 
@@ -44,6 +47,17 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
         adapter = WebPageAdapter(supportFragmentManager, chapters, object : WebPageAdapter.Listener {
             override fun checkUrl(url: String?): Boolean {
                 if (url != null) {
+                    val currentWebPage = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.webPage
+                    if (currentWebPage?.metaData?.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES) ?: false) {
+                        val links: ArrayList<WebPage> = Gson().fromJson(currentWebPage!!.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+                        links.forEach {
+                            if (it.url == url || (it.redirectedUrl != null && it.redirectedUrl == url)) {
+                                (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.loadNewWebPage(it)
+                                return@checkUrl true
+                            }
+                        }
+                    }
+
                     val index = chapters.indexOfFirst { it.redirectedUrl != null && it.redirectedUrl!!.contains(url) }
                     if (index != -1) {
                         viewPager.currentItem = index
@@ -189,6 +203,30 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
             }
             else -> return super.dispatchKeyEvent(event)
         }
+    }
+
+//    override fun onSaveInstanceState(outState: Bundle?) {
+//        super.onSaveInstanceState(outState)
+//        outState?.putSerializable("novel", novel)
+//        outState?.putSerializable("webPage", webPage)
+//        outState?.putSerializable("chapters", chapters)
+//    }
+//
+//    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+//        super.onRestoreInstanceState(savedInstanceState)
+//        if (savedInstanceState != null) {
+//            novel = savedInstanceState.getSerializable("novel") as Novel?
+//            webPage = savedInstanceState.getSerializable("webPage") as WebPage?
+//            @Suppress("UNCHECKED_CAST")
+//            chapters = savedInstanceState.getSerializable("chapters") as ArrayList<WebPage>
+//        }
+//    }
+
+    override fun onBackPressed() {
+        if ((viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).history.isNotEmpty())
+            (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).goBack()
+        else
+            super.onBackPressed()
     }
 
 }

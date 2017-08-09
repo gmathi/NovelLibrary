@@ -102,6 +102,14 @@ fun Activity.startContributionsActivity() {
     startActivity(intent)
 }
 
+fun Activity.startNovelDetailsActivity(novel: Novel) {
+    val intent = Intent(this, NovelDetailsActivity::class.java)
+    val bundle = Bundle()
+    bundle.putSerializable("novel", novel)
+    intent.putExtras(bundle)
+    startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
+}
+
 
 fun Activity.openInBrowser(url: String) {
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))

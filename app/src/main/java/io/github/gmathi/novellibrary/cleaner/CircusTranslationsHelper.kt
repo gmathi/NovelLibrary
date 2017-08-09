@@ -18,8 +18,8 @@ class CircusTranslationsHelper : HtmlHelper() {
             contentElement?.siblingElements()?.remove()
             contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
             contentElement = contentElement?.parent()
-        } while (contentElement?.tagName() != "body")
-        contentElement.classNames()?.forEach { contentElement?.removeClass(it) }
+        } while (contentElement != null && contentElement.tagName() != "body")
+        contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
         doc.getElementById("custom-background-css")?.remove()
     }
 
@@ -45,9 +45,6 @@ class CircusTranslationsHelper : HtmlHelper() {
         }
 
         return doc
-    }
-
-    override fun addTitle(doc: Document) {
     }
 
 }

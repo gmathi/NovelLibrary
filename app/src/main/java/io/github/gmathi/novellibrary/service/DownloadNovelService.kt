@@ -31,7 +31,7 @@ class DownloadNovelService : IntentService(TAG) {
         novelId = workIntent.getLongExtra(Constants.NOVEL_ID, -1L)
         isDownloading = true
 
-       // android.os.Debug.waitForDebugger()
+        // android.os.Debug.waitForDebugger()
 
         if (isNetworkDown()) return
 
@@ -49,6 +49,8 @@ class DownloadNovelService : IntentService(TAG) {
     private fun downloadAllNovels() {
         var downloadQueueItem = dbHelper.getFirstDownloadableQueueItem()
         while (downloadQueueItem != null) {
+            novelId = downloadQueueItem.novelId
+            EventBus.getDefault()?.post(NovelEvent(EventType.UPDATE, novelId, null))
             DownloadNovel(this, downloadQueueItem.novelId, dbHelper).start()
             downloadQueueItem = dbHelper.getFirstDownloadableQueueItem()
         }

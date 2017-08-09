@@ -5,10 +5,14 @@ import android.content.Intent
 import android.util.Log
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.DBHelper
+import io.github.gmathi.novellibrary.database.updateWebPage
+import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
+import org.greenrobot.eventbus.EventBus
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
@@ -35,7 +39,7 @@ class DownloadChapterService : IntentService(TAG) {
 
         try {
             if (chapters.isNotEmpty())
-            downloadChapters(novel, chapters)
+                downloadChapters(novel, chapters)
         } catch (e: Exception) {
             Utils.error(TAG, "Exception Caught", e)
         }
@@ -43,6 +47,12 @@ class DownloadChapterService : IntentService(TAG) {
 
     private fun downloadChapters(novel: Novel, chapters: ArrayList<WebPage>) {
         //Get Directories to start html
+        chapters.forEach {
+            it.metaData.put(Constants.DOWNLOADING, Constants.STATUS_DOWNLOAD.toString())
+            dbHelper.updateWebPage(it)
+            EventBus.getDefault().post(NovelEvent(EventType.UPDATE, novel.id, it))
+        }
+
         val hostDir = Utils.getHostDir(this@DownloadChapterService, novel.url!!)
         val novelDir = Utils.getNovelDir(hostDir, novel.name!!)
 

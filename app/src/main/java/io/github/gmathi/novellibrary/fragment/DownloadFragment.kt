@@ -15,17 +15,18 @@ import com.afollestad.materialdialogs.Theme
 import com.bumptech.glide.Glide
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
+import io.github.gmathi.novellibrary.activity.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.model.EventType
-import io.github.gmathi.novellibrary.model.NovelEvent
-import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.model.DownloadQueue
+import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.service.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_download_queue.*
 import kotlinx.android.synthetic.main.content_download_queue.*
 import kotlinx.android.synthetic.main.listitem_download_queue.view.*
@@ -80,7 +81,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
                     startDownloadService(-1L)
 
                 }
-                adapter.updateData(ArrayList(dbHelper.getAllDownloadQueue()))
+                adapter.updateData(ArrayList(dbHelper.getAllUnfinishedDownloadQueues()))
             }
         }
 
@@ -88,7 +89,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
 
 
     private fun setRecyclerView() {
-        val items = dbHelper.getAllDownloadQueue().filter { it.status != Constants.STATUS_COMPLETE }
+        val items = dbHelper.getAllUnfinishedDownloadQueues()
         adapter = GenericAdapter(ArrayList(items), R.layout.listitem_download_queue, this)
         recyclerView.setDefaults(adapter)
         recyclerView.addItemDecoration(object : DividerItemDecoration(context, DividerItemDecoration.VERTICAL) {
@@ -159,9 +160,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
     }
 
     override fun onItemClick(item: DownloadQueue) {
-        // Do Nothing
-        //        val serviceIntent = Intent(this, DownloadNovelService::class.java)
-        //        startService(serviceIntent)
+        activity.startNovelDetailsActivity(dbHelper.getNovel(item.novelId)!!)
     }
     //endregion
 
@@ -213,7 +212,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
                         //toast("No Active Internet! (⋋▂⋌)")
                         fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
                         fab.tag = "paused"
-                        adapter.updateData(ArrayList(dbHelper.getAllDownloadQueue()))
+                        adapter.updateData(ArrayList(dbHelper.getAllUnfinishedDownloadQueues()))
                     }
                 } else {
                     val dq = dbHelper.getDownloadQueue(event.novelId)

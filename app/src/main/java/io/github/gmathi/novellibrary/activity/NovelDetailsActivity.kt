@@ -266,9 +266,15 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == Constants.CHAPTER_ACT_REQ_CODE) {
+            if (resultCode == Constants.OPEN_DOWNLOADS_RES_CODE) {
+                setResult(resultCode)
+                finish()
+                return
+            }
             getNovelInfoDB()
             setNovelAddToLibraryButton()
         }
+
         super.onActivityResult(requestCode, resultCode, data)
     }
 

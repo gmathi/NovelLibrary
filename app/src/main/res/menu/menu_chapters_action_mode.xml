@@ -2,6 +2,18 @@
       xmlns:app="http://schemas.android.com/apk/res-auto"
       xmlns:tools="http://schemas.android.com/tools"
       tools:context="com.mgn.bingenovelreader.fragment.LibraryFragment">
+
+    <item
+        android:id="@+id/action_select_all"
+        android:title="@string/select_all_from_page"
+        android:titleCondensed="@string/select_all_from_page"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_clear_selection"
+        android:title="@string/clear_selection_from_page"
+        android:titleCondensed="@string/clear_selection_from_page"
+        app:showAsAction="never"/>
+
     <item
         android:id="@+id/action_unread"
         android:icon="@drawable/ic_visibility_off_white_vector"

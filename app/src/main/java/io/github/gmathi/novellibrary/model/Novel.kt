@@ -43,7 +43,10 @@ class Novel : Serializable {
             currentWebPageId = if (otherNovel.currentWebPageId != -1L) otherNovel.currentWebPageId else currentWebPageId
             chapterCount = if (otherNovel.chapterCount != 0L) otherNovel.chapterCount else chapterCount
             orderId = if (otherNovel.orderId != -1L) otherNovel.orderId else orderId
-            metaData = if (!otherNovel.metaData.isEmpty()) otherNovel.metaData else metaData
+
+            otherNovel.metaData.keys.forEach {
+                metaData.put(it, otherNovel.metaData[it])
+            }
         }
     }
 

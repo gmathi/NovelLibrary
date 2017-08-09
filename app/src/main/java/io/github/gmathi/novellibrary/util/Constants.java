@@ -61,6 +61,15 @@ public class Constants {
 
     public static final int SETTINGS_ACT_RES_CODE = 10;
     public static final int LANG_ACT_RES_CODE = 12;
+    public static final int OPEN_DOWNLOADS_RES_CODE = 13;
+
+
+
+    //endregion
+
+    //region Meta Data Keys
+
+    public static final String MD_OTHER_LINKED_WEB_PAGES = "otherWebPages";
 
 
     //endregion
@@ -68,4 +77,7 @@ public class Constants {
     public static final String NO_NETWORK = "No Network";
     public static final Integer CHAPTER_PAGE_SIZE = 15;
     public static final String DOWNLOADING = "Downloading";
+
+
+
 }

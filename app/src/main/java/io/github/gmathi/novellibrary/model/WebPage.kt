@@ -48,7 +48,10 @@ class WebPage : Serializable {
             pageData = if (other.pageData != null) other.pageData else pageData
             isRead = if (other.isRead != 0) other.isRead else isRead
             orderId = if (other.orderId != -1L) other.orderId else orderId
-            metaData = if (!other.metaData.isEmpty()) other.metaData else metaData
+
+            other.metaData.keys.forEach {
+                metaData.put(it, other.metaData[it])
+            }
         }
     }
 

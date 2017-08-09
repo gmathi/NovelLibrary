@@ -42,6 +42,7 @@ class WebPageFragment : Fragment() {
 
     var listener: WebPageAdapter.Listener? = null
     var isCleaned: Boolean = false
+    var history: ArrayList<WebPage> = ArrayList()
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -50,41 +51,43 @@ class WebPageFragment : Fragment() {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+    }
 
-        isCleaned = false
-        //Get WebPage from Intent
-        val intentWebPage = arguments.getSerializable(WEB_PAGE) as WebPage?
-        if (intentWebPage == null) activity.finish()
-        else webPage = intentWebPage
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
 
-        //Hide the clean button
-        if (dataCenter.cleanChapters) {
-            activity.fabClean.hide()
-        }
-
-        doc = Jsoup.parse("<html></html>", webPage.url)
-
-        //Setup Scrolling Fab
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             readerWebView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
-                run {
-                    if (scrollY > oldScrollY && scrollY > 0) {
-                        activity.floatingToolbar.hide()
-                        activity.fab.hide()
-                    }
-                    if (scrollY < oldScrollY) {
-                        activity.fab.show()
-                    }
+                if (scrollY > oldScrollY && scrollY > 0) {
+                    activity.floatingToolbar.hide()
+                    activity.fab.hide()
                 }
+                if (scrollY < oldScrollY) activity.fab.show()
             }
-        }
-
-        //Setup WebView
-        setWebView()
-
-        loadData()
 
         swipeRefreshLayout.setOnRefreshListener { loadData() }
+        setWebView()
+
+        @Suppress("UNCHECKED_CAST")
+        if (savedInstanceState != null) {
+            doc = Jsoup.parse(savedInstanceState.getString("docContent"), savedInstanceState.getString("docLocation"))
+            webPage = savedInstanceState.getSerializable("webPage") as WebPage
+            listener = savedInstanceState.getSerializable("listener") as WebPageAdapter.Listener?
+            isCleaned = savedInstanceState.getBoolean("isCleaned")
+            history = savedInstanceState.getSerializable("history") as ArrayList<WebPage>
+            loadDocument()
+
+        } else {
+
+            isCleaned = false
+            val intentWebPage = arguments.getSerializable(WEB_PAGE) as WebPage?
+            if (intentWebPage == null) activity.finish()
+            else webPage = intentWebPage
+            doc = Jsoup.parse("<html></html>", webPage.url)
+            loadData()
+        }
+
+        if (isCleaned || dataCenter.cleanChapters) activity.fabClean.hide()
     }
 
     fun loadData() {
@@ -180,7 +183,7 @@ class WebPageFragment : Fragment() {
 
     fun loadDocument() {
         readerWebView.loadDataWithBaseURL(
-            doc.location(),
+            if (webPage.filePath != null) "file://${webPage.filePath}" else doc.location(),
             doc.outerHtml(),
             "text/html", "UTF-8", null)
     }
@@ -199,8 +202,9 @@ class WebPageFragment : Fragment() {
         if (!isCleaned) {
             progressLayout.showLoading()
             readerWebView.settings.javaScriptEnabled = false
-            HtmlHelper.getInstance(doc.location()).removeJS(doc)
-            HtmlHelper.getInstance(doc.location()).additionalProcessing(doc)
+            val htmlHelper = HtmlHelper.getInstance(doc.location())
+            htmlHelper.removeJS(doc)
+            htmlHelper.additionalProcessing(doc)
             applyTheme()
             loadDocument()
             progressLayout.showContent()
@@ -211,6 +215,30 @@ class WebPageFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         async.cancelAll()
+    }
+
+    fun loadNewWebPage(otherWebPage: WebPage) {
+        history.add(webPage)
+        webPage = otherWebPage
+        isCleaned = false
+        loadData()
+    }
+
+    fun goBack() {
+        webPage = history.last()
+        history.remove(webPage)
+        isCleaned = false
+        loadData()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        outState?.putString("docContent", doc.toString())
+        outState?.putString("docLocation", doc.location())
+        outState?.putSerializable("webPage", webPage)
+        outState?.putSerializable("listener", listener)
+        outState?.putBoolean("isCleaned", isCleaned)
+        outState?.putSerializable("history", history)
     }
 
 }

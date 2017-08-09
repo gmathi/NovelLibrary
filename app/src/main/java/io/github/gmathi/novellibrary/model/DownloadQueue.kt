@@ -11,4 +11,11 @@ class DownloadQueue {
         return other != null && other is DownloadQueue && other.novelId == this.novelId
     }
 
+    override fun hashCode(): Int {
+        var result = novelId.hashCode()
+        result = 31 * result + status.hashCode()
+        result = 31 * result + metaData.hashCode()
+        return result
+    }
+
 }

@@ -1,12 +1,16 @@
 package io.github.gmathi.novellibrary.activity
 
+import android.content.Intent
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
 import android.support.v4.view.ViewPager
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.view.ActionMode
 import android.text.InputType
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.github.johnpersano.supertoasts.library.Style
 import com.github.johnpersano.supertoasts.library.SuperActivityToast
@@ -14,18 +18,17 @@ import com.github.johnpersano.supertoasts.library.utils.PaletteUtils
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.ChapterPageListener
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
-import io.github.gmathi.novellibrary.database.createDownloadQueue
-import io.github.gmathi.novellibrary.database.getWebPageByWebPageId
-import io.github.gmathi.novellibrary.database.updateDownloadQueueStatus
-import io.github.gmathi.novellibrary.database.updateWebPageReadStatus
+import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.model.ChapterEvent
-import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.fragment.ChapterFragment
+import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.service.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
 import kotlinx.android.synthetic.main.activity_chapters_new.*
 import kotlinx.android.synthetic.main.content_chapters_new.*
 import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 
 
 class ChaptersNewActivity : AppCompatActivity(), ActionMode.Callback {
@@ -35,6 +38,7 @@ class ChaptersNewActivity : AppCompatActivity(), ActionMode.Callback {
     var pageCount: Int = 0
     var updateSet: HashSet<WebPage> = HashSet()
 
+    var removeMenuIcon: Boolean = false
     var actionMode: ActionMode? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,6 +54,8 @@ class ChaptersNewActivity : AppCompatActivity(), ActionMode.Callback {
         setViewPager()
         setCurrentPage()
         setPageButtons()
+        if (novel.id != -1L)
+            setDownloadStatus()
     }
 
     private fun setViewPager() {
@@ -81,6 +87,10 @@ class ChaptersNewActivity : AppCompatActivity(), ActionMode.Callback {
     private fun setPageButtons() {
         nextButton.setOnClickListener { viewPager.setCurrentItem(viewPager.currentItem + 1, true) }
         previousButton.setOnClickListener { viewPager.setCurrentItem(viewPager.currentItem - 1, true) }
+
+        nextButton.setOnLongClickListener { viewPager.setCurrentItem(pageCount - 1, true); true }
+        previousButton.setOnLongClickListener { viewPager.setCurrentItem(0, true); true }
+
         pageButton.setText("${viewPager.currentItem + 1}/$pageCount")
         pageButton.setOnClickListener { openPageSelectDialog() }
     }
@@ -143,6 +153,12 @@ class ChaptersNewActivity : AppCompatActivity(), ActionMode.Callback {
                         mode?.finish()
                     }
                 })
+            }
+            R.id.action_select_all -> {
+                (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as ChapterFragment?)?.selectAll()
+            }
+            R.id.action_clear_selection -> {
+                (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as ChapterFragment?)?.clearSelection()
             }
         }
         return false
@@ -211,6 +227,17 @@ class ChaptersNewActivity : AppCompatActivity(), ActionMode.Callback {
             .show()
     }
 
+    private fun manageDownloadsDialog() {
+        MaterialDialog.Builder(this)
+            .iconRes(R.drawable.ic_info_white_vector)
+            .title(getString(R.string.manage_downloads))
+            .content("Novel downloads can be managed by navigating to \"Downloads\" through the navigation drawer menu.")
+            .positiveText(getString(R.string.take_me_there))
+            .negativeText(getString(R.string.okay))
+            .onPositive { dialog, _ -> dialog.dismiss(); setResult(Constants.OPEN_DOWNLOADS_RES_CODE); finish() }
+            .onNegative { dialog, _ -> dialog.dismiss() }
+            .show()
+    }
     //endregion
 
 
@@ -220,10 +247,15 @@ class ChaptersNewActivity : AppCompatActivity(), ActionMode.Callback {
         return super.onCreateOptionsMenu(menu)
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        menu?.getItem(0)?.isVisible = !removeMenuIcon
+        return super.onPrepareOptionsMenu(menu)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         if (item?.itemId == android.R.id.home) finish()
         if (item?.itemId == R.id.action_download)
-            confirmDialog(getString(R.string.download_all_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
+            confirmDialog(if (novel.id != -1L) getString(R.string.download_all_new_chapters_dialog_content) else getString(R.string.download_all_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
                 if (novel.id == -1L) {
                     novel.id = dbHelper.insertNovel(novel)
                     EventBus.getDefault().post(ChapterEvent(novel))
@@ -231,10 +263,108 @@ class ChaptersNewActivity : AppCompatActivity(), ActionMode.Callback {
                 dbHelper.createDownloadQueue(novel.id)
                 dbHelper.updateDownloadQueueStatus(Constants.STATUS_DOWNLOAD, novel.id)
                 startNovelDownloadService(novelId = novel.id)
+                setDownloadStatus()
                 dialog.dismiss()
             })
         return super.onOptionsItemSelected(item)
     }
     //endregion
+
+    //region Update Download Status
+
+    private fun setDownloadStatus() {
+        statusCard.setOnClickListener { manageDownloadsDialog() }
+        async {
+            val dq = await { dbHelper.getDownloadQueue(novel.id) } ?: return@async
+            removeMenuIcon = true
+            invalidateOptionsMenu()
+            val allWebPages = await { dbHelper.getAllWebPages(novel.id) }
+            val readableWebPages = await { dbHelper.getAllReadableWebPages(novel.id) }
+            var removeIcon = false
+
+            when (dq.status) {
+                Constants.STATUS_STOPPED -> {
+                    //     statusCard.animation = null
+                    statusCard.visibility = View.VISIBLE
+                    statusText.text = getString(R.string.downloading_status, getString(R.string.downloading), getString(R.string.status), getString(R.string.download_paused))
+                    removeIcon = true
+                }
+
+                Constants.STATUS_DOWNLOAD -> {
+                    // statusCard.startAnimation(AnimationUtils.loadAnimation(this@ChaptersNewActivity, R.anim.alpha_animation))
+                    statusCard.visibility = View.VISIBLE
+                    if (DownloadNovelService.novelId == novel.id)
+                        if (allWebPages.size == novel.chapterCount.toInt())
+                            statusText.text = getString(R.string.downloading_status, getString(R.string.downloading), getString(R.string.status), getString(R.string.chapter_count, readableWebPages.size, allWebPages.size))
+                        else
+                            statusText.text = getString(R.string.downloading_status, getString(R.string.downloading), getString(R.string.status), getString(R.string.collection_chapters_info))
+                    else
+                        statusText.text = getString(R.string.downloading_status, getString(R.string.downloading), getString(R.string.status), getString(R.string.download_paused))
+                    removeIcon = true
+                }
+
+                Constants.STATUS_COMPLETE -> {
+                    //    statusCard.animation = null
+                    statusCard.visibility = View.GONE
+                    removeIcon = novel.chapterCount.toInt() == readableWebPages.size
+                }
+            }
+
+            if (statusText.text.contains("aused"))
+                statusCard.setCardBackgroundColor(ContextCompat.getColor(this@ChaptersNewActivity, R.color.DarkRed))
+            else
+                statusCard.setCardBackgroundColor(ContextCompat.getColor(this@ChaptersNewActivity, R.color.DarkGreen))
+
+            if (removeIcon != removeMenuIcon) {
+                removeMenuIcon = removeIcon
+                invalidateOptionsMenu()
+            }
+        }
+    }
+
+    private fun updateDownloadStatus(orderId: Long?) {
+//        if (statusCard.animation == null)
+//            statusCard.startAnimation(AnimationUtils.loadAnimation(this, R.anim.alpha_animation))
+
+//        if (statusText.text.contains("aused"))
+//            statusCard.setCardBackgroundColor(ContextCompat.getColor(this@ChaptersNewActivity, R.color.DarkRed))
+//        else
+            statusCard.setCardBackgroundColor(ContextCompat.getColor(this@ChaptersNewActivity, R.color.DarkGreen))
+
+        if (orderId != null)
+            statusText.text = getString(R.string.downloading_status, getString(R.string.downloading), getString(R.string.status), getString(R.string.chapter_count, dbHelper.getAllReadableWebPages(novel.id).size, novel.chapterCount))
+    }
+
+    //endregion
+
+    //region Event Bus
+
+    override fun onResume() {
+        super.onResume()
+        EventBus.getDefault().register(this)
+    }
+
+    override fun onPause() {
+        EventBus.getDefault().unregister(this)
+        super.onPause()
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onNovelEvent(event: NovelEvent) {
+        if (event.novelId != novel.id) return
+
+        if ((event.type == EventType.UPDATE && event.webPage == null) || event.type == EventType.COMPLETE)
+            setDownloadStatus()
+        else if (event.type == EventType.UPDATE && event.webPage != null) {
+            updateDownloadStatus(event.webPage?.orderId)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    //endRegion
+
 
 }

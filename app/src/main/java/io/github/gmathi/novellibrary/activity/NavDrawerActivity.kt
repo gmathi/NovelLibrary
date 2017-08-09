@@ -16,6 +16,7 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.fragment.DownloadFragment
 import io.github.gmathi.novellibrary.fragment.LibraryFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
+import io.github.gmathi.novellibrary.util.Constants
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
@@ -23,17 +24,19 @@ import org.cryse.widget.persistentsearch.PersistentSearchView
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     var snackBar: Snackbar? = null
+    var currentNavId: Int = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_nav_drawer)
         navigationView.setNavigationItemSelectedListener(this)
 
-        if (dataCenter.loadLibraryScreen)
-            loadFragment(R.id.nav_library)
-        else
-            loadFragment(R.id.nav_search)
+        if (savedInstanceState != null) {
+            currentNavId = savedInstanceState.getInt("currentNavId")
+        }
 
+
+        loadFragment(currentNavId)
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
                 .title("Change Log")
@@ -41,7 +44,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 .show()
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
-
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
     }
 
@@ -49,13 +51,18 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START)
         } else {
-            val existingFrag = supportFragmentManager.findFragmentByTag(SearchFragment::class.toString())
-            if (existingFrag != null) {
-                val searchView = existingFrag.view?.findViewById<PersistentSearchView>(R.id.searchView)
+            val existingSearchFrag = supportFragmentManager.findFragmentByTag(SearchFragment::class.toString())
+            if (existingSearchFrag != null) {
+                val searchView = existingSearchFrag.view?.findViewById<PersistentSearchView>(R.id.searchView)
                 if (searchView != null && (searchView.isEditing || searchView.isSearching)) {
                     searchView.closeSearch()
                     return
                 }
+            }
+            val existingDownloadFrag = supportFragmentManager.findFragmentByTag(DownloadFragment::class.toString())
+            if (existingDownloadFrag != null) {
+                loadFragment(R.id.nav_library)
+                return
             }
 
             if (snackBar != null && snackBar!!.isShown)
@@ -79,6 +86,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     fun loadFragment(id: Int) {
+        currentNavId = id
         when (id) {
             R.id.nav_library -> {
                 replaceFragment(LibraryFragment(), LibraryFragment::class.toString())
@@ -116,7 +124,16 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu_white_vector)
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (resultCode == Constants.OPEN_DOWNLOADS_RES_CODE) {
+            loadFragment(R.id.nav_downloads)
+        }
+    }
 
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        outState?.putInt("currentNavId", currentNavId)
+    }
 
 
 }

@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.cleaner
 
 import android.net.Uri
+import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
@@ -9,22 +10,15 @@ import java.io.File
 class WuxiaWorldHelper : HtmlHelper() {
 
 
-    override fun downloadCSS(doc: Document, downloadDir: File) {
-        super.downloadCSS(doc, downloadDir)
-    }
-
     override fun additionalProcessing(doc: Document) {
-        var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasAttr("itemprop") && it.attr("itemprop") == "articleBody" }
-//        if (contentElement != null && contentElement.children().size >= 2) {
-//            contentElement.child(contentElement.children().size - 1).remove()
-//            contentElement.child(0).remove()
-//        }
+        var contentElement = doc.getElementsByAttributeValue("itemprop", "articleBody").firstOrNull()
         do {
             contentElement?.siblingElements()?.remove()
             contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
             contentElement = contentElement?.parent()
-        } while (contentElement?.tagName() != "body")
-        contentElement.classNames()?.forEach { contentElement?.removeClass(it) }
+        } while (contentElement != null && contentElement.tagName() != "body")
+        contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
+        doc.getElementsByTag("a").filter { it.text() == "Next Chapter" || it.text() == "Previous Chapter" }.forEach { it.remove() }
         doc.getElementById("custom-background-css")?.remove()
     }
 
@@ -32,11 +26,6 @@ class WuxiaWorldHelper : HtmlHelper() {
         val uri = Uri.parse(element.attr("src"))
         if (uri.toString().contains("uploads/avatars")) return null
         else return super.downloadImage(element, dir)
-    }
-
-    override fun removeJS(doc: Document) {
-        super.removeJS(doc)
-        doc.getElementsByTag("noscript").remove()
     }
 
     override fun toggleTheme(isDark: Boolean, doc: Document): Document {
@@ -53,7 +42,14 @@ class WuxiaWorldHelper : HtmlHelper() {
         return doc
     }
 
-    override fun addTitle(doc: Document) {
+    override fun getLinkedChapters(doc: Document): ArrayList<String> {
+
+        val links = ArrayList<String>()
+        val otherLinks = doc.getElementsByAttributeValue("itemprop", "articleBody").firstOrNull()?.getElementsByAttributeValueContaining("href", HostNames.WUXIA_WORLD)
+        if (otherLinks != null && otherLinks.isNotEmpty()) {
+            otherLinks.mapTo(links) { it.attr("href") }
+        }
+        return links
     }
 
 }

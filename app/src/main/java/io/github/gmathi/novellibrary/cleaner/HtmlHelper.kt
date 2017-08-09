@@ -26,6 +26,8 @@ open class HtmlHelper protected constructor() {
                 host.contains(HostNames.WORD_PRESS) -> return WordPressHelper()
                 host.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
                 host.contains(HostNames.KOBATOCHAN) -> return KobatochanHelper()
+                host.contains(HostNames.QIDIAN) -> return QidianHelper()
+                host.contains(HostNames.PRINCE_REVOLUTION) -> return WordPressHelper()
             }
             return HtmlHelper()
         }
@@ -36,17 +38,23 @@ open class HtmlHelper protected constructor() {
         downloadCSS(doc, hostDir)
         downloadImages(doc, novelDir)
         // additionalProcessing(doc)
-        addTitle(doc)
+        // addTitle(doc)
     }
 
     open fun removeJS(doc: Document) {
         doc.getElementsByTag("script").remove()
+        doc.getElementsByTag("noscript").remove()
     }
+
+    open fun removeCSS(doc: Document) {
+        doc.getElementsByTag("link").remove()
+    }
+
 
     open fun downloadCSS(doc: Document, downloadDir: File) {
         val elements = doc.head().getElementsByTag("link").filter { element -> element.hasAttr("rel") && element.attr("rel") == "stylesheet" }
         for (element in elements) {
-            val cssFile = downloadFile(element, downloadDir)
+            val cssFile = downloadFile(doc, element, downloadDir)
             if (cssFile != null) {
                 element.removeAttr("href")
                 element.attr("href", "../" + cssFile.name)
@@ -61,7 +69,7 @@ open class HtmlHelper protected constructor() {
 
     }
 
-    open fun downloadFile(element: Element, dir: File): File? {
+    open fun downloadFile(doc: Document, element: Element, dir: File): File? {
         val uri = Uri.parse(element.absUrl("href"))
         val file: File
         val doc: Document
@@ -79,7 +87,7 @@ open class HtmlHelper protected constructor() {
 
     open fun convertDocToFile(doc: Document, file: File): File? {
         try {
-            if (file.exists()) return file
+            if (file.exists()) file.delete()
             val stream = FileOutputStream(file)
             val content = doc.toString()
             stream.use { it.write(content.toByteArray()) }
@@ -124,9 +132,11 @@ open class HtmlHelper protected constructor() {
         return doc.head().getElementsByTag("title").text()
     }
 
-    open fun addTitle(doc: Document) {}
-
     open fun toggleTheme(isDark: Boolean, doc: Document): Document {
         return doc
+    }
+
+    open fun getLinkedChapters(doc: Document): ArrayList<String> {
+        return ArrayList()
     }
 }

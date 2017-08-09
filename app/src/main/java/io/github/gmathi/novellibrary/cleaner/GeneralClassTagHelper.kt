@@ -6,14 +6,14 @@ import org.jsoup.nodes.Element
 import java.io.File
 
 
-class WordPressHelper : HtmlHelper() {
+class GeneralClassTagHelper(val tagName: String, val className: String) : HtmlHelper() {
 
     override fun downloadCSS(doc: Document, downloadDir: File) {
         super.downloadCSS(doc, downloadDir)
     }
 
     override fun additionalProcessing(doc: Document) {
-        var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
+        var contentElement = doc.body().getElementsByTag(tagName).firstOrNull { it.hasClass(className) }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
         do {
             contentElement?.siblingElements()?.remove()
@@ -29,6 +29,11 @@ class WordPressHelper : HtmlHelper() {
         val uri = Uri.parse(element.attr("src"))
         if (uri.toString().contains("uploads/avatars")) return null
         else return super.downloadImage(element, dir)
+    }
+
+    override fun removeJS(doc: Document) {
+        super.removeJS(doc)
+        doc.getElementsByTag("noscript").remove()
     }
 
     override fun toggleTheme(isDark: Boolean, doc: Document): Document {

@@ -5,13 +5,14 @@ import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentPagerAdapter
 import io.github.gmathi.novellibrary.fragment.WebPageFragment
 import io.github.gmathi.novellibrary.model.WebPage
+import java.io.Serializable
 
 
 /**
  * A [FragmentPagerAdapter] that returns a fragment corresponding to
  * one of the sections/tabs/pages.
  */
-class WebPageAdapter(fm: FragmentManager, val chapters: MutableList<WebPage>, val listener: Listener) : FragmentPagerAdapter(fm) {
+class WebPageAdapter(fm: FragmentManager, val chapters: MutableList<WebPage>, val listener: Listener) : FragmentPagerAdapter(fm), Serializable {
 
     override fun getItem(position: Int): Fragment {
         val fragment = WebPageFragment.newInstance(chapters[position])
@@ -23,7 +24,7 @@ class WebPageAdapter(fm: FragmentManager, val chapters: MutableList<WebPage>, va
         return chapters.size
     }
 
-    interface Listener {
+    interface Listener : Serializable {
         fun checkUrl(url: String?): Boolean
     }
 }

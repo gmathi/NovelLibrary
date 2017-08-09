@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.fragment
 
-import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
@@ -15,7 +14,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
+import io.github.gmathi.novellibrary.activity.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.model.Novel
@@ -130,7 +129,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     //region Adapter Listener Methods - onItemClick(), viewBinder()
 
     override fun onItemClick(item: Novel) {
-        startNovelDetailsActivity(item)
+        activity.startNovelDetailsActivity(item)
         //addToDownloads(item)
     }
 
@@ -193,14 +192,6 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 //        serviceIntent.putExtra(Constants.NOVEL_ID, novelId)
 //        activity.startService(serviceIntent)
 //    }
-
-    fun startNovelDetailsActivity(novel: Novel) {
-        val intent = Intent(activity, NovelDetailsActivity::class.java)
-        val bundle = Bundle()
-        bundle.putSerializable("novel", novel)
-        intent.putExtras(bundle)
-        activity.startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
-    }
 
     override fun onPause() {
         super.onPause()

@@ -135,7 +135,7 @@ fun DBHelper.getWebPage(novelId: Long, url: String): WebPage? {
 fun DBHelper.getWebPages(novel: Novel, pageNum: Int): ArrayList<WebPage> {
     val list = ArrayList<WebPage>()
     val orderIdStartIndex = novel.chapterCount - (Constants.CHAPTER_PAGE_SIZE * pageNum) - 1
-    val selectQuery = "SELECT * FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novel.id + " AND " + DBKeys.KEY_ORDER_ID + " <= " + orderIdStartIndex + " AND " + DBKeys.KEY_ORDER_ID + " > " +(orderIdStartIndex - Constants.CHAPTER_PAGE_SIZE) + " ORDER BY " + DBKeys.KEY_ORDER_ID + " DESC"
+    val selectQuery = "SELECT * FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novel.id + " AND " + DBKeys.KEY_ORDER_ID + " <= " + orderIdStartIndex + " AND " + DBKeys.KEY_ORDER_ID + " > " + (orderIdStartIndex - Constants.CHAPTER_PAGE_SIZE) + " ORDER BY " + DBKeys.KEY_ORDER_ID + " DESC"
     Log.d(LOG, selectQuery)
     val db = this.readableDatabase
     val cursor = db.rawQuery(selectQuery, null)
