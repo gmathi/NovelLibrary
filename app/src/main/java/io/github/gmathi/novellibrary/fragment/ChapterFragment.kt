@@ -172,6 +172,7 @@ class ChapterFragment : BaseFragment(), GenericAdapter.Listener<WebPage> {
         if (item.filePath != null) {
             itemView.greenView.visibility = View.VISIBLE
             itemView.greenView.setBackgroundColor(ContextCompat.getColor(activity, R.color.DarkGreen))
+            itemView.greenView.animation = null
         } else {
             if (Constants.STATUS_DOWNLOAD.toString() == item.metaData[Constants.DOWNLOADING]) {
                 itemView.greenView.visibility = View.VISIBLE
