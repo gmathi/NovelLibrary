@@ -8,10 +8,6 @@ import java.io.File
 
 class GeneralClassTagHelper(val tagName: String, val className: String) : HtmlHelper() {
 
-    override fun downloadCSS(doc: Document, downloadDir: File) {
-        super.downloadCSS(doc, downloadDir)
-    }
-
     override fun additionalProcessing(doc: Document) {
         var contentElement = doc.body().getElementsByTag(tagName).firstOrNull { it.hasClass(className) }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
@@ -48,5 +44,10 @@ class GeneralClassTagHelper(val tagName: String, val className: String) : HtmlHe
         }
 
         return doc
+    }
+
+    override fun downloadCSS(doc: Document, downloadDir: File) {
+        //super.downloadCSS(doc, downloadDir)
+        removeCSS(doc)
     }
 }

@@ -21,6 +21,7 @@ import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
 
+
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     var snackBar: Snackbar? = null
@@ -30,6 +31,9 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_nav_drawer)
         navigationView.setNavigationItemSelectedListener(this)
+
+        if (intent.hasExtra("currentNavId"))
+            currentNavId = intent.getIntExtra("currentNavId", currentNavId)
 
         if (savedInstanceState != null) {
             currentNavId = savedInstanceState.getInt("currentNavId")
@@ -45,6 +49,8 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
+
+       startSyncService()
     }
 
     override fun onBackPressed() {
@@ -55,7 +61,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             if (existingSearchFrag != null) {
                 val searchView = existingSearchFrag.view?.findViewById<PersistentSearchView>(R.id.searchView)
                 if (searchView != null && (searchView.isEditing || searchView.isSearching)) {
-                    searchView.closeSearch()
+                    (existingSearchFrag as SearchFragment).closeSearch()
                     return
                 }
             }
@@ -67,8 +73,10 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
             if (snackBar != null && snackBar!!.isShown)
                 finish()
-            else
+            else {
+                if (snackBar == null) snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
                 snackBar?.show()
+            }
         }
     }
 

@@ -22,6 +22,11 @@ class WuxiaWorldHelper : HtmlHelper() {
         doc.getElementById("custom-background-css")?.remove()
     }
 
+    override fun downloadCSS(doc: Document, downloadDir: File) {
+        //no need to download any, remove them instead
+        removeCSS(doc)
+    }
+
     override fun downloadImage(element: Element, dir: File): File? {
         val uri = Uri.parse(element.attr("src"))
         if (uri.toString().contains("uploads/avatars")) return null

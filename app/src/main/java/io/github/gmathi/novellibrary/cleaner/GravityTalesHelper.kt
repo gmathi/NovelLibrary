@@ -51,4 +51,9 @@ class GravityTalesHelper : HtmlHelper() {
         return links
     }
 
+    override fun downloadCSS(doc: Document, downloadDir: File) {
+        //super.downloadCSS(doc, downloadDir)
+        removeCSS(doc)
+    }
+
 }

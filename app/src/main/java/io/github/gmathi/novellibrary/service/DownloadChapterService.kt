@@ -4,8 +4,8 @@ import android.app.IntentService
 import android.content.Intent
 import android.util.Log
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.updateWebPage
+import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelEvent
@@ -20,8 +20,6 @@ import java.util.concurrent.TimeUnit
 
 class DownloadChapterService : IntentService(TAG) {
 
-    lateinit var dbHelper: DBHelper
-
     //static components
     companion object {
         val TAG = "DownloadChapterService"
@@ -29,8 +27,6 @@ class DownloadChapterService : IntentService(TAG) {
 
     override fun onHandleIntent(workIntent: Intent) {
         //android.os.Debug.waitForDebugger()
-        dbHelper = DBHelper(applicationContext)
-
         @Suppress("UNCHECKED_CAST")
         val chapters: ArrayList<WebPage> = ArrayList(workIntent.getSerializableExtra("webPages") as ArrayList<WebPage>)
         val novel = workIntent.getSerializableExtra("novel") as Novel

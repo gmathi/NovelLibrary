@@ -39,7 +39,6 @@ import java.io.File
 class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> {
 
     lateinit var adapter: GenericAdapter<DownloadQueue>
-    private val ignoreUpdates = ArrayList<Long>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,13 +68,11 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
                 if (fab.tag == "playing") {
                     //pause all
                     dbHelper.updateAllDownloadQueueStatuses(Constants.STATUS_STOPPED)
-                    ignoreUpdates.addAll(adapter.items.map { it.novelId })
                     fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
                     fab.tag = "paused"
                 } else if (fab.tag == "paused") {
                     //play all
                     dbHelper.updateAllDownloadQueueStatuses(Constants.STATUS_DOWNLOAD)
-                    ignoreUpdates.clear()
                     fab.setImageResource(R.drawable.ic_pause_white_vector)
                     fab.tag = "playing"
                     startDownloadService(-1L)
@@ -108,9 +105,9 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
     //region Adapter Listener Methods - onItemClick(), viewBinder()
     @SuppressLint("SetTextI18n")
     override fun bind(item: DownloadQueue, itemView: View, position: Int) {
-        val novel = dbHelper.getNovel(item.novelId)
-        itemView.novelName.text = novel?.name
-        if (novel?.imageFilePath != null)
+        val novel = dbHelper.getNovel(item.novelId) as Novel
+        itemView.novelName.text = novel.name
+        if (novel.imageFilePath != null)
             Glide.with(this).load(File(novel.imageFilePath)).into(itemView.novelIcon)
 
         if (DownloadNovelService.novelId == item.novelId) {
@@ -120,9 +117,9 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
             item.status = Constants.STATUS_STOPPED
             itemView.downloadPauseButton.setImageResource(R.drawable.ic_play_arrow_white_vector)
         }
-        val totalChapterCount = dbHelper.getAllWebPages(novelId = novel?.id!!).count()
-        if (totalChapterCount != 0) {
-            val displayText = "${dbHelper.getAllReadableWebPages(novel.id).count()}/$totalChapterCount"
+
+        if (novel.chapterCount != 0L) {
+            val displayText = "${dbHelper.getAllReadableWebPages(novel.id).count()}/${novel.chapterCount}"
             itemView.downloadProgress.text = displayText
         } else {
             itemView.downloadProgress.text = "Waiting to start…"
@@ -135,7 +132,6 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
         itemView.downloadPauseButton.setOnClickListener {
             if (item.status == Constants.STATUS_DOWNLOAD) {
                 dbHelper.updateDownloadQueueStatus(Constants.STATUS_STOPPED, item.novelId)
-                ignoreUpdates.add(item.novelId)
                 itemView.downloadPauseButton.setImageResource(R.drawable.ic_play_arrow_white_vector)
                 item.status = Constants.STATUS_STOPPED
                 if (dbHelper.getFirstDownloadableQueueItem() == null) {
@@ -145,7 +141,6 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
 
             } else if (item.status == Constants.STATUS_STOPPED) {
                 dbHelper.updateDownloadQueueStatus(Constants.STATUS_DOWNLOAD, item.novelId)
-                ignoreUpdates.remove(item.novelId)
                 itemView.downloadPauseButton.setImageResource(R.drawable.ic_pause_white_vector)
                 item.status = Constants.STATUS_DOWNLOAD
                 startDownloadService(item.novelId)
@@ -216,7 +211,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
                     }
                 } else {
                     val dq = dbHelper.getDownloadQueue(event.novelId)
-                    if (dq != null && !ignoreUpdates.contains(event.novelId))
+                    if (dq != null)
                         adapter.updateItem(dq)
                 }
             }

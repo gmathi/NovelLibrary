@@ -5,7 +5,6 @@ import android.net.Uri
 import android.util.Log
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
-import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.updateDownloadQueueStatus
 import io.github.gmathi.novellibrary.database.updateWebPage
 import io.github.gmathi.novellibrary.dbHelper
@@ -65,16 +64,13 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, val host
             val otherLinks = htmlHelper.getLinkedChapters(doc)
             if (otherLinks.isNotEmpty()) {
                 val otherWebPages = ArrayList<WebPage>()
-                otherLinks.asSequence().forEach {
-                    val otherWebPage = downloadOtherChapterLinks(it, hostDir, novelDir) ?: return@forEach
-                    otherWebPages.add(otherWebPage)
-                }
+                otherLinks.mapNotNullTo(otherWebPages) { it -> downloadOtherChapterLinks(it, hostDir, novelDir) }
                 webPage.metaData.put(Constants.MD_OTHER_LINKED_WEB_PAGES, Gson().toJson(otherWebPages))
             }
 
             if (webPage.metaData.containsKey(Constants.DOWNLOADING))
                 webPage.metaData.remove(Constants.DOWNLOADING)
-            val id = DBHelper(context).updateWebPage(webPage)
+            val id = dbHelper.updateWebPage(webPage)
             return (id.toInt() != -1)
         }
         return false
@@ -94,10 +90,11 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, val host
         val uri = Uri.parse(doc.location())
         if (StringUtil.isBlank(uri.host)) return null
 
-        val otherWebPage = WebPage(doc.location(), doc.title())
+        val otherWebPage = WebPage(otherChapterLink, doc.title())
         val htmlHelper = HtmlHelper.getInstance(uri.host)
         htmlHelper.clean(doc, hostDir, novelDir)
         otherWebPage.title = htmlHelper.getTitle(doc)
+        otherWebPage.id = -2L
 
         val file = htmlHelper.convertDocToFile(doc, File(novelDir, otherWebPage.title!!.writableFileName())) ?: return null
         otherWebPage.filePath = file.path

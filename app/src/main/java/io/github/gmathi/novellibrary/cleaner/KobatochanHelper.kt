@@ -45,4 +45,10 @@ class KobatochanHelper : HtmlHelper() {
         return doc
     }
 
+    override fun downloadCSS(doc: Document, downloadDir: File) {
+        //super.downloadCSS(doc, downloadDir)
+        removeCSS(doc)
+    }
+
+
 }

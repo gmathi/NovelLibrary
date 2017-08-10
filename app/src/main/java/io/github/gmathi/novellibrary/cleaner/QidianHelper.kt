@@ -12,6 +12,7 @@ class QidianHelper : HtmlHelper() {
     var continueReadingUrl: String? = null
 
     override fun downloadCSS(doc: Document, downloadDir: File) {
+       // removeCSS(doc)
     }
 
     override fun additionalProcessing(doc: Document) {

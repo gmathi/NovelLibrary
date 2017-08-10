@@ -29,6 +29,8 @@
             android:enabled="true"
             android:exported="false">
         </service>
+        <service android:name=".service.ForegroundService" >
+        </service>
 
         <activity
             android:name=".activity.NovelDetailsActivity"
@@ -52,6 +54,7 @@
         <activity
             android:name=".activity.NavDrawerActivity"
             android:label="@string/title_activity_nav_drawer"
+            android:launchMode="singleTask"
             android:theme="@style/DarkTheme_DarkSide">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

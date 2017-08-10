@@ -134,6 +134,7 @@ class WebPageFragment : Fragment() {
                 return false
             }
         }
+        //readerWebView.setOnScrollChangeListener { webView, i, i, i, i ->  }
         changeTextSize(dataCenter.textSize)
     }
 
@@ -186,6 +187,8 @@ class WebPageFragment : Fragment() {
             if (webPage.filePath != null) "file://${webPage.filePath}" else doc.location(),
             doc.outerHtml(),
             "text/html", "UTF-8", null)
+        if (webPage.metaData.containsKey("scrollPosition"))
+            readerWebView.scrollTo(0, webPage.metaData["scrollPosition"]!!.toInt())
     }
 
     fun applyTheme() {
@@ -240,5 +243,7 @@ class WebPageFragment : Fragment() {
         outState?.putBoolean("isCleaned", isCleaned)
         outState?.putSerializable("history", history)
     }
+    
+    
 
 }

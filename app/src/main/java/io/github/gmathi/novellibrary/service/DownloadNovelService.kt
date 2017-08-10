@@ -1,21 +1,33 @@
 package io.github.gmathi.novellibrary.service
 
 import android.app.IntentService
+import android.app.Notification
+import android.app.PendingIntent
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.os.Bundle
+import android.support.v4.app.NotificationCompat
 import android.util.Log
-import io.github.gmathi.novellibrary.database.DBHelper
+import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.activity.NavDrawerActivity
+import io.github.gmathi.novellibrary.database.getAllReadableWebPages
 import io.github.gmathi.novellibrary.database.getFirstDownloadableQueueItem
+import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.updateAllDownloadQueueStatuses
+import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.EventType
+import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 
 
 class DownloadNovelService : IntentService(TAG) {
 
-    lateinit var dbHelper: DBHelper
 
     //static components
     companion object {
@@ -27,7 +39,6 @@ class DownloadNovelService : IntentService(TAG) {
     }
 
     override fun onHandleIntent(workIntent: Intent) {
-        dbHelper = DBHelper(applicationContext)
         novelId = workIntent.getLongExtra(Constants.NOVEL_ID, -1L)
         isDownloading = true
 
@@ -35,15 +46,17 @@ class DownloadNovelService : IntentService(TAG) {
 
         if (isNetworkDown()) return
 
+        EventBus.getDefault().register(this)
         if (novelId == -1L) {
             downloadAllNovels()
         } else {
             downloadNovel(novelId)
         }
 
+        EventBus.getDefault().unregister(this)
+        stopForeground(true)
         novelId = -2L
         isDownloading = true
-
     }
 
     private fun downloadAllNovels() {
@@ -51,13 +64,13 @@ class DownloadNovelService : IntentService(TAG) {
         while (downloadQueueItem != null) {
             novelId = downloadQueueItem.novelId
             EventBus.getDefault()?.post(NovelEvent(EventType.UPDATE, novelId, null))
-            DownloadNovel(this, downloadQueueItem.novelId, dbHelper).start()
+            DownloadNovel(this, downloadQueueItem.novelId).start()
             downloadQueueItem = dbHelper.getFirstDownloadableQueueItem()
         }
     }
 
     private fun downloadNovel(novelId: Long) {
-        DownloadNovel(this, novelId, dbHelper).start()
+        DownloadNovel(this, novelId).start()
     }
 
     private fun onNoNetwork() {
@@ -73,5 +86,44 @@ class DownloadNovelService : IntentService(TAG) {
         }
         return false
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onNovelEvent(event: NovelEvent) {
+        if (event.novelId == -1L) return
+        val novel = dbHelper.getNovel(event.novelId) ?: return
+        val notification = getNotification(novel)
+        startForeground(Constants.NOTIFICATION_ID.FOREGROUND_DOWNLOAD_NOVEL_SERVICE,
+            notification)
+    }
+
+    private fun getNotification(novel: Novel): Notification {
+        // The PendingIntent to launch our activity if the user selects
+        // this notification
+        val readablePagesCount = dbHelper.getAllReadableWebPages(novelId).size
+
+        val title = novel.name
+        val novelDetailsIntent = Intent(this, NavDrawerActivity::class.java)
+        novelDetailsIntent.action = Constants.ACTION.MAIN_ACTION
+        novelDetailsIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        val bundle = Bundle()
+        bundle.putInt("currentNavId", R.id.nav_downloads)
+        novelDetailsIntent.putExtras(bundle)
+
+        val contentIntent = PendingIntent.getActivity(this, 0, novelDetailsIntent, 0)
+
+        val builder = NotificationCompat.Builder(this, "default")
+            .setContentTitle(title)
+            .setOngoing(true)
+            .setContentText(getString(R.string.downloading_status, getString(R.string.downloading), getString(R.string.status), getString(R.string.chapter_count, readablePagesCount, novel.chapterCount.toInt())))
+            .setSmallIcon(R.drawable.ic_file_download_orange_vector)
+            .setContentIntent(contentIntent)
+
+        if (novel.imageFilePath != null) {
+            builder.setLargeIcon(Bitmap.createScaledBitmap(BitmapFactory.decodeFile(novel.imageFilePath), 128, 192, false))
+        }
+
+        return builder.build()
+    }
+
 
 }

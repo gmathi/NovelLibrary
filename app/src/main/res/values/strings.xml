@@ -238,5 +238,10 @@
     <string name="take_me_there">Take me there</string>
     <string name="collection_chapters_info">Collecting Chapters Information</string>
     <string name="download_all_new_chapters_dialog_content">Manage novel downloads using download manager. Download all new chapters released?</string>
+    <string name="quick_access">Quick Access</string>
+    <string name="new_chapters_notification_content_full">%d novels with a total of %d new chapters. Click to start reading!</string>
+    <string name="new_chapters_notification_content_single">%s - %d New Chapters</string>
+    <string name="new_chapters_notification_title">New Chapters Available!</string>
+
 
 </resources>

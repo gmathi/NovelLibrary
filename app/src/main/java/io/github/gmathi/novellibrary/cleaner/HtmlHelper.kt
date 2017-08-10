@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.cleaner
 import android.graphics.Bitmap
 import android.net.Uri
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.getFileName
 import io.github.gmathi.novellibrary.util.writableFileName
@@ -77,7 +78,7 @@ open class HtmlHelper protected constructor() {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: " + uri.toString())
             val fileName = uri.getFileName()
             file = File(dir, fileName)
-            doc = Jsoup.connect(uri.toString()).userAgent(HostNames.USER_AGENT).ignoreContentType(true).get()
+            doc = NovelApi().getDocumentWithUserAgentIgnoreContentType(uri.toString())
         } catch (e: Exception) {
             Utils.warning(TAG, "Uri: $uri", e)
             return null

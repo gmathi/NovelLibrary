@@ -9,7 +9,8 @@ import java.io.File
 class WordPressHelper : HtmlHelper() {
 
     override fun downloadCSS(doc: Document, downloadDir: File) {
-        super.downloadCSS(doc, downloadDir)
+        //super.downloadCSS(doc, downloadDir)
+        removeCSS(doc)
     }
 
     override fun additionalProcessing(doc: Document) {

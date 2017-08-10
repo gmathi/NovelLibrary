@@ -15,8 +15,8 @@ android {
         applicationId "io.github.gmathi.novellibrary"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 12
-        versionName "0.4.1.beta"
+        versionCode 13
+        versionName "0.5.beta"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }

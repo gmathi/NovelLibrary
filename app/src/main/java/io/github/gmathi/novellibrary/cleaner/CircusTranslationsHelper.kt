@@ -8,10 +8,6 @@ import java.io.File
 
 class CircusTranslationsHelper : HtmlHelper() {
 
-    override fun downloadCSS(doc: Document, downloadDir: File) {
-        super.downloadCSS(doc, downloadDir)
-    }
-
     override fun additionalProcessing(doc: Document) {
         var contentElement = doc.body().getElementById("primary")
         do {
@@ -45,6 +41,11 @@ class CircusTranslationsHelper : HtmlHelper() {
         }
 
         return doc
+    }
+
+    override fun downloadCSS(doc: Document, downloadDir: File) {
+        //super.downloadCSS(doc, downloadDir)
+        removeCSS(doc)
     }
 
 }

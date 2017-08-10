@@ -13,6 +13,7 @@ import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.service.DownloadChapterService
 import io.github.gmathi.novellibrary.service.DownloadNovelService
+import io.github.gmathi.novellibrary.service.SyncNovelsService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.TransitionHelper
 
@@ -146,6 +147,12 @@ fun Activity.startChapterDownloadService(novel: Novel, webPages: ArrayList<WebPa
     bundle.putSerializable("webPages", webPages)
     serviceIntent.putExtras(bundle)
     startService(serviceIntent)
+}
+
+fun Activity.startSyncService() {
+    val startIntent = Intent(this, SyncNovelsService::class.java)
+    startIntent.action = Constants.ACTION.STARTFOREGROUND_ACTION
+    startService(startIntent)
 }
 
 

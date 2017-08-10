@@ -2,6 +2,9 @@ package io.github.gmathi.novellibrary
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
 import android.os.Build
 import android.support.v7.app.AppCompatDelegate
 import android.util.Log
@@ -38,6 +41,7 @@ class NovelLibraryApplication : Application() {
     override fun onCreate() {
         dataCenter = DataCenter(applicationContext)
         dbHelper = DBHelper(applicationContext)
+        HostNames.setHostNamesList(dataCenter!!.getVerifiedHosts())
         super.onCreate()
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
 
@@ -59,10 +63,14 @@ class NovelLibraryApplication : Application() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true)
         }
+
+        initChannels(applicationContext)
+
     }
 
     @Throws(KeyManagementException::class, NoSuchAlgorithmException::class)
     fun enableSSLSocket() {
+
         HttpsURLConnection.setDefaultHostnameVerifier {
             hostName: String?, _ ->
             if (hostName != null) HostNames.isVerifiedHost(hostName) else false
@@ -86,5 +94,18 @@ class NovelLibraryApplication : Application() {
         }), SecureRandom())
         HttpsURLConnection.setDefaultSSLSocketFactory(context.socketFactory)
     }
+
+    fun initChannels(context: Context) {
+        if (Build.VERSION.SDK_INT < 26) {
+            return
+        }
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channel = NotificationChannel("default",
+            "Default Channel",
+            NotificationManager.IMPORTANCE_DEFAULT)
+        channel.description = "Default Channel Description"
+        notificationManager.createNotificationChannel(channel)
+    }
+
 
 }

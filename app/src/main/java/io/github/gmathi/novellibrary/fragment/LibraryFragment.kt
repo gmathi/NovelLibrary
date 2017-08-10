@@ -17,19 +17,15 @@ import com.bumptech.glide.request.transition.Transition
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
+import io.github.gmathi.novellibrary.activity.startSyncService
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.database.createDownloadQueue
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.database.updateOrderId
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.model.NovelEvent
-import io.github.gmathi.novellibrary.util.getFileName
-import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.service.DownloadNovelService
-import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.SimpleItemTouchHelperCallback
-import io.github.gmathi.novellibrary.util.SimpleItemTouchListener
+import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.activity_library.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_library.view.*
@@ -136,38 +132,36 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             false
         }
 
+        itemView.readChapterImage.setOnClickListener {
+
+        }
+
     }
 
     //endregion
 
     //region Sync Code
     override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
-//        menuInflater.inflate(R.menu.menu_library, menu)
-//        val drawable = DrawableCompat.wrap(menu.findItem(R.id.action_sync).icon)
-//        DrawableCompat.setTint(drawable, ContextCompat.getColor(context, R.color.white))
-//        menu.findItem(R.id.action_sync).icon = drawable
+        menuInflater.inflate(R.menu.menu_library, menu)
         super.onCreateOptionsMenu(menu, menuInflater)
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
-        //menu.findItem(R.id.action_newItem).isVisible = true
         super.onPrepareOptionsMenu(menu)
-
-    }
+  }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-//        when (item?.itemId) {
-//            R.id.action_sync -> {
-//                syncNovels()
-//                return true
-//            }
-//        }
+        when (item?.itemId) {
+            R.id.action_sync -> {
+                syncNovels()
+                return true
+            }
+        }
         return super.onOptionsItemSelected(item)
     }
 
     private fun syncNovels() {
-        dbHelper.getAllNovels().forEach { dbHelper.createDownloadQueue(it.id) }
-        startDownloadService(1L)
+        activity.startSyncService()
     }
 
     private fun startDownloadService(novelId: Long) {

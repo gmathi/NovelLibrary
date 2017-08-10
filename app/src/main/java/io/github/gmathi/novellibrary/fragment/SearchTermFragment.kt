@@ -65,6 +65,15 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         searchTerm = arguments.getString("searchTerm")
         resultType = arguments.getString("resultType")
         setRecyclerView()
+
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey("results")) {
+                @Suppress("UNCHECKED_CAST")
+                adapter.updateData(savedInstanceState.getSerializable("results") as java.util.ArrayList<Novel>)
+                return
+            }
+        }
+
         progressLayout.showLoading()
         searchNovels()
     }
@@ -178,25 +187,15 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
 //endregion
 
-//    private fun addToDownloads(item: Novel) {
-//        if (dbHelper.getNovel(item.name!!) == null) {
-//            val novelId = dbHelper.insertNovel(item)
-//            dbHelper.createDownloadQueue(novelId)
-//            startNovelDownloadService(novelId)
-//            adapter.updateItem(item)
-//        }
-//    }
-//
-//    private fun startNovelDownloadService(novelId: Long) {
-//        val serviceIntent = Intent(activity, DownloadNovelService::class.java)
-//        serviceIntent.putExtra(Constants.NOVEL_ID, novelId)
-//        activity.startService(serviceIntent)
-//    }
-
     override fun onPause() {
         super.onPause()
         downloadThread?.interrupt()
     }
 
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        if (adapter.items.isNotEmpty())
+            outState?.putSerializable("results", adapter.items)
+    }
 
 }
