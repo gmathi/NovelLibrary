@@ -1,32 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+    <changelogversion
+        changeDate="08/11/2017"
+        versionName="0.5.1.beta">
+        <changelogtext>[i]Fix[/i] - App crashes on going home from reader screen</changelogtext>
+    </changelogversion>
+
+
+    <changelogversion versionName="0.5.beta" changeDate="08/04/2017">
+        <changelogtext>[b]Yeni![/b] Roman sitelerinin %99'u için destek sağlanıyor</changelogtext>
+        <changelogtext>[b]Yeni![/b] Saatte bir bölüm güncellemeleri için Otomatik Senkronizasyon Bildirimleri</changelogtext>
+        <changelogtext>[b]Yeni![/b] Son güncellemeleri takip etmek için Kütüphane menüsüne Senkronizasyon seçeneği eklendi</changelogtext>
+        <changelogtext>[b]Yeni![/b] Romanlar yeni yayımlanan bölüm sayısını gösteriyor</changelogtext>
+        <changelogtext>[b]Yeni![/b] Desteklenen bilgisi daha fazla siteye destek için temizlendi</changelogtext>
+        <changelogtext>[b]Yeni![/b] Bölümler için indirme durumu takibi</changelogtext>
+        <changelogtext>[b]Deneysel![/b] İndirme Yöneticisi stabil değil</changelogtext>
+        <changelogtext>[i]Onarım[/i] - İşaretleme ve okunan bölümleri koyulaşması stabil</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Gravity Tales Novels içeriğinde uygulamanın yanıt vermemesi sorunu giderildi</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Arayüz materyali için tasarım kılavuz mevcu.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için kapsamlı gidermeler yapıldı!</changelogtext>
+    </changelogversion>
+
+    <changelogversion versionName="0.4.1.beta" changeDate="08/04/2017">
+        <changelogtext>[b]Yeni![/b] Romanlar 'Detay' bölümünden paylaşılabilir hale getirildi</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Renk tasarımında değişiklik yapıldı</changelogtext>
+    </changelogversion>
+
     <changelogversion versionName="0.4.beta" changeDate="08/03/2017">
-        <changelogtext>[b]Yeni![/b] Bölümler daha hızlı yüklenir ve ayrı ayrı indirilebilir (önceden indirilen bölümler yeni tasarımın desteklenmesi için silinir)</changelogtext>
-        <changelogtext>[b]Yeni![/b] Bölümler okunmuş / okunmamış olarak işaretlenebilir</changelogtext>
-        <changelogtext>[b]Yeni![/b] Uygulama için Türkçe Çeviri eklendi</changelogtext>
-        <changelogtext>[b]Yeni![/b] Kobatochan Romanlara [b] Gece Modu [/ b] Desteği eklendi</changelogtext>
+        <changelogtext>[b]Yeni![/b] Bölümler artık daha hızlı yükleniyor. Artık her bölüm ayrı ayrı indirilebilir. (Önceden indirilmiş bölümler yeni tasarımı desteklemek için silinmiştir)</changelogtext>
+        <changelogtext>[b]Yeni![/b] Bölümler okundu/okunmadı olarak işaretlenebilir</changelogtext>
+        <changelogtext>[b]Yeni![/b] Uygulamaya Türkçe çeviri eklendi</changelogtext>
+        <changelogtext>[b]Yeni![/b] Kobatochan Novels için [b]Gece Modu[/b] desteği eklenmiştir</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.3.beta" changeDate="08/03/2017">
-        <changelogtext>[b]Yeni![/b] Circus Translations Romanlarına [b] Gece Modu [/ b] Desteği eklendi</changelogtext>
+
+    <changelogversion
+        changeDate="08/03/2017"
+        versionName="0.3.3.beta">
+        <changelogtext>[b]Yeni![/b] Circus Translations Romanlarına [b]Gece Modu[/b] Desteği eklendi</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.2.beta" changeDate="01/08/2017">
+    <changelogversion
+        changeDate="01/08/2017"
+        versionName="0.3.2.beta">
         <changelogtext>[b]Yeni![/b] Uygulamaya İspanyolca Çeviri eklendi</changelogtext>
         <changelogtext>[b]Yeni![/b] Uygulamaya Portekizce Çeviri eklendi</changelogtext>
         <changelogtext>[i]Onarım[/i] - Wuxia World'de temizlik işleminin bölüm içeriğini de sildiği hata giderildi.</changelogtext>
         <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş çökmelere sebep olan hatalar giderildi.</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.1.beta" changeDate="31/07/2017">
+    <changelogversion
+        changeDate="31/07/2017"
+        versionName="0.3.1.beta">
         <changelogtext>[b]Yeni![/b] Gizli kilidi çözünce konfeti yağacak!</changelogtext>
         <changelogtext>[i]Onarım[/i] - Okuma ekranında önceki/sonraki ekrana geçmek için kaydırınca programın çökmesi sorunu giderildi.</changelogtext>
         <changelogtext>[i]Onarım[/i] - Wuxia World sayfasının gece modunun düzgün çalışmaması sorunu giderildi.</changelogtext>
         <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş çökmelere sebep olan hatalar giderildi.</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.beta" changeDate="30/07/2017">
+    <changelogversion
+        changeDate="30/07/2017"
+        versionName="0.3.beta">
         <changelogtext>[b]Yeni![/b] Kütüğhanenizdeki romanları yeniden düzenleyin!</changelogtext>
         <changelogtext>[b]Yeni![/b] Romanları kütüphanenizden çıkartmak için sağa doğru çekebilirsiniz.</changelogtext>
         <changelogtext>[b]Yeni![/b] Arama sonuçları arasına [i]WLN-Updates.com[/i] eklendi (Deneysel)</changelogtext>
@@ -40,23 +75,29 @@
         <changelogtext>[i]Onarım[/i] - Bildirilmiş çökmelere sebep olan hatalar giderildi!</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.2.1.beta" changeDate="27/07/2017">
+    <changelogversion
+        changeDate="27/07/2017"
+        versionName="0.2.1.beta">
         <changelogtext>[b]Yeni![/b] wordpress.com için temiz ve normal sayfalarına [b]Gece Modu[/b] desteği eklendi.</changelogtext>
         <changelogtext>[b]Onarım[/b] - Bölümler doğru şekilde listeleniyor.</changelogtext>
         <changelogtext>[b]Onarım[/b] - Okuma Ekranındayken ekran uyanık tutuluyor.</changelogtext>
         <changelogtext>[b]Onarım[/b] - Uygulamanın zayıf cihazlarda donmaması için hızlı yükleme özelliği açılıp kapanabilir duruma getirildi. Varsayılan durum Kapalı.</changelogtext>
-        <changelogtext> Bildirilmiş çökmelere sebep olan hatalar giderildi!</changelogtext>
+        <changelogtext>Bildirilmiş çökmelere sebep olan hatalar giderildi!</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.2.beta" changeDate="26/07/2017">
+    <changelogversion
+        changeDate="26/07/2017"
+        versionName="0.2.beta">
         <changelogtext>[b]Yeni![/b] Yazarların, Çevirmenlerin, Yayımcıların diğer işlerinin de görülebilmesi amacıyla linkleri eklendi.(Detaylı Bilgi Ekranı)</changelogtext>
         <changelogtext>[b]Yeni![/b] Bölümler artık daha hızlı yükleniyor (4~5sn'de 1000 bölüm)</changelogtext>
         <changelogtext>Zayıf telefonlara destek olması ve bazı çökmelerin giderilmesi için hatalar düzeltildi.</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.1.beta" changeDate="23/07/2017">
+    <changelogversion
+        changeDate="23/07/2017"
+        versionName="0.1.beta">
         <changelogtext>İlk Beta Sürümü Yayınlandı.</changelogtext>
-        <changelogimprovement>Okuyucu: Gece Modu (Deneysel, Desteklenen Kaynak Kısıtlı)</changelogimprovement>
+        <changelogtext>Okuyucu: Gece Modu (Deneysel, Desteklenen Kaynak Kısıtlı)</changelogtext>
         <changelogbug>Bölüm Listesi: 1000 bölümün yüklenmesi için 20~30 saniye gerekiyor.</changelogbug>
         <changelogbug>İndirme Listesi: Bölümlerin indirilmesinin duraklatılması tutarsızlığa neden olabiliyor.</changelogbug>
 

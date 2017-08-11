@@ -6,6 +6,7 @@ import android.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.network.HostNames
 import java.util.*
 
 
@@ -26,6 +27,7 @@ class DataCenter(context: Context) {
     private val CLEAN_PAGES = "cleanPages"
     private val JAVASCRIPT = "javascript"
     private val LANGUAGE = "language"
+    private val VERIFIED_HOSTS = "verifiedHosts"
 
     val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -94,4 +96,18 @@ class DataCenter(context: Context) {
     var language: String
         get() = prefs.getString(LANGUAGE, Locale.getDefault().toString())
         set(value) = prefs.edit().putString(LANGUAGE, value).apply()
+
+    fun getVerifiedHosts(): ArrayList<String> {
+        return Gson().fromJson(prefs.getString(VERIFIED_HOSTS, Gson().toJson(HostNames.getDefaultHostNamesList())), object : TypeToken<ArrayList<String>>() {}.type)
+    }
+
+    fun saveVerifiedHost(host: String) {
+        if (!HostNames.isVerifiedHost(host))
+            HostNames.addHost(host)
+        prefs.edit().putString(VERIFIED_HOSTS, Gson().toJson(HostNames.getHostNamesList())).apply()
+    }
+
+    fun clearVerifiedHosts() {
+        prefs.edit().putString(VERIFIED_HOSTS, "[]").apply()
+    }
 }

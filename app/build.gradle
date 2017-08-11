@@ -15,8 +15,8 @@ android {
         applicationId "io.github.gmathi.novellibrary"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 11
-        versionName "0.4.beta"
+        versionCode 14
+        versionName "0.5.1.beta"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -80,8 +80,9 @@ dependencies {
     implementation 'co.metalab.asyncawait:asyncawait:1.0.0'
     implementation 'com.github.johnpersano:supertoasts:2.0'
     implementation 'nl.dionsegijn:konfetti:1.0.2'
-    implementation 'com.ogaclejapan.smarttablayout:library:1.6.1@aar'
+    implementation 'com.squareup.okhttp3:okhttp:3.8.1'
 
+    implementation 'com.google.android.gms:play-services-gcm:11.0.4'
 
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5.1'
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'

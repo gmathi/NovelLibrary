@@ -1,32 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
-    <changelogversion versionName="0.4.beta" changeDate="08/03/2017">
+    <changelogversion
+        changeDate="08/11/2017"
+        versionName="0.5.1.beta">
+    <changelogtext>[i]Fix[/i] - App crashes on going home from reader screen</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/10/2017"
+        versionName="0.5.beta">
+        <changelogtext>[b]New![/b] Support for 99% of the novel websites</changelogtext>
+        <changelogtext>[b]New![/b] Notifications for new chapters update every hour</changelogtext>
+        <changelogtext>[b]New![/b] Sync menu in Library to check for latest chapter releases</changelogtext>
+        <changelogtext>[b]New![/b] Novels show the number of new chapters released</changelogtext>
+        <changelogtext>[b]New![/b] Cleaning supported for more novel sites</changelogtext>
+        <changelogtext>[b]New![/b] Downloading status for the chapters</changelogtext>
+        <changelogtext>[b]Experimental![/b] Download Manager is unstable</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bookmark and greying out read chapters are stable</changelogtext>
+        <changelogtext>[i]Fix[/i] - App not responding on Gravity tales novels</changelogtext>
+        <changelogtext>[i]Fix[/i] - UI material design guidelines</changelogtext>
+        <changelogtext>[i]Fix[/i] - Major Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/04/2017"
+        versionName="0.4.1.beta">
+        <changelogtext>[b]New![/b] Novels can be shared from 'Novel Details'</changelogtext>
+        <changelogtext>[i]Fix[/i] - Design color changes</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/03/2017"
+        versionName="0.4.beta">
         <changelogtext>[b]New![/b] Chapters load faster, and can be downloaded individually (Previously downloaded chapters are deleted to support new design)</changelogtext>
         <changelogtext>[b]New![/b] Chapters can be marked read/unread</changelogtext>
         <changelogtext>[b]New![/b] Added Turkish Translation for the app</changelogtext>
         <changelogtext>[b]New![/b] Added [b]Night Mode[/b] support to Kobatochan Novels</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.3.beta" changeDate="08/03/2017">
+    <changelogversion
+        changeDate="08/03/2017"
+        versionName="0.3.3.beta">
         <changelogtext>[b]New![/b] Added [b]Night Mode[/b] support to Circus Translations Novels</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.2.beta" changeDate="08/01/2017">
+    <changelogversion
+        changeDate="08/01/2017"
+        versionName="0.3.2.beta">
         <changelogtext>[b]New![/b] Added Spanish Translation for the app</changelogtext>
         <changelogtext>[b]New![/b] Added Portuguese Translation for the app</changelogtext>
         <changelogtext>[i]Fix[/i] - Wuxia World cleaning also deleted the chapters content!</changelogtext>
         <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.1.beta" changeDate="07/31/2017">
+    <changelogversion
+        changeDate="07/31/2017"
+        versionName="0.3.1.beta">
         <changelogtext>[b]New![/b] Added Confetti for secret unlock</changelogtext>
         <changelogtext>[i]Fix[/i] - Reading page crash on swiping to next/previous screen</changelogtext>
         <changelogtext>[i]Fix[/i] - Wuxia world pages night mode not working properly</changelogtext>
         <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.3.beta" changeDate="07/30/2017">
+    <changelogversion
+        changeDate="07/30/2017"
+        versionName="0.3.beta">
         <changelogtext>[b]New![/b] Reorder the novels in your library</changelogtext>
         <changelogtext>[b]New![/b] Swipe right to delete novels in your library</changelogtext>
         <changelogtext>[b]New![/b] Added [i]WLN-Updates.com[/i] to the search results (Experimental)</changelogtext>
@@ -40,7 +79,9 @@
         <changelogtext>[i]Fix[/i] - Bug Fixes for reported crashes!</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.2.1.beta" changeDate="07/27/2017">
+    <changelogversion
+        changeDate="07/27/2017"
+        versionName="0.2.1.beta">
         <changelogtext>[b]New![/b] Added support for wordpress.com for clean and regular pages with [b]Night Mode[/b] support</changelogtext>
         <changelogtext>[b]Fix[/b] - Chapters indexed properly</changelogtext>
         <changelogtext>[b]Fix[/b] - Screen is kept alive on Reading Screen</changelogtext>
@@ -48,15 +89,19 @@
         <changelogtext>Bug Fixes for reported crashes!</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.2.beta" changeDate="07/26/2017">
+    <changelogversion
+        changeDate="07/26/2017"
+        versionName="0.2.beta">
         <changelogtext>[b]New![/b] Authors, Translators, Publishers linked to find more of their works (More Information Screen)</changelogtext>
         <changelogtext>[b]New![/b] Chapters load faster than before (1000 chaps in 4~5s)</changelogtext>
         <changelogtext>Bug Fixes to support lower end phones and other major crashes</changelogtext>
     </changelogversion>
 
-    <changelogversion versionName="0.1.beta" changeDate="07/23/2017">
+    <changelogversion
+        changeDate="07/23/2017"
+        versionName="0.1.beta">
         <changelogtext>Initial Beta release.</changelogtext>
-        <changelogimprovement>Reader: Night Mode (experimental, limited support)</changelogimprovement>
+        <changelogtext>Reader: Night Mode (experimental, limited support)</changelogtext>
         <changelogbug>Chapters List: 1000 Chapters take about 20~30 secs to load</changelogbug>
         <changelogbug>Downloads List: Pausing the downloading chapters has unstable behaviour</changelogbug>
 

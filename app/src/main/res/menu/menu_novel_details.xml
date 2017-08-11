@@ -8,4 +8,11 @@
         android:title="@string/remove_from_library"
         android:titleCondensed="@string/remove"
         app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/action_share"
+        android:icon="@drawable/ic_share_white_vector"
+        android:title="@string/share"
+        android:titleCondensed="@string/share"
+        app:showAsAction="ifRoom"/>
 </menu>

@@ -66,6 +66,30 @@ fun DBHelper.getAllDownloadQueue(): List<DownloadQueue> {
     return list
 }
 
+fun DBHelper.getAllUnfinishedDownloadQueues(): List<DownloadQueue> {
+    val list = ArrayList<DownloadQueue>()
+    val selectQuery = "SELECT * FROM " + DBKeys.TABLE_DOWNLOAD_QUEUE + " WHERE ${DBKeys.KEY_STATUS} != ${Constants.STATUS_COMPLETE}"
+    Log.d(LOG, selectQuery)
+    val cursor = this.readableDatabase.rawQuery(selectQuery, null)
+
+    // looping through all rows and adding to list
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+            do {
+                val dq = DownloadQueue()
+                dq.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
+                dq.status = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_STATUS))
+                dq.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<java.util.HashMap<String, String>>() {}.type)
+
+                list.add(dq)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+    }
+
+    return list
+}
+
 fun DBHelper.updateDownloadQueue(downloadQueue: DownloadQueue): Long {
     val values = ContentValues()
     values.put(DBKeys.KEY_NOVEL_ID, downloadQueue.novelId)
@@ -85,7 +109,7 @@ fun DBHelper.updateDownloadQueueStatus(status: Long, novelId: Long): Long {
 fun DBHelper.updateAllDownloadQueueStatuses(status: Long) {
     val values = ContentValues()
     values.put(DBKeys.KEY_STATUS, status)
-    this.writableDatabase.update(DBKeys.TABLE_DOWNLOAD_QUEUE, values, null, null)
+    this.writableDatabase.update(DBKeys.TABLE_DOWNLOAD_QUEUE, values, "${DBKeys.KEY_STATUS} != ${Constants.STATUS_COMPLETE}", null)
 }
 
 fun DBHelper.deleteDownloadQueue(novelId: Long) {

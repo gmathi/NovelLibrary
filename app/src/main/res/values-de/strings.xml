@@ -42,13 +42,13 @@
     <string name="title_activity_meta_data">Mehr Informationen</string>
 
 
-   <string name="action_settings">Einstellungen</string>
+    <string name="action_settings">Einstellungen</string>
     <string name="action_sync">Sync für Updates</string>
     <string name="action_favourite">Favoriten</string>
     <string name="action_bookmark">Lesezeichen</string>
 
 
-   <string name="title_library">Bibliothek</string>
+    <string name="title_library">Bibliothek</string>
     <string name="title_search">Suche</string>
     <string name="title_downloads">Downloads</string>
 
@@ -71,12 +71,12 @@
     <string name="chapters">Kapitel</string>
     <string name="legal">Rechtliches</string>
 
-   <string name="download">Download</string>
+    <string name="download">Download</string>
     <string name="downloaded">Downloaded</string>
     <string name="downloading">Downloading</string>
     <string name="chapters_loading_message">Abhängig von der Anzahl der Kapitel dauert der Ladevorgang</string>
 
-        <string name="no_internet">Keine aktive Internetverbindung!</string>
+    <string name="no_internet">Keine aktive Internetverbindung!</string>
     <string name="try_again">Versuche es nochmal</string>
     <string name="clear">Löschen</string>
     <string name="clear_data">Lösche Cache und Daten</string>
@@ -133,11 +133,11 @@
 
     </string>
 
-   <string name="donate_content" tools:ignore="TypographyQuotes">
+    <string name="donate_content" tools:ignore="TypographyQuotes">
         "Spenden helfen bei der Entwicklung und Veröffentlichung neuer Funktionen."
         "Spenden sind über die GMail Anwendung an gmathi.developer@gmail.com möglich"
     </string>
-     <string name="app_exit">Nochmal Zurück um App zu beenden</string>
+    <string name="app_exit">Nochmal Zurück um App zu beenden</string>
     <string name="general">Allgemein</string>
     <string name="faster_downloads">Schnellere Downloads</string>
     <string name="faster_downloads_description">Sehr schnelle Downloads aber führt evtl. zu Abstürzen</string>
@@ -157,7 +157,7 @@
     <string name="mark_unread">Ungelesen markieren</string>
     <string name="unread">Ungelesen</string>
     <string name="read">Lesen</string>
-    <string name="chapters_selected">%d Ausgewählt</string>
+    <string name="chapters_selected">%1$d Ausgewählt</string>
     <string name="okay">OK</string>
     <string name="confirm_action">Aktion bestätigen</string>
     <string name="mark_chapters_unread_dialog_content">Markieren Sie die Kapitel ungelesen?</string>
@@ -167,5 +167,22 @@
     <string name="novel_not_in_library_dialog_content">Neu muss der Bibliothek hinzugefügt werden, bevor Kapitel einzeln heruntergeladen werden können</string>
     <string name="download_all_chapters_dialog_content">Verwalten Sie neuartige Downloads mit dem Download-Manager. Laden Sie alle Kapitel?</string>
     <string name="background_chapter_downloads">Hintergrund-Kapitel-Downloads wurde gestartet</string>
+
+    <!-- v0.5 Strings -->
+    <string name="select_all_from_page">Seite Alle auswählen</string>
+    <string name="clear_selection_from_page">Seite Clear Selection</string>
+    <string name="download_in_queue">In der Warteschlange</string>
+    <string name="download_paused">Pausiert</string>
+    <string name="status">Status</string>
+    <string name="manage_downloads">Downloads verwalten</string>
+    <string name="manage_downloads_dialog_content">Neue Downloads können durch Navigieren zu “Downloads” über das Navigationsschubmenü</string>
+    <string name="take_me_there">Nehmen Sie mich dort</string>
+    <string name="collection_chapters_info">Sammlungskapitelinformationen</string>
+    <string name="download_all_new_chapters_dialog_content">Verwalten Sie neue Downloads mit dem Download-Manager. Laden Sie alle neuen Kapitel freigegeben?</string>
+    <string name="quick_access">Schnellzugriff</string>
+    <string name="new_chapters_notification_content_full">%1$d Romane mit insgesamt %2$d neuen Kapiteln. Klicken Sie zum Lesen!</string>
+    <string name="new_chapters_notification_content_single">%1$s (%2$d neue Kapitel)</string>
+    <string name="new_chapters_notification_title">Neue Kapitel verfügbar</string>    
+    <string name="sync_in_progress">Sync in progress</string>
 
 </resources>

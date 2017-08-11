@@ -1,0 +1,176 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+       Important please do not change the order of the string-arrays or generally anything unless it's text you're translating
+
+       What You'll Need:
+
+       1. A good text editor I recommend Atom (https://atom.io/), Sublime (https://www.sublimetext.com/), Brackets (http://brackets.io/) if you want to use something else no problem
+       2. A little knowledge on basic HTML things like <p> <b> <i> <br/> since there are certain parts I used a bit of html to format information https://www.w3schools.com/tags/
+       3. Know what character escaping is, because you cannot use characters like ' or , or ; or & or $ or % e.t.c without escaping them. e.g.
+          What\'s Trending should become What\'s Trending (Refer to http://www.ascii.cl/htmlcodes.htm look at the HTML Name Column for some conventions) not what i am looking for?
+
+       Just a quick note for translators, if you see some text that has %s or %d or %f just leave those as they are those are place holders:
+       %s - is a place holder for text most likely coming from NovelLibrary, e.g. %s liked your status post -> will be eCookie or Josh liked your status post
+       %d - is a place holder for a number, e.g. You have %d notifications -> will be You have 1 or 3 or 10 notifications
+       %f - is also a place holder for a decimal number works exactly as the others mentioned above
+
+       I know different languages have different rules like RTL so if you need to change the positions/order of %s or %d or %f you can still do so just don't remove the % sign
+       N.B. If any of the tags <string name="abc" translatable="false" ></string> have an attribute labeled translatable="false" it means you should not translate it!
+       So you can just omit those fields
+
+       Special Cases:
+       1. There are some cases I used <![CDATA[ some text here ]]>  CDATA sections are used to escape blocks of text containing characters that would otherwise be regarded as markup.
+       The only delimiter that is recognized in a CDATA section is the "]]>" string that ends the CDATA section. CDATA sections cannot be nested.
+       Their primary purpose is for including material such as XML fragments, without needing to escape all the delimiters.
+
+       Uploading your files:
+       You may just send the files directly and the file name should be something like strings_en.xml for english and strings_fr.xml for french respective of your locale
+       To All Translators I am very grateful for your help! :)
+   -->
+
+
+    <string-array name="search_tab_titles">
+        <item>Iam-Vulgaris</item>
+        <item>Amplissimus-Aestimat</item>
+        <item>Iam-Legitur</item>
+    </string-array>
+
+    <string name="title_activity_novel_details">Novellum</string>
+    <string name="title_activity_settings">Optiones</string>
+    <string name="title_activity_chapters">Capites</string>
+    <string name="title_activity_meta_data">Amplius Indicium</string>
+
+
+    <string name="action_settings">Optiones</string>
+    <string name="action_sync">Renovare</string>
+    <string name="action_favourite">Gratiosus</string>
+    <string name="action_bookmark">Librum Notere</string>
+
+
+    <string name="title_library">Bibliotheca</string>
+    <string name="title_search">Quaerere</string>
+    <string name="title_downloads">Tenentur</string>
+
+    <string name="app_description">Tui Metam Unum Pro Novellis Omnibus</string>
+
+    <string name="synopsis">Brevarium</string>
+    <string name="genres">Genus</string>
+    <string name="chapters">Capites</string>
+    <string name="legal">De Iure</string>
+
+    <string name="download">Tenentur</string>
+    <string name="downloaded">Tenens fuerunt</string>
+    <string name="downloading">Tenens sunt</string>
+    <string name="chapters_loading_message">Hoc modicum adsumere, propter copia capitarum</string>
+
+    <string name="no_internet">Nullam Coniunxio!</string>
+    <string name="try_again">Iterum Conare</string>
+    <string name="clear">Dele</string>
+    <string name="clear_data">Restitue Data</string>
+    <string name="clear_data_description">Omnis deletum erunt</string>
+    <string name="sync">Ut idem sit</string>
+    <string name="remove_from_library">Dele Ab Bibliotheca</string>
+    <string name="cancel">Cancel</string>
+    <string name="remove">Rescinde</string>
+    <string name="confirm_remove">Auctoriza delere</string>
+    <string name="confirm_remove_description">Hanc Novellum et omnis capites suum delebit</string>
+    <string name="remove_from_downloads">Remove ab Tentus?</string>
+    <string name="add_to_library">Adde Bibliotheca</string>
+    <string name="in_library">In Bibliotheca</string>
+    <string name="sort">Ordine</string>
+    <string name="sort_chapters">Ordine Capites</string>
+    <string name="clearing_data">Delens Data Sum</string>
+    <string name="please_wait">Expecta sodes…</string>
+    <string name="theme">Thema</string>
+    <string name="toggle_theme">Muta Themam</string>
+    <string name="close_menu">Termina Optiones</string>
+    <string name="close">Termina</string>
+    <string name="text_size">Amplitudo Fontis</string>
+    <string name="more_information">Amplius Indicium</string>
+    <string name="more_info_description">Pictores, Licentiae, Interpritates, …</string>
+    <string name="search_novel">Querere Novellum</string>
+    <string name="bug_report">Enunti errorem</string>
+    <string name="open_in_browser">In Pasco Vise</string>
+    <string name="share">Partire</string>
+    <string name="copyright_notice">Licentiae Notitiae</string>
+    <string name="donate_developer">Dona Auctori</string>
+    <string name="about_us">De Nobis</string>
+    <string name="libraries_used">Librarium Utebamini</string>
+    <string name="contributions">Contributiones</string>
+    <string name="donate">Dona</string>
+    <string name="donation_email_body">Gratias tibi de labore duro. Vellem hoc videre in postero versione. Hic dona mea est.</string>
+    <string name="content_restricted">Prohibemini!</string>
+    <string name="lock_hint">Bullae secretum recludent rerum. Bona Fortuna!!</string>
+
+
+    <string name="copyright_content" tools:ignore="TypographyQuotes">
+        "Novel Library is an application for providing search results aggregation services for "
+        "novel readers. All contents on Novel Library are shared by readers or automatically "
+        "searched and collated from the Internet by the program. Novel Library does not produce any content. \n\n"
+
+        "Copyright of all contents on Novel Library application belongs to both the author and "
+        "the publisher. If you have any questions about the copyright of the content, please contact "
+        "us and we will contact you for the first time and withdraw the content. \n\n"
+
+        "All Contents on the Novel Library Application represent the views of the author personally, "
+        "and do not represent the position of the application. We do not bear legal responsibility. "
+        "If you find any content violated the law, please report to us and we will review it. \n\n"
+
+        "contact: gmathi.developer@gmail.com\n"
+
+    </string>
+
+    <string name="donate_content" tools:ignore="TypographyQuotes">
+        "Donations would help speed up the releases with new features. "
+        "You can send your donate using the GMail application to gmathi.developer@gmail.com "
+    </string>
+    <string name="app_exit">Tage iterum ut desereris</string>
+    <string name="general">Generalis</string>
+    <string name="faster_downloads">Celerius Tenens</string>
+    <string name="faster_downloads_description">Tenere celerissimus sed machina tua retardet.</string>
+    <string name="first_screen_library">Face “Bibliotheca” pelagus est.</string>
+    <string name="first_screen_library_description">Si debilitus est, “Quarere” pelagus erit.</string>
+    <string name="clean_pages">Terge Capites</string>
+    <string name="clean_pages_description">Terge capites ante aperiens.</string>
+    <string name="failed_to_load_url">Aborit!</string>
+    <string name="disable_javascript">Debile Javascript</string>
+    <string name="disable_javascript_description">Quaedam loca ostenent tabula si javascript non debilitus est</string>
+    <string name="changelog">Mutationes</string>
+    <string name="donations_description_new">Gaudeo ut volis dare! Nunc partire cum aliis novellis amatoribus!</string>
+    <string name="language">Lingua</string>
+    <string name="languages_supported">Linguae utiles sunt</string>
+    <string name="download_chapters">Tenere Capites</string>
+    <string name="mark_read">Signa Lectum Est</string>
+    <string name="mark_unread">Signa Non Lectum Est</string>
+    <string name="unread">Non Lectum</string>
+    <string name="read">Lectum Est</string>
+    <string name="chapters_selected">%1$d Seligant</string>
+    <string name="okay">Ita Vero</string>
+    <string name="confirm_action">Confirma Actio</string>
+    <string name="mark_chapters_unread_dialog_content">Signa capites non lectum est?</string>
+    <string name="mark_chapters_read_dialog_content">Signa capites lectum est?</string>
+    <string name="download_chapters_dialog_content">Tene capites? \n Notitia: Caput tenens non possit desistere.</string>
+    <string name="alert">Monitus</string>
+    <string name="novel_not_in_library_dialog_content">Adde Novellum in bibliotheca, ante unusque capites tenti sunt!</string>
+    <string name="download_all_chapters_dialog_content">Novellum tenentes cura, tenens vilicum utendus es. Omnis capites tenentur?</string>
+    <string name="background_chapter_downloads">Capites tenens post scenae principit.</string>
+
+    <!-- v0.5 Strings -->
+    <string name="select_all_from_page">Page select all</string>
+    <string name="clear_selection_from_page">Electio Page Serena</string>
+    <string name="download_in_queue">In queue</string>
+    <string name="download_paused">Paused</string>
+    <string name="status">Status</string>
+    <string name="manage_downloads">Curo Downloads</string>
+    <string name="manage_downloads_dialog_content">Libri downloads fieri valeat, ut navigo per “Downloads” per navigation drawer menu</string>
+    <string name="take_me_there">Take ibi</string>
+    <string name="collection_chapters_info">Capituli Information Collectis re</string>
+    <string name="download_all_new_chapters_dialog_content">Curo novis utens download procurator downloads. Omnia nova capitula dimisit?</string>
+    <string name="quick_access">Access Velox</string>
+    <string name="new_chapters_notification_content_full">%1$d novo &amp; %2$d conscripserit summa cum ed. Click legere incipere!</string>
+    <string name="new_chapters_notification_content_single">%1$s (%2$d novo Chapter)</string>
+    <string name="new_chapters_notification_title">Capituli Available New!</string>
+    <string name="sync_in_progress">Sync in progressus</string>
+
+</resources>

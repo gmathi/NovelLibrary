@@ -240,6 +240,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         if (item?.itemId == android.R.id.home) finish()
         else if (item?.itemId == R.id.action_delete_novel) confirmNovelDelete()
+        else if (item?.itemId == R.id.action_delete_novel) shareUrl(novel.url!!)
         return super.onOptionsItemSelected(item)
     }
 
@@ -265,9 +266,15 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == Constants.CHAPTER_ACT_REQ_CODE) {
+            if (resultCode == Constants.OPEN_DOWNLOADS_RES_CODE) {
+                setResult(resultCode)
+                finish()
+                return
+            }
             getNovelInfoDB()
             setNovelAddToLibraryButton()
         }
+
         super.onActivityResult(requestCode, resultCode, data)
     }
 

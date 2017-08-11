@@ -10,12 +10,15 @@ import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import co.metalab.asyncawait.async
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.adapter.WebPageAdapter
+import io.github.gmathi.novellibrary.activity.ReaderPagerActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.fragment_reader.*
@@ -40,8 +43,8 @@ class WebPageFragment : Fragment() {
     lateinit var webPage: WebPage
     lateinit var doc: Document
 
-    var listener: WebPageAdapter.Listener? = null
     var isCleaned: Boolean = false
+    var history: ArrayList<WebPage> = ArrayList()
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -50,45 +53,43 @@ class WebPageFragment : Fragment() {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+    }
 
-        isCleaned = false
-        //Get WebPage from Intent
-        val intentWebPage = arguments.getSerializable(WEB_PAGE) as WebPage?
-        if (intentWebPage == null) activity.finish()
-        else webPage = intentWebPage
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
 
-        //Hide the clean button
-        if (dataCenter.cleanChapters) {
-            activity.fabClean.hide()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            readerWebView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
+                if (scrollY > oldScrollY && scrollY > 0) {
+                    activity.floatingToolbar.hide()
+                    activity.fab.hide()
+                }
+                if (scrollY < oldScrollY) activity.fab.show()
+            }
+
+        swipeRefreshLayout.setOnRefreshListener { loadData() }
+        setWebView()
+
+        @Suppress("UNCHECKED_CAST")
+        if (savedInstanceState != null) {
+            webPage = savedInstanceState.getSerializable("webPage") as WebPage
+            isCleaned = savedInstanceState.getBoolean("isCleaned")
+            history = savedInstanceState.getSerializable("history") as ArrayList<WebPage>
+        } else {
+            isCleaned = false
+            val intentWebPage = arguments.getSerializable(WEB_PAGE) as WebPage?
+            if (intentWebPage == null) activity.finish()
+            else webPage = intentWebPage
         }
 
         doc = Jsoup.parse("<html></html>", webPage.url)
-
-        //Setup Scrolling Fab
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            readerWebView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
-                run {
-                    if (scrollY > oldScrollY && scrollY > 0) {
-                        activity.floatingToolbar.hide()
-                        activity.fab.hide()
-                    }
-                    if (scrollY < oldScrollY) {
-                        activity.fab.show()
-                    }
-                }
-            }
-        }
-
-        //Setup WebView
-        setWebView()
-
         loadData()
-
-        swipeRefreshLayout.setOnRefreshListener { loadData() }
+        if (isCleaned || dataCenter.cleanChapters) activity.fabClean.hide()
     }
 
     fun loadData() {
         //Load with downloaded HTML File
+        isCleaned = false
         if (webPage.filePath != null) {
             val internalFilePath = "file://${webPage.filePath}"
             val input = File(internalFilePath.substring(7))
@@ -119,7 +120,7 @@ class WebPageFragment : Fragment() {
                 }
 
                 //Handle the known links like next and previous chapter if downloaded
-                if (listener != null && listener!!.checkUrl(url)) return true
+                if (checkUrl(url)) return true
 
                 //Any other urls that are not part of the index
                 if (url != null) {
@@ -131,6 +132,7 @@ class WebPageFragment : Fragment() {
                 return false
             }
         }
+        //readerWebView.setOnScrollChangeListener { webView, i, i, i, i ->  }
         changeTextSize(dataCenter.textSize)
     }
 
@@ -180,9 +182,11 @@ class WebPageFragment : Fragment() {
 
     fun loadDocument() {
         readerWebView.loadDataWithBaseURL(
-            doc.location(),
+            if (webPage.filePath != null) "file://${webPage.filePath}" else doc.location(),
             doc.outerHtml(),
             "text/html", "UTF-8", null)
+        if (webPage.metaData.containsKey("scrollY"))
+            readerWebView.scrollTo(0, webPage.metaData["scrollY"]!!.toInt())
     }
 
     fun applyTheme() {
@@ -199,8 +203,9 @@ class WebPageFragment : Fragment() {
         if (!isCleaned) {
             progressLayout.showLoading()
             readerWebView.settings.javaScriptEnabled = false
-            HtmlHelper.getInstance(doc.location()).removeJS(doc)
-            HtmlHelper.getInstance(doc.location()).additionalProcessing(doc)
+            val htmlHelper = HtmlHelper.getInstance(doc.location())
+            htmlHelper.removeJS(doc)
+            htmlHelper.additionalProcessing(doc)
             applyTheme()
             loadDocument()
             progressLayout.showContent()
@@ -212,5 +217,43 @@ class WebPageFragment : Fragment() {
         super.onDestroy()
         async.cancelAll()
     }
+
+    fun loadNewWebPage(otherWebPage: WebPage) {
+        history.add(webPage)
+        webPage = otherWebPage
+        loadData()
+    }
+
+    fun goBack() {
+        webPage = history.last()
+        history.remove(webPage)
+        loadData()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        webPage.metaData.put("scrollY", readerWebView.scrollY.toString())
+        outState?.putSerializable("webPage", webPage)
+        outState?.putBoolean("isCleaned", isCleaned)
+        outState?.putSerializable("history", history)
+    }
+
+    fun checkUrl(url: String?): Boolean {
+        if (url == null) return false
+
+        if (webPage.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
+            val links: ArrayList<WebPage> = Gson().fromJson(webPage.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+            links.forEach {
+                if (it.url == url || (it.redirectedUrl != null && it.redirectedUrl == url)) {
+                    loadNewWebPage(it)
+                    return@checkUrl true
+                }
+            }
+        }
+
+        val readerActivity = (activity as ReaderPagerActivity?) ?: return false
+        return readerActivity.checkUrl(url)
+    }
+
 
 }

@@ -15,7 +15,7 @@ class KobatochanHelper : HtmlHelper() {
             contentElement?.siblingElements()?.remove()
             contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
             contentElement = contentElement?.parent()
-        } while (contentElement?.tagName() != "body")
+        } while (contentElement != null && contentElement.tagName() != "body")
         contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
         doc.head().children().remove()
     }
@@ -44,5 +44,11 @@ class KobatochanHelper : HtmlHelper() {
 
         return doc
     }
+
+    override fun downloadCSS(doc: Document, downloadDir: File) {
+        //super.downloadCSS(doc, downloadDir)
+        removeCSS(doc)
+    }
+
 
 }

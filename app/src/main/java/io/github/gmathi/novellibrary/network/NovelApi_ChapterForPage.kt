@@ -29,7 +29,8 @@ fun NovelApi.getRRChapterUrlsForPage(url: String, pageNum: Int): ArrayList<WebPa
 
         val indexStartRange = (pageNum * Constants.CHAPTER_PAGE_SIZE)
         if (chapterElements != null && chapterElements.size > indexStartRange) {
-            (indexStartRange..chapterElements.size - 1).mapTo(chapters) { WebPage(url = chapterElements[it].absUrl("href"), chapter = chapterElements[it].text()) }
+            val endIndex = Math.min(chapterElements.size - 1, indexStartRange + Constants.CHAPTER_PAGE_SIZE - 1)
+            (indexStartRange..endIndex).mapTo(chapters) { WebPage(url = chapterElements[it].absUrl("href"), chapter = chapterElements[it].text()) }
         }
     } catch (e: IOException) {
         e.printStackTrace()
@@ -45,7 +46,8 @@ fun NovelApi.getWLNUChapterUrlsForPage(url: String, pageNum: Int): ArrayList<Web
         val trElements = document.body().getElementsByTag("tr")?.filter { it.id() == "release-entry" }
         val indexStartRange = (pageNum * Constants.CHAPTER_PAGE_SIZE)
         if (trElements != null && trElements.size > indexStartRange) {
-            (indexStartRange..trElements.size - 1).mapTo(chapters) { WebPage(url = trElements[it].absUrl("href"), chapter = trElements[it].text()) }
+            val endIndex = Math.min(trElements.size - 1, indexStartRange + Constants.CHAPTER_PAGE_SIZE - 1)
+            (indexStartRange..endIndex).mapTo(chapters) { WebPage(url = trElements[it].absUrl("href"), chapter = trElements[it].text()) }
         }
     } catch (e: IOException) {
         e.printStackTrace()

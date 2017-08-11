@@ -26,7 +26,7 @@ fun NovelApi.getRRChapterUrls(url: String): ArrayList<WebPage>? {
         val document = Jsoup.connect(url).get()
         chapters = ArrayList<WebPage>()
         val tableElement = document.body().getElementById("chapters")
-        tableElement?.getElementsByTag("a")?.filter { it.attributes().hasKey("href") }?.asReversed()?.mapTo(chapters) { WebPage(url = "http://${HostNames.ROYAL_ROAD}${it.attr("href")}", chapter = it.text()) }
+        tableElement?.getElementsByTag("a")?.filter { it.attributes().hasKey("href") }?.asReversed()?.mapTo(chapters) { WebPage(url = it.absUrl("href"), chapter = it.text()) }
     } catch (e: IOException) {
         e.printStackTrace()
     }
