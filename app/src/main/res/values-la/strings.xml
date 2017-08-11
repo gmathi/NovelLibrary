@@ -145,7 +145,7 @@
     <string name="mark_unread">Signa Non Lectum Est</string>
     <string name="unread">Non Lectum</string>
     <string name="read">Lectum Est</string>
-    <string name="chapters_selected">%d Seligant</string>
+    <string name="chapters_selected">%1$d Seligant</string>
     <string name="okay">Ita Vero</string>
     <string name="confirm_action">Confirma Actio</string>
     <string name="mark_chapters_unread_dialog_content">Signa capites non lectum est?</string>
@@ -156,5 +156,21 @@
     <string name="download_all_chapters_dialog_content">Novellum tenentes cura, tenens vilicum utendus es. Omnis capites tenentur?</string>
     <string name="background_chapter_downloads">Capites tenens post scenae principit.</string>
 
+    <!-- v0.5 Strings -->
+    <string name="select_all_from_page">Page select all</string>
+    <string name="clear_selection_from_page">Electio Page Serena</string>
+    <string name="download_in_queue">In queue</string>
+    <string name="download_paused">Paused</string>
+    <string name="status">Status</string>
+    <string name="manage_downloads">Curo Downloads</string>
+    <string name="manage_downloads_dialog_content">Libri downloads fieri valeat, ut navigo per “Downloads” per navigation drawer menu</string>
+    <string name="take_me_there">Take ibi</string>
+    <string name="collection_chapters_info">Capituli Information Collectis re</string>
+    <string name="download_all_new_chapters_dialog_content">Curo novis utens download procurator downloads. Omnia nova capitula dimisit?</string>
+    <string name="quick_access">Access Velox</string>
+    <string name="new_chapters_notification_content_full">%1$d novo &amp; %2$d conscripserit summa cum ed. Click legere incipere!</string>
+    <string name="new_chapters_notification_content_single">%1$s (%2$d novo Chapter)</string>
+    <string name="new_chapters_notification_title">Capituli Available New!</string>
+    <string name="sync_in_progress">Sync in progressus</string>
 
 </resources>

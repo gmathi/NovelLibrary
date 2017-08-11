@@ -7,10 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
-import io.github.gmathi.novellibrary.adapter.NavPageListener
-import io.github.gmathi.novellibrary.adapter.SearchResultsListener
+import io.github.gmathi.novellibrary.adapter.*
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.SimpleAnimationListener
 import io.github.gmathi.novellibrary.util.SuggestionsBuilder
@@ -23,6 +21,8 @@ import org.cryse.widget.persistentsearch.PersistentSearchView
 class SearchFragment : BaseFragment() {
 
     lateinit var adapter: GenericAdapter<Novel>
+    var searchMode: Boolean = false
+    var searchTerm: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,11 +35,27 @@ class SearchFragment : BaseFragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        setViewPager()
+
         setSearchView()
+
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey("searchTerm"))
+                searchTerm = savedInstanceState.getString("searchTerm")
+            if (savedInstanceState.containsKey("searchMode"))
+                searchMode = savedInstanceState.getBoolean("searchMode")
+        }
+
+        if (searchMode && searchTerm != null)
+            searchNovels(searchTerm!!)
+        else
+            setViewPager()
     }
 
     private fun setViewPager() {
+        while (childFragmentManager.backStackEntryCount > 0)
+            childFragmentManager.popBackStack()
+        searchTerm = null
+        searchMode = false
         val titles = resources.getStringArray(R.array.search_tab_titles)
         val navPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, NavPageListener())
         viewPager.offscreenPageLimit = 3
@@ -90,9 +106,9 @@ class SearchFragment : BaseFragment() {
             }
 
             override fun onSearchExit() {
-                if (viewPager.offscreenPageLimit == 2) {
+                if (searchMode)
                     setViewPager()
-                }
+
             }
 
             override fun onSearchCleared() {
@@ -116,12 +132,35 @@ class SearchFragment : BaseFragment() {
 
 
     private fun searchNovels(searchTerm: String) {
-        val titles = resources.getStringArray(R.array.search_results_tab_titles)
-        val searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, SearchResultsListener(searchTerm))
-        viewPager.offscreenPageLimit = 3
+        while (childFragmentManager.backStackEntryCount > 0)
+            childFragmentManager.popBackStack()
+        searchMode = true
+        this.searchTerm = searchTerm
+
+        val titles: Array<out String>
+        val searchPageAdapter:GenericFragmentStatePagerAdapter
+        if (dataCenter.lockRoyalRoad) {
+             titles = resources.getStringArray(R.array.search_results_tab_titles)
+             searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, SearchResultsListener(searchTerm))
+        } else {
+            titles = resources.getStringArray(R.array.search_results_tab_titles_unlocked)
+            searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, SearchResultsUnlockedListener(searchTerm))
+        }
+
+        viewPager.offscreenPageLimit = 2
         viewPager.adapter = searchPageAdapter
         tabStrip.setViewPager(viewPager)
     }
 
+    fun closeSearch() {
+        searchView.closeSearch()
+        setViewPager()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        outState?.putBoolean("searchMode", searchMode);
+        if (searchTerm != null) outState?.putString("searchTerm", searchTerm)
+    }
 
 }

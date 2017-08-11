@@ -1,6 +1,9 @@
 package io.github.gmathi.novellibrary.network;
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class HostNames {
 
     public static final String NOVEL_UPDATES = "novelupdates.com";
@@ -11,13 +14,17 @@ public class HostNames {
     public static final String WORD_PRESS = "wordpress.com";
     public static final String WLN_UPDATES = "wlnupdates.com";
     public static final String CIRCUS_TRANSLATIONS = "circustranslations.com";
+    public static final String QIDIAN = "webnovel.com";
+    public static final String PRINCE_REVOLUTION = "princerevolution.org";
+
 
     @SuppressWarnings("HardcodedFileSeparator")
     public static final String USER_AGENT = "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Mobile Safari/537.36";
 
-    private static final String[] ALLOWED_HOST_NAMES_ARRAY = {
+    private static final String[] DEFAULT_ALLOWED_HOST_NAMES_ARRAY = {
             NOVEL_UPDATES, ROYAL_ROAD, KOBATOCHAN, GRAVITY_TALES, WUXIA_WORLD,
-            WORD_PRESS, WLN_UPDATES, CIRCUS_TRANSLATIONS,
+            WORD_PRESS, WLN_UPDATES, CIRCUS_TRANSLATIONS, QIDIAN,
+            //PRINCE_REVOLUTION,
             "patreon.com",
             "royalroadlupload.blob.core.windows.net",
             "postimg.org",
@@ -32,14 +39,32 @@ public class HostNames {
             "wp.com",
             "scatterdrift.com",
             "discordapp.com",
-            "www.webnovel.com"
+            "chubbycheeksthoughts.com",
+            "omatranslations.com"
     };
 
+    public static ArrayList<String> getDefaultHostNamesList() {
+        return new ArrayList(Arrays.asList(DEFAULT_ALLOWED_HOST_NAMES_ARRAY));
+    }
+
+    private static final ArrayList<String> ALLOWED_HOST_NAMES_ARRAY_LIST = new ArrayList<>();
+
     public static boolean isVerifiedHost(String hostName) {
-        for (String allowedHostname : ALLOWED_HOST_NAMES_ARRAY)
+        for (String allowedHostname : ALLOWED_HOST_NAMES_ARRAY_LIST)
             if (hostName.contains(allowedHostname)) return true;
 
         return false;
     }
 
+    public static boolean addHost(String hostName) {
+        return ALLOWED_HOST_NAMES_ARRAY_LIST.add(hostName);
+    }
+
+    public static ArrayList<String> getHostNamesList() {
+        return ALLOWED_HOST_NAMES_ARRAY_LIST;
+    }
+
+    public static void setHostNamesList(ArrayList<String> hostNames) {
+         ALLOWED_HOST_NAMES_ARRAY_LIST.addAll(hostNames);
+    }
 }

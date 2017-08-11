@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
+import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.*
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterUrls
@@ -15,7 +16,7 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
 
-class DownloadNovel(val context: Context, val novelId: Long, val dbHelper: DBHelper) {
+class DownloadNovel(val context: Context, val novelId: Long) {
 
     private val TAG = "DownloaderNovelTask"
     private var threadPool: ThreadPoolExecutor? = null
@@ -40,9 +41,12 @@ class DownloadNovel(val context: Context, val novelId: Long, val dbHelper: DBHel
     fun startDownload(novel: Novel, downloadQueue: DownloadQueue) {
         if (isNetworkDown()) throw InterruptedException(Constants.NO_NETWORK)
 
+        if (isDqStoppedOrCompleted(novel.id)) return
         val chapters = NovelApi().getChapterUrls(novel.url!!)?.asReversed() ?: return
 
+
         //If the novel was deleted
+        if (isDqStoppedOrCompleted(novel.id)) return
         if (dbHelper.getNovel(novel.id) == null) {
             dbHelper.cleanupNovelData(novel.id)
             return
@@ -139,6 +143,11 @@ class DownloadNovel(val context: Context, val novelId: Long, val dbHelper: DBHel
             return true
         }
         return false
+    }
+
+    private fun isDqStoppedOrCompleted(novelId: Long): Boolean {
+        val dqStatus = dbHelper.getDownloadQueue(novelId)?.status ?: return true
+        return dqStatus == Constants.STATUS_STOPPED || dqStatus == Constants.STATUS_COMPLETE
     }
 
 

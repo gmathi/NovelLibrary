@@ -8,18 +8,14 @@ import java.io.File
 
 class CircusTranslationsHelper : HtmlHelper() {
 
-    override fun downloadCSS(doc: Document, downloadDir: File) {
-        super.downloadCSS(doc, downloadDir)
-    }
-
     override fun additionalProcessing(doc: Document) {
         var contentElement = doc.body().getElementById("primary")
         do {
             contentElement?.siblingElements()?.remove()
             contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
             contentElement = contentElement?.parent()
-        } while (contentElement?.tagName() != "body")
-        contentElement.classNames()?.forEach { contentElement?.removeClass(it) }
+        } while (contentElement != null && contentElement.tagName() != "body")
+        contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
         doc.getElementById("custom-background-css")?.remove()
     }
 
@@ -47,7 +43,9 @@ class CircusTranslationsHelper : HtmlHelper() {
         return doc
     }
 
-    override fun addTitle(doc: Document) {
+    override fun downloadCSS(doc: Document, downloadDir: File) {
+        //super.downloadCSS(doc, downloadDir)
+        removeCSS(doc)
     }
 
 }

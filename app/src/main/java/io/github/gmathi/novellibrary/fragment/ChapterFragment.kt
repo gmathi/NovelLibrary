@@ -10,13 +10,15 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import co.metalab.asyncawait.async
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ChaptersNewActivity
+import io.github.gmathi.novellibrary.activity.ReaderPagerActivity
 import io.github.gmathi.novellibrary.activity.shareUrl
-import io.github.gmathi.novellibrary.activity.startReaderPagerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.addWebPages
+import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.getWebPages
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.ChapterEvent
@@ -25,6 +27,7 @@ import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterUrlsForPage
+import io.github.gmathi.novellibrary.service.DownloadChapterService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.setDefaults
@@ -66,18 +69,27 @@ class ChapterFragment : BaseFragment(), GenericAdapter.Listener<WebPage> {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         //(activity as AppCompatActivity).setSupportActionBar(null)
-        novel = arguments.getSerializable("novel") as Novel
-        pageNum = arguments.getInt("pageNum")
-
         setRecyclerView()
 
-        if (novel.id != -1L)
-            getChaptersForPageDB()
+//        if (savedInstanceState != null) {
+//            novel = savedInstanceState.getSerializable("novel") as Novel
+//            pageNum = savedInstanceState.getInt("pageNum")
+//            @Suppress("UNCHECKED_CAST")
+//            adapter.updateData(savedInstanceState.getSerializable("chapters") as java.util.ArrayList<WebPage>)
+//
+//        } else {
+            novel = arguments.getSerializable("novel") as Novel
+            pageNum = arguments.getInt("pageNum")
 
-        if (adapter.items.isEmpty()) {
-            progressLayout.showLoading()
+            if (novel.id != -1L) {
+                getChaptersForPageDB()
+            }
+
+            if (adapter.items.isEmpty()) {
+                progressLayout.showLoading()
+            }
             getChaptersForPage()
-        }
+//        }
     }
 
     private fun setRecyclerView() {
@@ -105,10 +117,11 @@ class ChapterFragment : BaseFragment(), GenericAdapter.Listener<WebPage> {
 
     private fun getChaptersForPage() {
         if (!Utils.checkNetwork(activity)) {
-            progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
-                progressLayout.showLoading()
-                getChaptersForPage()
-            })
+            if (adapter.items.isEmpty())
+                progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+                    progressLayout.showLoading()
+                    getChaptersForPage()
+                })
             return
         }
 
@@ -132,16 +145,18 @@ class ChapterFragment : BaseFragment(), GenericAdapter.Listener<WebPage> {
                 } else {  //If results are null
 
                     if (isFragmentActive())
-                        progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
-                            getChaptersForPage()
-                        })
+                        if (adapter.items.isEmpty())
+                            progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
+                                getChaptersForPage()
+                            })
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 if (isFragmentActive())
-                    progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
-                        getChaptersForPage()
-                    })
+                    if (adapter.items.isEmpty())
+                        progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
+                            getChaptersForPage()
+                        })
             }
         }
     }
@@ -149,24 +164,31 @@ class ChapterFragment : BaseFragment(), GenericAdapter.Listener<WebPage> {
     //region Adapter Listener Methods - onItemClick(), viewBinder()
 
     override fun onItemClick(item: WebPage) {
-        activity.startReaderPagerActivity(novel, item, adapter.items)
+        startReaderPagerActivity(novel, item, adapter.items)
     }
 
     @SuppressLint("SetTextI18n")
     override fun bind(item: WebPage, itemView: View, position: Int) {
-//        if (item.filePath != null) {
-//            itemView.greenView.visibility = View.VISIBLE
-//            itemView.greenView.setBackgroundColor(ContextCompat.getColor(activity, R.color.DarkGreen))
-//        } else {
-//            if (item.metaData.containsKey(Constants.DOWNLOADING)) {
-//                itemView.greenView.visibility = View.VISIBLE
-//                itemView.greenView.setBackgroundColor(ContextCompat.getColor(activity, R.color.white))
-//                itemView.startAnimation(AnimationUtils.loadAnimation(activity, R.anim.alpha_animation))
-//            } else
-//                itemView.greenView.visibility = View.GONE
-//        }
 
-        itemView.greenView.visibility = if (item.filePath != null) View.VISIBLE else View.GONE
+        if (item.filePath != null) {
+            itemView.greenView.visibility = View.VISIBLE
+            itemView.greenView.setBackgroundColor(ContextCompat.getColor(activity, R.color.DarkGreen))
+            itemView.greenView.animation = null
+        } else {
+            if (Constants.STATUS_DOWNLOAD.toString() == item.metaData[Constants.DOWNLOADING]) {
+                if (item.id != -1L && DownloadChapterService.chapters.contains(item)) {
+                    itemView.greenView.visibility = View.VISIBLE
+                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(activity, R.color.white))
+                    itemView.greenView.startAnimation(AnimationUtils.loadAnimation(activity, R.anim.alpha_animation))
+                } else {
+                    itemView.greenView.visibility = View.VISIBLE
+                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(activity, R.color.Red))
+                    itemView.greenView.animation = null
+                }
+            } else
+                itemView.greenView.visibility = View.GONE
+        }
+
         itemView.isReadView.visibility = if (item.isRead == 1) View.VISIBLE else View.GONE
         itemView.bookmarkView.visibility = if (item.id != -1L && item.id == novel.currentWebPageId) View.VISIBLE else View.INVISIBLE
 
@@ -233,8 +255,12 @@ class ChapterFragment : BaseFragment(), GenericAdapter.Listener<WebPage> {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == Constants.READER_ACT_REQ_CODE)
-            adapter.notifyDataSetChanged()
+        if (requestCode == Constants.READER_ACT_REQ_CODE) {
+            if (novel.id != -1L) {
+                novel = dbHelper.getNovel(novel.id)!!
+                getChaptersForPageDB()
+            }
+        }
     }
 
     private fun scrollToBookmark() {
@@ -245,4 +271,34 @@ class ChapterFragment : BaseFragment(), GenericAdapter.Listener<WebPage> {
         }
     }
 
+    fun selectAll() {
+        adapter.items.filter { it.id != -1L }.forEach {
+            (activity as ChaptersNewActivity).addToUpdateSet(it)
+        }
+        adapter.notifyDataSetChanged()
+    }
+
+    fun clearSelection() {
+        adapter.items.filter { it.id != -1L }.forEach {
+            (activity as ChaptersNewActivity).removeFromUpdateSet(it)
+        }
+        adapter.notifyDataSetChanged()
+    }
+
+    fun startReaderPagerActivity(novel: Novel, webPage: WebPage, chapters: ArrayList<WebPage>?) {
+        val intent = Intent(activity, ReaderPagerActivity::class.java)
+        val bundle = Bundle()
+        bundle.putSerializable("novel", novel)
+        bundle.putSerializable("webPage", webPage)
+        bundle.putSerializable("chapters", chapters)
+        intent.putExtras(bundle)
+        this.startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
+    }
+
+//    override fun onSaveInstanceState(outState: Bundle?) {
+//        super.onSaveInstanceState(outState)
+//        outState?.putSerializable("chapters", adapter.items)
+//        outState?.putSerializable("novel", novel)
+//        outState?.putInt("pageNum", pageNum)
+//    }
 }

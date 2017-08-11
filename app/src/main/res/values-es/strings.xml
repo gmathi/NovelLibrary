@@ -44,37 +44,37 @@
 
     <string name="action_settings">Congiguración</string>
     <string name="action_sync">Sincronizar para actualizar</string>
-    <string name="action_favourite">Favoritos</string>
+    <string name="action_favourite">Favorito</string>
     <string name="action_bookmark">Marcador</string>
 
 
     <string name="title_library">Librería</string>
-    <string name="title_search">Búsqueda</string>
+    <string name="title_search">Busqueda</string>
     <string name="title_downloads">Descarga</string>
 
     <string name="app_description">Una aplicación para todas tus novelas</string>
 
     <!-- Strings related to Settings -->
-    <!--<string name="pref_title_dark_theme">Dark Page Theme</string>-->
-    <!--<string name="pref_description_dark_theme">Only RoyalRoadl.com supported for now.</string>-->
-    <!--<string name="pref_title_experimental_download">Lighting Fast Downloads (Experimental) </string>-->
-    <!--<string name="pref_description_experimental_download">Downloads really fast. Your device may freeze for a while.</string>-->
-    <!--<string name="pref_title_queue_novel_downloads">Queue Novel Downloads </string>-->
-    <!--<string name="pref_description_queue_novel_downloads">Downloads novels one after the another. If disabled, max of 5 novels with be downloaded simultaneously. </string>-->
-    <!--<string name="pref_title_download_latest_first">Download Latest First</string>-->
-    <!--<string name="pref_description_download_latest_first">Download the latest chapter first.</string>-->
+    <!--<string name="pref_title_dark_theme">Tema Página Nocturna</string>-->
+    <!--<string name="pref_description_dark_theme">Solo RoyalRoadl.com funciona por ahora.</string>-->
+    <!--<string name="pref_title_experimental_download">Descarga Rápida (Experimental)</string>-->
+    <!--<string name="pref_description_experimental_download">Descarga rápido. Es posible que la aplicación se congele durante un tiempo.</string>-->
+    <!--<string name="pref_title_queue_novel_downloads">Reservar descargas de novelas </string>-->
+    <!--<string name="pref_description_queue_novel_downloads">Descarga novelas una después de la otra. Si está inhabilitado, se descargararán simultáneamente un máximo de 5 novelas. </string>-->
+    <!--<string name="pref_title_download_latest_first">Descargar Reciente Primero</string>-->
+    <!--<string name="pref_description_download_latest_first">Descargar el capítulo mas reciente primero.</string>-->
 
 
     <!-- Transition Names -->
     <string name="synopsis">Resumen</string>
-    <string name="genres">Generos</string>
+    <string name="genres">Géneros</string>
     <string name="chapters">Capítulos</string>
     <string name="legal">Legal</string>
 
     <string name="download">Descargar</string>
     <string name="downloaded">Descargado</string>
     <string name="downloading">Descargando</string>
-    <string name="chapters_loading_message">Cargar puede tardarse, dependiendo del número de capítulos</string>
+    <string name="chapters_loading_message">Cargar puede tardarse, dependiendo del numero de capítulos</string>
 
     <string name="no_internet">No hay internet!</string>
     <string name="try_again">Intente de nuevo</string>
@@ -86,12 +86,12 @@
     <string name="cancel">Cancelar</string>
     <string name="remove">Remover</string>
     <string name="confirm_remove">Confirmación para Remover</string>
-    <string name="confirm_remove_description">La novela sera removida de la Librería y todos sus capítulos seran borrados</string>
+    <string name="confirm_remove_description">La novela será removida de la Librería y todos sus capítulos seran borrados</string>
     <string name="remove_from_downloads">Remover de Descargas?</string>
     <string name="add_to_library">Añadir a Librería</string>
     <string name="in_library">En Librería</string>
-    <string name="sort">Ordenar</string>
-    <string name="sort_chapters">Ordenar Capitulos</string>
+    <string name="sort">Organizar</string>
+    <string name="sort_chapters">Organizar Capítulos</string>
     <string name="clearing_data">Borrando Data</string>
     <string name="please_wait">Por favor espere…</string>
     <string name="theme">Tema</string>
@@ -137,37 +137,54 @@
         "Donaciones contribuyen a actualizaciones más frecuentes con mayor contenido. "
         "Puedes usar el correo electronico para enviar donaciones a gmathi.developer@gmail.com "
     </string>
-	
     <string name="app_exit">Presione Regresar de nuevo para salir de la aplicación</string>
     <string name="general">General</string>
     <string name="faster_downloads">Descargas más rapidas</string>
     <string name="faster_downloads_description">Descarga a mayor velocidad pero se puede congelar la aplicación.</string>
-    <string name="first_screen_library">Hacer "Librería" la pantalla principal</string>
-    <string name="first_screen_library_description">Si está desactivado, "Buscar" será la pantalla principal.</string>
+    <string name="first_screen_library">Hacer “Librería” la pantalla principal</string>
+    <string name="first_screen_library_description">Si está desactivado, “Buscar” será la pantalla principal.</string>
     <string name="clean_pages">Limpiar Capítulos</string>
     <string name="clean_pages_description">Limpia los capítulos antes de cargarlos.</string>
     <string name="failed_to_load_url">Error al recibir contenido!</string>
-    <string name="disable_javascript">Desactivar Javascript</string>
+    <string name="disable_javascript">Apagar Javascript</string>
     <string name="disable_javascript_description">Cuando javascript está permitido, algunos sitios web redireccionan a anuncios</string>
     <string name="changelog">Registro de cambios</string>
-    <string name="donations_description_new">Me alegra que desees donar! Por ahora difunde y comparte la aplicación con compañeros amantes de novelas!</string>
+    <string name="donations_description_new">Gracias por la intención de donar, por ahora riega la voz acerca de la aplicación con otros lectores!</string>
     <string name="language">Idioma</string>
-    <string name="languages_supported">Idiomas compatibles</string>
-    <string name="download_chapters">Descargar capítulos</string>
-    <string name="mark_read">Mark Read</string>
-    <string name="mark_unread">Marcar como no leído</string>
-    <string name="unread">No leído</string>
+    <string name="languages_supported">Idiomas con Soporte</string>
+    <string name="download_chapters">Descargar Capítulos</string>
+    <string name="mark_read">Marcar como Leído</string>
+    <string name="mark_unread">Marcar como No Leído</string>
+    <string name="unread">No Leído</string>
     <string name="read">Leído</string>
-    <string name="chapters_selected">%d Seleccionados</string>
+    <string name="chapters_selected">%1$d Seleccionado</string>
     <string name="okay">OK</string>
-    <string name="confirm_action">Confirmar acción</string>
-    <string name="mark_chapters_unread_dialog_content">Marcar capítulos como no leídos?</string>
-    <string name="mark_chapters_read_dialog_content">Marcar capítulos como leídos?</string>
-    <string name="download_chapters_dialog_content">Descargar capítulos? \n Nota: Descarga de capítulos no puede ser pausada/detenida.</string>
+    <string name="confirm_action">Confirmar Acción</string>
+    <string name="mark_chapters_unread_dialog_content">Marcar como No Leído?</string>
+    <string name="mark_chapters_read_dialog_content">Marcar como Leído?</string>
+    <string name="download_chapters_dialog_content">Descargar Capítulos? \n Nota: La descarca de capítulos no se puede pausar/parar.</string>
     <string name="alert">Alerta</string>
-    <string name="novel_not_in_library_dialog_content">Las novelas deben ser agregadas a la librería antes, para poder descargar capitulos individualmente!</string>
-    <string name="download_all_chapters_dialog_content">Maneja descarga de novelas usando el gestor de descarga. Descargar todos los capitulos?</string>
-    <string name="background_chapter_downloads">Iniciada descarga de capítulos en segundo plano.</string>
+    <string name="novel_not_in_library_dialog_content">Es necesario añadir la novela a la Librería antes de poder descargar capítulos individuales!</string>
+    <string name="download_all_chapters_dialog_content">Administrar las novelas utilizando el Admnistrador de Descargas. Descargar todos los capítulos?</string>
+    <string name="background_chapter_downloads">Descarga de capítulos en el fondo ha comenzado. </string>
+
+    <!-- v0.5 Strings -->
+
+    <string name="select_all_from_page">Seleccionar todo en la página</string>
+    <string name="clear_selection_from_page">Borrar selección de la página</string>
+    <string name="download_in_queue">En Reserva</string>
+    <string name="download_paused">Pausado</string>
+    <string name="status">Estatus</string>
+    <string name="manage_downloads">Administrar Descargas</string>
+    <string name="manage_downloads_dialog_content">Las descargas de novelas se pueden adminstrar al seleccionar “Descargas” a través del menú de navegación</string>
+    <string name="take_me_there">Llevame allí</string>
+    <string name="collection_chapters_info">Colectando Información del Capítulo</string>
+    <string name="download_all_new_chapters_dialog_content">Administrar descargas de novelas utilizando el Admnistrador de Descargas. Descargar todos los nuevos capítulos publicados?</string>
+    <string name="quick_access">Accesso Rápido</string>
+    <string name="new_chapters_notification_content_full">%1$d novelas con un total de %2$d nuevos capítulos. Presionar para comenzar a leer!</string>
+    <string name="new_chapters_notification_content_single">%1$s (%2$d nuevos capítulos)</string>
+    <string name="new_chapters_notification_title">Nuevos Capítulos Disponibles!</string>
+    <string name="sync_in_progress">Sincronización en progreso</string>
 
 
 </resources>

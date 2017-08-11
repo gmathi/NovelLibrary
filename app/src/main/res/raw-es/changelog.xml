@@ -2,28 +2,51 @@
 <changelog bulletedList="true">
 
     <changelogversion
+        changeDate="08/11/2017"
+        versionName="0.5.1.beta">
+        <changelogtext>[i]Fix[/i] - App crashes on going home from reader screen</changelogtext>
+    </changelogversion>
+
+
+    <changelogversion
+        changeDate="08/04/2017"
+        versionName="0.5.beta">
+        <changelogtext>[b]Nuevo![/b] Compatibilidad con 99% de sitios web para novelas</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Notificaciones de sincronización automática para actualizaciones de capítulos cada 1 hora</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Menú de sincronización en librería para comprobar lanzamientos recientes</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Muestra número de capítulos publicados de novelas</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Compatibilidad para limpieza en más sitios de novelas</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Estado de descarga para capítulos</changelogtext>
+        <changelogtext>[b]Experimental![/b] Gestor de descargas es inestable</changelogtext>
+        <changelogtext>[i]Correción[/i] - Marcadores y destacadores de capítulos estabilizados</changelogtext>
+        <changelogtext>[i]Correción[/i] - App not responding on Gravity tales novels</changelogtext>
+        <changelogtext>[i]Correción[/i] - Pautas de diseño para interfaz de usuario</changelogtext>
+        <changelogtext>[i]Correción[/i] - Correciones de bugs para crash de aplicación reportados y no reportados!!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
         changeDate="08/04/2017"
         versionName="0.4.1.beta">
-        <changelogtext>[b]New![/b] Novels can be shared from 'Novel Details'</changelogtext>
-        <changelogimprovement>[i]Fix[/i] - Royal Road chapters duplication!</changelogimprovement>
-        <changelogimprovement>[i]Fix[/i] - Royal Road chapters night mode support</changelogimprovement>
-        <changelogimprovement>[i]Fix[/i] - Design color changes</changelogimprovement>
+        <changelogtext>[b]Nuevo![/b] Puedes compartir novelas desde 'Detalles de Novela'</changelogtext>
+        <changelogtext>[i]Correción[/i] - Cambios en colores de diseño</changelogtext>
     </changelogversion>
 
     <changelogversion
         changeDate="08/03/2017"
         versionName="0.4.beta">
-        <changelogtext>[b]Nuevo![/b] Mayor velocidad de carga de capitulos y pueden ser descargados individualmente</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Mayor velocidad de carga de capitulos y pueden ser descargados individualmente(capítulos descargados previamente serán borrados para compatibilidad con nuevo diseño.</changelogtext>
         <changelogtext>[b]Nuevo![/b] Capítulos pueden ser marcados como leído/no leído</changelogtext>
         <changelogtext>[b]Nuevo![/b] Agregada traducción al turco para la aplicación</changelogtext>
-        <changelogtext>[b]Nuevo![/b] Agregada compatibilidad en []Modo Nocturno[] para Kobatochan Novels</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Agregada compatibilidad en [b]Modo Nocturno[b] para Kobatochan Novels</changelogtext>
     </changelogversion>
+
 
     <changelogversion
         changeDate="08/03/2017"
         versionName="0.3.3.beta">
-        <changelogtext>[b]Nuevo![/b] Agregada compatibilidad en []Modo Nocturno[] para Circus Translations Novels</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Agregada compatibilidad en [b]Modo Nocturno[b] para Circus Translations Novels</changelogtext>
     </changelogversion>
+
 
     <changelogversion
         changeDate="08/01/2017"
@@ -47,7 +70,7 @@
         changeDate="07/29/2017"
         versionName="0.3.beta">
         <changelogtext>[b]Nuevo![/b] Organiza las novelas en tu librería</changelogtext>
-        <changelogtext>[b]Nuevo![/b] Desliza hacia la derecha para eliminar novelas de tu librer&iacute;a</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Desliza hacia la derecha para eliminar novelas de tu librería</changelogtext>
         <changelogtext>[b]Nuevo![/b] Agregado [i]WLN-Updates.com[/i] a los resultados de búsqueda (Experimental)</changelogtext>
         <changelogtext>[b]Nuevo![/b] Agregadas más opciones para javascript &amp; limpiar paginas. APAGADO por defecto</changelogtext>
         <changelogtext>[b]Nuevo![/b] Agregado compatibilidad [b]Modo Nocturno[/b] para Wuxia World &amp; Gravity Tales Novels</changelogtext>
@@ -62,17 +85,17 @@
     <changelogversion
         changeDate="07/27/2017"
         versionName="0.2.1.beta">
-        <changelogtext>[b]Nuevo![/b] Añadida compatibilidad para p&aacute;ginas limpias y regulares de wordpress.com en [b]Modo Nocturno[/b]</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Añadida compatibilidad para páginas limpias y regulares de wordpress.com en [b]Modo Nocturno[/b]</changelogtext>
         <changelogtext>[b]Correción[/b] - Capítulos indexados apropiadamente</changelogtext>
         <changelogtext>[b]Correción[/b] - La pantalla se mantiene encendida en modo lector</changelogtext>
-        <changelogtext>[b]Correción[/b] - Opci&oacute;n para activar carga más rápida por lo que la aplicación no crashea en equipos de gama baja.Apagada por defecto</changelogtext>
+        <changelogtext>[b]Correción[/b] - Opción para activar carga más rápida por lo que la aplicación no crashea en equipos de gama baja.Apagada por defecto</changelogtext>
         <changelogtext>Correciones de bugs para crash de aplicación reportados!</changelogtext>
     </changelogversion>
 
     <changelogversion
         changeDate="07/26/2017"
         versionName="0.2.beta">
-        <changelogtext>[b]Nuevo![/b] V&iacute;nculos para encontrar más obras de autores, traductores y editores(más información en pantalla)</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Vínculos para encontrar más obras de autores, traductores y editores(más información en pantalla)</changelogtext>
         <changelogtext>[b]Nuevo![/b] Mayor velocidad en carga de capítulos(1000 caps en 4~5 segundos)</changelogtext>
         <changelogtext>Arreglos de bugs para compatibilidad con teléfonos de gama baja y otros crash de aplicación importantes</changelogtext>
     </changelogversion>
@@ -80,9 +103,9 @@
     <changelogversion
         changeDate="07/23/2017"
         versionName="0.1.beta">
-        <changelogtext>Version Beta Inicial.</changelogtext>
-        <changelogimprovement>Lector: Modo nocturno (experimental, compatibilidad limitada)</changelogimprovement>
-        <changelogbug>Lista de cap&iacute;tulos: 1000 capítulos tardan 20~30 segundos en cargar</changelogbug>
+        <changelogtext>Versión Beta Inicial.</changelogtext>
+        <changelogtext>Lector: Modo nocturno (experimental, compatibilidad limitada)</changelogtext>
+        <changelogbug>Lista de capítulos: 1000 capítulos tardan 20~30 segundos en cargar</changelogbug>
         <changelogbug>Lista de descargas: pausar descargas activas produce errores</changelogbug>
 
     </changelogversion>

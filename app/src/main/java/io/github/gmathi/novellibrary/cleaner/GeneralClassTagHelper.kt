@@ -1,30 +1,35 @@
 package io.github.gmathi.novellibrary.cleaner
 
 import android.net.Uri
-import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
 
 
-class GravityTalesHelper : HtmlHelper() {
+class GeneralClassTagHelper(val tagName: String, val className: String) : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
-        var contentElement = doc.body().getElementsByTag("article").firstOrNull { it.hasClass("hentry") }
+        var contentElement = doc.body().getElementsByTag(tagName).firstOrNull { it.hasClass(className) }
+        contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
         do {
             contentElement?.siblingElements()?.remove()
             contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
             contentElement = contentElement?.parent()
         } while (contentElement != null && contentElement.tagName() != "body")
         contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
-        doc.getElementsByTag("a").filter { it.text() == "Next Chapter" || it.text() == "Previous Chapter" }.forEach { it.remove() }
-        doc.getElementById("custom-background-css")?.remove()
+        contentElement?.getElementsByClass("wpcnt")?.remove()
+        contentElement?.getElementById("jp-post-flair")?.remove()
     }
 
     override fun downloadImage(element: Element, dir: File): File? {
         val uri = Uri.parse(element.attr("src"))
         if (uri.toString().contains("uploads/avatars")) return null
         else return super.downloadImage(element, dir)
+    }
+
+    override fun removeJS(doc: Document) {
+        super.removeJS(doc)
+        doc.getElementsByTag("noscript").remove()
     }
 
     override fun toggleTheme(isDark: Boolean, doc: Document): Document {
@@ -41,19 +46,8 @@ class GravityTalesHelper : HtmlHelper() {
         return doc
     }
 
-    override fun getLinkedChapters(doc: Document): ArrayList<String> {
-
-        val links = ArrayList<String>()
-        val otherLinks = doc.body().getElementsByTag("article").firstOrNull { it.hasClass("hentry") }?.getElementsByAttributeValueContaining("href", HostNames.GRAVITY_TALES)
-        if (otherLinks != null && otherLinks.isNotEmpty()) {
-            otherLinks.mapTo(links) { it.attr("href") }
-        }
-        return links
-    }
-
     override fun downloadCSS(doc: Document, downloadDir: File) {
         //super.downloadCSS(doc, downloadDir)
         removeCSS(doc)
     }
-
 }

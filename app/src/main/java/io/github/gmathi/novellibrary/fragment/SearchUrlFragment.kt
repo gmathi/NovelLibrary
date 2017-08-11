@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.fragment
 
-import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
@@ -15,7 +14,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
+import io.github.gmathi.novellibrary.activity.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi
@@ -61,6 +60,15 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         //(activity as AppCompatActivity).setSupportActionBar(null)
         searchUrl = arguments.getString("url")
         setRecyclerView()
+
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey("results")) {
+                @Suppress("UNCHECKED_CAST")
+                adapter.updateData(savedInstanceState.getSerializable("results") as java.util.ArrayList<Novel>)
+                return
+            }
+        }
+
         progressLayout.showLoading()
         searchNovels()
     }
@@ -111,7 +119,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     //region Adapter Listener Methods - onItemClick(), viewBinder()
 
     override fun onItemClick(item: Novel) {
-        startNovelDetailsActivity(item)
+        activity.startNovelDetailsActivity(item)
         //addToDownloads(item)
     }
 
@@ -160,32 +168,15 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
 //endregion
 
-//    private fun addToDownloads(item: Novel) {
-//        if (dbHelper.getNovel(item.name!!) == null) {
-//            val novelId = dbHelper.insertNovel(item)
-//            dbHelper.createDownloadQueue(novelId)
-//            startNovelDownloadService(novelId)
-//            adapter.updateItem(item)
-//        }
-//    }
-
-//    private fun startNovelDownloadService(novelId: Long) {
-//        val serviceIntent = Intent(activity, DownloadNovelService::class.java)
-//        serviceIntent.putExtra(Constants.NOVEL_ID, novelId)
-//        activity.startService(serviceIntent)
-//    }
-
-    fun startNovelDetailsActivity(novel: Novel) {
-        val intent = Intent(activity, NovelDetailsActivity::class.java)
-        val bundle = Bundle()
-        bundle.putSerializable("novel", novel)
-        intent.putExtras(bundle)
-        activity.startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
-    }
-
     override fun onPause() {
         super.onPause()
         downloadThread?.interrupt()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        if (adapter.items.isNotEmpty())
+            outState?.putSerializable("results", adapter.items)
     }
 
 

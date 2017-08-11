@@ -2,13 +2,35 @@
 <changelog bulletedList="true">
 
     <changelogversion
+        changeDate="08/11/2017"
+        versionName="0.5.1.beta">
+        <changelogtext>[i]Fix[/i] - App crashes on going home from reader screen</changelogtext>
+    </changelogversion>
+
+
+    <changelogversion
+        changeDate="08/10/2017"
+        versionName="0.5.beta">
+        <changelogtext>[b]Neu![/b] Unterstützung für 99% der neuartigen Webseiten</changelogtext>
+        <changelogtext>[b]Neu![/b] Automatische Synchronisierungsbenachrichtigung für Kapitel-Updates jede Stunde</changelogtext>
+        <changelogtext>[b]Neu![/b] Synchronisierungsmenü in der Bibliothek, um die letzten Kapitelfreigaben zu überprüfen</changelogtext>
+        <changelogtext>[b]Neu![/b] Romane zeigen die Anzahl der neu erschienenen Kapitel an</changelogtext>
+        <changelogtext>[b]Neu![/b] Reinigung für neuere Seiten unterstützt</changelogtext>
+        <changelogtext>[b]Neu![/b] Status für die Kapitel herunterladen</changelogtext>
+        <changelogtext>[b]Experimental![/b] Download Manager ist instabil</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bookmark and graying out lesen Kapitel sind stabil</changelogtext>
+        <changelogtext>[i]Fix[/i] - App reagiert nicht auf Gravity Tales Romane</changelogtext>
+        <changelogtext>[i]Fix[/i] - UI Material Design Richtlinien</changelogtext>
+        <changelogtext>[i]Fix[/i] - Major Bug Fixes für gemeldete &amp; nicht gemeldete Abstürze!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
         changeDate="08/04/2017"
         versionName="0.4.1.beta">
-        <changelogtext>[b]New![/b] Novels can be shared from 'Novel Details'</changelogtext>
-        <changelogimprovement>[i]Fix[/i] - Royal Road chapters duplication!</changelogimprovement>
-        <changelogimprovement>[i]Fix[/i] - Royal Road chapters night mode support</changelogimprovement>
-        <changelogimprovement>[i]Fix[/i] - Design color changes</changelogimprovement>
+        <changelogtext>[b]Neu![/b] Romane können von "Neuheiten" geteilt werden</changelogtext>
+        <changelogtext>[i]Fix[/i] - Design Farbänderungen</changelogtext>
     </changelogversion>
+
 
     <changelogversion
         changeDate="08/03/2017"
@@ -81,7 +103,7 @@
         changeDate="07/23/2017"
         versionName="0.1.beta">
         <changelogtext>Erstrelease Beta.</changelogtext>
-        <changelogimprovement>Nachmodus</changelogimprovement>
+        <changelogtext>Nachmodus</changelogtext>
         <changelogbug>Kapitelliste braucht 20-30 Sekunden für Ladevorgang bei >1000 Kapiteln</changelogbug>
         <changelogbug>Anhalten des Downloadvorgangs führt zu instabilen Verhalten</changelogbug>
 

@@ -49,12 +49,23 @@ class SearchResultsListener(val searchTerms: String) : GenericFragmentStatePager
     override fun getFragmentForItem(position: Int): Fragment? {
         when (position) {
             0 -> return SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_UPDATES)
+            1 -> return SearchTermFragment.newInstance(searchTerms, HostNames.WLN_UPDATES)
+            else -> return null
+        }
+    }
+}
+
+class SearchResultsUnlockedListener(val searchTerms: String) : GenericFragmentStatePagerAdapter.Listener {
+    override fun getFragmentForItem(position: Int): Fragment? {
+        when (position) {
+            0 -> return SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_UPDATES)
             1 -> return SearchTermFragment.newInstance(searchTerms, HostNames.ROYAL_ROAD)
             2 -> return SearchTermFragment.newInstance(searchTerms, HostNames.WLN_UPDATES)
             else -> return null
         }
     }
 }
+
 
 //endregion
 

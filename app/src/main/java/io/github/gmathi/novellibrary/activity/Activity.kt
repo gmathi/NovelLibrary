@@ -16,6 +16,7 @@ import io.github.gmathi.novellibrary.service.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.TransitionHelper
 
+
 fun Activity.startImagePreviewActivity(url: String?, filePath: String?, view: View) {
     val intent = Intent(this, ImagePreviewActivity::class.java)
     intent.putExtra("url", url)
@@ -100,6 +101,14 @@ fun Activity.startLibrariesUsedActivity() {
 fun Activity.startContributionsActivity() {
     val intent = Intent(this, ContributionsActivity::class.java)
     startActivity(intent)
+}
+
+fun Activity.startNovelDetailsActivity(novel: Novel) {
+    val intent = Intent(this, NovelDetailsActivity::class.java)
+    val bundle = Bundle()
+    bundle.putSerializable("novel", novel)
+    intent.putExtras(bundle)
+    startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
 }
 
 

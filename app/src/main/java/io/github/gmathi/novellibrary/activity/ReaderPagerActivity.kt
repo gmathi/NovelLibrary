@@ -33,34 +33,17 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
         setContentView(R.layout.activity_reader_pager)
         //window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
+
         novel = intent.getSerializableExtra("novel") as Novel?
         webPage = intent.getSerializableExtra("webPage") as WebPage?
 
         @Suppress("UNCHECKED_CAST")
-        chapters = intent.getSerializableExtra("chapters") as ArrayList<WebPage>
+
+        chapters = intent.getSerializableExtra("chapters") as ArrayList<WebPage>? ?: return
 
         if (novel == null || webPage == null) finish()
 
-        adapter = WebPageAdapter(supportFragmentManager, chapters, object : WebPageAdapter.Listener {
-            override fun checkUrl(url: String?): Boolean {
-                if (url != null) {
-                    val index = chapters.indexOfFirst { it.redirectedUrl != null && it.redirectedUrl!!.contains(url) }
-                    if (index != -1) {
-                        viewPager.currentItem = index
-                        val webPage = chapters[index]
-                        if (webPage.novelId != -1L && webPage.id != -1L) {
-                            dbHelper.updateCurrentWebPageId(webPage.novelId, webPage.id)
-                        }
-                        if (webPage.id != -1L) {
-                            webPage.isRead = 1
-                            dbHelper.updateWebPageReadStatus(webPage)
-                        }
-                        return true
-                    } else return false
-                } else return false
-            }
-        })
-
+        adapter = WebPageAdapter(supportFragmentManager, chapters)
         viewPager.addOnPageChangeListener(this)
         viewPager.adapter = adapter
 
@@ -189,6 +172,46 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
             }
             else -> return super.dispatchKeyEvent(event)
         }
+    }
+
+//    override fun onSaveInstanceState(outState: Bundle?) {
+//        super.onSaveInstanceState(outState)
+//        outState?.putSerializable("novel", novel)
+//        outState?.putSerializable("webPage", webPage)
+//        outState?.putSerializable("chapters", chapters)
+//    }
+//
+//    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+//        super.onRestoreInstanceState(savedInstanceState)
+//        if (savedInstanceState != null) {
+//            novel = savedInstanceState.getSerializable("novel") as Novel?
+//            webPage = savedInstanceState.getSerializable("webPage") as WebPage?
+//            @Suppress("UNCHECKED_CAST")
+//            chapters = savedInstanceState.getSerializable("chapters") as ArrayList<WebPage>
+//        }
+//    }
+
+    override fun onBackPressed() {
+        if ((viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).history.isNotEmpty())
+            (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).goBack()
+        else
+            super.onBackPressed()
+    }
+
+    fun checkUrl(url: String): Boolean {
+        val index = chapters.indexOfFirst { it.redirectedUrl != null && it.redirectedUrl!!.contains(url) }
+        if (index != -1) {
+            viewPager.currentItem = index
+            val webPage = chapters[index]
+            if (webPage.novelId != -1L && webPage.id != -1L) {
+                dbHelper.updateCurrentWebPageId(webPage.novelId, webPage.id)
+            }
+            if (webPage.id != -1L) {
+                webPage.isRead = 1
+                dbHelper.updateWebPageReadStatus(webPage)
+            }
+            return true
+        } else return false
     }
 
 }

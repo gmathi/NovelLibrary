@@ -9,7 +9,10 @@ import java.io.File
 class RoyalRoadHelper : HtmlHelper() {
 
     override fun downloadCSS(doc: Document, downloadDir: File) {
+        doc.head().append("<link href=\"/Content/Themes/Bootstrap/Site-dark.css\" rel=\"stylesheet\">")
+        //doc.head().getElementsByTag("link").firstOrNull { it.hasAttr("href") && it.attr("href") == "/Content/Themes/Bootstrap/Site.css" }?.remove()
         super.downloadCSS(doc, downloadDir)
+        doc.head().getElementsByTag("link").firstOrNull { it.hasAttr("href") && it.attr("href") == "../Site.css" }
     }
 
     override fun additionalProcessing(doc: Document) {
@@ -17,11 +20,8 @@ class RoyalRoadHelper : HtmlHelper() {
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
         do {
             contentElement?.siblingElements()?.remove()
-            contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
             contentElement = contentElement?.parent()
         } while (contentElement?.tagName() != "body")
-        contentElement.classNames()?.forEach { contentElement?.removeClass(it) }
-        doc.head().children().remove()
     }
 
     override fun downloadImage(element: Element, dir: File): File? {
@@ -30,24 +30,27 @@ class RoyalRoadHelper : HtmlHelper() {
         else return super.downloadImage(element, dir)
     }
 
-    override fun removeJS(doc: Document) {
-        super.removeJS(doc)
-        doc.getElementsByTag("noscript").remove()
-    }
-
     override fun toggleTheme(isDark: Boolean, doc: Document): Document {
         if (isDark) {
-            doc.head().getElementById("darkTheme")?.remove()
-            doc.head().append("<style id=\"darkTheme\">" +
-                "body { background-color:#131313; color:rgba(255, 255, 255, 0.8); font-family: 'Open Sans',sans-serif; line-height: 1.5; padding:20px;} </style> ")
+            doc.head().getElementsByTag("link").firstOrNull {
+                it.hasAttr("href") && it.attr("href") == "/Content/Themes/Bootstrap/Site.css"
+            }?.attr("href", "/Content/Themes/Bootstrap/Site-dark.css")
+
+            doc.head().getElementsByTag("link").firstOrNull {
+                it.hasAttr("href") && it.attr("href") == "../Site.css"
+            }?.attr("href", "../Site-dark.css")
+
         } else {
-            doc.head().getElementById("darkTheme")?.remove()
-            doc.head().append("<style id=\"darkTheme\">" +
-                "body { background-color:rgba(255, 255, 255, 0.8); color:#131313; font-family: 'Open Sans',sans-serif; line-height: 1.5; padding:20px;} </style> ")
+            doc.head().getElementsByTag("link").firstOrNull {
+                it.hasAttr("href") && it.attr("href") == "/Content/Themes/Bootstrap/Site-dark.css"
+            }?.attr("href", "/Content/Themes/Bootstrap/Site.css")
+
+            doc.head().getElementsByTag("link").firstOrNull {
+                it.hasAttr("href") && it.attr("href") == "../Site-dark.css"
+            }?.attr("href", "../Site.css")
         }
 
         return doc
+
     }
-
-
 }

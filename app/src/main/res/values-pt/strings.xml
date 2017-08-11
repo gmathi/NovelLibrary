@@ -141,8 +141,8 @@
     <string name="general">Geral</string>
     <string name="faster_downloads">Downloads mais Rápidos</string>
     <string name="faster_downloads_description">Acelera consideravelmente os downloads, mas seu dispositivo pode lagar/congelar durante os downloads.</string>
-    <string name="first_screen_library">Tornar "Biblioteca" a tela principal</string>
-    <string name="first_screen_library_description">Se desativado, a tela principal será "Pesquisa".</string>
+    <string name="first_screen_library">Tornar “Biblioteca” a tela principal</string>
+    <string name="first_screen_library_description">Se desativado, a tela principal será “Pesquisa”.</string>
     <string name="clean_pages">Limpar Capítulos</string>
     <string name="clean_pages_description">Limpar capítulos antes de carregá-los.</string>
     <string name="failed_to_load_url">Falha na obtenção do conteúdo!</string>
@@ -157,7 +157,7 @@
     <string name="mark_unread">Marcar como Não Lido</string>
     <string name="unread">Não Lido</string>
     <string name="read">Lido</string>
-    <string name="chapters_selected">%d Selecionado</string>
+    <string name="chapters_selected">%1$d Selecionado</string>
     <string name="okay">OK</string>
     <string name="confirm_action">Confirmar Ação</string>
     <string name="mark_chapters_unread_dialog_content">Marcar capítulos como não lidos?</string>
@@ -167,5 +167,22 @@
     <string name="novel_not_in_library_dialog_content">A série precisa ser adicionada à biblioteca antes que capítulos possam ser baixados individualmente!</string>
     <string name="download_all_chapters_dialog_content">Gerenciar série usando gerenciador de downloads. Baixar todos os capítulos?</string>
     <string name="background_chapter_downloads">Download de capítulos iniciado em segundo plano</string>
+
+    <!-- v0.5 Strings -->
+    <string name="select_all_from_page">Selecionar Todos da Página</string>
+    <string name="clear_selection_from_page">Limpar Seleção da Página</string>
+    <string name="download_in_queue">Na Fila</string>
+    <string name="download_paused">Pausado</string>
+    <string name="status">Estado</string>
+    <string name="manage_downloads">Administrar Downloads</string>
+    <string name="manage_downloads_dialog_content">Downloads de séries podem ser administrados usando o menu de navegação e indo para “Downloads”</string>
+    <string name="take_me_there">Leve-me até lá</string>
+    <string name="collection_chapters_info">Coletando Informações</string>
+    <string name="download_all_new_chapters_dialog_content">Administrar downloads de séries usando o download manager. Baixar todos os capítulos?</string>
+    <string name="quick_access">Acesso Rápido</string>
+    <string name="new_chapters_notification_content_full">%1$d séries com um total de %2$d novos capítulos. Clique para começar a ler!</string>
+    <string name="new_chapters_notification_content_single">%1$s (%2$d novos capítulos)</string>
+    <string name="new_chapters_notification_title">Novos capítulos disponíveis!</string>
+    <string name="sync_in_progress">Sincronização em progresso</string>
 
 </resources>

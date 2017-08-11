@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.cleaner
 import android.graphics.Bitmap
 import android.net.Uri
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.getFileName
 import io.github.gmathi.novellibrary.util.writableFileName
@@ -26,6 +27,8 @@ open class HtmlHelper protected constructor() {
                 host.contains(HostNames.WORD_PRESS) -> return WordPressHelper()
                 host.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
                 host.contains(HostNames.KOBATOCHAN) -> return KobatochanHelper()
+                host.contains(HostNames.QIDIAN) -> return QidianHelper()
+                host.contains(HostNames.PRINCE_REVOLUTION) -> return WordPressHelper()
             }
             return HtmlHelper()
         }
@@ -36,12 +39,18 @@ open class HtmlHelper protected constructor() {
         downloadCSS(doc, hostDir)
         downloadImages(doc, novelDir)
         // additionalProcessing(doc)
-        addTitle(doc)
+        // addTitle(doc)
     }
 
     open fun removeJS(doc: Document) {
         doc.getElementsByTag("script").remove()
+        doc.getElementsByTag("noscript").remove()
     }
+
+    open fun removeCSS(doc: Document) {
+        doc.getElementsByTag("link").remove()
+    }
+
 
     open fun downloadCSS(doc: Document, downloadDir: File) {
         val elements = doc.head().getElementsByTag("link").filter { element -> element.hasAttr("rel") && element.attr("rel") == "stylesheet" }
@@ -69,7 +78,7 @@ open class HtmlHelper protected constructor() {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: " + uri.toString())
             val fileName = uri.getFileName()
             file = File(dir, fileName)
-            doc = Jsoup.connect(uri.toString()).userAgent(HostNames.USER_AGENT).ignoreContentType(true).get()
+            doc = NovelApi().getDocumentWithUserAgentIgnoreContentType(uri.toString())
         } catch (e: Exception) {
             Utils.warning(TAG, "Uri: $uri", e)
             return null
@@ -79,7 +88,7 @@ open class HtmlHelper protected constructor() {
 
     open fun convertDocToFile(doc: Document, file: File): File? {
         try {
-            if (file.exists()) return file
+            if (file.exists()) file.delete()
             val stream = FileOutputStream(file)
             val content = doc.toString()
             stream.use { it.write(content.toByteArray()) }
@@ -124,9 +133,11 @@ open class HtmlHelper protected constructor() {
         return doc.head().getElementsByTag("title").text()
     }
 
-    open fun addTitle(doc: Document) {}
-
     open fun toggleTheme(isDark: Boolean, doc: Document): Document {
         return doc
+    }
+
+    open fun getLinkedChapters(doc: Document): ArrayList<String> {
+        return ArrayList()
     }
 }
