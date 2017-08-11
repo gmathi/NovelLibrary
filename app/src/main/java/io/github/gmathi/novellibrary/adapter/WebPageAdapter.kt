@@ -12,11 +12,10 @@ import java.io.Serializable
  * A [FragmentPagerAdapter] that returns a fragment corresponding to
  * one of the sections/tabs/pages.
  */
-class WebPageAdapter(fm: FragmentManager, val chapters: MutableList<WebPage>, val listener: Listener) : FragmentPagerAdapter(fm), Serializable {
+class WebPageAdapter(fm: FragmentManager, val chapters: MutableList<WebPage>) : FragmentPagerAdapter(fm), Serializable {
 
     override fun getItem(position: Int): Fragment {
         val fragment = WebPageFragment.newInstance(chapters[position])
-        fragment.listener = listener
         return fragment
     }
 

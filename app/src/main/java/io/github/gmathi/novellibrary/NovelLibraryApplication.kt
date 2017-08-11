@@ -12,6 +12,7 @@ import android.webkit.WebView
 import com.squareup.leakcanary.LeakCanary
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.service.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.DataCenter
 import java.io.File
 import java.security.KeyManagementException
@@ -66,6 +67,15 @@ class NovelLibraryApplication : Application() {
 
         initChannels(applicationContext)
 
+// TODO: DELETE TEST CODE
+//        val novel = dbHelper!!.getNovel("Everyone Else is a Returnee")
+//        if (novel !=null) {
+//            novel?.chapterCount = 180
+//            novel?.newChapterCount = 180
+//            dbHelper!!.updateNovel(novel!!)
+//        }
+
+        startSyncService()
     }
 
     @Throws(KeyManagementException::class, NoSuchAlgorithmException::class)
@@ -106,6 +116,11 @@ class NovelLibraryApplication : Application() {
         channel.description = "Default Channel Description"
         notificationManager.createNotificationChannel(channel)
     }
+
+    fun startSyncService() {
+        BackgroundNovelSyncTask.scheduleRepeat(applicationContext)
+    }
+
 
 
 }

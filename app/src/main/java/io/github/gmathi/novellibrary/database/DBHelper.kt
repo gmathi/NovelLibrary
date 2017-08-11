@@ -41,6 +41,12 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAM
         }
 
         if (version == DBKeys.VER_WEB_PAGE_ORDER_ID) {
+            db.execSQL("ALTER TABLE " + DBKeys.TABLE_NOVEL + " ADD COLUMN " + DBKeys.KEY_NEW_CHAPTER_COUNT + " INTEGER")
+            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_NEW_CHAPTER_COUNT + "=" + DBKeys.KEY_CHAPTER_COUNT)
+            version = DBKeys.VER_NOVEL_SYNC
+        }
+
+        if (version == DBKeys.VER_NOVEL_SYNC) {
             //In Case the version is updated again!
         }
 

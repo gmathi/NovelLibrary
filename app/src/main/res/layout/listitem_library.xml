@@ -9,6 +9,7 @@
                 android:foreground="?selectableItemBackground"
                 android:padding="@dimen/default_padding_list_item">
 
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="60dp"
@@ -34,13 +35,13 @@
 
             <ImageView
                 android:id="@+id/readChapterImage"
-                android:alpha="0.5"
-                android:visibility="gone"
-                app:srcCompat="@drawable/ic_visibility_white_vector"
-                android:background="@color/black_overlay"
                 android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:alpha="0.5"
+                android:background="@color/black_overlay"
                 android:scaleType="centerInside"
-                android:layout_height="match_parent"/>
+                android:visibility="gone"
+                app:srcCompat="@drawable/ic_visibility_white_vector"/>
 
         </android.support.v7.widget.CardView>
 
@@ -49,10 +50,10 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_alignParentEnd="true"
-            app:srcCompat="@drawable/ic_reorder_white_vector"
+            android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:scaleType="centerInside"
-            android:layout_alignParentRight="true"/>
+            app:srcCompat="@drawable/ic_reorder_white_vector"/>
 
 
         <LinearLayout
@@ -121,4 +122,22 @@
         </LinearLayout>
 
     </RelativeLayout>
+
+    <TextView
+        android:id="@+id/newChapterCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:textColor="@color/white"
+        android:visibility="gone"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:paddingRight="@dimen/default_card_view_margin"
+        android:paddingLeft="@dimen/default_card_view_margin"
+        tools:visibility="visible"
+        tools:background="@color/DarkRed"
+        tools:text="4"/>
+
 </RelativeLayout>

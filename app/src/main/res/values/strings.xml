@@ -38,6 +38,11 @@
 
     <string-array name="search_results_tab_titles" translatable="false">
         <item>Novel-Updates</item>
+        <item>WLN-Updates</item>
+    </string-array>
+
+    <string-array name="search_results_tab_titles_unlocked" translatable="false">
+        <item>Novel-Updates</item>
         <item>RoyalRoad</item>
         <item>WLN-Updates</item>
     </string-array>
@@ -90,8 +95,8 @@
     <string name="transition_user_banner" translatable="false">trans_banner_img</string>
     <string name="transition_image_preview" translatable="false">trans_image_preview</string>
     <string name="dev_email" translatable="false">gmathi.developer@gmail.com</string>
-    <string name="downloading_status" translatable="false">%s %s: %s</string>
-    <string name="chapter_count" translatable="false">%d / %d</string>
+    <string name="downloading_status" translatable="false">%1$s - %2$s: %3$s</string>
+    <string name="chapter_count" translatable="false">%1$d / %2$d</string>
 
 
     <string name="title_activity_novel_details">Novel</string>
@@ -215,7 +220,7 @@
     <string name="mark_unread">Mark Unread</string>
     <string name="unread">Unread</string>
     <string name="read">Read</string>
-    <string name="chapters_selected">%d Selected</string>
+    <string name="chapters_selected">%1$d Selected</string>
     <string name="okay">OK</string>
     <string name="confirm_action">Confirm Action</string>
     <string name="mark_chapters_unread_dialog_content">Mark chapters unread?</string>
@@ -226,7 +231,7 @@
     <string name="download_all_chapters_dialog_content">Manage novel downloads using download manager. Download all chapters?</string>
     <string name="background_chapter_downloads">Background chapter downloads started</string>
 
-    <!-- Translate from here -->
+    <!-- v0.5 Strings -->
 
     <string name="select_all_from_page">Page Select All</string>
     <string name="clear_selection_from_page">Page Clear Selection</string>
@@ -239,9 +244,10 @@
     <string name="collection_chapters_info">Collecting Chapters Information</string>
     <string name="download_all_new_chapters_dialog_content">Manage novel downloads using download manager. Download all new chapters released?</string>
     <string name="quick_access">Quick Access</string>
-    <string name="new_chapters_notification_content_full">%d novels with a total of %d new chapters. Click to start reading!</string>
-    <string name="new_chapters_notification_content_single">%s - %d New Chapters</string>
+    <string name="new_chapters_notification_content_full">%1$d novels with a total of %2$d new chapters. Click to start reading!</string>
+    <string name="new_chapters_notification_content_single">%1$s (%2$d new chapters)</string>
     <string name="new_chapters_notification_title">New Chapters Available!</string>
+    <string name="sync_in_progress">Sync in progress</string>
 
 
 </resources>

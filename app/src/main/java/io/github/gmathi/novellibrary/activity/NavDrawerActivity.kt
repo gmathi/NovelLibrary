@@ -13,6 +13,9 @@ import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.database.getNovel
+import io.github.gmathi.novellibrary.database.updateNewChapterCount
+import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.DownloadFragment
 import io.github.gmathi.novellibrary.fragment.LibraryFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
@@ -39,6 +42,17 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             currentNavId = savedInstanceState.getInt("currentNavId")
         }
 
+        if (intent.extras != null && intent.extras.containsKey("novelsChapMap")) {
+            @Suppress("UNCHECKED_CAST")
+            val novelsMap = intent.extras.getSerializable("novelsChapMap") as HashMap<String, Long>
+            novelsMap.keys.forEach {
+                val novel = dbHelper.getNovel(it)
+                if (novel != null) {
+                    dbHelper.updateNewChapterCount(novel.id, novelsMap[it]!!)
+                }
+            }
+        }
+
 
         loadFragment(currentNavId)
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
@@ -50,7 +64,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         }
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
-       startSyncService()
     }
 
     override fun onBackPressed() {
@@ -113,11 +126,11 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
 
     fun replaceFragment(fragment: Fragment, tag: String) {
-        val existingFrag = supportFragmentManager.findFragmentByTag(tag)
+//        val existingFrag = supportFragmentManager.findFragmentByTag(tag)
         var replaceFrag = fragment
-        if (existingFrag != null) {
-            replaceFrag = existingFrag
-        }
+//        if (existingFrag != null) {
+//            replaceFrag = existingFrag
+//        }
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.navFragmentContainer, replaceFrag, tag)
@@ -142,6 +155,5 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         super.onSaveInstanceState(outState)
         outState?.putInt("currentNavId", currentNavId)
     }
-
 
 }

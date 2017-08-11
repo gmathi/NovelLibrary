@@ -2,27 +2,43 @@
 <changelog bulletedList="true">
 
     <changelogversion
-        changeDate="08/04/2017"
-        versionName="0.4.1.beta">
-        <changelogtext>[b]New![/b] Novels can be shared from 'Novel Details'</changelogtext>
-        <changelogimprovement>[i]Fix[/i] - Royal Road chapters duplication!</changelogimprovement>
-        <changelogimprovement>[i]Fix[/i] - Royal Road chapters night mode support</changelogimprovement>
-        <changelogimprovement>[i]Fix[/i] - Design color changes</changelogimprovement>
+        changeDate="08/11/2017"
+        versionName="0.5.1.beta">
+        <changelogtext>[i]Fix[/i] - App crashes on going home from reader screen</changelogtext>
     </changelogversion>
 
-    <changelogversion
-        changeDate="08/03/2017"
-        versionName="0.4.beta">
-        <changelogtext>[b]Yeni![/b] Bölümler daha hızlı yüklenir ve ayrı ayrı indirilebilir (önceden indirilen bölümler yeni tasarımın desteklenmesi için silinir)</changelogtext>
-        <changelogtext>[b]Yeni![/b] Bölümler okunmuş / okunmamış olarak işaretlenebilir</changelogtext>
-        <changelogtext>[b]Yeni![/b] Uygulama için Türkçe Çeviri eklendi</changelogtext>
-        <changelogtext>[b]Yeni![/b] Kobatochan Romanlara [b] Gece Modu [/ b] Desteği eklendi</changelogtext>
+
+    <changelogversion versionName="0.5.beta" changeDate="08/04/2017">
+        <changelogtext>[b]Yeni![/b] Roman sitelerinin %99'u için destek sağlanıyor</changelogtext>
+        <changelogtext>[b]Yeni![/b] Saatte bir bölüm güncellemeleri için Otomatik Senkronizasyon Bildirimleri</changelogtext>
+        <changelogtext>[b]Yeni![/b] Son güncellemeleri takip etmek için Kütüphane menüsüne Senkronizasyon seçeneği eklendi</changelogtext>
+        <changelogtext>[b]Yeni![/b] Romanlar yeni yayımlanan bölüm sayısını gösteriyor</changelogtext>
+        <changelogtext>[b]Yeni![/b] Desteklenen bilgisi daha fazla siteye destek için temizlendi</changelogtext>
+        <changelogtext>[b]Yeni![/b] Bölümler için indirme durumu takibi</changelogtext>
+        <changelogtext>[b]Deneysel![/b] İndirme Yöneticisi stabil değil</changelogtext>
+        <changelogtext>[i]Onarım[/i] - İşaretleme ve okunan bölümleri koyulaşması stabil</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Gravity Tales Novels içeriğinde uygulamanın yanıt vermemesi sorunu giderildi</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Arayüz materyali için tasarım kılavuz mevcu.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için kapsamlı gidermeler yapıldı!</changelogtext>
     </changelogversion>
+
+    <changelogversion versionName="0.4.1.beta" changeDate="08/04/2017">
+        <changelogtext>[b]Yeni![/b] Romanlar 'Detay' bölümünden paylaşılabilir hale getirildi</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Renk tasarımında değişiklik yapıldı</changelogtext>
+    </changelogversion>
+
+    <changelogversion versionName="0.4.beta" changeDate="08/03/2017">
+        <changelogtext>[b]Yeni![/b] Bölümler artık daha hızlı yükleniyor. Artık her bölüm ayrı ayrı indirilebilir. (Önceden indirilmiş bölümler yeni tasarımı desteklemek için silinmiştir)</changelogtext>
+        <changelogtext>[b]Yeni![/b] Bölümler okundu/okunmadı olarak işaretlenebilir</changelogtext>
+        <changelogtext>[b]Yeni![/b] Uygulamaya Türkçe çeviri eklendi</changelogtext>
+        <changelogtext>[b]Yeni![/b] Kobatochan Novels için [b]Gece Modu[/b] desteği eklenmiştir</changelogtext>
+    </changelogversion>
+
 
     <changelogversion
         changeDate="08/03/2017"
         versionName="0.3.3.beta">
-        <changelogtext>[b]Yeni![/b] Circus Translations Romanlarına [b] Gece Modu [/ b] Desteği eklendi</changelogtext>
+        <changelogtext>[b]Yeni![/b] Circus Translations Romanlarına [b]Gece Modu[/b] Desteği eklendi</changelogtext>
     </changelogversion>
 
     <changelogversion
@@ -81,7 +97,7 @@
         changeDate="23/07/2017"
         versionName="0.1.beta">
         <changelogtext>İlk Beta Sürümü Yayınlandı.</changelogtext>
-        <changelogimprovement>Okuyucu: Gece Modu (Deneysel, Desteklenen Kaynak Kısıtlı)</changelogimprovement>
+        <changelogtext>Okuyucu: Gece Modu (Deneysel, Desteklenen Kaynak Kısıtlı)</changelogtext>
         <changelogbug>Bölüm Listesi: 1000 bölümün yüklenmesi için 20~30 saniye gerekiyor.</changelogbug>
         <changelogbug>İndirme Listesi: Bölümlerin indirilmesinin duraklatılması tutarsızlığa neden olabiliyor.</changelogbug>
 

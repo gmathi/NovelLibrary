@@ -7,10 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
-import io.github.gmathi.novellibrary.adapter.NavPageListener
-import io.github.gmathi.novellibrary.adapter.SearchResultsListener
+import io.github.gmathi.novellibrary.adapter.*
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.SimpleAnimationListener
 import io.github.gmathi.novellibrary.util.SuggestionsBuilder
@@ -138,9 +136,18 @@ class SearchFragment : BaseFragment() {
             childFragmentManager.popBackStack()
         searchMode = true
         this.searchTerm = searchTerm
-        val titles = resources.getStringArray(R.array.search_results_tab_titles)
-        val searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, SearchResultsListener(searchTerm))
-        viewPager.offscreenPageLimit = 3
+
+        val titles: Array<out String>
+        val searchPageAdapter:GenericFragmentStatePagerAdapter
+        if (dataCenter.lockRoyalRoad) {
+             titles = resources.getStringArray(R.array.search_results_tab_titles)
+             searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, SearchResultsListener(searchTerm))
+        } else {
+            titles = resources.getStringArray(R.array.search_results_tab_titles_unlocked)
+            searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, SearchResultsUnlockedListener(searchTerm))
+        }
+
+        viewPager.offscreenPageLimit = 2
         viewPager.adapter = searchPageAdapter
         tabStrip.setViewPager(viewPager)
     }

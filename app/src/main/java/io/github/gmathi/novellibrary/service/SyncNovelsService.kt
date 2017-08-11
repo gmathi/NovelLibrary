@@ -9,8 +9,6 @@ import android.support.v4.app.NotificationCompat
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.database.getAllNovels
-import io.github.gmathi.novellibrary.database.getNovel
-import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterCount
@@ -30,9 +28,9 @@ class SyncNovelsService : IntentService(TAG) {
         if (isNetworkDown()) return
 
         //Test Code
-        val novel = dbHelper.getNovel("Carta Visa")
-        novel?.chapterCount = 10
-        dbHelper.updateNovel(novel!!)
+//        val novel = dbHelper.getNovel("Carta Visa")
+//        novel?.chapterCount = 10
+//        dbHelper.updateNovel(novel!!)
 
         //Sync Novels
         startNovelsSync()
@@ -53,7 +51,7 @@ class SyncNovelsService : IntentService(TAG) {
 
         if (novelMap.size == 0) return
 
-        var notificationText = ""
+        val notificationText: String
         if (novelMap.size > 4) {
             notificationText = getString(R.string.new_chapters_notification_content_full, novelMap.size, novelMap.values.sum())
         } else {

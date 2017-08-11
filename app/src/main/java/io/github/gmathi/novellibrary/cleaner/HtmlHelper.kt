@@ -55,7 +55,7 @@ open class HtmlHelper protected constructor() {
     open fun downloadCSS(doc: Document, downloadDir: File) {
         val elements = doc.head().getElementsByTag("link").filter { element -> element.hasAttr("rel") && element.attr("rel") == "stylesheet" }
         for (element in elements) {
-            val cssFile = downloadFile(doc, element, downloadDir)
+            val cssFile = downloadFile(element, downloadDir)
             if (cssFile != null) {
                 element.removeAttr("href")
                 element.attr("href", "../" + cssFile.name)
@@ -70,7 +70,7 @@ open class HtmlHelper protected constructor() {
 
     }
 
-    open fun downloadFile(doc: Document, element: Element, dir: File): File? {
+    open fun downloadFile(element: Element, dir: File): File? {
         val uri = Uri.parse(element.absUrl("href"))
         val file: File
         val doc: Document

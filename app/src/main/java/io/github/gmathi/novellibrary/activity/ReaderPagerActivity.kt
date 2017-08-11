@@ -8,8 +8,6 @@ import android.webkit.WebView
 import android.widget.SeekBar
 import com.afollestad.materialdialogs.MaterialDialog
 import com.github.rubensousa.floatingtoolbar.FloatingToolbar
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.WebPageAdapter
 import io.github.gmathi.novellibrary.dataCenter
@@ -19,7 +17,6 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.WebPageFragment
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
-import io.github.gmathi.novellibrary.util.Constants
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 
 
@@ -36,45 +33,17 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
         setContentView(R.layout.activity_reader_pager)
         //window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
+
         novel = intent.getSerializableExtra("novel") as Novel?
         webPage = intent.getSerializableExtra("webPage") as WebPage?
 
         @Suppress("UNCHECKED_CAST")
-        chapters = intent.getSerializableExtra("chapters") as ArrayList<WebPage>
+
+        chapters = intent.getSerializableExtra("chapters") as ArrayList<WebPage>? ?: return
 
         if (novel == null || webPage == null) finish()
 
-        adapter = WebPageAdapter(supportFragmentManager, chapters, object : WebPageAdapter.Listener {
-            override fun checkUrl(url: String?): Boolean {
-                if (url != null) {
-                    val currentWebPage = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.webPage
-                    if (currentWebPage?.metaData?.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES) ?: false) {
-                        val links: ArrayList<WebPage> = Gson().fromJson(currentWebPage!!.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
-                        links.forEach {
-                            if (it.url == url || (it.redirectedUrl != null && it.redirectedUrl == url)) {
-                                (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.loadNewWebPage(it)
-                                return@checkUrl true
-                            }
-                        }
-                    }
-
-                    val index = chapters.indexOfFirst { it.redirectedUrl != null && it.redirectedUrl!!.contains(url) }
-                    if (index != -1) {
-                        viewPager.currentItem = index
-                        val webPage = chapters[index]
-                        if (webPage.novelId != -1L && webPage.id != -1L) {
-                            dbHelper.updateCurrentWebPageId(webPage.novelId, webPage.id)
-                        }
-                        if (webPage.id != -1L) {
-                            webPage.isRead = 1
-                            dbHelper.updateWebPageReadStatus(webPage)
-                        }
-                        return true
-                    } else return false
-                } else return false
-            }
-        })
-
+        adapter = WebPageAdapter(supportFragmentManager, chapters)
         viewPager.addOnPageChangeListener(this)
         viewPager.adapter = adapter
 
@@ -227,6 +196,22 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
             (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).goBack()
         else
             super.onBackPressed()
+    }
+
+    fun checkUrl(url: String): Boolean {
+        val index = chapters.indexOfFirst { it.redirectedUrl != null && it.redirectedUrl!!.contains(url) }
+        if (index != -1) {
+            viewPager.currentItem = index
+            val webPage = chapters[index]
+            if (webPage.novelId != -1L && webPage.id != -1L) {
+                dbHelper.updateCurrentWebPageId(webPage.novelId, webPage.id)
+            }
+            if (webPage.id != -1L) {
+                webPage.isRead = 1
+                dbHelper.updateWebPageReadStatus(webPage)
+            }
+            return true
+        } else return false
     }
 
 }

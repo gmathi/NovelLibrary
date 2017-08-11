@@ -15,6 +15,7 @@ class Novel : Serializable {
     var currentWebPageId: Long = -1
     var orderId: Long = -1
     var chapterCount = 0L
+    var newChapterCount = 0L
     var metaData: HashMap<String, String?> = HashMap()
 
 
@@ -42,6 +43,7 @@ class Novel : Serializable {
             shortDescription = if (otherNovel.shortDescription != null) otherNovel.shortDescription else shortDescription
             currentWebPageId = if (otherNovel.currentWebPageId != -1L) otherNovel.currentWebPageId else currentWebPageId
             chapterCount = if (otherNovel.chapterCount != 0L) otherNovel.chapterCount else chapterCount
+            newChapterCount = if (otherNovel.newChapterCount != 0L) otherNovel.newChapterCount else newChapterCount
             orderId = if (otherNovel.orderId != -1L) otherNovel.orderId else orderId
 
             otherNovel.metaData.keys.forEach {

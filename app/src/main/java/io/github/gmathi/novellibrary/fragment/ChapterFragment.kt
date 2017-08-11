@@ -27,6 +27,7 @@ import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterUrlsForPage
+import io.github.gmathi.novellibrary.service.DownloadChapterService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.setDefaults
@@ -70,13 +71,13 @@ class ChapterFragment : BaseFragment(), GenericAdapter.Listener<WebPage> {
         //(activity as AppCompatActivity).setSupportActionBar(null)
         setRecyclerView()
 
-        if (savedInstanceState != null) {
-            novel = savedInstanceState.getSerializable("novel") as Novel
-            pageNum = savedInstanceState.getInt("pageNum")
-            @Suppress("UNCHECKED_CAST")
-            adapter.updateData(savedInstanceState.getSerializable("chapters") as java.util.ArrayList<WebPage>)
-
-        } else {
+//        if (savedInstanceState != null) {
+//            novel = savedInstanceState.getSerializable("novel") as Novel
+//            pageNum = savedInstanceState.getInt("pageNum")
+//            @Suppress("UNCHECKED_CAST")
+//            adapter.updateData(savedInstanceState.getSerializable("chapters") as java.util.ArrayList<WebPage>)
+//
+//        } else {
             novel = arguments.getSerializable("novel") as Novel
             pageNum = arguments.getInt("pageNum")
 
@@ -88,7 +89,7 @@ class ChapterFragment : BaseFragment(), GenericAdapter.Listener<WebPage> {
                 progressLayout.showLoading()
             }
             getChaptersForPage()
-        }
+//        }
     }
 
     private fun setRecyclerView() {
@@ -175,14 +176,19 @@ class ChapterFragment : BaseFragment(), GenericAdapter.Listener<WebPage> {
             itemView.greenView.animation = null
         } else {
             if (Constants.STATUS_DOWNLOAD.toString() == item.metaData[Constants.DOWNLOADING]) {
-                itemView.greenView.visibility = View.VISIBLE
-                itemView.greenView.setBackgroundColor(ContextCompat.getColor(activity, R.color.white))
-                itemView.greenView.startAnimation(AnimationUtils.loadAnimation(activity, R.anim.alpha_animation))
+                if (item.id != -1L && DownloadChapterService.chapters.contains(item)) {
+                    itemView.greenView.visibility = View.VISIBLE
+                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(activity, R.color.white))
+                    itemView.greenView.startAnimation(AnimationUtils.loadAnimation(activity, R.anim.alpha_animation))
+                } else {
+                    itemView.greenView.visibility = View.VISIBLE
+                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(activity, R.color.Red))
+                    itemView.greenView.animation = null
+                }
             } else
                 itemView.greenView.visibility = View.GONE
         }
 
-//        itemView.greenView.visibility = if (item.filePath != null) View.VISIBLE else View.GONE
         itemView.isReadView.visibility = if (item.isRead == 1) View.VISIBLE else View.GONE
         itemView.bookmarkView.visibility = if (item.id != -1L && item.id == novel.currentWebPageId) View.VISIBLE else View.INVISIBLE
 
@@ -289,10 +295,10 @@ class ChapterFragment : BaseFragment(), GenericAdapter.Listener<WebPage> {
         this.startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
-        super.onSaveInstanceState(outState)
-        outState?.putSerializable("chapters", adapter.items)
-        outState?.putSerializable("novel", novel)
-        outState?.putInt("pageNum", pageNum)
-    }
+//    override fun onSaveInstanceState(outState: Bundle?) {
+//        super.onSaveInstanceState(outState)
+//        outState?.putSerializable("chapters", adapter.items)
+//        outState?.putSerializable("novel", novel)
+//        outState?.putInt("pageNum", pageNum)
+//    }
 }

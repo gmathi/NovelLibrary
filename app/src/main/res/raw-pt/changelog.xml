@@ -2,12 +2,32 @@
 <changelog bulletedList="true">
 
     <changelogversion
+        changeDate="08/11/2017"
+        versionName="0.5.1.beta">
+        <changelogtext>[i]Fix[/i] - App crashes on going home from reader screen</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/04/2017"
+        versionName="0.5.beta">
+        <changelogtext>[b]Novo![/b] Suporte para 99%[sic] dos websites de novels</changelogtext>
+        <changelogtext>[b]Novo![/b] Notificações para novos capítulos são atualizadas a cada hora</changelogtext>
+        <changelogtext>[b]Novo![/b] Menu de sincronização na biblioteca para checar novos capítulos</changelogtext>
+        <changelogtext>[b]Novo![/b] Séries mostram o número de novos capítulos</changelogtext>
+        <changelogtext>[b]Novo![/b] Limpeza possível para mais sites</changelogtext>
+        <changelogtext>[b]Novo![/b] Estado de download dos capítulos</changelogtext>
+        <changelogtext>[b]Experimental![/b] Administrador de downloads está instável</changelogtext>
+        <changelogtext>[i]Correção[/i] - Capítulos lidos ficando cinzas e bookmark estão estáveis</changelogtext>
+        <changelogtext>[i]Correção[/i] - Aplicativo não respondendo em séries de Gravity tales</changelogtext>
+        <changelogtext>[i]Correção[/i] - Manual de design de material da UI</changelogtext>
+        <changelogtext>[i]Correção[/i] - Muitas correções para crashes reportados e não reportados!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
         changeDate="08/04/2017"
         versionName="0.4.1.beta">
-        <changelogtext>[b]New![/b] Novels can be shared from 'Novel Details'</changelogtext>
-        <changelogimprovement>[i]Fix[/i] - Royal Road chapters duplication!</changelogimprovement>
-        <changelogimprovement>[i]Fix[/i] - Royal Road chapters night mode support</changelogimprovement>
-        <changelogimprovement>[i]Fix[/i] - Design color changes</changelogimprovement>
+        <changelogtext>[b]Novo![/b] Séries podem ser compartilhadas a partir de 'Detalhes da série'</changelogtext>
+        <changelogtext>[i]Correção[/i] - Mudanças de cor no design</changelogtext>
     </changelogversion>
 
     <changelogversion
@@ -81,7 +101,7 @@
         changeDate="07/23/2017"
         versionName="0.1.beta">
         <changelogtext>Lançamento Beta inicial.</changelogtext>
-        <changelogimprovement>Leitor: Modo Noturno (experimental, suporte limitado)</changelogimprovement>
+        <changelogtext>Leitor: Modo Noturno (experimental, suporte limitado)</changelogtext>
         <changelogbug>Lista de Capítulos: 1000 Capítulos levam entre 20 e 30 segundos para carregar</changelogbug>
         <changelogbug>Lista de Downloads: Pausar os capítulos sendo baixados tem um comportamento instável</changelogbug>
 

@@ -23,6 +23,7 @@ class DownloadChapterService : IntentService(TAG) {
     //static components
     companion object {
         val TAG = "DownloadChapterService"
+        var chapters = ArrayList<WebPage>()
     }
 
     override fun onHandleIntent(workIntent: Intent) {
@@ -38,11 +39,14 @@ class DownloadChapterService : IntentService(TAG) {
                 downloadChapters(novel, chapters)
         } catch (e: Exception) {
             Utils.error(TAG, "Exception Caught", e)
+        } finally {
+            DownloadChapterService.chapters = ArrayList()
         }
     }
 
     private fun downloadChapters(novel: Novel, chapters: ArrayList<WebPage>) {
         //Get Directories to start html
+        DownloadChapterService.chapters = chapters
         chapters.forEach {
             it.metaData.put(Constants.DOWNLOADING, Constants.STATUS_DOWNLOAD.toString())
             dbHelper.updateWebPage(it)

@@ -21,7 +21,7 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_recycler_view"/>
+    <include layout="@layout/content_library"/>
 
     <!--<com.github.clans.fab.FloatingActionMenu-->
         <!--android:id="@+id/fabMenu"-->

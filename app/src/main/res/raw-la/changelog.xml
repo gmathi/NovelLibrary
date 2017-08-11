@@ -2,13 +2,34 @@
 <changelog bulletedList="true">
 
     <changelogversion
+        changeDate="08/11/2017"
+        versionName="0.5.1.beta">
+        <changelogtext>[i]Fix[/i] - App crashes on going home from reader screen</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/10/2017"
+        versionName="0.5.beta">
+        <changelogtext>[b]Novum![/b] XCIX% of websites subsidium novae</changelogtext>
+        <changelogtext>[b]Novum![/b] Sync notificationes updates horas capite auto</changelogtext>
+        <changelogtext>[b]Novum![/b] CAPUT tardus menu est in sync Library to reprehendo pro solvos</changelogtext>
+        <changelogtext>[b]Novum![/b] Romanorum capitum ostendere numerum novum dimisit</changelogtext>
+        <changelogtext>[b]Novum![/b] Purgaret effultus nam magis novo sites</changelogtext>
+        <changelogtext>[b]Novum![/b] Nam status Download pag</changelogtext>
+        <changelogtext>[b]Experimentalem![/b] accumsan congue obvenit instabile est</changelogtext>
+        <changelogtext>[i]Emendatio[/i] - Print legere capita sunt, de tondenti firmum</changelogtext>
+        <changelogtext>[i]Emendatio[/i] - Qui ne tales in app quod gravitas conscripserit</changelogtext>
+        <changelogtext>[i]Emendatio[/i] - III materia consilio guidelines</changelogtext>
+        <changelogtext>[i]Emendatio[/i] - Maior Bug Fixes pro retulit tempora discussit claro &amp; unreported!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
         changeDate="08/04/2017"
         versionName="0.4.1.beta">
-        <changelogtext>[b]New![/b] Novels can be shared from 'Novel Details'</changelogtext>
-        <changelogimprovement>[i]Fix[/i] - Royal Road chapters duplication!</changelogimprovement>
-        <changelogimprovement>[i]Fix[/i] - Royal Road chapters night mode support</changelogimprovement>
-        <changelogimprovement>[i]Fix[/i] - Design color changes</changelogimprovement>
+        <changelogtext>[b]Novum![/b] Romanorum quomodocumque participabilis ab Details Romanorum</changelogtext>
+        <changelogtext>[i]Emendatio[/i] - Design mutationes color</changelogtext>
     </changelogversion>
+
 
     <changelogversion
         changeDate="08/03/2017"
@@ -81,7 +102,7 @@
         changeDate="07/23/2017"
         versionName="0.1.beta">
         <changelogtext>Versio Beta Principialis.</changelogtext>
-        <changelogimprovement>Legens: Modus nocte (experimentalis, auxilio limitata)</changelogimprovement>
+        <changelogtext>Legens: Modus nocte (experimentalis, auxilio limitata)</changelogtext>
         <changelogbug>Index Capitorem: Milia Capites patefaciunt in XX~XXX punctoribus temporis</changelogbug>
         <changelogbug>Index Tenens: Intermittens capites tenens non operat</changelogbug>
 

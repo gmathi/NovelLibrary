@@ -3,13 +3,17 @@ package io.github.gmathi.novellibrary.fragment
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
+import android.support.v4.content.ContextCompat
 import android.support.v4.view.MotionEventCompat
 import android.support.v7.widget.helper.ItemTouchHelper
 import android.util.Log
 import android.view.*
+import android.view.animation.AnimationUtils
+import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
@@ -17,17 +21,19 @@ import com.bumptech.glide.request.transition.Transition
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
-import io.github.gmathi.novellibrary.activity.startSyncService
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.getAllNovels
+import io.github.gmathi.novellibrary.database.updateNewChapterCount
 import io.github.gmathi.novellibrary.database.updateOrderId
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelEvent
+import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.network.getChapterCount
 import io.github.gmathi.novellibrary.service.DownloadNovelService
 import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.activity_library.*
-import kotlinx.android.synthetic.main.content_recycler_view.*
+import kotlinx.android.synthetic.main.content_library.*
 import kotlinx.android.synthetic.main.listitem_library.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -56,19 +62,26 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         toolbar.title = getString(R.string.title_library)
         (activity as NavDrawerActivity).setToolbar(toolbar)
         setRecyclerView()
+        progressLayout.showLoading()
+        setData()
     }
 
     private fun setRecyclerView() {
-        adapter = GenericAdapter(ArrayList(dbHelper.getAllNovels()), R.layout.listitem_library, this)
+        adapter = GenericAdapter(ArrayList(), R.layout.listitem_library, this)
         val callback = SimpleItemTouchHelperCallback(this)
         touchHelper = ItemTouchHelper(callback)
         touchHelper.attachToRecyclerView(recyclerView)
         recyclerView.setDefaults(adapter)
         swipeRefreshLayout.setOnRefreshListener {
-            updateOrderIds()
-            adapter.updateData(ArrayList(dbHelper.getAllNovels()))
-            swipeRefreshLayout.isRefreshing = false
+            setData()
         }
+    }
+
+    private fun setData() {
+        updateOrderIds()
+        adapter.updateData(ArrayList(dbHelper.getAllNovels()))
+        swipeRefreshLayout.isRefreshing = false
+        progressLayout.showContent()
     }
 
 
@@ -136,6 +149,17 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
         }
 
+        if (item.chapterCount < item.newChapterCount) {
+            val shape = GradientDrawable()
+            shape.cornerRadius = 99f
+            shape.setStroke(1, ContextCompat.getColor(activity, R.color.Black))
+            shape.setColor(ContextCompat.getColor(activity, R.color.DarkRed))
+            itemView.newChapterCount.background = shape
+            itemView.newChapterCount.applyFont(activity.assets).text = (item.newChapterCount - item.chapterCount).toString()
+            itemView.newChapterCount.visibility = View.VISIBLE
+        } else {
+            itemView.newChapterCount.visibility = View.GONE
+        }
     }
 
     //endregion
@@ -147,8 +171,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
+        menu.getItem(0).isVisible = statusCard.visibility == View.GONE
         super.onPrepareOptionsMenu(menu)
-  }
+    }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
@@ -161,7 +186,27 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     private fun syncNovels() {
-        activity.startSyncService()
+        //activity.startSyncService()
+        async {
+            statusCard.visibility = View.VISIBLE
+            statusCard.startAnimation(AnimationUtils.loadAnimation(activity, R.anim.alpha_animation))
+            activity.invalidateOptionsMenu()
+            dbHelper.getAllNovels().forEach {
+                try {
+                    val totalChapters = await { NovelApi().getChapterCount(it.url!!) }
+                    if (totalChapters != 0 && totalChapters > it.chapterCount.toInt() && totalChapters > it.newChapterCount.toInt()) {
+                        dbHelper.updateNewChapterCount(it.id, totalChapters.toLong())
+                        adapter.updateItem(it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            setData()
+            statusCard.animation = null
+            statusCard.visibility = View.GONE
+            activity.invalidateOptionsMenu()
+        }
     }
 
     private fun startDownloadService(novelId: Long) {
@@ -247,6 +292,11 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             for (i in 0..adapter.items.size - 1) {
                 dbHelper.updateOrderId(adapter.items[i].id, i.toLong())
             }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        async.cancelAll()
     }
 
 }
