@@ -2,6 +2,13 @@
 <changelog bulletedList="true">
 
     <changelogversion
+        changeDate="08/12/2017"
+        versionName="0.5.2.beta">
+        <changelogtext>[i]Fix[/i] - Major Crashes on the Reading Screen &amp; App not opening!</changelogtext>
+        <changelogtext>[i]Fix[/i] - Share Menu Button from Novel Details is now working</changelogtext>
+    </changelogversion>
+
+    <changelogversion
         changeDate="08/11/2017"
         versionName="0.5.1.beta">
         <changelogtext>[i]Fix[/i] - App crashes on going home from reader screen</changelogtext>
