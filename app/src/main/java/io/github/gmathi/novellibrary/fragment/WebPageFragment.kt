@@ -232,7 +232,7 @@ class WebPageFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
-        webPage.metaData.put("scrollY", readerWebView.scrollY.toString())
+        //webPage.metaData.put("scrollY", readerWebView.scrollY.toString())
         outState?.putSerializable("webPage", webPage)
         outState?.putBoolean("isCleaned", isCleaned)
         outState?.putSerializable("history", history)

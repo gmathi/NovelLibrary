@@ -4,6 +4,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.NotificationCompat
 import android.util.Log
@@ -50,17 +51,22 @@ class BackgroundNovelSyncTask : GcmTaskService() {
     }
 
     private fun startNovelsSync(dbHelper: DBHelper) {
-        val novelMap: HashMap<String, Int> = HashMap()
-        val novelsChapMap: HashMap<String, Long> = HashMap()
+        val unfilteredMap: HashMap<String, Int> = HashMap()
+        val unfilteredChapMap: HashMap<String, Long> = HashMap()
         dbHelper.getAllNovels().forEach {
             val totalChapters = NovelApi().getChapterCount(it.url!!)
             if (totalChapters != 0 && totalChapters > it.chapterCount.toInt() && totalChapters > it.newChapterCount.toInt()) {
-                novelMap.put(it.name!!, (totalChapters - it.chapterCount).toInt())
-                novelsChapMap.put(it.name!!, totalChapters.toLong())
+                unfilteredMap.put(it.name!!, (totalChapters - it.chapterCount).toInt())
+                unfilteredChapMap.put(it.name!!, totalChapters.toLong())
             }
         }
 
-        if (novelMap.size == 0) return
+        val novels = dbHelper.getAllNovels()
+        val novelIds = novels.map { it.name }
+        val novelMap = unfilteredMap.filter { novelIds.contains(it.key) }
+        val novelsChapMap = HashMap(unfilteredChapMap.filter { novelIds.contains(it.key) })
+
+        if (novelMap.isEmpty()) return
 
         val notificationText: String
         if (novelMap.size > 4) {
@@ -86,7 +92,6 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
 
         val mBuilder = NotificationCompat.Builder(this, "default")
-            .setSmallIcon(R.drawable.ic_book_white_vector)
             .setContentTitle(getString(R.string.new_chapters_notification_title))
             .setStyle(NotificationCompat.BigTextStyle()
                 .bigText(notificationText))
@@ -94,6 +99,11 @@ class BackgroundNovelSyncTask : GcmTaskService() {
             .setContentIntent(contentIntent)
             .setDeleteIntent(deleteIntent)
             .setAutoCancel(true)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            mBuilder.setSmallIcon(R.drawable.ic_book_white_vector)
+        else
+            mBuilder.setSmallIcon(R.drawable.ic_book_white)
 
         val mNotifyMgr = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         mNotifyMgr.notify(Constants.NOTIFICATION_ID.SYNC_CHAPTERS, mBuilder.build())

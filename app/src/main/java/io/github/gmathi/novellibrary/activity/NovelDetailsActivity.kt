@@ -240,7 +240,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         if (item?.itemId == android.R.id.home) finish()
         else if (item?.itemId == R.id.action_delete_novel) confirmNovelDelete()
-        else if (item?.itemId == R.id.action_delete_novel) shareUrl(novel.url!!)
+        else if (item?.itemId == R.id.action_share) shareUrl(novel.url!!)
         return super.onOptionsItemSelected(item)
     }
 
