@@ -16,6 +16,8 @@ public class HostNames {
     public static final String CIRCUS_TRANSLATIONS = "circustranslations.com";
     public static final String QIDIAN = "webnovel.com";
     public static final String PRINCE_REVOLUTION = "princerevolution.org";
+    public static final String MOON_BUNNY_CAFE = "moonbunnycafe.com";
+    public static final String LIGHT_NOVEL_TRANSLATIONS = "lightnovelstranslations.com";
 
 
     @SuppressWarnings("HardcodedFileSeparator")

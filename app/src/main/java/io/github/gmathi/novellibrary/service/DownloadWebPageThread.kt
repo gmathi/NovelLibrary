@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
+import io.github.gmathi.novellibrary.database.getDownloadQueue
 import io.github.gmathi.novellibrary.database.updateDownloadQueueStatus
 import io.github.gmathi.novellibrary.database.updateWebPage
 import io.github.gmathi.novellibrary.dbHelper
@@ -21,7 +22,7 @@ import org.jsoup.nodes.Document
 import java.io.File
 
 
-class DownloadWebPageThread(val context: Context, val webPage: WebPage, val hostDir: File, val novelDir: File) : Thread() {
+class DownloadWebPageThread(val context: Context, val webPage: WebPage, private val hostDir: File, private val novelDir: File, val isCompleteNovelDownload: Boolean) : Thread() {
 
     private val TAG = "DownloadWebPageThread"
 
@@ -30,9 +31,21 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, val host
         try {
             if (isNetworkDown()) throw InterruptedException(Constants.NO_NETWORK)
             if (webPage.filePath != null) return
-            if (downloadChapter(webPage, hostDir, novelDir)) {
+
+            if (isCompleteNovelDownload) {
+                val dq = dbHelper.getDownloadQueue(webPage.novelId)
+                if (dq == null || dq.status == Constants.STATUS_STOPPED) return
+            }
+
+            if (downloadChapter(webPage)) {
+
+                if (isCompleteNovelDownload) {
+                    val dq = dbHelper.getDownloadQueue(webPage.novelId)
+                    if (dq == null || dq.status == Constants.STATUS_STOPPED) return
+                }
                 EventBus.getDefault().post(NovelEvent(EventType.UPDATE, webPage.novelId, webPage))
             }
+
         } catch (e: InterruptedException) {
             Log.w(TAG, "Interrupting the Thread: ${webPage.novelId}, ${e.localizedMessage}")
         } catch (e: Exception) {
@@ -41,7 +54,7 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, val host
 
     }
 
-    private fun downloadChapter(webPage: WebPage, hostDir: File, novelDir: File): Boolean {
+    private fun downloadChapter(webPage: WebPage): Boolean {
         val doc: Document
         try {
             doc = NovelApi().getDocumentWithUserAgent(webPage.url!!)

@@ -2,6 +2,25 @@
 <changelog bulletedList="true">
 
     <changelogversion
+        changeDate="08/15/2017"
+        versionName="0.5.4.beta">
+        <changelogtext>[b]New![/b] Night mode support for more sites</changelogtext>
+        <changelogtext>[i]Fix[/i] - Individual Chapter downloads are now working again</changelogtext>
+        <changelogtext>[i]Fix[/i] - Crashes on the "Library" screen when app closed while syncing novels</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/14/2017"
+        versionName="0.5.3.beta">
+        <changelogtext>[b]New![/b] Added Indonesian Translation for the app</changelogtext>
+        <changelogtext>[i]Fix[/i] - Trying to open in browser when there isn't one crashes the app!</changelogtext>
+        <changelogtext>[i]Fix[/i] - Download Manager is stable &amp; responsive</changelogtext>
+        <changelogtext>[i]Fix[/i] - Crashes from WLN-Updates more information links</changelogtext>
+        <changelogtext>[i]Fix[/i] - Crashes from Reader screen</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
         changeDate="08/12/2017"
         versionName="0.5.2.beta">
         <changelogtext>[i]Fix[/i] - Major Crashes on the Reading Screen &amp; App not opening!</changelogtext>

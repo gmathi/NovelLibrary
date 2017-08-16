@@ -114,7 +114,8 @@ fun Activity.startNovelDetailsActivity(novel: Novel) {
 
 fun Activity.openInBrowser(url: String) {
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-    startActivity(intent)
+    if (intent.resolveActivity(packageManager) != null)
+        startActivity(intent)
 }
 
 fun Activity.sendEmail(email: String, subject: String, body: String) {
@@ -123,7 +124,9 @@ fun Activity.sendEmail(email: String, subject: String, body: String) {
         "&body=" + Uri.encode(body)
     val emailIntent = Intent(Intent.ACTION_VIEW)
     emailIntent.data = Uri.parse(mailTo)
-    startActivity(emailIntent)
+
+    if (emailIntent.resolveActivity(packageManager) != null)
+        startActivity(emailIntent)
 }
 
 fun Activity.shareUrl(url: String) {
@@ -131,7 +134,8 @@ fun Activity.shareUrl(url: String) {
     i.type = "text/plain"
     i.putExtra(Intent.EXTRA_SUBJECT, "Sharing URL")
     i.putExtra(Intent.EXTRA_TEXT, url)
-    startActivity(Intent.createChooser(i, "Share URL"))
+    if (i.resolveActivity(packageManager) != null)
+        startActivity(Intent.createChooser(i, "Share URL"))
 }
 
 fun Activity.startNovelDownloadService(novelId: Long) {

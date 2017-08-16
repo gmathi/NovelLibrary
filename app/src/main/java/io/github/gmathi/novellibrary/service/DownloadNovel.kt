@@ -61,7 +61,7 @@ class DownloadNovel(val context: Context, val novelId: Long) {
 
         run downloadChapters@ {
 
-            (0..chapters.size - 1).forEach {
+            (0..chapters.size - 1).asSequence().forEach {
 
                 val webPage = dbHelper.getWebPage(novel.id, chapters[it].url!!) ?: chapters[it]
                 if (webPage.id == -1L) {
@@ -77,9 +77,9 @@ class DownloadNovel(val context: Context, val novelId: Long) {
                 if (dq != null && dq.status == Constants.STATUS_DOWNLOAD) {
 
                     if (dataCenter.experimentalDownload) {
-                        threadPool?.execute(DownloadWebPageThread(context, webPage, hostDir, novelDir))
+                        threadPool?.execute(DownloadWebPageThread(context, webPage, hostDir, novelDir, true))
                     } else {
-                        threadPool?.submit(DownloadWebPageThread(context, webPage, hostDir, novelDir))?.get()
+                        threadPool?.submit(DownloadWebPageThread(context, webPage, hostDir, novelDir, true))?.get()
                     }
                 } else
                     return@downloadChapters //If downloads stopped or novel is deleted from database
