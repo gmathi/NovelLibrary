@@ -12,7 +12,7 @@ import android.support.v4.app.NotificationCompat
 import android.util.Log
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
-import io.github.gmathi.novellibrary.database.getAllReadableWebPages
+import io.github.gmathi.novellibrary.database.getAllReadableWebPagesCount
 import io.github.gmathi.novellibrary.database.getFirstDownloadableQueueItem
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.updateAllDownloadQueueStatuses
@@ -100,7 +100,7 @@ class DownloadNovelService : IntentService(TAG) {
     private fun getNotification(novel: Novel): Notification {
         // The PendingIntent to launch our activity if the user selects
         // this notification
-        val readablePagesCount = dbHelper.getAllReadableWebPages(novelId).size
+        val readablePagesCount = dbHelper.getAllReadableWebPagesCount(novel.id)
 
         val title = novel.name
         val novelDetailsIntent = Intent(this, NavDrawerActivity::class.java)

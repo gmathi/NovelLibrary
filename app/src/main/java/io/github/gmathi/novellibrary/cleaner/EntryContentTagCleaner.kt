@@ -1,23 +1,17 @@
 package io.github.gmathi.novellibrary.cleaner
 
 import android.net.Uri
-import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
+import java.net.URI
 
-
-class KobatochanHelper : HtmlHelper() {
+class EntryContentTagCleaner : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
         var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
-
-//        contentElement?.getElementsByTag("a")?.firstOrNull {
-//            it.text().contains("Previous Chapter")
-//                || it.text().contains("Next Chapter")
-//                || it.text().contains("Project Page")
-//        }?.parent()?.remove()
+        removeDirectionalLinks(contentElement)
 
         do {
             contentElement?.siblingElements()?.remove()
@@ -54,19 +48,34 @@ class KobatochanHelper : HtmlHelper() {
     }
 
     override fun downloadCSS(doc: Document, downloadDir: File) {
-        //super.downloadCSS(doc, downloadDir)
         removeCSS(doc)
     }
 
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
-
         val links = ArrayList<String>()
-        val contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
-        val otherLinks = contentElement?.getElementsByAttributeValueContaining("href", HostNames.KOBATOCHAN)
-        if (otherLinks != null && otherLinks.isNotEmpty()) {
-            otherLinks.mapTo(links) { it.attr("href") }
+        try {
+            val host = URI(doc.location()).host
+            val contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
+            removeDirectionalLinks(contentElement)
+            val otherLinks = contentElement?.getElementsByAttributeValueContaining("href", host)
+            if (otherLinks != null && otherLinks.isNotEmpty()) {
+                otherLinks.mapTo(links) { it.attr("href") }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
         return links
+    }
+
+    private fun removeDirectionalLinks(contentElement: Element?) {
+        contentElement?.getElementsByTag("a")?.filter {
+            it.text().contains("Previous Chapter")
+                || it.text().contains("Next Chapter")
+                || it.text().contains("Project Page")
+                || it.text().contains("Index")
+
+        }?.forEach { it?.remove() }
+
     }
 
 

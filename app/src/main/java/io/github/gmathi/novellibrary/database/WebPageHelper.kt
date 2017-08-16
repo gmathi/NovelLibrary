@@ -253,6 +253,20 @@ fun DBHelper.getAllReadableWebPages(novelId: Long): List<WebPage> {
     return list
 }
 
+fun DBHelper.getAllReadableWebPagesCount(novelId: Long): Int {
+    var count = 0
+    val selectQuery = "SELECT COUNT(" + DBKeys.KEY_ID + ") FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novelId + " AND file_path IS NOT NULL"
+    Log.d(LOG, selectQuery)
+    val cursor = this.readableDatabase.rawQuery(selectQuery, null)
+
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0)
+        }
+    }
+    return count
+}
+
 
 fun DBHelper.updateWebPage(webPage: WebPage): Long {
     val values = ContentValues()

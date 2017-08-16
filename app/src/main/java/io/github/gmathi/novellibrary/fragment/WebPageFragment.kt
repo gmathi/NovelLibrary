@@ -40,7 +40,7 @@ class WebPageFragment : Fragment() {
         }
     }
 
-    lateinit var webPage: WebPage
+    var webPage: WebPage? = null
     lateinit var doc: Document
 
     var isCleaned: Boolean = false
@@ -71,7 +71,7 @@ class WebPageFragment : Fragment() {
         setWebView()
 
         @Suppress("UNCHECKED_CAST")
-        if (savedInstanceState != null) {
+        if (savedInstanceState != null && savedInstanceState.containsKey("webPage")) {
             webPage = savedInstanceState.getSerializable("webPage") as WebPage
             isCleaned = savedInstanceState.getBoolean("isCleaned")
             history = savedInstanceState.getSerializable("history") as ArrayList<WebPage>
@@ -82,7 +82,7 @@ class WebPageFragment : Fragment() {
             else webPage = intentWebPage
         }
 
-        doc = Jsoup.parse("<html></html>", webPage.url)
+        doc = Jsoup.parse("<html></html>", webPage!!.url)
         loadData()
         if (isCleaned || dataCenter.cleanChapters) activity.fabClean.hide()
     }
@@ -90,11 +90,11 @@ class WebPageFragment : Fragment() {
     fun loadData() {
         //Load with downloaded HTML File
         isCleaned = false
-        if (webPage.filePath != null) {
-            val internalFilePath = "file://${webPage.filePath}"
+        if (webPage!!.filePath != null) {
+            val internalFilePath = "file://${webPage!!.filePath}"
             val input = File(internalFilePath.substring(7))
 
-            var url = webPage.redirectedUrl
+            var url = webPage!!.redirectedUrl
             if (url == null) url = internalFilePath
 
             doc = Jsoup.parse(input, "UTF-8", url)
@@ -104,8 +104,8 @@ class WebPageFragment : Fragment() {
         }
         //Load from Internet
         else {
-            if (webPage.url != null)
-                downloadWebPage(webPage.url!!)
+            if (webPage!!.url != null)
+                downloadWebPage(webPage!!.url!!)
         }
     }
 
@@ -182,11 +182,11 @@ class WebPageFragment : Fragment() {
 
     fun loadDocument() {
         readerWebView.loadDataWithBaseURL(
-            if (webPage.filePath != null) "file://${webPage.filePath}" else doc.location(),
+            if (webPage!!.filePath != null) "file://${webPage!!.filePath}" else doc.location(),
             doc.outerHtml(),
             "text/html", "UTF-8", null)
-        if (webPage.metaData.containsKey("scrollY"))
-            readerWebView.scrollTo(0, webPage.metaData["scrollY"]!!.toInt())
+        if (webPage!!.metaData.containsKey("scrollY"))
+            readerWebView.scrollTo(0, webPage!!.metaData["scrollY"]!!.toInt())
     }
 
     fun applyTheme() {
@@ -195,7 +195,7 @@ class WebPageFragment : Fragment() {
 
     fun getUrl(): String? {
         if (doc.location() != null) return doc.location()
-        return webPage.url
+        return webPage!!.url
     }
 
 
@@ -219,21 +219,22 @@ class WebPageFragment : Fragment() {
     }
 
     fun loadNewWebPage(otherWebPage: WebPage) {
-        history.add(webPage)
+        history.add(webPage!!)
         webPage = otherWebPage
         loadData()
     }
 
     fun goBack() {
         webPage = history.last()
-        history.remove(webPage)
+        history.remove(webPage!!)
         loadData()
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
         //webPage.metaData.put("scrollY", readerWebView.scrollY.toString())
-        outState?.putSerializable("webPage", webPage)
+        if (webPage != null)
+            outState?.putSerializable("webPage", webPage)
         outState?.putBoolean("isCleaned", isCleaned)
         outState?.putSerializable("history", history)
     }
@@ -241,8 +242,8 @@ class WebPageFragment : Fragment() {
     fun checkUrl(url: String?): Boolean {
         if (url == null) return false
 
-        if (webPage.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
-            val links: ArrayList<WebPage> = Gson().fromJson(webPage.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+        if (webPage!!.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
+            val links: ArrayList<WebPage> = Gson().fromJson(webPage!!.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
             links.forEach {
                 if (it.url == url || (it.redirectedUrl != null && it.redirectedUrl == url)) {
                     loadNewWebPage(it)
