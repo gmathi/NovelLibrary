@@ -21,14 +21,22 @@ open class HtmlHelper protected constructor() {
     companion object {
         fun getInstance(host: String): HtmlHelper {
             when {
+
                 host.contains(HostNames.ROYAL_ROAD) -> return RoyalRoadHelper()
                 host.contains(HostNames.GRAVITY_TALES) -> return GravityTalesHelper()
                 host.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
-                host.contains(HostNames.WORD_PRESS) -> return WordPressHelper()
                 host.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
-                host.contains(HostNames.KOBATOCHAN) -> return KobatochanHelper()
                 host.contains(HostNames.QIDIAN) -> return QidianHelper()
+
+            // 'entry-content' - 'div' tag cleaner
+                host.contains(HostNames.KOBATOCHAN) -> return EntryContentTagCleaner()
+                host.contains(HostNames.MOON_BUNNY_CAFE) -> return EntryContentTagCleaner()
+                host.contains(HostNames.LIGHT_NOVEL_TRANSLATIONS) -> return EntryContentTagCleaner()
+
+            // "WordPress" Sites cleaner
+                host.contains(HostNames.WORD_PRESS) -> return WordPressHelper()
                 host.contains(HostNames.PRINCE_REVOLUTION) -> return WordPressHelper()
+
             }
             return HtmlHelper()
         }

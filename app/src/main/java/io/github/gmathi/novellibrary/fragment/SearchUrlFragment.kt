@@ -99,6 +99,11 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
                         swipeRefreshLayout.isRefreshing = false
                     }
                 }
+            } else {
+                progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), "Search Failed!", "Exit", {
+                    progressLayout.showLoading()
+                    activity.onBackPressed()
+                })
             }
         })
         downloadThread!!.start()

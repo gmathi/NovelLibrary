@@ -80,8 +80,10 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     private fun setData() {
         updateOrderIds()
         adapter.updateData(ArrayList(dbHelper.getAllNovels()))
-        swipeRefreshLayout.isRefreshing = false
-        progressLayout.showContent()
+        if (swipeRefreshLayout != null && progressLayout != null) {
+            swipeRefreshLayout.isRefreshing = false
+            progressLayout.showContent()
+        }
     }
 
 
@@ -111,6 +113,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                             try {
                                 val os = FileOutputStream(file)
                                 bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, os)
+                                bitmap?.recycle()
                                 item.imageFilePath = file.path
                             } catch (e: Exception) {
                                 e.printStackTrace()
@@ -187,7 +190,10 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun syncNovels() {
         //activity.startSyncService()
-        async {
+        async syncing@ {
+
+            if (statusCard == null || activity == null) return@syncing
+
             statusCard.visibility = View.VISIBLE
             statusCard.startAnimation(AnimationUtils.loadAnimation(activity, R.anim.alpha_animation))
             activity.invalidateOptionsMenu()
@@ -203,6 +209,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 }
             }
             setData()
+
+            if (statusCard == null || activity == null) return@syncing
             statusCard.animation = null
             statusCard.visibility = View.GONE
             activity.invalidateOptionsMenu()
