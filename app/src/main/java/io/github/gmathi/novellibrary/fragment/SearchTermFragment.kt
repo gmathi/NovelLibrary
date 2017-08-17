@@ -138,7 +138,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     //region Adapter Listener Methods - onItemClick(), viewBinder()
 
     override fun onItemClick(item: Novel) {
-        activity.startNovelDetailsActivity(item)
+        activity.startNovelDetailsActivity(item, false)
         //addToDownloads(item)
     }
 

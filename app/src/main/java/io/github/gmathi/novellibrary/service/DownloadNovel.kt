@@ -42,7 +42,7 @@ class DownloadNovel(val context: Context, val novelId: Long) {
         if (isNetworkDown()) throw InterruptedException(Constants.NO_NETWORK)
 
         if (isDqStoppedOrCompleted(novel.id)) return
-        val chapters = NovelApi().getChapterUrls(novel.url!!)?.asReversed() ?: return
+        val chapters = NovelApi().getChapterUrls(novel)?.asReversed() ?: return
 
 
         //If the novel was deleted

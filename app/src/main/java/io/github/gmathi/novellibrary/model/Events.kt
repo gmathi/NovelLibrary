@@ -13,3 +13,5 @@ class NovelEvent(var type: EventType, var novelId: Long = -1L, var webPage: WebP
 class ChapterEvent(val novel: Novel)
 
 class SyncEvent(val novel: Novel, val newChapCount: Int)
+
+class NightModeChangeEvent

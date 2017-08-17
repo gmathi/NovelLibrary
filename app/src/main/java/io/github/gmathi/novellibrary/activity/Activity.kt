@@ -38,10 +38,12 @@ fun Activity.snackBar(view: View, message: String) {
         .setAction("Action", null).show()
 }
 
-fun Activity.startChaptersActivity(novel: Novel) {
-    val intent = Intent(this, ChaptersNewActivity::class.java)
+fun Activity.startChaptersActivity(novel: Novel, jumpToReader: Boolean) {
+    val intent = Intent(this, ChaptersUltimateActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
+    if (jumpToReader)
+        bundle.putBoolean(Constants.JUMP, true)
     intent.putExtras(bundle)
     startActivityForResult(intent, Constants.CHAPTER_ACT_REQ_CODE)
 }
@@ -53,7 +55,6 @@ fun Activity.startMetadataActivity(novel: Novel) {
     intent.putExtras(bundle)
     startActivityForResult(intent, Constants.METADATA_ACT_REQ_CODE)
 }
-
 
 fun Activity.startReaderPagerActivity(novel: Novel, webPage: WebPage, chapters: ArrayList<WebPage>?) {
     val intent = Intent(this, ReaderPagerActivity::class.java)
@@ -103,10 +104,12 @@ fun Activity.startContributionsActivity() {
     startActivity(intent)
 }
 
-fun Activity.startNovelDetailsActivity(novel: Novel) {
+fun Activity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean) {
     val intent = Intent(this, NovelDetailsActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
+    if (jumpToReader)
+        bundle.putBoolean(Constants.JUMP, true)
     intent.putExtras(bundle)
     startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
 }

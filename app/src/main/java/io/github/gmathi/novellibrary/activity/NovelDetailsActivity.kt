@@ -47,6 +47,8 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
         novel = intent.getSerializableExtra("novel") as Novel
         getNovelInfoDB()
+        if (intent.hasExtra(Constants.JUMP))
+            startChaptersActivity(novel, true)
 
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -63,7 +65,9 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
     fun getNovelInfoDB() {
         val dbNovel = dbHelper.getNovel(novel.name!!)
-        if (dbNovel != null) novel.copyFrom(dbNovel)
+        if (dbNovel != null) {
+            novel.copyFrom(dbNovel)
+        }
     }
 
     fun getNovelInfo() {
@@ -113,7 +117,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         setNovelDescription()
         novelDetailsChapters.text = getString(R.string.chapters) + " (${novel.chapterCount})"
         novelDetailsChaptersLayout.setOnClickListener {
-            if (novel.chapterCount != 0L) startChaptersActivity(novel)
+            if (novel.chapterCount != 0L) startChaptersActivity(novel, false)
         }
         novelDetailsMetadataLayout.setOnClickListener { startMetadataActivity(novel) }
         openInBrowserButton.setOnClickListener { openInBrowser(novel.url!!) }

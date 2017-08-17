@@ -56,6 +56,7 @@ fun NovelApi.getNUNovelDetails(url: String): Novel? {
             document.getElementsByClass("genre").filter { it.id() == "myepub" }.map { it.outerHtml() }.joinToString(", "))
         novel.metaData.put("Associated Names",
             document.getElementById("editassociated").text())
+        novel.metaData.put("PostId", document.getElementById("mypostid").attr("value"))
 
 
     } catch (e: IOException) {

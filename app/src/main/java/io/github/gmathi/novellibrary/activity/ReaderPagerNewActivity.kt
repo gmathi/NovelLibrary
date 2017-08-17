@@ -9,53 +9,40 @@ import android.widget.SeekBar
 import com.afollestad.materialdialogs.MaterialDialog
 import com.github.rubensousa.floatingtoolbar.FloatingToolbar
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.adapter.WebPageAdapter
+import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
+import io.github.gmathi.novellibrary.adapter.WebPageFragmentPageListener
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.updateCurrentWebPageId
-import io.github.gmathi.novellibrary.database.updateWebPageReadStatus
+import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.WebPageFragment
-import io.github.gmathi.novellibrary.model.NightModeChangeEvent
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import kotlinx.android.synthetic.main.activity_reader_pager.*
-import org.greenrobot.eventbus.EventBus
 
-
-class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, FloatingToolbar.ItemClickListener, SeekBar.OnSeekBarChangeListener {
+class ReaderPagerNewActivity : BaseActivity(), ViewPager.OnPageChangeListener, FloatingToolbar.ItemClickListener, SeekBar.OnSeekBarChangeListener {
 
     var novel: Novel? = null
     var webPage: WebPage? = null
 
-    private var adapter: WebPageAdapter? = null
-    private var chapters = ArrayList<WebPage>()
+    private var adapter: GenericFragmentStatePagerAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader_pager)
         //window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-
         novel = intent.getSerializableExtra("novel") as Novel?
-        webPage = intent.getSerializableExtra("webPage") as WebPage?
 
-        @Suppress("UNCHECKED_CAST")
-
-        chapters = intent.getSerializableExtra("chapters") as ArrayList<WebPage>? ?: return
-
-        if (novel == null || webPage == null) finish()
-
-        adapter = WebPageAdapter(supportFragmentManager, chapters)
+        if (novel == null || novel?.chapterCount?.toInt() == 0) finish()
+        adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, novel!!.chapterCount.toInt(), WebPageFragmentPageListener(novel!!))
         viewPager.addOnPageChangeListener(this)
         viewPager.adapter = adapter
 
-        viewPager.currentItem = chapters.indexOf(webPage)
-        if (webPage?.novelId != -1L && webPage?.id != -1L)
-            dbHelper.updateCurrentWebPageId(webPage!!.novelId, webPage!!.id)
-        if (webPage?.id != -1L) {
-            webPage!!.isRead = 1
-            dbHelper.updateWebPageReadStatus(webPage!!)
-        }
+        if (novel!!.currentWebPageId != -1L)
+            webPage = dbHelper.getWebPageByWebPageId(novel!!.currentWebPageId)
+        else
+            webPage = dbHelper.getWebPage(novel!!.id, 0)
+
+        if (webPage != null) updateBookmark(webPage!!)
 
         floatingToolbar.attachFab(fab)
         floatingToolbar.setClickListener(this)
@@ -67,14 +54,18 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
 
     }
 
-    override fun onPageSelected(position: Int) {
-        val webPage = chapters[position]
+    private fun updateBookmark(webPage: WebPage) {
         if (webPage.novelId != -1L && webPage.id != -1L)
             dbHelper.updateCurrentWebPageId(webPage.novelId, webPage.id)
         if (webPage.id != -1L) {
             webPage.isRead = 1
             dbHelper.updateWebPageReadStatus(webPage)
         }
+    }
+
+    override fun onPageSelected(position: Int) {
+        val webPage = dbHelper.getWebPage(novel!!.id, position.toLong())
+        if (webPage != null) updateBookmark(webPage)
         fabClean.show()
     }
 
@@ -103,9 +94,8 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
 
     private fun toggleDarkTheme() {
         dataCenter.isDarkTheme = !dataCenter.isDarkTheme
-        //(viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.applyTheme()
-        //(viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.loadDocument()
-        EventBus.getDefault().post(NightModeChangeEvent())
+        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.applyTheme()
+        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.loadDocument()
     }
 
     fun changeTextSize() {
@@ -202,19 +192,13 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
     }
 
     fun checkUrl(url: String): Boolean {
-        val index = chapters.indexOfFirst { it.redirectedUrl != null && it.redirectedUrl!!.contains(url) }
-        if (index != -1) {
-            viewPager.currentItem = index
-            val webPage = chapters[index]
-            if (webPage.novelId != -1L && webPage.id != -1L) {
-                dbHelper.updateCurrentWebPageId(webPage.novelId, webPage.id)
-            }
-            if (webPage.id != -1L) {
-                webPage.isRead = 1
-                dbHelper.updateWebPageReadStatus(webPage)
-            }
+        val webPage = dbHelper.getWebPageByRedirectedUrl(novel!!.id, url)
+        if (webPage != null) {
+            viewPager.currentItem = webPage.orderId.toInt()
+            updateBookmark(webPage)
             return true
-        } else return false
+        }
+        return false
     }
 
 }

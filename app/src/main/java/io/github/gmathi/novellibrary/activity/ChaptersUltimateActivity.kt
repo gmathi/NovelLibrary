@@ -1,101 +1,216 @@
 package io.github.gmathi.novellibrary.activity
 
-import android.content.Intent
+import android.annotation.SuppressLint
+import android.graphics.Rect
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
-import android.support.v4.view.ViewPager
-import android.support.v7.app.AppCompatActivity
 import android.support.v7.view.ActionMode
-import android.text.InputType
+import android.support.v7.widget.DividerItemDecoration
+import android.support.v7.widget.RecyclerView
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.animation.AnimationUtils
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.github.johnpersano.supertoasts.library.Style
 import com.github.johnpersano.supertoasts.library.SuperActivityToast
 import com.github.johnpersano.supertoasts.library.utils.PaletteUtils
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.adapter.ChaptersListPageListener
-import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
+import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.fragment.ChaptersListFragment
 import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.network.getChapterUrls
+import io.github.gmathi.novellibrary.service.DownloadChapterService
 import io.github.gmathi.novellibrary.service.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
-import kotlinx.android.synthetic.main.activity_chapters_new.*
-import kotlinx.android.synthetic.main.content_chapters_new.*
+import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.setDefaults
+import kotlinx.android.synthetic.main.activity_chapters_ultimate.*
+import kotlinx.android.synthetic.main.content_chapters_ultimate.*
+import kotlinx.android.synthetic.main.listitem_chapter_new.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
-
-class ChaptersNewActivity : AppCompatActivity(), ActionMode.Callback {
+class ChaptersUltimateActivity : BaseActivity(), GenericAdapter.Listener<WebPage>, ActionMode.Callback {
 
     lateinit var novel: Novel
+    lateinit var adapter: GenericAdapter<WebPage>
+    //lateinit var chapters: ArrayList<WebPage>
 
-    var pageCount: Int = 0
+    var isSortedAsc: Boolean = true
     var updateSet: HashSet<WebPage> = HashSet()
-
     var removeMenuIcon: Boolean = false
     var actionMode: ActionMode? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_chapters_new)
+        setContentView(R.layout.activity_chapters_ultimate)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         novel = intent.getSerializableExtra("novel") as Novel
-        pageCount = (novel.chapterCount / Constants.CHAPTER_PAGE_SIZE).toInt()
-        if ((novel.chapterCount % Constants.CHAPTER_PAGE_SIZE).toInt() != 0) pageCount++
+        val dbNovel = dbHelper.getNovel(novel.name!!)
+        if (dbNovel != null) novel.copyFrom(dbNovel)
 
-        setViewPager()
-        setCurrentPage()
-        setPageButtons()
-        if (novel.id != -1L)
-            setDownloadStatus()
+        setRecyclerView()
+        setData()
     }
 
-    private fun setViewPager() {
-        val chapterPageAdapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, pageCount, ChaptersListPageListener(novel))
-        viewPager.offscreenPageLimit = 3
-        viewPager.adapter = chapterPageAdapter
-        viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
-            override fun onPageScrollStateChanged(state: Int) {}
-            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
-            override fun onPageSelected(position: Int) {
-                val pageNum = position + 1
-                pageButton.setText("$pageNum/$pageCount")
+    private fun setRecyclerView() {
+        adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_chapter_new, listener = this)
+        recyclerView.setDefaults(adapter)
+        recyclerView.addItemDecoration(object : DividerItemDecoration(this, VERTICAL) {
 
-                //Toggle the 'Next' & 'Previous' Button
-                nextButton.isClickable = pageNum != pageCount
-                previousButton.isClickable = pageNum != 1
+            override fun getItemOffsets(outRect: Rect?, view: View?, parent: RecyclerView?, state: RecyclerView.State?) {
+                val position = parent?.getChildAdapterPosition(view)
+                if (position == parent?.adapter?.itemCount?.minus(1)) {
+                    outRect?.setEmpty()
+                } else {
+                    super.getItemOffsets(outRect, view, parent, state)
+                }
             }
         })
+        swipeRefreshLayout.setOnRefreshListener { getChapters() }
     }
 
-    private fun setCurrentPage() {
-        if (novel.id != -1L && novel.currentWebPageId != -1L) {
-            val webPage = dbHelper.getWebPageByWebPageId(novel.currentWebPageId) ?: return
-            val bookmarkPageNum = (novel.chapterCount - webPage.orderId - 1) / 15
-            viewPager.currentItem = bookmarkPageNum.toInt()
+    private fun setData() {
+
+        if (Utils.checkNetwork(this@ChaptersUltimateActivity)) {
+            getChapters()
+        } else {
+            getChaptersFromDB()
         }
     }
 
-    private fun setPageButtons() {
-        nextButton.setOnClickListener { viewPager.setCurrentItem(viewPager.currentItem + 1, true) }
-        previousButton.setOnClickListener { viewPager.setCurrentItem(viewPager.currentItem - 1, true) }
+    private fun getChaptersFromDB() {
+        async {
+            progressLayout.showLoading()
 
-        nextButton.setOnLongClickListener { viewPager.setCurrentItem(pageCount - 1, true); true }
-        previousButton.setOnLongClickListener { viewPager.setCurrentItem(0, true); true }
+            val chapters = await { ArrayList(dbHelper.getAllWebPages(novel.id)) }
+            adapter.updateData(chapters)
 
-        pageButton.setText("${viewPager.currentItem + 1}/$pageCount")
-        pageButton.setOnClickListener { openPageSelectDialog() }
+            if (adapter.items.isEmpty()) {
+                progressLayout.showError(ContextCompat.getDrawable(this@ChaptersUltimateActivity, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+                    progressLayout.showLoading()
+                    getChapters()
+                })
+            } else
+                progressLayout.showContent()
+        }
     }
 
+    private fun getChapters() {
+        async chapters@ {
+
+            //Download latest chapters from network
+            try {
+                val chapterList = await { NovelApi().getChapterUrls(novel)?.reversed() }
+                if (chapterList != null) {
+                    if (novel.id != -1L) {
+                        await { dbHelper.addWebPages(chapterList, novel) }
+                        getChaptersFromDB()
+                    } else {
+                        adapter.updateData(ArrayList(chapterList))
+                    }
+                }
+            } catch (e: Exception) {
+                if (progressLayout.isLoading)
+                    progressLayout.showError(ContextCompat.getDrawable(this@ChaptersUltimateActivity, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
+                        progressLayout.showLoading()
+                        getChapters()
+                    })
+            }
+        }
+    }
+
+    private fun scrollToBookmark() {
+        if (novel.currentWebPageId != -1L) {
+            val index = adapter.items.indexOfFirst { it.id == novel.currentWebPageId }
+            if (index != -1)
+                recyclerView.scrollToPosition(index)
+        }
+    }
+
+    //region Adapter Listener Methods - onItemClick(), viewBinder()
+
+    override fun onItemClick(item: WebPage) {
+        startReaderPagerActivity(novel, item, adapter.items)
+    }
+
+    @SuppressLint("SetTextI18n")
+    override fun bind(item: WebPage, itemView: View, position: Int) {
+
+        if (item.filePath != null) {
+            itemView.greenView.visibility = View.VISIBLE
+            itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@ChaptersUltimateActivity, R.color.DarkGreen))
+            itemView.greenView.animation = null
+        } else {
+            if (Constants.STATUS_DOWNLOAD.toString() == item.metaData[Constants.DOWNLOADING]) {
+                if (item.id != -1L && DownloadChapterService.chapters.contains(item)) {
+                    itemView.greenView.visibility = View.VISIBLE
+                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@ChaptersUltimateActivity, R.color.white))
+                    itemView.greenView.startAnimation(AnimationUtils.loadAnimation(this@ChaptersUltimateActivity, R.anim.alpha_animation))
+                } else {
+                    itemView.greenView.visibility = View.VISIBLE
+                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@ChaptersUltimateActivity, R.color.Red))
+                    itemView.greenView.animation = null
+                }
+            } else
+                itemView.greenView.visibility = View.GONE
+        }
+
+        itemView.isReadView.visibility = if (item.isRead == 1) View.VISIBLE else View.GONE
+        itemView.bookmarkView.visibility = if (item.id != -1L && item.id == novel.currentWebPageId) View.VISIBLE else View.INVISIBLE
+
+        if (item.chapter != null)
+            itemView.chapterTitle.text = item.chapter
+
+        if (item.title != null) {
+            if ((item.chapter != null) && item.title!!.contains(item.chapter!!))
+                itemView.chapterTitle.text = item.title
+            else
+                itemView.chapterTitle.text = "${item.chapter}: ${item.title}"
+        }
+
+        itemView.chapterCheckBox.visibility = if (novel.id != -1L) View.VISIBLE else View.GONE
+        itemView.chapterCheckBox.isChecked = updateSet.contains(item)
+        itemView.chapterCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked)
+                addToUpdateSet(item)
+            else
+                removeFromUpdateSet(item)
+        }
+
+        itemView.setOnLongClickListener {
+            if (item.redirectedUrl != null)
+                this@ChaptersUltimateActivity.shareUrl(item.redirectedUrl!!)
+            else
+                this@ChaptersUltimateActivity.shareUrl(item.url!!)
+            true
+        }
+    }
+
+    //endregion
+
     //region ActionMode Callback
+
+    fun selectAll() {
+        adapter.items.filter { it.id != -1L }.forEach {
+           addToUpdateSet(it)
+        }
+        adapter.notifyDataSetChanged()
+    }
+
+    fun clearSelection() {
+        adapter.items.filter { it.id != -1L }.forEach {
+            removeFromUpdateSet(it)
+        }
+        adapter.notifyDataSetChanged()
+    }
 
     fun addToUpdateSet(webPage: WebPage) {
         updateSet.add(webPage)
@@ -142,7 +257,7 @@ class ChaptersNewActivity : AppCompatActivity(), ActionMode.Callback {
                         val listToDownload = ArrayList(updateSet.filter { it.filePath == null })
                         if (listToDownload.isNotEmpty()) {
                             startChapterDownloadService(novel, ArrayList(updateSet.filter { it.filePath == null }))
-                            SuperActivityToast.create(this@ChaptersNewActivity, Style(), Style.TYPE_STANDARD)
+                            SuperActivityToast.create(this@ChaptersUltimateActivity, Style(), Style.TYPE_STANDARD)
                                 .setText(getString(R.string.background_chapter_downloads))
                                 .setDuration(Style.DURATION_LONG)
                                 .setFrame(Style.FRAME_KITKAT)
@@ -155,10 +270,10 @@ class ChaptersNewActivity : AppCompatActivity(), ActionMode.Callback {
                 })
             }
             R.id.action_select_all -> {
-                (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as ChaptersListFragment?)?.selectAll()
+                selectAll()
             }
             R.id.action_clear_selection -> {
-                (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as ChaptersListFragment?)?.clearSelection()
+                clearSelection()
             }
         }
         return false
@@ -185,26 +300,6 @@ class ChaptersNewActivity : AppCompatActivity(), ActionMode.Callback {
     //endregion
 
     //region Dialogs
-
-    private fun openPageSelectDialog() {
-        MaterialDialog.Builder(this@ChaptersNewActivity)
-            .title("Page Selection")
-            .content("Enter the page number")
-            .inputRange(1, pageCount.toString().length)
-            .inputType(InputType.TYPE_CLASS_NUMBER)
-            .input(null, (viewPager.currentItem + 1).toString()) { dialog, input ->
-                try {
-                    val pageNum = input.toString().toInt()
-                    if (pageNum in 1..pageCount) {
-                        viewPager.currentItem = pageNum - 1
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                } finally {
-                    dialog.dismiss()
-                }
-            }.show()
-    }
 
     private fun confirmDialog(content: String, callback: MaterialDialog.SingleButtonCallback) {
         MaterialDialog.Builder(this)
@@ -311,9 +406,9 @@ class ChaptersNewActivity : AppCompatActivity(), ActionMode.Callback {
             }
 
             if (statusText.text.contains("aused"))
-                statusCard.setCardBackgroundColor(ContextCompat.getColor(this@ChaptersNewActivity, R.color.DarkRed))
+                statusCard.setCardBackgroundColor(ContextCompat.getColor(this@ChaptersUltimateActivity, R.color.DarkRed))
             else
-                statusCard.setCardBackgroundColor(ContextCompat.getColor(this@ChaptersNewActivity, R.color.DarkGreen))
+                statusCard.setCardBackgroundColor(ContextCompat.getColor(this@ChaptersUltimateActivity, R.color.DarkGreen))
 
             if (removeIcon != removeMenuIcon) {
                 removeMenuIcon = removeIcon
@@ -323,14 +418,7 @@ class ChaptersNewActivity : AppCompatActivity(), ActionMode.Callback {
     }
 
     private fun updateDownloadStatus(orderId: Long?) {
-//        if (statusCard.animation == null)
-//            statusCard.startAnimation(AnimationUtils.loadAnimation(this, R.anim.alpha_animation))
-
-//        if (statusText.text.contains("aused"))
-//            statusCard.setCardBackgroundColor(ContextCompat.getColor(this@ChaptersNewActivity, R.color.DarkRed))
-//        else
-            statusCard.setCardBackgroundColor(ContextCompat.getColor(this@ChaptersNewActivity, R.color.DarkGreen))
-
+        statusCard.setCardBackgroundColor(ContextCompat.getColor(this@ChaptersUltimateActivity, R.color.DarkGreen))
         if (orderId != null)
             statusText.text = getString(R.string.downloading_status, getString(R.string.downloading), getString(R.string.status), getString(R.string.chapter_count, dbHelper.getAllReadableWebPages(novel.id).size, novel.chapterCount))
     }
@@ -360,11 +448,13 @@ class ChaptersNewActivity : AppCompatActivity(), ActionMode.Callback {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-    }
+    //endregion
 
-    //endRegion
+
+    override fun onDestroy() {
+        super.onDestroy()
+        async.cancelAll()
+    }
 
 
 }

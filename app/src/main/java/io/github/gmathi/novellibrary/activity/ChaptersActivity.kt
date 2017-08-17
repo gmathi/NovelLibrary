@@ -41,7 +41,7 @@ class ChaptersActivity : BaseActivity(), GenericAdapter.Listener<WebPage> {
     lateinit var adapter: GenericAdapter<WebPage>
     lateinit var chapters: ArrayList<WebPage>
 
-    var sorted: Boolean = true
+    var isSortedAsc: Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,9 +54,9 @@ class ChaptersActivity : BaseActivity(), GenericAdapter.Listener<WebPage> {
         if (dbNovel != null) novel.copyFrom(dbNovel)
 
         setRecyclerView()
+
         getChaptersFromDB()
         getChapters()
-
     }
 
     private fun setRecyclerView() {
@@ -104,7 +104,7 @@ class ChaptersActivity : BaseActivity(), GenericAdapter.Listener<WebPage> {
 
             //Download latest chapters from network
             try {
-                val chapterList = await { NovelApi().getChapterUrls(novel.url!!) }
+                val chapterList = await { NovelApi().getChapterUrls(novel) }
                 if (chapterList != null)
                     chapters = chapterList
             } catch (e: Exception) {
@@ -129,7 +129,7 @@ class ChaptersActivity : BaseActivity(), GenericAdapter.Listener<WebPage> {
 
     @SuppressLint("SetTextI18n")
     private fun updateData() {
-        if (sorted)
+        if (isSortedAsc)
             adapter.updateData(ArrayList(chapters.asReversed()))
         else
             adapter.updateData(chapters)
@@ -349,7 +349,7 @@ class ChaptersActivity : BaseActivity(), GenericAdapter.Listener<WebPage> {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         if (item?.itemId == android.R.id.home) finish()
         else if (item?.itemId == R.id.action_sort) {
-            sorted = !sorted
+            isSortedAsc = !isSortedAsc
             val newChapters = ArrayList<WebPage>(adapter.items.asReversed())
             adapter.updateData(newChapters)
         }
@@ -361,7 +361,7 @@ class ChaptersActivity : BaseActivity(), GenericAdapter.Listener<WebPage> {
             if (requestCode == Constants.READER_ACT_REQ_CODE) {
                 if (novel.id != -1L) novel = dbHelper.getNovel(novel.id)!!
                 syncWithChaptersFromDB()
-                if (sorted)
+                if (isSortedAsc)
                     adapter.updateData(ArrayList(chapters.reversed()))
                 else
                     adapter.updateData(chapters)

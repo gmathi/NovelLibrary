@@ -91,7 +91,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun onItemClick(item: Novel) {
         if (lastDeletedId != item.id)
-            startNovelDetailsActivity(item)
+            startNovelDetailsActivity(item, false)
     }
 
     override fun bind(item: Novel, itemView: View, position: Int) {
@@ -149,8 +149,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         }
 
         itemView.readChapterImage.setOnClickListener {
-
+            startNovelDetailsActivity(item, true)
         }
+
 
         if (item.chapterCount < item.newChapterCount) {
             val shape = GradientDrawable()
@@ -250,10 +251,12 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
 
-    fun startNovelDetailsActivity(novel: Novel) {
+    fun startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean) {
         val intent = Intent(activity, NovelDetailsActivity::class.java)
         val bundle = Bundle()
         bundle.putSerializable("novel", novel)
+        if (jumpToReader)
+            bundle.putBoolean(Constants.JUMP, true)
         intent.putExtras(bundle)
         activity.startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
     }

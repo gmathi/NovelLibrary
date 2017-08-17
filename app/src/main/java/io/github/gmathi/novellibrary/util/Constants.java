@@ -93,6 +93,9 @@ public class Constants {
     public static final Integer CHAPTER_PAGE_SIZE = 15;
     public static final String DOWNLOADING = "Downloading";
 
+    //Intent Keys
+    public static final String JUMP = "jumpToReader";
+
 
 
 }

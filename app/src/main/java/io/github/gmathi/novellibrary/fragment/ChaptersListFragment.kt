@@ -38,7 +38,7 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
 
-class ChapterFragment : BaseFragment(), GenericAdapter.Listener<WebPage> {
+class ChaptersListFragment : BaseFragment(), GenericAdapter.Listener<WebPage> {
 
     lateinit var novel: Novel
     var pageNum: Int = 0
@@ -47,11 +47,11 @@ class ChapterFragment : BaseFragment(), GenericAdapter.Listener<WebPage> {
 
 
     companion object {
-        fun newInstance(novel: Novel, pageNum: Int): ChapterFragment {
+        fun newInstance(novel: Novel, pageNum: Int): ChaptersListFragment {
             val bundle = Bundle()
             bundle.putSerializable("novel", novel)
             bundle.putInt("pageNum", pageNum)
-            val fragment = ChapterFragment()
+            val fragment = ChaptersListFragment()
             fragment.arguments = bundle
             return fragment
         }

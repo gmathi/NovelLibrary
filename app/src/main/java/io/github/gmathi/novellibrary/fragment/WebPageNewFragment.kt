@@ -16,29 +16,28 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ReaderPagerActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.model.NightModeChangeEvent
+import io.github.gmathi.novellibrary.database.getWebPage
+import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.fragment_reader.*
-import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
 
-
-class WebPageFragment : Fragment() {
+class WebPageNewFragment : Fragment() {
 
     companion object {
-        private val WEB_PAGE = "webPage"
-        fun newInstance(webPage: WebPage): WebPageFragment {
-            val fragment = WebPageFragment()
+        private val NOVEL_ID = "novelId"
+        private val ORDER_ID = "orderId"
+        fun newInstance(novelId: Long, orderId: Long): WebPageNewFragment {
+            val fragment = WebPageNewFragment()
             val args = Bundle()
-            args.putSerializable(WEB_PAGE, webPage)
+            args.putLong(NOVEL_ID, novelId)
+            args.putLong(ORDER_ID, orderId)
             fragment.arguments = args
             return fragment
         }
@@ -81,7 +80,7 @@ class WebPageFragment : Fragment() {
             history = savedInstanceState.getSerializable("history") as ArrayList<WebPage>
         } else {
             isCleaned = false
-            val intentWebPage = arguments.getSerializable(WEB_PAGE) as WebPage?
+            val intentWebPage = dbHelper.getWebPage(arguments.getLong(NOVEL_ID), arguments.getLong(ORDER_ID))
             if (intentWebPage == null) activity.finish()
             else webPage = intentWebPage
         }
@@ -258,22 +257,6 @@ class WebPageFragment : Fragment() {
 
         val readerActivity = (activity as ReaderPagerActivity?) ?: return false
         return readerActivity.checkUrl(url)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        EventBus.getDefault().register(this)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        EventBus.getDefault().unregister(this)
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onNightModeChanged(event: NightModeChangeEvent) {
-        applyTheme()
-        loadDocument()
     }
 
 
