@@ -15,10 +15,10 @@ class EntryContentTagCleaner : HtmlHelper() {
 
         do {
             contentElement?.siblingElements()?.remove()
-            contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
+            cleanClassAndIds(contentElement)
             contentElement = contentElement?.parent()
         } while (contentElement != null && contentElement.tagName() != "body")
-        contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
+        cleanClassAndIds(contentElement)
         doc.head().children().remove()
     }
 

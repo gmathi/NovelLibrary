@@ -13,7 +13,7 @@ import co.metalab.asyncawait.async
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.ReaderPagerActivity
+import io.github.gmathi.novellibrary.activity.ReaderPagerDBActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getNovel
@@ -265,7 +265,7 @@ class WebPageDBFragment : Fragment() {
             }
         }
 
-        val readerActivity = (activity as ReaderPagerActivity?) ?: return false
+        val readerActivity = (activity as ReaderPagerDBActivity?) ?: return false
         return readerActivity.checkUrl(url)
     }
 

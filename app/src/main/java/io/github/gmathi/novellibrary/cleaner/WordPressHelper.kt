@@ -14,14 +14,15 @@ class WordPressHelper : HtmlHelper() {
     }
 
     override fun additionalProcessing(doc: Document) {
+        doc.head()?.getElementsByTag("link")?.remove()
         var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
         do {
             contentElement?.siblingElements()?.remove()
-            contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
+            cleanClassAndIds(contentElement)
             contentElement = contentElement?.parent()
         } while (contentElement != null && contentElement.tagName() != "body")
-        contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
+        cleanClassAndIds(contentElement)
         contentElement?.getElementsByClass("wpcnt")?.remove()
         contentElement?.getElementById("jp-post-flair")?.remove()
     }

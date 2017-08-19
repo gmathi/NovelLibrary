@@ -24,8 +24,8 @@ import java.io.File
 class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     lateinit var adapter: GenericAdapter<String>
-    lateinit var settingsItems: ArrayList<String>
-    lateinit var settingsItemsDescription: ArrayList<String>
+    private lateinit var settingsItems: ArrayList<String>
+    private lateinit var settingsItemsDescription: ArrayList<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +61,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
 
         itemView.title.applyFont(assets).text = item
         itemView.subtitle.applyFont(assets).text = settingsItemsDescription[position]
+        itemView.widgetSwitch.setOnCheckedChangeListener(null)
         when (position) {
             0 -> {
                 itemView.widgetButton.visibility = View.VISIBLE
@@ -126,7 +127,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     //endregion
 
     //region Delete Files
-    fun deleteFilesDialog() {
+    private fun deleteFilesDialog() {
         MaterialDialog.Builder(this)
             .title(getString(R.string.clear_data))
             .content(getString(R.string.clear_data_description))
@@ -147,7 +148,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
             .show()
     }
 
-    fun deleteFiles(dialog: MaterialDialog) {
+    private fun deleteFiles(dialog: MaterialDialog) {
         try {
             deleteDir(cacheDir)
             deleteDir(filesDir)
@@ -160,7 +161,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
 
     }
 
-    fun deleteDir(dir: File?): Boolean {
+    private fun deleteDir(dir: File?): Boolean {
         if (dir != null && dir.isDirectory) {
             val children = dir.list()
             for (i in children.indices) {

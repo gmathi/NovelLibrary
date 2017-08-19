@@ -148,4 +148,10 @@ open class HtmlHelper protected constructor() {
     open fun getLinkedChapters(doc: Document): ArrayList<String> {
         return ArrayList()
     }
+
+    fun cleanClassAndIds(contentElement: Element?) {
+        contentElement?.classNames()?.forEach { contentElement.removeClass(it) }
+        if (contentElement != null && contentElement.hasAttr("id"))
+            contentElement.removeAttr("id")
+    }
 }

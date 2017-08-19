@@ -351,6 +351,15 @@ class ChaptersUltimateActivity :
             R.id.action_clear_selection -> {
                 clearSelection()
             }
+            R.id.action_share_chapter -> {
+                val urls = updateSet.map {
+                    if (it.redirectedUrl != null)
+                        it.redirectedUrl!!
+                    else
+                        it.url!!
+                }.joinToString(separator = ", ")
+                shareUrl(urls)
+            }
         }
         return false
     }

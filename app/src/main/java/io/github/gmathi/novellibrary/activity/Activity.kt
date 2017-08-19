@@ -147,7 +147,7 @@ fun Activity.shareUrl(url: String) {
     i.putExtra(Intent.EXTRA_SUBJECT, "Sharing URL")
     i.putExtra(Intent.EXTRA_TEXT, url)
     if (i.resolveActivity(packageManager) != null)
-        startActivity(Intent.createChooser(i, "Share URL"))
+        startActivity(Intent.createChooser(i, "Share URL(s)"))
 }
 
 fun Activity.startNovelDownloadService(novelId: Long) {
