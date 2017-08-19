@@ -128,6 +128,7 @@
     <!--<string name="pref_description_queue_novel_downloads">Downloads novels one after the another. If disabled, max of 5 novels with be downloaded simultaneously. </string>-->
     <!--<string name="pref_title_download_latest_first">Download Latest First</string>-->
     <!--<string name="pref_description_download_latest_first">Download the latest chapter first.</string>-->
+    <!--<string name="chapters_left_to_download">%d Chapter(s) left to download</string>-->
 
 
     <!-- Transition Names -->
@@ -259,8 +260,10 @@
     <string name="add_to_library_dialog_content">Novel needs to be added to Library before you can download/mark an individual chapters. Do you want to add this novel - %s to library?</string>
     <string name="swipe_right_for_next_chapter">Jap Style Swipe</string>
     <string name="swipe_right_for_next_chapter_description">Swipe right for next chapter</string>
-    <!--<string name="download_novel">Download Novel</string>-->
-    <!--<string name="download_novel">Download Novel</string>-->
+    <string name="title_activity_downloads">DownloadsActivity</string>
+    <string name="title_activity_novel_downloads">NovelDownloadsActivity</string>
+    <string name="take_me_to_chapters_now">Take me to chapters now!!</string>
+    <string name="no_bookmark_found">No Bookmark found for ‘%s’. Start reading to create a bookmark</string>
 
 
 </resources>

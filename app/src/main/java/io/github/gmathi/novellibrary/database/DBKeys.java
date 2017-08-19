@@ -6,6 +6,7 @@ public class DBKeys {
     static final int VER_NOVEL_ORDER_ID = 2;
     static final int VER_WEB_PAGE_ORDER_ID = 3;
     static final int VER_NOVEL_SYNC = 4;
+    //static final int VER_CHAPTER_DOWNLOADS = 5;
 
     static final int INITIAL_VERSION = 1;
 
@@ -22,7 +23,7 @@ public class DBKeys {
     static final String TABLE_GENRE = "genre";
     static final String TABLE_NOVEL_GENRE = "novel_genre";
     static final String TABLE_DOWNLOAD_QUEUE = "download_queue";
-//    static final String TABLE_SYNC_NOVELS = "sync_novels";
+    static final String TABLE_CHAPTERS_DOWNLOADS= "chapter_downloads";
 
     // Common column names
     static final String KEY_ID = "id";
@@ -58,6 +59,9 @@ public class DBKeys {
     static final String KEY_TOTAL_CHAPTERS = "total_chapters";
     static final String KEY_CURRENT_CHAPTER = "current_chapter";
     static final String KEY_CHAPTER_URLS_CACHED = "chapter_urls_cached";
+
+    //Table download_queue_columns
+    static final String KEY_WEB_PAGE_ID = "web_page_id";
 
 
     // novel table create statement
@@ -118,6 +122,16 @@ public class DBKeys {
                     + KEY_STATUS + " INTEGER, "
                     + KEY_METADATA + " TEXT"
                     + ")";
+
+    // genre table create statement
+//    static final String CREATE_TABLE_CHAPTER_DOWNLOADS =
+//            "CREATE TABLE " + TABLE_CHAPTERS_DOWNLOADS + " ("
+//                    + KEY_NOVEL_ID + " INTEGER, "
+//                    + KEY_WEB_PAGE_ID + " INTEGER PRIMARY KEY, "
+//                    + KEY_STATUS + " INTEGER, "
+//                    + KEY_METADATA + " TEXT"
+//                    + ")";
+
 
 //    // sync table create statement
 //    static final String CREATE_TABLE_SYNC =

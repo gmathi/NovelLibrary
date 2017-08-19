@@ -76,7 +76,6 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
                     fab.setImageResource(R.drawable.ic_pause_white_vector)
                     fab.tag = "playing"
                     startDownloadService(-1L)
-
                 }
                 adapter.updateData(ArrayList(dbHelper.getAllUnfinishedDownloadQueues()))
             }

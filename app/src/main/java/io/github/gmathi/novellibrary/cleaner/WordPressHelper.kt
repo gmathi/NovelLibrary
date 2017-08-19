@@ -29,8 +29,8 @@ class WordPressHelper : HtmlHelper() {
 
     override fun downloadImage(element: Element, dir: File): File? {
         val uri = Uri.parse(element.attr("src"))
-        if (uri.toString().contains("uploads/avatars")) return null
-        else return super.downloadImage(element, dir)
+        return if (uri.toString().contains("uploads/avatars")) null
+        else super.downloadImage(element, dir)
     }
 
     override fun toggleTheme(isDark: Boolean, doc: Document): Document {
