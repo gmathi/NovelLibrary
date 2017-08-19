@@ -3,15 +3,11 @@ package io.github.gmathi.novellibrary.adapter
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
+import com.afollestad.dragselectrecyclerview.IDragSelectAdapter
 import io.github.gmathi.novellibrary.util.inflate
 import java.util.*
 
-
-
-
-
-
-class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val listener: Listener<T>) : RecyclerView.Adapter<GenericAdapter.ViewHolder<T>>() {
+class GenericAdapterWithDragListener<T>(val items: ArrayList<T>, val layoutResId: Int, val listener: Listener<T>) : RecyclerView.Adapter<GenericAdapterWithDragListener.ViewHolder<T>>(), IDragSelectAdapter {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder<T>(parent.inflate(layoutResId))
 
@@ -28,6 +24,7 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
 
     interface Listener<in T> {
         fun bind(item: T, itemView: View, position: Int)
+        fun onItemSelected(position: Int, selected: Boolean)
         fun onItemClick(item: T)
     }
 
@@ -100,7 +97,7 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
 
     fun onItemMove(fromPosition: Int, toPosition: Int): Boolean {
         if (fromPosition < toPosition) {
-            for (i in fromPosition..toPosition - 1) {
+            for (i in fromPosition until toPosition) {
                 Collections.swap(items, i, i + 1)
             }
         } else {
@@ -112,4 +109,19 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
         return true
     }
 
+    //region IDragSelectAdapter Functions
+
+    override fun setSelected(index: Int, selected: Boolean) {
+        listener.onItemSelected(index, selected)
+        //notifyItemChanged(index)
+    }
+
+    override fun isIndexSelectable(index: Int): Boolean {
+        // Return false if you don't want this position to be selectable.
+        // Useful for items like section headers.
+        return true
+    }
+
+
+    //endregion
 }

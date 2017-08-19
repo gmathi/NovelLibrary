@@ -63,14 +63,14 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         swipeRefreshLayout.setOnRefreshListener { getNovelInfoDB(); getNovelInfo() }
     }
 
-    fun getNovelInfoDB() {
+    private fun getNovelInfoDB() {
         val dbNovel = dbHelper.getNovel(novel.name!!)
         if (dbNovel != null) {
             novel.copyFrom(dbNovel)
         }
     }
 
-    fun getNovelInfo() {
+    private fun getNovelInfo() {
         if (!Utils.checkNetwork(this)) {
             if (novel.id == -1L) {
                 swipeRefreshLayout.isRefreshing = false
@@ -173,14 +173,14 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         }
     }
 
-    fun resetAddToLibraryButton() {
+    private fun resetAddToLibraryButton() {
         novelDetailsDownloadButton.setText(getString(R.string.add_to_library))
         novelDetailsDownloadButton.setIconResource(R.drawable.ic_library_add_white_vector)
         novelDetailsDownloadButton.setBackgroundColor(ContextCompat.getColor(this@NovelDetailsActivity, android.R.color.transparent))
         novelDetailsDownloadButton.isClickable = true
     }
 
-    fun disableAddToLibraryButton() {
+    private fun disableAddToLibraryButton() {
         invalidateOptionsMenu()
         novelDetailsDownloadButton.setText(getString(R.string.in_library))
         novelDetailsDownloadButton.setIconResource(R.drawable.ic_local_library_white_vector)
@@ -198,7 +198,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         } else novelDetailsGenresLayout.addView(getGenreTextView("N/A"))
     }
 
-    fun getGenreTextView(genre: String): TextView {
+    private fun getGenreTextView(genre: String): TextView {
         val textView = TextView(this)
         val layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
         layoutParams.setMargins(4, 8, 20, 4)

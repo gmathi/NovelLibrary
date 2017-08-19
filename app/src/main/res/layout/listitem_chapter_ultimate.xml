@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.hanks.library.AnimateCheckBox
+        android:id="@+id/chapterCheckBox"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="@dimen/default_card_view_margin"
+        android:layout_marginStart="@dimen/default_card_view_margin"
+        android:padding="15dp"
+        app:animDuration="200"
+        app:checkedColor="#00f"
+        app:lineColor="#fff"
+        app:lineWidth="1.2dp"
+        tools:checked="true"
+        app:unCheckColor="#ff0"/>
+
+    <View
+        android:id="@+id/greenView"
+        android:layout_width="5dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:background="@color/DarkGreen"/>
+
+    <ImageView
+        android:id="@+id/bookmarkView"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginEnd="@dimen/default_margin"
+        android:layout_marginRight="@dimen/default_margin"
+        android:layout_marginTop="4dp"
+        android:scaleType="centerInside"
+        app:srcCompat="@drawable/ic_bookmark_orange_vector"
+        tools:src="@drawable/ic_bookmark_orange_vector"/>
+
+
+    <TextView
+        android:id="@+id/chapterTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignWithParentIfMissing="true"
+        android:layout_centerVertical="true"
+        android:layout_margin="@dimen/default_margin"
+        android:layout_toEndOf="@id/chapterCheckBox"
+        android:layout_toLeftOf="@id/bookmarkView"
+        android:layout_toRightOf="@id/chapterCheckBox"
+        android:layout_toStartOf="@id/bookmarkView"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/white"
+        tools:text="ch 14: This is a dummy chapter"/>
+
+    <View
+        android:id="@+id/isReadView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="4dp"
+        android:background="@color/black_overlay"
+        android:alpha="1"
+        android:visibility="gone"/>
+
+
+</RelativeLayout>

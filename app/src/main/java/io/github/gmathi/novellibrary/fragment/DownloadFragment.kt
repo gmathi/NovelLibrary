@@ -26,7 +26,7 @@ import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.service.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.activity_download_queue.*
 import kotlinx.android.synthetic.main.content_download_queue.*
 import kotlinx.android.synthetic.main.listitem_download_queue.view.*
@@ -88,7 +88,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
     private fun setRecyclerView() {
         val items = dbHelper.getAllUnfinishedDownloadQueues()
         adapter = GenericAdapter(ArrayList(items), R.layout.listitem_download_queue, this)
-        recyclerView.setDefaults(adapter)
+        recyclerView.setDefaultsNoAnimation(adapter)
         recyclerView.addItemDecoration(object : DividerItemDecoration(context, DividerItemDecoration.VERTICAL) {
 
             override fun getItemOffsets(outRect: Rect?, view: View?, parent: RecyclerView?, state: RecyclerView.State?) {

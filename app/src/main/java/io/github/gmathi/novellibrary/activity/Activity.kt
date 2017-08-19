@@ -66,6 +66,15 @@ fun Activity.startReaderPagerActivity(novel: Novel, webPage: WebPage, chapters: 
     startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
 }
 
+fun Activity.startReaderPagerDBActivity(novel: Novel) {
+    val intent = Intent(this, ReaderPagerDBActivity::class.java)
+    val bundle = Bundle()
+    bundle.putSerializable("novel", novel)
+    intent.putExtras(bundle)
+    startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
+}
+
+
 
 fun Activity.startSearchResultsActivity(title: String, url: String) {
     val intent = Intent(this, SearchUrlActivity::class.java)

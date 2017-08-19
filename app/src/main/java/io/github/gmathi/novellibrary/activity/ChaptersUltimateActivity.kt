@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
@@ -16,35 +17,42 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.github.johnpersano.supertoasts.library.Style
 import com.github.johnpersano.supertoasts.library.SuperActivityToast
 import com.github.johnpersano.supertoasts.library.utils.PaletteUtils
+import com.hanks.library.AnimateCheckBox
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.adapter.GenericAdapterWithDragListener
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.model.NovelEvent
+import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.service.DownloadChapterService
 import io.github.gmathi.novellibrary.service.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.activity_chapters_ultimate.*
 import kotlinx.android.synthetic.main.content_chapters_ultimate.*
-import kotlinx.android.synthetic.main.listitem_chapter_new.view.*
+import kotlinx.android.synthetic.main.listitem_chapter_ultimate.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
-class ChaptersUltimateActivity : BaseActivity(), GenericAdapter.Listener<WebPage>, ActionMode.Callback {
+class ChaptersUltimateActivity :
+    BaseActivity(),
+    GenericAdapterWithDragListener.Listener<WebPage>,
+    ActionMode.Callback,
+    AnimateCheckBox.OnCheckedChangeListener {
 
     lateinit var novel: Novel
-    lateinit var adapter: GenericAdapter<WebPage>
-    //lateinit var chapters: ArrayList<WebPage>
+    lateinit var adapter: GenericAdapterWithDragListener<WebPage>
 
-    var isSortedAsc: Boolean = true
-    var updateSet: HashSet<WebPage> = HashSet()
-    var removeMenuIcon: Boolean = false
-    var actionMode: ActionMode? = null
+    private var isSortedAsc: Boolean = true
+    private var updateSet: HashSet<WebPage> = HashSet()
+    private var removeDownloadMenuIcon: Boolean = false
+    private var actionMode: ActionMode? = null
+    private var confirmDialog: MaterialDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,13 +65,15 @@ class ChaptersUltimateActivity : BaseActivity(), GenericAdapter.Listener<WebPage
         if (dbNovel != null) novel.copyFrom(dbNovel)
 
         setRecyclerView()
+        if (novel.id != -1L)
+            setDownloadStatus()
         setData()
     }
 
     private fun setRecyclerView() {
-        adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_chapter_new, listener = this)
-        recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(object : DividerItemDecoration(this, VERTICAL) {
+        adapter = GenericAdapterWithDragListener(items = ArrayList(), layoutResId = R.layout.listitem_chapter_ultimate, listener = this)
+        dragSelectRecyclerView.setDefaultsNoAnimation(adapter)
+        dragSelectRecyclerView.addItemDecoration(object : DividerItemDecoration(this, VERTICAL) {
 
             override fun getItemOffsets(outRect: Rect?, view: View?, parent: RecyclerView?, state: RecyclerView.State?) {
                 val position = parent?.getChildAdapterPosition(view)
@@ -74,11 +84,12 @@ class ChaptersUltimateActivity : BaseActivity(), GenericAdapter.Listener<WebPage
                 }
             }
         })
+        swipeRefreshLayout.isEnabled = false
         swipeRefreshLayout.setOnRefreshListener { getChapters() }
     }
 
     private fun setData() {
-
+        progressLayout.showLoading()
         if (Utils.checkNetwork(this@ChaptersUltimateActivity)) {
             getChapters()
         } else {
@@ -88,18 +99,23 @@ class ChaptersUltimateActivity : BaseActivity(), GenericAdapter.Listener<WebPage
 
     private fun getChaptersFromDB() {
         async {
-            progressLayout.showLoading()
 
             val chapters = await { ArrayList(dbHelper.getAllWebPages(novel.id)) }
             adapter.updateData(chapters)
+            scrollToBookmark()
 
             if (adapter.items.isEmpty()) {
                 progressLayout.showError(ContextCompat.getDrawable(this@ChaptersUltimateActivity, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
                     progressLayout.showLoading()
                     getChapters()
                 })
-            } else
+            } else {
+                swipeRefreshLayout.isRefreshing = false
                 progressLayout.showContent()
+                if (adapter.items.size != novel.chapterCount.toInt()) {
+                    getChapters()
+                }
+            }
         }
     }
 
@@ -111,10 +127,17 @@ class ChaptersUltimateActivity : BaseActivity(), GenericAdapter.Listener<WebPage
                 val chapterList = await { NovelApi().getChapterUrls(novel)?.reversed() }
                 if (chapterList != null) {
                     if (novel.id != -1L) {
+                        await {
+                            novel.chapterCount = chapterList.size.toLong()
+                            novel.newChapterCount = chapterList.size.toLong()
+                            dbHelper.updateNovel(novel)
+                        }
                         await { dbHelper.addWebPages(chapterList, novel) }
                         getChaptersFromDB()
                     } else {
                         adapter.updateData(ArrayList(chapterList))
+                        swipeRefreshLayout.isRefreshing = false
+                        progressLayout.showContent()
                     }
                 }
             } catch (e: Exception) {
@@ -131,14 +154,33 @@ class ChaptersUltimateActivity : BaseActivity(), GenericAdapter.Listener<WebPage
         if (novel.currentWebPageId != -1L) {
             val index = adapter.items.indexOfFirst { it.id == novel.currentWebPageId }
             if (index != -1)
-                recyclerView.scrollToPosition(index)
+                dragSelectRecyclerView.scrollToPosition(index)
         }
     }
 
     //region Adapter Listener Methods - onItemClick(), viewBinder()
 
+    override fun onItemSelected(position: Int, selected: Boolean) {
+        if (dragSelectRecyclerView.findViewHolderForAdapterPosition(position) != null) {
+            @Suppress("UNCHECKED_CAST")
+            (dragSelectRecyclerView.findViewHolderForAdapterPosition(position) as GenericAdapterWithDragListener.ViewHolder<WebPage>)
+                .itemView?.chapterCheckBox?.isChecked = selected
+        } else {
+            val webPage = adapter.items[position]
+            if (selected)
+                addToUpdateSet(webPage)
+            else
+                removeFromUpdateSet(webPage)
+        }
+    }
+
     override fun onItemClick(item: WebPage) {
-        startReaderPagerActivity(novel, item, adapter.items)
+        if (novel.id != -1L) {
+            novel.currentWebPageId = item.id
+            dbHelper.updateNovel(novel)
+            startReaderPagerDBActivity(novel)
+        } else
+            startReaderPagerActivity(novel, item, adapter.items)
     }
 
     @SuppressLint("SetTextI18n")
@@ -176,21 +218,53 @@ class ChaptersUltimateActivity : BaseActivity(), GenericAdapter.Listener<WebPage
                 itemView.chapterTitle.text = "${item.chapter}: ${item.title}"
         }
 
-        itemView.chapterCheckBox.visibility = if (novel.id != -1L) View.VISIBLE else View.GONE
+        //itemView.chapterCheckBox.visibility = if (novel.id != -1L) View.VISIBLE else View.GONE
         itemView.chapterCheckBox.isChecked = updateSet.contains(item)
-        itemView.chapterCheckBox.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked)
-                addToUpdateSet(item)
-            else
-                removeFromUpdateSet(item)
-        }
+        itemView.chapterCheckBox.tag = item
+        itemView.chapterCheckBox.setOnCheckedChangeListener(this@ChaptersUltimateActivity)
+
+//        itemView.chapterCheckBox.setOnLongClickListener {
+//            dragSelectRecyclerView.setDragSelectActive(true, position)
+//        }
 
         itemView.setOnLongClickListener {
-            if (item.redirectedUrl != null)
-                this@ChaptersUltimateActivity.shareUrl(item.redirectedUrl!!)
-            else
-                this@ChaptersUltimateActivity.shareUrl(item.url!!)
+            dragSelectRecyclerView.setDragSelectActive(true, position)
+
+//            if (item.redirectedUrl != null)
+//                this@ChaptersUltimateActivity.shareUrl(item.redirectedUrl!!)
+//            else
+//                this@ChaptersUltimateActivity.shareUrl(item.url!!)
             true
+        }
+    }
+
+    override fun onCheckedChanged(buttonView: View?, isChecked: Boolean) {
+        val webPage = (buttonView?.tag as WebPage?) ?: return
+
+        // If Novel is not in Library
+        if (novel.id == -1L) {
+            if (isChecked)
+                confirmDialog(getString(R.string.add_to_library_dialog_content, novel.name), MaterialDialog.SingleButtonCallback { dialog, _ ->
+                    addNovelToLibrary()
+                    invalidateOptionsMenu()
+                    addToUpdateSet(webPage)
+                    dialog.dismiss()
+                }, MaterialDialog.SingleButtonCallback { dialog, _ ->
+                    val checkBox = buttonView as AnimateCheckBox
+                    removeFromUpdateSet(webPage)
+                    adapter.notifyDataSetChanged()
+                    //checkBox.setOnCheckedChangeListener(this@ChaptersUltimateActivity)
+                    dialog.dismiss()
+                })
+
+        }
+
+        //If Novel is already in library
+        else {
+            if (isChecked)
+                addToUpdateSet(webPage)
+            else
+                removeFromUpdateSet(webPage)
         }
     }
 
@@ -198,28 +272,30 @@ class ChaptersUltimateActivity : BaseActivity(), GenericAdapter.Listener<WebPage
 
     //region ActionMode Callback
 
-    fun selectAll() {
+    private fun selectAll() {
         adapter.items.filter { it.id != -1L }.forEach {
-           addToUpdateSet(it)
+            addToUpdateSet(it)
         }
         adapter.notifyDataSetChanged()
     }
 
-    fun clearSelection() {
+    private fun clearSelection() {
         adapter.items.filter { it.id != -1L }.forEach {
             removeFromUpdateSet(it)
         }
         adapter.notifyDataSetChanged()
     }
 
-    fun addToUpdateSet(webPage: WebPage) {
-        updateSet.add(webPage)
-        if (actionMode == null)
+    private fun addToUpdateSet(webPage: WebPage) {
+        if (webPage.id != -1L)
+            updateSet.add(webPage)
+        if (updateSet.isNotEmpty() && actionMode == null) {
             actionMode = startSupportActionMode(this)
+        }
         actionMode?.title = getString(R.string.chapters_selected, updateSet.size)
     }
 
-    fun removeFromUpdateSet(webPage: WebPage) {
+    private fun removeFromUpdateSet(webPage: WebPage) {
         updateSet.remove(webPage)
         actionMode?.title = getString(R.string.chapters_selected, updateSet.size)
         if (updateSet.isEmpty()) {
@@ -280,7 +356,7 @@ class ChaptersUltimateActivity : BaseActivity(), GenericAdapter.Listener<WebPage
     }
 
     override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
-        mode?.menuInflater?.inflate(R.menu.menu_chapters_action_mode, menu)
+        mode?.menuInflater?.inflate(R.menu.menu_chapters_ultimate_action_mode, menu)
         return true
     }
 
@@ -294,7 +370,7 @@ class ChaptersUltimateActivity : BaseActivity(), GenericAdapter.Listener<WebPage
     override fun onDestroyActionMode(mode: ActionMode?) {
         updateSet.clear()
         actionMode = null
-        EventBus.getDefault().post(ChapterEvent(novel))
+        adapter.notifyDataSetChanged()
     }
 
     //endregion
@@ -302,15 +378,31 @@ class ChaptersUltimateActivity : BaseActivity(), GenericAdapter.Listener<WebPage
     //region Dialogs
 
     private fun confirmDialog(content: String, callback: MaterialDialog.SingleButtonCallback) {
-        MaterialDialog.Builder(this)
-            .title(getString(R.string.confirm_action))
-            .content(content)
-            .positiveText(getString(R.string.okay))
-            .negativeText(R.string.cancel)
-            .onPositive(callback)
-            .onNegative { dialog, _ -> dialog.dismiss() }
-            .show()
+        if (confirmDialog == null || !confirmDialog!!.isShowing) {
+            confirmDialog = MaterialDialog.Builder(this)
+                .title(getString(R.string.confirm_action))
+                .content(content)
+                .positiveText(getString(R.string.okay))
+                .negativeText(R.string.cancel)
+                .onPositive(callback)
+                .onNegative { dialog, _ -> dialog.dismiss() }.build()
+            confirmDialog!!.show()
+        }
     }
+
+    private fun confirmDialog(content: String, positiveCallback: MaterialDialog.SingleButtonCallback, negativeCallback: MaterialDialog.SingleButtonCallback) {
+        if (confirmDialog == null || !confirmDialog!!.isShowing) {
+            confirmDialog = MaterialDialog.Builder(this)
+                .title(getString(R.string.confirm_action))
+                .content(content)
+                .positiveText(getString(R.string.okay))
+                .negativeText(R.string.cancel)
+                .onPositive(positiveCallback)
+                .onNegative(negativeCallback).build()
+            confirmDialog!!.show()
+        }
+    }
+
 
     private fun showNotInLibraryDialog() {
         MaterialDialog.Builder(this)
@@ -338,29 +430,39 @@ class ChaptersUltimateActivity : BaseActivity(), GenericAdapter.Listener<WebPage
 
     //region OptionsMenu
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_chapters, menu)
+        menuInflater.inflate(R.menu.menu_activity_chapters_ultimate, menu)
         return super.onCreateOptionsMenu(menu)
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        menu?.getItem(0)?.isVisible = !removeMenuIcon
+        menu?.getItem(1)?.isVisible = (novel.id == -1L)
+        menu?.getItem(2)?.isVisible = (novel.id != -1L) && !removeDownloadMenuIcon
         return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (item?.itemId == android.R.id.home) finish()
-        if (item?.itemId == R.id.action_download)
-            confirmDialog(if (novel.id != -1L) getString(R.string.download_all_new_chapters_dialog_content) else getString(R.string.download_all_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
-                if (novel.id == -1L) {
-                    novel.id = dbHelper.insertNovel(novel)
-                    EventBus.getDefault().post(ChapterEvent(novel))
-                }
-                dbHelper.createDownloadQueue(novel.id)
-                dbHelper.updateDownloadQueueStatus(Constants.STATUS_DOWNLOAD, novel.id)
-                startNovelDownloadService(novelId = novel.id)
-                setDownloadStatus()
-                dialog.dismiss()
-            })
+
+        when {
+            item?.itemId == android.R.id.home -> finish()
+            item?.itemId == R.id.action_download -> {
+                confirmDialog(if (novel.id != -1L) getString(R.string.download_all_new_chapters_dialog_content) else getString(R.string.download_all_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
+                    addNovelToLibrary()
+                    dbHelper.createDownloadQueue(novel.id)
+                    dbHelper.updateDownloadQueueStatus(Constants.STATUS_DOWNLOAD, novel.id)
+                    startNovelDownloadService(novelId = novel.id)
+                    setDownloadStatus()
+                    dialog.dismiss()
+                })
+            }
+            item?.itemId == R.id.action_sort -> {
+                isSortedAsc = !isSortedAsc
+                adapter.updateData(ArrayList(adapter.items.asReversed()))
+            }
+            item?.itemId == R.id.action_add_to_library -> {
+                addNovelToLibrary()
+                invalidateOptionsMenu()
+            }
+        }
         return super.onOptionsItemSelected(item)
     }
     //endregion
@@ -371,7 +473,7 @@ class ChaptersUltimateActivity : BaseActivity(), GenericAdapter.Listener<WebPage
         statusCard.setOnClickListener { manageDownloadsDialog() }
         async {
             val dq = await { dbHelper.getDownloadQueue(novel.id) } ?: return@async
-            removeMenuIcon = true
+            removeDownloadMenuIcon = true
             invalidateOptionsMenu()
             val allWebPages = await { dbHelper.getAllWebPages(novel.id) }
             val readableWebPages = await { dbHelper.getAllReadableWebPages(novel.id) }
@@ -410,8 +512,8 @@ class ChaptersUltimateActivity : BaseActivity(), GenericAdapter.Listener<WebPage
             else
                 statusCard.setCardBackgroundColor(ContextCompat.getColor(this@ChaptersUltimateActivity, R.color.DarkGreen))
 
-            if (removeIcon != removeMenuIcon) {
-                removeMenuIcon = removeIcon
+            if (removeIcon != removeDownloadMenuIcon) {
+                removeDownloadMenuIcon = removeIcon
                 invalidateOptionsMenu()
             }
         }
@@ -439,17 +541,33 @@ class ChaptersUltimateActivity : BaseActivity(), GenericAdapter.Listener<WebPage
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onNovelEvent(event: NovelEvent) {
-        if (event.novelId != novel.id) return
-
-        if ((event.type == EventType.UPDATE && event.webPage == null) || event.type == EventType.COMPLETE)
-            setDownloadStatus()
-        else if (event.type == EventType.UPDATE && event.webPage != null) {
-            updateDownloadStatus(event.webPage?.orderId)
+        val webPage = event.webPage
+        if (webPage != null) {
+            adapter.updateItem(webPage)
         }
     }
 
     //endregion
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == Constants.READER_ACT_REQ_CODE) {
+            if (novel.id != -1L) {
+                novel = dbHelper.getNovel(novel.id)!!
+                getChaptersFromDB()
+            }
+        }
+    }
+
+    private fun addNovelToLibrary() {
+        if (novel.id == -1L) {
+            progressLayout.showLoading()
+            novel.id = dbHelper.insertNovel(novel)
+            if (isSortedAsc) dbHelper.addWebPages(adapter.items, novel)
+            else dbHelper.addWebPages(adapter.items.asReversed(), novel)
+            getChaptersFromDB()
+            progressLayout.showContent()
+        }
+    }
 
     override fun onDestroy() {
         super.onDestroy()

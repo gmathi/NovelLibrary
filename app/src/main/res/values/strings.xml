@@ -64,6 +64,7 @@
         <item>@string/first_screen_library</item>
         <item>@string/clean_pages</item>
         <item>@string/disable_javascript</item>
+        <item>@string/swipe_right_for_next_chapter</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
@@ -72,6 +73,7 @@
         <item>@string/first_screen_library_description</item>
         <item>@string/clean_pages_description</item>
         <item>@string/disable_javascript_description</item>
+        <item>@string/swipe_right_for_next_chapter_description</item>
     </string-array>
 
 
@@ -248,6 +250,17 @@
     <string name="new_chapters_notification_content_single">%1$s (%2$d new chapters)</string>
     <string name="new_chapters_notification_title">New Chapters Available!</string>
     <string name="sync_in_progress">Sync in progress</string>
+
+    <!-- v0.6 Strings -->
+
+    <string name="select_all">Select All</string>
+    <string name="clear_selection">Clear Selection</string>
+    <string name="download_novel">Download Novel</string>
+    <string name="add_to_library_dialog_content">Novel needs to be added to Library before you can download/mark an individual chapters. Do you want to add this novel - %s to library?</string>
+    <string name="swipe_right_for_next_chapter">Jap Style Swipe</string>
+    <string name="swipe_right_for_next_chapter_description">Swipe right for next chapter</string>
+    <!--<string name="download_novel">Download Novel</string>-->
+    <!--<string name="download_novel">Download Novel</string>-->
 
 
 </resources>

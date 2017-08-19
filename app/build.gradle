@@ -84,8 +84,10 @@ dependencies {
     implementation 'com.github.johnpersano:supertoasts:2.0'
     implementation 'nl.dionsegijn:konfetti:1.0.2'
     implementation 'com.squareup.okhttp3:okhttp:3.8.1'
+    implementation 'com.hanks.animatecheckbox:library:0.1'
+    implementation 'com.afollestad:drag-select-recyclerview:1.0.0'
 
-    implementation 'com.google.android.gms:play-services-gcm:11.0.4'
+    implementation 'com.google.android.gms:play-services-gcm:11.2.0'
 
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.1'
     releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'

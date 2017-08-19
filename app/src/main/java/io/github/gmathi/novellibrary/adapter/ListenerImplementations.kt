@@ -4,7 +4,7 @@ import android.support.v4.app.Fragment
 import io.github.gmathi.novellibrary.fragment.ChaptersListFragment
 import io.github.gmathi.novellibrary.fragment.SearchTermFragment
 import io.github.gmathi.novellibrary.fragment.SearchUrlFragment
-import io.github.gmathi.novellibrary.fragment.WebPageNewFragment
+import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.HostNames
 
@@ -68,8 +68,9 @@ class SearchResultsUnlockedListener(val searchTerms: String) : GenericFragmentSt
 }
 
 class WebPageFragmentPageListener(val novel: Novel) : GenericFragmentStatePagerAdapter.Listener {
+
     override fun getFragmentForItem(position: Int): Fragment? {
-        return WebPageNewFragment.newInstance(novel.id, position.toLong())
+        return WebPageDBFragment.newInstance(novel.id, position.toLong())
     }
 }
 

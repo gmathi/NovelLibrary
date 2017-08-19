@@ -14,12 +14,14 @@ import io.github.gmathi.novellibrary.adapter.WebPageFragmentPageListener
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.fragment.WebPageFragment
+import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
+import io.github.gmathi.novellibrary.model.NightModeChangeEvent
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import kotlinx.android.synthetic.main.activity_reader_pager.*
+import org.greenrobot.eventbus.EventBus
 
-class ReaderPagerNewActivity : BaseActivity(), ViewPager.OnPageChangeListener, FloatingToolbar.ItemClickListener, SeekBar.OnSeekBarChangeListener {
+class ReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener, FloatingToolbar.ItemClickListener, SeekBar.OnSeekBarChangeListener {
 
     var novel: Novel? = null
     var webPage: WebPage? = null
@@ -29,7 +31,6 @@ class ReaderPagerNewActivity : BaseActivity(), ViewPager.OnPageChangeListener, F
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader_pager)
-        //window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         novel = intent.getSerializableExtra("novel") as Novel?
 
         if (novel == null || novel?.chapterCount?.toInt() == 0) finish()
@@ -42,13 +43,20 @@ class ReaderPagerNewActivity : BaseActivity(), ViewPager.OnPageChangeListener, F
         else
             webPage = dbHelper.getWebPage(novel!!.id, 0)
 
-        if (webPage != null) updateBookmark(webPage!!)
+        if (webPage != null) {
+            updateBookmark(webPage!!)
+            viewPager.currentItem =
+                if (dataCenter.japSwipe)
+                    novel!!.chapterCount.toInt() - webPage!!.orderId.toInt() - 1
+                else
+                    webPage!!.orderId.toInt()
+        }
 
         floatingToolbar.attachFab(fab)
         floatingToolbar.setClickListener(this)
 
         fabClean.setOnClickListener {
-            (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).cleanPage()
+            (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment).cleanPage()
             fabClean.hide()
         }
 
@@ -64,7 +72,8 @@ class ReaderPagerNewActivity : BaseActivity(), ViewPager.OnPageChangeListener, F
     }
 
     override fun onPageSelected(position: Int) {
-        val webPage = dbHelper.getWebPage(novel!!.id, position.toLong())
+        val orderId = if (dataCenter.japSwipe) novel!!.chapterCount.toInt() - position - 1 else position
+        val webPage = dbHelper.getWebPage(novel!!.id, orderId.toLong())
         if (webPage != null) updateBookmark(webPage)
         fabClean.show()
     }
@@ -94,8 +103,10 @@ class ReaderPagerNewActivity : BaseActivity(), ViewPager.OnPageChangeListener, F
 
     private fun toggleDarkTheme() {
         dataCenter.isDarkTheme = !dataCenter.isDarkTheme
-        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.applyTheme()
-        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.loadDocument()
+//        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.applyTheme()
+//        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.loadDocument()
+//
+        EventBus.getDefault().post(NightModeChangeEvent())
     }
 
     fun changeTextSize() {
@@ -109,7 +120,7 @@ class ReaderPagerNewActivity : BaseActivity(), ViewPager.OnPageChangeListener, F
     }
 
     private fun reportPage() {
-        val url = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.getUrl()
+        val url = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
         if (url != null) {
             val email = getString(R.string.dev_email)
             val subject = "[IMPROVEMENT]"
@@ -119,13 +130,13 @@ class ReaderPagerNewActivity : BaseActivity(), ViewPager.OnPageChangeListener, F
     }
 
     private fun inBrowser() {
-        val url = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.getUrl()
+        val url = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
         if (url != null)
             openInBrowser(url)
     }
 
     private fun share() {
-        val url = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.getUrl()
+        val url = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
         if (url != null) {
             shareUrl(url)
         }
@@ -135,7 +146,7 @@ class ReaderPagerNewActivity : BaseActivity(), ViewPager.OnPageChangeListener, F
     //region SeekBar Progress Listener
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
         dataCenter.textSize = progress
-        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.changeTextSize(progress)
+        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.changeTextSize(progress)
     }
 
     override fun onStartTrackingTouch(p0: SeekBar?) {
@@ -149,7 +160,7 @@ class ReaderPagerNewActivity : BaseActivity(), ViewPager.OnPageChangeListener, F
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val action = event.action
         val keyCode = event.keyCode
-        val webView = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
+        val webView = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
         when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (action == KeyEvent.ACTION_DOWN) {
@@ -185,8 +196,8 @@ class ReaderPagerNewActivity : BaseActivity(), ViewPager.OnPageChangeListener, F
 //    }
 
     override fun onBackPressed() {
-        if ((viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).history.isNotEmpty())
-            (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).goBack()
+        if ((viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment).history.isNotEmpty())
+            (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment).goBack()
         else
             super.onBackPressed()
     }
