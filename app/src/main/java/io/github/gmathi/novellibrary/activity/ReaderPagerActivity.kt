@@ -35,7 +35,6 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
         setContentView(R.layout.activity_reader_pager)
         //window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-
         novel = intent.getSerializableExtra("novel") as Novel?
         webPage = intent.getSerializableExtra("webPage") as WebPage?
 

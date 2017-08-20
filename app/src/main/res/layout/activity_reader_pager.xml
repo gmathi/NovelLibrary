@@ -58,7 +58,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="top|end"
         android:layout_margin="@dimen/fab_margin"
-        android:backgroundTint="@color/white"
-        android:src="@drawable/im_magic_wand"/>
+        app:srcCompat="@drawable/ic_layers_clear_white_vector"/>
 
 </android.support.design.widget.CoordinatorLayout>

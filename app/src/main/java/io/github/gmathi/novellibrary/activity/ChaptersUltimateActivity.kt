@@ -22,6 +22,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapterWithDragListener
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.model.WebPage
@@ -141,6 +142,7 @@ class ChaptersUltimateActivity :
                     }
                 }
             } catch (e: Exception) {
+                e.printStackTrace()
                 if (progressLayout.isLoading)
                     progressLayout.showError(ContextCompat.getDrawable(this@ChaptersUltimateActivity, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
                         progressLayout.showLoading()
@@ -551,6 +553,11 @@ class ChaptersUltimateActivity :
         val webPage = event.webPage
         if (webPage != null) {
             adapter.updateItem(webPage)
+        }
+        if ((event.type == EventType.UPDATE && event.webPage == null) || event.type == EventType.COMPLETE)
+            setDownloadStatus()
+        else if (event.type == EventType.UPDATE && event.webPage != null) {
+            updateDownloadStatus(event.webPage?.orderId)
         }
     }
 
