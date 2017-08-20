@@ -14,6 +14,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ReaderPagerDBActivity
+import io.github.gmathi.novellibrary.activity.startChaptersActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getNovel
@@ -52,7 +53,7 @@ class WebPageDBFragment : Fragment() {
     var webPage: WebPage? = null
     lateinit var doc: Document
 
-    var isCleaned: Boolean = false
+    private var isCleaned: Boolean = false
     var history: ArrayList<WebPage> = ArrayList()
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
@@ -92,8 +93,11 @@ class WebPageDBFragment : Fragment() {
 
 
             val intentWebPage = dbHelper.getWebPage(novelId, orderId)
-            if (intentWebPage == null) activity.finish()
-            else webPage = intentWebPage
+            if (intentWebPage == null) {
+                val activity = (activity as ReaderPagerDBActivity?)
+                activity?.startChaptersActivity(activity.novel!!, false)
+                activity?.finish()
+            } else webPage = intentWebPage
         }
 
         doc = Jsoup.parse("<html></html>", webPage!!.url)
@@ -101,7 +105,7 @@ class WebPageDBFragment : Fragment() {
         if (isCleaned || dataCenter.cleanChapters) activity.fabClean.hide()
     }
 
-    fun loadData() {
+    private fun loadData() {
         //Load with downloaded HTML File
         isCleaned = false
         if (webPage!!.filePath != null) {
@@ -123,7 +127,7 @@ class WebPageDBFragment : Fragment() {
         }
     }
 
-    fun setWebView() {
+    private fun setWebView() {
         readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled
         readerWebView.webViewClient = object : WebViewClient() {
             @Suppress("OverridingDeprecatedMember")
@@ -194,7 +198,7 @@ class WebPageDBFragment : Fragment() {
         settings.textZoom = (size + 50) * 2
     }
 
-    fun loadDocument() {
+    private fun loadDocument() {
         readerWebView.loadDataWithBaseURL(
             if (webPage!!.filePath != null) "file://${webPage!!.filePath}" else doc.location(),
             doc.outerHtml(),
@@ -203,7 +207,7 @@ class WebPageDBFragment : Fragment() {
             readerWebView.scrollTo(0, webPage!!.metaData["scrollY"]!!.toInt())
     }
 
-    fun applyTheme() {
+    private fun applyTheme() {
         HtmlHelper.getInstance(doc.location()).toggleTheme(dataCenter.isDarkTheme, doc)
     }
 
@@ -232,7 +236,7 @@ class WebPageDBFragment : Fragment() {
         async.cancelAll()
     }
 
-    fun loadNewWebPage(otherWebPage: WebPage) {
+    private fun loadNewWebPage(otherWebPage: WebPage) {
         history.add(webPage!!)
         webPage = otherWebPage
         loadData()
@@ -279,12 +283,12 @@ class WebPageDBFragment : Fragment() {
         super.onPause()
         if (webPage != null) {
             webPage!!.metaData.put("scrollY", readerWebView.scrollY.toString())
-            dbHelper.updateWebPage(webPage!!)
+            if (webPage!!.id > -1L)
+                dbHelper.updateWebPage(webPage!!)
         }
         EventBus.getDefault().unregister(this)
     }
 
-    @SuppressWarnings("Unused")
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onNightModeChanged(event: NightModeChangeEvent) {
         applyTheme()

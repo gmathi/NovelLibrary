@@ -270,7 +270,6 @@ class WebPageFragment : Fragment() {
         EventBus.getDefault().unregister(this)
     }
 
-    @SuppressWarnings("Unused")
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onNightModeChanged(event: NightModeChangeEvent) {
         applyTheme()

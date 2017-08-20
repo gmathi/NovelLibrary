@@ -65,7 +65,6 @@ fun DBHelper.addWebPages(webPages: List<WebPage>, novel: Novel) {
     val db = this.writableDatabase
     db.beginTransaction()
     try {
-        val values = ContentValues()
         for (i in 0 until webPages.size) {
             val webPage = getWebPage(novel.id, i.toLong())
             if (webPage == null) {
