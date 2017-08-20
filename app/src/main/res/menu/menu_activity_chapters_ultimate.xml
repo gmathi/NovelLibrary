@@ -1,0 +1,25 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="com.mgn.bingenovelreader.fragment.LibraryFragment">
+    <item
+        android:id="@+id/action_sort"
+        android:icon="@drawable/ic_sort_white_vector"
+        android:title="@string/sort_chapters"
+        android:titleCondensed="@string/sort"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/action_add_to_library"
+        android:icon="@drawable/ic_add_box_white_vector"
+        android:title="@string/add_to_library"
+        android:titleCondensed="@string/add_to_library"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/action_download"
+        android:icon="@drawable/ic_save_white_vector"
+        android:title="@string/download_novel"
+        android:titleCondensed="@string/download"
+        android:visible="false"
+        app:showAsAction="ifRoom"/>
+
+</menu>

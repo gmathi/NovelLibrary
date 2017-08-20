@@ -3,13 +3,12 @@ package io.github.gmathi.novellibrary.fragment
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.support.v4.content.ContextCompat
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import co.metalab.asyncawait.async
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
@@ -31,8 +30,7 @@ import java.io.FileOutputStream
 
 class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
-    lateinit var searchUrl: String
-    var downloadThread: Thread? = null
+    private lateinit var searchUrl: String
 
     companion object {
         fun newInstance(url: String): SearchUrlFragment {
@@ -80,51 +78,51 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     }
 
     private fun searchNovels() {
-        if (!Utils.checkNetwork(activity)) {
-            progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
-                progressLayout.showLoading()
-                searchNovels()
-            })
-            return
-        }
 
-        if (downloadThread != null && downloadThread!!.isAlive && !downloadThread!!.isInterrupted)
-            downloadThread!!.interrupt()
-        downloadThread = Thread(Runnable {
-            val results = NovelApi().searchUrl(searchUrl)
+        async search@ {
+
+            if (!Utils.checkNetwork(activity)) {
+                progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+                    progressLayout.showLoading()
+                    searchNovels()
+                })
+                return@search
+            }
+
+            val results = await { NovelApi().searchUrl(searchUrl) }
             if (results != null) {
-                Handler(Looper.getMainLooper()).post {
-                    if (isVisible && (!isDetached || !isRemoving)) {
-                        loadSearchResults(results)
-                        swipeRefreshLayout.isRefreshing = false
-                    }
+                if (isVisible && (!isDetached || !isRemoving)) {
+                    loadSearchResults(results)
+                    swipeRefreshLayout.isRefreshing = false
                 }
             } else {
-                progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), "Search Failed!", "Exit", {
-                    progressLayout.showLoading()
-                    activity.onBackPressed()
-                })
+                if (isFragmentActive() && progressLayout != null)
+                    progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), "Search Failed!", "Exit", {
+                        progressLayout.showLoading()
+                        activity.onBackPressed()
+                    })
             }
-        })
-        downloadThread!!.start()
-    }
-
-    fun loadSearchResults(results: ArrayList<Novel>) {
-        adapter.updateData(results)
-        if (adapter.items.isEmpty()) {
-            progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_youtube_searched_for_white_vector), "No Novels Found!", "Try Again", {
-                progressLayout.showLoading()
-                searchNovels()
-            })
-        } else {
-            progressLayout.showContent()
         }
     }
 
-    //region Adapter Listener Methods - onItemClick(), viewBinder()
+    private fun loadSearchResults(results: ArrayList<Novel>) {
+        adapter.updateData(results)
+        if (adapter.items.isEmpty()) {
+            if (isFragmentActive() && progressLayout != null)
+                progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_youtube_searched_for_white_vector), "No Novels Found!", "Try Again", {
+                    progressLayout.showLoading()
+                    searchNovels()
+                })
+        } else {
+            if (isFragmentActive() && progressLayout != null)
+                progressLayout.showContent()
+        }
+    }
+
+//region Adapter Listener Methods - onItemClick(), viewBinder()
 
     override fun onItemClick(item: Novel) {
-        activity.startNovelDetailsActivity(item)
+        activity.startNovelDetailsActivity(item, false)
         //addToDownloads(item)
     }
 
@@ -173,9 +171,9 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
 //endregion
 
-    override fun onPause() {
-        super.onPause()
-        downloadThread?.interrupt()
+    override fun onDestroy() {
+        super.onDestroy()
+        async.cancelAll()
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {

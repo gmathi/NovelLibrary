@@ -14,22 +14,23 @@ class WordPressHelper : HtmlHelper() {
     }
 
     override fun additionalProcessing(doc: Document) {
+        doc.head()?.getElementsByTag("link")?.remove()
         var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
         do {
             contentElement?.siblingElements()?.remove()
-            contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
+            cleanClassAndIds(contentElement)
             contentElement = contentElement?.parent()
         } while (contentElement != null && contentElement.tagName() != "body")
-        contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
+        cleanClassAndIds(contentElement)
         contentElement?.getElementsByClass("wpcnt")?.remove()
         contentElement?.getElementById("jp-post-flair")?.remove()
     }
 
     override fun downloadImage(element: Element, dir: File): File? {
         val uri = Uri.parse(element.attr("src"))
-        if (uri.toString().contains("uploads/avatars")) return null
-        else return super.downloadImage(element, dir)
+        return if (uri.toString().contains("uploads/avatars")) null
+        else super.downloadImage(element, dir)
     }
 
     override fun toggleTheme(isDark: Boolean, doc: Document): Document {

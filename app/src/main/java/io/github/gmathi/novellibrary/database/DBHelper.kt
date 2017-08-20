@@ -19,6 +19,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAM
         db.execSQL(DBKeys.CREATE_TABLE_GENRE)
         db.execSQL(DBKeys.CREATE_TABLE_NOVEL_GENRE)
         db.execSQL(DBKeys.CREATE_TABLE_DOWNLOAD_QUEUE)
+//        db.execSQL(DBKeys.CREATE_TABLE_CHAPTER_DOWNLOADS)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -48,6 +49,13 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAM
 
         if (version == DBKeys.VER_NOVEL_SYNC) {
             //In Case the version is updated again!
+//            db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_DOWNLOAD_QUEUE)
+//            db.execSQL(DBKeys.CREATE_TABLE_CHAPTER_DOWNLOADS)
+//            version = DBKeys.VER_CHAPTER_DOWNLOADS
+//        }
+//
+//        if (version == DBKeys.VER_CHAPTER_DOWNLOADS) {
+
         }
 
         // on upgrade drop older tables
@@ -70,7 +78,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAM
         db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_GENRE)
         db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_NOVEL_GENRE)
         db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_DOWNLOAD_QUEUE)
-
+//        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_CHAPTERS_DOWNLOADS)
         // create new tables
         onCreate(db)
     }

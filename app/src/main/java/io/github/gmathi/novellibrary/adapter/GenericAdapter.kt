@@ -6,9 +6,6 @@ import android.view.ViewGroup
 import io.github.gmathi.novellibrary.util.inflate
 import java.util.*
 
-
-
-
 class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val listener: Listener<T>) : RecyclerView.Adapter<GenericAdapter.ViewHolder<T>>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder<T>(parent.inflate(layoutResId))
@@ -109,4 +106,5 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
         notifyItemMoved(fromPosition, toPosition)
         return true
     }
+
 }

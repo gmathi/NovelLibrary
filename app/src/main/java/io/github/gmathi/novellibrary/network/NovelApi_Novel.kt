@@ -56,6 +56,7 @@ fun NovelApi.getNUNovelDetails(url: String): Novel? {
             document.getElementsByClass("genre").filter { it.id() == "myepub" }.map { it.outerHtml() }.joinToString(", "))
         novel.metaData.put("Associated Names",
             document.getElementById("editassociated").text())
+        novel.metaData.put("PostId", document.getElementById("mypostid").attr("value"))
 
 
     } catch (e: IOException) {
@@ -71,7 +72,8 @@ fun NovelApi.getRRNovelDetails(url: String): Novel? {
         val document = getDocumentWithUserAgent(url)
         novel = Novel()
 
-        novel.name = document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("name") && it.attr("name") == "twitter:title" }?.attr("content")
+        novel.name = document.getElementsByAttributeValue("property", "name")?.firstOrNull { it.tagName() == "h1" }?.text()
+        //document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("name") && it.attr("name") == "twitter:title" }?.attr("content")
         novel.imageUrl = document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("property") && it.attr("property") == "og:image" }?.attr("content")
         novel.rating = document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("property") && it.attr("property") == "books:rating:value" }?.attr("content")
         novel.longDescription = document.body().getElementsByAttributeValue("property", "description").firstOrNull { it.tagName() == "div" }?.text()

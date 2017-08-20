@@ -173,4 +173,19 @@
     <string name="new_chapters_notification_title">Yeni Bölümler Geldi!</string>
     <string name="sync_in_progress">Senkronize Ediliyor</string>
 
+    <!-- v0.6 Strings -->
+
+    <string name="mentions">Mansiyonlar</string>
+    <string name="select_all">Hepsini seç</string>
+    <string name="clear_selection">Seçimi Sil</string>
+    <string name="download_novel">Roman\'ı indir</string>
+    <string name="add_to_library_dialog_content">Bireysel bölümleri indirebilmeniz / markalamanız için romanın Kütüphaneye eklenmesi gerekiyor. Bu romanı - %s\'ı Kütüphaneye eklemek istiyor musunuz?</string>
+    <string name="swipe_right_for_next_chapter">Jap Style Swipe</string>
+    <string name="swipe_right_for_next_chapter_description">Sonraki bölüm için sağa hızlıca kaydır</string>
+    <string name="no_bookmark_found_dialog_title">Okumaya Başla?</string>
+    <string name="no_bookmark_found_dialog_description">Görünüşe göre ‘%s’\'ı henüz okumadın, neden şimdi başlamazsın?</string>
+    <string name="sync_interval">Senkronizasyon Aralığı</string>
+    <string name="sync_interval_description">Yeni güncellemeler aralığını kontrol edin</string>
+
+
 </resources>

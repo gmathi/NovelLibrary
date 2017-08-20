@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fancy="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context=".activity.ChaptersActivity"
+    tools:showIn="@layout/activity_chapters">
+
+    <android.support.v7.widget.CardView
+        android:id="@+id/statusCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:visibility="gone"
+        app:cardBackgroundColor="@color/DarkGreen">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="30dp">
+
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="1"
+                android:textSize="14sp"
+                tools:ignore="SmallSp"
+                tools:text="@string/downloading_status"
+                android:textIsSelectable="false"/>
+
+        </RelativeLayout>
+    </android.support.v7.widget.CardView>
+
+
+    <com.nguyenhoanglam.progresslayout.ProgressLayout
+        android:id="@+id/progressLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignWithParentIfMissing="true"
+        android:layout_below="@id/statusCard">
+
+        <android.support.v4.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefreshLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.afollestad.dragselectrecyclerview.DragSelectRecyclerView
+                android:id="@+id/dragSelectRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbars="vertical" />
+
+        </android.support.v4.widget.SwipeRefreshLayout>
+    </com.nguyenhoanglam.progresslayout.ProgressLayout>
+
+
+</RelativeLayout>

@@ -15,10 +15,9 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <receiver
             android:name=".service.SyncNovelUpdateReceiver"
-            android:exported="false" >
+            android:exported="false">
         </receiver>
 
         <service
@@ -26,10 +25,9 @@
             android:exported="true"
             android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE">
             <intent-filter>
-                <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY" />
+                <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY"/>
             </intent-filter>
         </service>
-
         <service
             android:name=".service.DownloadNovelService"
             android:enabled="true"
@@ -45,8 +43,6 @@
             android:enabled="true"
             android:exported="false">
         </service>
-        <service android:name=".service.ForegroundService" >
-        </service>
 
         <activity
             android:name=".activity.NovelDetailsActivity"
@@ -59,6 +55,11 @@
             android:theme="@style/AppImagePreview"/>
         <activity
             android:name=".activity.ReaderPagerActivity"
+            android:label="@string/title_activity_reader_pager"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
+            android:name=".activity.ReaderPagerDBActivity"
             android:label="@string/title_activity_reader_pager"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
@@ -80,6 +81,11 @@
         </activity>
         <activity
             android:name=".activity.ChaptersActivity"
+            android:label="@string/title_activity_chapters"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
+            android:name=".activity.ChaptersUltimateActivity"
             android:label="@string/title_activity_chapters"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
@@ -114,14 +120,23 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
+            android:name=".activity.MentionSettingsActivity"
+            android:label="@string/title_activity_mention_settings"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
             android:name=".activity.ChaptersNewActivity"
             android:label="@string/title_activity_chapters_new"
             android:theme="@style/DarkTheme_DarkSide">
-
         </activity>
         <activity
             android:name=".activity.LanguageActivity"
             android:label="@string/title_activity_language"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
+            android:name=".activity.NovelDownloadsActivity"
+            android:label="@string/title_activity_novel_downloads"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
     </application>

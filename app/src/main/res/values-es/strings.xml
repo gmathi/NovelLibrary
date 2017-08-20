@@ -186,5 +186,19 @@
     <string name="new_chapters_notification_title">Nuevos Capítulos Disponibles!</string>
     <string name="sync_in_progress">Sincronización en progreso</string>
 
+    <!-- v0.6 Strings -->
+
+    <string name="mentions">Menciones</string>
+    <string name="select_all">Seleccionar todo</string>
+    <string name="clear_selection">Selección clara</string>
+    <string name="download_novel">Descargar Novela</string>
+    <string name="add_to_library_dialog_content">La novela necesita ser agregada a la Biblioteca antes de poder descargar / marcar capítulos individuales. ¿Quieres añadir esta novela - %s a la Biblioteca?</string>
+    <string name="swipe_right_for_next_chapter">Jap Style Swipe</string>
+    <string name="swipe_right_for_next_chapter_description">Desliza hacia la derecha para el siguiente capítulo</string>
+    <string name="no_bookmark_found_dialog_title">¿Empieza a leer?</string>
+    <string name="no_bookmark_found_dialog_description">Parece que aún no has leído ‘%s’, ¿por qué no empiezas ahora?</string>
+    <string name="sync_interval">Intervalo de sincronización</string>
+    <string name="sync_interval_description">Compruebe si hay un nuevo intervalo de actualizaciones</string>
+
 
 </resources>

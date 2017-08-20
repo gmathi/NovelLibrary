@@ -13,10 +13,10 @@ class GeneralClassTagHelper(val tagName: String, val className: String) : HtmlHe
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
         do {
             contentElement?.siblingElements()?.remove()
-            contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
+            cleanClassAndIds(contentElement)
             contentElement = contentElement?.parent()
         } while (contentElement != null && contentElement.tagName() != "body")
-        contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
+        cleanClassAndIds(contentElement)
         contentElement?.getElementsByClass("wpcnt")?.remove()
         contentElement?.getElementById("jp-post-flair")?.remove()
     }

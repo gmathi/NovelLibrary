@@ -16,11 +16,11 @@ import com.github.johnpersano.supertoasts.library.Style
 import com.github.johnpersano.supertoasts.library.SuperActivityToast
 import com.github.johnpersano.supertoasts.library.utils.PaletteUtils
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.adapter.ChapterPageListener
+import io.github.gmathi.novellibrary.adapter.ChaptersListPageListener
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.fragment.ChapterFragment
+import io.github.gmathi.novellibrary.fragment.ChaptersListFragment
 import io.github.gmathi.novellibrary.model.*
 import io.github.gmathi.novellibrary.service.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
@@ -59,7 +59,7 @@ class ChaptersNewActivity : AppCompatActivity(), ActionMode.Callback {
     }
 
     private fun setViewPager() {
-        val chapterPageAdapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, pageCount, ChapterPageListener(novel))
+        val chapterPageAdapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, pageCount, ChaptersListPageListener(novel))
         viewPager.offscreenPageLimit = 3
         viewPager.adapter = chapterPageAdapter
         viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
@@ -155,10 +155,10 @@ class ChaptersNewActivity : AppCompatActivity(), ActionMode.Callback {
                 })
             }
             R.id.action_select_all -> {
-                (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as ChapterFragment?)?.selectAll()
+                (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as ChaptersListFragment?)?.selectAll()
             }
             R.id.action_clear_selection -> {
-                (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as ChapterFragment?)?.clearSelection()
+                (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as ChaptersListFragment?)?.clearSelection()
             }
         }
         return false

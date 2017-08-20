@@ -1,11 +1,12 @@
 package io.github.gmathi.novellibrary
 
 import android.annotation.SuppressLint
-import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import android.support.multidex.MultiDex
+import android.support.multidex.MultiDexApplication
 import android.support.v7.app.AppCompatDelegate
 import android.util.Log
 import android.webkit.WebView
@@ -25,6 +26,8 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
 
+
+
 val dataCenter: DataCenter by lazy {
     NovelLibraryApplication.dataCenter!!
 }
@@ -33,7 +36,7 @@ val dbHelper: DBHelper by lazy {
     NovelLibraryApplication.dbHelper!!
 }
 
-class NovelLibraryApplication : Application() {
+class NovelLibraryApplication : MultiDexApplication() {
     companion object {
         var dataCenter: DataCenter? = null
         var dbHelper: DBHelper? = null
@@ -119,6 +122,11 @@ class NovelLibraryApplication : Application() {
 
     fun startSyncService() {
         BackgroundNovelSyncTask.scheduleRepeat(applicationContext)
+    }
+
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(base)
+        MultiDex.install(this)
     }
 
 

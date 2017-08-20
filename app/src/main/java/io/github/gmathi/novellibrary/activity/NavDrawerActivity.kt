@@ -59,6 +59,8 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             MaterialDialog.Builder(this)
                 .title("Change Log")
                 .customView(R.layout.dialog_change_log, true)
+                .positiveText(R.string.close)
+                .onPositive { dialog, _ -> dialog.dismiss() }
                 .show()
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }

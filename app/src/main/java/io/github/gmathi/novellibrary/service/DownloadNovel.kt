@@ -42,7 +42,8 @@ class DownloadNovel(val context: Context, val novelId: Long) {
         if (isNetworkDown()) throw InterruptedException(Constants.NO_NETWORK)
 
         if (isDqStoppedOrCompleted(novel.id)) return
-        val chapters = NovelApi().getChapterUrls(novel.url!!)?.asReversed() ?: return
+        val chapters =  dbHelper.getAllWebPagesToDownload(novelId)
+            //NovelApi().getChapterUrls(novel)?.asReversed() ?: return
 
 
         //If the novel was deleted
@@ -61,7 +62,7 @@ class DownloadNovel(val context: Context, val novelId: Long) {
 
         run downloadChapters@ {
 
-            (0..chapters.size - 1).asSequence().forEach {
+            (0 until chapters.size).asSequence().forEach {
 
                 val webPage = dbHelper.getWebPage(novel.id, chapters[it].url!!) ?: chapters[it]
                 if (webPage.id == -1L) {
@@ -93,8 +94,10 @@ class DownloadNovel(val context: Context, val novelId: Long) {
             }
 
             //If all downloads completed
-            dbHelper.updateDownloadQueueStatus(Constants.STATUS_COMPLETE, downloadQueue.novelId)
-            EventBus.getDefault().post(NovelEvent(EventType.COMPLETE, novel.id))
+            if (dbHelper.getAllWebPagesToDownload(novelId).isEmpty()) {
+                dbHelper.updateDownloadQueueStatus(Constants.STATUS_COMPLETE, downloadQueue.novelId)
+                EventBus.getDefault().post(NovelEvent(EventType.COMPLETE, novel.id))
+            }
         }
     }
 
