@@ -3,13 +3,12 @@ package io.github.gmathi.novellibrary.fragment
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.support.v4.content.ContextCompat
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import co.metalab.asyncawait.async
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
@@ -32,10 +31,8 @@ import java.net.URLEncoder
 
 class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
-    lateinit var searchTerm: String
-    lateinit var resultType: String
-
-    var downloadThread: Thread? = null
+    private lateinit var searchTerm: String
+    private lateinit var resultType: String
 
     companion object {
         fun newInstance(searchTerms: String, resultType: String): SearchTermFragment {
@@ -86,44 +83,39 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
     private fun searchNovels() {
 
-        if (resultType == HostNames.ROYAL_ROAD && dataCenter.lockRoyalRoad) {
-            progressLayout.showEmpty(ContextCompat.getDrawable(context, R.drawable.ic_phonelink_lock_white_vector), getString(R.string.content_restricted))
-            return
-        }
+        async search@ {
 
-        if (!Utils.checkNetwork(activity)) {
-            progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
-                progressLayout.showLoading()
-                searchNovels()
-            })
-            return
-        }
+            if (resultType == HostNames.ROYAL_ROAD && dataCenter.lockRoyalRoad) {
+                progressLayout.showEmpty(ContextCompat.getDrawable(context, R.drawable.ic_phonelink_lock_white_vector), getString(R.string.content_restricted))
+                return@search
+            }
 
-        if (downloadThread != null && downloadThread!!.isAlive && !downloadThread!!.isInterrupted)
-            downloadThread!!.interrupt()
-        downloadThread = Thread(Runnable {
+            if (!Utils.checkNetwork(activity)) {
+                progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+                    progressLayout.showLoading()
+                    searchNovels()
+                })
+                return@search
+            }
 
             val searchTerms = URLEncoder.encode(searchTerm, "UTF-8")
             var results: ArrayList<Novel>? = null
-            if (resultType == HostNames.NOVEL_UPDATES)
-                results = NovelApi().searchNovelUpdates(searchTerms)
-            else if (resultType == HostNames.ROYAL_ROAD)
-                results = NovelApi().searchRoyalRoad(searchTerms)
-            else if (resultType == HostNames.WLN_UPDATES)
-                results = NovelApi().searchWlnUpdates(searchTerms)
+
+            when (resultType) {
+                HostNames.NOVEL_UPDATES -> results = await { NovelApi().searchNovelUpdates(searchTerms) }
+                HostNames.ROYAL_ROAD -> results = await { NovelApi().searchRoyalRoad(searchTerms) }
+                HostNames.WLN_UPDATES -> results = await { NovelApi().searchWlnUpdates(searchTerms) }
+            }
 
             if (results == null) results = ArrayList()
-            Handler(Looper.getMainLooper()).post {
-                if (isVisible && (!isDetached || !isRemoving)) {
-                    loadSearchResults(results!!)
-                    swipeRefreshLayout.isRefreshing = false
-                }
+            if (isFragmentActive() && progressLayout != null) {
+                loadSearchResults(results)
+                swipeRefreshLayout.isRefreshing = false
             }
-        })
-        downloadThread!!.start()
+        }
     }
 
-    fun loadSearchResults(results: ArrayList<Novel>) {
+    private fun loadSearchResults(results: ArrayList<Novel>) {
         adapter.updateData(results)
         if (adapter.items.isEmpty()) {
             progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_youtube_searched_for_white_vector), "No Novels Found!", "Try Again", {
@@ -187,11 +179,11 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
 //endregion
 
-    override fun onPause() {
-        super.onPause()
-        downloadThread?.interrupt()
+    override fun onDestroy() {
+        super.onDestroy()
+        async.cancelAll()
     }
-
+    
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
         if (adapter.items.isNotEmpty())

@@ -18,6 +18,7 @@ import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.getWebPage
+import io.github.gmathi.novellibrary.database.updateWebPage
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.NightModeChangeEvent
 import io.github.gmathi.novellibrary.model.WebPage
@@ -245,9 +246,9 @@ class WebPageDBFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
-        //webPage.metaData.put("scrollY", readerWebView.scrollY.toString())
-        if (webPage != null)
+        if (webPage != null) {
             outState?.putSerializable("webPage", webPage)
+        }
         outState?.putBoolean("isCleaned", isCleaned)
         outState?.putSerializable("history", history)
     }
@@ -276,9 +277,14 @@ class WebPageDBFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
+        if (webPage != null) {
+            webPage!!.metaData.put("scrollY", readerWebView.scrollY.toString())
+            dbHelper.updateWebPage(webPage!!)
+        }
         EventBus.getDefault().unregister(this)
     }
 
+    @SuppressWarnings("Unused")
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onNightModeChanged(event: NightModeChangeEvent) {
         applyTheme()

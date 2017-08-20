@@ -78,5 +78,20 @@
     "name": "Konfetti 🎊 v1.0.2",
     "description": "Celebrate more with this lightweight confetti particle system 🎊 Create realistic confetti by implementing this easy to use library.",
     "link": "https://github.com/DanielMartinus/Konfetti"
+  },
+  {
+    "name": "OkHttp v3.8.1",
+    "description": "An HTTP+HTTP/2 client for Android and Java applications.",
+    "link": "http://square.github.io/okhttp/"
+  },
+  {
+    "name": "AnimateCheckBox v0.1",
+    "description": "A custom view in Android with a animation when CheckBox status changed 😄",
+    "link": "https://github.com/hanks-zyh/AnimateCheckBox"
+  },
+  {
+    "name": "Drag Select Recycler View v1.0.0",
+    "description": "Easy to implement Google Photos style multi-selection for RecyclerViews.",
+    "link": "https://github.com/afollestad/drag-select-recyclerview"
   }
 ]

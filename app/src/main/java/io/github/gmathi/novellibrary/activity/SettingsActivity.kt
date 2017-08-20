@@ -23,10 +23,10 @@ import kotlinx.android.synthetic.main.listitem_settings.view.*
 class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     lateinit var adapter: GenericAdapter<String>
-    lateinit var settingsItems: ArrayList<String>
+    private lateinit var settingsItems: ArrayList<String>
 
-    var rightButtonCounter = 0
-    var leftButtonCounter = 0
+    private var rightButtonCounter = 0
+    private var leftButtonCounter = 0
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,7 +59,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     override fun bind(item: String, itemView: View, position: Int) {
         itemView.settingsTitle.applyFont(assets).text = item
-        itemView.chevron.visibility = if (position == 0 || position == 1 || position == 2 || position == 4 || position == 5) View.VISIBLE else View.INVISIBLE
+        itemView.chevron.visibility = if (position == 0 || position == 1) View.VISIBLE else View.INVISIBLE
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
         else ContextCompat.getColor(this, android.R.color.transparent))
     }
@@ -67,11 +67,8 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     override fun onItemClick(item: String) {
         when (item) {
             getString(R.string.general) -> startGeneralSettingsActivity()
-            getString(R.string.languages_supported) -> startLanguagesActivity()
-            getString(R.string.copyright_notice) -> startCopyrightActivity()
+            getString(R.string.mentions) -> startMentionSettingsActivity()
             getString(R.string.donate_developer) -> donateDeveloperDialog()
-            getString(R.string.libraries_used) -> startLibrariesUsedActivity()
-            getString(R.string.contributions) -> startContributionsActivity()
             getString(R.string.changelog) -> showChangeLog()
             getString(R.string.about_us) -> aboutUsDialog()
         }
@@ -94,14 +91,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private fun donateDeveloperDialog() {
         MaterialDialog.Builder(this)
             .title(getString(R.string.donate_developer))
-            //.content(getString(R.string.donate_content))
             .content(getString(R.string.donations_description_new))
-            //.positiveText(R.string.donate)
-//            .onPositive { _, _ ->
-//                run {
-//                    sendEmail(getString(R.string.dev_email), "[DONATION]", getString(R.string.donation_email_body))
-//                }
-//            }
             .show()
     }
 
@@ -152,6 +142,8 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         MaterialDialog.Builder(this)
             .title("Change Log")
             .customView(R.layout.dialog_change_log, true)
+            .positiveText(R.string.close)
+            .onPositive { dialog, _ -> dialog.dismiss() }
             .show()
     }
 

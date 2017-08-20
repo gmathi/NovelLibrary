@@ -175,5 +175,19 @@
     <string name="new_chapters_notification_title">Ada Chapter Baru!</string>
     <string name="sync_in_progress">Sinkronisasis Sedang Dilakukan</string>
 
+    <!-- v0.6 Strings -->
+
+    <string name="mentions">Penyebutan</string>
+    <string name="select_all">Pilih Semua</string>
+    <string name="clear_selection">Seleksi yang Jelas</string>
+    <string name="download_novel">Download Novel</string>
+    <string name="add_to_library_dialog_content">Novel ini perlu ditambahkan ke Perpustakaan sebelum Anda dapat mendownload / menandai setiap bab. Apakah Anda ingin menambahkan novel ini - %s ke Perpustakaan?</string>
+    <string name="swipe_right_for_next_chapter">Jap Style Gesek</string>
+    <string name="swipe_right_for_next_chapter_description">Gesek ke kanan untuk bab berikutnya</string>
+    <string name="no_bookmark_found_dialog_title">Mulai membaca</string>
+    <string name="no_bookmark_found_dialog_description">Sepertinya Anda belum pernah membaca ‘%s’, mengapa Anda tidak memulai sekarang?</string>
+    <string name="sync_interval">Interval Sinkronisasi</string>
+    <string name="sync_interval_description">Periksa interval pembaruan novel</string>
+
 
 </resources>

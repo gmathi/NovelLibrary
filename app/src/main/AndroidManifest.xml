@@ -43,8 +43,6 @@
             android:enabled="true"
             android:exported="false">
         </service>
-        <service android:name=".service.ForegroundService">
-        </service>
 
         <activity
             android:name=".activity.NovelDetailsActivity"
@@ -119,6 +117,11 @@
         <activity
             android:name=".activity.GeneralSettingsActivity"
             android:label="@string/title_activity_general_settings"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
+            android:name=".activity.MentionSettingsActivity"
+            android:label="@string/title_activity_mention_settings"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity

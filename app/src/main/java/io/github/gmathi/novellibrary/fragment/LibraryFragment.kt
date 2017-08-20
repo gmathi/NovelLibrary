@@ -257,9 +257,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             activity.startReaderPagerDBActivity(novel)
         } else {
             val confirmDialog = MaterialDialog.Builder(activity)
-                .title(getString(R.string.confirm_action))
-                .content(getString(R.string.no_bookmark_found, novel.name))
-                .positiveText(getString(R.string.take_me_to_chapters_now))
+                .title(getString(R.string.no_bookmark_found_dialog_title))
+                .content(getString(R.string.no_bookmark_found_dialog_description, novel.name))
+                .positiveText(getString(R.string.okay))
                 .negativeText(R.string.cancel)
                 .onPositive { dialog, _ -> activity.startChaptersActivity(novel, false); dialog.dismiss() }
             confirmDialog!!.show()

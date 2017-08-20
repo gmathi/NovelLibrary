@@ -105,6 +105,9 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemView.widgetSwitch.isChecked = dataCenter.japSwipe
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.japSwipe = value }
             }
+//            6 -> {
+//                itemView.widgetChevron.visibility = View.VISIBLE
+//            }
         }
 
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
@@ -112,7 +115,9 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     }
 
     override fun onItemClick(item: String) {
-
+//        if (item == getString(R.string.sync_interval)) {
+//            showSyncIntervalDialog()
+//        }
     }
 
     //region OptionsMenu

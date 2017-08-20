@@ -98,6 +98,11 @@ fun Activity.startGeneralSettingsActivity() {
     startActivity(intent)
 }
 
+fun Activity.startMentionSettingsActivity() {
+    val intent = Intent(this, MentionSettingsActivity::class.java)
+    startActivity(intent)
+}
+
 fun Activity.startCopyrightActivity() {
     val intent = Intent(this, CopyrightActivity::class.java)
     startActivity(intent)

@@ -250,10 +250,8 @@ class ChaptersUltimateActivity :
                     addToUpdateSet(webPage)
                     dialog.dismiss()
                 }, MaterialDialog.SingleButtonCallback { dialog, _ ->
-                    val checkBox = buttonView as AnimateCheckBox
                     removeFromUpdateSet(webPage)
                     adapter.notifyDataSetChanged()
-                    //checkBox.setOnCheckedChangeListener(this@ChaptersUltimateActivity)
                     dialog.dismiss()
                 })
 
