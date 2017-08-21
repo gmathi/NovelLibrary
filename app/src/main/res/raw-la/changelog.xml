@@ -2,14 +2,19 @@
 <changelog bulletedList="true">
 
     <changelogversion
-        changeDate="08/19/2017"
-        versionName="0.6.beta">
-        <changelogtext>[b]Novum![/b] Consilio novus capitis</changelogtext>
-        <changelogtext>[b]Novum![/b] Lege protinus a Biblitheca per pictura novellae selectans</changelogtext>
-        <changelogtext>[b]Novum![/b] Potes legere ab ubi subsistebas!</changelogtext>
-        <changelogtext>[b]Novum![/b] Optiones colligati &amp; ordinati sunt</changelogtext>
-        <changelogtext>[i]Emendatio[/i] - Duplex notificationes per novellae iam renovantes</changelogtext>
-        <changelogtext>[i]Emendatio[/i] - Errores redintegraverunt per defectis enuntiaverunt &amp; non enuntiaverunt!</changelogtext>
+        changeDate="08/21/2017"
+        versionName="0.6.2.beta">
+        <changelogtext>[b]New![/b] Add Support for translations on Tumblr, Google Docs &amp; Other sites</changelogtext>
+        <changelogtext>[i]Fix[/i] - Chapters loading slower when added to ‘Library’</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/20/2017"
+        versionName="0.6.1.beta">
+        <changelogtext>[b]Experimental![/b] ‘Chapters Screen’ might not load chapters for existing novels the first time, ‘Go Back’ and try opening ‘Chapters Screen’ again.</changelogtext>
+        <changelogtext>[i]Fix[/i] - Download status in ‘Chapters Screen’ will update properly</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
     </changelogversion>
 
     <changelogversion

@@ -198,5 +198,8 @@
     <string name="sync_interval">Intervalo de Sincronização</string>
     <string name="sync_interval_description">Intervalo de tempo entre verificações de novo conteúdo nas séries</string>
 
+    <!-- v0.6.2 Strings -->
+    <string name="clean">Limpo</string>
+
 
 </resources>

@@ -187,6 +187,8 @@
     <string name="sync_interval">Quotiens renovare</string>
     <string name="sync_interval_description">Quotiens tentere pro novella renovanda</string>
 
+    <!-- v0.6.2 Strings -->
+    <string name="clean">Tersus</string>
 
 
 </resources>

@@ -200,5 +200,8 @@
     <string name="sync_interval">Intervalo de sincronización.</string>
     <string name="sync_interval_description">Comprobar nuevas actualizaciones para novelas.</string>
 
+    <!-- v0.6.2 Strings -->
+    <string name="clean">Limpiar</string>
+
 
 </resources>

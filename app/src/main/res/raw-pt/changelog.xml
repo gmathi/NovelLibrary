@@ -2,22 +2,19 @@
 <changelog bulletedList="true">
 
     <changelogversion
-        changeDate="08/20/2017"
-        versionName="0.6.1.beta">
-        <changelogtext>[b]Experimental![/b] ‘Chapters Screen’ might not load chapters for existing novels the first time, ‘Go Back’ and try opening ‘Chapters Screen’ again.</changelogtext>
-        <changelogtext>[i]Fix[/i] - Download status in ‘Chapters Screen’ will update properly</changelogtext>
+        changeDate="08/21/2017"
+        versionName="0.6.2.beta">
+        <changelogtext>[b]New![/b] Add Support for translations on Tumblr, Google Docs &amp; Other sites</changelogtext>
+        <changelogtext>[i]Fix[/i] - Chapters loading slower when added to ‘Library’</changelogtext>
         <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
     </changelogversion>
 
     <changelogversion
         changeDate="08/20/2017"
-        versionName="0.6.beta">
-        <changelogtext>[b]Novo![/b] Novo design e experiência na visualização de capítulos</changelogtext>
-        <changelogtext>[b]Novo![/b] Leia diretamente da biblioteca clicando em Série - Capa(Cover Art)</changelogtext>
-        <changelogtext>[b]Novo![/b] Leia exatamente de onde parou! Nada mais de ficar procurando onde estava da última vez!</changelogtext>
-        <changelogtext>[b]Novo![/b] As configurações foram agrupadas e reordenadas</changelogtext>
-        <changelogtext>[i]Correção[/i] - Notificações duplas para séries já atualizadas</changelogtext>
-        <changelogtext>[i]Correção[/i] - Correções para crashes reportados e não reportados!</changelogtext>
+        versionName="0.6.1.beta">
+        <changelogtext>[b]Experimental![/b] ‘Chapters Screen’ might not load chapters for existing novels the first time, ‘Go Back’ and try opening ‘Chapters Screen’ again.</changelogtext>
+        <changelogtext>[i]Fix[/i] - Download status in ‘Chapters Screen’ will update properly</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
     </changelogversion>
 
     <changelogversion

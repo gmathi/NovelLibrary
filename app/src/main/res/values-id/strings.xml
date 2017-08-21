@@ -189,5 +189,8 @@
     <string name="sync_interval">Interval Sinkronisasi</string>
     <string name="sync_interval_description">Periksa interval pembaruan novel</string>
 
+    <!-- v0.6.2 Strings -->
+    <string name="clean">Membersihkan</string>
+
 
 </resources>

@@ -107,7 +107,7 @@ class WebPageDBFragment : Fragment() {
     private fun loadData() {
         //Load with downloaded HTML File
         isCleaned = false
-        if (isCleaned || dataCenter.cleanChapters) activity.fabClean.hide() else activity.fabClean.show()
+        if (isCleaned || dataCenter.cleanChapters) activity.fabClean.visibility = View.INVISIBLE else activity.fabClean.visibility = View.VISIBLE
 
         if (webPage!!.filePath != null) {
             val internalFilePath = "file://${webPage!!.filePath}"
@@ -177,7 +177,7 @@ class WebPageDBFragment : Fragment() {
                     cleaner.toggleTheme(dataCenter.isDarkTheme, doc)
                 } else {
                     isCleaned = false
-                    activity.fabClean.show()
+                    activity.fabClean.visibility = View.VISIBLE
                 }
 
                 loadDocument()

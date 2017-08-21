@@ -187,5 +187,8 @@
     <string name="sync_interval">Senkronizasyon Aralığı</string>
     <string name="sync_interval_description">Güncelleme Takip Aralığı</string>
 
+    <!-- v0.6.2 Strings -->
+    <string name="clean">Temiz</string>
+
 
 </resources>
