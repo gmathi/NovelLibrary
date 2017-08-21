@@ -106,7 +106,10 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, private 
         val otherWebPage = WebPage(otherChapterLink, doc.title())
         val htmlHelper = HtmlHelper.getInstance(uri.host)
         htmlHelper.clean(doc, hostDir, novelDir)
+
         otherWebPage.title = htmlHelper.getTitle(doc)
+        if (otherWebPage.title!=null && otherWebPage.title == "") otherWebPage.title = doc.location()
+
         otherWebPage.id = -2L
 
         val file = htmlHelper.convertDocToFile(doc, File(novelDir, otherWebPage.title!!.writableFileName())) ?: return null

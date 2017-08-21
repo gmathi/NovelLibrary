@@ -175,17 +175,17 @@
 
     <!-- v0.6 Strings -->
 
-    <string name="mentions">Mansiyonlar</string>
-    <string name="select_all">Hepsini seç</string>
-    <string name="clear_selection">Seçimi Sil</string>
-    <string name="download_novel">Roman\'ı indir</string>
-    <string name="add_to_library_dialog_content">Bireysel bölümleri indirebilmeniz / markalamanız için romanın Kütüphaneye eklenmesi gerekiyor. Bu romanı - %s\'ı Kütüphaneye eklemek istiyor musunuz?</string>
-    <string name="swipe_right_for_next_chapter">Jap Style Swipe</string>
-    <string name="swipe_right_for_next_chapter_description">Sonraki bölüm için sağa hızlıca kaydır</string>
-    <string name="no_bookmark_found_dialog_title">Okumaya Başla?</string>
-    <string name="no_bookmark_found_dialog_description">Görünüşe göre ‘%s’\'ı henüz okumadın, neden şimdi başlamazsın?</string>
+    <string name="mentions">Göndermeler</string>
+    <string name="select_all">Tamanını Seç</string>
+    <string name="clear_selection">Seçilenleri Temizle</string>
+    <string name="download_novel">Roman İndir</string>
+    <string name="add_to_library_dialog_content">Bölümleri indirebilmek ya da etikletleyebilmek için romanın kütüphanenizde olması gerekmektedir. Bu roman - %s kütüphanenize eklensin mi?</string>
+    <string name="swipe_right_for_next_chapter">Jap Tarzı Kaydırma</string>
+    <string name="swipe_right_for_next_chapter_description">Sonraki bölüm için sağa kaydırın.</string>
+    <string name="no_bookmark_found_dialog_title">Okumaya başlayacak mısınız?</string>
+    <string name="no_bookmark_found_dialog_description">Görünüşe göre ‘%s’ \'ü henüz okumamışsınız, şimdi başlamaz mısınız?</string>
     <string name="sync_interval">Senkronizasyon Aralığı</string>
-    <string name="sync_interval_description">Yeni güncellemeler aralığını kontrol edin</string>
+    <string name="sync_interval_description">Güncelleme Takip Aralığı</string>
 
 
 </resources>

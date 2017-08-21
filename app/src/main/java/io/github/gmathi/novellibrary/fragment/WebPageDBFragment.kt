@@ -102,12 +102,13 @@ class WebPageDBFragment : Fragment() {
 
         doc = Jsoup.parse("<html></html>", webPage!!.url)
         loadData()
-        if (isCleaned || dataCenter.cleanChapters) activity.fabClean.hide()
     }
 
     private fun loadData() {
         //Load with downloaded HTML File
         isCleaned = false
+        if (isCleaned || dataCenter.cleanChapters) activity.fabClean.hide() else activity.fabClean.show()
+
         if (webPage!!.filePath != null) {
             val internalFilePath = "file://${webPage!!.filePath}"
             val input = File(internalFilePath.substring(7))

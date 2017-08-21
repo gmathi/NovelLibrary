@@ -10,46 +10,44 @@
     </changelogversion>
 
     <changelogversion
-        changeDate="08/20/2017"
+        changeDate="08/19/2017"
         versionName="0.6.beta">
-        <changelogtext>[b]New![/b] New chapters design and viewing experience</changelogtext>
-        <changelogtext>[b]New![/b] Directly read from library by clicking on the Novel - Cover Art</changelogtext>
-        <changelogtext>[b]New![/b] Read from exactly where you left off! No more scrolling to last read position!</changelogtext>
-        <changelogtext>[b]New![/b] Settings is grouped &amp; reordered</changelogtext>
-        <changelogtext>[i]Fix[/i] - Duplicate notifications for already updated novels</changelogtext>
-        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
-    </changelogversion>
+        <changelogtext>[b]Nuevo![/b] Nuevo diseño y visualización para capítulos.</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Lee directamente desde la librería haciendo click en la portada de la novela.</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Continúa leyendo donde quedaste! No más navegar hasta el último marcador</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Configuración está agrupada &amp; ordenada</changelogtext>
+        <changelogtext>[i]Correción[/i] - Notificaciones duplicadas para novelas actualizadas.</changelogtext>
+        <changelogtext>[i]Correción[/i] - Correciones de bugs para crash de aplicación reportados y no reportados!</changelogtext>
+    </changelogversion>New chapters design and viewing experience
 
     <changelogversion
         changeDate="08/15/2017"
         versionName="0.5.4.beta">
-        <changelogtext>[b]New![/b] Night mode support for more sites</changelogtext>
-        <changelogtext>[i]Fix[/i] - Individual Chapter downloads are now working again</changelogtext>
-        <changelogtext>[i]Fix[/i] - Crashes on the "Library" screen when app closed while syncing novels</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Compatibilidad de modo nocturno para más sitios web.</changelogtext>
+        <changelogtext>[i]Correción[/i] - Descarga individual de capitulos funciona nuevamente.</changelogtext>
+        <changelogtext>[i]Correción[/i] - Crash de aplicación en "librería" cuando se cierra la aplicación mientras se sincronizan novelas.</changelogtext>
     </changelogversion>
 
     <changelogversion
         changeDate="08/14/2017"
         versionName="0.5.3.beta">
-        <changelogtext>[b]New![/b] Added Indonesian Translation for the app</changelogtext>
-        <changelogtext>[i]Fix[/i] - Trying to open in browser when there isn't one crashes the app!</changelogtext>
-        <changelogtext>[i]Fix[/i] - Download Manager is stable &amp; responsive</changelogtext>
-        <changelogtext>[i]Fix[/i] - Crashes from WLN-Updates more information links</changelogtext>
-        <changelogtext>[i]Fix[/i] - Crashes from Reader screen</changelogtext>
-        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+        <changelogtext>[b]Nuevo![/b] Agregada traducción al indonés para la aplicación</changelogtext>
+        <changelogtext>[i]Correción[/i] - Abrir el navegador cuando no hay uno produce un crash de aplicación.</changelogtext>
+        <changelogtext>[i]Correción[/i] - Gestor de descargas estable &amp; responsivo</changelogtext>
+        <changelogtext>[i]Correción[/i] - Crash de aplicación en enlaces para mayor información desde WLN-Updates</changelogtext>
+        <changelogtext>[i]Correción[/i] - Crash de aplicación en modo lector</changelogtext>
+        <changelogtext>[i]Correción[/i] - Correciones de bugs para crash de aplicación reportados y no reportados!</changelogtext>
     </changelogversion>
 
     <changelogversion
         changeDate="08/12/2017"
         versionName="0.5.2.beta">
-        <changelogtext>[i]Fix[/i] - Major Crashes on the Reading Screen &amp; App not opening!</changelogtext>
-        <changelogtext>[i]Fix[/i] - Share Menu Button from Novel Details is now working</changelogtext>
+        <changelogtext>[i]Correción[/i] - Crash de aplicación mayores en modo lector &amp; ¡Aplicación no abre!</changelogtext>
+        <changelogtext>[i]Correción[/i] - Botón para compartir desde "Detalles de Novela" funciona correctamente</changelogtext>
     </changelogversion>
 
-    <changelogversion
-        changeDate="08/11/2017"
-        versionName="0.5.1.beta">
-        <changelogtext>[i]Fix[/i] - App crashes on going home from reader screen</changelogtext>
+    <changelogversion versionName="0.5.1 beta" changeDate="08/11/2017">
+        <changelogtext> [b]Correción[/b] - Crash de aplicación al cambiar a pantalla de inicio desde modo lector</changelogtext>
     </changelogversion>
 
     <changelogversion

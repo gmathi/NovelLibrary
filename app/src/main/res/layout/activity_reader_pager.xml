@@ -60,4 +60,19 @@
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@drawable/ic_layers_clear_white_vector"/>
 
+    <!--<mehdi.sakout.fancybuttons.FancyButton-->
+        <!--android:animateLayoutChanges="true"-->
+        <!--android:id="@+id/fabClean"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="top|end"-->
+        <!--android:layout_margin="@dimen/fab_margin"-->
+        <!--android:padding="5dp"-->
+        <!--fancy:fb_borderColor="@color/OrangeRed"-->
+        <!--fancy:fb_borderWidth="2dp"-->
+        <!--fancy:fb_defaultColor="@color/black"-->
+        <!--fancy:fb_focusColor="@color/ripple_color"-->
+        <!--fancy:fb_iconResource="@drawable/ic_layers_clear_white_vector"-->
+        <!--fancy:fb_text="Clean Page"/>-->
+
 </android.support.design.widget.CoordinatorLayout>

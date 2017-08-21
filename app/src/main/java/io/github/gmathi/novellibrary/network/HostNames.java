@@ -18,6 +18,9 @@ public class HostNames {
     public static final String PRINCE_REVOLUTION = "princerevolution.org";
     public static final String MOON_BUNNY_CAFE = "moonbunnycafe.com";
     public static final String LIGHT_NOVEL_TRANSLATIONS = "lightnovelstranslations.com";
+    public static final String BLUE_SILVER_TRANSLATIONS = "bluesilvertranslations.wordpress.com";
+    public static final String GOOGLE_DOCS = "docs.google.com";
+    public static final String TUMBLR = "tumblr.com";
 
 
     @SuppressWarnings("HardcodedFileSeparator")
