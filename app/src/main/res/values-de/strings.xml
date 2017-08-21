@@ -199,5 +199,8 @@
     <string name="sync_interval">Synchronisierungsintervall</string>
     <string name="sync_interval_description">Überprüfen Sie auf neuartige Aktualisierungsintervalle</string>
 
+    <!-- v0.6.2 Strings -->
+    <string name="clean">Reinigen</string>
+
 
 </resources>

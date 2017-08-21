@@ -273,4 +273,9 @@
     <string name="sync_interval">Sync Interval</string>
     <string name="sync_interval_description">Check for novel updates interval</string>
 
+    <!-- From Here -->
+
+    <!-- v0.6.2 Strings -->
+    <string name="clean">Clean</string>
+
 </resources>

@@ -6,8 +6,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
 
-
-class WordPressHelper : HtmlHelper() {
+class BlueSilverTranslationsHelper : HtmlHelper() {
 
     override fun downloadCSS(doc: Document, downloadDir: File) {
         //super.downloadCSS(doc, downloadDir)
@@ -26,6 +25,14 @@ class WordPressHelper : HtmlHelper() {
         cleanClassAndIds(contentElement)
         contentElement?.getElementsByClass("wpcnt")?.remove()
         contentElement?.getElementById("jp-post-flair")?.remove()
+
+        //Convert the iframe to link
+        val iframes = doc.getElementsByTag("iframe")
+        iframes?.forEach {
+            it.parent().append("Chapter(?) Link - <a href=\"${it.attr("src")}\" style=\"word-wrap:break-word;\">${it.attr("src")}</a>")
+            it.remove()
+        }
+
     }
 
     override fun downloadImage(element: Element, dir: File): File? {
@@ -55,7 +62,14 @@ class WordPressHelper : HtmlHelper() {
         if (otherLinks != null && otherLinks.isNotEmpty()) {
             otherLinks.mapTo(links) { it.attr("href") }
         }
+        val otherLinks2 = doc.getElementsByAttributeValueContaining("src", "docs.google.com")
+        if (otherLinks2 != null && otherLinks2.isNotEmpty()) {
+            otherLinks2.mapTo(links) { it.attr("src") }
+        }
+        val otherLinks3 = doc.getElementsByAttributeValueContaining("href", "docs.google.com")
+        if (otherLinks3 != null && otherLinks3.isNotEmpty()) {
+            otherLinks3.mapTo(links) { it.attr("href") }
+        }
         return links
     }
-
 }

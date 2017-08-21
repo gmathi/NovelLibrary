@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.support.v4.view.ViewPager
 import android.view.KeyEvent
 import android.view.MenuItem
+import android.view.View
 import android.webkit.WebView
 import android.widget.SeekBar
 import com.afollestad.materialdialogs.MaterialDialog
@@ -35,7 +36,6 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
         setContentView(R.layout.activity_reader_pager)
         //window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-
         novel = intent.getSerializableExtra("novel") as Novel?
         webPage = intent.getSerializableExtra("webPage") as WebPage?
 
@@ -62,7 +62,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
 
         fabClean.setOnClickListener {
             (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).cleanPage()
-            fabClean.hide()
+            fabClean.visibility = View.INVISIBLE
         }
 
     }
@@ -75,7 +75,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
             webPage.isRead = 1
             dbHelper.updateWebPageReadStatus(webPage)
         }
-        fabClean.show()
+        fabClean.visibility = View.VISIBLE
     }
 
     override fun onPageScrollStateChanged(position: Int) {

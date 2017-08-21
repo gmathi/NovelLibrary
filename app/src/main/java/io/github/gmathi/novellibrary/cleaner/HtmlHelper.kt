@@ -27,6 +27,7 @@ open class HtmlHelper protected constructor() {
                 host.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
                 host.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
                 host.contains(HostNames.QIDIAN) -> return QidianHelper()
+                host.contains(HostNames.GOOGLE_DOCS) -> return GoogleDocsCleaner()
 
             // 'entry-content' - 'div' tag cleaner
                 host.contains(HostNames.KOBATOCHAN) -> return EntryContentTagCleaner()
@@ -34,8 +35,12 @@ open class HtmlHelper protected constructor() {
                 host.contains(HostNames.LIGHT_NOVEL_TRANSLATIONS) -> return EntryContentTagCleaner()
 
             // "WordPress" Sites cleaner
+                host.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsHelper()
                 host.contains(HostNames.WORD_PRESS) -> return WordPressHelper()
                 host.contains(HostNames.PRINCE_REVOLUTION) -> return WordPressHelper()
+
+            // "Tumblr" Sites Cleaner
+                host.contains(HostNames.TUMBLR) -> return TumblrCleaner()
 
             }
             return HtmlHelper()

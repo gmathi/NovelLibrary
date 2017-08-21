@@ -22,6 +22,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapterWithDragListener
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.model.WebPage
@@ -90,29 +91,22 @@ class ChaptersUltimateActivity :
 
     private fun setData() {
         progressLayout.showLoading()
-        if (Utils.checkNetwork(this@ChaptersUltimateActivity)) {
-            getChapters()
-        } else {
-            getChaptersFromDB()
-        }
+        getChaptersFromDB()
     }
 
     private fun getChaptersFromDB() {
         async {
-
             val chapters = await { ArrayList(dbHelper.getAllWebPages(novel.id)) }
             adapter.updateData(chapters)
             scrollToBookmark()
 
             if (adapter.items.isEmpty()) {
-                progressLayout.showError(ContextCompat.getDrawable(this@ChaptersUltimateActivity, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
-                    progressLayout.showLoading()
-                    getChapters()
-                })
+                progressLayout.showLoading()
+                getChapters()
             } else {
                 swipeRefreshLayout.isRefreshing = false
                 progressLayout.showContent()
-                if (adapter.items.size != novel.chapterCount.toInt()) {
+                if (adapter.items.size < novel.chapterCount.toInt()) {
                     getChapters()
                 }
             }
@@ -121,6 +115,15 @@ class ChaptersUltimateActivity :
 
     private fun getChapters() {
         async chapters@ {
+
+            if (!Utils.checkNetwork(this@ChaptersUltimateActivity)) {
+                if (adapter.items.isEmpty())
+                    progressLayout.showError(ContextCompat.getDrawable(this@ChaptersUltimateActivity, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+                        progressLayout.showLoading()
+                        getChapters()
+                    })
+                return@chapters
+            }
 
             //Download latest chapters from network
             try {
@@ -141,6 +144,7 @@ class ChaptersUltimateActivity :
                     }
                 }
             } catch (e: Exception) {
+                e.printStackTrace()
                 if (progressLayout.isLoading)
                     progressLayout.showError(ContextCompat.getDrawable(this@ChaptersUltimateActivity, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
                         progressLayout.showLoading()
@@ -552,6 +556,11 @@ class ChaptersUltimateActivity :
         if (webPage != null) {
             adapter.updateItem(webPage)
         }
+        if ((event.type == EventType.UPDATE && event.webPage == null) || event.type == EventType.COMPLETE)
+            setDownloadStatus()
+        else if (event.type == EventType.UPDATE && event.webPage != null) {
+            updateDownloadStatus(event.webPage?.orderId)
+        }
     }
 
     //endregion
@@ -566,13 +575,14 @@ class ChaptersUltimateActivity :
     }
 
     private fun addNovelToLibrary() {
-        if (novel.id == -1L) {
-            progressLayout.showLoading()
-            novel.id = dbHelper.insertNovel(novel)
-            if (isSortedAsc) dbHelper.addWebPages(adapter.items, novel)
-            else dbHelper.addWebPages(adapter.items.asReversed(), novel)
-            getChaptersFromDB()
-            progressLayout.showContent()
+        async {
+            if (novel.id == -1L) {
+                progressLayout.showLoading()
+                novel.id = await { dbHelper.insertNovel(novel) }
+                if (isSortedAsc) await { dbHelper.addWebPages(adapter.items, novel) }
+                else await { dbHelper.addWebPages(adapter.items.asReversed(), novel) }
+                getChaptersFromDB()
+            }
         }
     }
 

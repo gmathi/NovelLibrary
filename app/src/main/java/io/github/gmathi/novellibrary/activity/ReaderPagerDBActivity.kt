@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.support.v4.view.ViewPager
 import android.view.KeyEvent
 import android.view.MenuItem
+import android.view.View
 import android.webkit.WebView
 import android.widget.SeekBar
 import com.afollestad.materialdialogs.MaterialDialog
@@ -18,6 +19,7 @@ import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.model.NightModeChangeEvent
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.util.applyFont
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import org.greenrobot.eventbus.EventBus
 
@@ -55,9 +57,10 @@ class ReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener, Fl
         floatingToolbar.attachFab(fab)
         floatingToolbar.setClickListener(this)
 
+        fabCleanTextView.applyFont(assets).text = getString(R.string.clean)
         fabClean.setOnClickListener {
             (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment).cleanPage()
-            fabClean.hide()
+            fabClean.visibility = View.INVISIBLE
         }
 
     }
@@ -75,7 +78,7 @@ class ReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener, Fl
         val orderId = if (dataCenter.japSwipe) novel!!.chapterCount.toInt() - position - 1 else position
         val webPage = dbHelper.getWebPage(novel!!.id, orderId.toLong())
         if (webPage != null) updateBookmark(webPage)
-        fabClean.show()
+        fabClean.visibility = View.VISIBLE
     }
 
     override fun onPageScrollStateChanged(position: Int) {

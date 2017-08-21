@@ -88,12 +88,12 @@ class WebPageFragment : Fragment() {
 
         doc = Jsoup.parse("<html></html>", webPage!!.url)
         loadData()
-        if (isCleaned || dataCenter.cleanChapters) activity.fabClean.hide()
     }
 
     fun loadData() {
         //Load with downloaded HTML File
         isCleaned = false
+        if (isCleaned || dataCenter.cleanChapters) activity.fabClean.visibility = View.INVISIBLE else activity.fabClean.visibility = View.VISIBLE
         if (webPage!!.filePath != null) {
             val internalFilePath = "file://${webPage!!.filePath}"
             val input = File(internalFilePath.substring(7))
@@ -162,7 +162,7 @@ class WebPageFragment : Fragment() {
                     cleaner.toggleTheme(dataCenter.isDarkTheme, doc)
                 } else {
                     isCleaned = false
-                    activity.fabClean.show()
+                    activity.fabClean.visibility = View.VISIBLE
                 }
 
                 loadDocument()
@@ -270,7 +270,6 @@ class WebPageFragment : Fragment() {
         EventBus.getDefault().unregister(this)
     }
 
-    @SuppressWarnings("Unused")
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onNightModeChanged(event: NightModeChangeEvent) {
         applyTheme()

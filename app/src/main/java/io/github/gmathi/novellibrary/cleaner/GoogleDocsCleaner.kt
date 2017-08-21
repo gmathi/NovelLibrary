@@ -6,8 +6,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
 
-
-class WordPressHelper : HtmlHelper() {
+class GoogleDocsCleaner : HtmlHelper() {
 
     override fun downloadCSS(doc: Document, downloadDir: File) {
         //super.downloadCSS(doc, downloadDir)
@@ -15,17 +14,18 @@ class WordPressHelper : HtmlHelper() {
     }
 
     override fun additionalProcessing(doc: Document) {
-        doc.head()?.getElementsByTag("link")?.remove()
-        var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
-        contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
-        do {
-            contentElement?.siblingElements()?.remove()
-            cleanClassAndIds(contentElement)
-            contentElement = contentElement?.parent()
-        } while (contentElement != null && contentElement.tagName() != "body")
-        cleanClassAndIds(contentElement)
-        contentElement?.getElementsByClass("wpcnt")?.remove()
-        contentElement?.getElementById("jp-post-flair")?.remove()
+        doc.getElementsByTag("link")?.remove()
+        doc.getElementsByTag("style")?.remove()
+//        var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
+//        contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
+//        do {
+//            contentElement?.siblingElements()?.remove()
+//            cleanClassAndIds(contentElement)
+//            contentElement = contentElement?.parent()
+//        } while (contentElement != null && contentElement.tagName() != "body")
+//        cleanClassAndIds(contentElement)
+//        contentElement?.getElementsByClass("wpcnt")?.remove()
+//        contentElement?.getElementById("jp-post-flair")?.remove()
     }
 
     override fun downloadImage(element: Element, dir: File): File? {
@@ -46,16 +46,6 @@ class WordPressHelper : HtmlHelper() {
         }
 
         return doc
-    }
-
-    override fun getLinkedChapters(doc: Document): ArrayList<String> {
-
-        val links = ArrayList<String>()
-        val otherLinks = doc.getElementsByAttributeValue("itemprop", "articleBody").firstOrNull()?.getElementsByAttributeValueContaining("href", HostNames.WORD_PRESS)
-        if (otherLinks != null && otherLinks.isNotEmpty()) {
-            otherLinks.mapTo(links) { it.attr("href") }
-        }
-        return links
     }
 
 }
