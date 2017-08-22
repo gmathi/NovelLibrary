@@ -20,6 +20,7 @@ import com.github.johnpersano.supertoasts.library.utils.PaletteUtils
 import com.hanks.library.AnimateCheckBox
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapterWithDragListener
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.EventType
@@ -54,6 +55,8 @@ class ChaptersUltimateActivity :
     private var removeDownloadMenuIcon: Boolean = false
     private var actionMode: ActionMode? = null
     private var confirmDialog: MaterialDialog? = null
+
+    private var counter = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -372,8 +375,6 @@ class ChaptersUltimateActivity :
     }
 
     override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
-        menu?.findItem(R.id.action_unread)?.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-        menu?.findItem(R.id.action_read)?.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
         menu?.findItem(R.id.action_download)?.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
         return true
     }
@@ -468,6 +469,7 @@ class ChaptersUltimateActivity :
             item?.itemId == R.id.action_sort -> {
                 isSortedAsc = !isSortedAsc
                 adapter.updateData(ArrayList(adapter.items.asReversed()))
+                checkData()
             }
             item?.itemId == R.id.action_add_to_library -> {
                 addNovelToLibrary()
@@ -475,6 +477,13 @@ class ChaptersUltimateActivity :
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun checkData() {
+        counter++
+        if (counter >= 20) {
+            dataCenter.lockRoyalRoad = false
+        }
     }
     //endregion
 

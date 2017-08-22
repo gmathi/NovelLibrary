@@ -6,9 +6,9 @@
 
     <item
         android:id="@+id/action_share_chapter"
+        android:icon="@drawable/ic_share_white_vector"
         android:title="@string/share"
         android:titleCondensed="@string/share"
-        android:icon="@drawable/ic_share_white_vector"
         app:showAsAction="always"/>
 
     <item
@@ -20,32 +20,30 @@
 
     <item
         android:id="@+id/action_select_all"
+        android:icon="@drawable/ic_check_all_white_vector"
         android:title="@string/select_all"
         android:titleCondensed="@string/select_all"
-        app:showAsAction="never"/>
+        app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/action_clear_selection"
+        android:icon="@drawable/ic_uncheck_all_white_vector"
         android:title="@string/clear_selection"
         android:titleCondensed="@string/clear_selection"
-        app:showAsAction="never"/>
+        app:showAsAction="ifRoom"/>
 
     <item
         android:id="@+id/action_unread"
         android:icon="@drawable/ic_visibility_off_white_vector"
         android:title="@string/mark_unread"
         android:titleCondensed="@string/unread"
-        app:showAsAction="never"/>
+        app:showAsAction="ifRoom"/>
 
     <item
         android:id="@+id/action_read"
         android:icon="@drawable/ic_visibility_white_vector"
         android:title="@string/mark_read"
         android:titleCondensed="@string/read"
-        app:showAsAction="never"/>
-
-
-
-
+        app:showAsAction="ifRoom"/>
 
 
 </menu>

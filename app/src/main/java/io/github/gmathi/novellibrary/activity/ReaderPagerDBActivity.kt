@@ -40,10 +40,10 @@ class ReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener, Fl
         viewPager.addOnPageChangeListener(this)
         viewPager.adapter = adapter
 
-        if (novel!!.currentWebPageId != -1L)
-            webPage = dbHelper.getWebPageByWebPageId(novel!!.currentWebPageId)
+        webPage = if (novel!!.currentWebPageId != -1L)
+            dbHelper.getWebPageByWebPageId(novel!!.currentWebPageId)
         else
-            webPage = dbHelper.getWebPage(novel!!.id, 0)
+            dbHelper.getWebPage(novel!!.id, 0)
 
         if (webPage != null) {
             updateBookmark(webPage!!)

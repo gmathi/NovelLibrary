@@ -5,18 +5,20 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
 
-
-class CircusTranslationsHelper : HtmlHelper() {
+class GeneralIdTagHelper(val tagName: String, val id: String) : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
-        var contentElement = doc.body().getElementById("primary")
+        var contentElement = doc.body().getElementsByTag(tagName).firstOrNull { it.id() == id }
+        contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
+        cleanCSSFromChildren(contentElement)
         do {
             contentElement?.siblingElements()?.remove()
-            contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
+            cleanClassAndIds(contentElement)
             contentElement = contentElement?.parent()
         } while (contentElement != null && contentElement.tagName() != "body")
-        contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
-        doc.getElementById("custom-background-css")?.remove()
+        cleanClassAndIds(contentElement)
+        contentElement?.getElementsByClass("wpcnt")?.remove()
+        contentElement?.getElementById("jp-post-flair")?.remove()
     }
 
     override fun downloadImage(element: Element, dir: File): File? {
@@ -31,8 +33,6 @@ class CircusTranslationsHelper : HtmlHelper() {
     }
 
     override fun downloadCSS(doc: Document, downloadDir: File) {
-        //super.downloadCSS(doc, downloadDir)
         removeCSS(doc)
     }
-
 }

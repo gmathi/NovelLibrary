@@ -20,8 +20,7 @@ import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_title_subtitle_widget.view.*
 import java.io.File
 
-
-class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
+class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     lateinit var adapter: GenericAdapter<String>
     private lateinit var settingsItems: ArrayList<String>
@@ -36,11 +35,11 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     }
 
     private fun setRecyclerView() {
-        settingsItems = ArrayList(resources.getStringArray(io.github.gmathi.novellibrary.R.array.general_titles_list).asList())
-        settingsItemsDescription = ArrayList(resources.getStringArray(io.github.gmathi.novellibrary.R.array.general_subtitles_list).asList())
+        settingsItems = ArrayList(resources.getStringArray(R.array.reader_titles_list).asList())
+        settingsItemsDescription = ArrayList(resources.getStringArray(R.array.reader_subtitles_list).asList())
         adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
         recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(object : DividerItemDecoration(this, DividerItemDecoration.VERTICAL) {
+        recyclerView.addItemDecoration(object : DividerItemDecoration(this, VERTICAL) {
 
             override fun getItemOffsets(outRect: Rect?, view: View?, parent: RecyclerView?, state: RecyclerView.State?) {
                 val position = parent?.getChildAdapterPosition(view)
@@ -64,23 +63,6 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         itemView.widgetSwitch.setOnCheckedChangeListener(null)
         when (position) {
             0 -> {
-                itemView.widgetButton.visibility = View.VISIBLE
-                itemView.widgetButton.text = getString(R.string.clear)
-                itemView.widgetButton.setOnClickListener { deleteFilesDialog() }
-            }
-            1 -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.experimentalDownload
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.experimentalDownload = value }
-            }
-            2 -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.loadLibraryScreen
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.loadLibraryScreen = value }
-            }
-
-            //These wont work as they are not in the xml anymore
-            3 -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.cleanChapters
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
@@ -91,7 +73,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                     }
                 }
             }
-            4 -> {
+            1 -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.javascriptDisabled
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
@@ -102,14 +84,11 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                     }
                 }
             }
-            5 -> {
+            2 -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.japSwipe
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.japSwipe = value }
             }
-//            6 -> {
-//                itemView.widgetChevron.visibility = View.VISIBLE
-//            }
         }
 
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)

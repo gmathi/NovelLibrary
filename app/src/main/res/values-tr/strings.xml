@@ -189,6 +189,7 @@
 
     <!-- v0.6.2 Strings -->
     <string name="clean">Temiz</string>
+    <string name="reader">Okuyucu</string>
 
 
 </resources>

@@ -34,20 +34,6 @@ class WordPressHelper : HtmlHelper() {
         else super.downloadImage(element, dir)
     }
 
-    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
-        if (isDark) {
-            doc.head().getElementById("darkTheme")?.remove()
-            doc.head().append("<style id=\"darkTheme\">" +
-                "body { background-color:#131313; color:rgba(255, 255, 255, 0.8); font-family: 'Open Sans',sans-serif; line-height: 1.5; padding:20px;} </style> ")
-        } else {
-            doc.head().getElementById("darkTheme")?.remove()
-            doc.head().append("<style id=\"darkTheme\">" +
-                "body { background-color:rgba(255, 255, 255, 0.8); color:#131313; font-family: 'Open Sans',sans-serif; line-height: 1.5; padding:20px;} </style> ")
-        }
-
-        return doc
-    }
-
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
 
         val links = ArrayList<String>()

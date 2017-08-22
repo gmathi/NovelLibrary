@@ -24,27 +24,13 @@ class EntryContentTagCleaner : HtmlHelper() {
 
     override fun downloadImage(element: Element, dir: File): File? {
         val uri = Uri.parse(element.attr("src"))
-        if (uri.toString().contains("uploads/avatars")) return null
-        else return super.downloadImage(element, dir)
+        return if (uri.toString().contains("uploads/avatars")) null
+        else super.downloadImage(element, dir)
     }
 
     override fun removeJS(doc: Document) {
         super.removeJS(doc)
         doc.getElementsByTag("noscript").remove()
-    }
-
-    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
-        if (isDark) {
-            doc.head().getElementById("darkTheme")?.remove()
-            doc.head().append("<style id=\"darkTheme\">" +
-                "body { background-color:#131313; color:rgba(255, 255, 255, 0.8); font-family: 'Open Sans',sans-serif; line-height: 1.5; padding:20px;} </style> ")
-        } else {
-            doc.head().getElementById("darkTheme")?.remove()
-            doc.head().append("<style id=\"darkTheme\">" +
-                "body { background-color:rgba(255, 255, 255, 0.8); color:#131313; font-family: 'Open Sans',sans-serif; line-height: 1.5; padding:20px;} </style> ")
-        }
-
-        return doc
     }
 
     override fun downloadCSS(doc: Document, downloadDir: File) {

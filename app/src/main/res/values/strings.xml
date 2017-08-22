@@ -49,6 +49,7 @@
 
     <string-array name="settings_list" translatable="false">
         <item>@string/general</item>
+        <item>@string/reader</item>
         <item>@string/mentions</item>
         <item>@string/donate_developer</item>
         <item>@string/changelog</item>
@@ -66,19 +67,28 @@
         <item>@string/clear_data</item>
         <item>@string/faster_downloads</item>
         <item>@string/first_screen_library</item>
-        <item>@string/clean_pages</item>
-        <item>@string/disable_javascript</item>
-        <item>@string/swipe_right_for_next_chapter</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
         <item>@string/clear_data_description</item>
         <item>@string/faster_downloads_description</item>
         <item>@string/first_screen_library_description</item>
+    </string-array>
+
+    <string-array name="reader_titles_list" translatable="false">
+        <item>@string/clean_pages</item>
+        <item>@string/disable_javascript</item>
+        <item>@string/swipe_right_for_next_chapter</item>
+        <!--<item>@string/pure_night_mode</item>-->
+    </string-array>
+
+    <string-array name="reader_subtitles_list" translatable="false">
         <item>@string/clean_pages_description</item>
         <item>@string/disable_javascript_description</item>
         <item>@string/swipe_right_for_next_chapter_description</item>
     </string-array>
+
+
 
 
     <!--<item>Latest Updates</item>-->
@@ -92,6 +102,7 @@
     <string name="title_activity_copyright" translatable="false">@string/copyright_notice</string>
     <string name="title_activity_search_results" translatable="false">SearchResultsActivity</string>
     <string name="title_activity_general_settings" translatable="false">@string/general</string>
+    <string name="title_activity_reader_settings" translatable="false">@string/reader</string>
     <string name="title_activity_mention_settings" translatable="false">@string/mentions</string>
     <string name="title_activity_chapters_new" translatable="false">@string/chapters</string>
     <string name="title_activity_language" translatable="false">LanguageActivity</string>
@@ -277,5 +288,6 @@
 
     <!-- v0.6.2 Strings -->
     <string name="clean">Clean</string>
+    <string name="reader">Reader</string>
 
 </resources>

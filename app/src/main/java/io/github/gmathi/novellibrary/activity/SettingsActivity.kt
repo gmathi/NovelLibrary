@@ -59,7 +59,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     override fun bind(item: String, itemView: View, position: Int) {
         itemView.settingsTitle.applyFont(assets).text = item
-        itemView.chevron.visibility = if (position == 0 || position == 1) View.VISIBLE else View.INVISIBLE
+        itemView.chevron.visibility = if (position == 0 || position == 1 || position == 2) View.VISIBLE else View.INVISIBLE
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
         else ContextCompat.getColor(this, android.R.color.transparent))
     }
@@ -67,6 +67,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     override fun onItemClick(item: String) {
         when (item) {
             getString(R.string.general) -> startGeneralSettingsActivity()
+            getString(R.string.reader) -> startReaderSettingsActivity()
             getString(R.string.mentions) -> startMentionSettingsActivity()
             getString(R.string.donate_developer) -> donateDeveloperDialog()
             getString(R.string.changelog) -> showChangeLog()
@@ -103,10 +104,13 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     private fun setEasterEgg() {
-        if (dataCenter.lockRoyalRoad) {
-            hiddenRightButton.setOnClickListener { rightButtonCounter++; checkUnlockStatus() }
-            hiddenLeftButton.setOnClickListener { leftButtonCounter++; checkUnlockStatus() }
-        }
+//        if (dataCenter.lockRoyalRoad) {
+//            hiddenRightButton.setOnClickListener { rightButtonCounter++; checkUnlockStatus() }
+//            hiddenLeftButton.setOnClickListener { leftButtonCounter++; checkUnlockStatus() }
+//        } else {
+        hiddenRightButton.visibility = View.GONE
+        hiddenLeftButton.visibility = View.GONE
+//        }
     }
 
     private fun checkUnlockStatus() {

@@ -200,6 +200,7 @@
 
     <!-- v0.6.2 Strings -->
     <string name="clean">Limpo</string>
+    <string name="reader">Leitor</string>
 
 
 </resources>
