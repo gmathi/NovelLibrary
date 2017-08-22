@@ -201,6 +201,7 @@
 
     <!-- v0.6.2 Strings -->
     <string name="clean">Reinigen</string>
+    <string name="reader">Leser</string>
 
 
 </resources>

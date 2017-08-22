@@ -191,6 +191,7 @@
 
     <!-- v0.6.2 Strings -->
     <string name="clean">Membersihkan</string>
+    <string name="reader">Pembaca</string>
 
 
 </resources>
