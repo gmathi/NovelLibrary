@@ -120,6 +120,11 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
+            android:name=".activity.ReaderSettingsActivity"
+            android:label="@string/title_activity_reader_settings"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
             android:name=".activity.MentionSettingsActivity"
             android:label="@string/title_activity_mention_settings"
             android:theme="@style/DarkTheme_DarkSide">

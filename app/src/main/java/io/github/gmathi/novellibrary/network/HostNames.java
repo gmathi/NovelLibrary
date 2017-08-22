@@ -21,6 +21,8 @@ public class HostNames {
     public static final String BLUE_SILVER_TRANSLATIONS = "bluesilvertranslations.wordpress.com";
     public static final String GOOGLE_DOCS = "docs.google.com";
     public static final String TUMBLR = "tumblr.com";
+    public static final String LIBER_SPARK = "liberspark.com";
+    public static final String SKY_WOOD_TRANSLATIONS = "skythewood.blogspot.com";
 
 
     @SuppressWarnings("HardcodedFileSeparator")

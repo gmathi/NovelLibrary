@@ -47,7 +47,7 @@ class WebPageFragment : Fragment() {
     var webPage: WebPage? = null
     lateinit var doc: Document
 
-    var isCleaned: Boolean = false
+    private var isCleaned: Boolean = false
     var history: ArrayList<WebPage> = ArrayList()
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
@@ -61,6 +61,8 @@ class WebPageFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
+       if (activity == null) return
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             readerWebView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
@@ -90,7 +92,7 @@ class WebPageFragment : Fragment() {
         loadData()
     }
 
-    fun loadData() {
+    private fun loadData() {
         //Load with downloaded HTML File
         isCleaned = false
         if (isCleaned || dataCenter.cleanChapters) activity.fabClean.visibility = View.INVISIBLE else activity.fabClean.visibility = View.VISIBLE
@@ -113,7 +115,7 @@ class WebPageFragment : Fragment() {
         }
     }
 
-    fun setWebView() {
+    private fun setWebView() {
         readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled
         readerWebView.webViewClient = object : WebViewClient() {
             @Suppress("OverridingDeprecatedMember")
@@ -184,7 +186,7 @@ class WebPageFragment : Fragment() {
         settings.textZoom = (size + 50) * 2
     }
 
-    fun loadDocument() {
+    private fun loadDocument() {
         readerWebView.loadDataWithBaseURL(
             if (webPage!!.filePath != null) "file://${webPage!!.filePath}" else doc.location(),
             doc.outerHtml(),
@@ -193,7 +195,7 @@ class WebPageFragment : Fragment() {
             readerWebView.scrollTo(0, webPage!!.metaData["scrollY"]!!.toInt())
     }
 
-    fun applyTheme() {
+    private fun applyTheme() {
         HtmlHelper.getInstance(doc.location()).toggleTheme(dataCenter.isDarkTheme, doc)
     }
 
@@ -222,7 +224,7 @@ class WebPageFragment : Fragment() {
         async.cancelAll()
     }
 
-    fun loadNewWebPage(otherWebPage: WebPage) {
+    private fun loadNewWebPage(otherWebPage: WebPage) {
         history.add(webPage!!)
         webPage = otherWebPage
         loadData()

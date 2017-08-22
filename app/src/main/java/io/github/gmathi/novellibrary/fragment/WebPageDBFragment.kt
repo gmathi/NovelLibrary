@@ -68,6 +68,8 @@ class WebPageDBFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        if (activity == null) return
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             readerWebView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
                 if (scrollY > oldScrollY && scrollY > 0) {
@@ -220,15 +222,20 @@ class WebPageDBFragment : Fragment() {
 
     fun cleanPage() {
         if (!isCleaned) {
-            progressLayout.showLoading()
-            readerWebView.settings.javaScriptEnabled = false
-            val htmlHelper = HtmlHelper.getInstance(doc.location())
-            htmlHelper.removeJS(doc)
-            htmlHelper.additionalProcessing(doc)
-            applyTheme()
-            loadDocument()
-            progressLayout.showContent()
-            isCleaned = true
+            try {
+                progressLayout.showLoading()
+                readerWebView.settings.javaScriptEnabled = false
+                val htmlHelper = HtmlHelper.getInstance(doc.location())
+                htmlHelper.removeJS(doc)
+                htmlHelper.additionalProcessing(doc)
+                applyTheme()
+                loadDocument()
+                isCleaned = true
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                progressLayout.showContent()
+            }
         }
     }
 

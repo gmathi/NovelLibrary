@@ -98,6 +98,12 @@ fun Activity.startGeneralSettingsActivity() {
     startActivity(intent)
 }
 
+fun Activity.startReaderSettingsActivity() {
+    val intent = Intent(this, ReaderSettingsActivity::class.java)
+    startActivity(intent)
+}
+
+
 fun Activity.startMentionSettingsActivity() {
     val intent = Intent(this, MentionSettingsActivity::class.java)
     startActivity(intent)
