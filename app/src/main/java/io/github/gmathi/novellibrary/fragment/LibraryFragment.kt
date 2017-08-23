@@ -177,10 +177,11 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
-        menu.getItem(0).isVisible = statusCard.visibility == View.GONE
+        if (activity != null && statusCard != null)
+            menu.getItem(0).isVisible = statusCard.visibility == View.GONE
         super.onPrepareOptionsMenu(menu)
     }
-
+`
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.action_sync -> {

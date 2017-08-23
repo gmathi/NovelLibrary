@@ -102,6 +102,12 @@ class WebPageDBFragment : Fragment() {
             } else webPage = intentWebPage
         }
 
+        if (webPage == null || webPage?.url == null) {
+            val activity = (activity as ReaderPagerDBActivity?)
+            activity?.startChaptersActivity(activity.novel!!, false)
+            activity?.finish()
+        }
+
         doc = Jsoup.parse("<html></html>", webPage!!.url)
         loadData()
     }

@@ -154,7 +154,9 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
     }
 
     override fun onItemClick(item: DownloadQueue) {
-        activity?.startNovelDetailsActivity(dbHelper.getNovel(item.novelId)!!, false)
+        val novel = dbHelper.getNovel(item.novelId)
+        if (novel != null)
+            activity?.startNovelDetailsActivity(novel, false)
     }
     //endregion
 

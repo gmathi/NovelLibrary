@@ -27,13 +27,15 @@ import org.cryse.widget.persistentsearch.PersistentSearchView
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
 
-    var snackBar: Snackbar? = null
-    var currentNavId: Int = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
+    private var snackBar: Snackbar? = null
+    private var currentNavId: Int = R.id.nav_search
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_nav_drawer)
         navigationView.setNavigationItemSelectedListener(this)
+
+        if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
 
         if (intent.hasExtra("currentNavId"))
             currentNavId = intent.getIntExtra("currentNavId", currentNavId)
@@ -108,7 +110,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         return true
     }
 
-    fun loadFragment(id: Int) {
+    private fun loadFragment(id: Int) {
         currentNavId = id
         when (id) {
             R.id.nav_library -> {
@@ -127,7 +129,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     }
 
 
-    fun replaceFragment(fragment: Fragment, tag: String) {
+    private fun replaceFragment(fragment: Fragment, tag: String) {
 //        val existingFrag = supportFragmentManager.findFragmentByTag(tag)
         var replaceFrag = fragment
 //        if (existingFrag != null) {
