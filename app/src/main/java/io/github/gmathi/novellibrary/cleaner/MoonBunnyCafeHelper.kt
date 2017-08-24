@@ -9,6 +9,7 @@ import java.io.File
 class MoonBunnyCafeHelper : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
+        removeCSS(doc)
         var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
 //        contentElement?.child(0)?.remove()
 //        contentElement?.child(contentElement.children().size - 1)?.remove()
@@ -45,11 +46,6 @@ class MoonBunnyCafeHelper : HtmlHelper() {
         doc.getElementsByTag("noscript").remove()
     }
 
-    override fun downloadCSS(doc: Document, downloadDir: File) {
-        //super.downloadCSS(doc, downloadDir)
-        removeCSS(doc)
-    }
-
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
 
         val links = ArrayList<String>()
@@ -59,6 +55,10 @@ class MoonBunnyCafeHelper : HtmlHelper() {
             otherLinks.mapTo(links) { it.attr("href") }
         }
         return links
+    }
+
+    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
+        return super.toggleThemeDefault(isDark, doc)
     }
 
 

@@ -282,6 +282,7 @@ class WebPageFragment : Fragment() {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onNightModeChanged(event: NightModeChangeEvent) {
+        cleanPage()
         applyTheme()
         loadDocument()
     }

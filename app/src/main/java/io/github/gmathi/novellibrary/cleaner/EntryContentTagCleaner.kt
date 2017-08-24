@@ -9,6 +9,7 @@ import java.net.URI
 class EntryContentTagCleaner : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
+        removeCSS(doc)
         var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
         removeDirectionalLinks(contentElement)
@@ -31,10 +32,6 @@ class EntryContentTagCleaner : HtmlHelper() {
     override fun removeJS(doc: Document) {
         super.removeJS(doc)
         doc.getElementsByTag("noscript").remove()
-    }
-
-    override fun downloadCSS(doc: Document, downloadDir: File) {
-        removeCSS(doc)
     }
 
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
@@ -62,6 +59,10 @@ class EntryContentTagCleaner : HtmlHelper() {
 
         }?.forEach { it?.remove() }
 
+    }
+
+    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
+        return super.toggleThemeDefault(isDark, doc)
     }
 
 

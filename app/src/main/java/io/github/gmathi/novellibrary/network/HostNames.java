@@ -23,6 +23,9 @@ public class HostNames {
     public static final String TUMBLR = "tumblr.com";
     public static final String LIBER_SPARK = "liberspark.com";
     public static final String SKY_WOOD_TRANSLATIONS = "skythewood.blogspot.com";
+    public static final String VOLARE_NOVELS = "volarenovels.com";
+    public static final String SOUSETSUKA = "sousetsuka.com";
+
 
 
     @SuppressWarnings("HardcodedFileSeparator")

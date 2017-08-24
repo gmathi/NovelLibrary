@@ -106,10 +106,16 @@ class WebPageDBFragment : Fragment() {
             val activity = (activity as ReaderPagerDBActivity?)
             activity?.startChaptersActivity(activity.novel!!, false)
             activity?.finish()
+            return
         }
 
+        // try {
         doc = Jsoup.parse("<html></html>", webPage!!.url)
         loadData()
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            activity?.finish()
+//        }
     }
 
     private fun loadData() {
@@ -305,8 +311,33 @@ class WebPageDBFragment : Fragment() {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onNightModeChanged(event: NightModeChangeEvent) {
+        cleanPage()
         applyTheme()
         loadDocument()
     }
+
+    //    private fun saveWebPagePosition() {
+//        if (webPage != null) {
+//            webPage!!.metaData.put("scrollY", readerWebView.scrollY.toString())
+//            if (webPage!!.id > -1L)
+//                dbHelper.updateWebPage(webPage!!)
+//            else {
+//                if (history.isNotEmpty()) {
+//                    val historyPage = history.first()
+//                    if (historyPage.id > -1L && historyPage.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
+//                        val links: ArrayList<WebPage> = Gson().fromJson(historyPage.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+//                        for (link in links) {
+//                            if (link.url == webPage?.url && link.redirectedUrl == webPage?.redirectedUrl) {
+//                                link.metaData.put("scrollY", readerWebView.scrollY.toString())
+//                                break
+//                            }
+//                        }
+//                        historyPage.metaData.put(Constants.MD_OTHER_LINKED_WEB_PAGES, Gson().toJson(links))
+//                        dbHelper.updateWebPage(historyPage)
+//                    }
+//                }
+//            }
+//        }
+//    }
 
 }

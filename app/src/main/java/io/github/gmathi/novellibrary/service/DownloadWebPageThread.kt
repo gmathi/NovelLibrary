@@ -12,6 +12,7 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
@@ -63,6 +64,11 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, private 
             e.printStackTrace()
             return false
         }
+//
+//        if (doc.location().contains("rssbook") && doc.location().contains(HostNames.QIDIAN)) {
+//            webPage.url = doc.location().replace("rssbook", "book")
+//            return downloadChapter(webPage)
+//        }
 
         val uri = Uri.parse(doc.location())
         if (!StringUtil.isBlank(uri.host)) {

@@ -11,6 +11,7 @@ class WuxiaWorldHelper : HtmlHelper() {
 
 
     override fun additionalProcessing(doc: Document) {
+        removeCSS(doc)
         var contentElement = doc.getElementsByAttributeValue("itemprop", "articleBody").firstOrNull()
         do {
             contentElement?.siblingElements()?.remove()
@@ -22,15 +23,10 @@ class WuxiaWorldHelper : HtmlHelper() {
         doc.getElementById("custom-background-css")?.remove()
     }
 
-    override fun downloadCSS(doc: Document, downloadDir: File) {
-        //no need to download any, remove them instead
-        removeCSS(doc)
-    }
-
     override fun downloadImage(element: Element, dir: File): File? {
         val uri = Uri.parse(element.attr("src"))
-        if (uri.toString().contains("uploads/avatars")) return null
-        else return super.downloadImage(element, dir)
+        return if (uri.toString().contains("uploads/avatars")) null
+        else super.downloadImage(element, dir)
     }
 
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
@@ -41,6 +37,10 @@ class WuxiaWorldHelper : HtmlHelper() {
             otherLinks.mapTo(links) { it.attr("href") }
         }
         return links
+    }
+
+    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
+        return super.toggleThemeDefault(isDark, doc)
     }
 
 }

@@ -8,6 +8,7 @@ import java.io.File
 class GeneralIdTagHelper(val tagName: String, val id: String) : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
+        removeCSS(doc)
         var contentElement = doc.body().getElementsByTag(tagName).firstOrNull { it.id() == id }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
         cleanCSSFromChildren(contentElement)
@@ -32,7 +33,7 @@ class GeneralIdTagHelper(val tagName: String, val id: String) : HtmlHelper() {
         doc.getElementsByTag("noscript").remove()
     }
 
-    override fun downloadCSS(doc: Document, downloadDir: File) {
-        removeCSS(doc)
+    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
+        return super.toggleThemeDefault(isDark, doc)
     }
 }
