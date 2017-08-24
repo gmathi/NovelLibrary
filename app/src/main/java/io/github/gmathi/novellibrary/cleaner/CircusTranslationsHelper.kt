@@ -9,6 +9,7 @@ import java.io.File
 class CircusTranslationsHelper : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
+        removeCSS(doc)
         var contentElement = doc.body().getElementById("primary")
         do {
             contentElement?.siblingElements()?.remove()
@@ -30,9 +31,8 @@ class CircusTranslationsHelper : HtmlHelper() {
         doc.getElementsByTag("noscript").remove()
     }
 
-    override fun downloadCSS(doc: Document, downloadDir: File) {
-        //super.downloadCSS(doc, downloadDir)
-        removeCSS(doc)
+    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
+        return super.toggleThemeDefault(isDark, doc)
     }
 
 }

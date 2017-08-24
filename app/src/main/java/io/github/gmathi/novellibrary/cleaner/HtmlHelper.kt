@@ -32,6 +32,8 @@ open class HtmlHelper protected constructor() {
                 host.contains(HostNames.KOBATOCHAN) -> return EntryContentTagCleaner()
                 host.contains(HostNames.MOON_BUNNY_CAFE) -> return EntryContentTagCleaner()
                 host.contains(HostNames.LIGHT_NOVEL_TRANSLATIONS) -> return EntryContentTagCleaner()
+                host.contains(HostNames.SOUSETSUKA) -> return EntryContentTagCleaner()
+
 
             // "WordPress" Sites cleaner
                 host.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsHelper()
@@ -44,6 +46,7 @@ open class HtmlHelper protected constructor() {
 
             //Generic Class Cleaners
                 host.contains(HostNames.GRAVITY_TALES) -> return GeneralClassTagHelper(HostNames.GRAVITY_TALES, "article", "hentry")
+                host.contains(HostNames.VOLARE_NOVELS) -> return GeneralClassTagHelper(HostNames.VOLARE_NOVELS, "article", "hentry")
                 host.contains(HostNames.SKY_WOOD_TRANSLATIONS) -> return GeneralClassTagHelper(HostNames.SKY_WOOD_TRANSLATIONS, "div", "hentry")
 
             //Generic Id Cleaners
@@ -154,6 +157,10 @@ open class HtmlHelper protected constructor() {
     }
 
     open fun toggleTheme(isDark: Boolean, doc: Document): Document {
+        return doc
+    }
+
+    fun toggleThemeDefault(isDark: Boolean, doc: Document): Document {
 //        val fontName = "lobster_regular.ttf"
         val fontName = "source_sans_pro_regular.ttf"
         val fontFamily = fontName.split(".")[0]

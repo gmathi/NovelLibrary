@@ -15,6 +15,7 @@ import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ReaderPagerDBActivity
 import io.github.gmathi.novellibrary.activity.startChaptersActivity
+import io.github.gmathi.novellibrary.activity.startImagePreviewActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getNovel
@@ -102,8 +103,20 @@ class WebPageDBFragment : Fragment() {
             } else webPage = intentWebPage
         }
 
+        if (webPage == null || webPage?.url == null) {
+            val activity = (activity as ReaderPagerDBActivity?)
+            activity?.startChaptersActivity(activity.novel!!, false)
+            activity?.finish()
+            return
+        }
+
+        // try {
         doc = Jsoup.parse("<html></html>", webPage!!.url)
         loadData()
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            activity?.finish()
+//        }
     }
 
     private fun loadData() {
@@ -132,6 +145,23 @@ class WebPageDBFragment : Fragment() {
 
     private fun setWebView() {
         readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled
+
+//        readerWebView.setOnTouchListener { view, motionEvent ->
+//
+//            val hr = (view as WebView?)?.hitTestResult
+//            if (hr != null && (hr.type == WebView.HitTestResult.IMAGE_TYPE || hr.type == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE)) {
+//                print(hr)
+//                val url = hr.extra
+//                if (url.startsWith("http")) {
+//                    activity?.startImagePreviewActivity(url = url, filePath = null, view = readerWebView)
+//                } else {
+//                    activity?.startImagePreviewActivity(url = null, filePath = url, view = readerWebView)
+//                }
+//                true
+//            }
+//            false
+//        }
+
         readerWebView.webViewClient = object : WebViewClient() {
             @Suppress("OverridingDeprecatedMember")
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
@@ -145,6 +175,15 @@ class WebPageDBFragment : Fragment() {
 
                 //Any other urls that are not part of the index
                 if (url != null) {
+
+                    //If url is an image
+//                    if (url.endsWith(".jpg", true) || url.endsWith(".jpeg", true) || url.endsWith(".png"))
+//                        if (url.startsWith("http")) {
+//                            activity?.startImagePreviewActivity(url = url, filePath = null, view = readerWebView)
+//                            return true
+//                        }
+
+                    //download, if it is html
                     downloadWebPage(url)
                     return true
                 }
@@ -279,6 +318,7 @@ class WebPageDBFragment : Fragment() {
         }
 
         val readerActivity = (activity as ReaderPagerDBActivity?) ?: return false
+
         return readerActivity.checkUrl(url)
     }
 
@@ -299,8 +339,33 @@ class WebPageDBFragment : Fragment() {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onNightModeChanged(event: NightModeChangeEvent) {
+        cleanPage()
         applyTheme()
         loadDocument()
     }
+
+    //    private fun saveWebPagePosition() {
+//        if (webPage != null) {
+//            webPage!!.metaData.put("scrollY", readerWebView.scrollY.toString())
+//            if (webPage!!.id > -1L)
+//                dbHelper.updateWebPage(webPage!!)
+//            else {
+//                if (history.isNotEmpty()) {
+//                    val historyPage = history.first()
+//                    if (historyPage.id > -1L && historyPage.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
+//                        val links: ArrayList<WebPage> = Gson().fromJson(historyPage.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+//                        for (link in links) {
+//                            if (link.url == webPage?.url && link.redirectedUrl == webPage?.redirectedUrl) {
+//                                link.metaData.put("scrollY", readerWebView.scrollY.toString())
+//                                break
+//                            }
+//                        }
+//                        historyPage.metaData.put(Constants.MD_OTHER_LINKED_WEB_PAGES, Gson().toJson(links))
+//                        dbHelper.updateWebPage(historyPage)
+//                    }
+//                }
+//            }
+//        }
+//    }
 
 }

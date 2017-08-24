@@ -9,12 +9,8 @@ import java.io.File
 
 class WordPressHelper : HtmlHelper() {
 
-    override fun downloadCSS(doc: Document, downloadDir: File) {
-        //super.downloadCSS(doc, downloadDir)
-        removeCSS(doc)
-    }
-
     override fun additionalProcessing(doc: Document) {
+        removeCSS(doc)
         doc.head()?.getElementsByTag("link")?.remove()
         var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
@@ -42,6 +38,11 @@ class WordPressHelper : HtmlHelper() {
             otherLinks.mapTo(links) { it.attr("href") }
         }
         return links
+    }
+
+
+    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
+        return super.toggleThemeDefault(isDark, doc)
     }
 
 }

@@ -2,6 +2,22 @@
 <changelog bulletedList="true">
 
     <changelogversion
+        changeDate="08/24/2017"
+        versionName="0.6.5.beta">
+        <changelogtext>[b]New![/b] Support added for some websites to take you to chapter instead of announcement posts (ty @Daniel for ProTip!) </changelogtext>
+        <changelogtext>[b]New![/b] Add Night mode support for more sites</changelogtext>
+        <changelogtext>[i]Fix[/i] - "Library as Main screen" working again!</changelogtext>
+        <changelogtext>[i]Fix[/i] - Changed "Clean" --> "Reader" for better understanding</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/23/2017"
+        versionName="0.6.4.beta">
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
         changeDate="08/22/2017"
         versionName="0.6.3.beta">
         <changelogtext>[b]New![/b] ‘Reader’ settings moved a separate category under ‘Settings’</changelogtext>

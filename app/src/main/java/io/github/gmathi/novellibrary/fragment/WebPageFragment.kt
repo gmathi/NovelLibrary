@@ -14,6 +14,8 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ReaderPagerActivity
+import io.github.gmathi.novellibrary.activity.ReaderPagerDBActivity
+import io.github.gmathi.novellibrary.activity.startChaptersActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.model.NightModeChangeEvent
@@ -86,6 +88,12 @@ class WebPageFragment : Fragment() {
             val intentWebPage = arguments.getSerializable(WEB_PAGE) as WebPage?
             if (intentWebPage == null) activity.finish()
             else webPage = intentWebPage
+        }
+
+        if (webPage == null || webPage?.url == null) {
+            val activity = (activity as ReaderPagerActivity?)
+            activity?.startChaptersActivity(activity.novel!!, false)
+            activity?.finish()
         }
 
         doc = Jsoup.parse("<html></html>", webPage!!.url)
@@ -274,6 +282,7 @@ class WebPageFragment : Fragment() {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onNightModeChanged(event: NightModeChangeEvent) {
+        cleanPage()
         applyTheme()
         loadDocument()
     }
