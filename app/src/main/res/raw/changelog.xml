@@ -2,8 +2,8 @@
 <changelog bulletedList="true">
 
     <changelogversion
-        changeDate="08/22/2017"
-        versionName="0.6.3.beta">
+        changeDate="08/24/2017"
+        versionName="0.6.5.beta">
         <changelogtext>[b]New![/b] Support added for some websites to take you to chapter instead of announcement posts (ty @Daniel for ProTip!) </changelogtext>
         <changelogtext>[b]New![/b] Add Night mode support for more sites</changelogtext>
         <changelogtext>[i]Fix[/i] - "Library as Main screen" working again!</changelogtext>

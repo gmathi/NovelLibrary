@@ -212,6 +212,7 @@ class ReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener, Fl
             updateBookmark(webPage)
             return true
         }
+
         return false
     }
 

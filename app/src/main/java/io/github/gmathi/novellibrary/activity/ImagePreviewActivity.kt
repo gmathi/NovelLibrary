@@ -28,10 +28,12 @@ class ImagePreviewActivity : Activity() {
         val url = intent.getStringExtra("url")
         val filePath = intent.getStringExtra("filePath")
 
-        if (Utils.checkNetwork(this))
+
+
+        if (Utils.checkNetwork(this) && url != null)
             Glide.with(this).load(url).into(previewImageView)
-        else
-            Glide.with(this).load(File(filePath)).into(previewImageView)
+        else if (filePath != null)
+            Glide.with(this).load(File(filePath.replace("file://", ""))).into(previewImageView)
     }
 
 }
