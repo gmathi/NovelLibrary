@@ -24,7 +24,7 @@ fun NovelApi.searchRoyalRoadUrl(searchUrl: String): ArrayList<Novel>? {
     try {
         searchResults = ArrayList()
         val document = getDocument(searchUrl)
-        val elements = document.body().getElementsByClass("fiction-list-item").filter { it.tagName() === "div" }
+        val elements = document.body().getElementsByClass("fiction-list-item").filter { it.tagName() == "div" }
         for (element in elements) {
             val novel = Novel()
             val urlElement = element.getElementsByTag("a")?.firstOrNull()
@@ -46,7 +46,7 @@ fun NovelApi.searchNovelUpdatesUrl(searchUrl: String): ArrayList<Novel>? {
     try {
         searchResults = ArrayList()
         val document = getDocument(searchUrl)
-        val elements = document.body().getElementsByClass("bdrank").filter { it.tagName() === "tr" }
+        val elements = document.body().getElementsByClass("bdrank").filter { it.tagName() == "tr" }
         for (element in elements) {
             val novel = Novel()
             novel.url = element.getElementsByTag("a").firstOrNull()?.attr("href")

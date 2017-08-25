@@ -19,9 +19,8 @@ import jp.wasabeef.recyclerview.animators.SlideInRightAnimator
 
 
 fun ViewGroup.inflate(layoutRes: Int): View {
-    val view = LayoutInflater.from(context).inflate(layoutRes, this, false)
     //view.layoutParams = RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT)
-    return view
+    return LayoutInflater.from(context).inflate(layoutRes, this, false)
 }
 
 fun String.addToSearchHistory() {

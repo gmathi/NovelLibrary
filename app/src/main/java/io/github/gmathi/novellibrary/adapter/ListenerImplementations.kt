@@ -16,13 +16,13 @@ import io.github.gmathi.novellibrary.network.HostNames
 
 class NavPageListener : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment? {
-        when (position) {
-            0 -> return SearchUrlFragment.newInstance("http://www.novelupdates.com/series-ranking/?rank=popmonth")
-            1 -> return SearchUrlFragment.newInstance("http://www.novelupdates.com/series-ranking/?rank=popular")
-            2 -> return SearchUrlFragment.newInstance("http://www.novelupdates.com/series-ranking/?rank=sixmonths")
-            3 -> return SearchUrlFragment.newInstance("https://royalroadl.com/fictions/complete")
-            4 -> return SearchUrlFragment.newInstance("https://royalroadl.com/fictions/complete")
-            else -> return null
+        return when (position) {
+            0 -> SearchUrlFragment.newInstance("http://www.novelupdates.com/series-ranking/?rank=popmonth")
+            1 -> SearchUrlFragment.newInstance("http://www.novelupdates.com/series-ranking/?rank=popular")
+            2 -> SearchUrlFragment.newInstance("http://www.novelupdates.com/series-ranking/?rank=sixmonths")
+            3 -> SearchUrlFragment.newInstance("https://royalroadl.com/fictions/complete")
+            4 -> SearchUrlFragment.newInstance("https://royalroadl.com/fictions/complete")
+            else -> null
         }
     }
 }
@@ -35,34 +35,34 @@ class ChaptersListPageListener(val novel: Novel) : GenericFragmentStatePagerAdap
 
 class NavDetailsPageListener : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment? {
-        when (position) {
-            0 -> return SearchUrlFragment.newInstance("https://royalroadl.com/fictions/active-popular")
-            1 -> return SearchUrlFragment.newInstance("https://royalroadl.com/fictions/best-rated")
-            2 -> return SearchUrlFragment.newInstance("https://royalroadl.com/fictions/complete")
-            3 -> return SearchUrlFragment.newInstance("https://royalroadl.com/fictions/complete")
-            4 -> return SearchUrlFragment.newInstance("https://royalroadl.com/fictions/complete")
-            else -> return null
+        return when (position) {
+            0 -> SearchUrlFragment.newInstance("https://royalroadl.com/fictions/active-popular")
+            1 -> SearchUrlFragment.newInstance("https://royalroadl.com/fictions/best-rated")
+            2 -> SearchUrlFragment.newInstance("https://royalroadl.com/fictions/complete")
+            3 -> SearchUrlFragment.newInstance("https://royalroadl.com/fictions/complete")
+            4 -> SearchUrlFragment.newInstance("https://royalroadl.com/fictions/complete")
+            else -> null
         }
     }
 }
 
 class SearchResultsListener(val searchTerms: String) : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment? {
-        when (position) {
-            0 -> return SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_UPDATES)
-            1 -> return SearchTermFragment.newInstance(searchTerms, HostNames.WLN_UPDATES)
-            else -> return null
+        return when (position) {
+            0 -> SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_UPDATES)
+            1 -> SearchTermFragment.newInstance(searchTerms, HostNames.WLN_UPDATES)
+            else -> null
         }
     }
 }
 
 class SearchResultsUnlockedListener(val searchTerms: String) : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment? {
-        when (position) {
-            0 -> return SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_UPDATES)
-            1 -> return SearchTermFragment.newInstance(searchTerms, HostNames.ROYAL_ROAD)
-            2 -> return SearchTermFragment.newInstance(searchTerms, HostNames.WLN_UPDATES)
-            else -> return null
+        return when (position) {
+            0 -> SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_UPDATES)
+            1 -> SearchTermFragment.newInstance(searchTerms, HostNames.ROYAL_ROAD)
+            2 -> SearchTermFragment.newInstance(searchTerms, HostNames.WLN_UPDATES)
+            else -> null
         }
     }
 }

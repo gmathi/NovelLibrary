@@ -9,7 +9,7 @@ fun NovelApi.searchRoyalRoad(searchTerms: String): ArrayList<Novel>? {
     try {
         searchResults = ArrayList()
         val document = getDocument("https://royalroadl.com/fictions/search?keyword=$searchTerms&name=&author=&minPages=0&maxPages=10000&minRating=0&maxRating=5&status=ALL&orderBy=popularity&dir=desc&type=ALL")
-        val elements = document.body().getElementsByClass("search-item").filter { it.tagName() === "li" }
+        val elements = document.body().getElementsByClass("search-item").filter { it.tagName() == "li" }
         for (element in elements) {
             val searchContentElement = element.getElementsByClass("search-content").firstOrNull()
             if (searchContentElement != null) {
@@ -37,7 +37,7 @@ fun NovelApi.searchNovelUpdates(searchTerms: String): ArrayList<Novel>? {
     try {
         searchResults = ArrayList()
         val document = getDocument("http://www.novelupdates.com/?s=" + searchTerms)
-        val elements = document.body().getElementsByClass("w-blog-entry-h").filter { it.tagName() === "div" }
+        val elements = document.body().getElementsByClass("w-blog-entry-h").filter { it.tagName() == "div" }
         for (element in elements) {
             val novel = Novel()
             novel.url = element.getElementsByTag("a").firstOrNull()?.attr("href")

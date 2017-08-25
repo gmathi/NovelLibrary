@@ -326,6 +326,7 @@ fun DBHelper.getAllReadableWebPagesCount(novelId: Long): Int {
         if (cursor.moveToFirst()) {
             count = cursor.getInt(0)
         }
+        cursor.close()
     }
     return count
 }
