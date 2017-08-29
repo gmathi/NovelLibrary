@@ -49,6 +49,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     lateinit var adapter: GenericAdapter<Novel>
     private lateinit var touchHelper: ItemTouchHelper
     private var lastDeletedId: Long = -1
+    private var isSorted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -188,8 +189,23 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 syncNovels()
                 return true
             }
+            R.id.action_sort -> {
+                sortNovelsAlphabetically()
+            }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun sortNovelsAlphabetically() {
+        if (adapter.items.isNotEmpty()) {
+            val items = adapter.items
+            if (!isSorted)
+                adapter.updateData(ArrayList(items.sortedWith(compareBy({ it.name }))))
+            else
+                adapter.updateData(ArrayList(items.sortedWith(compareBy({ it.name })).reversed()))
+            isSorted = !isSorted
+            updateOrderIds()
+        }
     }
 
     private fun syncNovels() {
@@ -318,7 +334,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun updateOrderIds() {
         if (adapter.items.isNotEmpty())
-            for (i in 0..adapter.items.size - 1) {
+            for (i in 0 until adapter.items.size) {
                 dbHelper.updateOrderId(adapter.items[i].id, i.toLong())
             }
     }

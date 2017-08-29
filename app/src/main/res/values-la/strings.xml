@@ -190,6 +190,6 @@
     <!-- v0.6.2 Strings -->
     <string name="clean">Tersus</string>
     <string name="reader">Lector</string>
-
+    <string name="reader_mode">Lector Mode</string>
 
 </resources>

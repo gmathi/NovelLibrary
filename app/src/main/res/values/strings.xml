@@ -289,5 +289,6 @@
     <!-- v0.6.2 Strings -->
     <string name="clean">Clean</string>
     <string name="reader">Reader</string>
+    <string name="reader_mode">Reader Mode</string>
 
 </resources>

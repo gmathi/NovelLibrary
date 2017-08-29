@@ -201,6 +201,7 @@
     <!-- v0.6.2 Strings -->
     <string name="clean">Limpo</string>
     <string name="reader">Leitor</string>
+    <string name="reader_mode">Leitor Mode</string>
 
 
 </resources>

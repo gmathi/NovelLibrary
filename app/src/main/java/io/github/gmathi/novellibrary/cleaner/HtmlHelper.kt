@@ -33,7 +33,7 @@ open class HtmlHelper protected constructor() {
                 host.contains(HostNames.MOON_BUNNY_CAFE) -> return EntryContentTagCleaner()
                 host.contains(HostNames.LIGHT_NOVEL_TRANSLATIONS) -> return EntryContentTagCleaner()
                 host.contains(HostNames.SOUSETSUKA) -> return EntryContentTagCleaner()
-
+                host.contains(HostNames.FANTASY_BOOKS) -> return EntryContentTagCleaner()
 
             // "WordPress" Sites cleaner
                 host.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsHelper()

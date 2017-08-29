@@ -64,6 +64,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
         }
 
         fab.setOnClickListener {
+            if (activity == null) return@setOnClickListener
             if (!adapter.items.isEmpty()) {
                 if (fab.tag == "playing") {
                     //pause all
