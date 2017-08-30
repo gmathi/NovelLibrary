@@ -19,6 +19,39 @@ open class HtmlHelper protected constructor() {
     private val TAG = "HtmlHelper"
 
     companion object {
+
+        fun getInstance(doc: Document, host: String = doc.location()): HtmlHelper {
+
+            when {
+                host.contains(HostNames.ROYAL_ROAD) -> return RoyalRoadHelper()
+                host.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
+                host.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
+                host.contains(HostNames.QIDIAN) -> return QidianHelper()
+                host.contains(HostNames.GOOGLE_DOCS) -> return GoogleDocsCleaner()
+                host.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsHelper()
+                host.contains(HostNames.TUMBLR) -> return TumblrCleaner()
+            }
+
+            var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
+            if (contentElement != null) return GeneralClassTagHelper(host, "div", "entry-content")
+
+            contentElement = doc.body().getElementsByTag("article").firstOrNull { it.hasClass("hentry") }
+            if (contentElement != null) return GeneralClassTagHelper(host, "article", "hentry")
+
+            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("hentry") }
+            if (contentElement != null) return GeneralClassTagHelper(host, "div", "hentry")
+
+            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.id() == "chapter_body" }
+            if (contentElement != null) return GeneralIdTagHelper(host, "div", "chapter_body")
+
+            contentElement = doc.body().getElementsByTag("article").firstOrNull { it.id() == "releases" }
+            if (contentElement != null) return GeneralIdTagHelper(host, "article", "releases")
+
+            return HtmlHelper()
+        }
+
+
+        @Deprecated("Use `getInstance(Document): HtmlHelper` instead")
         fun getInstance(host: String): HtmlHelper {
             when {
 
@@ -29,7 +62,6 @@ open class HtmlHelper protected constructor() {
                 host.contains(HostNames.GOOGLE_DOCS) -> return GoogleDocsCleaner()
 
             // 'entry-content' - 'div' tag cleaner
-                host.contains(HostNames.KOBATOCHAN) -> return EntryContentTagCleaner()
                 host.contains(HostNames.MOON_BUNNY_CAFE) -> return EntryContentTagCleaner()
                 host.contains(HostNames.LIGHT_NOVEL_TRANSLATIONS) -> return EntryContentTagCleaner()
                 host.contains(HostNames.SOUSETSUKA) -> return EntryContentTagCleaner()
@@ -48,9 +80,10 @@ open class HtmlHelper protected constructor() {
                 host.contains(HostNames.GRAVITY_TALES) -> return GeneralClassTagHelper(HostNames.GRAVITY_TALES, "article", "hentry")
                 host.contains(HostNames.VOLARE_NOVELS) -> return GeneralClassTagHelper(HostNames.VOLARE_NOVELS, "article", "hentry")
                 host.contains(HostNames.SKY_WOOD_TRANSLATIONS) -> return GeneralClassTagHelper(HostNames.SKY_WOOD_TRANSLATIONS, "div", "hentry")
+                host.contains(HostNames.KOBATOCHAN) -> return GeneralClassTagHelper(HostNames.KOBATOCHAN, "div", "entry-content")
 
             //Generic Id Cleaners
-                host.contains(HostNames.LIBER_SPARK) -> return GeneralIdTagHelper("div", "chapter_body")
+                host.contains(HostNames.LIBER_SPARK) -> return GeneralIdTagHelper(HostNames.LIBER_SPARK, "div", "chapter_body")
 
             }
             return HtmlHelper()
@@ -198,7 +231,6 @@ open class HtmlHelper protected constructor() {
     fun cleanCSSFromChildren(contentElement: Element?) {
         cleanClassAndIds(contentElement)
         contentElement?.children()?.forEach {
-            cleanClassAndIds(it)
             cleanCSSFromChildren(it)
         }
     }

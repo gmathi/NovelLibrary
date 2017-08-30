@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.cleaner
 
 import android.net.Uri
+import io.github.gmathi.novellibrary.dataCenter
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
@@ -15,17 +16,27 @@ class GeneralClassTagHelper(private val hostName: String, private val tagName: S
 
         var contentElement = doc.body().getElementsByTag(tagName).firstOrNull { it.hasClass(className) }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
+
         removeDirectionalLinks(contentElement)
-        cleanCSSFromChildren(contentElement)
+        doc.getElementsByClass("post-navigation")?.remove()
+
+        if (!dataCenter.showChapterComments) {
+            doc.getElementsByClass("comments-container")?.remove()
+            doc.getElementsByClass("respond-container")?.remove()
+        }
+
+        contentElement?.children()?.forEach {
+            cleanCSSFromChildren(it)
+        }
 
         do {
             contentElement?.siblingElements()?.remove()
-            cleanClassAndIds(contentElement)
             contentElement = contentElement?.parent()
+            cleanClassAndIds(contentElement)
         } while (contentElement != null && contentElement.tagName() != "body")
-        cleanClassAndIds(contentElement)
         contentElement?.getElementsByClass("wpcnt")?.remove()
         contentElement?.getElementById("jp-post-flair")?.remove()
+
         doc.getElementById("custom-background-css")?.remove()
 
     }
@@ -59,7 +70,6 @@ class GeneralClassTagHelper(private val hostName: String, private val tagName: S
                 || it.text().contains("Index", ignoreCase = true)
 
         }?.forEach { it?.remove() }
-
     }
 
     override fun toggleTheme(isDark: Boolean, doc: Document): Document {

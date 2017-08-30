@@ -165,7 +165,7 @@ class WebPageFragment : Fragment() {
                 }
 
                 doc = await { NovelApi().getDocumentWithUserAgent(url) }
-                val cleaner = HtmlHelper.getInstance(doc.location())
+                val cleaner = HtmlHelper.getInstance(doc)
                 if (dataCenter.cleanChapters) {
                     cleaner.removeJS(doc)
                     cleaner.additionalProcessing(doc)
@@ -204,7 +204,7 @@ class WebPageFragment : Fragment() {
     }
 
     private fun applyTheme() {
-        HtmlHelper.getInstance(doc.location()).toggleTheme(dataCenter.isDarkTheme, doc)
+        HtmlHelper.getInstance(doc).toggleTheme(dataCenter.isDarkTheme, doc)
     }
 
     fun getUrl(): String? {
@@ -217,7 +217,7 @@ class WebPageFragment : Fragment() {
         if (!isCleaned) {
             progressLayout.showLoading()
             readerWebView.settings.javaScriptEnabled = false
-            val htmlHelper = HtmlHelper.getInstance(doc.location())
+            val htmlHelper = HtmlHelper.getInstance(doc)
             htmlHelper.removeJS(doc)
             htmlHelper.additionalProcessing(doc)
             applyTheme()

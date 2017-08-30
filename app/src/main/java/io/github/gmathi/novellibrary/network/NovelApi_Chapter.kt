@@ -75,7 +75,7 @@ fun NovelApi.getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
     val doc = Jsoup.parse(htmlString)
 
     doc?.getElementsByAttribute("data-id")?.mapTo(chapters) {
-        WebPage(it?.attr("href")!!, it.text()!!)
+        WebPage(it?.attr("href")!!, it.getElementsByAttribute("title").attr("title"))
     }
     return chapters
 }

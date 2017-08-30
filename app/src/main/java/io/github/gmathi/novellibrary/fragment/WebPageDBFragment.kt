@@ -15,7 +15,6 @@ import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ReaderPagerDBActivity
 import io.github.gmathi.novellibrary.activity.startChaptersActivity
-import io.github.gmathi.novellibrary.activity.startImagePreviewActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getNovel
@@ -121,6 +120,7 @@ class WebPageDBFragment : Fragment() {
 
     private fun loadData() {
         //Load with downloaded HTML File
+        readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
         isCleaned = false
         if (isCleaned || dataCenter.cleanChapters) activity.fabClean.visibility = View.INVISIBLE else activity.fabClean.visibility = View.VISIBLE
 
@@ -211,7 +211,7 @@ class WebPageDBFragment : Fragment() {
                 }
 
                 doc = await { NovelApi().getDocumentWithUserAgent(url) }
-                val cleaner = HtmlHelper.getInstance(doc.location())
+                val cleaner = HtmlHelper.getInstance(doc)
                 if (dataCenter.cleanChapters) {
                     cleaner.removeJS(doc)
                     cleaner.additionalProcessing(doc)
@@ -250,7 +250,7 @@ class WebPageDBFragment : Fragment() {
     }
 
     private fun applyTheme() {
-        HtmlHelper.getInstance(doc.location()).toggleTheme(dataCenter.isDarkTheme, doc)
+        HtmlHelper.getInstance(doc).toggleTheme(dataCenter.isDarkTheme, doc)
     }
 
     fun getUrl(): String? {
@@ -264,7 +264,7 @@ class WebPageDBFragment : Fragment() {
             try {
                 progressLayout.showLoading()
                 readerWebView.settings.javaScriptEnabled = false
-                val htmlHelper = HtmlHelper.getInstance(doc.location())
+                val htmlHelper = HtmlHelper.getInstance(doc)
                 htmlHelper.removeJS(doc)
                 htmlHelper.additionalProcessing(doc)
                 applyTheme()
