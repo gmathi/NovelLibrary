@@ -3,7 +3,7 @@
 
     <changelogversion
         changeDate="08/30/2017"
-        versionName="0.6.6.beta">
+        versionName="0.6.7.beta">
         <changelogtext>[b]New![/b] Added 2 new settings to ‘Reader Mode’ </changelogtext>
         <changelogtext>[b]New![/b] Added Night mode support for more sites</changelogtext>
         <changelogtext>[i]Fix[/i] - A set distance before the bottom menu circle appears when scrolling up</changelogtext>
