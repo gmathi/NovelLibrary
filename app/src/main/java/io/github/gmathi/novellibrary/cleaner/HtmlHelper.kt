@@ -20,7 +20,13 @@ open class HtmlHelper protected constructor() {
 
     companion object {
 
-        fun getInstance(doc: Document, host: String = doc.location()): HtmlHelper {
+        fun getInstance(doc: Document, hostName: String = doc.location()): HtmlHelper {
+
+            val host =
+                if (hostName.startsWith("www."))
+                    hostName.replace("www.", "")
+                else
+                    hostName
 
             when {
                 host.contains(HostNames.ROYAL_ROAD) -> return RoyalRoadHelper()
@@ -30,6 +36,7 @@ open class HtmlHelper protected constructor() {
                 host.contains(HostNames.GOOGLE_DOCS) -> return GoogleDocsCleaner()
                 host.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsHelper()
                 host.contains(HostNames.TUMBLR) -> return TumblrCleaner()
+                host.contains(HostNames.BAKA_TSUKI) -> return BakaTsukiCleaner()
             }
 
             var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
@@ -171,7 +178,7 @@ open class HtmlHelper protected constructor() {
         val file: File
         try {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: " + uri.toString())
-            val fileName = uri.lastPathSegment.writableFileName()
+            val fileName = (uri.lastPathSegment + uri.query).writableFileName()
             file = File(dir, fileName)
             val response = Jsoup.connect(uri.toString()).userAgent(HostNames.USER_AGENT).ignoreContentType(true).execute()
             val bytes = response.bodyAsBytes()

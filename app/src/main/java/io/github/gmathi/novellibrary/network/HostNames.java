@@ -26,6 +26,8 @@ public class HostNames {
     public static final String VOLARE_NOVELS = "volarenovels.com";
     public static final String SOUSETSUKA = "sousetsuka.com";
     public static final String FANTASY_BOOKS = "fantasy-books.live";
+    public static final String BAKA_TSUKI = "baka-tsuki.org";
+
 
 
 

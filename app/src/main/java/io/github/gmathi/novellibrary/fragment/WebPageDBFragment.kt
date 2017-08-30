@@ -76,7 +76,10 @@ class WebPageDBFragment : Fragment() {
                     activity.floatingToolbar.hide()
                     activity.fab.hide()
                 }
-                if (scrollY < oldScrollY) activity.fab.show()
+
+                if (oldScrollY - scrollY > 50) activity.fab.show()
+
+                //if (scrollY < oldScrollY) activity.fab.show()
             }
 
         swipeRefreshLayout.setOnRefreshListener { loadData() }
@@ -109,20 +112,16 @@ class WebPageDBFragment : Fragment() {
             return
         }
 
-        // try {
         doc = Jsoup.parse("<html></html>", webPage!!.url)
         loadData()
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//            activity?.finish()
-//        }
+
     }
 
     private fun loadData() {
         //Load with downloaded HTML File
         readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
         isCleaned = false
-        if (isCleaned || dataCenter.cleanChapters) activity.fabClean.visibility = View.INVISIBLE else activity.fabClean.visibility = View.VISIBLE
+        activity.fabClean.visibility = if (isCleaned || dataCenter.cleanChapters) View.INVISIBLE else View.VISIBLE
 
         if (webPage!!.filePath != null) {
             val internalFilePath = "file://${webPage!!.filePath}"
@@ -211,6 +210,16 @@ class WebPageDBFragment : Fragment() {
                 }
 
                 doc = await { NovelApi().getDocumentWithUserAgent(url) }
+                doc.getElementsByTag("img")?.forEach {
+                    if (it.hasAttr("src")) {
+                        it.attr("src", it.absUrl("src"))
+                    }
+                }
+                doc.getElementsByTag("a")?.forEach {
+                    if (it.hasAttr("href")) {
+                        it.attr("href", it.absUrl("href"))
+                    }
+                }
                 val cleaner = HtmlHelper.getInstance(doc)
                 if (dataCenter.cleanChapters) {
                     cleaner.removeJS(doc)

@@ -78,7 +78,7 @@ class ReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener, Fl
         val orderId = if (dataCenter.japSwipe) novel!!.chapterCount.toInt() - position - 1 else position
         val webPage = dbHelper.getWebPage(novel!!.id, orderId.toLong())
         if (webPage != null) updateBookmark(webPage)
-        fabClean.visibility = View.VISIBLE
+        //fabClean.visibility = View.VISIBLE
     }
 
     override fun onPageScrollStateChanged(position: Int) {
