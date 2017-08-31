@@ -201,7 +201,11 @@
     <!-- v0.6.2 Strings -->
     <string name="clean">Limpo</string>
     <string name="reader">Leitor</string>
-    <string name="reader_mode">Leitor Mode</string>
+    <string name="reader_mode">Modo Leitor</string>
+    <string name="show_reader_scroll">Mostrar Barra de rolagem</string>
+    <string name="show_reader_scroll_description">Mostra a barra de deslocamento vertical na margem direita da tela para acompanhar o progresso do capítulo.</string>
+    <string name="show_comments_section">Mostrar comentários</string>
+    <string name="show_comments_section_description">Mostra a seção de comentários do capítulo no modo Leitor. (Sites limitados suportados)</string>
 
 
 </resources>
