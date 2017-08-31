@@ -79,6 +79,8 @@
         <item>@string/clean_pages</item>
         <item>@string/disable_javascript</item>
         <item>@string/swipe_right_for_next_chapter</item>
+        <item>@string/show_reader_scroll</item>
+        <item>@string/show_comments_section</item>
         <!--<item>@string/pure_night_mode</item>-->
     </string-array>
 
@@ -86,6 +88,8 @@
         <item>@string/clean_pages_description</item>
         <item>@string/disable_javascript_description</item>
         <item>@string/swipe_right_for_next_chapter_description</item>
+        <item>@string/show_reader_scroll_description</item>
+        <item>@string/show_comments_section_description</item>
     </string-array>
 
 
@@ -289,5 +293,10 @@
     <!-- v0.6.2 Strings -->
     <string name="clean">Clean</string>
     <string name="reader">Reader</string>
+    <string name="reader_mode">Reader Mode</string>
+    <string name="show_reader_scroll">Show Scrollbar</string>
+    <string name="show_reader_scroll_description">Shows the vertical scrollbar on the right edge of the screen to track your progress of the chapter</string>
+    <string name="show_comments_section">Show Comments</string>
+    <string name="show_comments_section_description">Shows the chapter’s comments section in the reader mode. (Limited Websites Supported)</string>
 
 </resources>

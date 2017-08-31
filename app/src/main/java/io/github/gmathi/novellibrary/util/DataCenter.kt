@@ -29,6 +29,8 @@ class DataCenter(context: Context) {
     private val LANGUAGE = "language"
     private val VERIFIED_HOSTS = "verifiedHosts"
     private val JAP_SWIPE = "japSwipe"
+    private val SHOW_READER_SCROLL = "showReaderScroll"
+    private val SHOW_CHAPTER_COMMENTS = "showChapterComments"
 
     val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -102,6 +104,13 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(JAP_SWIPE, true)
         set(value) = prefs.edit().putBoolean(JAP_SWIPE, value).apply()
 
+    var showReaderScroll: Boolean
+        get() = prefs.getBoolean(SHOW_READER_SCROLL, true)
+        set(value) = prefs.edit().putBoolean(SHOW_READER_SCROLL, value).apply()
+
+    var showChapterComments: Boolean
+        get() = prefs.getBoolean(SHOW_CHAPTER_COMMENTS, false)
+        set(value) = prefs.edit().putBoolean(SHOW_CHAPTER_COMMENTS, value).apply()
 
 
     fun getVerifiedHosts(): ArrayList<String> {

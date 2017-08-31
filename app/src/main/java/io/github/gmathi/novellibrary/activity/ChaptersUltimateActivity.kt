@@ -110,6 +110,7 @@ class ChaptersUltimateActivity :
                 swipeRefreshLayout.isRefreshing = false
                 progressLayout.showContent()
                 if (adapter.items.size < novel.chapterCount.toInt()) {
+                    swipeRefreshLayout.isRefreshing = true
                     getChapters()
                 }
             }

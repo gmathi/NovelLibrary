@@ -54,9 +54,12 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = novel.name
 
-        if (novel.id != -1L)
-            setupViews()
-        else {
+        if (novel.id != -1L) {
+            if (!Utils.checkNetwork(this))
+                setupViews()
+            else
+                progressLayout.showLoading()
+        } else {
             progressLayout.showLoading()
         }
         getNovelInfo()

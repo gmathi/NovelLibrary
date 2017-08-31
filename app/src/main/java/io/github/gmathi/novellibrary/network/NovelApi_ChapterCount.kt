@@ -49,7 +49,7 @@ fun NovelApi.getNUChapterCount(document: Document): Int {
 }
 
 fun getNUChapterCountFromPageDoc(doc: Document): Int {
-    val tableElement = doc.body().getElementsByAttributeValueMatching("id", "myTable").firstOrNull { it.tagName() === "table" }
+    val tableElement = doc.body().getElementsByAttributeValueMatching("id", "myTable").firstOrNull { it.tagName() == "table" }
     val elements = tableElement?.getElementsByClass("chp-release")?.filter { it.tagName() == "a" }
     if (elements != null)
         return elements.size/2

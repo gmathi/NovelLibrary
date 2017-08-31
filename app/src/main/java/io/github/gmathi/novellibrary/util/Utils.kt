@@ -132,7 +132,7 @@ object Utils {
         deleteNovel(context, dbHelper.getNovel(novelId))
     }
 
-    fun deleteNovel(context: Context, novel: Novel?) {
+    private fun deleteNovel(context: Context, novel: Novel?) {
         if (novel == null) return
         val hostDir = getHostDir(context, novel.url!!)
         val novelDir = getNovelDir(hostDir, novel.name!!)
@@ -141,7 +141,7 @@ object Utils {
         broadcastNovelDelete(context, novel)
     }
 
-    fun broadcastNovelDelete(context: Context, novel: Novel?) {
+    private fun broadcastNovelDelete(context: Context, novel: Novel?) {
         val localIntent = Intent()
         val extras = Bundle()
         extras.putLong(Constants.NOVEL_ID, novel!!.id)
