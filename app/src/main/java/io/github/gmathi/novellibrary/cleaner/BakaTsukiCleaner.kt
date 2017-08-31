@@ -2,23 +2,24 @@ package io.github.gmathi.novellibrary.cleaner
 
 import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
 
-
-class GeneralClassTagHelper(private val hostName: String, private val tagName: String, private val className: String) : HtmlHelper() {
+class BakaTsukiCleaner : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc)
         doc.head()?.getElementsByTag("style")?.remove()
         doc.head()?.getElementsByTag("link")?.remove()
 
-        var contentElement = doc.body().getElementsByTag(tagName).firstOrNull { it.hasClass(className) }
+        var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.id() == "content" }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
 
         removeDirectionalLinks(contentElement)
         doc.getElementsByClass("post-navigation")?.remove()
+
 
         if (!dataCenter.showChapterComments) {
             doc.getElementsByClass("comments-container")?.remove()
@@ -34,6 +35,7 @@ class GeneralClassTagHelper(private val hostName: String, private val tagName: S
             contentElement = contentElement?.parent()
             cleanClassAndIds(contentElement)
         } while (contentElement != null && contentElement.tagName() != "body")
+
         contentElement?.getElementsByClass("wpcnt")?.remove()
         contentElement?.getElementById("jp-post-flair")?.remove()
 
@@ -55,7 +57,7 @@ class GeneralClassTagHelper(private val hostName: String, private val tagName: S
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
         val url = doc.location()
         val links = ArrayList<String>()
-        val otherLinks = doc.body().getElementsByTag(tagName).firstOrNull { it.hasClass(className) }?.getElementsByAttributeValueContaining("href", hostName)?.filter { !it.attr("href").contains(url) }
+        val otherLinks = doc.body().getElementsByTag("div").firstOrNull { it.id() == "content" }?.getElementsByAttributeValueContaining("href", HostNames.BAKA_TSUKI)?.filter { !it.attr("href").contains(url) }
         if (otherLinks != null && otherLinks.isNotEmpty()) {
             otherLinks.mapTo(links) { it.attr("href") }
         }
@@ -70,6 +72,7 @@ class GeneralClassTagHelper(private val hostName: String, private val tagName: S
                 || it.text().contains("Index", ignoreCase = true)
 
         }?.forEach { it?.remove() }
+        contentElement?.getElementsByTag("table")?.lastOrNull()?.remove()
     }
 
     override fun toggleTheme(isDark: Boolean, doc: Document): Document {

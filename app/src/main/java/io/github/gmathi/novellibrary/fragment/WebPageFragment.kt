@@ -72,7 +72,9 @@ class WebPageFragment : Fragment() {
                     activity.floatingToolbar.hide()
                     activity.fab.hide()
                 }
-                if (scrollY < oldScrollY) activity.fab.show()
+                if (oldScrollY - scrollY > 50) activity.fab.show()
+
+                //if (scrollY < oldScrollY) activity.fab.show()
             }
 
         swipeRefreshLayout.setOnRefreshListener { loadData() }
@@ -102,8 +104,10 @@ class WebPageFragment : Fragment() {
 
     private fun loadData() {
         //Load with downloaded HTML File
+        readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
         isCleaned = false
-        if (isCleaned || dataCenter.cleanChapters) activity.fabClean.visibility = View.INVISIBLE else activity.fabClean.visibility = View.VISIBLE
+        activity.fabClean.visibility = if (isCleaned || dataCenter.cleanChapters) View.INVISIBLE else View.VISIBLE
+
         if (webPage!!.filePath != null) {
             val internalFilePath = "file://${webPage!!.filePath}"
             val input = File(internalFilePath.substring(7))
@@ -165,7 +169,17 @@ class WebPageFragment : Fragment() {
                 }
 
                 doc = await { NovelApi().getDocumentWithUserAgent(url) }
-                val cleaner = HtmlHelper.getInstance(doc.location())
+                val cleaner = HtmlHelper.getInstance(doc)
+                doc.getElementsByTag("img")?.forEach {
+                    if (it.hasAttr("src")) {
+                        it.attr("src", it.absUrl("src"))
+                    }
+                }
+                doc.getElementsByTag("a")?.forEach {
+                    if (it.hasAttr("href")) {
+                        it.attr("href", it.absUrl("href"))
+                    }
+                }
                 if (dataCenter.cleanChapters) {
                     cleaner.removeJS(doc)
                     cleaner.additionalProcessing(doc)
@@ -204,7 +218,7 @@ class WebPageFragment : Fragment() {
     }
 
     private fun applyTheme() {
-        HtmlHelper.getInstance(doc.location()).toggleTheme(dataCenter.isDarkTheme, doc)
+        HtmlHelper.getInstance(doc).toggleTheme(dataCenter.isDarkTheme, doc)
     }
 
     fun getUrl(): String? {
@@ -217,7 +231,7 @@ class WebPageFragment : Fragment() {
         if (!isCleaned) {
             progressLayout.showLoading()
             readerWebView.settings.javaScriptEnabled = false
-            val htmlHelper = HtmlHelper.getInstance(doc.location())
+            val htmlHelper = HtmlHelper.getInstance(doc)
             htmlHelper.removeJS(doc)
             htmlHelper.additionalProcessing(doc)
             applyTheme()

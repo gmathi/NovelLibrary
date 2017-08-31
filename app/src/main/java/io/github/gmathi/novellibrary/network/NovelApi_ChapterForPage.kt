@@ -23,7 +23,7 @@ fun NovelApi.getRRChapterUrlsForPage(url: String, pageNum: Int): ArrayList<WebPa
     var chapters: ArrayList<WebPage>? = null
     try {
         val document = Jsoup.connect(url).get()
-        chapters = ArrayList<WebPage>()
+        chapters = ArrayList()
         val tableElement = document.body().getElementById("chapters")
         val chapterElements = tableElement?.getElementsByTag("a")?.filter { it.attributes().hasKey("href") }?.asReversed()
 
@@ -42,7 +42,7 @@ fun NovelApi.getWLNUChapterUrlsForPage(url: String, pageNum: Int): ArrayList<Web
     var chapters: ArrayList<WebPage>? = null
     try {
         val document = Jsoup.connect(url).get()
-        chapters = ArrayList<WebPage>()
+        chapters = ArrayList()
         val trElements = document.body().getElementsByTag("tr")?.filter { it.id() == "release-entry" }
         val indexStartRange = (pageNum * Constants.CHAPTER_PAGE_SIZE)
         if (trElements != null && trElements.size > indexStartRange) {

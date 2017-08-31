@@ -190,6 +190,11 @@
     <!-- v0.6.2 Strings -->
     <string name="clean">Temiz</string>
     <string name="reader">Okuyucu</string>
+    <string name="reader_mode">Okuyucu Modu</string>
+    <string name="show_reader_scroll">Kaydırma çubuğunu göster</string>
+    <string name="show_reader_scroll_description">Bölümün ilerleme durumunu izlemek için ekranın sağ kenarındaki dikey kaydırma çubuğunu gösterir.</string>
+    <string name="show_comments_section">Yorumları Göster</string>
+    <string name="show_comments_section_description">Bölümün yorum bölümünü okuyucu modunda gösterir. (Desteklenen Sınırlı Web Siteleri)</string>
 
 
 </resources>

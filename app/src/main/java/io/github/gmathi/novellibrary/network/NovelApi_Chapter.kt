@@ -27,7 +27,7 @@ fun NovelApi.getRRChapterUrls(url: String): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
         val document = Jsoup.connect(url).get()
-        chapters = ArrayList<WebPage>()
+        chapters = ArrayList()
         val tableElement = document.body().getElementById("chapters")
         tableElement?.getElementsByTag("a")?.filter { it.attributes().hasKey("href") }?.asReversed()?.mapTo(chapters) { WebPage(url = it.absUrl("href"), chapter = it.text()) }
     } catch (e: IOException) {
@@ -40,7 +40,7 @@ fun NovelApi.getWLNUChapterUrls(url: String): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
         val document = Jsoup.connect(url).get()
-        chapters = ArrayList<WebPage>()
+        chapters = ArrayList()
         val trElements = document.body().getElementsByTag("tr")?.filter { it.id() == "release-entry" }
         trElements?.mapTo(chapters) { WebPage(url = it.child(0).child(0).attr("href"), chapter = it.getElementsByClass("numeric").map { it.text() }.joinToString(separator = ".")) }
     } catch (e: IOException) {
@@ -51,7 +51,7 @@ fun NovelApi.getWLNUChapterUrls(url: String): ArrayList<WebPage>? {
 
 fun NovelApi.getNUChapterUrlsFromDoc(doc: Document): ArrayList<WebPage> {
     val chapters = ArrayList<WebPage>()
-    val tableElement = doc.body().getElementsByAttributeValueMatching("id", "myTable").firstOrNull { it.tagName() === "table" }
+    val tableElement = doc.body().getElementsByAttributeValueMatching("id", "myTable").firstOrNull { it.tagName() == "table" }
     val elements = tableElement?.getElementsByClass("chp-release")?.filter { it.tagName() == "a" }
     if (elements != null)
         (0..elements.size).filter { it % 2 == 1 }.mapTo(chapters) { WebPage(url = elements[it].attr("href"), chapter = elements[it].text()) }
@@ -75,7 +75,7 @@ fun NovelApi.getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
     val doc = Jsoup.parse(htmlString)
 
     doc?.getElementsByAttribute("data-id")?.mapTo(chapters) {
-        WebPage(it?.attr("href")!!, it.text()!!)
+        WebPage(it?.attr("href")!!, it.getElementsByAttribute("title").attr("title"))
     }
     return chapters
 }

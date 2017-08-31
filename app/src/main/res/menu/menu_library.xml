@@ -8,4 +8,11 @@
         android:title="@string/action_sync"
         android:titleCondensed="Sync"
         app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/action_sort"
+        android:icon="@drawable/ic_sort_by_alpha_white_vector"
+        android:title="@string/sort"
+        android:titleCondensed="@string/sort"
+        app:showAsAction="ifRoom"/>
 </menu>

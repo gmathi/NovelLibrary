@@ -202,6 +202,11 @@
     <!-- v0.6.2 Strings -->
     <string name="clean">Reinigen</string>
     <string name="reader">Leser</string>
+    <string name="reader_mode">Leser Mode</string>
+    <string name="show_reader_scroll">"Scrollbar anzeigen "</string>
+    <string name="show_reader_scroll_description">"Zeigt die vertikale Bildlaufleiste am rechten Bildschirmrand an, um den Verlauf des Kapitels zu verfolgen. "</string>
+    <string name="show_comments_section">Kommentare anzeigen</string>
+    <string name="show_comments_section_description">Zeigt den Kommentar des Kapitels im Lesermodus an. (Begrenzte Webseiten unterstützt)</string>
 
 
 </resources>

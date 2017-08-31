@@ -75,7 +75,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
             webPage.isRead = 1
             dbHelper.updateWebPageReadStatus(webPage)
         }
-        fabClean.visibility = View.VISIBLE
+        //fabClean.visibility = View.VISIBLE
     }
 
     override fun onPageScrollStateChanged(position: Int) {
