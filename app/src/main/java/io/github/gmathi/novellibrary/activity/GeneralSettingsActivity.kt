@@ -24,8 +24,8 @@ import java.io.File
 class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     lateinit var adapter: GenericAdapter<String>
-    lateinit var settingsItems: ArrayList<String>
-    lateinit var settingsItemsDescription: ArrayList<String>
+    private lateinit var settingsItems: ArrayList<String>
+    private lateinit var settingsItemsDescription: ArrayList<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,38 +61,55 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
 
         itemView.title.applyFont(assets).text = item
         itemView.subtitle.applyFont(assets).text = settingsItemsDescription[position]
-        if (position == 0) {
-            itemView.widgetButton.visibility = View.VISIBLE
-            itemView.widgetButton.text = getString(R.string.clear)
-            itemView.widgetButton.setOnClickListener { deleteFilesDialog() }
-        } else if (position == 1) {
-            itemView.widgetSwitch.visibility = View.VISIBLE
-            itemView.widgetSwitch.isChecked = dataCenter.experimentalDownload
-            itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.experimentalDownload = value }
-        } else if (position == 2) {
-            itemView.widgetSwitch.visibility = View.VISIBLE
-            itemView.widgetSwitch.isChecked = dataCenter.loadLibraryScreen
-            itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.loadLibraryScreen = value }
-        } else if (position == 3) {
-            itemView.widgetSwitch.visibility = View.VISIBLE
-            itemView.widgetSwitch.isChecked = dataCenter.cleanChapters
-            itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
-                dataCenter.cleanChapters = value
-                if (value) {
-                    dataCenter.javascriptDisabled = value
-                    adapter.notifyDataSetChanged()
-                }
+        itemView.widgetSwitch.setOnCheckedChangeListener(null)
+        when (position) {
+            0 -> {
+                itemView.widgetButton.visibility = View.VISIBLE
+                itemView.widgetButton.text = getString(R.string.clear)
+                itemView.widgetButton.setOnClickListener { deleteFilesDialog() }
             }
-        } else if (position == 4) {
-            itemView.widgetSwitch.visibility = View.VISIBLE
-            itemView.widgetSwitch.isChecked = dataCenter.javascriptDisabled
-            itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
-                dataCenter.javascriptDisabled = value
-                if (!value) {
+            1 -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.experimentalDownload
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.experimentalDownload = value }
+            }
+            2 -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.loadLibraryScreen
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.loadLibraryScreen = value }
+            }
+
+            //These wont work as they are not in the xml anymore
+            3 -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.cleanChapters
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
                     dataCenter.cleanChapters = value
-                    adapter.notifyDataSetChanged()
+                    if (value) {
+                        dataCenter.javascriptDisabled = value
+                        adapter.notifyDataSetChanged()
+                    }
                 }
             }
+            4 -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.javascriptDisabled
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
+                    dataCenter.javascriptDisabled = value
+                    if (!value) {
+                        dataCenter.cleanChapters = value
+                        adapter.notifyDataSetChanged()
+                    }
+                }
+            }
+            5 -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.japSwipe
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.japSwipe = value }
+            }
+//            6 -> {
+//                itemView.widgetChevron.visibility = View.VISIBLE
+//            }
         }
 
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
@@ -100,7 +117,9 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     }
 
     override fun onItemClick(item: String) {
-
+//        if (item == getString(R.string.sync_interval)) {
+//            showSyncIntervalDialog()
+//        }
     }
 
     //region OptionsMenu
@@ -115,7 +134,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     //endregion
 
     //region Delete Files
-    fun deleteFilesDialog() {
+    private fun deleteFilesDialog() {
         MaterialDialog.Builder(this)
             .title(getString(R.string.clear_data))
             .content(getString(R.string.clear_data_description))
@@ -136,7 +155,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
             .show()
     }
 
-    fun deleteFiles(dialog: MaterialDialog) {
+    private fun deleteFiles(dialog: MaterialDialog) {
         try {
             deleteDir(cacheDir)
             deleteDir(filesDir)
@@ -149,7 +168,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
 
     }
 
-    fun deleteDir(dir: File?): Boolean {
+    private fun deleteDir(dir: File?): Boolean {
         if (dir != null && dir.isDirectory) {
             val children = dir.list()
             for (i in children.indices) {

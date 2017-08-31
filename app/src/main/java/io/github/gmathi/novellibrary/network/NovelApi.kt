@@ -27,9 +27,16 @@ class NovelApi {
         }
     }
 
-    fun getDocumentWithUserAgent(url: String): Document {
+    fun getDocumentWithUserAgent(url: String, canLoop: Boolean = true): Document {
         try {
-            return Jsoup.connect(url).userAgent(USER_AGENT).get()
+            val doc = Jsoup.connect(url).userAgent(USER_AGENT).get()
+
+            if (canLoop && doc != null && doc.location().contains("rssbook") && doc.location().contains(HostNames.QIDIAN)) {
+                return getDocumentWithUserAgent(doc.location().replace("rssbook", "book"), false)
+            }
+
+            return doc
+
         } catch (e: SSLPeerUnverifiedException) {
             val p = Pattern.compile("Hostname\\s(.*?)\\snot", Pattern.DOTALL or Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE or Pattern.MULTILINE) // Regex for the value of the key
             val m = p.matcher(e.localizedMessage)

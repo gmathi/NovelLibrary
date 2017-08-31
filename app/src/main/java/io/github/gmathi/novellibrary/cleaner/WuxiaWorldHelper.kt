@@ -11,6 +11,7 @@ class WuxiaWorldHelper : HtmlHelper() {
 
 
     override fun additionalProcessing(doc: Document) {
+        removeCSS(doc)
         var contentElement = doc.getElementsByAttributeValue("itemprop", "articleBody").firstOrNull()
         do {
             contentElement?.siblingElements()?.remove()
@@ -22,29 +23,10 @@ class WuxiaWorldHelper : HtmlHelper() {
         doc.getElementById("custom-background-css")?.remove()
     }
 
-    override fun downloadCSS(doc: Document, downloadDir: File) {
-        //no need to download any, remove them instead
-        removeCSS(doc)
-    }
-
     override fun downloadImage(element: Element, dir: File): File? {
         val uri = Uri.parse(element.attr("src"))
-        if (uri.toString().contains("uploads/avatars")) return null
-        else return super.downloadImage(element, dir)
-    }
-
-    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
-        if (isDark) {
-            doc.head().getElementById("darkTheme")?.remove()
-            doc.head().append("<style id=\"darkTheme\">" +
-                "body { background-color:#131313; color:rgba(255, 255, 255, 0.8); font-family: 'Open Sans',sans-serif; line-height: 1.5; padding:20px;} </style> ")
-        } else {
-            doc.head().getElementById("darkTheme")?.remove()
-            doc.head().append("<style id=\"darkTheme\">" +
-                "body { background-color:rgba(255, 255, 255, 0.8); color:#131313; font-family: 'Open Sans',sans-serif; line-height: 1.5; padding:20px;} </style> ")
-        }
-
-        return doc
+        return if (uri.toString().contains("uploads/avatars")) null
+        else super.downloadImage(element, dir)
     }
 
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
@@ -55,6 +37,10 @@ class WuxiaWorldHelper : HtmlHelper() {
             otherLinks.mapTo(links) { it.attr("href") }
         }
         return links
+    }
+
+    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
+        return super.toggleThemeDefault(isDark, doc)
     }
 
 }

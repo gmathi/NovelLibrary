@@ -2,16 +2,19 @@ package io.github.gmathi.novellibrary.network
 
 import io.github.gmathi.novellibrary.model.Novel
 import java.io.IOException
-import java.net.URI
-import java.net.URLEncoder
 
 
 fun NovelApi.searchUrl(url: String): ArrayList<Novel>? {
-    val host = URI(url).host
-    when {
-        host.contains(HostNames.ROYAL_ROAD) -> return searchRoyalRoadUrl(url)
-        host.contains(HostNames.NOVEL_UPDATES) -> return searchNovelUpdatesUrl(url)
-        host.contains(HostNames.WLN_UPDATES) -> return searchWlnUpdatesUrl(url)
+    try {
+        //val host = URI(url).host
+        when {
+            url.contains(HostNames.ROYAL_ROAD) -> return searchRoyalRoadUrl(url)
+            url.contains(HostNames.NOVEL_UPDATES) -> return searchNovelUpdatesUrl(url)
+            url.contains(HostNames.WLN_UPDATES) -> return searchWlnUpdatesUrl(url)
+        }
+    } catch (e: Exception) {
+        //if url is malformed
+        e.printStackTrace()
     }
     return null
 }
@@ -21,7 +24,7 @@ fun NovelApi.searchRoyalRoadUrl(searchUrl: String): ArrayList<Novel>? {
     try {
         searchResults = ArrayList()
         val document = getDocument(searchUrl)
-        val elements = document.body().getElementsByClass("fiction-list-item").filter { it.tagName() === "div" }
+        val elements = document.body().getElementsByClass("fiction-list-item").filter { it.tagName() == "div" }
         for (element in elements) {
             val novel = Novel()
             val urlElement = element.getElementsByTag("a")?.firstOrNull()
@@ -43,7 +46,7 @@ fun NovelApi.searchNovelUpdatesUrl(searchUrl: String): ArrayList<Novel>? {
     try {
         searchResults = ArrayList()
         val document = getDocument(searchUrl)
-        val elements = document.body().getElementsByClass("bdrank").filter { it.tagName() === "tr" }
+        val elements = document.body().getElementsByClass("bdrank").filter { it.tagName() == "tr" }
         for (element in elements) {
             val novel = Novel()
             novel.url = element.getElementsByTag("a").firstOrNull()?.attr("href")
@@ -63,7 +66,7 @@ fun NovelApi.searchWlnUpdatesUrl(url: String): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent(URLEncoder.encode(url, "UTF-8"))
+        val document = getDocumentWithUserAgent(url)
         val elements = document.body().getElementsByTag("td")
         for (element in elements) {
             val novel = Novel()

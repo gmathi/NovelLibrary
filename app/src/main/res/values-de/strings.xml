@@ -185,4 +185,28 @@
     <string name="new_chapters_notification_title">Neue Kapitel verfügbar</string>    
     <string name="sync_in_progress">Sync in progress</string>
 
+    <!-- v0.6 Strings -->
+
+    <string name="mentions">Mentionen</string>
+    <string name="select_all">Alles auswählen</string>
+    <string name="clear_selection">Auswahl löschen</string>
+    <string name="download_novel">Herunterladen Novel</string>
+    <string name="add_to_library_dialog_content">Der Roman muss der Bibliothek hinzugefügt werden, bevor Sie einzelne Kapitel herunterladen/markieren können. Möchten Sie diesen Roman - %s der Bibliothek hinzufügen?</string>
+    <string name="swipe_right_for_next_chapter">Jap Style Swipe</string>
+    <string name="swipe_right_for_next_chapter_description">Für nächstes Kapitel rechts abbiegen</string>
+    <string name="no_bookmark_found_dialog_title">Starten Sie das Lesen?</string>
+    <string name="no_bookmark_found_dialog_description">Sieht aus, als hättest du noch ‘%s’ noch nicht gelesen, warum fängst du jetzt nicht an?</string>
+    <string name="sync_interval">Synchronisierungsintervall</string>
+    <string name="sync_interval_description">Überprüfen Sie auf neuartige Aktualisierungsintervalle</string>
+
+    <!-- v0.6.2 Strings -->
+    <string name="clean">Reinigen</string>
+    <string name="reader">Leser</string>
+    <string name="reader_mode">Leser Mode</string>
+    <string name="show_reader_scroll">"Scrollbar anzeigen "</string>
+    <string name="show_reader_scroll_description">"Zeigt die vertikale Bildlaufleiste am rechten Bildschirmrand an, um den Verlauf des Kapitels zu verfolgen. "</string>
+    <string name="show_comments_section">Kommentare anzeigen</string>
+    <string name="show_comments_section_description">Zeigt den Kommentar des Kapitels im Lesermodus an. (Begrenzte Webseiten unterstützt)</string>
+
+
 </resources>

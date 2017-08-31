@@ -38,12 +38,14 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private fun setLanguages() {
         languagesMap.put("English", "en_US")
         languagesMap.put("German", "de_DE")
+        languagesMap.put("Indonesian", "id_ID")
         languagesMap.put("Portuguese", "pt_BR")
         languagesMap.put("Spanish", "es_CL")
         languagesMap.put("Turkish", "tr_tr")
 
         languagesImageResourceMap.put("English", R.drawable.flag_us)
         languagesImageResourceMap.put("German", R.drawable.flag_de)
+        languagesImageResourceMap.put("Indonesian", R.drawable.flag_id)
         languagesImageResourceMap.put("Portuguese", R.drawable.flag_br)
         languagesImageResourceMap.put("Spanish", R.drawable.flag_cl)
         languagesImageResourceMap.put("Turkish", R.drawable.flag_tr)

@@ -173,4 +173,28 @@
     <string name="new_chapters_notification_title">Yeni Bölümler Geldi!</string>
     <string name="sync_in_progress">Senkronize Ediliyor</string>
 
+    <!-- v0.6 Strings -->
+
+    <string name="mentions">Göndermeler</string>
+    <string name="select_all">Tamanını Seç</string>
+    <string name="clear_selection">Seçilenleri Temizle</string>
+    <string name="download_novel">Roman İndir</string>
+    <string name="add_to_library_dialog_content">Bölümleri indirebilmek ya da etikletleyebilmek için romanın kütüphanenizde olması gerekmektedir. Bu roman - %s kütüphanenize eklensin mi?</string>
+    <string name="swipe_right_for_next_chapter">Jap Tarzı Kaydırma</string>
+    <string name="swipe_right_for_next_chapter_description">Sonraki bölüm için sağa kaydırın.</string>
+    <string name="no_bookmark_found_dialog_title">Okumaya başlayacak mısınız?</string>
+    <string name="no_bookmark_found_dialog_description">Görünüşe göre ‘%s’ \'ü henüz okumamışsınız, şimdi başlamaz mısınız?</string>
+    <string name="sync_interval">Senkronizasyon Aralığı</string>
+    <string name="sync_interval_description">Güncelleme Takip Aralığı</string>
+
+    <!-- v0.6.2 Strings -->
+    <string name="clean">Temiz</string>
+    <string name="reader">Okuyucu</string>
+    <string name="reader_mode">Okuyucu Modu</string>
+    <string name="show_reader_scroll">Kaydırma çubuğunu göster</string>
+    <string name="show_reader_scroll_description">Bölümün ilerleme durumunu izlemek için ekranın sağ kenarındaki dikey kaydırma çubuğunu gösterir.</string>
+    <string name="show_comments_section">Yorumları Göster</string>
+    <string name="show_comments_section_description">Bölümün yorum bölümünü okuyucu modunda gösterir. (Desteklenen Sınırlı Web Siteleri)</string>
+
+
 </resources>

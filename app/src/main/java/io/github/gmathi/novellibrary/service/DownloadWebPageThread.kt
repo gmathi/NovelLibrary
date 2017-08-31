@@ -5,12 +5,14 @@ import android.net.Uri
 import android.util.Log
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
+import io.github.gmathi.novellibrary.database.getDownloadQueue
 import io.github.gmathi.novellibrary.database.updateDownloadQueueStatus
 import io.github.gmathi.novellibrary.database.updateWebPage
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
@@ -21,7 +23,7 @@ import org.jsoup.nodes.Document
 import java.io.File
 
 
-class DownloadWebPageThread(val context: Context, val webPage: WebPage, val hostDir: File, val novelDir: File) : Thread() {
+class DownloadWebPageThread(val context: Context, val webPage: WebPage, private val hostDir: File, private val novelDir: File, val isCompleteNovelDownload: Boolean) : Thread() {
 
     private val TAG = "DownloadWebPageThread"
 
@@ -30,9 +32,21 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, val host
         try {
             if (isNetworkDown()) throw InterruptedException(Constants.NO_NETWORK)
             if (webPage.filePath != null) return
-            if (downloadChapter(webPage, hostDir, novelDir)) {
+
+            if (isCompleteNovelDownload) {
+                val dq = dbHelper.getDownloadQueue(webPage.novelId)
+                if (dq == null || dq.status == Constants.STATUS_STOPPED) return
+            }
+
+            if (downloadChapter(webPage)) {
+
+                if (isCompleteNovelDownload) {
+                    val dq = dbHelper.getDownloadQueue(webPage.novelId)
+                    if (dq == null || dq.status == Constants.STATUS_STOPPED) return
+                }
                 EventBus.getDefault().post(NovelEvent(EventType.UPDATE, webPage.novelId, webPage))
             }
+
         } catch (e: InterruptedException) {
             Log.w(TAG, "Interrupting the Thread: ${webPage.novelId}, ${e.localizedMessage}")
         } catch (e: Exception) {
@@ -41,7 +55,7 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, val host
 
     }
 
-    private fun downloadChapter(webPage: WebPage, hostDir: File, novelDir: File): Boolean {
+    private fun downloadChapter(webPage: WebPage): Boolean {
         val doc: Document
         try {
             doc = NovelApi().getDocumentWithUserAgent(webPage.url!!)
@@ -50,11 +64,16 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, val host
             e.printStackTrace()
             return false
         }
+//
+//        if (doc.location().contains("rssbook") && doc.location().contains(HostNames.QIDIAN)) {
+//            webPage.url = doc.location().replace("rssbook", "book")
+//            return downloadChapter(webPage)
+//        }
 
         val uri = Uri.parse(doc.location())
         if (!StringUtil.isBlank(uri.host)) {
 
-            val htmlHelper = HtmlHelper.getInstance(uri.host)
+            val htmlHelper = HtmlHelper.getInstance(doc, uri.host)
             htmlHelper.clean(doc, hostDir, novelDir)
             webPage.title = htmlHelper.getTitle(doc)
             val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPage.title!!.writableFileName())) ?: return false
@@ -91,9 +110,12 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, val host
         if (StringUtil.isBlank(uri.host)) return null
 
         val otherWebPage = WebPage(otherChapterLink, doc.title())
-        val htmlHelper = HtmlHelper.getInstance(uri.host)
+        val htmlHelper = HtmlHelper.getInstance(doc, uri.host)
         htmlHelper.clean(doc, hostDir, novelDir)
+
         otherWebPage.title = htmlHelper.getTitle(doc)
+        if (otherWebPage.title!=null && otherWebPage.title == "") otherWebPage.title = doc.location()
+
         otherWebPage.id = -2L
 
         val file = htmlHelper.convertDocToFile(doc, File(novelDir, otherWebPage.title!!.writableFileName())) ?: return null

@@ -1,12 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+
+    <changelogversion
+        changeDate="08/30/2017"
+        versionName="0.6.7.beta">
+        <changelogtext>[b]New![/b] Added 2 new settings to ‘Reader Mode’ </changelogtext>
+        <changelogtext>[b]New![/b] Added Night mode support for more sites</changelogtext>
+        <changelogtext>[i]Fix[/i] - A set distance before the bottom menu circle appears when scrolling up</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/29/2017"
+        versionName="0.6.6.beta">
+        <changelogtext>[b]New![/b] Added Alphabetical Sorting to ‘Library’ </changelogtext>
+        <changelogtext>[b]New![/b] Add Night mode support for more sites</changelogtext>
+        <changelogtext>[i]Fix[/i] - Chapters notification is not updating the chapters listing</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/24/2017"
+        versionName="0.6.5.beta">
+        <changelogtext>[b]New![/b] Support added for some websites to take you to chapter instead of announcement posts (ty @Daniel for ProTip!) </changelogtext>
+        <changelogtext>[b]New![/b] Add Night mode support for more sites</changelogtext>
+        <changelogtext>[i]Fix[/i] - "Library as Main screen" working again!</changelogtext>
+        <changelogtext>[i]Fix[/i] - Changed "Clean" --> "Reader" for better understanding</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/23/2017"
+        versionName="0.6.4.beta">
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/22/2017"
+        versionName="0.6.3.beta">
+        <changelogtext>[b]New![/b] ‘Reader’ settings moved a separate category under ‘Settings’</changelogtext>
+        <changelogtext>[b]New![/b] Night mode background changed to pure black so it saves battery life on OLED Screens</changelogtext>
+        <changelogtext>[b]New![/b] Add Night mode support for more sites</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/22/2017"
+        versionName="0.6.3.beta">
+        <changelogtext>[b]New![/b] ‘Reader’ settings moved a separate category under ‘Settings’</changelogtext>
+        <changelogtext>[b]New![/b] Night mode background changed to pure black so it saves battery life on OLED Screens</changelogtext>
+        <changelogtext>[b]New![/b] Add Night mode support for more sites</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+
+    <changelogversion
+        changeDate="08/21/2017"
+        versionName="0.6.2.beta">
+        <changelogtext>[b]New![/b] Add Support for translations on Tumblr, Google Docs &amp; Other sites</changelogtext>
+        <changelogtext>[i]Fix[/i] - Chapters loading slower when added to ‘Library’</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/20/2017"
+        versionName="0.6.1.beta">
+        <changelogtext>[b]Experimental![/b] ‘Chapters Screen’ might not load chapters for existing novels the first time, ‘Go Back’ and try opening ‘Chapters Screen’ again.</changelogtext>
+        <changelogtext>[i]Fix[/i] - Download status in ‘Chapters Screen’ will update properly</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/20/2017"
+        versionName="0.6.beta">
+        <changelogtext>[b]New![/b] New chapters design and viewing experience</changelogtext>
+        <changelogtext>[b]New![/b] Directly read from library by clicking on the Novel - Cover Art</changelogtext>
+        <changelogtext>[b]New![/b] Read from exactly where you left off! No more scrolling to last read position!</changelogtext>
+        <changelogtext>[b]New![/b] Settings is grouped &amp; reordered</changelogtext>
+        <changelogtext>[i]Fix[/i] - Duplicate notifications for already updated novels</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/15/2017"
+        versionName="0.5.4.beta">
+        <changelogtext>[b]New![/b] Night mode support for more sites</changelogtext>
+        <changelogtext>[i]Fix[/i] - Individual Chapter downloads are now working again</changelogtext>
+        <changelogtext>[i]Fix[/i] - Crashes on the "Library" screen when app closed while syncing novels</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/14/2017"
+        versionName="0.5.3.beta">
+        <changelogtext>[b]New![/b] Added Indonesian Translation for the app</changelogtext>
+        <changelogtext>[i]Fix[/i] - Trying to open in browser when there isn't one crashes the app!</changelogtext>
+        <changelogtext>[i]Fix[/i] - Download Manager is stable &amp; responsive</changelogtext>
+        <changelogtext>[i]Fix[/i] - Crashes from WLN-Updates more information links</changelogtext>
+        <changelogtext>[i]Fix[/i] - Crashes from Reader screen</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/12/2017"
+        versionName="0.5.2.beta">
+        <changelogtext>[i]Fix[/i] - Major Crashes on the Reading Screen &amp; App not opening!</changelogtext>
+        <changelogtext>[i]Fix[/i] - Share Menu Button from Novel Details is now working</changelogtext>
+    </changelogversion>
+
     <changelogversion
         changeDate="08/11/2017"
         versionName="0.5.1.beta">
         <changelogtext>[i]Fix[/i] - App crashes on going home from reader screen</changelogtext>
     </changelogversion>
-
 
     <changelogversion
         changeDate="08/10/2017"

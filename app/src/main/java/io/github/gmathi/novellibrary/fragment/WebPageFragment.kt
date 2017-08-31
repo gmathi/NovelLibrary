@@ -14,14 +14,20 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ReaderPagerActivity
+import io.github.gmathi.novellibrary.activity.ReaderPagerDBActivity
+import io.github.gmathi.novellibrary.activity.startChaptersActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.model.NightModeChangeEvent
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.fragment_reader.*
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
@@ -40,10 +46,10 @@ class WebPageFragment : Fragment() {
         }
     }
 
-    lateinit var webPage: WebPage
+    var webPage: WebPage? = null
     lateinit var doc: Document
 
-    var isCleaned: Boolean = false
+    private var isCleaned: Boolean = false
     var history: ArrayList<WebPage> = ArrayList()
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
@@ -58,20 +64,24 @@ class WebPageFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+       if (activity == null) return
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             readerWebView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
                 if (scrollY > oldScrollY && scrollY > 0) {
                     activity.floatingToolbar.hide()
                     activity.fab.hide()
                 }
-                if (scrollY < oldScrollY) activity.fab.show()
+                if (oldScrollY - scrollY > 50) activity.fab.show()
+
+                //if (scrollY < oldScrollY) activity.fab.show()
             }
 
         swipeRefreshLayout.setOnRefreshListener { loadData() }
         setWebView()
 
         @Suppress("UNCHECKED_CAST")
-        if (savedInstanceState != null) {
+        if (savedInstanceState != null && savedInstanceState.containsKey("webPage")) {
             webPage = savedInstanceState.getSerializable("webPage") as WebPage
             isCleaned = savedInstanceState.getBoolean("isCleaned")
             history = savedInstanceState.getSerializable("history") as ArrayList<WebPage>
@@ -82,19 +92,27 @@ class WebPageFragment : Fragment() {
             else webPage = intentWebPage
         }
 
-        doc = Jsoup.parse("<html></html>", webPage.url)
+        if (webPage == null || webPage?.url == null) {
+            val activity = (activity as ReaderPagerActivity?)
+            activity?.startChaptersActivity(activity.novel!!, false)
+            activity?.finish()
+        }
+
+        doc = Jsoup.parse("<html></html>", webPage!!.url)
         loadData()
-        if (isCleaned || dataCenter.cleanChapters) activity.fabClean.hide()
     }
 
-    fun loadData() {
+    private fun loadData() {
         //Load with downloaded HTML File
+        readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
         isCleaned = false
-        if (webPage.filePath != null) {
-            val internalFilePath = "file://${webPage.filePath}"
+        activity.fabClean.visibility = if (isCleaned || dataCenter.cleanChapters) View.INVISIBLE else View.VISIBLE
+
+        if (webPage!!.filePath != null) {
+            val internalFilePath = "file://${webPage!!.filePath}"
             val input = File(internalFilePath.substring(7))
 
-            var url = webPage.redirectedUrl
+            var url = webPage!!.redirectedUrl
             if (url == null) url = internalFilePath
 
             doc = Jsoup.parse(input, "UTF-8", url)
@@ -104,12 +122,12 @@ class WebPageFragment : Fragment() {
         }
         //Load from Internet
         else {
-            if (webPage.url != null)
-                downloadWebPage(webPage.url!!)
+            if (webPage!!.url != null)
+                downloadWebPage(webPage!!.url!!)
         }
     }
 
-    fun setWebView() {
+    private fun setWebView() {
         readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled
         readerWebView.webViewClient = object : WebViewClient() {
             @Suppress("OverridingDeprecatedMember")
@@ -151,14 +169,24 @@ class WebPageFragment : Fragment() {
                 }
 
                 doc = await { NovelApi().getDocumentWithUserAgent(url) }
-                val cleaner = HtmlHelper.getInstance(doc.location())
+                val cleaner = HtmlHelper.getInstance(doc)
+                doc.getElementsByTag("img")?.forEach {
+                    if (it.hasAttr("src")) {
+                        it.attr("src", it.absUrl("src"))
+                    }
+                }
+                doc.getElementsByTag("a")?.forEach {
+                    if (it.hasAttr("href")) {
+                        it.attr("href", it.absUrl("href"))
+                    }
+                }
                 if (dataCenter.cleanChapters) {
                     cleaner.removeJS(doc)
                     cleaner.additionalProcessing(doc)
                     cleaner.toggleTheme(dataCenter.isDarkTheme, doc)
                 } else {
                     isCleaned = false
-                    activity.fabClean.show()
+                    activity.fabClean.visibility = View.VISIBLE
                 }
 
                 loadDocument()
@@ -180,22 +208,22 @@ class WebPageFragment : Fragment() {
         settings.textZoom = (size + 50) * 2
     }
 
-    fun loadDocument() {
+    private fun loadDocument() {
         readerWebView.loadDataWithBaseURL(
-            if (webPage.filePath != null) "file://${webPage.filePath}" else doc.location(),
+            if (webPage!!.filePath != null) "file://${webPage!!.filePath}" else doc.location(),
             doc.outerHtml(),
             "text/html", "UTF-8", null)
-        if (webPage.metaData.containsKey("scrollY"))
-            readerWebView.scrollTo(0, webPage.metaData["scrollY"]!!.toInt())
+        if (webPage!!.metaData.containsKey("scrollY"))
+            readerWebView.scrollTo(0, webPage!!.metaData["scrollY"]!!.toInt())
     }
 
-    fun applyTheme() {
-        HtmlHelper.getInstance(doc.location()).toggleTheme(dataCenter.isDarkTheme, doc)
+    private fun applyTheme() {
+        HtmlHelper.getInstance(doc).toggleTheme(dataCenter.isDarkTheme, doc)
     }
 
     fun getUrl(): String? {
         if (doc.location() != null) return doc.location()
-        return webPage.url
+        return webPage!!.url
     }
 
 
@@ -203,7 +231,7 @@ class WebPageFragment : Fragment() {
         if (!isCleaned) {
             progressLayout.showLoading()
             readerWebView.settings.javaScriptEnabled = false
-            val htmlHelper = HtmlHelper.getInstance(doc.location())
+            val htmlHelper = HtmlHelper.getInstance(doc)
             htmlHelper.removeJS(doc)
             htmlHelper.additionalProcessing(doc)
             applyTheme()
@@ -218,22 +246,23 @@ class WebPageFragment : Fragment() {
         async.cancelAll()
     }
 
-    fun loadNewWebPage(otherWebPage: WebPage) {
-        history.add(webPage)
+    private fun loadNewWebPage(otherWebPage: WebPage) {
+        history.add(webPage!!)
         webPage = otherWebPage
         loadData()
     }
 
     fun goBack() {
         webPage = history.last()
-        history.remove(webPage)
+        history.remove(webPage!!)
         loadData()
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
-        webPage.metaData.put("scrollY", readerWebView.scrollY.toString())
-        outState?.putSerializable("webPage", webPage)
+        //webPage.metaData.put("scrollY", readerWebView.scrollY.toString())
+        if (webPage != null)
+            outState?.putSerializable("webPage", webPage)
         outState?.putBoolean("isCleaned", isCleaned)
         outState?.putSerializable("history", history)
     }
@@ -241,8 +270,8 @@ class WebPageFragment : Fragment() {
     fun checkUrl(url: String?): Boolean {
         if (url == null) return false
 
-        if (webPage.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
-            val links: ArrayList<WebPage> = Gson().fromJson(webPage.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+        if (webPage!!.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
+            val links: ArrayList<WebPage> = Gson().fromJson(webPage!!.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
             links.forEach {
                 if (it.url == url || (it.redirectedUrl != null && it.redirectedUrl == url)) {
                     loadNewWebPage(it)
@@ -253,6 +282,23 @@ class WebPageFragment : Fragment() {
 
         val readerActivity = (activity as ReaderPagerActivity?) ?: return false
         return readerActivity.checkUrl(url)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        EventBus.getDefault().register(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        EventBus.getDefault().unregister(this)
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onNightModeChanged(event: NightModeChangeEvent) {
+        cleanPage()
+        applyTheme()
+        loadDocument()
     }
 
 

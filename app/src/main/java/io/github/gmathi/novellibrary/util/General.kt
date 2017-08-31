@@ -13,14 +13,14 @@ import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
 import android.widget.TextView
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.adapter.GenericAdapterWithDragListener
 import io.github.gmathi.novellibrary.dataCenter
 import jp.wasabeef.recyclerview.animators.SlideInRightAnimator
 
 
 fun ViewGroup.inflate(layoutRes: Int): View {
-    val view = LayoutInflater.from(context).inflate(layoutRes, this, false)
     //view.layoutParams = RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT)
-    return view
+    return LayoutInflater.from(context).inflate(layoutRes, this, false)
 }
 
 fun String.addToSearchHistory() {
@@ -54,6 +54,38 @@ fun <T> RecyclerView.setDefaults(adapter: GenericAdapter<T>): RecyclerView {
 
     return this
 }
+
+fun <T> RecyclerView.setDefaultsNoAnimation(adapter: GenericAdapter<T>): RecyclerView {
+    this.setHasFixedSize(true)
+    this.layoutManager = SnappingLinearLayoutManager(context)
+    this.adapter = adapter
+    return this
+}
+
+fun <T> RecyclerView.setDefaults(adapter: GenericAdapterWithDragListener<T>): RecyclerView {
+    val animator = SlideInRightAnimator(OvershootInterpolator(1f))
+    animator.addDuration = 1000
+    animator.removeDuration = 1000
+    animator.changeDuration = 0
+    animator.moveDuration = 200
+
+    this.setHasFixedSize(true)
+    this.layoutManager = SnappingLinearLayoutManager(context)
+    this.itemAnimator = animator
+    this.adapter = adapter
+
+    return this
+}
+
+
+fun <T> RecyclerView.setDefaultsNoAnimation(adapter: GenericAdapterWithDragListener<T>): RecyclerView {
+    this.setHasFixedSize(true)
+    this.layoutManager = SnappingLinearLayoutManager(context)
+    this.adapter = adapter
+    return this
+}
+
+
 
 fun Uri.getFileName(): String {
     return (this.lastPathSegment + this.toString().substringAfter("?", "")).writableFileName()

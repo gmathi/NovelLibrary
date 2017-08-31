@@ -186,5 +186,28 @@
     <string name="new_chapters_notification_title">Nuevos Capítulos Disponibles!</string>
     <string name="sync_in_progress">Sincronización en progreso</string>
 
+    <!-- v0.6 Strings -->
+
+    <string name="mentions">Menciones</string>
+    <string name="select_all">Seleccionar todo</string>
+    <string name="clear_selection">Borrar selección</string>
+    <string name="download_novel">Descargar novela</string>
+    <string name="add_to_library_dialog_content">Necesitas descargar la novela para agregarla a la librería y descargar/marcar capitulos individualmente. ¿Quieres agregar esta novela -%s a la librería?</string>
+    <string name="swipe_right_for_next_chapter">Deslizar stilo Japonés</string>
+    <string name="swipe_right_for_next_chapter_description">Desliza a la derecha para cambiar al siguiente capítulo.</string>
+    <string name="no_bookmark_found_dialog_title">¿Comenzar a leer?</string>
+    <string name="no_bookmark_found_dialog_description">Al parecer no as leído ‘%s’ todavía. ¿Por qué no empiezas ahora?</string>
+    <string name="sync_interval">Intervalo de sincronización.</string>
+    <string name="sync_interval_description">Comprobar nuevas actualizaciones para novelas.</string>
+
+    <!-- v0.6.2 Strings -->
+    <string name="clean">Limpiar</string>
+    <string name="reader">Lector</string>
+    <string name="reader_mode">Modo de lectura</string>
+    <string name="show_reader_scroll">Mostrar barra de desplazamiento</string>
+    <string name="show_reader_scroll_description">Muestra la barra de desplazamiento vertical en el borde derecho de la pantalla para realizar un seguimiento del progreso del capítulo.</string>
+    <string name="show_comments_section">Mostrar comentarios</string>
+    <string name="show_comments_section_description">Muestra la sección de comentarios del capítulo en el modo lector. (Sitios web limitados compatibles)</string>
+
 
 </resources>

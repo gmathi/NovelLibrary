@@ -173,4 +173,27 @@
     <string name="new_chapters_notification_title">Capituli Available New!</string>
     <string name="sync_in_progress">Sync in progressus</string>
 
+    <!-- v0.6 Strings -->
+
+    <string name="mentions">Mentions</string>
+    <string name="select_all">Omnia Seliga</string>
+    <string name="clear_selection">Dele Selectionem</string>
+    <string name="download_novel">Tene Novellum</string>
+    <string name="add_to_library_dialog_content">Oportet Novellum addere in Bibliothecam ante potes tendere/signare singulam capitem. Volisne hunc novellum - %s -  addere in Bibliothecam?</string>
+    <string name="swipe_right_for_next_chapter">Modus Iaponica</string>
+    <string name="swipe_right_for_next_chapter_description">Lapsa dextera propter caput insequens</string>
+    <string name="no_bookmark_found_dialog_title">Incipisne legere?</string>
+    <string name="no_bookmark_found_dialog_description">Non legebas ‘%s’ videtur. Volisne iam incipere?</string>
+    <string name="sync_interval">Quotiens renovare</string>
+    <string name="sync_interval_description">Quotiens tentere pro novella renovanda</string>
+
+    <!-- v0.6.2 Strings -->
+    <string name="clean">Tersus</string>
+    <string name="reader">Lector</string>
+    <string name="reader_mode">Lector Modus</string>
+    <string name="show_reader_scroll">show Scrollbar</string>
+    <string name="show_reader_scroll_description">Ostendit dextram vertical scrollbar in ore gladii in screen ad track profectum vestrum hujus capitis continuatio.</string>
+    <string name="show_comments_section">show Comments</string>
+    <string name="show_comments_section_description">CAPUT scriptor comment in sectione modus lectorem ostendit. (CD Web suffulti)</string>
+
 </resources>

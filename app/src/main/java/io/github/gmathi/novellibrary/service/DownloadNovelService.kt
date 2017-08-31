@@ -6,12 +6,13 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.NotificationCompat
 import android.util.Log
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
-import io.github.gmathi.novellibrary.database.getAllReadableWebPages
+import io.github.gmathi.novellibrary.database.getAllReadableWebPagesCount
 import io.github.gmathi.novellibrary.database.getFirstDownloadableQueueItem
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.updateAllDownloadQueueStatuses
@@ -99,7 +100,7 @@ class DownloadNovelService : IntentService(TAG) {
     private fun getNotification(novel: Novel): Notification {
         // The PendingIntent to launch our activity if the user selects
         // this notification
-        val readablePagesCount = dbHelper.getAllReadableWebPages(novelId).size
+        val readablePagesCount = dbHelper.getAllReadableWebPagesCount(novel.id)
 
         val title = novel.name
         val novelDetailsIntent = Intent(this, NavDrawerActivity::class.java)
@@ -115,8 +116,12 @@ class DownloadNovelService : IntentService(TAG) {
             .setContentTitle(title)
             .setOngoing(true)
             .setContentText(getString(R.string.downloading_status, getString(R.string.downloading), getString(R.string.status), getString(R.string.chapter_count, readablePagesCount, novel.chapterCount.toInt())))
-            .setSmallIcon(R.drawable.ic_file_download_orange_vector)
             .setContentIntent(contentIntent)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            builder.setSmallIcon(R.drawable.ic_file_download_orange_vector)
+        else
+            builder.setSmallIcon(R.drawable.ic_file_download_white)
 
         if (novel.imageFilePath != null) {
             builder.setLargeIcon(Bitmap.createScaledBitmap(BitmapFactory.decodeFile(novel.imageFilePath), 128, 192, false))

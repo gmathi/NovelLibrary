@@ -2,11 +2,106 @@
 <changelog bulletedList="true">
 
     <changelogversion
-        changeDate="08/11/2017"
-        versionName="0.5.1.beta">
-        <changelogtext>[i]Fix[/i] - App crashes on going home from reader screen</changelogtext>
+        changeDate="08/30/2017"
+        versionName="0.6.7.beta">
+        <changelogtext>[b]New![/b] Added 2 new settings to ‘Reader Mode’ </changelogtext>
+        <changelogtext>[b]New![/b] Added Night mode support for more sites</changelogtext>
+        <changelogtext>[i]Fix[/i] - A set distance before the bottom menu circle appears when scrolling up</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
     </changelogversion>
 
+    <changelogversion
+        changeDate="08/24/2017"
+        versionName="0.6.6.beta">
+        <changelogtext>[b]New![/b] Added Alphabetical Sorting to ‘Library’ </changelogtext>
+        <changelogtext>[b]New![/b] Add Night mode support for more sites</changelogtext>
+        <changelogtext>[i]Fix[/i] - Chapters notification is not updating the chapters listing</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/24/2017"
+        versionName="0.6.5.beta">
+        <changelogtext>[b]New![/b] Support added for some websites to take you to chapter instead of announcement posts (ty @Daniel for ProTip!) </changelogtext>
+        <changelogtext>[b]New![/b] Add Night mode support for more sites</changelogtext>
+        <changelogtext>[i]Fix[/i] - "Library as Main screen" working again!</changelogtext>
+        <changelogtext>[i]Fix[/i] - Changed "Clean" --> "Reader" for better understanding</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/23/2017"
+        versionName="0.6.4.beta">
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/22/2017"
+        versionName="0.6.3.beta">
+        <changelogtext>[b]New![/b] ‘Reader’ settings moved a separate category under ‘Settings’</changelogtext>
+        <changelogtext>[b]New![/b] Night mode background changed to pure black so it saves battery life on OLED Screens</changelogtext>
+        <changelogtext>[b]New![/b] Add Night mode support for more sites</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/21/2017"
+        versionName="0.6.2.beta">
+        <changelogtext>[b]New![/b] Add Support for translations on Tumblr, Google Docs &amp; Other sites</changelogtext>
+        <changelogtext>[i]Fix[/i] - Chapters loading slower when added to ‘Library’</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/20/2017"
+        versionName="0.6.1.beta">
+        <changelogtext>[b]Experimental![/b] ‘Chapters Screen’ might not load chapters for existing novels the first time, ‘Go Back’ and try opening ‘Chapters Screen’ again.</changelogtext>
+        <changelogtext>[i]Fix[/i] - Download status in ‘Chapters Screen’ will update properly</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="19/08/2017"
+        versionName="0.6.beta">
+        <changelogtext>[b]Yeni![/b] Bölümler için yeni görsel düzenlemeler.</changelogtext>
+        <changelogtext>[b]Yeni![/b] Kütüphane ekranından Kapak Resmine dokunarak da okumaya başlayabilirsiniz.</changelogtext>
+        <changelogtext>[b]Yeni![/b] Bıraktığınız yerden okumaya devam edin! Artık sayfalar boyunca kaldığınız yeri aramak yok!</changelogtext>
+        <changelogtext>[b]Yeni![/b] Ayarlar kategorilere ayrıldı ve yeniden düzenlendi.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Çoktan güncellenmiş romanlar için çift içerik uyarısı eklendi.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="15/08/2017"
+        versionName="0.5.4.beta">
+        <changelogtext>[b]Yeni![/b] Pek çok başka site için de Gece Modu desteği eklendi.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Bölümleri tek tek indirmek yeniden mümkün.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - "Kütüphane" ekranından senkronizasyonu açık bırakıp uygulamanın kapatılmasıyla oluşan çökme hatası giderilmiştir."</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="14/08/2017"
+        versionName="0.5.3.beta">
+        <changelogtext>[b]Yeni![/b]  Uygulamaya Endonezce çeviri eklenmiştir.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Tarayıcı olmadan linki tarayıcıda açmaya çalışmak uygulamada çökmeye neden oluyor hatası.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - İndirme Yöneticisi artık daha dengeeli ve yanıt veriyor.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - WLN-Updates'in detaylı bilgi linklerinden kaynaklanan hatalar.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Okuma ekranındaki hatalar.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="12/08/2017"
+        versionName="0.5.2.beta">
+        <changelogtext>[i]Onarım[/i] - Okuma Ekranındaki hatalar &amp; Uygulamanın açılmaması sorunları</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Detaylar bölümündeki paylaşım tuşu menüsü artık çalışıyor.</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="11/08/2017"
+        versionName="0.5.1.beta">
+        <changelogtext>[i]Onarım[/i] - Okuma ekranından ana ekrana geçişte uygulamanın çökmesi giderildi.</changelogtext>
+    </changelogversion>
 
     <changelogversion versionName="0.5.beta" changeDate="08/04/2017">
         <changelogtext>[b]Yeni![/b] Roman sitelerinin %99'u için destek sağlanıyor</changelogtext>

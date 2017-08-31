@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.support.v4.view.ViewPager
 import android.view.KeyEvent
 import android.view.MenuItem
+import android.view.View
 import android.webkit.WebView
 import android.widget.SeekBar
 import com.afollestad.materialdialogs.MaterialDialog
@@ -15,9 +16,11 @@ import io.github.gmathi.novellibrary.database.updateCurrentWebPageId
 import io.github.gmathi.novellibrary.database.updateWebPageReadStatus
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.WebPageFragment
+import io.github.gmathi.novellibrary.model.NightModeChangeEvent
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import kotlinx.android.synthetic.main.activity_reader_pager.*
+import org.greenrobot.eventbus.EventBus
 
 
 class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, FloatingToolbar.ItemClickListener, SeekBar.OnSeekBarChangeListener {
@@ -32,7 +35,6 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader_pager)
         //window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
 
         novel = intent.getSerializableExtra("novel") as Novel?
         webPage = intent.getSerializableExtra("webPage") as WebPage?
@@ -60,7 +62,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
 
         fabClean.setOnClickListener {
             (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).cleanPage()
-            fabClean.hide()
+            fabClean.visibility = View.INVISIBLE
         }
 
     }
@@ -73,7 +75,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
             webPage.isRead = 1
             dbHelper.updateWebPageReadStatus(webPage)
         }
-        fabClean.show()
+        //fabClean.visibility = View.VISIBLE
     }
 
     override fun onPageScrollStateChanged(position: Int) {
@@ -101,8 +103,9 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
 
     private fun toggleDarkTheme() {
         dataCenter.isDarkTheme = !dataCenter.isDarkTheme
-        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.applyTheme()
-        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.loadDocument()
+        //(viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.applyTheme()
+        //(viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.loadDocument()
+        EventBus.getDefault().post(NightModeChangeEvent())
     }
 
     fun changeTextSize() {

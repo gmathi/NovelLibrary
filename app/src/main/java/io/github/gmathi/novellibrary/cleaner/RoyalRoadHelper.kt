@@ -53,4 +53,5 @@ class RoyalRoadHelper : HtmlHelper() {
         return doc
 
     }
+
 }

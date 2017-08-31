@@ -65,9 +65,9 @@ class DownloadChapterService : IntentService(TAG) {
                 if (isNetworkDown()) throw InterruptedException(Constants.NO_NETWORK)
 
                 if (dataCenter.experimentalDownload) {
-                    threadPool.execute(DownloadWebPageThread(this@DownloadChapterService, it, hostDir, novelDir))
+                    threadPool.execute(DownloadWebPageThread(this@DownloadChapterService, it, hostDir, novelDir, false))
                 } else {
-                    threadPool.submit(DownloadWebPageThread(this@DownloadChapterService, it, hostDir, novelDir))?.get()
+                    threadPool.submit(DownloadWebPageThread(this@DownloadChapterService, it, hostDir, novelDir, false))?.get()
                 }
             }
 

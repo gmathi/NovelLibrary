@@ -19,16 +19,79 @@ open class HtmlHelper protected constructor() {
     private val TAG = "HtmlHelper"
 
     companion object {
-        fun getInstance(host: String): HtmlHelper {
+
+        fun getInstance(doc: Document, hostName: String = doc.location()): HtmlHelper {
+
+            val host =
+                if (hostName.startsWith("www."))
+                    hostName.replace("www.", "")
+                else
+                    hostName
+
             when {
                 host.contains(HostNames.ROYAL_ROAD) -> return RoyalRoadHelper()
-                host.contains(HostNames.GRAVITY_TALES) -> return GravityTalesHelper()
                 host.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
-                host.contains(HostNames.WORD_PRESS) -> return WordPressHelper()
                 host.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
-                host.contains(HostNames.KOBATOCHAN) -> return KobatochanHelper()
                 host.contains(HostNames.QIDIAN) -> return QidianHelper()
+                host.contains(HostNames.GOOGLE_DOCS) -> return GoogleDocsCleaner()
+                host.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsHelper()
+                host.contains(HostNames.TUMBLR) -> return TumblrCleaner()
+                host.contains(HostNames.BAKA_TSUKI) -> return BakaTsukiCleaner()
+            }
+
+            var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
+            if (contentElement != null) return GeneralClassTagHelper(host, "div", "entry-content")
+
+            contentElement = doc.body().getElementsByTag("article").firstOrNull { it.hasClass("hentry") }
+            if (contentElement != null) return GeneralClassTagHelper(host, "article", "hentry")
+
+            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("hentry") }
+            if (contentElement != null) return GeneralClassTagHelper(host, "div", "hentry")
+
+            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.id() == "chapter_body" }
+            if (contentElement != null) return GeneralIdTagHelper(host, "div", "chapter_body")
+
+            contentElement = doc.body().getElementsByTag("article").firstOrNull { it.id() == "releases" }
+            if (contentElement != null) return GeneralIdTagHelper(host, "article", "releases")
+
+            return HtmlHelper()
+        }
+
+
+        @Deprecated("Use `getInstance(Document): HtmlHelper` instead")
+        fun getInstance(host: String): HtmlHelper {
+            when {
+
+                host.contains(HostNames.ROYAL_ROAD) -> return RoyalRoadHelper()
+                host.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
+                host.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
+                host.contains(HostNames.QIDIAN) -> return QidianHelper()
+                host.contains(HostNames.GOOGLE_DOCS) -> return GoogleDocsCleaner()
+
+            // 'entry-content' - 'div' tag cleaner
+                host.contains(HostNames.MOON_BUNNY_CAFE) -> return EntryContentTagCleaner()
+                host.contains(HostNames.LIGHT_NOVEL_TRANSLATIONS) -> return EntryContentTagCleaner()
+                host.contains(HostNames.SOUSETSUKA) -> return EntryContentTagCleaner()
+                host.contains(HostNames.FANTASY_BOOKS) -> return EntryContentTagCleaner()
+
+            // "WordPress" Sites cleaner
+                host.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsHelper()
+                host.contains(HostNames.WORD_PRESS) -> return WordPressHelper()
                 host.contains(HostNames.PRINCE_REVOLUTION) -> return WordPressHelper()
+
+
+            // "Tumblr" Sites Cleaner
+                host.contains(HostNames.TUMBLR) -> return TumblrCleaner()
+
+            //Generic Class Cleaners
+                host.contains(HostNames.GRAVITY_TALES) -> return GeneralClassTagHelper(HostNames.GRAVITY_TALES, "article", "hentry")
+                host.contains(HostNames.VOLARE_NOVELS) -> return GeneralClassTagHelper(HostNames.VOLARE_NOVELS, "article", "hentry")
+                host.contains(HostNames.SKY_WOOD_TRANSLATIONS) -> return GeneralClassTagHelper(HostNames.SKY_WOOD_TRANSLATIONS, "div", "hentry")
+                host.contains(HostNames.KOBATOCHAN) -> return GeneralClassTagHelper(HostNames.KOBATOCHAN, "div", "entry-content")
+
+            //Generic Id Cleaners
+                host.contains(HostNames.LIBER_SPARK) -> return GeneralIdTagHelper(HostNames.LIBER_SPARK, "div", "chapter_body")
+
             }
             return HtmlHelper()
         }
@@ -115,7 +178,7 @@ open class HtmlHelper protected constructor() {
         val file: File
         try {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: " + uri.toString())
-            val fileName = uri.lastPathSegment.writableFileName()
+            val fileName = (uri.lastPathSegment + uri.query).writableFileName()
             file = File(dir, fileName)
             val response = Jsoup.connect(uri.toString()).userAgent(HostNames.USER_AGENT).ignoreContentType(true).execute()
             val bytes = response.bodyAsBytes()
@@ -137,7 +200,45 @@ open class HtmlHelper protected constructor() {
         return doc
     }
 
+    fun toggleThemeDefault(isDark: Boolean, doc: Document): Document {
+//        val fontName = "lobster_regular.ttf"
+        val fontName = "source_sans_pro_regular.ttf"
+        val fontFamily = fontName.split(".")[0]
+        val nightModeTextBrightness = 8
+        if (isDark) {
+            doc.head().getElementById("darkTheme")?.remove()
+            doc.head().append("" +
+                "<style id=\"darkTheme\">" +
+                "@font-face { font-family: $fontFamily; src: url(\"file:///android_asset/fonts/$fontName\") } \n" +
+                "body { background-color:#000000; color:rgba(255, 255, 255, 0.$nightModeTextBrightness); font-family: '$fontFamily'; line-height: 1.5; padding:20px;} " +
+                "</style> ")
+        } else {
+            doc.head().getElementById("darkTheme")?.remove()
+            doc.head().append("" +
+                "<style id=\"darkTheme\">" +
+                "@font-face { font-family: $fontFamily; src: url(\"file:///android_asset/fonts/$fontName\") } \n" +
+                "body { background-color:rgba(255, 255, 255, 0.$nightModeTextBrightness); color:#000000; font-family: '$fontFamily';; line-height: 1.5; padding:20px;} " +
+                "</style> ")
+        }
+
+        return doc
+    }
+
     open fun getLinkedChapters(doc: Document): ArrayList<String> {
         return ArrayList()
+    }
+
+    fun cleanClassAndIds(contentElement: Element?) {
+        contentElement?.classNames()?.forEach { contentElement.removeClass(it) }
+        contentElement?.removeAttr("style")
+        if (contentElement != null && contentElement.hasAttr("id"))
+            contentElement.removeAttr("id")
+    }
+
+    fun cleanCSSFromChildren(contentElement: Element?) {
+        cleanClassAndIds(contentElement)
+        contentElement?.children()?.forEach {
+            cleanCSSFromChildren(it)
+        }
     }
 }

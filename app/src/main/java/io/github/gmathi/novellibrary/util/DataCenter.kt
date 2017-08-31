@@ -28,6 +28,9 @@ class DataCenter(context: Context) {
     private val JAVASCRIPT = "javascript"
     private val LANGUAGE = "language"
     private val VERIFIED_HOSTS = "verifiedHosts"
+    private val JAP_SWIPE = "japSwipe"
+    private val SHOW_READER_SCROLL = "showReaderScroll"
+    private val SHOW_CHAPTER_COMMENTS = "showChapterComments"
 
     val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -96,6 +99,19 @@ class DataCenter(context: Context) {
     var language: String
         get() = prefs.getString(LANGUAGE, Locale.getDefault().toString())
         set(value) = prefs.edit().putString(LANGUAGE, value).apply()
+
+    var japSwipe: Boolean
+        get() = prefs.getBoolean(JAP_SWIPE, true)
+        set(value) = prefs.edit().putBoolean(JAP_SWIPE, value).apply()
+
+    var showReaderScroll: Boolean
+        get() = prefs.getBoolean(SHOW_READER_SCROLL, true)
+        set(value) = prefs.edit().putBoolean(SHOW_READER_SCROLL, value).apply()
+
+    var showChapterComments: Boolean
+        get() = prefs.getBoolean(SHOW_CHAPTER_COMMENTS, false)
+        set(value) = prefs.edit().putBoolean(SHOW_CHAPTER_COMMENTS, value).apply()
+
 
     fun getVerifiedHosts(): ArrayList<String> {
         return Gson().fromJson(prefs.getString(VERIFIED_HOSTS, Gson().toJson(HostNames.getDefaultHostNamesList())), object : TypeToken<ArrayList<String>>() {}.type)

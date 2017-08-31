@@ -49,30 +49,50 @@
 
     <string-array name="settings_list" translatable="false">
         <item>@string/general</item>
-        <item>@string/languages_supported</item>
-        <item>@string/copyright_notice</item>
+        <item>@string/reader</item>
+        <item>@string/mentions</item>
         <item>@string/donate_developer</item>
-        <item>@string/libraries_used</item>
-        <item>@string/contributions</item>
         <item>@string/changelog</item>
         <item>@string/about_us</item>
+    </string-array>
+
+    <string-array name="mention_settings_list" translatable="false">
+        <item>@string/languages_supported</item>
+        <item>@string/libraries_used</item>
+        <item>@string/contributions</item>
+        <item>@string/copyright_notice</item>
     </string-array>
 
     <string-array name="general_titles_list" translatable="false">
         <item>@string/clear_data</item>
         <item>@string/faster_downloads</item>
         <item>@string/first_screen_library</item>
-        <item>@string/clean_pages</item>
-        <item>@string/disable_javascript</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
         <item>@string/clear_data_description</item>
         <item>@string/faster_downloads_description</item>
         <item>@string/first_screen_library_description</item>
+    </string-array>
+
+    <string-array name="reader_titles_list" translatable="false">
+        <item>@string/clean_pages</item>
+        <item>@string/disable_javascript</item>
+        <item>@string/swipe_right_for_next_chapter</item>
+        <item>@string/show_reader_scroll</item>
+        <item>@string/show_comments_section</item>
+        <!--<item>@string/pure_night_mode</item>-->
+    </string-array>
+
+    <string-array name="reader_subtitles_list" translatable="false">
         <item>@string/clean_pages_description</item>
         <item>@string/disable_javascript_description</item>
+        <item>@string/swipe_right_for_next_chapter_description</item>
+        <item>@string/show_reader_scroll_description</item>
+        <item>@string/show_comments_section_description</item>
     </string-array>
+
+
 
 
     <!--<item>Latest Updates</item>-->
@@ -86,8 +106,12 @@
     <string name="title_activity_copyright" translatable="false">@string/copyright_notice</string>
     <string name="title_activity_search_results" translatable="false">SearchResultsActivity</string>
     <string name="title_activity_general_settings" translatable="false">@string/general</string>
+    <string name="title_activity_reader_settings" translatable="false">@string/reader</string>
+    <string name="title_activity_mention_settings" translatable="false">@string/mentions</string>
     <string name="title_activity_chapters_new" translatable="false">@string/chapters</string>
     <string name="title_activity_language" translatable="false">LanguageActivity</string>
+    <string name="title_activity_novel_downloads" translatable="false">NovelDownloadsActivity</string>
+
 
 
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
@@ -126,6 +150,7 @@
     <!--<string name="pref_description_queue_novel_downloads">Downloads novels one after the another. If disabled, max of 5 novels with be downloaded simultaneously. </string>-->
     <!--<string name="pref_title_download_latest_first">Download Latest First</string>-->
     <!--<string name="pref_description_download_latest_first">Download the latest chapter first.</string>-->
+    <!--<string name="chapters_left_to_download">%d Chapter(s) left to download</string>-->
 
 
     <!-- Transition Names -->
@@ -249,5 +274,29 @@
     <string name="new_chapters_notification_title">New Chapters Available!</string>
     <string name="sync_in_progress">Sync in progress</string>
 
+    <!-- v0.6 Strings -->
+
+    <string name="mentions">Mentions</string>
+    <string name="select_all">Select All</string>
+    <string name="clear_selection">Clear Selection</string>
+    <string name="download_novel">Download Novel</string>
+    <string name="add_to_library_dialog_content">The novel needs to be added to Library before you can download/mark individual chapters. Do you want to add this novel - %s to the Library?</string>
+    <string name="swipe_right_for_next_chapter">Jap Style Swipe</string>
+    <string name="swipe_right_for_next_chapter_description">Swipe right for next chapter</string>
+    <string name="no_bookmark_found_dialog_title">Start Reading?</string>
+    <string name="no_bookmark_found_dialog_description">Looks like you haven\'t read ‘%s’ yet, why don\'t you start now?</string>
+    <string name="sync_interval">Sync Interval</string>
+    <string name="sync_interval_description">Check for novel updates interval</string>
+
+    <!-- From Here -->
+
+    <!-- v0.6.2 Strings -->
+    <string name="clean">Clean</string>
+    <string name="reader">Reader</string>
+    <string name="reader_mode">Reader Mode</string>
+    <string name="show_reader_scroll">Show Scrollbar</string>
+    <string name="show_reader_scroll_description">Shows the vertical scrollbar on the right edge of the screen to track your progress of the chapter</string>
+    <string name="show_comments_section">Show Comments</string>
+    <string name="show_comments_section_description">Shows the chapter’s comments section in the reader mode. (Limited Websites Supported)</string>
 
 </resources>

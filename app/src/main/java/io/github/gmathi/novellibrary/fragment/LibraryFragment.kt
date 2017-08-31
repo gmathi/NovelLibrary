@@ -21,6 +21,8 @@ import com.bumptech.glide.request.transition.Transition
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
+import io.github.gmathi.novellibrary.activity.startChaptersActivity
+import io.github.gmathi.novellibrary.activity.startReaderPagerDBActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.database.updateNewChapterCount
@@ -45,8 +47,9 @@ import java.io.FileOutputStream
 class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleItemTouchListener {
 
     lateinit var adapter: GenericAdapter<Novel>
-    lateinit var touchHelper: ItemTouchHelper
-    var lastDeletedId: Long = -1
+    private lateinit var touchHelper: ItemTouchHelper
+    private var lastDeletedId: Long = -1
+    private var isSorted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,8 +83,10 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     private fun setData() {
         updateOrderIds()
         adapter.updateData(ArrayList(dbHelper.getAllNovels()))
-        swipeRefreshLayout.isRefreshing = false
-        progressLayout.showContent()
+        if (swipeRefreshLayout != null && progressLayout != null) {
+            swipeRefreshLayout.isRefreshing = false
+            progressLayout.showContent()
+        }
     }
 
 
@@ -89,7 +94,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun onItemClick(item: Novel) {
         if (lastDeletedId != item.id)
-            startNovelDetailsActivity(item)
+            startNovelDetailsActivity(item, false)
     }
 
     override fun bind(item: Novel, itemView: View, position: Int) {
@@ -111,6 +116,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                             try {
                                 val os = FileOutputStream(file)
                                 bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, os)
+                                bitmap?.recycle()
                                 item.imageFilePath = file.path
                             } catch (e: Exception) {
                                 e.printStackTrace()
@@ -146,8 +152,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         }
 
         itemView.readChapterImage.setOnClickListener {
-
+            startReader(item)
         }
+
 
         if (item.chapterCount < item.newChapterCount) {
             val shape = GradientDrawable()
@@ -171,7 +178,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
-        menu.getItem(0).isVisible = statusCard.visibility == View.GONE
+        if (activity != null && statusCard != null)
+            menu.getItem(0).isVisible = statusCard.visibility == View.GONE
         super.onPrepareOptionsMenu(menu)
     }
 
@@ -181,13 +189,31 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 syncNovels()
                 return true
             }
+            R.id.action_sort -> {
+                sortNovelsAlphabetically()
+            }
         }
         return super.onOptionsItemSelected(item)
     }
 
+    private fun sortNovelsAlphabetically() {
+        if (adapter.items.isNotEmpty()) {
+            val items = adapter.items
+            if (!isSorted)
+                adapter.updateData(ArrayList(items.sortedWith(compareBy({ it.name }))))
+            else
+                adapter.updateData(ArrayList(items.sortedWith(compareBy({ it.name })).reversed()))
+            isSorted = !isSorted
+            updateOrderIds()
+        }
+    }
+
     private fun syncNovels() {
         //activity.startSyncService()
-        async {
+        async syncing@ {
+
+            if (statusCard == null || activity == null) return@syncing
+
             statusCard.visibility = View.VISIBLE
             statusCard.startAnimation(AnimationUtils.loadAnimation(activity, R.anim.alpha_animation))
             activity.invalidateOptionsMenu()
@@ -203,6 +229,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 }
             }
             setData()
+
+            if (statusCard == null || activity == null) return@syncing
             statusCard.animation = null
             statusCard.visibility = View.GONE
             activity.invalidateOptionsMenu()
@@ -241,11 +269,26 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         print(event.novelId)
     }
 
+    private fun startReader(novel: Novel) {
+        if (novel.currentWebPageId != -1L) {
+            activity.startReaderPagerDBActivity(novel)
+        } else {
+            val confirmDialog = MaterialDialog.Builder(activity)
+                .title(getString(R.string.no_bookmark_found_dialog_title))
+                .content(getString(R.string.no_bookmark_found_dialog_description, novel.name))
+                .positiveText(getString(R.string.okay))
+                .negativeText(R.string.cancel)
+                .onPositive { dialog, _ -> activity.startChaptersActivity(novel, false); dialog.dismiss() }
+            confirmDialog!!.show()
+        }
+    }
 
-    fun startNovelDetailsActivity(novel: Novel) {
+    private fun startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean) {
         val intent = Intent(activity, NovelDetailsActivity::class.java)
         val bundle = Bundle()
         bundle.putSerializable("novel", novel)
+        if (jumpToReader)
+            bundle.putBoolean(Constants.JUMP, true)
         intent.putExtras(bundle)
         activity.startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
     }
@@ -259,6 +302,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 Handler().postDelayed({ lastDeletedId = -1 }, 1200)
             }
             return
+        } else if (requestCode == Constants.READER_ACT_REQ_CODE || requestCode == Constants.NOVEL_DETAILS_RES_CODE) {
+            setData()
         }
     }
 
@@ -289,7 +334,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun updateOrderIds() {
         if (adapter.items.isNotEmpty())
-            for (i in 0..adapter.items.size - 1) {
+            for (i in 0 until adapter.items.size) {
                 dbHelper.updateOrderId(adapter.items[i].id, i.toLong())
             }
     }

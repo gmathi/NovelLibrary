@@ -38,10 +38,12 @@ fun Activity.snackBar(view: View, message: String) {
         .setAction("Action", null).show()
 }
 
-fun Activity.startChaptersActivity(novel: Novel) {
-    val intent = Intent(this, ChaptersNewActivity::class.java)
+fun Activity.startChaptersActivity(novel: Novel, jumpToReader: Boolean) {
+    val intent = Intent(this, ChaptersUltimateActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
+    if (jumpToReader)
+        bundle.putBoolean(Constants.JUMP, true)
     intent.putExtras(bundle)
     startActivityForResult(intent, Constants.CHAPTER_ACT_REQ_CODE)
 }
@@ -54,7 +56,6 @@ fun Activity.startMetadataActivity(novel: Novel) {
     startActivityForResult(intent, Constants.METADATA_ACT_REQ_CODE)
 }
 
-
 fun Activity.startReaderPagerActivity(novel: Novel, webPage: WebPage, chapters: ArrayList<WebPage>?) {
     val intent = Intent(this, ReaderPagerActivity::class.java)
     val bundle = Bundle()
@@ -64,6 +65,15 @@ fun Activity.startReaderPagerActivity(novel: Novel, webPage: WebPage, chapters: 
     intent.putExtras(bundle)
     startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
 }
+
+fun Activity.startReaderPagerDBActivity(novel: Novel) {
+    val intent = Intent(this, ReaderPagerDBActivity::class.java)
+    val bundle = Bundle()
+    bundle.putSerializable("novel", novel)
+    intent.putExtras(bundle)
+    startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
+}
+
 
 
 fun Activity.startSearchResultsActivity(title: String, url: String) {
@@ -88,6 +98,17 @@ fun Activity.startGeneralSettingsActivity() {
     startActivity(intent)
 }
 
+fun Activity.startReaderSettingsActivity() {
+    val intent = Intent(this, ReaderSettingsActivity::class.java)
+    startActivity(intent)
+}
+
+
+fun Activity.startMentionSettingsActivity() {
+    val intent = Intent(this, MentionSettingsActivity::class.java)
+    startActivity(intent)
+}
+
 fun Activity.startCopyrightActivity() {
     val intent = Intent(this, CopyrightActivity::class.java)
     startActivity(intent)
@@ -103,10 +124,12 @@ fun Activity.startContributionsActivity() {
     startActivity(intent)
 }
 
-fun Activity.startNovelDetailsActivity(novel: Novel) {
+fun Activity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean) {
     val intent = Intent(this, NovelDetailsActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
+    if (jumpToReader)
+        bundle.putBoolean(Constants.JUMP, true)
     intent.putExtras(bundle)
     startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
 }
@@ -114,7 +137,8 @@ fun Activity.startNovelDetailsActivity(novel: Novel) {
 
 fun Activity.openInBrowser(url: String) {
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-    startActivity(intent)
+    if (intent.resolveActivity(packageManager) != null)
+        startActivity(intent)
 }
 
 fun Activity.sendEmail(email: String, subject: String, body: String) {
@@ -123,7 +147,9 @@ fun Activity.sendEmail(email: String, subject: String, body: String) {
         "&body=" + Uri.encode(body)
     val emailIntent = Intent(Intent.ACTION_VIEW)
     emailIntent.data = Uri.parse(mailTo)
-    startActivity(emailIntent)
+
+    if (emailIntent.resolveActivity(packageManager) != null)
+        startActivity(emailIntent)
 }
 
 fun Activity.shareUrl(url: String) {
@@ -131,7 +157,8 @@ fun Activity.shareUrl(url: String) {
     i.type = "text/plain"
     i.putExtra(Intent.EXTRA_SUBJECT, "Sharing URL")
     i.putExtra(Intent.EXTRA_TEXT, url)
-    startActivity(Intent.createChooser(i, "Share URL"))
+    if (i.resolveActivity(packageManager) != null)
+        startActivity(Intent.createChooser(i, "Share URL(s)"))
 }
 
 fun Activity.startNovelDownloadService(novelId: Long) {

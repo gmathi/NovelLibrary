@@ -16,6 +16,19 @@ public class HostNames {
     public static final String CIRCUS_TRANSLATIONS = "circustranslations.com";
     public static final String QIDIAN = "webnovel.com";
     public static final String PRINCE_REVOLUTION = "princerevolution.org";
+    public static final String MOON_BUNNY_CAFE = "moonbunnycafe.com";
+    public static final String LIGHT_NOVEL_TRANSLATIONS = "lightnovelstranslations.com";
+    public static final String BLUE_SILVER_TRANSLATIONS = "bluesilvertranslations.wordpress.com";
+    public static final String GOOGLE_DOCS = "docs.google.com";
+    public static final String TUMBLR = "tumblr.com";
+    public static final String LIBER_SPARK = "liberspark.com";
+    public static final String SKY_WOOD_TRANSLATIONS = "skythewood.blogspot.com";
+    public static final String VOLARE_NOVELS = "volarenovels.com";
+    public static final String SOUSETSUKA = "sousetsuka.com";
+    public static final String FANTASY_BOOKS = "fantasy-books.live";
+    public static final String BAKA_TSUKI = "baka-tsuki.org";
+
+
 
 
     @SuppressWarnings("HardcodedFileSeparator")
