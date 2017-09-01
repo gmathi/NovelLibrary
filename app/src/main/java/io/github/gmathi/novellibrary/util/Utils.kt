@@ -20,6 +20,10 @@ import io.github.gmathi.novellibrary.model.Novel
 import java.io.*
 
 
+
+
+
+
 object Utils {
 
     //region color utils
@@ -173,4 +177,30 @@ object Utils {
      */
     val isSDCardPresent: Boolean
         get() = Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
+
+    /**
+     * Query the media store for a directory size
+     *
+     * @param dir
+     * the directory on primary storage
+     * @return the size of the directory
+     */
+    fun getFolderSize(dir: File): Long {
+        if (dir.exists()) {
+            var result: Long = 0
+            val fileList = dir.listFiles()
+            for (i in fileList.indices) {
+                // Recursive call if it's a directory
+                if (fileList[i].isDirectory) {
+                    result += getFolderSize(fileList[i])
+                } else {
+                    // Sum the file size in bytes
+                    result += fileList[i].length()
+                }
+            }
+            return result // return the file size
+        }
+        return 0
+    }
+
 }

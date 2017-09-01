@@ -8,6 +8,7 @@ import android.os.Environment
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
+import android.text.format.Formatter
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -18,7 +19,6 @@ import com.thanosfisherman.mayi.Mayi
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
@@ -192,6 +192,18 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
 
     private fun backupData() {
         async {
+            val data = Environment.getDataDirectory()
+            val baseDir = File(data, "//data//io.github.gmathi.novellibrary")
+            val currentDBsPath = File(baseDir, databasesDirName)
+            val currentFilesDir = File(baseDir, filesDirName)
+            val currentSharedPrefsPath = File(baseDir, sharedPrefsDirName)
+
+            val sd = Environment.getExternalStorageDirectory()
+            val backupDir = File(sd, Constants.BACKUP_DIR)
+            val backupDBsPath = File(backupDir, databasesDirName)
+            val backupFilesDir = File(backupDir, filesDirName)
+            val backupSharedPrefsPath = File(backupDir, sharedPrefsDirName)
+
             try {
                 showDialog(isProgress = true, content = "Backing up data...")
                 if (!Utils.isSDCardPresent) {
@@ -199,26 +211,15 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                     return@async
                 }
 
-                val sd = Environment.getExternalStorageDirectory()
-                val data = Environment.getDataDirectory()
-
-
-                Log.e("Permission", "Check: " + (PackageManager.PERMISSION_GRANTED == checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)))
+                //Log.e("Permission", "Check: " + (PackageManager.PERMISSION_GRANTED == checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)))
 
                 if (sd.canWrite()) {
 
                     //create backup directory
-                    val backupDir = File(sd, Constants.BACKUP_DIR)
                     if (!backupDir.exists())
                         backupDir.mkdir()
 
-
-                    val baseDir = File(data, "//data//io.github.gmathi.novellibrary")
-
                     //Backup Databases
-                    val currentDBsPath = File(baseDir, databasesDirName)
-                    val backupDBsPath = File(backupDir, databasesDirName)
-
                     if (currentDBsPath.exists() && currentDBsPath.isDirectory) {
                         if (!backupDBsPath.exists()) backupDBsPath.mkdir()
                         currentDBsPath.listFiles().forEach {
@@ -227,9 +228,6 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                     }
 
                     //Backup Files
-                    val currentFilesDir = File(baseDir, filesDirName)
-                    val backupFilesDir = File(backupDir, filesDirName)
-
                     if (currentFilesDir.exists() && currentFilesDir.isDirectory) {
                         if (!backupFilesDir.exists()) backupFilesDir.mkdir()
                         await { recursiveCopy(currentFilesDir, backupFilesDir) }
@@ -237,9 +235,6 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
 
                     //Backup Shared Preferences
                     // --> /data/data/io.github.gmathi.novellibrary/shared_prefs
-                    val currentSharedPrefsPath = File(baseDir, sharedPrefsDirName)
-                    val backupSharedPrefsPath = File(backupDir, sharedPrefsDirName)
-
                     if (currentSharedPrefsPath.exists() && currentSharedPrefsPath.isDirectory) {
                         if (!backupSharedPrefsPath.exists()) backupSharedPrefsPath.mkdir()
                         currentSharedPrefsPath.listFiles().forEach {
@@ -252,7 +247,16 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 } else showDialog(content = "Cannot write to SD card. Please check your SD card permissions")
             } catch (e: Exception) {
                 e.printStackTrace()
-                showDialog(content = "Backup Failed!")
+                if ("No space left on device" == e.localizedMessage) {
+                    val databasesDirSize = Utils.getFolderSize(currentDBsPath)
+                    val filesDirSize = Utils.getFolderSize(currentFilesDir)
+                    val sharedPrefsDirSize = Utils.getFolderSize(currentSharedPrefsPath)
+
+                    val formattedSize = Formatter.formatFileSize(this@GeneralSettingsActivity, databasesDirSize + filesDirSize + sharedPrefsDirSize)
+                    Log.e("Size", formattedSize)
+                    showDialog(content = "No space left on device! Please make enough space - $formattedSize and try again!")
+                } else
+                    showDialog(content = "Backup Failed!")
             }
         }
 

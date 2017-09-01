@@ -304,10 +304,10 @@
     <string name="show_comments_section_description">Shows the chapter’s comments section in the reader mode. (Limited Websites Supported)</string>
     <string name="backup">Backup</string>
     <string name="backup_data">Backup Data</string>
-    <string name="backup_data_description">Backup Data to SD card</string>
+    <string name="backup_data_description">Backup Data to internal storage/sd card</string>
     <string name="restore">Restore</string>
     <string name="restore_data">Restore Data</string>
-    <string name="restore_data_description">Restore Data from SD card</string>
+    <string name="restore_data_description">Restore Data from internal storage/sd card</string>
 
 
 

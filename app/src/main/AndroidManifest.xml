@@ -87,7 +87,7 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.ChaptersUltimateActivity"
+            android:name=".activity.ChaptersActivity"
             android:label="@string/title_activity_chapters"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>

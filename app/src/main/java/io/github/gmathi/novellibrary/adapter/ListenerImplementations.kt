@@ -1,7 +1,6 @@
 package io.github.gmathi.novellibrary.adapter
 
 import android.support.v4.app.Fragment
-import io.github.gmathi.novellibrary.fragment.ChaptersListFragment
 import io.github.gmathi.novellibrary.fragment.SearchTermFragment
 import io.github.gmathi.novellibrary.fragment.SearchUrlFragment
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
@@ -24,12 +23,6 @@ class NavPageListener : GenericFragmentStatePagerAdapter.Listener {
             4 -> SearchUrlFragment.newInstance("https://royalroadl.com/fictions/complete")
             else -> null
         }
-    }
-}
-
-class ChaptersListPageListener(val novel: Novel) : GenericFragmentStatePagerAdapter.Listener {
-    override fun getFragmentForItem(position: Int): Fragment? {
-        return ChaptersListFragment.newInstance(novel, position)
     }
 }
 

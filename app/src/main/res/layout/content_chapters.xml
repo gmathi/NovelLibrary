@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:fancy="http://schemas.android.com/apk/res-auto"
@@ -11,74 +11,59 @@
     tools:context=".activity.ChaptersActivity"
     tools:showIn="@layout/activity_chapters">
 
+    <android.support.v7.widget.CardView
+        android:id="@+id/statusCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:visibility="gone"
+        app:cardBackgroundColor="@color/DarkGreen">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="30dp">
+
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="1"
+                android:textSize="14sp"
+                tools:ignore="SmallSp"
+                tools:text="@string/downloading_status"
+                android:textIsSelectable="false"/>
+
+        </RelativeLayout>
+    </android.support.v7.widget.CardView>
+
+
     <com.nguyenhoanglam.progresslayout.ProgressLayout
         android:id="@+id/progressLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <RelativeLayout
-            android:id="@+id/chaptersHeaderLayout"
-            android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:background="@color/SlateGray"
-            android:elevation="4dp"
-            android:padding="@dimen/default_margin">
-
-            <TextView
-                android:id="@+id/downloadLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
-                android:text="@string/downloaded"
-                android:textColor="@color/white"/>
-
-            <TextView
-                android:id="@+id/chaptersDownloadStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_marginLeft="@dimen/default_margin"
-                android:layout_marginStart="@dimen/default_margin"
-                android:layout_toEndOf="@id/downloadLabel"
-                android:layout_toRightOf="@id/downloadLabel"
-                android:textColor="@color/white"/>
-
-            <mehdi.sakout.fancybuttons.FancyButton
-                android:id="@+id/chaptersDownloadButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:minWidth="175dp"
-                android:padding="5dp"
-                fancy:fb_borderColor="#FFFFFF"
-                fancy:fb_borderWidth="1dp"
-                fancy:fb_defaultColor="@color/DodgerBlue"
-                fancy:fb_focusColor="@color/ripple_color"
-                fancy:fb_iconResource="@drawable/ic_cloud_download_white_vector"
-                fancy:fb_text="@string/download"/>
-
-
-        </RelativeLayout>
-
+        android:layout_height="match_parent"
+        android:layout_alignWithParentIfMissing="true"
+        android:layout_below="@id/statusCard">
 
         <android.support.v4.widget.SwipeRefreshLayout
             android:id="@+id/swipeRefreshLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="70dp">
+            android:layout_height="match_parent">
 
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/recyclerView"
+            <com.afollestad.dragselectrecyclerview.DragSelectRecyclerView
+                android:id="@+id/dragSelectRecyclerView"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:scrollbars="vertical" />
 
-            </android.support.v7.widget.RecyclerView>
         </android.support.v4.widget.SwipeRefreshLayout>
     </com.nguyenhoanglam.progresslayout.ProgressLayout>
 
 
-</android.support.constraint.ConstraintLayout>
+</RelativeLayout>

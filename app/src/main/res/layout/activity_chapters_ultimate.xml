@@ -22,7 +22,7 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_chapters_ultimate"/>
+    <include layout="@layout/content_chapters"/>
 
     <!--<android.support.design.widget.FloatingActionButton-->
         <!--android:id="@+id/fab"-->
