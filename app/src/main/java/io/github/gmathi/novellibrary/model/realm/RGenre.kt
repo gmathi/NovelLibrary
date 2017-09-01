@@ -6,7 +6,7 @@ import io.realm.RealmResults
 import io.realm.annotations.LinkingObjects
 
 
-class RGenre: RealmObject() {
+open class RGenre: RealmObject() {
 
     @PrimaryKey
     var name: String? = null

@@ -9,6 +9,7 @@ import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.util.TypedValue
 import io.github.gmathi.novellibrary.BuildConfig
@@ -16,9 +17,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
-import java.io.ByteArrayOutputStream
-import java.io.File
-
+import java.io.*
 
 
 object Utils {
@@ -156,4 +155,22 @@ object Utils {
         val netInfo = connectivityManager?.activeNetworkInfo
         return netInfo != null && netInfo.isConnected
     }
+
+    @Throws(IOException::class)
+    fun copyFile(src: File, dst: File) {
+        val inChannel = FileInputStream(src).channel
+        val outChannel = FileOutputStream(dst).channel
+        try {
+            inChannel!!.transferTo(0, inChannel.size(), outChannel)
+        } finally {
+            inChannel?.close()
+            outChannel?.close()
+        }
+    }
+
+    /**
+     * Returns whether an SD card is present and writable
+     */
+    val isSDCardPresent: Boolean
+        get() = Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
 }

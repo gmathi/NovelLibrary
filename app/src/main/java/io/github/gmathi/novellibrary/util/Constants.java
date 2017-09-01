@@ -21,6 +21,8 @@ package io.github.gmathi.novellibrary.util;
  */
 public class Constants {
 
+    public static final String BACKUP_DIR = "NovelLibraryApp-Backup";
+
     public interface ACTION {
         public static String MAIN_ACTION = "com.truiton.foregroundservice.action.main";
         public static String PREV_ACTION = "com.truiton.foregroundservice.action.prev";
@@ -95,6 +97,8 @@ public class Constants {
 
     //Intent Keys
     public static final String JUMP = "jumpToReader";
+
+
 
 
 

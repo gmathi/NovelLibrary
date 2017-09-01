@@ -6,7 +6,7 @@ import io.realm.RealmResults
 import io.realm.annotations.LinkingObjects
 
 
-class RWebPage : RealmObject() {
+open class RWebPage : RealmObject() {
 
     var url: String? = null
     var redirectedUrl: String? = null
@@ -19,8 +19,8 @@ class RWebPage : RealmObject() {
     var orderId: Long = -1L
 
     @LinkingObjects("webPages")
-    val owners: RealmResults<RNovel>? = null
-    var metaData: RealmList<RMetadata> = RealmList()
+    val novels: RealmResults<RNovel>? = null
+    var metaDatas: RealmList<RMetadata> = RealmList()
 
 
     override fun equals(other: Any?): Boolean {

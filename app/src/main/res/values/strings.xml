@@ -64,12 +64,16 @@
     </string-array>
 
     <string-array name="general_titles_list" translatable="false">
+        <item>@string/backup_data</item>
+        <item>@string/restore_data</item>
         <item>@string/clear_data</item>
         <item>@string/faster_downloads</item>
         <item>@string/first_screen_library</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
+        <item>@string/backup_data_description</item>
+        <item>@string/restore_data_description</item>
         <item>@string/clear_data_description</item>
         <item>@string/faster_downloads_description</item>
         <item>@string/first_screen_library_description</item>
@@ -290,7 +294,7 @@
 
     <!-- From Here -->
 
-    <!-- v0.6.2 Strings -->
+    <!-- v0.7 Strings -->
     <string name="clean">Clean</string>
     <string name="reader">Reader</string>
     <string name="reader_mode">Reader Mode</string>
@@ -298,5 +302,13 @@
     <string name="show_reader_scroll_description">Shows the vertical scrollbar on the right edge of the screen to track your progress of the chapter</string>
     <string name="show_comments_section">Show Comments</string>
     <string name="show_comments_section_description">Shows the chapter’s comments section in the reader mode. (Limited Websites Supported)</string>
+    <string name="backup">Backup</string>
+    <string name="backup_data">Backup Data</string>
+    <string name="backup_data_description">Backup Data to SD card</string>
+    <string name="restore">Restore</string>
+    <string name="restore_data">Restore Data</string>
+    <string name="restore_data_description">Restore Data from SD card</string>
+
+
 
 </resources>

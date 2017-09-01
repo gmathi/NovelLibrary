@@ -6,7 +6,7 @@ import io.realm.annotations.Index
 import io.realm.annotations.PrimaryKey
 
 
-class RNovel : RealmObject() {
+open class RNovel : RealmObject() {
 
     @Index
     var name: String = ""
