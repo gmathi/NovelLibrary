@@ -11,8 +11,8 @@ import android.widget.Toast
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
-import io.github.gmathi.novellibrary.service.DownloadChapterService
-import io.github.gmathi.novellibrary.service.DownloadNovelService
+import io.github.gmathi.novellibrary.service.download.DownloadChapterService
+import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.TransitionHelper
 

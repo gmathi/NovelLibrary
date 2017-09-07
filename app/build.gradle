@@ -47,7 +47,8 @@ android {
     }
 }
 
-def support_lib_version = "26.0.1"
+def support_lib_version = "26.0.2"
+def gcm_services_version = "11.2.2"
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
@@ -89,7 +90,9 @@ dependencies {
     implementation 'com.afollestad:drag-select-recyclerview:1.0.0'
     implementation 'com.thanosfisherman.mayi:mayi:1.4'
 
-    implementation 'com.google.android.gms:play-services-gcm:11.2.0'
+    implementation "com.google.android.gms:play-services-gcm:$gcm_services_version"
+    implementation "com.google.firebase:firebase-messaging:$gcm_services_version"
+
 
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.1'
     releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
@@ -106,3 +109,5 @@ kotlin {
         coroutines "enable"
     }
 }
+
+apply plugin: 'com.google.gms.google-services'

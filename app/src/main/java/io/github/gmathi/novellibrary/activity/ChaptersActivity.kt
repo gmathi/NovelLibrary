@@ -29,8 +29,8 @@ import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterUrls
-import io.github.gmathi.novellibrary.service.DownloadChapterService
-import io.github.gmathi.novellibrary.service.DownloadNovelService
+import io.github.gmathi.novellibrary.service.download.DownloadChapterService
+import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation

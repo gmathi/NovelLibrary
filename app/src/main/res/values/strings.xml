@@ -309,6 +309,7 @@
     <string name="restore_data_description">Restore Data from internal storage/sd card</string>
     <string name="import_reading_list">Import Reading List</string>
     <string name="nu_reading_list_url">NU Reading List URL</string>
+    <string name="default_notification_channel_id">default</string>
 
 
 </resources>

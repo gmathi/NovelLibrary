@@ -31,7 +31,7 @@ import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterCount
-import io.github.gmathi.novellibrary.service.DownloadNovelService
+import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.activity_library.*
 import kotlinx.android.synthetic.main.content_library.*

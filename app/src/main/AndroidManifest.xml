@@ -17,13 +17,47 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+        <!-- [START fcm_default_icon] -->
+        <!-- Set custom default icon. This is used when no icon is set for incoming notification messages.
+             See README(https://goo.gl/l4GJaQ) for more. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_book_white_vector" />
+        <!-- Set color used with incoming notification messages. This is used when no color is set for the incoming
+             notification message. See README(https://goo.gl/6BKBk7) for more. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/colorAccent" />
+        <!-- [END fcm_default_icon] -->
+        <!-- [START fcm_default_channel] -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel"
+            android:value="@string/default_notification_channel_id"/>
+
+
+
         <receiver
-            android:name=".service.SyncNovelUpdateReceiver"
+            android:name=".receiver.sync.SyncNovelUpdateReceiver"
             android:exported="false">
         </receiver>
 
         <service
-            android:name=".service.BackgroundNovelSyncTask"
+            android:name=".service.firebase.NLFirebaseInstanceIdService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".service.firebase.NLFirebaseMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".service.sync.BackgroundNovelSyncTask"
             android:exported="true"
             android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE">
             <intent-filter>
@@ -31,17 +65,17 @@
             </intent-filter>
         </service>
         <service
-            android:name=".service.DownloadNovelService"
+            android:name=".service.download.DownloadNovelService"
             android:enabled="true"
             android:exported="false">
         </service>
         <service
-            android:name=".service.DownloadChapterService"
+            android:name=".service.download.DownloadChapterService"
             android:enabled="true"
             android:exported="false">
         </service>
         <service
-            android:name=".service.SyncNovelsService"
+            android:name=".service.sync.SyncNovelsService"
             android:enabled="true"
             android:exported="false">
         </service>

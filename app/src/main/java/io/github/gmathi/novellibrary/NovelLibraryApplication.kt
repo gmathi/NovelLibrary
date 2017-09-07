@@ -13,7 +13,7 @@ import android.webkit.WebView
 import com.squareup.leakcanary.LeakCanary
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.service.BackgroundNovelSyncTask
+import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.DataCenter
 import java.io.File
 import java.security.KeyManagementException
@@ -113,7 +113,7 @@ class NovelLibraryApplication : MultiDexApplication() {
             return
         }
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channel = NotificationChannel("default",
+        val channel = NotificationChannel(getString(R.string.default_notification_channel_id),
             "Default Channel",
             NotificationManager.IMPORTANCE_DEFAULT)
         channel.description = "Default Channel Description"

@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.service
+package io.github.gmathi.novellibrary.service.sync
 
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -15,6 +15,7 @@ import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterCount
+import io.github.gmathi.novellibrary.receiver.sync.SyncNovelUpdateReceiver
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 
