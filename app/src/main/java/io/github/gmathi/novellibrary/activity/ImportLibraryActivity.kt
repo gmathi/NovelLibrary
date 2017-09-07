@@ -13,21 +13,23 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import co.metalab.asyncawait.async
+import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.database.addWebPages
+import io.github.gmathi.novellibrary.database.addWebPagesFromImportList
+import io.github.gmathi.novellibrary.database.getNovelByUrl
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.ImportListItem
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.network.getChapterUrls
+import io.github.gmathi.novellibrary.network.getNUNovelDetails
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.activity_import_library.*
 import kotlinx.android.synthetic.main.content_import_library.*
 import kotlinx.android.synthetic.main.listitem_import_list.view.*
-import com.afollestad.materialdialogs.MaterialDialog
-import io.github.gmathi.novellibrary.database.*
-import io.github.gmathi.novellibrary.network.getChapterUrls
-import io.github.gmathi.novellibrary.network.getNUNovelDetails
 
 
 class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<ImportListItem>,
@@ -63,9 +65,9 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
             }
 
 
-        readingListUrlEditText.setText("http://www.novelupdates.com/readlist/?uname=swordman009")
-        getNovelsFromUrl()
-        adapter.notifyDataSetChanged()
+//        readingListUrlEditText.setText("http://www.novelupdates.com/readlist/?uname=swordman009")
+//        getNovelsFromUrl()
+//        adapter.notifyDataSetChanged()
 
         importCardButton.setOnClickListener {
             getNovelsFromUrl()
@@ -282,11 +284,11 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
         val novel = NovelApi().getNUNovelDetails(importListItem.novelUrl!!) ?: return
         novel.id = dbHelper.insertNovel(novel)
         val webPages = NovelApi().getChapterUrls(novel)?.asReversed() ?: return
-        dbHelper.addWebPages(webPages, novel)
         val index = webPages.indexOfFirst { it.chapter == importListItem.currentlyReadingChapterName }
         if (index != -1) {
-            val webPage = dbHelper.getWebPage(novel.id, index.toLong()) ?: return
-            dbHelper.updateBookmarkCurrentWebPageId(novel.id, webPage.id)
+            dbHelper.addWebPagesFromImportList(webPages, novel, index)
+        } else {
+            dbHelper.addWebPages(webPages, novel)
         }
     }
 
