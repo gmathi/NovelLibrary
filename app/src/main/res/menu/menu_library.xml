@@ -15,4 +15,10 @@
         android:title="@string/sort"
         android:titleCondensed="@string/sort"
         app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/action_import_reading_list"
+        android:title="@string/import_reading_list"
+        app:showAsAction="never"/>
+
 </menu>

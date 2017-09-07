@@ -79,6 +79,28 @@ fun DBHelper.addWebPages(webPages: List<WebPage>, novel: Novel) {
     }
 }
 
+fun DBHelper.addWebPagesFromImportList(webPages: List<WebPage>, novel: Novel, bookmarkOrderId: Int) {
+    val db = this.writableDatabase
+    db.beginTransaction()
+    try {
+        for (i in 0 until webPages.size) {
+            val webPage = getWebPage(novel.id, i.toLong())
+            if (webPage == null) {
+                webPages[i].orderId = i.toLong()
+                webPages[i].novelId = novel.id
+                webPages[i].isRead = if (bookmarkOrderId > i) 0 else 1
+                val webPageId = createWebPage(webPages[i], db)
+                if (bookmarkOrderId == i) {
+                    updateBookmarkCurrentWebPageId(novel.id, webPageId)
+                }
+            }
+        }
+        db.setTransactionSuccessful()
+    } finally {
+        db.endTransaction()
+    }
+}
+
 fun DBHelper.getWebPageByWebPageId(webPageId: Long): WebPage? {
     val db = this.readableDatabase
     val selectQuery = "SELECT  * FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_ID + " = " + webPageId

@@ -12,7 +12,7 @@ import com.github.rubensousa.floatingtoolbar.FloatingToolbar
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.WebPageAdapter
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.updateCurrentWebPageId
+import io.github.gmathi.novellibrary.database.updateBookmarkCurrentWebPageId
 import io.github.gmathi.novellibrary.database.updateWebPageReadStatus
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.WebPageFragment
@@ -51,7 +51,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
 
         viewPager.currentItem = chapters.indexOf(webPage)
         if (webPage?.novelId != -1L && webPage?.id != -1L)
-            dbHelper.updateCurrentWebPageId(webPage!!.novelId, webPage!!.id)
+            dbHelper.updateBookmarkCurrentWebPageId(webPage!!.novelId, webPage!!.id)
         if (webPage?.id != -1L) {
             webPage!!.isRead = 1
             dbHelper.updateWebPageReadStatus(webPage!!)
@@ -70,7 +70,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
     override fun onPageSelected(position: Int) {
         val webPage = chapters[position]
         if (webPage.novelId != -1L && webPage.id != -1L)
-            dbHelper.updateCurrentWebPageId(webPage.novelId, webPage.id)
+            dbHelper.updateBookmarkCurrentWebPageId(webPage.novelId, webPage.id)
         if (webPage.id != -1L) {
             webPage.isRead = 1
             dbHelper.updateWebPageReadStatus(webPage)
@@ -207,7 +207,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
             viewPager.currentItem = index
             val webPage = chapters[index]
             if (webPage.novelId != -1L && webPage.id != -1L) {
-                dbHelper.updateCurrentWebPageId(webPage.novelId, webPage.id)
+                dbHelper.updateBookmarkCurrentWebPageId(webPage.novelId, webPage.id)
             }
             if (webPage.id != -1L) {
                 webPage.isRead = 1

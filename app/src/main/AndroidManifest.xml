@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.CLEAR_APP_CACHE"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
     <application
         android:name=".NovelLibraryApplication"
@@ -86,7 +87,7 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.ChaptersUltimateActivity"
+            android:name=".activity.ChaptersActivity"
             android:label="@string/title_activity_chapters"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
@@ -144,6 +145,38 @@
             android:name=".activity.NovelDownloadsActivity"
             android:label="@string/title_activity_novel_downloads"
             android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
+            android:name=".activity.ImportLibraryActivity"
+            android:label="@string/title_activity_import_library"
+            android:parentActivityName=".activity.NavDrawerActivity"
+            android:theme="@style/DarkTheme_DarkSide">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="io.github.gmathi.novellibrary.activity.NavDrawerActivity"/>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <data
+                    android:host="novelupdates.com"
+                    android:pathPrefix="/readlist/"
+                    android:scheme="http"/>
+                <data
+                    android:host="www.novelupdates.com"
+                    android:pathPrefix="/readlist/"
+                    android:scheme="http"/>
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
+            
         </activity>
     </application>
 

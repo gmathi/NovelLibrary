@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+//apply plugin: 'realm-android'
 
 def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
@@ -17,7 +18,7 @@ android {
         targetSdkVersion 26
         multiDexEnabled true
         versionCode 27
-        versionName "0.6.7.beta"
+        versionName "0.7.beta"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -86,6 +87,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.8.1'
     implementation 'com.hanks.animatecheckbox:library:0.1'
     implementation 'com.afollestad:drag-select-recyclerview:1.0.0'
+    implementation 'com.thanosfisherman.mayi:mayi:1.4'
 
     implementation 'com.google.android.gms:play-services-gcm:11.2.0'
 

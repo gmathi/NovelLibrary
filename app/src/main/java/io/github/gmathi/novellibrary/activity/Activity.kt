@@ -39,7 +39,7 @@ fun Activity.snackBar(view: View, message: String) {
 }
 
 fun Activity.startChaptersActivity(novel: Novel, jumpToReader: Boolean) {
-    val intent = Intent(this, ChaptersUltimateActivity::class.java)
+    val intent = Intent(this, ChaptersActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
     if (jumpToReader)
@@ -122,6 +122,10 @@ fun Activity.startLibrariesUsedActivity() {
 fun Activity.startContributionsActivity() {
     val intent = Intent(this, ContributionsActivity::class.java)
     startActivity(intent)
+}
+
+fun Activity.startImportLibraryActivity() {
+    startActivityForResult(Intent(this, ImportLibraryActivity::class.java), Constants.IMPORT_LIBRARY_ACT_REQ_CODE)
 }
 
 fun Activity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean) {
