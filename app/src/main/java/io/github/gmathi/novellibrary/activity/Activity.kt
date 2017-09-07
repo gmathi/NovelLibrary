@@ -124,6 +124,10 @@ fun Activity.startContributionsActivity() {
     startActivity(intent)
 }
 
+fun Activity.startImportLibraryActivity() {
+    startActivityForResult(Intent(this, ImportLibraryActivity::class.java), Constants.IMPORT_LIBRARY_ACT_REQ_CODE)
+}
+
 fun Activity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean) {
     val intent = Intent(this, NovelDetailsActivity::class.java)
     val bundle = Bundle()

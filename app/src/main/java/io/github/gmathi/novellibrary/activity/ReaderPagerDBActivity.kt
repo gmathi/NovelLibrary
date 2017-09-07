@@ -67,7 +67,7 @@ class ReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener, Fl
 
     private fun updateBookmark(webPage: WebPage) {
         if (webPage.novelId != -1L && webPage.id != -1L)
-            dbHelper.updateCurrentWebPageId(webPage.novelId, webPage.id)
+            dbHelper.updateBookmarkCurrentWebPageId(webPage.novelId, webPage.id)
         if (webPage.id != -1L) {
             webPage.isRead = 1
             dbHelper.updateWebPageReadStatus(webPage)

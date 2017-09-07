@@ -52,10 +52,10 @@ class SyncNovelsService : IntentService(TAG) {
         if (novelMap.size == 0) return
 
         val notificationText: String
-        if (novelMap.size > 4) {
-            notificationText = getString(R.string.new_chapters_notification_content_full, novelMap.size, novelMap.values.sum())
+        notificationText = if (novelMap.size > 4) {
+            getString(R.string.new_chapters_notification_content_full, novelMap.size, novelMap.values.sum())
         } else {
-            notificationText = novelMap.keys.map { getString(R.string.new_chapters_notification_content_single, it, novelMap[it]) }.joinToString(separator = ", ")
+            novelMap.keys.joinToString(separator = ", ") { getString(R.string.new_chapters_notification_content_single, it, novelMap[it]) }
         }
 
         val novelDetailsIntent = Intent(this, NavDrawerActivity::class.java)

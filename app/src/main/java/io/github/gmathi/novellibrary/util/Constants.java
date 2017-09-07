@@ -22,6 +22,7 @@ package io.github.gmathi.novellibrary.util;
 public class Constants {
 
     public static final String BACKUP_DIR = "NovelLibraryApp-Backup";
+    public static final int SCROLL_LENGTH = 30;
 
     public interface ACTION {
         public static String MAIN_ACTION = "com.truiton.foregroundservice.action.main";
@@ -75,6 +76,7 @@ public class Constants {
     public static final int METADATA_ACT_REQ_CODE = 8;
     public static final int SETTINGS_ACT_REQ_CODE = 9;
     public static final int LANG_ACT_REQ_CODE = 11;
+    public static final int IMPORT_LIBRARY_ACT_REQ_CODE = 14;
 
     public static final int SETTINGS_ACT_RES_CODE = 10;
     public static final int LANG_ACT_RES_CODE = 12;

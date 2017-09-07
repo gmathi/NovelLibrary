@@ -97,8 +97,6 @@
     </string-array>
 
 
-
-
     <!--<item>Latest Updates</item>-->
     <!--<item>Active-Only Ranking</item>-->
     <string name="app_name" translatable="false">Novel Library</string>
@@ -113,9 +111,10 @@
     <string name="title_activity_reader_settings" translatable="false">@string/reader</string>
     <string name="title_activity_mention_settings" translatable="false">@string/mentions</string>
     <string name="title_activity_chapters_new" translatable="false">@string/chapters</string>
+    <string name="title_activity_import_library" translatable="false">@string/import_reading_list</string>
+
     <string name="title_activity_language" translatable="false">LanguageActivity</string>
     <string name="title_activity_novel_downloads" translatable="false">NovelDownloadsActivity</string>
-
 
 
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
@@ -308,7 +307,8 @@
     <string name="restore">Restore</string>
     <string name="restore_data">Restore Data</string>
     <string name="restore_data_description">Restore Data from internal storage/sd card</string>
-
+    <string name="import_reading_list">Import Reading List</string>
+    <string name="nu_reading_list_url">NU Reading List URL</string>
 
 
 </resources>

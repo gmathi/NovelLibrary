@@ -7,6 +7,7 @@ import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.MotionEventCompat
 import android.support.v7.widget.helper.ItemTouchHelper
@@ -19,12 +20,10 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.NavDrawerActivity
-import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
-import io.github.gmathi.novellibrary.activity.startChaptersActivity
-import io.github.gmathi.novellibrary.activity.startReaderPagerDBActivity
+import io.github.gmathi.novellibrary.activity.*
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.getAllNovels
+import io.github.gmathi.novellibrary.database.getWebPageByWebPageId
 import io.github.gmathi.novellibrary.database.updateNewChapterCount
 import io.github.gmathi.novellibrary.database.updateOrderId
 import io.github.gmathi.novellibrary.dbHelper
@@ -111,13 +110,16 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             if (item.imageFilePath == null) {
                 Glide.with(this).asBitmap().load(item.imageUrl).into(object : SimpleTarget<Bitmap>() {
                     override fun onResourceReady(bitmap: Bitmap?, transition: Transition<in Bitmap>?) {
-                        itemView.novelImageView.setImageBitmap(bitmap)
+                        //itemView.novelImageView.setImageBitmap(bitmap)
                         Thread(Runnable {
                             try {
                                 val os = FileOutputStream(file)
                                 bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, os)
                                 bitmap?.recycle()
                                 item.imageFilePath = file.path
+                                Handler(Looper.getMainLooper()).post {
+                                    itemView.novelImageView.setImageDrawable(Drawable.createFromPath(item.imageFilePath))
+                                }
                             } catch (e: Exception) {
                                 e.printStackTrace()
                             }
@@ -167,6 +169,16 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         } else {
             itemView.newChapterCount.visibility = View.GONE
         }
+
+        if (item.currentWebPageId != -1L) {
+            var orderId = dbHelper.getWebPageByWebPageId(item.currentWebPageId)?.orderId
+            if (orderId != null) {
+                val progress = "${orderId + 1} / ${item.newChapterCount}"
+                itemView.novelProgressText.text = progress
+            }
+        } else {
+            itemView.novelProgressText.text = "No Bookmark!"
+        }
     }
 
     //endregion
@@ -191,6 +203,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             }
             R.id.action_sort -> {
                 sortNovelsAlphabetically()
+            }
+            R.id.action_import_reading_list -> {
+                activity.startImportLibraryActivity()
             }
         }
         return super.onOptionsItemSelected(item)
@@ -315,6 +330,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             .negativeText(R.string.cancel)
             .onPositive { dialog, _ ->
                 run {
+                    val novel = adapter.items[viewHolderPosition]
+                    Utils.deleteNovel(activity, novel.id)
                     adapter.onItemDismiss(viewHolderPosition)
                     dialog.dismiss()
                 }
