@@ -122,6 +122,9 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_downloads -> {
                 replaceFragment(DownloadFragment(), DownloadFragment::class.toString())
             }
+            R.id.nav_recents -> {
+                startRecentlyUpdatedNovelsActivity()
+            }
             R.id.nav_settings -> {
                 startSettingsActivity()
             }

@@ -77,6 +77,7 @@ public class Constants {
     public static final int SETTINGS_ACT_REQ_CODE = 9;
     public static final int LANG_ACT_REQ_CODE = 11;
     public static final int IMPORT_LIBRARY_ACT_REQ_CODE = 14;
+    public static final int RECENT_ACT_REQ_CODE = 9;
 
     public static final int SETTINGS_ACT_RES_CODE = 10;
     public static final int LANG_ACT_RES_CODE = 12;

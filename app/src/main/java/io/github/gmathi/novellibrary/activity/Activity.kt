@@ -85,6 +85,10 @@ fun Activity.startSearchResultsActivity(title: String, url: String) {
     startActivityForResult(intent, Constants.SEARCH_RESULTS_ACT_REQ_CODE)
 }
 
+fun Activity.startRecentlyUpdatedNovelsActivity() {
+    startActivityForResult(Intent(this, RecentlyUpdatedNovelsActivity::class.java), Constants.RECENT_ACT_REQ_CODE)
+}
+
 fun Activity.startSettingsActivity() {
     startActivityForResult(Intent(this, SettingsActivity::class.java), Constants.SETTINGS_ACT_REQ_CODE)
 }
@@ -128,7 +132,7 @@ fun Activity.startImportLibraryActivity() {
     startActivityForResult(Intent(this, ImportLibraryActivity::class.java), Constants.IMPORT_LIBRARY_ACT_REQ_CODE)
 }
 
-fun Activity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean) {
+fun Activity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean = false) {
     val intent = Intent(this, NovelDetailsActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)

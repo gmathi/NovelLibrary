@@ -29,13 +29,6 @@
        To All Translators I am very grateful for your help! :)
    -->
 
-
-    <string-array name="search_tab_titles">
-        <item>Popular-Now</item>
-        <item>Best-Rated</item>
-        <item>Active-Ranked</item>
-    </string-array>
-
     <string-array name="search_results_tab_titles" translatable="false">
         <item>Novel-Updates</item>
         <item>WLN-Updates</item>
@@ -100,6 +93,7 @@
     <!--<item>Latest Updates</item>-->
     <!--<item>Active-Only Ranking</item>-->
     <string name="app_name" translatable="false">Novel Library</string>
+    <string name="default_notification_channel_id" translatable="false">default</string>
 
     <string name="title_activity_nav_drawer" translatable="false">@string/app_name</string>
     <string name="title_activity_reader_pager" translatable="false">Reader Pager</string>
@@ -125,9 +119,15 @@
     <string name="downloading_status" translatable="false">%1$s - %2$s: %3$s</string>
     <string name="chapter_count" translatable="false">%1$d / %2$d</string>
 
+    <string-array name="search_tab_titles">
+        <item>Popular-Now</item>
+        <item>Best-Rated</item>
+        <item>Active-Ranked</item>
+    </string-array>
 
     <string name="title_activity_novel_details">Novel</string>
     <string name="title_activity_settings">Settings</string>
+    <string name="title_activity_recently_updated_novels">Recently Updated Novels</string>
     <string name="title_activity_chapters">Chapters</string>
     <string name="title_activity_meta_data">More Information</string>
 
@@ -309,7 +309,6 @@
     <string name="restore_data_description">Restore Data from internal storage/sd card</string>
     <string name="import_reading_list">Import Reading List</string>
     <string name="nu_reading_list_url">NU Reading List URL</string>
-    <string name="default_notification_channel_id">default</string>
 
 
 </resources>

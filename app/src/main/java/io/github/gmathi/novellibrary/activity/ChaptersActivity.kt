@@ -34,7 +34,7 @@ import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
-import kotlinx.android.synthetic.main.activity_chapters_ultimate.*
+import kotlinx.android.synthetic.main.activity_chapters.*
 import kotlinx.android.synthetic.main.content_chapters.*
 import kotlinx.android.synthetic.main.listitem_chapter_ultimate.view.*
 import org.greenrobot.eventbus.EventBus
@@ -60,7 +60,7 @@ class ChaptersActivity :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_chapters_ultimate)
+        setContentView(R.layout.activity_chapters)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -371,7 +371,7 @@ class ChaptersActivity :
     }
 
     override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
-        mode?.menuInflater?.inflate(R.menu.menu_chapters_ultimate_action_mode, menu)
+        mode?.menuInflater?.inflate(R.menu.menu_chapters_action_mode, menu)
         return true
     }
 
@@ -443,7 +443,7 @@ class ChaptersActivity :
 
     //region OptionsMenu
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_activity_chapters_ultimate, menu)
+        menuInflater.inflate(R.menu.menu_activity_chapters, menu)
         return super.onCreateOptionsMenu(menu)
     }
 
