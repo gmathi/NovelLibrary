@@ -6,12 +6,12 @@ public class DBKeys {
     static final int VER_NOVEL_ORDER_ID = 2;
     static final int VER_WEB_PAGE_ORDER_ID = 3;
     static final int VER_NOVEL_SYNC = 4;
-    //static final int VER_CHAPTER_DOWNLOADS = 5;
+    static final int VER_CHAPTER_SOURCE = 5;
 
     static final int INITIAL_VERSION = 1;
 
 
-    static final int DATABASE_VERSION = VER_NOVEL_SYNC;
+    static final int DATABASE_VERSION = VER_CHAPTER_SOURCE;
 
 
 
@@ -24,6 +24,7 @@ public class DBKeys {
     static final String TABLE_NOVEL_GENRE = "novel_genre";
     static final String TABLE_DOWNLOAD_QUEUE = "download_queue";
     static final String TABLE_CHAPTERS_DOWNLOADS= "chapter_downloads";
+    static final String TABLE_SOURCE = "source";
 
     // Common column names
     static final String KEY_ID = "id";
@@ -50,6 +51,7 @@ public class DBKeys {
     static final String KEY_FILE_PATH = "file_path";
     static final String KEY_REDIRECT_URL = "redirect_url";
     static final String KEY_IS_READ = "is_read";
+    static final String KEY_SOURCE_ID = "source_id";
 
     // Table novel_genre columns
     static final String KEY_GENRE_ID = "genre_id";
@@ -62,6 +64,8 @@ public class DBKeys {
 
     //Table download_queue_columns
     static final String KEY_WEB_PAGE_ID = "web_page_id";
+
+    //Table source
 
 
     // novel table create statement
@@ -95,8 +99,10 @@ public class DBKeys {
                     + KEY_FILE_PATH + " TEXT, "
                     + KEY_IS_READ + " INTEGER, "
                     + KEY_NOVEL_ID + " INTEGER, "
+                    + KEY_SOURCE_ID + " INTEGER, "
                     + KEY_ORDER_ID + " INTEGER, "
                     + "FOREIGN KEY (" + KEY_NOVEL_ID + ") REFERENCES " + TABLE_NOVEL + "(" + KEY_ID + ")"
+                    + "FOREIGN KEY (" + KEY_SOURCE_ID + ") REFERENCES " + TABLE_SOURCE + "(" + KEY_ID + ")"
                     + ")";
 
     // genre table create statement
@@ -115,13 +121,21 @@ public class DBKeys {
                     + "FOREIGN KEY (" + KEY_GENRE_ID + ") REFERENCES " + TABLE_GENRE + "(" + KEY_ID + ")"
                     + ")";
 
-    // genre table create statement
+    // download queue table create statement
     static final String CREATE_TABLE_DOWNLOAD_QUEUE =
             "CREATE TABLE " + TABLE_DOWNLOAD_QUEUE + " ("
                     + KEY_NOVEL_ID + " INTEGER PRIMARY KEY, "
                     + KEY_STATUS + " INTEGER, "
                     + KEY_METADATA + " TEXT"
                     + ")";
+
+    // source table create statement
+    static final String CREATE_TABLE_SOURCE =
+            "CREATE TABLE " + TABLE_SOURCE + " ("
+                    + KEY_ID + " INTEGER PRIMARY KEY, "
+                    + KEY_NAME + " TEXT"
+                    + ")";
+
 
     // genre table create statement
 //    static final String CREATE_TABLE_CHAPTER_DOWNLOADS =
