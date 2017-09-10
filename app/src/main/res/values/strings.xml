@@ -78,7 +78,8 @@
         <item>@string/swipe_right_for_next_chapter</item>
         <item>@string/show_reader_scroll</item>
         <item>@string/show_comments_section</item>
-        <!--<item>@string/pure_night_mode</item>-->
+        <item>@string/volume_scroll</item>
+        <item>@string/keep_screen_on</item>
     </string-array>
 
     <string-array name="reader_subtitles_list" translatable="false">
@@ -87,6 +88,8 @@
         <item>@string/swipe_right_for_next_chapter_description</item>
         <item>@string/show_reader_scroll_description</item>
         <item>@string/show_comments_section_description</item>
+        <item>@string/volume_scroll_description</item>
+        <item>@string/keep_screen_on_description</item>
     </string-array>
 
 
@@ -127,7 +130,6 @@
 
     <string name="title_activity_novel_details">Novel</string>
     <string name="title_activity_settings">Settings</string>
-    <string name="title_activity_recently_updated_novels">Recently Updated Novels</string>
     <string name="title_activity_chapters">Chapters</string>
     <string name="title_activity_meta_data">More Information</string>
 
@@ -291,8 +293,6 @@
     <string name="sync_interval">Sync Interval</string>
     <string name="sync_interval_description">Check for novel updates interval</string>
 
-    <!-- From Here -->
-
     <!-- v0.7 Strings -->
     <string name="clean">Clean</string>
     <string name="reader">Reader</string>
@@ -309,6 +309,14 @@
     <string name="restore_data_description">Restore Data from internal storage/sd card</string>
     <string name="import_reading_list">Import Reading List</string>
     <string name="nu_reading_list_url">NU Reading List URL</string>
+    <string name="title_activity_recently_updated_novels">Recently Updated Novels</string>
+    <string name="title_activity_recently_viewed_novels">Recently Viewed Novels</string>
+    <string name="volume_scroll">Scroll With Volume Buttons</string>
+    <string name="volume_scroll_description">Use Volume button to scroll up/down while reading</string>
+    <string name="keep_screen_on">Keep Screen On</string>
+    <string name="keep_screen_on_description">Keeps the screen on while you are reading</string>
+    <string name="join_us_on_discord">Join us on Discord</string>
+    <string name="other">Other</string>
 
 
 </resources>

@@ -1,0 +1,222 @@
+﻿<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+       Important please do not change the order of the string-arrays or generally anything unless it's text you're translating
+
+       What You'll Need:
+
+       1. A good text editor I recommend Atom (https://atom.io/), Sublime (https://www.sublimetext.com/), Brackets (http://brackets.io/) if you want to use something else no problem
+       2. A little knowledge on basic HTML things like <p> <b> <i> <br/> since there are certain parts I used a bit of html to format information https://www.w3schools.com/tags/
+       3. Know what character escaping is, because you cannot use characters like ' or , or ; or & or $ or % e.t.c without escaping them. e.g.
+          What\'s Trending should become What\'s Trending (Refer to http://www.ascii.cl/htmlcodes.htm look at the HTML Name Column for some conventions) not what i am looking for?
+
+       Just a quick note for translators, if you see some text that has %s or %d or %f just leave those as they are those are place holders:
+       %s - is a place holder for text most likely coming from NovelLibrary, e.g. %s liked your status post -> will be eCookie or Josh liked your status post
+       %d - is a place holder for a number, e.g. You have %d notifications -> will be You have 1 or 3 or 10 notifications
+       %f - is also a place holder for a decimal number works exactly as the others mentioned above
+
+       I know different languages have different rules like RTL so if you need to change the positions/order of %s or %d or %f you can still do so just don't remove the % sign
+       N.B. If any of the tags <string name="abc" translatable="false" ></string> have an attribute labeled translatable="false" it means you should not translate it!
+       So you can just omit those fields
+
+       Special Cases:
+       1. There are some cases I used <![CDATA[ some text here ]]>  CDATA sections are used to escape blocks of text containing characters that would otherwise be regarded as markup.
+       The only delimiter that is recognized in a CDATA section is the "]]>" string that ends the CDATA section. CDATA sections cannot be nested.
+       Their primary purpose is for including material such as XML fragments, without needing to escape all the delimiters.
+
+       Uploading your files:
+       You may just send the files directly and the file name should be something like strings_en.xml for english and strings_fr.xml for french respective of your locale
+       To All Translators I am very grateful for your help! :)
+   -->
+
+
+    <string-array name="search_tab_titles">
+        <item>Populaires</item>
+        <item>Mieux Notés</item>
+        <item>Activement Classés</item>
+    </string-array>
+
+    <string name="title_activity_novel_details">Roman</string>
+    <string name="title_activity_settings">Paramètres</string>
+    <string name="title_activity_chapters">Chapitres</string>
+    <string name="title_activity_meta_data">Plus d'Informations</string>
+
+
+    <string name="action_settings">Paramètres</string>
+    <string name="action_sync">Mise à jour des chapitres</string>
+    <string name="action_favourite">Favoris</string>
+    <string name="action_bookmark">Marque-Page</string>
+
+
+    <string name="title_library">Bibliothèque</string>
+    <string name="title_search">Recherche</string>
+    <string name="title_downloads">Téléchargements</string>
+
+    <string name="app_description">Une application pour les lire tous</string>
+
+    <!-- Strings related to Settings -->
+    <!--<string name="pref_title_dark_theme">Dark Page Theme</string>-->
+    <!--<string name="pref_description_dark_theme">Only RoyalRoadl.com supported for now.</string>-->
+    <!--<string name="pref_title_experimental_download">Lighting Fast Downloads (Experimental) </string>-->
+    <!--<string name="pref_description_experimental_download">Downloads really fast. Your device may freeze for a while.</string>-->
+    <!--<string name="pref_title_queue_novel_downloads">Queue Novel Downloads </string>-->
+    <!--<string name="pref_description_queue_novel_downloads">Downloads novels one after the another. If disabled, max of 5 novels with be downloaded simultaneously. </string>-->
+    <!--<string name="pref_title_download_latest_first">Download Latest First</string>-->
+    <!--<string name="pref_description_download_latest_first">Download the latest chapter first.</string>-->
+    <!--<string name="chapters_left_to_download">%d Chapter(s) left to download</string>-->
+
+
+    <!-- Transition Names -->
+    <string name="synopsis">Synopsis</string>
+    <string name="genres">Genres</string>
+    <string name="chapters">Chapitres</string>
+    <string name="legal">Mentions Légales</string>
+
+    <string name="download">Téléchargements</string>
+    <string name="downloaded">Téléchargé</string>
+    <string name="downloading">Téléchargement</string>
+    <string name="chapters_loading_message">Les chargements peuvent prendre du temps en fonction du nombre de chapitres</string>
+
+    <string name="no_internet">Pas de connection Internet!</string>
+    <string name="try_again">Réessayer</string>
+    <string name="clear">Supprimer</string>
+    <string name="clear_data">Supprimer le Cache et les Données</string>
+    <string name="clear_data_description">Supprime le cache, les bases de données et les fichiers</string>
+    <string name="sync">Mise à Jour</string>
+    <string name="remove_from_library">Enlever de la Bibliothèque</string>
+    <string name="cancel">Annuler</string>
+    <string name="remove">Retirer</string>
+    <string name="confirm_remove">Confirmation de la Suppression</string>
+    <string name="confirm_remove_description">Le Roman va être supprimé de la Bibliothèque ainsi que ses chapitres</string>
+    <string name="remove_from_downloads">Retirer des Téléchargements ?</string>
+    <string name="add_to_library">Ajouter à la Bibliothèque</string>
+    <string name="in_library">Ajouté</string>
+    <string name="sort">Trier</string>
+    <string name="sort_chapters">Trier les Chapitres</string>
+    <string name="clearing_data">Suppression des Données</string>
+    <string name="please_wait">Veuillez Patienter…</string>
+    <string name="theme">Thème</string>
+    <string name="toggle_theme">Chager de Thème</string>
+    <string name="close_menu">Fermer le Menu</string>
+    <string name="close">Fermer</string>
+    <string name="text_size">Taille du Texte</string>
+    <string name="more_information">Plus d'Informations</string>
+    <string name="more_info_description">Auteur, Artistes, Traducteurs…</string>
+    <string name="search_novel">Chercher un Roman</string>
+    <string name="bug_report">Rapporter un Bug</string>
+    <string name="open_in_browser">Ouvrir dans le Navigateur</string>
+    <string name="share">Partager</string>
+    <string name="copyright_notice">Copyright</string>
+    <string name="donate_developer">Faire un Don au Developpeur</string>
+    <string name="about_us">A Propos de nous</string>
+    <string name="libraries_used">Dépendances Logicielles</string>
+    <string name="contributions">Contributions</string>
+    <string name="donate">Donner</string>
+    <string name="donation_email_body">Thanks for all the work. I would like to see this in the next version and here is my donation.</string><!--Haven't translated this because it is a mail body-->
+    <string name="content_restricted">Contenu Restreint!</string>
+    <string name="lock_hint">Il y a des bouttons cachés. Bonne Chance pour les trouver!!</string>
+
+
+    <string name="copyright_content" tools:ignore="TypographyQuotes">
+        "Novel Library (l'Application) est un aggregateur de resulats de recherche pour les lecteurs. "
+		"Tout le contenu est partagé par des lecteurs ou automatiquement collecté sur Internet "
+		"par l'Application. Novel Library ne produit aucun contenu.\n\n"
+		
+		"Tout le contenu proposé sur l'Application appartient à l'auteur et à l'éditeur dudit contenu. "
+		"Si vous avez une question à propos des droits d'auteur sur un contenu, contactez nous et "
+		"nous retirerons le contenu.\n\n"
+		
+		"Le contenu présenté représente les points de vue des auteurs de ces contenus et en aucun cas " 
+		"celui des developpeurs de l'Applications. Nous n'avons aucun responsabilité juridique. Si vous "
+		"trouvez du contenu en désaccord avec la loi, merci de nous le rapporter et nous verifierons.\n\n"
+
+        "Contact: gmathi.developer@gmail.com\n"
+
+    </string>
+
+    <string name="donate_content" tools:ignore="TypographyQuotes">
+        "Les donations aiderons à accélerer les sorties avec de nouvelles "
+		"fonctionnalités. "
+        "Vous pouvez donner grâce à GMail à l'adresse: gmathi.developer@gmail.com "
+    </string>
+    <string name="app_exit">Appuyez sur Retour de nouveau pour quitter</string>
+    <string name="general">Général</string>
+    <string name="faster_downloads">Téléchargements Rapides</string>
+    <string name="faster_downloads_description">Télécharge plus rapidement mais l'Application peut geler.</string>
+    <string name="first_screen_library">"Bibliothèque" comme Ecran Principal</string>
+    <string name="first_screen_library_description">Si désactivé, "Recherche" sera l'Ecran Principal.</string>
+    <string name="clean_pages">Nettoyer les Chapitres</string>
+    <string name="clean_pages_description">Nettoie les chapitres avant de les afficher.</string>
+    <string name="failed_to_load_url">Erreur lors du chargement du contenu !</string>
+    <string name="disable_javascript">Désactiver Javascript</string>
+    <string name="disable_javascript_description">Quelques sites redirigent vers des pubs avec Javascript</string>
+    <string name="changelog">Journal des Changements</string>
+    <string name="donations_description_new">Je suis content que vous vouliez donner ! Cependant, parlez de l'Apllication et partagez la !</string>
+    <string name="language">Langues</string>
+    <string name="languages_supported">Langues Supportées</string>
+    <string name="download_chapters">Télécharger les Chapitres</string>
+    <string name="mark_read">Marquer comme Lu</string>
+    <string name="mark_unread">Marquer comme Non-Lu</string>
+    <string name="unread">Non-Lu</string>
+    <string name="read">Lu</string>
+    <string name="chapters_selected">%1$d Séléctionné</string>
+    <string name="okay">OK</string>
+    <string name="confirm_action">Confirmer</string>
+    <string name="mark_chapters_unread_dialog_content">Marquer les chapitres comme non-lu ?</string>
+    <string name="mark_chapters_read_dialog_content">Marquer les chapitres comme lu ?</string>
+    <string name="download_chapters_dialog_content">Télécharger les Chapitres ?\n Note: Les téléchargements ne peuvent pas être arrétés ou mis en pause.</string>
+    <string name="alert">Attention</string>
+    <string name="novel_not_in_library_dialog_content">Le Roman doit être dans votre bibliothèque pour télécharger les Chapitres individuellement !</string>
+    <string name="download_all_chapters_dialog_content">Gérez les téléchargements dans le Gestionnaire. Télécharger tous les chapitres ?</string>
+    <string name="background_chapter_downloads">Téléchargement en tâche de fond</string>
+
+    <!-- v0.5 Strings -->
+
+    <string name="select_all_from_page">Selectionner toute la page</string>
+    <string name="clear_selection_from_page">Déselectionner</string>
+    <string name="download_in_queue">En Attente</string>
+    <string name="download_paused">En Pause</string>
+    <string name="status">Statut</string>
+    <string name="manage_downloads">Gérer les Téléchargements</string>
+    <string name="manage_downloads_dialog_content">Les Romans téléchargés se trouvent dans les "Téléchargements", dans le menu glissant</string>
+    <string name="take_me_there">Y Aller</string>
+    <string name="collection_chapters_info">Obtention des Informations sur les Chapitres</string>
+    <string name="download_all_new_chapters_dialog_content">Gérez les téléchargements dans le Gestionnaire. Télécharger tous les nouveaux chapitres ?</string>
+    <string name="quick_access">Accès Rapide</string>
+    <string name="new_chapters_notification_content_full">%1$d Romans avec un total de %2$d nouveaux chapitres. Cliquez pour commencer à lire !</string>
+    <string name="new_chapters_notification_content_single">%1$s (%2$d nouveaux chapitres)</string>
+    <string name="new_chapters_notification_title">Nouveaux Chapitres Disponibles!</string>
+    <string name="sync_in_progress">Mise à jour en cours</string>
+
+    <!-- v0.6 Strings -->
+
+    <string name="mentions">Mentions</string>
+    <string name="select_all">Tout sélectionner</string>
+    <string name="clear_selection">Déselectionner</string>
+    <string name="download_novel">Télécharger le Roman</string>
+    <string name="add_to_library_dialog_content">Le Roman (%s) doit être dans votre bibliothèque pour télécharger/marquer les Chapitres individuellement ?</string>
+    <string name="swipe_right_for_next_chapter">Glissement (Jap Style)</string>
+    <string name="swipe_right_for_next_chapter_description">Glisser vers la droite pour changer de Chapitre</string>
+    <string name="no_bookmark_found_dialog_title">Commencer à lire ?</string>
+    <string name="no_bookmark_found_dialog_description">Vous n'avez pas encore commencé "%s". Pourquoi ne pas commencer maintenant ?</string>
+    <string name="sync_interval">Intervalle entre les Mises à Jour</string>
+    <string name="sync_interval_description">Intervalle pour verifier si de nouveaux chapitres sont sortis</string>
+
+    <!-- v0.7 Strings -->
+    <string name="clean">Nettoyer</string>
+    <string name="reader">Liseuse</string>
+    <string name="reader_mode">Mode Liseuse</string>
+    <string name="show_reader_scroll">Montrer les barres de défilement</string>
+    <string name="show_reader_scroll_description">Montre les barres verticales sur le bord droit pour savoir où vous en êtes</string>
+    <string name="show_comments_section">Montrer les commentaires</string>
+    <string name="show_comments_section_description">Montrer les commentaires dans la Liseuse. (Support limité)</string>
+    <string name="backup">Sauvegarde</string>
+    <string name="backup_data">Sauvegarder les données</string>
+    <string name="backup_data_description">Sauvegarde les données vers la mémoire interne ou la carte SD</string>
+    <string name="restore">Restaurer</string>
+    <string name="restore_data">Restaurer les données</string>
+    <string name="restore_data_description">Restaurer les données depuis la mémoire interne ou la carte SD</string>
+    <string name="import_reading_list">Importer la liste de lecture</string>
+    <string name="nu_reading_list_url">URL de la liste de lecture NovelUpdates</string>
+	
+</resources>

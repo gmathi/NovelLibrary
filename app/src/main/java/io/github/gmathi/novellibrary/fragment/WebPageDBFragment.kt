@@ -347,7 +347,7 @@ class WebPageDBFragment : Fragment() {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onNightModeChanged(event: NightModeChangeEvent) {
+    fun onNightModeChanged(@Suppress("UNUSED_PARAMETER") event: NightModeChangeEvent) {
         cleanPage()
         applyTheme()
         loadDocument()

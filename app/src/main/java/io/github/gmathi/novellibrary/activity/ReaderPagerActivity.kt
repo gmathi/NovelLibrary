@@ -5,6 +5,7 @@ import android.support.v4.view.ViewPager
 import android.view.KeyEvent
 import android.view.MenuItem
 import android.view.View
+import android.view.WindowManager
 import android.webkit.WebView
 import android.widget.SeekBar
 import com.afollestad.materialdialogs.MaterialDialog
@@ -34,7 +35,9 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader_pager)
-        //window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        if (dataCenter.keepScreenOn)
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         novel = intent.getSerializableExtra("novel") as Novel?
         webPage = intent.getSerializableExtra("webPage") as WebPage?
@@ -162,16 +165,16 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
         val webView = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
         when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
-                if (action == KeyEvent.ACTION_DOWN) {
+                if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
                     webView?.pageUp(false)
                 }
-                return true
+                return dataCenter.volumeScroll
             }
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                if (action == KeyEvent.ACTION_DOWN) {
+                if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
                     webView?.pageDown(false)
                 }
-                return true
+                return dataCenter.volumeScroll
             }
             else -> return super.dispatchKeyEvent(event)
         }

@@ -31,6 +31,8 @@ class DataCenter(context: Context) {
     private val JAP_SWIPE = "japSwipe"
     private val SHOW_READER_SCROLL = "showReaderScroll"
     private val SHOW_CHAPTER_COMMENTS = "showChapterComments"
+    private val VOLUME_SCROLL = "volumeScroll"
+    private val KEEP_SCREEN_ON = "keepScreenOn"
 
     val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -112,6 +114,13 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(SHOW_CHAPTER_COMMENTS, false)
         set(value) = prefs.edit().putBoolean(SHOW_CHAPTER_COMMENTS, value).apply()
 
+    var volumeScroll: Boolean
+        get() = prefs.getBoolean(VOLUME_SCROLL, true)
+        set(value) = prefs.edit().putBoolean(VOLUME_SCROLL, value).apply()
+
+    var keepScreenOn: Boolean
+        get() = prefs.getBoolean(KEEP_SCREEN_ON, true)
+        set(value) = prefs.edit().putBoolean(KEEP_SCREEN_ON, value).apply()
 
     fun getVerifiedHosts(): ArrayList<String> {
         return Gson().fromJson(prefs.getString(VERIFIED_HOSTS, Gson().toJson(HostNames.getDefaultHostNamesList())), object : TypeToken<ArrayList<String>>() {}.type)

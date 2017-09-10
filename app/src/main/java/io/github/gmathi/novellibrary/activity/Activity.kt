@@ -85,8 +85,12 @@ fun Activity.startSearchResultsActivity(title: String, url: String) {
     startActivityForResult(intent, Constants.SEARCH_RESULTS_ACT_REQ_CODE)
 }
 
+fun Activity.startRecentlyViewedNovelsActivity() {
+    startActivityForResult(Intent(this, RecentlyViewedNovelsActivity::class.java), Constants.RECENT_VIEWED_ACT_REQ_CODE)
+}
+
 fun Activity.startRecentlyUpdatedNovelsActivity() {
-    startActivityForResult(Intent(this, RecentlyUpdatedNovelsActivity::class.java), Constants.RECENT_ACT_REQ_CODE)
+    startActivityForResult(Intent(this, RecentlyUpdatedNovelsActivity::class.java), Constants.RECENT_UPDATED_ACT_REQ_CODE)
 }
 
 fun Activity.startSettingsActivity() {

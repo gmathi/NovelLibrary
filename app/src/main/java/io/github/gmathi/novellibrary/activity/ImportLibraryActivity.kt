@@ -158,7 +158,7 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
 
         itemView.checkbox.setOnCheckedChangeListener(null)
         itemView.checkbox.isChecked = updateSet.contains(item)
-        itemView.checkbox.setOnCheckedChangeListener { compoundButton, isChecked ->
+        itemView.checkbox.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked)
                 addToUpdateSet(item)
             else
@@ -261,7 +261,7 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
             .negativeText(R.string.cancel)
             .cancelable(false)
             .autoDismiss(false)
-            .onNegative { dialog, which ->
+            .onNegative { dialog, _ ->
                 run {
                     async.cancelAll()
                     actionMode?.finish()

@@ -210,6 +210,11 @@
             android:label="@string/title_activity_recently_updated_novels"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
+        <activity
+            android:name=".activity.RecentlyViewedNovelsActivity"
+            android:label="@string/title_activity_recently_viewed_novels"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
     </application>
 
 </manifest>
