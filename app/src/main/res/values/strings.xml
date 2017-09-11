@@ -132,6 +132,8 @@
     <string name="title_activity_settings">Settings</string>
     <string name="title_activity_chapters">Chapters</string>
     <string name="title_activity_meta_data">More Information</string>
+    <string name="title_activity_recently_updated_novels">Recently Updated Novels</string>
+    <string name="title_activity_recently_viewed_novels">Recently Viewed Novels</string>
 
 
     <string name="action_settings">Settings</string>
@@ -309,8 +311,6 @@
     <string name="restore_data_description">Restore Data from internal storage/sd card</string>
     <string name="import_reading_list">Import Reading List</string>
     <string name="nu_reading_list_url">NU Reading List URL</string>
-    <string name="title_activity_recently_updated_novels">Recently Updated Novels</string>
-    <string name="title_activity_recently_viewed_novels">Recently Viewed Novels</string>
     <string name="volume_scroll">Scroll With Volume Buttons</string>
     <string name="volume_scroll_description">Use Volume button to scroll up/down while reading</string>
     <string name="keep_screen_on">Keep Screen On</string>

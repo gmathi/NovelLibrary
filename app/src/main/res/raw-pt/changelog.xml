@@ -2,62 +2,86 @@
 <changelog bulletedList="true">
 
     <changelogversion
-        changeDate="08/30/2017"
-        versionName="0.6.7.beta">
-        <changelogtext>[b]New![/b] Added 2 new settings to ‘Reader Mode’ </changelogtext>
-        <changelogtext>[b]New![/b] Added Night mode support for more sites</changelogtext>
-        <changelogtext>[i]Fix[/i] - A set distance before the bottom menu circle appears when scrolling up</changelogtext>
-        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+        changeDate="09/10/2017"
+        versionName="0.7.beta">
+        <changelogtext>[b]Novo![/b] Faça backups e restaure seus dados a partir das configurações</changelogtext>
+        <changelogtext>[b]Novo![/b] Importe sua lista de leitura do website Novel Updates</changelogtext>
+        <changelogtext>[b]Novo![/b] A biblioteca mostra em que capítulo você está, além do número total de capítulos</changelogtext>
+        <changelogtext>[b]Novo![/b] Veja séries atualizadas recentemente</changelogtext>
+        <changelogtext>[b]Novo![/b] Tradução Francesa adicionada para o aplicativo</changelogtext>
+        <changelogtext>[b]Novo![/b] Tradução Tagala adicionada para o aplicativo</changelogtext>
+        <changelogtext>[b]Novo![/b] Mais opções adicionadas nas configurações de leitura</changelogtext>
+        <changelogtext>[i]Correção[/i] - Correções para crashes reportados e não reportados!</changelogtext>
     </changelogversion>
 
     <changelogversion
-        changeDate="08/24/2017"
+        changeDate="08/30/2017"
+        versionName="0.6.7.beta">
+        <changelogtext>[b]Novo![/b] 2 novas configurações adicionadas ao ‘Modo de Leitura’ </changelogtext>
+        <changelogtext>[b]Novo![/b] Suporte a Modo Noturno adicionado a mais sites</changelogtext>
+        <changelogtext>[i]Correção[/i] - Uma distância fixa antes que o círculo do menu de baixo apareça quando estiver rolando para cima</changelogtext>
+        <changelogtext>[i]Correção[/i] - Correções para crashes reportados e não reportados!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/29/2017"
         versionName="0.6.6.beta">
-        <changelogtext>[b]New![/b] Added Alphabetical Sorting to ‘Library’ </changelogtext>
-        <changelogtext>[b]New![/b] Add Night mode support for more sites</changelogtext>
-        <changelogtext>[i]Fix[/i] - Chapters notification is not updating the chapters listing</changelogtext>
-        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+        <changelogtext>[b]Novo![/b] Ordem Alfabética adicionada à ‘Biblioteca’ </changelogtext>
+        <changelogtext>[b]Novo![/b] Suporte a Modo Noturno adicionado a mais sites</changelogtext>
+        <changelogtext>[i]Correção[/i] - A notificação dos capítulos não está atualizando a list de capítulos</changelogtext>
+        <changelogtext>[i]Correção[/i] - Correções para crashes reportados e não reportados!</changelogtext>
     </changelogversion>
 
     <changelogversion
         changeDate="08/24/2017"
         versionName="0.6.5.beta">
-        <changelogtext>[b]New![/b] Support added for some websites to take you to chapter instead of announcement posts (ty @Daniel for ProTip!) </changelogtext>
-        <changelogtext>[b]New![/b] Add Night mode support for more sites</changelogtext>
-        <changelogtext>[i]Fix[/i] - "Library as Main screen" working again!</changelogtext>
-        <changelogtext>[i]Fix[/i] - Changed "Clean" --> "Reader" for better understanding</changelogtext>
-        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+        <changelogtext>[b]Novo![/b] Suporte a te levar ao capítulo ao invés de posts de anúncio adicionado a alguns websites(obrigado @Daniel pela dica!) </changelogtext>
+        <changelogtext>[b]Novo![/b] Suporte a Modo Noturno adicionado a mais sites</changelogtext>
+        <changelogtext>[i]Correção[/i] - "Biblioteca como Tela Principal" funcionando novamente!</changelogtext>
+        <changelogtext>[i]Correção[/i] - "Limpo" modificado para "Modo de Leitura" para melhor entendimento</changelogtext>
+        <changelogtext>[i]Correção[/i] - Correções para crashes reportados e não reportados!</changelogtext>
     </changelogversion>
 
     <changelogversion
         changeDate="08/23/2017"
         versionName="0.6.4.beta">
-        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+        <changelogtext>[i]Correção[/i] - Correções para crashes reportados e não reportados!</changelogtext>
     </changelogversion>
 
     <changelogversion
         changeDate="08/22/2017"
         versionName="0.6.3.beta">
-        <changelogtext>[b]New![/b] ‘Reader’ settings moved a separate category under ‘Settings’</changelogtext>
-        <changelogtext>[b]New![/b] Night mode background changed to pure black so it saves battery life on OLED Screens</changelogtext>
-        <changelogtext>[b]New![/b] Add Night mode support for more sites</changelogtext>
-        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+        <changelogtext>[b]Novo![/b] Configurações do ‘Modo de Leitura’ movidas para uma categoria diferente dentro de ‘Configurações’</changelogtext>
+        <changelogtext>[b]Novo![/b] Background do Modo Noturno modificado para puro preto, para que economize a bateria em telas OLED</changelogtext>
+        <changelogtext>[b]Novo![/b] Suporte a Modo Noturno adicionado para mais sites</changelogtext>
+        <changelogtext>[i]Correção[/i] - Correções para crashes reportados e não reportados!</changelogtext>
     </changelogversion>
 
     <changelogversion
         changeDate="08/21/2017"
         versionName="0.6.2.beta">
-        <changelogtext>[b]New![/b] Add Support for translations on Tumblr, Google Docs &amp; Other sites</changelogtext>
-        <changelogtext>[i]Fix[/i] - Chapters loading slower when added to ‘Library’</changelogtext>
-        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+        <changelogtext>[b]Novo![/b] Adicionado suporte a traduções no Tumblr, Google Docs e outros sites</changelogtext>
+        <changelogtext>[i]Correção[/i] - Capítulos carregando mais devagar quando adicionados à ‘Biblioteca’</changelogtext>
+        <changelogtext>[i]Correção[/i] - Correções para crashes reportados e não reportados!</changelogtext>
     </changelogversion>
 
     <changelogversion
         changeDate="08/20/2017"
         versionName="0.6.1.beta">
-        <changelogtext>[b]Experimental![/b] ‘Chapters Screen’ might not load chapters for existing novels the first time, ‘Go Back’ and try opening ‘Chapters Screen’ again.</changelogtext>
-        <changelogtext>[i]Fix[/i] - Download status in ‘Chapters Screen’ will update properly</changelogtext>
-        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+        <changelogtext>[b]Experimental![/b] A ‘Tela de Capítulos’ pode não carregar para séries já existentes a primeira vez, ‘Volte’ e tente abrir a ‘Tela de Capítulos’ novamente.</changelogtext>
+        <changelogtext>[i]Correção[/i] - Estado de download na ‘Tela de Capítulos’ irá atualizar apropriadamente</changelogtext>
+        <changelogtext>[i]Correção[/i] - Correções para crashes reportados e não reportados!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="08/19/2017"
+        versionName="0.6.beta">
+        <changelogtext>[b]Novo![/b] Novo design e experiência na visualização de capítulos</changelogtext>
+        <changelogtext>[b]Novo![/b] Leia diretamente da biblioteca clicando em Série - Capa(Cover Art)</changelogtext>
+        <changelogtext>[b]Novo![/b] Leia exatamente de onde parou! Nada mais de ficar procurando onde estava da última vez!</changelogtext>
+        <changelogtext>[b]Novo![/b] As configurações foram agrupadas e reordenadas</changelogtext>
+        <changelogtext>[i]Correção[/i] - Notificações duplas para séries já atualizadas</changelogtext>
+        <changelogtext>[i]Correção[/i] - Correções para crashes reportados e não reportados!</changelogtext>
     </changelogversion>
 
     <changelogversion
@@ -89,13 +113,10 @@
     <changelogversion
         changeDate="08/11/2017"
         versionName="0.5.1.beta">
-        <changelogtext>[i]Correção[/i] - Aplicativo dá crash indo da tela principal para a tela de leitura</changelogtext>
+    <changelogtext>[i]Correção[/i] - Aplicativo dá crash indo da tela principal para a tela de leitura</changelogtext>
     </changelogversion>
 
-
-    <changelogversion
-        changeDate="08/04/2017"
-        versionName="0.5.beta">
+    <changelogversion versionName="0.5.beta" changeDate="08/04/2017">
         <changelogtext>[b]Novo![/b] Suporte para 99%[sic] dos websites de novels</changelogtext>
         <changelogtext>[b]Novo![/b] Notificações para novos capítulos são atualizadas a cada hora</changelogtext>
         <changelogtext>[b]Novo![/b] Menu de sincronização na biblioteca para checar novos capítulos</changelogtext>
@@ -109,49 +130,39 @@
         <changelogtext>[i]Correção[/i] - Muitas correções para crashes reportados e não reportados!</changelogtext>
     </changelogversion>
 
-    <changelogversion
-        changeDate="08/04/2017"
-        versionName="0.4.1.beta">
+    <changelogversion versionName="0.4.1.beta" changeDate="08/04/2017">
         <changelogtext>[b]Novo![/b] Séries podem ser compartilhadas a partir de 'Detalhes da série'</changelogtext>
-        <changelogtext>[i]Correção[/i] - Mudanças de cor no design</changelogtext>
+        <changelogimprovement>[i]Correção[/i] - Duplicação de capítulos em Royal Road!</changelogimprovement>
+        <changelogimprovement>[i]Correção[/i] - Suporte ao modo noturno em capítulos do Royal Road</changelogimprovement>
+        <changelogimprovement>[i]Correção[/i] - Mudanças de cor no design</changelogimprovement>
     </changelogversion>
 
-    <changelogversion
-        changeDate="08/03/2017"
-        versionName="0.4.beta">
+    <changelogversion versionName="0.4.beta" changeDate="08/03/2017">
         <changelogtext>[b]Novo![/b] Capítulos carregam mais rápidamente e podem ser baixados individualmente</changelogtext>
         <changelogtext>[b]Novo![/b] Capítulos podem ser marcados como lidos/não lidos</changelogtext>
         <changelogtext>[b]Novo![/b] Tradução Turca adicionada para o aplicativo</changelogtext>
         <changelogtext>[b]Novo![/b] Adicionado suporte a [b]Modo Noturno[/b] a séries de Kobatochan</changelogtext>
     </changelogversion>
 
-    <changelogversion
-        changeDate="08/03/2017"
-        versionName="0.3.3.beta">
+    <changelogversion versionName="0.3.3.beta" changeDate="08/03/2017">
         <changelogtext>[b]Novo![/b] Adicionado suporte a [b]Modo Noturno[/b] a séries de Circus Translations</changelogtext>
     </changelogversion>
 
-    <changelogversion
-        changeDate="08/01/2017"
-        versionName="0.3.2.beta">
+    <changelogversion versionName="0.3.2.beta" changeDate="08/01/2017">
         <changelogtext>[b]Novo![/b] Tradução Espanhola adicionada para o aplicativo</changelogtext>
         <changelogtext>[b]Novo![/b] Tradução Portuguesa adicionada para o aplicativo</changelogtext>
         <changelogtext>[i]Correção[/i] - Limpeza no Wuxia World também deletava o conteúdo dos capítulos!</changelogtext>
         <changelogtext>[i]Correção[/i] - Correções para crashes reportados e não reportados!</changelogtext>
     </changelogversion>
 
-    <changelogversion
-        changeDate="07/31/2017"
-        versionName="0.3.1.beta">
+    <changelogversion versionName="0.3.1.beta" changeDate="07/31/2017">
         <changelogtext>[b]Novo![/b] Confetes adicionados para desbloqueio secreto</changelogtext>
         <changelogtext>[i]Correção[/i] - Crash na página de leitura deslizando para tela anterior/próxima</changelogtext>
         <changelogtext>[i]Correção[/i] - Modo noturno nas páginas do Wuxia World não funcionando adequadamente</changelogtext>
         <changelogtext>[i]Correção[/i] - Correções para crashes reportados e não reportados!</changelogtext>
     </changelogversion>
 
-    <changelogversion
-        changeDate="07/30/2017"
-        versionName="0.3.beta">
+    <changelogversion versionName="0.3.beta" changeDate="07/30/2017">
         <changelogtext>[b]Novo![/b] Reordene as séries em sua biblioteca</changelogtext>
         <changelogtext>[b]Novo![/b] Deslize para a direita para deletar séries da sua biblioteca</changelogtext>
         <changelogtext>[b]Novo![/b] [i]WLN-Updates.com[/i] adicionado para os resultados da pesquisa (Experimental)</changelogtext>
@@ -165,9 +176,7 @@
         <changelogtext>[i]Correção[/i] - Correções para crashes reportados!</changelogtext>
     </changelogversion>
 
-    <changelogversion
-        changeDate="07/27/2017"
-        versionName="0.2.1.beta">
+    <changelogversion versionName="0.2.1.beta" changeDate="07/27/2017">
         <changelogtext>[b]Novo![/b] Suporte a limpar páginas e ao [b]Modo Noturno[/b] adicionado para o wordpress.com</changelogtext>
         <changelogtext>[b]Correção[/b] - Capítulos indexados adequadamente</changelogtext>
         <changelogtext>[b]Correção[/b] - Tela é mantida ativa na Tela de Leitura</changelogtext>
@@ -175,19 +184,15 @@
         <changelogtext>Correções para crashes reportados!</changelogtext>
     </changelogversion>
 
-    <changelogversion
-        changeDate="07/26/2017"
-        versionName="0.2.beta">
+    <changelogversion versionName="0.2.beta" changeDate="07/26/2017">
         <changelogtext>[b]Novo![/b] Links para descobrir outros trabalhos de Autores, Tradutores e Publishers(Tela de Mais Informações)</changelogtext>
         <changelogtext>[b]Novo![/b] Capítulos carregam mais rápido (1000 capítulos em 4~5s)</changelogtext>
         <changelogtext>Correções para suportar dispositivos menos potentes e outras correções para crashes maiores</changelogtext>
     </changelogversion>
 
-    <changelogversion
-        changeDate="07/23/2017"
-        versionName="0.1.beta">
+    <changelogversion versionName="0.1.beta" changeDate="07/23/2017">
         <changelogtext>Lançamento Beta inicial.</changelogtext>
-        <changelogtext>Leitor: Modo Noturno (experimental, suporte limitado)</changelogtext>
+        <changelogimprovement>Leitor: Modo Noturno (experimental, suporte limitado)</changelogimprovement>
         <changelogbug>Lista de Capítulos: 1000 Capítulos levam entre 20 e 30 segundos para carregar</changelogbug>
         <changelogbug>Lista de Downloads: Pausar os capítulos sendo baixados tem um comportamento instável</changelogbug>
 

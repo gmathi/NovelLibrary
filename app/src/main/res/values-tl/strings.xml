@@ -1,22 +1,47 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+       Important please do not change the order of the string-arrays or generally anything unless it's text you're translating
+
+       What You'll Need:
+
+       1. A good text editor I recommend Atom (https://atom.io/), Sublime (https://www.sublimetext.com/), Brackets (http://brackets.io/) if you want to use something else no problem
+       2. A little knowledge on basic HTML things like <p> <b> <i> <br/> since there are certain parts I used a bit of html to format information https://www.w3schools.com/tags/
+       3. Know what character escaping is, because you cannot use characters like ' or , or ; or & or $ or % e.t.c without escaping them. e.g.
+          What\'s Trending should become What\'s Trending (Refer to http://www.ascii.cl/htmlcodes.htm look at the HTML Name Column for some conventions) not what i am looking for?
+
+       Just a quick note for translators, if you see some text that has %s or %d or %f just leave those as they are those are place holders:
+       %s - is a place holder for text most likely coming from NovelLibrary, e.g. %s liked your status post -> will be eCookie or Josh liked your status post
+       %d - is a place holder for a number, e.g. You have %d notifications -> will be You have 1 or 3 or 10 notifications
+       %f - is also a place holder for a decimal number works exactly as the others mentioned above
+
+       I know different languages have different rules like RTL so if you need to change the positions/order of %s or %d or %f you can still do so just don't remove the % sign
+       N.B. If any of the tags <string name="abc" translatable="false" ></string> have an attribute labeled translatable="false" it means you should not translate it!
+       So you can just omit those fields
+
+       Special Cases:
+       1. There are some cases I used <![CDATA[ some text here ]]>  CDATA sections are used to escape blocks of text containing characters that would otherwise be regarded as markup.
+       The only delimiter that is recognized in a CDATA section is the "]]>" string that ends the CDATA section. CDATA sections cannot be nested.
+       Their primary purpose is for including material such as XML fragments, without needing to escape all the delimiters.
+
+       Uploading your files:
+       You may just send the files directly and the file name should be something like strings_en.xml for english and strings_fr.xml for french respective of your locale
+       To All Translators I am very grateful for your help! :)
+   -->
+
     <string-array name="search_tab_titles">
         <item>Mga Sikat Ngayon</item>
         <item>Mga Matataas na Marka</item>
         <item>Mga Aktibong Ranggo</item>
     </string-array>
 
-    <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
-    <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
-    <string name="transition_user_banner" translatable="false">trans_banner_img</string>
-    <string name="transition_image_preview" translatable="false">trans_image_preview</string>
-    <string name="dev_email" translatable="false">gmathi.developer@gmail.com</string>
-    <string name="downloading_status" translatable="false">%1$s - %2$s: %3$s</string>
-    <string name="chapter_count" translatable="false">%1$d / %2$d</string>
-
 
     <string name="title_activity_novel_details">Libro</string>
     <string name="title_activity_settings">Mga Settings</string>
     <string name="title_activity_chapters">Kabanata</string>
     <string name="title_activity_meta_data">Iba pang kaalaman</string>
+    <string name="title_activity_recently_updated_novels">Recently Updated Novels</string>
+    <string name="title_activity_recently_viewed_novels">Recently Viewed Novels</string>
 
 
     <string name="action_settings">Mga Settings</string>
@@ -29,7 +54,7 @@
     <string name="title_search">Hanapin</string>
     <string name="title_downloads">Mga Downloads</string>
 
-    <string name="app_description"Ang iisang paradahan para sa lahat ng inyong libro.</string>
+    <string name="app_description">Ang iisang paradahan para sa lahat ng inyong libro.</string>
 
     <!-- Strings related to Settings -->
     <!--<string name="pref_title_dark_theme">Dark Page Theme</string>-->
@@ -77,7 +102,6 @@
     <string name="close_menu">Isarado ang Menu</string>
     <string name="close">Isarado</string>
     <string name="text_size">Laki ng teksto</string>
-    <string name="more_information"></string>
     <string name="more_info_description">Mga Artista, Lisensyahan, Tagasalin, …</string>
     <string name="search_novel">Ihanap ang libro</string>
     <string name="bug_report">I-report ang mga bugs</string>
@@ -120,7 +144,7 @@
     <string name="faster_downloads">Mabilis na pag-download</string>
     <string name="faster_downloads_description">.Baka bumagal ang inyong device dahil mabilis ang pag-download</string>
     <string name="first_screen_library">Gamitin ang “Aklatan” para sa main screen</string>
-    <string name="first_screen_library_description">Kapag hindi ito ipinagana “I-hanap� ay ang magiging main screen.</string>
+    <string name="first_screen_library_description">Kapag hindi ito ipinagana “I-hanap� ay ang magiging main screen.</string>
     <string name="clean_pages">Ilinis ang mga kabanata</string>
     <string name="clean_pages_description">Ilinis ang mga kabanata bago i-load ang mga ito.</string>
     <string name="failed_to_load_url">Hindi makuha ang nilalaman nito!</string>
@@ -154,7 +178,7 @@
     <string name="download_paused">Naka-Pause</string>
     <string name="status">Kalagayan</string>
     <string name="manage_downloads">Manage Downloads</string>
-    <string name="manage_downloads_dialog_content">Ang mga libro na na-download ay puwedeng i-manage sa “Downloads� sa "navigation drawer" menu.</string>
+    <string name="manage_downloads_dialog_content">Ang mga libro na na-download ay puwedeng i-manage sa “Downloads� sa “navigation drawer” menu.</string>
     <string name="take_me_there">Idala mo ako diyan.</string>
     <string name="collection_chapters_info">Nangongolekta ng impormasyon sa kabanata</string>
     <string name="download_all_new_chapters_dialog_content">I-manage ang pag-download ng mga libro gamit ng download manager. I-download ang mga bagong palabas ng kabanata?</string>
@@ -177,5 +201,29 @@
     <string name="no_bookmark_found_dialog_description">Mukhang hindi mo pa nababasa ang ‘%s’ . Magsimula na ngayon?</string>
     <string name="sync_interval">Agwat ng pag-sync</string>
     <string name="sync_interval_description">Agwat ng pagsusuri para sa mga bagong update.</string>
+    <string name="more_information">More Information</string>
+
+    <!-- v0.7 Strings -->
+    <string name="clean">Clean</string>
+    <string name="reader">Reader</string>
+    <string name="reader_mode">Reader Mode</string>
+    <string name="show_reader_scroll">Show Scrollbar</string>
+    <string name="show_reader_scroll_description">Shows the vertical scrollbar on the right edge of the screen to track your progress of the chapter</string>
+    <string name="show_comments_section">Show Comments</string>
+    <string name="show_comments_section_description">Shows the chapter’s comments section in the reader mode. (Limited Websites Supported)</string>
+    <string name="backup">Backup</string>
+    <string name="backup_data">Backup Data</string>
+    <string name="backup_data_description">Backup Data to internal storage/sd card</string>
+    <string name="restore">Restore</string>
+    <string name="restore_data">Restore Data</string>
+    <string name="restore_data_description">Restore Data from internal storage/sd card</string>
+    <string name="import_reading_list">Import Reading List</string>
+    <string name="nu_reading_list_url">NU Reading List URL</string>
+    <string name="volume_scroll">Scroll With Volume Buttons</string>
+    <string name="volume_scroll_description">Use Volume button to scroll up/down while reading</string>
+    <string name="keep_screen_on">Keep Screen On</string>
+    <string name="keep_screen_on_description">Keeps the screen on while you are reading</string>
+    <string name="join_us_on_discord">Join us on Discord</string>
+    <string name="other">Other</string>
 
 </resources>

@@ -39,7 +39,9 @@
     <string name="title_activity_novel_details">Roman</string>
     <string name="title_activity_settings">Paramètres</string>
     <string name="title_activity_chapters">Chapitres</string>
-    <string name="title_activity_meta_data">Plus d'Informations</string>
+    <string name="title_activity_meta_data">Plus d\'Informations</string>
+    <string name="title_activity_recently_updated_novels">Romans Mis à Jour Récemment</string>
+    <string name="title_activity_recently_viewed_novels">Romans Vus Récemment</string>
 
 
     <string name="action_settings">Paramètres</string>
@@ -100,7 +102,7 @@
     <string name="close_menu">Fermer le Menu</string>
     <string name="close">Fermer</string>
     <string name="text_size">Taille du Texte</string>
-    <string name="more_information">Plus d'Informations</string>
+    <string name="more_information">Plus d\'Informations</string>
     <string name="more_info_description">Auteur, Artistes, Traducteurs…</string>
     <string name="search_novel">Chercher un Roman</string>
     <string name="bug_report">Rapporter un Bug</string>
@@ -114,7 +116,7 @@
     <string name="donate">Donner</string>
     <string name="donation_email_body">Thanks for all the work. I would like to see this in the next version and here is my donation.</string><!--Haven't translated this because it is a mail body-->
     <string name="content_restricted">Contenu Restreint!</string>
-    <string name="lock_hint">Il y a des bouttons cachés. Bonne Chance pour les trouver!!</string>
+    <string name="lock_hint">Il y a des boutons cachés. Bonne Chance pour les trouver!!</string>
 
 
     <string name="copyright_content" tools:ignore="TypographyQuotes">
@@ -142,16 +144,16 @@
     <string name="app_exit">Appuyez sur Retour de nouveau pour quitter</string>
     <string name="general">Général</string>
     <string name="faster_downloads">Téléchargements Rapides</string>
-    <string name="faster_downloads_description">Télécharge plus rapidement mais l'Application peut geler.</string>
-    <string name="first_screen_library">"Bibliothèque" comme Ecran Principal</string>
-    <string name="first_screen_library_description">Si désactivé, "Recherche" sera l'Ecran Principal.</string>
+    <string name="faster_downloads_description">Télécharge plus rapidement mais l\'Application peut geler.</string>
+    <string name="first_screen_library">“Bibliothèque” comme Ecran Principal</string>
+    <string name="first_screen_library_description">Si désactivé, “Recherche” sera l’Ecran Principal.</string>
     <string name="clean_pages">Nettoyer les Chapitres</string>
     <string name="clean_pages_description">Nettoie les chapitres avant de les afficher.</string>
     <string name="failed_to_load_url">Erreur lors du chargement du contenu !</string>
     <string name="disable_javascript">Désactiver Javascript</string>
     <string name="disable_javascript_description">Quelques sites redirigent vers des pubs avec Javascript</string>
     <string name="changelog">Journal des Changements</string>
-    <string name="donations_description_new">Je suis content que vous vouliez donner ! Cependant, parlez de l'Apllication et partagez la !</string>
+    <string name="donations_description_new">Je suis content que vous vouliez donner ! Cependant, parlez de l’Apllication et partagez la !</string>
     <string name="language">Langues</string>
     <string name="languages_supported">Langues Supportées</string>
     <string name="download_chapters">Télécharger les Chapitres</string>
@@ -178,7 +180,7 @@
     <string name="download_paused">En Pause</string>
     <string name="status">Statut</string>
     <string name="manage_downloads">Gérer les Téléchargements</string>
-    <string name="manage_downloads_dialog_content">Les Romans téléchargés se trouvent dans les "Téléchargements", dans le menu glissant</string>
+    <string name="manage_downloads_dialog_content">Les Romans téléchargés se trouvent dans les “Téléchargements”, dans le menu glissant</string>
     <string name="take_me_there">Y Aller</string>
     <string name="collection_chapters_info">Obtention des Informations sur les Chapitres</string>
     <string name="download_all_new_chapters_dialog_content">Gérez les téléchargements dans le Gestionnaire. Télécharger tous les nouveaux chapitres ?</string>
@@ -198,7 +200,7 @@
     <string name="swipe_right_for_next_chapter">Glissement (Jap Style)</string>
     <string name="swipe_right_for_next_chapter_description">Glisser vers la droite pour changer de Chapitre</string>
     <string name="no_bookmark_found_dialog_title">Commencer à lire ?</string>
-    <string name="no_bookmark_found_dialog_description">Vous n'avez pas encore commencé "%s". Pourquoi ne pas commencer maintenant ?</string>
+    <string name="no_bookmark_found_dialog_description">Vous n\'avez pas encore commencé “%s”. Pourquoi ne pas commencer maintenant ?</string>
     <string name="sync_interval">Intervalle entre les Mises à Jour</string>
     <string name="sync_interval_description">Intervalle pour verifier si de nouveaux chapitres sont sortis</string>
 
@@ -218,5 +220,11 @@
     <string name="restore_data_description">Restaurer les données depuis la mémoire interne ou la carte SD</string>
     <string name="import_reading_list">Importer la liste de lecture</string>
     <string name="nu_reading_list_url">URL de la liste de lecture NovelUpdates</string>
+	<string name="volume_scroll">Défilement avec les boutons Volume</string>
+    <string name="volume_scroll_description">Utiliser les boutons Volume pour faire défiler vers le haut ou vers le bas lors de la lecture</string>
+    <string name="keep_screen_on">Garder l\'écran allumé</string>
+    <string name="keep_screen_on_description">Garde l\'écran allumé lors de la lecture</string>
+    <string name="join_us_on_discord">Rejoignez nous sur Discord</string>
+    <string name="other">Autre</string>
 	
 </resources>
