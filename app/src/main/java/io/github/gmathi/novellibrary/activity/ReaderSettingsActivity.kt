@@ -99,6 +99,16 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 itemView.widgetSwitch.isChecked = dataCenter.showChapterComments
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.showChapterComments = value }
             }
+            5 -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.volumeScroll
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.volumeScroll = value }
+            }
+            6 -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.keepScreenOn
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.keepScreenOn = value }
+            }
 
         }
 

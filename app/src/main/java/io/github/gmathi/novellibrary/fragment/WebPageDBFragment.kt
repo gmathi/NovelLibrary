@@ -77,7 +77,7 @@ class WebPageDBFragment : Fragment() {
                     activity.fab.hide()
                 }
 
-                if (oldScrollY - scrollY > 50) activity.fab.show()
+                if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) activity.fab.show()
 
                 //if (scrollY < oldScrollY) activity.fab.show()
             }
@@ -347,7 +347,7 @@ class WebPageDBFragment : Fragment() {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onNightModeChanged(event: NightModeChangeEvent) {
+    fun onNightModeChanged(@Suppress("UNUSED_PARAMETER") event: NightModeChangeEvent) {
         cleanPage()
         applyTheme()
         loadDocument()

@@ -8,7 +8,6 @@
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
     android:fitsSystemWindows="true"
-    android:keepScreenOn="true"
     tools:context=".activity.ReaderPagerActivity">
 
     <!--<android.support.design.widget.AppBarLayout-->

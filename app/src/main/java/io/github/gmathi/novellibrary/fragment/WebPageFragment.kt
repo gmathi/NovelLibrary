@@ -14,7 +14,6 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ReaderPagerActivity
-import io.github.gmathi.novellibrary.activity.ReaderPagerDBActivity
 import io.github.gmathi.novellibrary.activity.startChaptersActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.dataCenter
@@ -64,7 +63,7 @@ class WebPageFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-       if (activity == null) return
+        if (activity == null) return
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             readerWebView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
@@ -72,7 +71,7 @@ class WebPageFragment : Fragment() {
                     activity.floatingToolbar.hide()
                     activity.fab.hide()
                 }
-                if (oldScrollY - scrollY > 50) activity.fab.show()
+                if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) activity.fab.show()
 
                 //if (scrollY < oldScrollY) activity.fab.show()
             }
@@ -295,7 +294,7 @@ class WebPageFragment : Fragment() {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onNightModeChanged(event: NightModeChangeEvent) {
+    fun onNightModeChanged(@Suppress("UNUSED_PARAMETER") event: NightModeChangeEvent) {
         cleanPage()
         applyTheme()
         loadDocument()

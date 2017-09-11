@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.service
+package io.github.gmathi.novellibrary.service.download
 
 import android.app.IntentService
 import android.content.Intent
@@ -40,13 +40,13 @@ class DownloadChapterService : IntentService(TAG) {
         } catch (e: Exception) {
             Utils.error(TAG, "Exception Caught", e)
         } finally {
-            DownloadChapterService.chapters = ArrayList()
+            Companion.chapters = ArrayList()
         }
     }
 
     private fun downloadChapters(novel: Novel, chapters: ArrayList<WebPage>) {
         //Get Directories to start html
-        DownloadChapterService.chapters = chapters
+        Companion.chapters = chapters
         chapters.forEach {
             it.metaData.put(Constants.DOWNLOADING, Constants.STATUS_DOWNLOAD.toString())
             dbHelper.updateWebPage(it)

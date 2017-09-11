@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="io.github.gmathi.novellibrary.activity.ChaptersNewActivity">
+    tools:context="io.github.gmathi.novellibrary.activity.RecentlyViewedNovelsActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -21,6 +21,7 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_chapters_new"/>
+    <include layout="@layout/content_recycler_view"/>
+
 
 </android.support.design.widget.CoordinatorLayout>

@@ -11,8 +11,8 @@ import android.widget.Toast
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
-import io.github.gmathi.novellibrary.service.DownloadChapterService
-import io.github.gmathi.novellibrary.service.DownloadNovelService
+import io.github.gmathi.novellibrary.service.download.DownloadChapterService
+import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.TransitionHelper
 
@@ -39,7 +39,7 @@ fun Activity.snackBar(view: View, message: String) {
 }
 
 fun Activity.startChaptersActivity(novel: Novel, jumpToReader: Boolean) {
-    val intent = Intent(this, ChaptersUltimateActivity::class.java)
+    val intent = Intent(this, ChaptersActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
     if (jumpToReader)
@@ -85,6 +85,14 @@ fun Activity.startSearchResultsActivity(title: String, url: String) {
     startActivityForResult(intent, Constants.SEARCH_RESULTS_ACT_REQ_CODE)
 }
 
+fun Activity.startRecentlyViewedNovelsActivity() {
+    startActivityForResult(Intent(this, RecentlyViewedNovelsActivity::class.java), Constants.RECENT_VIEWED_ACT_REQ_CODE)
+}
+
+fun Activity.startRecentlyUpdatedNovelsActivity() {
+    startActivityForResult(Intent(this, RecentlyUpdatedNovelsActivity::class.java), Constants.RECENT_UPDATED_ACT_REQ_CODE)
+}
+
 fun Activity.startSettingsActivity() {
     startActivityForResult(Intent(this, SettingsActivity::class.java), Constants.SETTINGS_ACT_REQ_CODE)
 }
@@ -124,7 +132,11 @@ fun Activity.startContributionsActivity() {
     startActivity(intent)
 }
 
-fun Activity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean) {
+fun Activity.startImportLibraryActivity() {
+    startActivityForResult(Intent(this, ImportLibraryActivity::class.java), Constants.IMPORT_LIBRARY_ACT_REQ_CODE)
+}
+
+fun Activity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean = false) {
     val intent = Intent(this, NovelDetailsActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)

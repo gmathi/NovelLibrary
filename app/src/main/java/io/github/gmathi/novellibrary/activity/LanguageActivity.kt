@@ -41,7 +41,9 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
         languagesMap.put("Indonesian", "id_ID")
         languagesMap.put("Portuguese", "pt_BR")
         languagesMap.put("Spanish", "es_CL")
-        languagesMap.put("Turkish", "tr_tr")
+        languagesMap.put("Turkish", "tr_TR")
+        languagesMap.put("French", "fr_FR")
+        languagesMap.put("Tagalog", "tr_PH")
 
         languagesImageResourceMap.put("English", R.drawable.flag_us)
         languagesImageResourceMap.put("German", R.drawable.flag_de)
@@ -49,6 +51,8 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
         languagesImageResourceMap.put("Portuguese", R.drawable.flag_br)
         languagesImageResourceMap.put("Spanish", R.drawable.flag_cl)
         languagesImageResourceMap.put("Turkish", R.drawable.flag_tr)
+        languagesImageResourceMap.put("French", R.drawable.flag_fr)
+        languagesImageResourceMap.put("Tagalog", R.drawable.flag_tl)
     }
 
     private fun setRecyclerView() {

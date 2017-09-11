@@ -265,7 +265,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun deleteNovel() {
-        dbHelper.cleanupNovelData(novel.id)
+        Utils.deleteNovel(this, novel.id)
         novel.id = -1L
         setNovelAddToLibraryButton()
         invalidateOptionsMenu()

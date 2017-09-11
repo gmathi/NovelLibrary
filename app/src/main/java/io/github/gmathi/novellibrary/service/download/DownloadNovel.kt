@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.service
+package io.github.gmathi.novellibrary.service.download
 
 import android.content.Context
 import android.util.Log
@@ -6,8 +6,6 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.*
-import io.github.gmathi.novellibrary.network.NovelApi
-import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import org.greenrobot.eventbus.EventBus

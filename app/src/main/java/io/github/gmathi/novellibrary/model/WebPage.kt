@@ -13,10 +13,6 @@ class WebPage : Serializable {
         this.chapter = chapter
     }
 
-    constructor(url: String, chapter: String, pageData: String) : this(url, chapter) {
-        this.source = pageData
-    }
-
     var id: Long = -1L
     var url: String? = null
     var redirectedUrl: String? = null
@@ -24,7 +20,7 @@ class WebPage : Serializable {
     var chapter: String? = null
     var filePath: String? = null
     var novelId: Long = -1L
-    var source: String? = null
+    var sourceId: Int = -1
     var isRead: Int = 0
     var orderId: Long = -1L
     var metaData: HashMap<String, String?> = HashMap()
@@ -45,7 +41,7 @@ class WebPage : Serializable {
             chapter = if (other.chapter != null) other.chapter else chapter
             filePath = if (other.filePath != null) other.filePath else filePath
             novelId = if (other.novelId != -1L) other.novelId else novelId
-            source = if (other.source != null) other.source else source
+            sourceId = if (other.sourceId != -1) other.sourceId else sourceId
             isRead = if (other.isRead != 0) other.isRead else isRead
             orderId = if (other.orderId != -1L) other.orderId else orderId
 
