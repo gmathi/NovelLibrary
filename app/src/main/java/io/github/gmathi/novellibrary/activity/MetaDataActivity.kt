@@ -12,7 +12,7 @@ import io.github.gmathi.novellibrary.util.TextViewLinkHandler
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_meta_data.*
-import kotlinx.android.synthetic.main.content_chapters.*
+import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_metadata.view.*
 import java.util.*
 

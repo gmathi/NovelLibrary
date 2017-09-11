@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.service
+package io.github.gmathi.novellibrary.service.download
 
 import android.app.IntentService
 import android.app.Notification

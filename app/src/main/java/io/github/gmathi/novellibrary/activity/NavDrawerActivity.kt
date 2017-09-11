@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.design.widget.Snackbar
@@ -23,6 +24,10 @@ import io.github.gmathi.novellibrary.util.Constants
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
+import android.content.pm.ResolveInfo
+import android.content.pm.PackageManager
+
+
 
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -125,19 +130,21 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_settings -> {
                 startSettingsActivity()
             }
+//            R.id.nav_recently_viewed -> {
+//                startRecentlyViewedNovelsActivity()
+//            }
+            R.id.nav_recently_updated -> {
+                startRecentlyUpdatedNovelsActivity()
+            }
+            R.id.nav_discord_link -> {
+                openInBrowser("https://discord.gg/g2cQswh")
+            }
         }
     }
 
-
     private fun replaceFragment(fragment: Fragment, tag: String) {
-//        val existingFrag = supportFragmentManager.findFragmentByTag(tag)
-        var replaceFrag = fragment
-//        if (existingFrag != null) {
-//            replaceFrag = existingFrag
-//        }
-
         supportFragmentManager.beginTransaction()
-            .replace(R.id.navFragmentContainer, replaceFrag, tag)
+            .replace(R.id.navFragmentContainer, fragment, tag)
             .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
             .addToBackStack(tag)
             .commitAllowingStateLoss()

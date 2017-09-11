@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.service
+package io.github.gmathi.novellibrary.receiver.sync
 
 import android.content.BroadcastReceiver
 import android.content.Context

@@ -93,5 +93,10 @@
     "name": "Drag Select Recycler View v1.0.0",
     "description": "Easy to implement Google Photos style multi-selection for RecyclerViews.",
     "link": "https://github.com/afollestad/drag-select-recyclerview"
+  },
+  {
+    "name": "May I? - Android Runtime-Permission library v1.4",
+    "description": "Yet another runtime permission library for android.",
+    "link": "https://thanosfisherman.github.io/posts/mayi/"
   }
 ]

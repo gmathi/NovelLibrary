@@ -22,11 +22,15 @@ fun NovelApi.getNUNovelDetails(url: String): Novel? {
     try {
         val document = getDocumentWithUserAgent(url)
         novel = Novel()
+        novel.url = url
         novel.name = document.getElementsByClass("seriestitlenu").firstOrNull()?.text()
         novel.imageUrl = document.getElementsByClass("seriesimg").firstOrNull()?.getElementsByTag("img")?.attr("src")
-        novel.genres = document.body().getElementById("seriesgenre")?.children()?.map { it.text() }
         novel.longDescription = document.body().getElementById("editdescription")?.text()
         novel.chapterCount = getNUChapterCount(document).toLong()
+        novel.newChapterCount = novel.chapterCount
+        novel.rating = document.body().getElementsByClass("uvotes")?.firstOrNull() { it.id() == "span" }?.text()?.substring(1, 4)
+
+        novel.genres = document.body().getElementById("seriesgenre")?.children()?.map { it.text() }
 
         novel.metaData.put("Author(s)",
             document.getElementsByClass("genre").filter { it.id() == "authtag" }.map { it.outerHtml() }.joinToString(", "))

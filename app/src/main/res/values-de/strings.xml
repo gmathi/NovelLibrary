@@ -207,6 +207,22 @@
     <string name="show_reader_scroll_description">"Zeigt die vertikale Bildlaufleiste am rechten Bildschirmrand an, um den Verlauf des Kapitels zu verfolgen. "</string>
     <string name="show_comments_section">Kommentare anzeigen</string>
     <string name="show_comments_section_description">Zeigt den Kommentar des Kapitels im Lesermodus an. (Begrenzte Webseiten unterstützt)</string>
+    <string name="backup">Sicherung</string>
+    <string name="backup_data">Backup-Daten</string>
+    <string name="backup_data_description">Sicherung von Daten auf interne Speicher- / SD-Karte</string>
+    <string name="restore">Wiederherstellen</string>
+    <string name="restore_data">Daten wiederherstellen</string>
+    <string name="restore_data_description">Wiederherstellen von Daten aus interner Speicher- / SD-Karte</string>
+    <string name="import_reading_list">Leseliste importieren</string>
+    <string name="nu_reading_list_url">NU Leseliste URL</string>
+    <string name="volume_scroll">Scrollen Sie mit den Lautstärketasten</string>
+    <string name="volume_scroll_description">Verwenden Sie die Lautstärketaste, um beim Lesen nach oben / unten zu blättern</string>
+    <string name="keep_screen_on">Halten Sie den Bildschirm an</string>
+    <string name="keep_screen_on_description">Hält den Bildschirm bei, während du liest</string>
+    <string name="join_us_on_discord">Begleiten Sie uns auf Discord</string>
+    <string name="other">Andere</string>
+    <string name="title_activity_recently_updated_novels">Kürzlich aktualisierte Romane</string>
+    <string name="title_activity_recently_viewed_novels">Kürzlich angesehene Romane</string>
 
 
 </resources>

@@ -28,6 +28,7 @@
        You may just send the files directly and the file name should be something like strings_en.xml for english and strings_fr.xml for french respective of your locale
        To All Translators I am very grateful for your help! :)
    -->
+
     <string-array name="search_tab_titles">
         <item>Popüler-Olanlar</item>
         <item>En-Beğenilenler</item>
@@ -38,6 +39,8 @@
     <string name="title_activity_settings">Ayarlar</string>
     <string name="title_activity_chapters">Bölümler</string>
     <string name="title_activity_meta_data">Detaylı Bilgi</string>
+    <string name="title_activity_recently_updated_novels">Yakın Zamanda Güncellenmiş Romanlar</string>
+    <string name="title_activity_recently_viewed_novels">Yakın Zamanda Görüntülenmiş Romanlar</string>
 
 
     <string name="action_settings">Ayarlar</string>
@@ -52,7 +55,20 @@
 
     <string name="app_description">Bütün Romanlar İçin Tek Durağınız</string>
 
+    <!-- Strings related to Settings -->
+    <!--<string name="pref_title_dark_theme">Dark Page Theme</string>-->
+    <!--<string name="pref_description_dark_theme">Only RoyalRoadl.com supported for now.</string>-->
+    <!--<string name="pref_title_experimental_download">Lighting Fast Downloads (Experimental) </string>-->
+    <!--<string name="pref_description_experimental_download">Downloads really fast. Your device may freeze for a while.</string>-->
+    <!--<string name="pref_title_queue_novel_downloads">Queue Novel Downloads </string>-->
+    <!--<string name="pref_description_queue_novel_downloads">Downloads novels one after the another. If disabled, max of 5 novels with be downloaded simultaneously. </string>-->
+    <!--<string name="pref_title_download_latest_first">Download Latest First</string>-->
+    <!--<string name="pref_description_download_latest_first">Download the latest chapter first.</string>-->
+    <!--<string name="chapters_left_to_download">%d Chapter(s) left to download</string>-->
+
+
     <!-- Transition Names -->
+
     <string name="synopsis">Özet</string>
     <string name="genres">Türler</string>
     <string name="chapters">Bölümler</string>
@@ -97,7 +113,7 @@
     <string name="about_us">Hakkımızda</string>
     <string name="libraries_used">Kullanılmış Olan Kütüphaneler</string>
     <string name="contributions">Katkıda Bulunanlar</string>
-    <string name="donate">Bağışla</string>
+    <string name="donate">Bağışl Yap</string>
     <string name="donation_email_body">Yaptıklarınız için teşekkür ederim. Bunu ilerideki sürümlerde de görmek isterim. Bu da bağışım.</string>
     <string name="content_restricted">Kısıtlanmış İçerik!</string>
     <string name="lock_hint">Açmak için gerekli olan tuşlar gizlenmiş durumda. Arayışında bol şans dilerim!</string>
@@ -121,8 +137,8 @@
     </string>
 
     <string name="donate_content" tools:ignore="TypographyQuotes">
-      "Bağışlarınız yeni içeriklerin daha hızlı gelmesini sağlayacaktır. "
-      "Bağışınızı GMail uygulaması üzerinden gmathi.developer@gmail.com 'a gönderebilirsiniz"
+       "Bağışlarınız yeni içeriklerin daha hızlı gelmesini sağlayacaktır. "
+       "Bağışınızı GMail uygulaması üzerinden gmathi.developer@gmail.com 'a gönderebilirsiniz"
     </string>
     <string name="app_exit">Novel Library\'den çıkmak için Geri tuşuna tekrar basın.</string>
     <string name="general">Genel</string>
@@ -144,7 +160,7 @@
     <string name="mark_unread">Okunmadı Olarak İşaretle</string>
     <string name="unread">Okunmadı</string>
     <string name="read">Okundu</string>
-    <string name="chapters_selected">%1$d Şeçildi</string>
+    <string name="chapters_selected">%d Şeçildi</string>
     <string name="okay">Tamam</string>
     <string name="confirm_action">Eylemi Onayla</string>
     <string name="mark_chapters_unread_dialog_content">Bölümler Okunmadı olarak işaretlensin mi?</string>
@@ -168,8 +184,8 @@
     <string name="collection_chapters_info">Bölüm Bilgisi Toplanıyor</string>
     <string name="download_all_new_chapters_dialog_content">İndirmeleri yönetici programı kullanarak düzenleyin. Yayımlanmış tüm bölümler indirilsin mi?</string>
     <string name="quick_access">Hızlı Erişim</string>
-    <string name="new_chapters_notification_content_full">%1$d Romanda %2$d yeni bölüm. Okumak için tıklayın!</string>
-    <string name="new_chapters_notification_content_single">%1$s (%2$d yeni bölüm)</string>
+    <string name="new_chapters_notification_content_full">%1d Romanda %2d yeni bölüm. Okumak için tıklayın!</string>
+    <string name="new_chapters_notification_content_single">%1s (%2d yeni bölüm)</string>
     <string name="new_chapters_notification_title">Yeni Bölümler Geldi!</string>
     <string name="sync_in_progress">Senkronize Ediliyor</string>
 
@@ -187,14 +203,30 @@
     <string name="sync_interval">Senkronizasyon Aralığı</string>
     <string name="sync_interval_description">Güncelleme Takip Aralığı</string>
 
-    <!-- v0.6.2 Strings -->
-    <string name="clean">Temiz</string>
+    <!-- From Here -->
+
+    <!-- v0.7 Strings -->
+    <string name="clean">Temizlenmiş Görüntü</string>
     <string name="reader">Okuyucu</string>
-    <string name="reader_mode">Okuyucu Modu</string>
-    <string name="show_reader_scroll">Kaydırma çubuğunu göster</string>
-    <string name="show_reader_scroll_description">Bölümün ilerleme durumunu izlemek için ekranın sağ kenarındaki dikey kaydırma çubuğunu gösterir.</string>
+    <string name="reader_mode">Okuma Modu</string>
+    <string name="show_reader_scroll">Kaydırma Çubuğunu Göster</string>
+    <string name="show_reader_scroll_description">Bölümdeki ilerleyişinizi takip edebilmeniz için ekranın sağ tarafında kaydırma çubuğunu gösterir.</string>
     <string name="show_comments_section">Yorumları Göster</string>
-    <string name="show_comments_section_description">Bölümün yorum bölümünü okuyucu modunda gösterir. (Desteklenen Sınırlı Web Siteleri)</string>
+    <string name="show_comments_section_description">Okuyucu modundayken bölüm sayfasında yapılmış olan yorumları gösterir. (Tüm sitelerde desteklenmemektedir.)</string>
+    <string name="backup">Yedekleme</string>
+    <string name="backup_data">Veri Yedekleme</string>
+    <string name="backup_data_description">Verileri Sabit belleğe/SD Card belleğine yedekle</string>
+    <string name="restore">Geri Yükleme</string>
+    <string name="restore_data">Veri Geri Yükleme</string>
+    <string name="restore_data_description">Verileri Sabit bellekten/SD Card belleğinden geri yükle.</string>
+    <string name="import_reading_list">Okuma Listesini İçe Aktar</string>
+    <string name="nu_reading_list_url">Novel Updates Okuma Listesi URL’si</string>
+    <string name="volume_scroll">Cilt sayısınını kullanarak gezinti yap.</string>
+    <string name="volume_scroll_description">Okuma sırasında kaydırma için ses ayarı tuşlarını kullan.</string>
+    <string name="keep_screen_on">Ekranı hep açık tut.</string>
+    <string name="keep_screen_on_description">Okuma yapılan süre boyunca ekranı açık tut.</string>
+    <string name="join_us_on_discord">Discord\'da bize katılın!</string>
+    <string name="other">Diğer</string>
 
 
 </resources>

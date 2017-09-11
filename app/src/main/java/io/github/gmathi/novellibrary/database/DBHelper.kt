@@ -19,7 +19,9 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAM
         db.execSQL(DBKeys.CREATE_TABLE_GENRE)
         db.execSQL(DBKeys.CREATE_TABLE_NOVEL_GENRE)
         db.execSQL(DBKeys.CREATE_TABLE_DOWNLOAD_QUEUE)
-//        db.execSQL(DBKeys.CREATE_TABLE_CHAPTER_DOWNLOADS)
+        db.execSQL(DBKeys.CREATE_TABLE_SOURCE)
+        db.execSQL("INSERT INTO " + DBKeys.TABLE_SOURCE + " (" + DBKeys.KEY_ID + ", " + DBKeys.KEY_NAME + ") VALUES (-1, 'All')")
+
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -48,13 +50,15 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAM
         }
 
         if (version == DBKeys.VER_NOVEL_SYNC) {
+            db.execSQL("ALTER TABLE " + DBKeys.TABLE_WEB_PAGE + " ADD COLUMN " + DBKeys.KEY_SOURCE_ID + " INTEGER")
+            db.execSQL("UPDATE " + DBKeys.TABLE_WEB_PAGE + " SET " + DBKeys.KEY_SOURCE_ID + "= -1")
+            db.execSQL(DBKeys.CREATE_TABLE_SOURCE)
+            db.execSQL("INSERT INTO " + DBKeys.TABLE_SOURCE + " (" + DBKeys.KEY_ID + ", " + DBKeys.KEY_NAME + ") VALUES (-1, 'All')")
+            version = DBKeys.VER_CHAPTER_SOURCE
+        }
+
+        if (version == DBKeys.VER_CHAPTER_SOURCE) {
             //In Case the version is updated again!
-//            db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_DOWNLOAD_QUEUE)
-//            db.execSQL(DBKeys.CREATE_TABLE_CHAPTER_DOWNLOADS)
-//            version = DBKeys.VER_CHAPTER_DOWNLOADS
-//        }
-//
-//        if (version == DBKeys.VER_CHAPTER_DOWNLOADS) {
 
         }
 
@@ -78,6 +82,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAM
         db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_GENRE)
         db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_NOVEL_GENRE)
         db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_DOWNLOAD_QUEUE)
+        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_SOURCE)
 //        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_CHAPTERS_DOWNLOADS)
         // create new tables
         onCreate(db)

@@ -29,18 +29,18 @@
        To All Translators I am very grateful for your help! :)
    -->
 
-
     <string-array name="search_tab_titles">
         <item>Populares</item>
         <item>Melhores Avaliações</item>
         <item>Ativos Recentemente</item>
     </string-array>
 
-
     <string name="title_activity_novel_details">Série</string>
     <string name="title_activity_settings">Configurações</string>
     <string name="title_activity_chapters">Capítulos</string>
     <string name="title_activity_meta_data">Mais Informações</string>
+    <string name="title_activity_recently_updated_novels">Séries Atualizadas Recentemente</string>
+    <string name="title_activity_recently_viewed_novels">Séries Vistas Recentemente</string>
 
 
     <string name="action_settings">Configurações</string>
@@ -64,6 +64,7 @@
     <!--<string name="pref_description_queue_novel_downloads">Downloads novels one after the another. If disabled, max of 5 novels with be downloaded simultaneously. </string>-->
     <!--<string name="pref_title_download_latest_first">Download Latest First</string>-->
     <!--<string name="pref_description_download_latest_first">Download the latest chapter first.</string>-->
+    <!--<string name="chapters_left_to_download">%d Chapter(s) left to download</string>-->
 
 
     <!-- Transition Names -->
@@ -157,7 +158,7 @@
     <string name="mark_unread">Marcar como Não Lido</string>
     <string name="unread">Não Lido</string>
     <string name="read">Lido</string>
-    <string name="chapters_selected">%1$d Selecionado</string>
+    <string name="chapters_selected">%d Selecionado</string>
     <string name="okay">OK</string>
     <string name="confirm_action">Confirmar Ação</string>
     <string name="mark_chapters_unread_dialog_content">Marcar capítulos como não lidos?</string>
@@ -168,7 +169,6 @@
     <string name="download_all_chapters_dialog_content">Gerenciar série usando gerenciador de downloads. Baixar todos os capítulos?</string>
     <string name="background_chapter_downloads">Download de capítulos iniciado em segundo plano</string>
 
-    <!-- v0.5 Strings -->
     <string name="select_all_from_page">Selecionar Todos da Página</string>
     <string name="clear_selection_from_page">Limpar Seleção da Página</string>
     <string name="download_in_queue">Na Fila</string>
@@ -180,17 +180,18 @@
     <string name="collection_chapters_info">Coletando Informações</string>
     <string name="download_all_new_chapters_dialog_content">Administrar downloads de séries usando o download manager. Baixar todos os capítulos?</string>
     <string name="quick_access">Acesso Rápido</string>
-    <string name="new_chapters_notification_content_full">%1$d séries com um total de %2$d novos capítulos. Clique para começar a ler!</string>
-    <string name="new_chapters_notification_content_single">%1$s (%2$d novos capítulos)</string>
+    <string name="new_chapters_notification_content_full">%d séries com um total de %d novos capítulos. Clique para começar a ler!</string>
+    <string name="new_chapters_notification_content_single">%s (%d novos capítulos)</string>
     <string name="new_chapters_notification_title">Novos capítulos disponíveis!</string>
     <string name="sync_in_progress">Sincronização em progresso</string>
 
     <!-- v0.6 Strings -->
+
     <string name="mentions">Menções</string>
     <string name="select_all">Selecionar Tudo</string>
     <string name="clear_selection">Cancelar Seleção</string>
     <string name="download_novel">Fazer Download</string>
-    <string name="add_to_library_dialog_content">A série precisa ser adicionada à Biblioteca antes que você possa baixar/marcar capítulos individuais. Deseja adicionar essa série - %s à biblioteca?</string>
+    <string name="add_to_library_dialog_content">A série precisa ser adicionada à Biblioteca antes que você possa baixar/marcar capítulos individuais. Deseja adicionar essa série - $s à biblioteca?</string>
     <string name="swipe_right_for_next_chapter">Estilo Japonês de Deslize</string>
     <string name="swipe_right_for_next_chapter_description">Deslize à direita para ir ao próximo capítulo</string>
     <string name="no_bookmark_found_dialog_title">Começar a Ler?</string>
@@ -198,14 +199,27 @@
     <string name="sync_interval">Intervalo de Sincronização</string>
     <string name="sync_interval_description">Intervalo de tempo entre verificações de novo conteúdo nas séries</string>
 
-    <!-- v0.6.2 Strings -->
-    <string name="clean">Limpo</string>
+    <!-- v0.7 Strings -->
+    <string name="clean">Limpar</string>
     <string name="reader">Leitor</string>
-    <string name="reader_mode">Modo Leitor</string>
-    <string name="show_reader_scroll">Mostrar Barra de rolagem</string>
-    <string name="show_reader_scroll_description">Mostra a barra de deslocamento vertical na margem direita da tela para acompanhar o progresso do capítulo.</string>
-    <string name="show_comments_section">Mostrar comentários</string>
-    <string name="show_comments_section_description">Mostra a seção de comentários do capítulo no modo Leitor. (Sites limitados suportados)</string>
-
+    <string name="reader_mode">Modo de Leitura</string>
+    <string name="show_reader_scroll">Mostrar Barra de Rolagem</string>
+    <string name="show_reader_scroll_description">Mostra a barra de rolagem vertical no canto direito da tela para que você possa acompanhar seu progresso no capítulo</string>
+    <string name="show_comments_section">Mostrar Comentários</string>
+    <string name="show_comments_section_description">Mostra a seção de comentários do capítulo no modo de leitura. (Número Limitado de Websites Suportados)</string>
+    <string name="backup">Backup</string>
+    <string name="backup_data">Fazer Backup dos Dados</string>
+    <string name="backup_data_description">Fazer Backup dos Dados para armazenamento interno/cartão sd</string>
+    <string name="restore">Restaurar</string>
+    <string name="restore_data">Restaurar Dados</string>
+    <string name="restore_data_description">Restaurar Dados do armazenamento interno/cartão sd</string>
+    <string name="import_reading_list">Importar Lista de Leitura</string>
+    <string name="nu_reading_list_url">URL da Lista de Leitura do Novel Updates</string>
+    <string name="volume_scroll">Usar Botões de Volume para Rolagem</string>
+    <string name="volume_scroll_description">Usar botão de Volume parar rolar a tela para cima/baixo enquanto estiver lendo</string>
+    <string name="keep_screen_on">Manter Tela Ligada</string>
+    <string name="keep_screen_on_description">Mantém a tela ligada enquanto você estiver lendo</string>
+    <string name="join_us_on_discord">Junte-se a nós no Discord</string>
+    <string name="other">Outros</string>
 
 </resources>

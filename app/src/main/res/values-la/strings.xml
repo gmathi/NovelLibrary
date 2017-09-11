@@ -195,5 +195,21 @@
     <string name="show_reader_scroll_description">Ostendit dextram vertical scrollbar in ore gladii in screen ad track profectum vestrum hujus capitis continuatio.</string>
     <string name="show_comments_section">show Comments</string>
     <string name="show_comments_section_description">CAPUT scriptor comment in sectione modus lectorem ostendit. (CD Web suffulti)</string>
+    <string name="backup">tergum</string>
+    <string name="backup_data">Data tergum</string>
+    <string name="backup_data_description">Data est internum tergum repono / digital card</string>
+    <string name="restore">restituere</string>
+    <string name="restore_data">Data restituet</string>
+    <string name="restore_data_description">Data ex restituet internum repono / digital card</string>
+    <string name="import_reading_list">Import List reading</string>
+    <string name="nu_reading_list_url">URL NU List reading</string>
+    <string name="volume_scroll">In librum Libri Puga pyga</string>
+    <string name="volume_scroll_description">Button ad uti Volume scroll usque / descendit cum legere</string>
+    <string name="keep_screen_on">De custodire \'collaborative text</string>
+    <string name="keep_screen_on_description">In screen dum vos es legis custodit</string>
+    <string name="join_us_on_discord">Coniungere nobis in Discordiae fabricarunt</string>
+    <string name="other">alius</string>
+    <string name="title_activity_recently_updated_novels">Updated conscripserit nuper</string>
+    <string name="title_activity_recently_viewed_novels">Recently Viewed Romanorum</string>
 
 </resources>
