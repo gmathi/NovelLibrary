@@ -42,11 +42,11 @@
             <!--<item-->
             <!--android:id="@+id/nav_recently_viewed"-->
             <!--android:icon="@drawable/ic_update_white_vector"-->
-            <!--android:title="@string/title_activity_recently_updated_novels"/>-->
+            <!--android:title="@string/title_activity_recently_viewed_novels"/>-->
             <item
                 android:id="@+id/nav_recently_updated"
                 android:icon="@drawable/ic_history_white_vector"
-                android:title="@string/title_activity_recently_viewed_novels"/>
+                android:title="@string/title_activity_recently_updated_novels"/>
 
             <!--<item-->
             <!--android:id="@+id/nav_legal"-->

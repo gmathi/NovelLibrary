@@ -1,77 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
-  <changelogversion
-      changeDate="09/10/2017"
-      versionName="0.7.beta">
-      <changelogtext>[b]Yeni![/b] Veri yedekleme &amp; geri yükleme ayarları eklendi.</changelogtext>
-      <changelogtext>[b]Yeni![/b] Novel Updates websitesinden okuma listenizi içe aktarabileceksiniz.</changelogtext>
-      <changelogtext>[b]Yeni![/b] Kütüphane roman için güncel işratlemeyi ve bütün bölümleri birlikte gösterecek.</changelogtext>
-      <changelogtext>[b]Yeni![/b] Yeni güncellenen romanları görebileceksiniz.</changelogtext>
-      <changelogtext>[b]Yeni![/b] Uygulamaya Fransızca çeviri eklendi.</changelogtext>
-      <changelogtext>[b]Yeni![/b] Uygulamaya Tagalog (Filipinler dili) çeviri eklendi.</changelogtext>
-      <changelogtext>[b]Yeni![/b] Okuyucu ayarlarına yeni seçenekler eklendi</changelogtext>
-      <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
-  </changelogversion>
+    <changelogversion
+        changeDate="09/12/2017"
+        versionName="0.7.1.beta">
+        <changelogtext>[b]New![/b] More details to reporting, so I can fix the reported issues faster</changelogtext>
+        <changelogtext>[i]Fix[/i] - Fixed Read permission to restore data</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
 
-  <changelogversion
-      changeDate="30/08/2017"
-      versionName="0.6.7.beta">
-      <changelogtext>[b]Yeni![/b] ‘Okuyucu Modu’na iki yeni ayar eklendi </changelogtext>
-      <changelogtext>[b]Yeni![/b] Daha fazla site için gece modu desteği eklendi.</changelogtext>
-      <changelogtext>[i]Onarım[/i] - Alt menü çemberinin ortaya çıkması için yukarı kaydırırken belirli bir mesafe eklendi.</changelogtext>
-      <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
-  </changelogversion>
+    <changelogversion
+        changeDate="09/10/2017"
+        versionName="0.7.beta">
+        <changelogtext>[b]Yeni![/b] Veri yedekleme &amp; geri yükleme ayarları eklendi.</changelogtext>
+        <changelogtext>[b]Yeni![/b] Novel Updates websitesinden okuma listenizi içe aktarabileceksiniz.</changelogtext>
+        <changelogtext>[b]Yeni![/b] Kütüphane roman için güncel işratlemeyi ve bütün bölümleri birlikte gösterecek.</changelogtext>
+        <changelogtext>[b]Yeni![/b] Yeni güncellenen romanları görebileceksiniz.</changelogtext>
+        <changelogtext>[b]Yeni![/b] Uygulamaya Fransızca çeviri eklendi.</changelogtext>
+        <changelogtext>[b]Yeni![/b] Uygulamaya Tagalog (Filipinler dili) çeviri eklendi.</changelogtext>
+        <changelogtext>[b]Yeni![/b] Okuyucu ayarlarına yeni seçenekler eklendi</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
+    </changelogversion>
 
-  <changelogversion
-      changeDate="29/08/2017"
-      versionName="0.6.6.beta">
-      <changelogtext>[b]Yeni![/b] ‘Kütüphane’ için alfabetik sıralama seçeneği eklendi.</changelogtext>
-      <changelogtext>[b]Yeni![/b] Daha fazla site için gece modu desteği eklendi.</changelogtext>
-      <changelogtext>[i]Onarım[/i] - Bölüm bildirimlerinin bölüm listelerini günllememesi hatası giderildi.</changelogtext>
-      <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
-  </changelogversion>
+    <changelogversion
+        changeDate="30/08/2017"
+        versionName="0.6.7.beta">
+        <changelogtext>[b]Yeni![/b] ‘Okuyucu Modu’na iki yeni ayar eklendi</changelogtext>
+        <changelogtext>[b]Yeni![/b] Daha fazla site için gece modu desteği eklendi.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Alt menü çemberinin ortaya çıkması için yukarı kaydırırken belirli bir mesafe eklendi.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
+    </changelogversion>
 
-  <changelogversion
-      changeDate="24/08/2017"
-      versionName="0.6.5.beta">
-      <changelogtext>[b]Yeni![/b] Bazı sitelerde bölüm duyuru sayfası yerine bölüm sayfasına erişim sağlandı (İpucu için @Daniel'e teşekkürler!) </changelogtext>
-      <changelogtext>[b]Yeni![/b] Daha fazla site için gece modu desteği eklendi.</changelogtext>
-      <changelogtext>[i]Onarım[/i] - "Kütüphaneyi Ana Ekran Yap" seçeneği yeniden işlevsel!</changelogtext>
-      <changelogtext>[i]Onarım[/i] - Anlaşılmazlığı gidermek için bazı seçenekler yeniden isimlendirildi. </changelogtext>
-      <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
-  </changelogversion>
+    <changelogversion
+        changeDate="29/08/2017"
+        versionName="0.6.6.beta">
+        <changelogtext>[b]Yeni![/b] ‘Kütüphane’ için alfabetik sıralama seçeneği eklendi.</changelogtext>
+        <changelogtext>[b]Yeni![/b] Daha fazla site için gece modu desteği eklendi.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Bölüm bildirimlerinin bölüm listelerini günllememesi hatası giderildi.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
+    </changelogversion>
 
-  <changelogversion
-      changeDate="23/08/2017"
-      versionName="0.6.4.beta">
-      <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
-  </changelogversion>
+    <changelogversion
+        changeDate="24/08/2017"
+        versionName="0.6.5.beta">
+        <changelogtext>[b]Yeni![/b] Bazı sitelerde bölüm duyuru sayfası yerine bölüm sayfasına erişim sağlandı (İpucu için @Daniel'e teşekkürler!)</changelogtext>
+        <changelogtext>[b]Yeni![/b] Daha fazla site için gece modu desteği eklendi.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - "Kütüphaneyi Ana Ekran Yap" seçeneği yeniden işlevsel!</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Anlaşılmazlığı gidermek için bazı seçenekler yeniden isimlendirildi.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
+    </changelogversion>
 
-  <changelogversion
-      changeDate="22/08/2017"
-      versionName="0.6.3.beta">
-      <changelogtext>[b]Yeni![/b] ‘Okuyucu’ ayarları ‘Ayarlar’ bölümünde kendi sekmelerine taşındı.</changelogtext>
-      <changelogtext>[b]Yeni![/b] OLED Ekranlarda batarya ömrü tasarrufu için gece modunun arka plan rengi siyaha çevrildi.</changelogtext>
-      <changelogtext>[b]Yeni![/b] Daha fazla site için gece modu desteği eklendi.</changelogtext>
-      <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
-  </changelogversion>
+    <changelogversion
+        changeDate="23/08/2017"
+        versionName="0.6.4.beta">
+        <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
+    </changelogversion>
 
-  <changelogversion
-      changeDate="21/08/2017"
-      versionName="0.6.2.beta">
-      <changelogtext>[b]Yeni![/b] Tumblr, Google Documents ve başka sitelerde yayımlanan çeviriler artık destekleniyor.</changelogtext>
-      <changelogtext>[i]Onarım[/i] - "Kütüphane"ye eklenmiş bölümlerin yavaş yüklenmesi sorunu giderildi.</changelogtext>
-      <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
-  </changelogversion>
+    <changelogversion
+        changeDate="22/08/2017"
+        versionName="0.6.3.beta">
+        <changelogtext>[b]Yeni![/b] ‘Okuyucu’ ayarları ‘Ayarlar’ bölümünde kendi sekmelerine taşındı.</changelogtext>
+        <changelogtext>[b]Yeni![/b] OLED Ekranlarda batarya ömrü tasarrufu için gece modunun arka plan rengi siyaha çevrildi.</changelogtext>
+        <changelogtext>[b]Yeni![/b] Daha fazla site için gece modu desteği eklendi.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
+    </changelogversion>
 
-  <changelogversion
-      changeDate="20/08/2017"
-      versionName="0.6.1.beta">
-      <changelogtext>[b]Deneysel![/b] ‘Bölümler Ekranı’ Elinizdeki romanların bölümlerini bazen ilk açılışta yüklemeyebilir, ‘Geri Dönüp’ yeniden açmayı deneyiniz.</changelogtext>
-      <changelogtext>[i]Onarım[/i] - Bölümler Ekranındaki indirme ilerleyişi düzgün olarak kendini güncelleyecektir.</changelogtext>
-      <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
-  </changelogversion>
+    <changelogversion
+        changeDate="21/08/2017"
+        versionName="0.6.2.beta">
+        <changelogtext>[b]Yeni![/b] Tumblr, Google Documents ve başka sitelerde yayımlanan çeviriler artık destekleniyor.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - "Kütüphane"ye eklenmiş bölümlerin yavaş yüklenmesi sorunu giderildi.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
+        changeDate="20/08/2017"
+        versionName="0.6.1.beta">
+        <changelogtext>[b]Deneysel![/b] ‘Bölümler Ekranı’ Elinizdeki romanların bölümlerini bazen ilk açılışta yüklemeyebilir, ‘Geri Dönüp’ yeniden açmayı deneyiniz.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Bölümler Ekranındaki indirme ilerleyişi düzgün olarak kendini güncelleyecektir.</changelogtext>
+        <changelogtext>[i]Onarım[/i] - Bildirilmiş &amp; bildirilmemiş hatalar için düzeltmeler yapıldı!</changelogtext>
+    </changelogversion>
 
     <changelogversion
         changeDate="19/08/2017"
@@ -95,7 +103,7 @@
     <changelogversion
         changeDate="14/08/2017"
         versionName="0.5.3.beta">
-        <changelogtext>[b]Yeni![/b]  Uygulamaya Endonezce çeviri eklenmiştir.</changelogtext>
+        <changelogtext>[b]Yeni![/b] Uygulamaya Endonezce çeviri eklenmiştir.</changelogtext>
         <changelogtext>[i]Onarım[/i] - Tarayıcı olmadan linki tarayıcıda açmaya çalışmak uygulamada çökmeye neden oluyor hatası.</changelogtext>
         <changelogtext>[i]Onarım[/i] - İndirme Yöneticisi artık daha dengeeli ve yanıt veriyor.</changelogtext>
         <changelogtext>[i]Onarım[/i] - WLN-Updates'in detaylı bilgi linklerinden kaynaklanan hatalar.</changelogtext>
@@ -195,7 +203,7 @@
         <changelogtext>[b]Onarım[/b] - Bölümler doğru şekilde listeleniyor.</changelogtext>
         <changelogtext>[b]Onarım[/b] - Okuma Ekranındayken ekran uyanık tutuluyor.</changelogtext>
         <changelogtext>[b]Onarım[/b] - Uygulamanın zayıf cihazlarda donmaması için hızlı yükleme özelliği açılıp kapanabilir duruma getirildi. Varsayılan durum Kapalı.</changelogtext>
-        <changelogtext> Bildirilmiş çökmelere sebep olan hatalar giderildi!</changelogtext>
+        <changelogtext>Bildirilmiş çökmelere sebep olan hatalar giderildi!</changelogtext>
     </changelogversion>
 
     <changelogversion

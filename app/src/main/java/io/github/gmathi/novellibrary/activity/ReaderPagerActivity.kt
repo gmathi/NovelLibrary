@@ -20,6 +20,7 @@ import io.github.gmathi.novellibrary.fragment.WebPageFragment
 import io.github.gmathi.novellibrary.model.NightModeChangeEvent
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import org.greenrobot.eventbus.EventBus
 
@@ -123,11 +124,17 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
 
     private fun reportPage() {
         val url = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.getUrl()
+        val chapterName = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.webPage?.chapter
         if (url != null) {
             val email = getString(R.string.dev_email)
             val subject = "[IMPROVEMENT]"
-            val body = "Url: $url \n Please improve the viewing experience of this page."
-            sendEmail(email, subject, body)
+            val body = StringBuilder()
+            body.append("Please improve the viewing experience of this page.\n")
+            body.append("Novel Name: ${novel?.name} \n")
+            body.append("Novel Url: ${novel?.url} \n")
+            body.append("Chapter Name: $chapterName \n ")
+            body.append("Chapter Url: $url \n ")
+            sendEmail(email, subject, body.toString())
         }
     }
 
