@@ -85,7 +85,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                             if (it.isGranted)
                                 backupData()
                             else
-                                showDialog(content = "Enable \"External Storage Write\" permission for Novel Library " +
+                                showDialog(content = "Enable \"Write External Storage\" permission for Novel Library " +
                                     "from your device Settings -> Applications -> Novel Library -> Permissions")
                         }.check()
                 }
@@ -93,7 +93,18 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
             1 -> {
                 itemView.widgetButton.visibility = View.VISIBLE
                 itemView.widgetButton.text = getString(R.string.restore)
-                itemView.widgetButton.setOnClickListener { restoreData() }
+                itemView.widgetButton.setOnClickListener {
+                    Mayi.withActivity(this@GeneralSettingsActivity)
+                        .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        .onResult {
+                            if (it.isGranted)
+                                restoreData()
+                            else
+                                showDialog(content = "Enable \"Read External Storage\" permission for Novel Library " +
+                                    "from your device Settings -> Applications -> Novel Library -> Permissions")
+                        }.check()
+
+                }
             }
             2 -> {
                 itemView.widgetButton.visibility = View.VISIBLE
@@ -289,7 +300,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 val data = Environment.getDataDirectory()
 
 
-                Log.e("Permission", "Check: " + (PackageManager.PERMISSION_GRANTED == checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)))
+                //Log.e("Permission", "Check: " + (PackageManager.PERMISSION_GRANTED == checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)))
 
                 if (sd.canWrite()) {
 

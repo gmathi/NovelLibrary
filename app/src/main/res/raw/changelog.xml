@@ -2,6 +2,14 @@
 <changelog bulletedList="true">
 
     <changelogversion
+        changeDate="09/12/2017"
+        versionName="0.7.1.beta">
+        <changelogtext>[b]New![/b] More details to reporting, so I can fix the reported issues faster</changelogtext>
+        <changelogtext>[i]Fix[/i] - Fixed Read permission to restore data</changelogtext>
+        <changelogtext>[i]Fix[/i] - Bug Fixes for reported &amp; unreported crashes!</changelogtext>
+    </changelogversion>
+
+    <changelogversion
         changeDate="09/10/2017"
         versionName="0.7.beta">
         <changelogtext>[b]New![/b] Backup &amp; Restore data from settings</changelogtext>
