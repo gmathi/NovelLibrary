@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.util
 
-
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -8,21 +7,17 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
 import android.util.TypedValue
-import io.github.gmathi.novellibrary.BuildConfig
+import com.hanks.library.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import java.io.*
-
-
-
-
-
 
 object Utils {
 
@@ -30,8 +25,8 @@ object Utils {
     fun getThemeAccentColor(context: Context): Int {
         val typedValue = TypedValue()
         val a = context.obtainStyledAttributes(
-                typedValue.data,
-                intArrayOf(R.attr.colorAccent)
+            typedValue.data,
+            intArrayOf(R.attr.colorAccent)
         )
         val color = a.getColor(0, Color.CYAN)
         a.recycle()
@@ -42,8 +37,8 @@ object Utils {
     fun getThemePrimaryColor(context: Context): Int {
         val typedValue = TypedValue()
         val a = context.obtainStyledAttributes(
-                typedValue.data,
-                intArrayOf(R.attr.colorPrimary)
+            typedValue.data,
+            intArrayOf(R.attr.colorPrimary)
         )
         val color = a.getColor(0, Color.BLUE)
         a.recycle()
@@ -202,5 +197,15 @@ object Utils {
         }
         return 0
     }
+
+    fun getDeviceInfo(): String {
+        val sb = StringBuilder()
+        sb.append("\nAppVersion: ${BuildConfig.VERSION_NAME}")
+        sb.append("\nPhone OS Name: ${Build.VERSION.RELEASE}")
+        sb.append("\nPhone Version: ${Build.VERSION.SDK_INT}")
+        sb.append("\nPhone Model: ${Build.DEVICE}, ${Build.MODEL}")
+        return sb.toString()
+    }
+
 
 }

@@ -15,6 +15,7 @@ import io.github.gmathi.novellibrary.service.download.DownloadChapterService
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.TransitionHelper
+import io.github.gmathi.novellibrary.util.Utils
 
 
 fun Activity.startImagePreviewActivity(url: String?, filePath: String?, view: View) {
@@ -73,7 +74,6 @@ fun Activity.startReaderPagerDBActivity(novel: Novel) {
     intent.putExtras(bundle)
     startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
 }
-
 
 
 fun Activity.startSearchResultsActivity(title: String, url: String) {
@@ -156,7 +156,7 @@ fun Activity.openInBrowser(url: String) {
 fun Activity.sendEmail(email: String, subject: String, body: String) {
     val mailTo = "mailto:" + email +
         "?&subject=" + Uri.encode(subject) +
-        "&body=" + Uri.encode(body)
+        "&body=" + Uri.encode(body + Utils.getDeviceInfo())
     val emailIntent = Intent(Intent.ACTION_VIEW)
     emailIntent.data = Uri.parse(mailTo)
 
