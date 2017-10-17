@@ -8,6 +8,7 @@ import android.view.View
 import android.view.WindowManager
 import android.webkit.WebView
 import android.widget.SeekBar
+import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.github.rubensousa.floatingtoolbar.FloatingToolbar
 import io.github.gmathi.novellibrary.R
@@ -20,15 +21,16 @@ import io.github.gmathi.novellibrary.fragment.WebPageFragment
 import io.github.gmathi.novellibrary.model.NightModeChangeEvent
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
-import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.network.getChapterUrls
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import org.greenrobot.eventbus.EventBus
 
 
 class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, FloatingToolbar.ItemClickListener, SeekBar.OnSeekBarChangeListener {
 
-    var novel: Novel? = null
-    var webPage: WebPage? = null
+    lateinit var novel: Novel
+    lateinit var webPage: WebPage
 
     private var adapter: WebPageAdapter? = null
     private var chapters = ArrayList<WebPage>()
@@ -40,35 +42,43 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
         if (dataCenter.keepScreenOn)
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        novel = intent.getSerializableExtra("novel") as Novel?
-        webPage = intent.getSerializableExtra("webPage") as WebPage?
+        val i_novel = intent.getSerializableExtra("novel") as Novel?
+        val i_webPage = intent.getSerializableExtra("webPage") as WebPage?
 
-        @Suppress("UNCHECKED_CAST")
+        if (i_novel == null || i_webPage == null) finish()
 
-        chapters = intent.getSerializableExtra("chapters") as ArrayList<WebPage>? ?: return
+        novel = i_novel!!
+        webPage = i_webPage!!
 
-        if (novel == null || webPage == null) finish()
+        loadData()
+    }
 
-        adapter = WebPageAdapter(supportFragmentManager, chapters)
-        viewPager.addOnPageChangeListener(this)
-        viewPager.adapter = adapter
+    private fun loadData() {
 
-        viewPager.currentItem = chapters.indexOf(webPage)
-        if (webPage?.novelId != -1L && webPage?.id != -1L)
-            dbHelper.updateBookmarkCurrentWebPageId(webPage!!.novelId, webPage!!.id)
-        if (webPage?.id != -1L) {
-            webPage!!.isRead = 1
-            dbHelper.updateWebPageReadStatus(webPage!!)
+        async {
+
+            chapters = await { ArrayList(NovelApi().getChapterUrls(novel)?.reversed()) }
+            adapter = WebPageAdapter(supportFragmentManager, chapters)
+            viewPager.addOnPageChangeListener(this@ReaderPagerActivity)
+            viewPager.adapter = adapter
+
+            viewPager.currentItem = chapters.indexOf(webPage)
+            if (webPage.novelId != -1L && webPage.id != -1L)
+                dbHelper.updateBookmarkCurrentWebPageId(webPage.novelId, webPage.id)
+            if (webPage.id != -1L) {
+                webPage.isRead = 1
+                dbHelper.updateWebPageReadStatus(webPage)
+            }
+
+            floatingToolbar.attachFab(fab)
+            floatingToolbar.setClickListener(this@ReaderPagerActivity)
+
+            fabClean.setOnClickListener {
+                (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).cleanPage()
+                fabClean.visibility = View.INVISIBLE
+            }
+
         }
-
-        floatingToolbar.attachFab(fab)
-        floatingToolbar.setClickListener(this)
-
-        fabClean.setOnClickListener {
-            (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).cleanPage()
-            fabClean.visibility = View.INVISIBLE
-        }
-
     }
 
     override fun onPageSelected(position: Int) {
@@ -130,8 +140,8 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
             val subject = "[IMPROVEMENT]"
             val body = StringBuilder()
             body.append("Please improve the viewing experience of this page.\n")
-            body.append("Novel Name: ${novel?.name} \n")
-            body.append("Novel Url: ${novel?.url} \n")
+            body.append("Novel Name: ${novel.name} \n")
+            body.append("Novel Url: ${novel.url} \n")
             body.append("Chapter Name: $chapterName \n ")
             body.append("Chapter Url: $url \n ")
             sendEmail(email, subject, body.toString())
@@ -225,6 +235,11 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
             }
             return true
         } else return false
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        async.cancelAll()
     }
 
 }

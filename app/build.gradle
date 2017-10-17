@@ -11,14 +11,14 @@ if (keystorePropertiesFile.exists() && keystorePropertiesFile.canRead()) {
 
 android {
     compileSdkVersion 26
-    buildToolsVersion "26.0.0"
+    buildToolsVersion '26.0.2'
     defaultConfig {
         applicationId "io.github.gmathi.novellibrary"
         minSdkVersion 16
         targetSdkVersion 26
         multiDexEnabled true
-        versionCode 31
-        versionName "0.7.1.beta"
+        versionCode 32
+        versionName "0.7.2.beta"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -47,8 +47,8 @@ android {
     }
 }
 
-def support_lib_version = "26.0.2"
-def gcm_services_version = "11.2.2"
+def support_lib_version = "26.1.0"
+def gcm_services_version = "11.4.2"
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
