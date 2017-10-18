@@ -57,7 +57,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
 
         async {
 
-            chapters = await { ArrayList(NovelApi().getChapterUrls(novel)?.reversed()) }
+            chapters = await { ArrayList(NovelApi().getChapterUrls(novel)) }
             adapter = WebPageAdapter(supportFragmentManager, chapters)
             viewPager.addOnPageChangeListener(this@ReaderPagerActivity)
             viewPager.adapter = adapter
