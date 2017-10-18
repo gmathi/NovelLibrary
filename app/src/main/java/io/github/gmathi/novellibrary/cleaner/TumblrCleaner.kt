@@ -12,6 +12,11 @@ class TumblrCleaner : HtmlHelper() {
         doc.getElementsByTag("link")?.remove()
         doc.getElementsByTag("style")?.remove()
         var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("textpostbody") }
+
+        if (contentElement == null) {
+            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.id() == "content" }
+        }
+
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
         do {
             contentElement?.siblingElements()?.remove()

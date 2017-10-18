@@ -62,7 +62,7 @@ fun Activity.startReaderPagerActivity(novel: Novel, webPage: WebPage, chapters: 
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
     bundle.putSerializable("webPage", webPage)
-    bundle.putSerializable("chapters", chapters)
+    //bundle.putSerializable("chapters", chapters)
     intent.putExtras(bundle)
     startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
 }

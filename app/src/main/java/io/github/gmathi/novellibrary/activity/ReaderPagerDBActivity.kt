@@ -63,7 +63,7 @@ class ReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener, Fl
         floatingToolbar.attachFab(fab)
         floatingToolbar.setClickListener(this)
 
-        fabCleanTextView.applyFont(assets).text = getString(R.string.clean)
+        fabCleanTextView.applyFont(assets).text = getString(R.string.reader_mode)
         fabClean.setOnClickListener {
             (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment).cleanPage()
             fabClean.visibility = View.INVISIBLE

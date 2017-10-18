@@ -54,6 +54,12 @@ open class HtmlHelper protected constructor() {
             contentElement = doc.body().getElementsByTag("article").firstOrNull { it.id() == "releases" }
             if (contentElement != null) return GeneralIdTagHelper(host, "article", "releases")
 
+            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("td-main-content") }
+            if (contentElement != null) return GeneralClassTagHelper(host, "div", "td-main-content")
+
+            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.id() == "content" }
+            if (contentElement != null) return GeneralIdTagHelper(host, "div", "content")
+
             return HtmlHelper()
         }
 

@@ -56,10 +56,6 @@ class WebPageFragment : Fragment() {
         return inflater!!.inflate(R.layout.fragment_reader, container, false)
     }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-    }
-
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
