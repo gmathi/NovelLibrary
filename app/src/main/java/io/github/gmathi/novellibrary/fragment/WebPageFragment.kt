@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.fragment
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
@@ -51,9 +52,9 @@ class WebPageFragment : Fragment() {
     private var isCleaned: Boolean = false
     var history: ArrayList<WebPage> = ArrayList()
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        return inflater!!.inflate(R.layout.fragment_reader, container, false)
+        return inflater.inflate(R.layout.fragment_reader, container, false)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -64,10 +65,11 @@ class WebPageFragment : Fragment() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             readerWebView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
                 if (scrollY > oldScrollY && scrollY > 0) {
-                    activity.floatingToolbar.hide()
-                    activity.fab.hide()
+                    activity!!.floatingToolbar.hide()
+                    activity!!.fab.hide()
                 }
-                if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) activity.fab.show()
+                if (oldScrollY - scrollY > Constants.SCROLL_LENGTH)
+                    (activity as FragmentActivity).fab.show()
 
                 //if (scrollY < oldScrollY) activity.fab.show()
             }
@@ -82,14 +84,14 @@ class WebPageFragment : Fragment() {
             history = savedInstanceState.getSerializable("history") as ArrayList<WebPage>
         } else {
             isCleaned = false
-            val intentWebPage = arguments.getSerializable(WEB_PAGE) as WebPage?
-            if (intentWebPage == null) activity.finish()
+            val intentWebPage = arguments!!.getSerializable(WEB_PAGE) as WebPage?
+            if (intentWebPage == null) activity!!.finish()
             else webPage = intentWebPage
         }
 
         if (webPage == null || webPage?.url == null) {
             val activity = (activity as ReaderPagerActivity?)
-            activity?.startChaptersActivity(activity.novel!!, false)
+            activity?.startChaptersActivity(activity.novel, false)
             activity?.finish()
         }
 
@@ -101,7 +103,7 @@ class WebPageFragment : Fragment() {
         //Load with downloaded HTML File
         readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
         isCleaned = false
-        activity.fabClean.visibility = if (isCleaned || dataCenter.cleanChapters) View.INVISIBLE else View.VISIBLE
+        activity!!.fabClean.visibility = if (isCleaned || dataCenter.cleanChapters) View.INVISIBLE else View.VISIBLE
 
         if (webPage!!.filePath != null) {
             val internalFilePath = "file://${webPage!!.filePath}"
@@ -156,8 +158,8 @@ class WebPageFragment : Fragment() {
                 progressLayout.showLoading()
 
                 //If no network
-                if (!Utils.checkNetwork(activity)) {
-                    progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+                if (!Utils.checkNetwork(activity!!)) {
+                    progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
                         downloadWebPage(url)
                     })
                     return@download
@@ -181,7 +183,7 @@ class WebPageFragment : Fragment() {
                     cleaner.toggleTheme(dataCenter.isDarkTheme, doc)
                 } else {
                     isCleaned = false
-                    activity.fabClean.visibility = View.VISIBLE
+                    activity!!.fabClean.visibility = View.VISIBLE
                 }
 
                 loadDocument()
@@ -191,7 +193,7 @@ class WebPageFragment : Fragment() {
             } catch (e: Exception) {
                 e.printStackTrace()
                 if (isResumed && !isRemoving && !isDetached)
-                    progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
+                    progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
                         downloadWebPage(url)
                     })
             }
@@ -205,9 +207,9 @@ class WebPageFragment : Fragment() {
 
     private fun loadDocument() {
         readerWebView.loadDataWithBaseURL(
-            if (webPage!!.filePath != null) "file://${webPage!!.filePath}" else doc.location(),
-            doc.outerHtml(),
-            "text/html", "UTF-8", null)
+                if (webPage!!.filePath != null) "file://${webPage!!.filePath}" else doc.location(),
+                doc.outerHtml(),
+                "text/html", "UTF-8", null)
         if (webPage!!.metaData.containsKey("scrollY"))
             readerWebView.scrollTo(0, webPage!!.metaData["scrollY"]!!.toInt())
     }
@@ -253,13 +255,13 @@ class WebPageFragment : Fragment() {
         loadData()
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
+    override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         //webPage.metaData.put("scrollY", readerWebView.scrollY.toString())
         if (webPage != null)
-            outState?.putSerializable("webPage", webPage)
-        outState?.putBoolean("isCleaned", isCleaned)
-        outState?.putSerializable("history", history)
+            outState.putSerializable("webPage", webPage)
+        outState.putBoolean("isCleaned", isCleaned)
+        outState.putSerializable("history", history)
     }
 
     fun checkUrl(url: String?): Boolean {

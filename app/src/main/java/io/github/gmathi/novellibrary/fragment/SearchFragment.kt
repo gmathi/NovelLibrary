@@ -29,8 +29,8 @@ class SearchFragment : BaseFragment() {
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater!!.inflate(R.layout.fragment_search, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.fragment_search, container, false)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -67,7 +67,7 @@ class SearchFragment : BaseFragment() {
         //searchView.setHomeButtonVisibility(View.GONE)
         searchView.setHomeButtonListener {
             hideSoftKeyboard()
-            activity.drawerLayout.openDrawer(GravityCompat.START)
+            activity!!.drawerLayout.openDrawer(GravityCompat.START)
         }
         searchView.setSuggestionBuilder(SuggestionsBuilder())
         searchView.setSearchListener(object : PersistentSearchView.SearchListener {
@@ -157,10 +157,10 @@ class SearchFragment : BaseFragment() {
         setViewPager()
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
+    override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState?.putBoolean("searchMode", searchMode);
-        if (searchTerm != null) outState?.putString("searchTerm", searchTerm)
+        outState.putBoolean("searchMode", searchMode)
+        if (searchTerm != null) outState.putString("searchTerm", searchTerm)
     }
 
 }

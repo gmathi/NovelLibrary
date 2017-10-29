@@ -55,8 +55,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater!!.inflate(R.layout.activity_library, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.activity_library, container, false)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -103,7 +103,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         }
 
         if (item.imageUrl != null) {
-            val file = File(activity.filesDir, Constants.IMAGES_DIR_NAME + "/" + Uri.parse(item.imageUrl).getFileName())
+            val file = File(activity!!.filesDir, Constants.IMAGES_DIR_NAME + "/" + Uri.parse(item.imageUrl).getFileName())
             if (file.exists())
                 item.imageFilePath = file.path
 
@@ -161,17 +161,17 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         if (item.chapterCount < item.newChapterCount) {
             val shape = GradientDrawable()
             shape.cornerRadius = 99f
-            shape.setStroke(1, ContextCompat.getColor(activity, R.color.Black))
-            shape.setColor(ContextCompat.getColor(activity, R.color.DarkRed))
+            shape.setStroke(1, ContextCompat.getColor(activity!!, R.color.Black))
+            shape.setColor(ContextCompat.getColor(activity!!, R.color.DarkRed))
             itemView.newChapterCount.background = shape
-            itemView.newChapterCount.applyFont(activity.assets).text = (item.newChapterCount - item.chapterCount).toString()
+            itemView.newChapterCount.applyFont(activity!!.assets).text = (item.newChapterCount - item.chapterCount).toString()
             itemView.newChapterCount.visibility = View.VISIBLE
         } else {
             itemView.newChapterCount.visibility = View.GONE
         }
 
         if (item.currentWebPageId != -1L) {
-            var orderId = dbHelper.getWebPageByWebPageId(item.currentWebPageId)?.orderId
+            val orderId = dbHelper.getWebPageByWebPageId(item.currentWebPageId)?.orderId
             if (orderId != null) {
                 val progress = "${orderId + 1} / ${item.newChapterCount}"
                 itemView.novelProgressText.text = progress
@@ -205,7 +205,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 sortNovelsAlphabetically()
             }
             R.id.action_import_reading_list -> {
-                activity.startImportLibraryActivity()
+                activity!!.startImportLibraryActivity()
             }
         }
         return super.onOptionsItemSelected(item)
@@ -231,7 +231,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             statusCard.visibility = View.VISIBLE
             statusCard.startAnimation(AnimationUtils.loadAnimation(activity, R.anim.alpha_animation))
-            activity.invalidateOptionsMenu()
+            activity!!.invalidateOptionsMenu()
             dbHelper.getAllNovels().forEach {
                 try {
                     val totalChapters = await { NovelApi().getChapterCount(it.url!!) }
@@ -248,14 +248,14 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             if (statusCard == null || activity == null) return@syncing
             statusCard.animation = null
             statusCard.visibility = View.GONE
-            activity.invalidateOptionsMenu()
+            activity!!.invalidateOptionsMenu()
         }
     }
 
     private fun startDownloadService(novelId: Long) {
         val serviceIntent = Intent(activity, DownloadNovelService::class.java)
         serviceIntent.putExtra(Constants.NOVEL_ID, novelId)
-        activity.startService(serviceIntent)
+        activity!!.startService(serviceIntent)
     }
     //endregion
 
@@ -286,14 +286,14 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun startReader(novel: Novel) {
         if (novel.currentWebPageId != -1L) {
-            activity.startReaderPagerDBActivity(novel)
+            activity!!.startReaderPagerDBActivity(novel)
         } else {
-            val confirmDialog = MaterialDialog.Builder(activity)
+            val confirmDialog = MaterialDialog.Builder(activity!!)
                 .title(getString(R.string.no_bookmark_found_dialog_title))
                 .content(getString(R.string.no_bookmark_found_dialog_description, novel.name))
                 .positiveText(getString(R.string.okay))
                 .negativeText(R.string.cancel)
-                .onPositive { dialog, _ -> activity.startChaptersActivity(novel, false); dialog.dismiss() }
+                    .onPositive { dialog, _ -> activity!!.startChaptersActivity(novel, false); dialog.dismiss() }
             confirmDialog!!.show()
         }
     }
@@ -305,7 +305,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         if (jumpToReader)
             bundle.putBoolean(Constants.JUMP, true)
         intent.putExtras(bundle)
-        activity.startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
+        activity!!.startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -323,7 +323,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     override fun onItemDismiss(viewHolderPosition: Int) {
-        MaterialDialog.Builder(activity)
+        MaterialDialog.Builder(activity!!)
             .title(getString(R.string.confirm_remove))
             .content(getString(R.string.confirm_remove_description))
             .positiveText(R.string.remove)
@@ -331,7 +331,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             .onPositive { dialog, _ ->
                 run {
                     val novel = adapter.items[viewHolderPosition]
-                    Utils.deleteNovel(activity, novel.id)
+                    Utils.deleteNovel(activity!!, novel.id)
                     adapter.onItemDismiss(viewHolderPosition)
                     dialog.dismiss()
                 }

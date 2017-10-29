@@ -57,7 +57,7 @@ fun Activity.startMetadataActivity(novel: Novel) {
     startActivityForResult(intent, Constants.METADATA_ACT_REQ_CODE)
 }
 
-fun Activity.startReaderPagerActivity(novel: Novel, webPage: WebPage, chapters: ArrayList<WebPage>?) {
+fun Activity.startReaderPagerActivity(novel: Novel, webPage: WebPage) {
     val intent = Intent(this, ReaderPagerActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)

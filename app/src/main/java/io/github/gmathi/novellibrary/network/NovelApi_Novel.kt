@@ -6,7 +6,7 @@ import java.net.URI
 import java.util.regex.Pattern
 
 
-fun NovelApi.getNovelDetails(url: String): Novel? {
+fun NovelApi.getNovelDetails(url: String): Novel {
     var novel: Novel? = null
     val host = URI(url).host
     when {
@@ -14,7 +14,7 @@ fun NovelApi.getNovelDetails(url: String): Novel? {
         host.contains(HostNames.ROYAL_ROAD) -> novel = getRRNovelDetails(url)
         host.contains(HostNames.WLN_UPDATES) -> novel = getWlnNovelDetails(url)
     }
-    return novel
+    return novel!!
 }
 
 fun NovelApi.getNUNovelDetails(url: String): Novel? {

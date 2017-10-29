@@ -45,8 +45,8 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater!!.inflate(R.layout.activity_download_queue, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.activity_download_queue, container, false)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -164,16 +164,16 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
     private fun startDownloadService(novelId: Long) {
         val serviceIntent = Intent(activity, DownloadNovelService::class.java)
         serviceIntent.putExtra(Constants.NOVEL_ID, novelId)
-        activity.startService(serviceIntent)
+        activity!!.startService(serviceIntent)
     }
 
 
     private fun confirmDeleteAlert(novel: Novel) {
-        MaterialDialog.Builder(activity)
+        MaterialDialog.Builder(activity!!)
             .content(getString(R.string.remove_from_downloads))
             .positiveText(getString(R.string.remove))
             .negativeText(getString(R.string.cancel))
-            .icon(ContextCompat.getDrawable(activity, R.drawable.ic_delete_white_vector))
+                .icon(ContextCompat.getDrawable(activity!!, R.drawable.ic_delete_white_vector)!!)
             .typeface("source_sans_pro_regular.ttf", "source_sans_pro_regular.ttf")
             .theme(Theme.DARK)
             .onPositive { _, _ -> deleteNovel(novel) }
@@ -205,7 +205,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<DownloadQueue> 
         when (event.type) {
             EventType.UPDATE -> {
                 if (event.novelId == -1L) {
-                    if (!Utils.checkNetwork(activity)) {
+                    if (!Utils.checkNetwork(activity!!)) {
                         //toast("No Active Internet! (⋋▂⋌)")
                         fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
                         fab.tag = "paused"

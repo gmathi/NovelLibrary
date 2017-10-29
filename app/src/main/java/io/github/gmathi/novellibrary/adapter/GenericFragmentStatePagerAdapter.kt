@@ -13,7 +13,7 @@ class GenericFragmentStatePagerAdapter(manager: FragmentManager, val titles: Arr
 
     override fun getCount(): Int = pagerCount
 
-    override fun getPageTitle(position: Int): CharSequence = if (titles != null) titles[position].toUpperCase(Locale.getDefault()) else super.getPageTitle(position)
+    override fun getPageTitle(position: Int): CharSequence = if (titles != null) titles[position].toUpperCase(Locale.getDefault()) else super.getPageTitle(position)!!
 
     override fun startUpdate(container: ViewGroup) = super.startUpdate(container)
 
