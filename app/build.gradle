@@ -10,12 +10,12 @@ if (keystorePropertiesFile.exists() && keystorePropertiesFile.canRead()) {
 }
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    compileSdkVersion 27
+    buildToolsVersion '27.0.0'
     defaultConfig {
         applicationId "io.github.gmathi.novellibrary"
         minSdkVersion 16
-        targetSdkVersion 26
+        targetSdkVersion 27
         multiDexEnabled true
         versionCode 32
         versionName "0.7.2.beta"
@@ -47,7 +47,7 @@ android {
     }
 }
 
-def support_lib_version = "26.1.0"
+def support_lib_version = "27.0.0"
 def gcm_services_version = "11.4.2"
 
 dependencies {

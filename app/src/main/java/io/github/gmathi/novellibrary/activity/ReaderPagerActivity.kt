@@ -74,7 +74,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
             floatingToolbar.setClickListener(this@ReaderPagerActivity)
 
             fabClean.setOnClickListener {
-                (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).cleanPage()
+                (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).cleanPage()
                 fabClean.visibility = View.INVISIBLE
             }
 
@@ -133,8 +133,8 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
     }
 
     private fun reportPage() {
-        val url = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.getUrl()
-        val chapterName = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.webPage?.chapter
+        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.getUrl()
+        val chapterName = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.webPage?.chapter
         if (url != null) {
             val email = getString(R.string.dev_email)
             val subject = "[IMPROVEMENT]"
@@ -149,13 +149,13 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
     }
 
     private fun inBrowser() {
-        val url = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.getUrl()
+        val url = (viewPager.adapter!!.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.getUrl()
         if (url != null)
             openInBrowser(url)
     }
 
     private fun share() {
-        val url = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.getUrl()
+        val url = (viewPager.adapter!!.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.getUrl()
         if (url != null) {
             shareUrl(url)
         }
@@ -165,7 +165,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
     //region SeekBar Progress Listener
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
         dataCenter.textSize = progress
-        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.changeTextSize(progress)
+        (viewPager.adapter!!.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.changeTextSize(progress)
     }
 
     override fun onStartTrackingTouch(p0: SeekBar?) {
@@ -179,7 +179,7 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val action = event.action
         val keyCode = event.keyCode
-        val webView = (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
+        val webView = (viewPager.adapter!!.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
         when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
@@ -215,8 +215,8 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
 //    }
 
     override fun onBackPressed() {
-        if ((viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).history.isNotEmpty())
-            (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).goBack()
+        if ((viewPager.adapter!!.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).history.isNotEmpty())
+            (viewPager.adapter!!.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).goBack()
         else
             super.onBackPressed()
     }

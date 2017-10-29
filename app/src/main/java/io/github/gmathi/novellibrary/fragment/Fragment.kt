@@ -12,8 +12,8 @@ import io.github.gmathi.novellibrary.util.Constants
 
 
 fun Fragment.hideSoftKeyboard() {
-    val inputMethodManager = activity.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-    inputMethodManager.hideSoftInputFromWindow(activity.window.decorView.windowToken, 0)
+    val inputMethodManager = activity!!.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+    inputMethodManager.hideSoftInputFromWindow(activity!!.window.decorView.windowToken, 0)
 }
 
 fun Fragment.startReaderPagerActivity(novel: Novel, webPage: WebPage, chapters: ArrayList<WebPage>?) {

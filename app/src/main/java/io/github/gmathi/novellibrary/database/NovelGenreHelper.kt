@@ -39,9 +39,8 @@ fun DBHelper.getAllNovelGenre(novelId: Long): List<NovelGenre> {
     if (cursor != null) {
         if (cursor.moveToFirst()) {
             do {
-                val novelGenre = NovelGenre()
-                novelGenre.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
-                novelGenre.genreId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_GENRE_ID))
+                val novelGenre = NovelGenre(novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID)),
+                        genreId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_GENRE_ID)))
 
                 list.add(novelGenre)
             } while (cursor.moveToNext())

@@ -40,14 +40,14 @@ fun DBHelper.getGenre(genreId: Long): Genre? {
 //}
 
 fun DBHelper.getGenres(novelId: Long): List<String>? {
-    val selectQuery =  " SELECT group_concat(g.name) as Genres" +
+    val selectQuery = " SELECT group_concat(g.name) as Genres" +
             " FROM novel_genre ng, genre g" +
             " WHERE ng.genre_id = g.id AND ng.novel_id = $novelId" +
             " GROUP BY ng.novel_id"
     val cursor = this.readableDatabase.rawQuery(selectQuery, null)
     if (cursor != null) {
         if (cursor.moveToFirst()) {
-           return Arrays.asList<String>(*cursor.getString(cursor.getColumnIndex("Genres")).split(",".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray())
+            return Arrays.asList<String>(*cursor.getString(cursor.getColumnIndex("Genres")).split(",".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray())
 
         }
         cursor.close()
@@ -63,9 +63,8 @@ fun DBHelper.getGenreFromQuery(selectQuery: String): Genre? {
     var genre: Genre? = null
     if (cursor != null) {
         if (cursor.moveToFirst()) {
-            genre = Genre()
-            genre.id = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ID))
-            genre.name = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME))
+            genre = Genre(id = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ID)),
+                    name = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME)))
         }
         cursor.close()
     }
@@ -81,10 +80,8 @@ fun DBHelper.getAllGenre(): List<Genre> {
     if (c != null) {
         if (c.moveToFirst()) {
             do {
-                val genre = Genre()
-                genre.id = c.getLong(c.getColumnIndex(DBKeys.KEY_ID))
-                genre.name = c.getString(c.getColumnIndex(DBKeys.KEY_NAME))
-
+                val genre = Genre(id = c.getLong(c.getColumnIndex(DBKeys.KEY_ID)),
+                        name = c.getString(c.getColumnIndex(DBKeys.KEY_NAME)))
                 list.add(genre)
             } while (c.moveToNext())
         }

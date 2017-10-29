@@ -30,25 +30,23 @@ class Novel : Serializable {
         return if (name != null) name!!.hashCode() else 0
     }
 
-    fun copyFrom(otherNovel: Novel?) {
-        if (otherNovel != null) {
-            id = if (otherNovel.id != -1L) otherNovel.id else id
-            url = if (otherNovel.url != null) otherNovel.url else url
-            name = if (otherNovel.name != null) otherNovel.name else name
-            genres = if (otherNovel.genres != null) otherNovel.genres else genres
-            rating = if (otherNovel.rating != null) otherNovel.rating else rating
-            imageUrl = if (otherNovel.imageUrl != null) otherNovel.imageUrl else imageUrl
-            imageFilePath = if (otherNovel.imageFilePath != null) otherNovel.imageFilePath else imageFilePath
-            longDescription = if (otherNovel.longDescription != null) otherNovel.longDescription else longDescription
-            shortDescription = if (otherNovel.shortDescription != null) otherNovel.shortDescription else shortDescription
-            currentWebPageId = if (otherNovel.currentWebPageId != -1L) otherNovel.currentWebPageId else currentWebPageId
-            chapterCount = if (otherNovel.chapterCount != 0L) otherNovel.chapterCount else chapterCount
-            newChapterCount = if (otherNovel.newChapterCount != 0L) otherNovel.newChapterCount else newChapterCount
-            orderId = if (otherNovel.orderId != -1L) otherNovel.orderId else orderId
+    fun copyFrom(otherNovel: Novel) {
+        id = if (otherNovel.id != -1L) otherNovel.id else id
+        url = if (otherNovel.url != null) otherNovel.url else url
+        name = if (otherNovel.name != null) otherNovel.name else name
+        genres = if (otherNovel.genres != null) otherNovel.genres else genres
+        rating = if (otherNovel.rating != null) otherNovel.rating else rating
+        imageUrl = if (otherNovel.imageUrl != null) otherNovel.imageUrl else imageUrl
+        imageFilePath = if (otherNovel.imageFilePath != null) otherNovel.imageFilePath else imageFilePath
+        longDescription = if (otherNovel.longDescription != null) otherNovel.longDescription else longDescription
+        shortDescription = if (otherNovel.shortDescription != null) otherNovel.shortDescription else shortDescription
+        currentWebPageId = if (otherNovel.currentWebPageId != -1L) otherNovel.currentWebPageId else currentWebPageId
+        chapterCount = if (otherNovel.chapterCount != 0L) otherNovel.chapterCount else chapterCount
+        newChapterCount = if (otherNovel.newChapterCount != 0L) otherNovel.newChapterCount else newChapterCount
+        orderId = if (otherNovel.orderId != -1L) otherNovel.orderId else orderId
 
-            otherNovel.metaData.keys.forEach {
-                metaData.put(it, otherNovel.metaData[it])
-            }
+        otherNovel.metaData.keys.forEach {
+            metaData.put(it, otherNovel.metaData[it])
         }
     }
 

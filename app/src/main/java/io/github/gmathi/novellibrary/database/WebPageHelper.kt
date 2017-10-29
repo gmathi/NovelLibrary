@@ -292,11 +292,10 @@ fun DBHelper.deleteWebPage(novelId: Long) {
 }
 
 private fun getWebPageFromCursor(cursor: Cursor): WebPage {
-    val webPage = WebPage()
+    val webPage = WebPage(url = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL)),
+            chapter = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER)))
     webPage.id = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ID))
-    webPage.url = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL))
     webPage.redirectedUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_REDIRECT_URL))
-    webPage.chapter = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER))
     webPage.title = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_TITLE))
     webPage.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
     webPage.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))

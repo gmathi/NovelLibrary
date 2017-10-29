@@ -188,7 +188,7 @@ class ChaptersActivity :
             dbHelper.updateNovel(novel)
             startReaderPagerDBActivity(novel)
         } else
-            startReaderPagerActivity(novel, item, adapter.items)
+            startReaderPagerActivity(novel, item)
     }
 
     @SuppressLint("SetTextI18n")

@@ -2,22 +2,13 @@ package io.github.gmathi.novellibrary.model
 
 import java.io.Serializable
 
-class WebPage : Serializable {
-
-    constructor() {
-        //Empty Constructor
-    }
-
-    constructor(url: String, chapter: String) : super() {
-        this.url = url
-        this.chapter = chapter
-    }
+class WebPage(url: String, chapter: String) : Serializable {
 
     var id: Long = -1L
-    var url: String? = null
+    var url: String? = url
     var redirectedUrl: String? = null
     var title: String? = null
-    var chapter: String? = null
+    var chapter: String? = chapter
     var filePath: String? = null
     var novelId: Long = -1L
     var sourceId: Int = -1
