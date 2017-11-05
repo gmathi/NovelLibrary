@@ -211,5 +211,6 @@
     <string name="other">alius</string>
     <string name="title_activity_recently_updated_novels">Updated conscripserit nuper</string>
     <string name="title_activity_recently_viewed_novels">Recently Viewed Romanorum</string>
+    <string name="no_bookmark">No Bookmark!</string>
 
 </resources>

@@ -99,8 +99,10 @@ fun ContextWrapper.sendBroadcast(extras: Bundle, action: String) {
     sendBroadcast(localIntent)
 }
 
-fun TextView.applyFont(assetManager: AssetManager): TextView {
-    typeface = Typeface.createFromAsset(assetManager, "fonts/source_sans_pro_regular.ttf")
+fun TextView.applyFont(assetManager: AssetManager?): TextView {
+    assetManager?.let {
+        typeface = Typeface.createFromAsset(it, "fonts/source_sans_pro_regular.ttf")
+    }
     return this
 }
 

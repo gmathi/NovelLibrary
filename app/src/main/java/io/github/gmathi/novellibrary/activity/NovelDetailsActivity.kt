@@ -257,7 +257,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             .content(getString(R.string.confirm_remove_description))
             .positiveText(getString(R.string.remove))
             .negativeText(getString(R.string.cancel))
-            .icon(ContextCompat.getDrawable(this, R.drawable.ic_delete_white_vector))
+            .icon(ContextCompat.getDrawable(this, R.drawable.ic_delete_white_vector)!!)
             .typeface("source_sans_pro_regular.ttf", "source_sans_pro_regular.ttf")
             .theme(Theme.DARK)
             .onPositive { _, _ -> deleteNovel() }

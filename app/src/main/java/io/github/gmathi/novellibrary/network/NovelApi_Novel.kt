@@ -28,7 +28,7 @@ fun NovelApi.getNUNovelDetails(url: String): Novel? {
         novel.longDescription = document.body().getElementById("editdescription")?.text()
         novel.chapterCount = getNUChapterCount(document).toLong()
         novel.newChapterCount = novel.chapterCount
-        novel.rating = document.body().getElementsByClass("uvotes")?.firstOrNull() { it.id() == "span" }?.text()?.substring(1, 4)
+        novel.rating = document.body().getElementsByClass("uvotes")?.firstOrNull { it.id() == "span" }?.text()?.substring(1, 4)
 
         novel.genres = document.body().getElementById("seriesgenre")?.children()?.map { it.text() }
 

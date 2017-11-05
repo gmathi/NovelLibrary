@@ -227,6 +227,7 @@
     <string name="keep_screen_on_description">Okuma yapılan süre boyunca ekranı açık tut.</string>
     <string name="join_us_on_discord">Discord\'da bize katılın!</string>
     <string name="other">Diğer</string>
+    <string name="no_bookmark">No Bookmark!</string>
 
 
 </resources>

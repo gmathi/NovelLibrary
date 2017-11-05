@@ -226,5 +226,6 @@
     <string name="keep_screen_on_description">Garde l\'écran allumé lors de la lecture</string>
     <string name="join_us_on_discord">Rejoignez nous sur Discord</string>
     <string name="other">Autre</string>
-	
+    <string name="no_bookmark">No Bookmark!</string>
+
 </resources>

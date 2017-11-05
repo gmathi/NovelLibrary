@@ -22,12 +22,6 @@ import io.github.gmathi.novellibrary.util.Utils
 
 class BackgroundNovelSyncTask : GcmTaskService() {
 
-    override fun onInitializeTasks() {
-        //called when app is updated to a new version, reinstalled etc.
-        //you have to schedule your repeating tasks again
-        super.onInitializeTasks()
-    }
-
     override fun onRunTask(taskParams: TaskParams): Int {
         //Your periodic code here
 

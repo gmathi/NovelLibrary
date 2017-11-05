@@ -225,5 +225,6 @@
     <string name="keep_screen_on_description">Keeps the screen on while you are reading</string>
     <string name="join_us_on_discord">Join us on Discord</string>
     <string name="other">Other</string>
+    <string name="no_bookmark">No Bookmark!</string>
 
 </resources>

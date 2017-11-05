@@ -49,14 +49,14 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater!!.inflate(R.layout.content_recycler_view, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.content_recycler_view, container, false)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         //(activity as AppCompatActivity).setSupportActionBar(null)
-        searchUrl = arguments.getString("url")
+        searchUrl = arguments!!.getString("url")
         setRecyclerView()
 
         if (savedInstanceState != null) {
@@ -72,7 +72,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     }
 
     private fun setRecyclerView() {
-        adapter = GenericAdapter(items = ArrayList<Novel>(), layoutResId = R.layout.listitem_novel, listener = this)
+        adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_novel, listener = this)
         recyclerView.setDefaults(adapter)
         swipeRefreshLayout.setOnRefreshListener { searchNovels() }
     }
@@ -82,7 +82,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         async search@ {
 
             if (!Utils.checkNetwork(activity)) {
-                progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+                progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
                     progressLayout.showLoading()
                     searchNovels()
                 })
@@ -97,9 +97,9 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
                 }
             } else {
                 if (isFragmentActive() && progressLayout != null)
-                    progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), "Search Failed!", "Exit", {
+                    progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), "Search Failed!", "Exit", {
                         progressLayout.showLoading()
-                        activity.onBackPressed()
+                        activity?.onBackPressed()
                     })
             }
         }
@@ -109,7 +109,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         adapter.updateData(results)
         if (adapter.items.isEmpty()) {
             if (isFragmentActive() && progressLayout != null)
-                progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_youtube_searched_for_white_vector), "No Novels Found!", "Try Again", {
+                progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_youtube_searched_for_white_vector), "No Novels Found!", "Try Again", {
                     progressLayout.showLoading()
                     searchNovels()
                 })
@@ -122,7 +122,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 //region Adapter Listener Methods - onItemClick(), viewBinder()
 
     override fun onItemClick(item: Novel) {
-        activity.startNovelDetailsActivity(item, false)
+        activity?.startNovelDetailsActivity(item, false)
         //addToDownloads(item)
     }
 
@@ -130,7 +130,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         itemView.novelImageView.setImageResource(android.R.color.transparent)
 
         if (item.imageUrl != null) {
-            val file = File(activity.filesDir, Constants.IMAGES_DIR_NAME + "/" + Uri.parse(item.imageUrl).getFileName())
+            val file = File(activity?.filesDir, Constants.IMAGES_DIR_NAME + "/" + Uri.parse(item.imageUrl).getFileName())
             if (file.exists())
                 item.imageFilePath = file.path
 
@@ -176,10 +176,10 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         async.cancelAll()
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
+    override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         if (adapter.items.isNotEmpty())
-            outState?.putSerializable("results", adapter.items)
+            outState.putSerializable("results", adapter.items)
     }
 
 
