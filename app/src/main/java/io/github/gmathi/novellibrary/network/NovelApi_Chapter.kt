@@ -64,7 +64,7 @@ fun NovelApi.getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
 
     val novelUpdatesNovelId = novel.metaData["PostId"]
     val request = Request.Builder()
-        .url("http://www.novelupdates.com/wp-admin/admin-ajax.php")
+        .url("https://www.novelupdates.com/wp-admin/admin-ajax.php")
         .post(RequestBody.create(MediaType.parse("application/x-www-form-urlencoded; charset=UTF-8"), "action=nd_getchapters&mypostid=$novelUpdatesNovelId"))
         .build()
 
@@ -75,7 +75,7 @@ fun NovelApi.getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
     val doc = Jsoup.parse(htmlString)
 
     doc?.getElementsByAttribute("data-id")?.mapTo(chapters) {
-        WebPage(it?.attr("href")!!, it.getElementsByAttribute("title").attr("title"))
+        WebPage("https:" + it?.attr("href")!!, it.getElementsByAttribute("title").attr("title"))
     }
     return chapters
 }
