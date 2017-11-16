@@ -104,7 +104,7 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.NavDrawerActivity"
+            android:name=".activity.NewReaderPagerActivity"
             android:label="@string/title_activity_nav_drawer"
             android:launchMode="singleTask"
             android:theme="@style/DarkTheme_DarkSide">

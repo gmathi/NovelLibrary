@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="ld_activityScreenTitles">
+        <item>Dashboard</item>
+        <item>My Account</item>
+        <item>Messages</item>
+        <item>Cart</item>
+        <item />
+        <item>Log Out</item>
+    </string-array>
+
+    <array name="ld_activityScreenIcons">
+        <item>@drawable/ic_book_white</item>
+        <item>@drawable/ic_file_download_white</item>
+        <item>@drawable/ic_account_legal_white_vector</item>
+        <item>@drawable/ic_action_mic_black</item>
+        <item>0</item>
+        <item>@drawable/ic_call_to_action_white_vector</item>
+    </array>
+
+</resources>
