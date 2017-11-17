@@ -79,7 +79,7 @@
                 android:layout_gravity="center_vertical"
                 android:layout_weight="1"
                 android:gravity="start|center_vertical"
-                android:text="Imported List"
+                android:text="@string/imported_list"
                 android:textColor="@color/white"
                 />
 

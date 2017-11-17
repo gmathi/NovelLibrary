@@ -6,9 +6,13 @@ enum class EventType {
     DELETE,
     INSERT,
     COMPLETE,
+    PAUSED,
+    RUNNING
 }
 
 class NovelEvent(var type: EventType, var novelId: Long = -1L, var webPage: WebPage? = null)
+
+class DownloadEvent(var type: EventType, var webPageId: Long = -1L, var download: Download? = null)
 
 class ChapterEvent(val novel: Novel)
 

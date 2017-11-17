@@ -10,8 +10,17 @@ import java.util.*
 
 private val LOG = "NovelHelper"
 
+fun DBHelper.insertNovel(novel: Novel): Long {
+    val novelId = createNovel(novel)
+    novel.genres?.forEach {
+        val genreId = createGenre(it)
+        createNovelGenre(NovelGenre(novelId, genreId))
+    }
+    return novelId
+}
+
 fun DBHelper.createNovel(novel: Novel): Long {
-    val novelId = getNovelId(novel.name!!)
+    val novelId = getNovelId(novel.name)
     if (novelId != -1L) return novelId
 
     val db = this.writableDatabase
@@ -53,10 +62,8 @@ fun DBHelper.getNovelFromQuery(selectQuery: String): Novel? {
     var novel: Novel? = null
     if (cursor != null) {
         if (cursor.moveToFirst()) {
-            novel = Novel()
+            novel = Novel(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME)), cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL)))
             novel.id = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ID))
-            novel.name = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME))
-            novel.url = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL))
             novel.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
             novel.imageUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_IMAGE_URL))
             novel.rating = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_RATING))
@@ -119,10 +126,8 @@ fun DBHelper.getAllNovels(): List<Novel> {
     if (cursor != null) {
         if (cursor.moveToFirst()) {
             do {
-                val novel = Novel()
+                val novel = Novel(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME)), cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL)))
                 novel.id = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ID))
-                novel.name = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME))
-                novel.url = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL))
                 novel.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
                 novel.imageUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_IMAGE_URL))
                 novel.rating = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_RATING))

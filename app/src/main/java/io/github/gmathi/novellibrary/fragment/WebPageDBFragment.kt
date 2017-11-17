@@ -132,8 +132,7 @@ class WebPageDBFragment : Fragment() {
         }
         //Load from Internet
         else {
-            if (webPage!!.url != null)
-                downloadWebPage(webPage!!.url!!)
+            downloadWebPage(webPage!!.url)
         }
     }
 

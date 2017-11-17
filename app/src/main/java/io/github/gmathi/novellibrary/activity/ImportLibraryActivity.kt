@@ -19,6 +19,7 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.addWebPages
 import io.github.gmathi.novellibrary.database.addWebPagesFromImportList
 import io.github.gmathi.novellibrary.database.getNovelByUrl
+import io.github.gmathi.novellibrary.database.insertNovel
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.ImportListItem
 import io.github.gmathi.novellibrary.network.HostNames

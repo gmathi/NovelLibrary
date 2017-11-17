@@ -1,12 +1,12 @@
 package io.github.gmathi.novellibrary.activity
 
+import android.annotation.SuppressLint
 import android.graphics.Rect
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
-import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import co.metalab.asyncawait.async
@@ -39,7 +39,7 @@ class RecentlyUpdatedNovelsActivity : AppCompatActivity(), GenericAdapter.Listen
     }
 
     private fun setRecyclerView() {
-        adapter = GenericAdapter(items = ArrayList<RecenlytUpdatedItem>(), layoutResId = R.layout.listitem_title_subtitle, listener = this)
+        adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_title_subtitle, listener = this)
         recyclerView.setDefaults(adapter)
         recyclerView.addItemDecoration(object : DividerItemDecoration(this, DividerItemDecoration.VERTICAL) {
 
@@ -75,6 +75,7 @@ class RecentlyUpdatedNovelsActivity : AppCompatActivity(), GenericAdapter.Listen
         }
     }
 
+    @SuppressLint("SetTextI18n")
     override fun bind(item: RecenlytUpdatedItem, itemView: View, position: Int) {
         itemView.chevron.visibility = View.VISIBLE
 
@@ -86,11 +87,8 @@ class RecentlyUpdatedNovelsActivity : AppCompatActivity(), GenericAdapter.Listen
     }
 
     override fun onItemClick(item: RecenlytUpdatedItem) {
-        val novel = Novel()
         if (item.novelName != null && item.novelUrl != null) {
-            novel.name = item.novelName
-            novel.url = item.novelUrl
-            startNovelDetailsActivity(novel)
+            startNovelDetailsActivity(Novel(item.novelName!!, item.novelUrl!!))
         }
     }
 

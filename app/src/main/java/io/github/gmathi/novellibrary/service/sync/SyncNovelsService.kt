@@ -20,7 +20,7 @@ class SyncNovelsService : IntentService(TAG) {
 
     //static components
     companion object {
-        val TAG = "DownloadChapterService"
+        val TAG = "DownloadService"
     }
 
     override fun onHandleIntent(workIntent: Intent) {
@@ -40,9 +40,9 @@ class SyncNovelsService : IntentService(TAG) {
         val novelMap: HashMap<String, Int> = HashMap()
         dbHelper.getAllNovels().forEach {
             try {
-                val totalChapters = NovelApi().getChapterCount(it.url!!)
+                val totalChapters = NovelApi().getChapterCount(it.url)
                 if (it.chapterCount.toInt() != totalChapters && totalChapters != 0) {
-                    novelMap.put(it.name!!, (totalChapters - it.chapterCount).toInt())
+                    novelMap.put(it.name, (totalChapters - it.chapterCount).toInt())
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

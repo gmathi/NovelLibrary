@@ -69,7 +69,7 @@
             android:exported="false">
         </service>
         <service
-            android:name=".service.download.DownloadChapterService"
+            android:name=".service.download.DownloadService"
             android:enabled="true"
             android:exported="false">
         </service>

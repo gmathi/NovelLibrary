@@ -26,8 +26,6 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
 
-
-
 val dataCenter: DataCenter by lazy {
     NovelLibraryApplication.dataCenter!!
 }
@@ -44,8 +42,8 @@ class NovelLibraryApplication : MultiDexApplication() {
 
     override fun onCreate() {
         dataCenter = DataCenter(applicationContext)
-        dbHelper = DBHelper(applicationContext)
-        HostNames.setHostNamesList(dataCenter!!.getVerifiedHosts())
+        dbHelper = DBHelper.getInstance(applicationContext)
+        HostNames.hostNamesList = dataCenter!!.getVerifiedHosts()
         super.onCreate()
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
 
@@ -84,8 +82,7 @@ class NovelLibraryApplication : MultiDexApplication() {
     @Throws(KeyManagementException::class, NoSuchAlgorithmException::class)
     fun enableSSLSocket() {
 
-        HttpsURLConnection.setDefaultHostnameVerifier {
-            hostName: String?, _ ->
+        HttpsURLConnection.setDefaultHostnameVerifier { hostName: String?, _ ->
             if (hostName != null) HostNames.isVerifiedHost(hostName) else false
         }
 
@@ -128,7 +125,6 @@ class NovelLibraryApplication : MultiDexApplication() {
         super.attachBaseContext(base)
         MultiDex.install(this)
     }
-
 
 
 }

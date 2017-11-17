@@ -230,9 +230,7 @@ open class HtmlHelper protected constructor() {
         return doc
     }
 
-    open fun getLinkedChapters(doc: Document): ArrayList<String> {
-        return ArrayList()
-    }
+    open fun getLinkedChapters(doc: Document): ArrayList<String> = ArrayList()
 
     fun cleanClassAndIds(contentElement: Element?) {
         contentElement?.classNames()?.forEach { contentElement.removeClass(it) }

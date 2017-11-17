@@ -11,8 +11,7 @@ import android.widget.Toast
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
-import io.github.gmathi.novellibrary.service.download.DownloadChapterService
-import io.github.gmathi.novellibrary.service.download.DownloadNovelService
+import io.github.gmathi.novellibrary.service.download.DownloadService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.TransitionHelper
 import io.github.gmathi.novellibrary.util.Utils
@@ -57,7 +56,7 @@ fun Activity.startMetadataActivity(novel: Novel) {
     startActivityForResult(intent, Constants.METADATA_ACT_REQ_CODE)
 }
 
-fun Activity.startReaderPagerActivity(novel: Novel, webPage: WebPage, chapters: ArrayList<WebPage>?) {
+fun Activity.startReaderPagerActivity(novel: Novel, webPage: WebPage) {
     val intent = Intent(this, ReaderPagerActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
@@ -173,17 +172,9 @@ fun Activity.shareUrl(url: String) {
         startActivity(Intent.createChooser(i, "Share URL(s)"))
 }
 
-fun Activity.startNovelDownloadService(novelId: Long) {
-    val serviceIntent = Intent(this, DownloadNovelService::class.java)
-    serviceIntent.putExtra(Constants.NOVEL_ID, novelId)
-    startService(serviceIntent)
-}
-
-fun Activity.startChapterDownloadService(novel: Novel, webPages: ArrayList<WebPage>) {
-    val serviceIntent = Intent(this, DownloadChapterService::class.java)
+fun Activity.startDownloadService() {
+    val serviceIntent = Intent(this, DownloadService::class.java)
     val bundle = Bundle()
-    bundle.putSerializable("novel", novel)
-    bundle.putSerializable("webPages", webPages)
     serviceIntent.putExtras(bundle)
     startService(serviceIntent)
 }

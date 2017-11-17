@@ -23,7 +23,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.*
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.getAllNovels
-import io.github.gmathi.novellibrary.database.getWebPageByWebPageId
+import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.database.updateNewChapterCount
 import io.github.gmathi.novellibrary.database.updateOrderId
 import io.github.gmathi.novellibrary.dbHelper
@@ -31,7 +31,6 @@ import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterCount
-import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.activity_library.*
 import kotlinx.android.synthetic.main.content_library.*
@@ -55,9 +54,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.activity_library, container, false)
-    }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
+        inflater.inflate(R.layout.activity_library, container, false)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -171,7 +169,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         }
 
         if (item.currentWebPageId != -1L) {
-            val orderId = dbHelper.getWebPageByWebPageId(item.currentWebPageId)?.orderId
+            val orderId = dbHelper.getWebPage(item.currentWebPageId)?.orderId
             if (orderId != null) {
                 val progress = "${orderId + 1} / ${item.newChapterCount}"
                 itemView.novelProgressText.text = progress
@@ -234,7 +232,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             activity?.invalidateOptionsMenu()
             dbHelper.getAllNovels().forEach {
                 try {
-                    val totalChapters = await { NovelApi().getChapterCount(it.url!!) }
+                    val totalChapters = await { NovelApi().getChapterCount(it.url) }
                     if (totalChapters != 0 && totalChapters > it.chapterCount.toInt() && totalChapters > it.newChapterCount.toInt()) {
                         dbHelper.updateNewChapterCount(it.id, totalChapters.toLong())
                         adapter.updateItem(it)
@@ -250,12 +248,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             statusCard.visibility = View.GONE
             activity?.invalidateOptionsMenu()
         }
-    }
-
-    private fun startDownloadService(novelId: Long) {
-        val serviceIntent = Intent(activity, DownloadNovelService::class.java)
-        serviceIntent.putExtra(Constants.NOVEL_ID, novelId)
-        activity?.startService(serviceIntent)
     }
     //endregion
 

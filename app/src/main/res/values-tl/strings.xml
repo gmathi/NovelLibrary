@@ -226,5 +226,6 @@
     <string name="join_us_on_discord">Join us on Discord</string>
     <string name="other">Other</string>
     <string name="no_bookmark">No Bookmark!</string>
+    <string name="imported_list">Imported List</string>
 
 </resources>

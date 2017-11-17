@@ -26,10 +26,8 @@ fun NovelApi.searchRoyalRoadUrl(searchUrl: String): ArrayList<Novel>? {
         val document = getDocument(searchUrl)
         val elements = document.body().getElementsByClass("fiction-list-item").filter { it.tagName() == "div" }
         for (element in elements) {
-            val novel = Novel()
             val urlElement = element.getElementsByTag("a")?.firstOrNull()
-            novel.name = urlElement?.text()
-            novel.url = "https://www.royalroadl.com${urlElement?.attr("href")}"
+            val novel = Novel(urlElement?.text()!!, "https://www.royalroadl.com${urlElement.attr("href")}")
             novel.imageUrl = element.getElementsByTag("img").firstOrNull()?.attr("src")
             novel.rating = element.getElementsByClass("star").firstOrNull { it.tagName() == "span" }?.attr("title")
             searchResults.add(novel)
@@ -48,10 +46,8 @@ fun NovelApi.searchNovelUpdatesUrl(searchUrl: String): ArrayList<Novel>? {
         val document = getDocument(searchUrl)
         val elements = document.body().getElementsByClass("bdrank").filter { it.tagName() == "tr" }
         for (element in elements) {
-            val novel = Novel()
-            novel.url = element.getElementsByTag("a").firstOrNull()?.attr("href")
+            val novel = Novel(element.getElementsByTag("img").firstOrNull()?.attr("alt")!!, element.getElementsByTag("a").firstOrNull()?.attr("href")!!)
             novel.imageUrl = element.getElementsByTag("img").firstOrNull()?.attr("src")
-            novel.name = element.getElementsByTag("img").firstOrNull()?.attr("alt")
             novel.rating = element.getElementsByTag("div").firstOrNull { it.hasAttr("title") && it.attr("title").contains("Rating: ") }?.attr("title")?.replace("Rating: ", "")?.trim()
             searchResults.add(novel)
         }
@@ -68,12 +64,7 @@ fun NovelApi.searchWlnUpdatesUrl(url: String): ArrayList<Novel>? {
         searchResults = ArrayList()
         val document = getDocumentWithUserAgent(url)
         val elements = document.body().getElementsByTag("td")
-        for (element in elements) {
-            val novel = Novel()
-            novel.url = element.getElementsByTag("a").firstOrNull()?.absUrl("href")
-            novel.name = element.getElementsByTag("a").firstOrNull()?.text()
-            searchResults.add(novel)
-        }
+        elements.mapTo(searchResults) { Novel(it.getElementsByTag("a").firstOrNull()?.text()!!, it.getElementsByTag("a").firstOrNull()?.absUrl("href")!!) }
 
     } catch (e: IOException) {
         e.printStackTrace()

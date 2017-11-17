@@ -2,10 +2,8 @@ package io.github.gmathi.novellibrary.model
 
 import java.io.Serializable
 
-class Novel : Serializable {
+class Novel(var name: String, var url: String) : Serializable {
     var id: Long = -1
-    var name: String? = null
-    var url: String? = null
     var imageUrl: String? = null
     var rating: String? = null
     var shortDescription: String? = null
@@ -19,22 +17,11 @@ class Novel : Serializable {
     var metaData: HashMap<String, String?> = HashMap()
 
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || javaClass != other.javaClass) return false
-        val novel = other as Novel?
-        return if (name != null) name == novel!!.name else novel!!.name == null
-    }
-
-    override fun hashCode(): Int {
-        return if (name != null) name!!.hashCode() else 0
-    }
-
     fun copyFrom(otherNovel: Novel?) {
         if (otherNovel != null) {
             id = if (otherNovel.id != -1L) otherNovel.id else id
-            url = if (otherNovel.url != null) otherNovel.url else url
-            name = if (otherNovel.name != null) otherNovel.name else name
+            url = otherNovel.url
+            name = otherNovel.name
             genres = if (otherNovel.genres != null) otherNovel.genres else genres
             rating = if (otherNovel.rating != null) otherNovel.rating else rating
             imageUrl = if (otherNovel.imageUrl != null) otherNovel.imageUrl else imageUrl
@@ -50,6 +37,24 @@ class Novel : Serializable {
                 metaData.put(it, otherNovel.metaData[it])
             }
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Novel
+
+        if (name != other.name) return false
+        if (url != other.url) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + url.hashCode()
+        return result
     }
 
 

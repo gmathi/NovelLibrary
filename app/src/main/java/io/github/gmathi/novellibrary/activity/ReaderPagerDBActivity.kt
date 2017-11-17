@@ -45,7 +45,7 @@ class ReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener, Fl
         viewPager.adapter = adapter
 
         webPage = if (novel!!.currentWebPageId != -1L)
-            dbHelper.getWebPageByWebPageId(novel!!.currentWebPageId)
+            dbHelper.getWebPage(novel!!.currentWebPageId)
         else
             dbHelper.getWebPage(novel!!.id, 0)
 

@@ -148,7 +148,7 @@
     <string name="mark_unread">Tandai belum dibaca</string>
     <string name="unread">Belum Dibaca</string>
     <string name="read">Telah Dibaca</string>
-    <string name="chapters_selected">%d Terpilih</string>
+    <string name="chapters_selected">%1$d Terpilih</string>
     <string name="okay">OK</string>
     <string name="confirm_action">Pastikan Tindakan</string>
     <string name="mark_chapters_unread_dialog_content">Tandai Chapter belum dibaca?</string>
@@ -215,6 +215,7 @@
     <string name="join_us_on_discord">Bergabunglah ke Discord kami</string>
     <string name="other">Dll</string>
     <string name="no_bookmark">No Bookmark!</string>
+    <string name="imported_list">Imported List</string>
 
 
 </resources>

@@ -60,7 +60,9 @@
                 android:id="@+id/dragSelectRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scrollbars="vertical" />
+                android:scrollbars="vertical"
+                android:scrollbarThumbVertical="@android:color/darker_gray"
+                android:scrollbarSize="5dp"/>
 
         </android.support.v4.widget.SwipeRefreshLayout>
     </com.nguyenhoanglam.progresslayout.ProgressLayout>

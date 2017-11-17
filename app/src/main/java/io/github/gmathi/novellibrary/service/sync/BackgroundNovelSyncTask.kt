@@ -23,19 +23,8 @@ import io.github.gmathi.novellibrary.util.Utils
 class BackgroundNovelSyncTask : GcmTaskService() {
 
     override fun onRunTask(taskParams: TaskParams): Int {
-        //Your periodic code here
-
         val context = this@BackgroundNovelSyncTask
-
-        val dbHelper = DBHelper(context)
-
-        //TODO: DELETE Test Code
-//        val novel = dbHelper.getNovel("The Legend of Randidly Ghosthound")
-//        if (novel != null) {
-//            novel?.chapterCount = 180
-//            novel?.newChapterCount = 180
-//            dbHelper.updateNovel(novel!!)
-//        }
+        val dbHelper = DBHelper.getInstance(context)
 
         try {
             startNovelsSync(dbHelper)
@@ -49,10 +38,10 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         val unfilteredMap: HashMap<String, Int> = HashMap()
         val unfilteredChapMap: HashMap<String, Long> = HashMap()
         dbHelper.getAllNovels().forEach {
-            val totalChapters = NovelApi().getChapterCount(it.url!!)
+            val totalChapters = NovelApi().getChapterCount(it.url)
             if (totalChapters != 0 && totalChapters > it.chapterCount.toInt() && totalChapters > it.newChapterCount.toInt()) {
-                unfilteredMap.put(it.name!!, (totalChapters - it.chapterCount).toInt())
-                unfilteredChapMap.put(it.name!!, totalChapters.toLong())
+                unfilteredMap.put(it.name, (totalChapters - it.chapterCount).toInt())
+                unfilteredChapMap.put(it.name, totalChapters.toLong())
             }
         }
 
@@ -64,10 +53,10 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         if (novelMap.isEmpty()) return
 
         val notificationText: String
-        if (novelMap.size > 4) {
-            notificationText = getString(R.string.new_chapters_notification_content_full, novelMap.size, novelMap.values.sum())
+        notificationText = if (novelMap.size > 4) {
+            getString(R.string.new_chapters_notification_content_full, novelMap.size, novelMap.values.sum())
         } else {
-            notificationText = novelMap.keys.map { getString(R.string.new_chapters_notification_content_single, it, novelMap[it]) }.joinToString(separator = "\n")
+            novelMap.keys.joinToString(separator = "\n") { getString(R.string.new_chapters_notification_content_single, it, novelMap[it]) }
         }
 
         val novelDetailsIntent = Intent(this, NavDrawerActivity::class.java)
@@ -115,7 +104,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
     companion object {
 
-        val thisClass = BackgroundNovelSyncTask::class.java
+        private val thisClass = BackgroundNovelSyncTask::class.java
         val TAG = "BackgroundNovelSyncTask"
 
         fun scheduleRepeat(context: Context) {

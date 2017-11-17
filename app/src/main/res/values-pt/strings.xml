@@ -158,7 +158,7 @@
     <string name="mark_unread">Marcar como Não Lido</string>
     <string name="unread">Não Lido</string>
     <string name="read">Lido</string>
-    <string name="chapters_selected">%d Selecionado</string>
+    <string name="chapters_selected">%1$d Selecionado</string>
     <string name="okay">OK</string>
     <string name="confirm_action">Confirmar Ação</string>
     <string name="mark_chapters_unread_dialog_content">Marcar capítulos como não lidos?</string>
@@ -180,8 +180,8 @@
     <string name="collection_chapters_info">Coletando Informações</string>
     <string name="download_all_new_chapters_dialog_content">Administrar downloads de séries usando o download manager. Baixar todos os capítulos?</string>
     <string name="quick_access">Acesso Rápido</string>
-    <string name="new_chapters_notification_content_full">%d séries com um total de %d novos capítulos. Clique para começar a ler!</string>
-    <string name="new_chapters_notification_content_single">%s (%d novos capítulos)</string>
+    <string name="new_chapters_notification_content_full">%1$d séries com um total de %2$d novos capítulos. Clique para começar a ler!</string>
+    <string name="new_chapters_notification_content_single">%1$s (%2$d novos capítulos)</string>
     <string name="new_chapters_notification_title">Novos capítulos disponíveis!</string>
     <string name="sync_in_progress">Sincronização em progresso</string>
 
@@ -222,5 +222,6 @@
     <string name="join_us_on_discord">Junte-se a nós no Discord</string>
     <string name="other">Outros</string>
     <string name="no_bookmark">No Bookmark!</string>
+    <string name="imported_list">Imported List</string>
 
 </resources>
