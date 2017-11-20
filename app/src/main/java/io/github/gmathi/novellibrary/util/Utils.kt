@@ -1,6 +1,8 @@
 package io.github.gmathi.novellibrary.util
 
+import android.app.ActivityManager
 import android.content.Context
+import android.content.Context.ACTIVITY_SERVICE
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -18,6 +20,7 @@ import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import java.io.*
+
 
 object Utils {
 
@@ -132,10 +135,10 @@ object Utils {
 
     private fun deleteNovel(context: Context, novel: Novel?) {
         if (novel == null) return
-        val hostDir = getHostDir(context, novel.url!!)
-        val novelDir = getNovelDir(hostDir, novel.name!!)
+        val hostDir = getHostDir(context, novel.url)
+        val novelDir = getNovelDir(hostDir, novel.name)
         novelDir.deleteRecursively()
-        dbHelper.cleanupNovelData(novel.id)
+        dbHelper.cleanupNovelData(novel)
         broadcastNovelDelete(context, novel)
     }
 
@@ -149,10 +152,13 @@ object Utils {
         context.sendBroadcast(localIntent)
     }
 
-    fun checkNetwork(context: Context): Boolean {
-        val connectivityManager = context.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-        val netInfo = connectivityManager?.activeNetworkInfo
-        return netInfo != null && netInfo.isConnected
+    fun checkNetwork(context: Context?): Boolean {
+        context?.let {
+            val connectivityManager = it.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
+            val netInfo = connectivityManager?.activeNetworkInfo
+            return netInfo != null && netInfo.isConnected
+        }
+        return false
     }
 
     @Throws(IOException::class)
@@ -205,6 +211,12 @@ object Utils {
         sb.append("\nPhone Version: ${Build.VERSION.SDK_INT}")
         sb.append("\nPhone Model: ${Build.DEVICE}, ${Build.MODEL}")
         return sb.toString()
+    }
+
+    @Suppress("DEPRECATION")
+    fun isServiceRunning(context: Context, serviceQualifiedName: String): Boolean {
+        val manager = context.getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        return manager.getRunningServices(Integer.MAX_VALUE).any { serviceQualifiedName == it.service.className }
     }
 
 

@@ -56,13 +56,8 @@ class WebPageDBFragment : Fragment() {
     private var isCleaned: Boolean = false
     var history: ArrayList<WebPage> = ArrayList()
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-        return inflater!!.inflate(R.layout.fragment_reader, container, false)
-    }
-
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.fragment_reader, container, false)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -73,11 +68,11 @@ class WebPageDBFragment : Fragment() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             readerWebView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
                 if (scrollY > oldScrollY && scrollY > 0) {
-                    activity.floatingToolbar.hide()
-                    activity.fab.hide()
+                    activity?.floatingToolbar?.hide()
+                    activity?.fab?.hide()
                 }
 
-                if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) activity.fab.show()
+                if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) activity?.fab?.show()
 
                 //if (scrollY < oldScrollY) activity.fab.show()
             }
@@ -92,9 +87,9 @@ class WebPageDBFragment : Fragment() {
             history = savedInstanceState.getSerializable("history") as ArrayList<WebPage>
         } else {
             isCleaned = false
-            val novelId = arguments.getLong(NOVEL_ID)
+            val novelId = arguments!!.getLong(NOVEL_ID)
             val novel = dbHelper.getNovel(novelId)
-            val orderId = if (dataCenter.japSwipe) novel!!.chapterCount - arguments.getLong(ORDER_ID) - 1 else arguments.getLong(ORDER_ID)
+            val orderId = if (dataCenter.japSwipe) novel!!.chapterCount - arguments!!.getLong(ORDER_ID) - 1 else arguments!!.getLong(ORDER_ID)
 
 
             val intentWebPage = dbHelper.getWebPage(novelId, orderId)
@@ -121,7 +116,7 @@ class WebPageDBFragment : Fragment() {
         //Load with downloaded HTML File
         readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
         isCleaned = false
-        activity.fabClean.visibility = if (isCleaned || dataCenter.cleanChapters) View.INVISIBLE else View.VISIBLE
+        activity!!.fabClean.visibility = if (isCleaned || dataCenter.cleanChapters) View.INVISIBLE else View.VISIBLE
 
         if (webPage!!.filePath != null) {
             val internalFilePath = "file://${webPage!!.filePath}"
@@ -137,8 +132,7 @@ class WebPageDBFragment : Fragment() {
         }
         //Load from Internet
         else {
-            if (webPage!!.url != null)
-                downloadWebPage(webPage!!.url!!)
+            downloadWebPage(webPage!!.url)
         }
     }
 
@@ -203,7 +197,7 @@ class WebPageDBFragment : Fragment() {
 
                 //If no network
                 if (!Utils.checkNetwork(activity)) {
-                    progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+                    progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
                         downloadWebPage(url)
                     })
                     return@download
@@ -227,7 +221,7 @@ class WebPageDBFragment : Fragment() {
                     cleaner.toggleTheme(dataCenter.isDarkTheme, doc)
                 } else {
                     isCleaned = false
-                    activity.fabClean.visibility = View.VISIBLE
+                    activity?.fabClean?.visibility = View.VISIBLE
                 }
 
                 loadDocument()
@@ -237,7 +231,7 @@ class WebPageDBFragment : Fragment() {
             } catch (e: Exception) {
                 e.printStackTrace()
                 if (isResumed && !isRemoving && !isDetached)
-                    progressLayout.showError(ContextCompat.getDrawable(context, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
+                    progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
                         downloadWebPage(url)
                     })
             }
@@ -304,13 +298,13 @@ class WebPageDBFragment : Fragment() {
         loadData()
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
+    override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         if (webPage != null) {
-            outState?.putSerializable("webPage", webPage)
+            outState.putSerializable("webPage", webPage)
         }
-        outState?.putBoolean("isCleaned", isCleaned)
-        outState?.putSerializable("history", history)
+        outState.putBoolean("isCleaned", isCleaned)
+        outState.putSerializable("history", history)
     }
 
     fun checkUrl(url: String?): Boolean {

@@ -23,6 +23,7 @@ import com.afollestad.materialdialogs.Theme
 import com.bumptech.glide.Glide
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.getNovel
+import io.github.gmathi.novellibrary.database.insertNovel
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
@@ -67,7 +68,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun getNovelInfoDB() {
-        val dbNovel = dbHelper.getNovel(novel.name!!)
+        val dbNovel = dbHelper.getNovel(novel.name)
         if (dbNovel != null) {
             novel.copyFrom(dbNovel)
         }
@@ -87,7 +88,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
         async {
             try {
-                val downloadedNovel = await { NovelApi().getNovelDetails(novel.url!!) }
+                val downloadedNovel = await { NovelApi().getNovelDetails(novel.url) }
                 novel.copyFrom(downloadedNovel)
                 if (novel.id != -1L) await { dbHelper.updateNovel(novel) }
                 setupViews()
@@ -123,7 +124,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             if (novel.chapterCount != 0L) startChaptersActivity(novel, false)
         }
         novelDetailsMetadataLayout.setOnClickListener { startMetadataActivity(novel) }
-        openInBrowserButton.setOnClickListener { openInBrowser(novel.url!!) }
+        openInBrowserButton.setOnClickListener { openInBrowser(novel.url) }
     }
 
     private fun setNovelImage() {
@@ -247,7 +248,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         if (item?.itemId == android.R.id.home) finish()
         else if (item?.itemId == R.id.action_delete_novel) confirmNovelDelete()
-        else if (item?.itemId == R.id.action_share) shareUrl(novel.url!!)
+        else if (item?.itemId == R.id.action_share) shareUrl(novel.url)
         return super.onOptionsItemSelected(item)
     }
 
@@ -257,7 +258,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             .content(getString(R.string.confirm_remove_description))
             .positiveText(getString(R.string.remove))
             .negativeText(getString(R.string.cancel))
-            .icon(ContextCompat.getDrawable(this, R.drawable.ic_delete_white_vector))
+            .icon(ContextCompat.getDrawable(this, R.drawable.ic_delete_white_vector)!!)
             .typeface("source_sans_pro_regular.ttf", "source_sans_pro_regular.ttf")
             .theme(Theme.DARK)
             .onPositive { _, _ -> deleteNovel() }

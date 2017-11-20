@@ -16,14 +16,14 @@ fun NovelApi.getChapterUrls(novel: Novel): ArrayList<WebPage>? {
     val host = URI(novel.url).host
     when {
         host.contains(HostNames.NOVEL_UPDATES) -> return getNUALLChapterUrls(novel)
-        host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterUrls(novel.url!!)
-        host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterUrls(novel.url!!)
+        host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterUrls(novel.url)
+        host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterUrls(novel.url)
     }
     return null
 }
 
 //Get RoyalRoad Chapter URLs
-fun NovelApi.getRRChapterUrls(url: String): ArrayList<WebPage>? {
+fun getRRChapterUrls(url: String): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
         val document = Jsoup.connect(url).get()
@@ -36,20 +36,20 @@ fun NovelApi.getRRChapterUrls(url: String): ArrayList<WebPage>? {
     return chapters
 }
 
-fun NovelApi.getWLNUChapterUrls(url: String): ArrayList<WebPage>? {
+fun getWLNUChapterUrls(url: String): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
         val document = Jsoup.connect(url).get()
         chapters = ArrayList()
         val trElements = document.body().getElementsByTag("tr")?.filter { it.id() == "release-entry" }
-        trElements?.mapTo(chapters) { WebPage(url = it.child(0).child(0).attr("href"), chapter = it.getElementsByClass("numeric").map { it.text() }.joinToString(separator = ".")) }
+        trElements?.mapTo(chapters) { WebPage(url = it.child(0).child(0).attr("href"), chapter = it.getElementsByClass("numeric").joinToString(separator = ".") { it.text() }) }
     } catch (e: IOException) {
         e.printStackTrace()
     }
     return chapters
 }
 
-fun NovelApi.getNUChapterUrlsFromDoc(doc: Document): ArrayList<WebPage> {
+fun getNUChapterUrlsFromDoc(doc: Document): ArrayList<WebPage> {
     val chapters = ArrayList<WebPage>()
     val tableElement = doc.body().getElementsByAttributeValueMatching("id", "myTable").firstOrNull { it.tagName() == "table" }
     val elements = tableElement?.getElementsByClass("chp-release")?.filter { it.tagName() == "a" }
@@ -58,7 +58,7 @@ fun NovelApi.getNUChapterUrlsFromDoc(doc: Document): ArrayList<WebPage> {
     return chapters
 }
 
-fun NovelApi.getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
+fun getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
     val chapters = ArrayList<WebPage>()
     if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 

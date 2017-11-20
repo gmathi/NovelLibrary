@@ -123,13 +123,13 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putBoolean(KEEP_SCREEN_ON, value).apply()
 
     fun getVerifiedHosts(): ArrayList<String> {
-        return Gson().fromJson(prefs.getString(VERIFIED_HOSTS, Gson().toJson(HostNames.getDefaultHostNamesList())), object : TypeToken<ArrayList<String>>() {}.type)
+        return Gson().fromJson(prefs.getString(VERIFIED_HOSTS, Gson().toJson(HostNames.defaultHostNamesList)), object : TypeToken<ArrayList<String>>() {}.type)
     }
 
     fun saveVerifiedHost(host: String) {
         if (!HostNames.isVerifiedHost(host))
             HostNames.addHost(host)
-        prefs.edit().putString(VERIFIED_HOSTS, Gson().toJson(HostNames.getHostNamesList())).apply()
+        prefs.edit().putString(VERIFIED_HOSTS, Gson().toJson(HostNames.hostNamesList)).apply()
     }
 
     fun clearVerifiedHosts() {

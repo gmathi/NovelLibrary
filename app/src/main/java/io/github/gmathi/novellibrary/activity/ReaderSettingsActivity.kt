@@ -122,11 +122,6 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 //        }
     }
 
-    //region OptionsMenu
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        return super.onCreateOptionsMenu(menu)
-    }
-
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         if (item?.itemId == android.R.id.home) finish()
         return super.onOptionsItemSelected(item)

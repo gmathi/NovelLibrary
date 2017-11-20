@@ -10,17 +10,18 @@ if (keystorePropertiesFile.exists() && keystorePropertiesFile.canRead()) {
 }
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    compileSdkVersion 27
+    buildToolsVersion '27.0.1'
     defaultConfig {
         applicationId "io.github.gmathi.novellibrary"
         minSdkVersion 16
-        targetSdkVersion 26
+        targetSdkVersion 27
         multiDexEnabled true
         versionCode 33
         versionName "0.7.3.beta"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        resConfigs "auto"
     }
 
     signingConfigs {
@@ -47,8 +48,8 @@ android {
     }
 }
 
-def support_lib_version = "26.1.0"
-def gcm_services_version = "11.4.2"
+def support_lib_version = "27.0.1"
+def gcm_services_version = "11.6.0"
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
@@ -78,9 +79,6 @@ dependencies {
     implementation 'com.github.rubensousa:floatingtoolbar:1.4.4'
     implementation 'com.github.chrisbanes:PhotoView:2.1.2'
     implementation 'com.github.medyo:fancybuttons:1.8.3'
-    implementation('com.afollestad.material-dialogs:core:0.9.4.5', {
-        exclude group: 'com.android.support'
-    })
     implementation 'com.github.gabrielemariotti.changeloglib:changelog:2.1.0'
     implementation 'co.metalab.asyncawait:asyncawait:1.0.0'
     implementation 'com.github.johnpersano:supertoasts:2.0'
@@ -89,10 +87,19 @@ dependencies {
     implementation 'com.hanks.animatecheckbox:library:0.1'
     implementation 'com.afollestad:drag-select-recyclerview:1.0.0'
     implementation 'com.thanosfisherman.mayi:mayi:1.4'
+    implementation 'com.tapadoo.android:alerter:2.0.1'
+    implementation('com.firebaseui:firebase-ui-auth:3.1.0' , {
+        exclude group: 'com.google.firebase'
+        exclude group: 'com.google.android.gms'
+
+    })
+    implementation('com.afollestad.material-dialogs:core:0.9.4.5', {
+        exclude group: 'com.android.support'
+    })
 
     implementation "com.google.android.gms:play-services-gcm:$gcm_services_version"
     implementation "com.google.firebase:firebase-messaging:$gcm_services_version"
-
+    implementation "com.google.firebase:firebase-auth:$gcm_services_version"
 
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.1'
     releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'

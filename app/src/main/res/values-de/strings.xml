@@ -223,6 +223,8 @@
     <string name="other">Andere</string>
     <string name="title_activity_recently_updated_novels">Kürzlich aktualisierte Romane</string>
     <string name="title_activity_recently_viewed_novels">Kürzlich angesehene Romane</string>
+    <string name="no_bookmark">No Bookmark!</string>
+    <string name="imported_list">Imported List</string>
 
 
 </resources>

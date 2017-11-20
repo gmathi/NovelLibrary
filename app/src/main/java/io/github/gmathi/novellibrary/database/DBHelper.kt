@@ -3,14 +3,25 @@ package io.github.gmathi.novellibrary.database
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.util.Log
 import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.NovelGenre
 
 
-class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAME, null, DBKeys.DATABASE_VERSION) {
+class DBHelper
+private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAME, null, DBKeys.DATABASE_VERSION) {
 
-    private val LOG = "DBHelper"
+    companion object {
+        private val TAG = "DBHelper"
+
+        private var sInstance: DBHelper? = null
+
+        @Synchronized
+        fun getInstance(context: Context): DBHelper {
+            if (sInstance == null) {
+                sInstance = DBHelper(context.applicationContext)
+            }
+            return sInstance!!
+        }
+    }
 
     override fun onCreate(db: SQLiteDatabase) {
         // creating required tables
@@ -18,7 +29,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAM
         db.execSQL(DBKeys.CREATE_TABLE_WEB_PAGE)
         db.execSQL(DBKeys.CREATE_TABLE_GENRE)
         db.execSQL(DBKeys.CREATE_TABLE_NOVEL_GENRE)
-        db.execSQL(DBKeys.CREATE_TABLE_DOWNLOAD_QUEUE)
+        db.execSQL(DBKeys.CREATE_TABLE_DOWNLOAD)
         db.execSQL(DBKeys.CREATE_TABLE_SOURCE)
         db.execSQL("INSERT INTO " + DBKeys.TABLE_SOURCE + " (" + DBKeys.KEY_ID + ", " + DBKeys.KEY_NAME + ") VALUES (-1, 'All')")
 
@@ -58,7 +69,13 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAM
         }
 
         if (version == DBKeys.VER_CHAPTER_SOURCE) {
-            //In Case the version is updated again!
+            db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_DOWNLOAD_QUEUE)
+            db.execSQL(DBKeys.CREATE_TABLE_DOWNLOAD)
+            version = DBKeys.VER_DOWNLOADS
+        }
+
+        if (version == DBKeys.VER_DOWNLOADS) {
+
 
         }
 
@@ -83,43 +100,19 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAM
         db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_NOVEL_GENRE)
         db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_DOWNLOAD_QUEUE)
         db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_SOURCE)
-//        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_CHAPTERS_DOWNLOADS)
+        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_DOWNLOAD)
         // create new tables
         onCreate(db)
     }
 
     // Custom Methods
-    fun insertNovel(novel: Novel): Long {
-        val novelId = createNovel(novel)
-        novel.genres?.forEach {
-            val genreId = createGenre(it)
-            createNovelGenre(NovelGenre(novelId, genreId))
-        }
-        return novelId
+
+    fun cleanupNovelData(novel: Novel) {
+        deleteNovel(novel.id)
+        deleteWebPage(novel.id)
+        deleteNovelGenre(novel.id)
+        deleteDownloads(novel.name)
     }
-
-
-    fun getDownloadedChapterCount(novelId: Long): Int {
-        val selectQuery = "SELECT count(novel_id) FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novelId + " AND file_path IS NOT NULL"
-        Log.d(LOG, selectQuery)
-        val cursor = this.readableDatabase.rawQuery(selectQuery, null)
-        var currentChapterCount = 0
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                currentChapterCount = cursor.getInt(0)
-            }
-            cursor.close()
-        }
-        return currentChapterCount
-    }
-
-    fun cleanupNovelData(novelId: Long) {
-        deleteNovel(novelId)
-        deleteWebPage(novelId)
-        deleteNovelGenre(novelId)
-        deleteDownloadQueue(novelId)
-    }
-
 
 }
 

@@ -69,7 +69,7 @@
             android:exported="false">
         </service>
         <service
-            android:name=".service.download.DownloadChapterService"
+            android:name=".service.download.DownloadService"
             android:enabled="true"
             android:exported="false">
         </service>
@@ -104,7 +104,7 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.NewReaderPagerActivity"
+            android:name=".activity.NavDrawerActivity"
             android:label="@string/title_activity_nav_drawer"
             android:launchMode="singleTask"
             android:theme="@style/DarkTheme_DarkSide">
