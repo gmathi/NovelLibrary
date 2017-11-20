@@ -10,7 +10,7 @@ data class Download(val webPageId: Long, var novelName: String, var chapter: Str
     }
 
     var status: Int = 0
-    var metaData: String? = null
+    var metaData: HashMap<String, String>? = null
     var orderId: Int = 0
 
     fun equals(other: Download): Boolean = this.webPageId == other.webPageId

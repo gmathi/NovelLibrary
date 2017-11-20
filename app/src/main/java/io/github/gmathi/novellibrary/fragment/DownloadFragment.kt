@@ -112,10 +112,12 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<Download> {
             when {
                 item.status == Download.STATUS_IN_QUEUE -> {
                     itemView.downloadPauseButton.setImageResource(R.drawable.ic_play_arrow_white_vector)
+                    item.status = Download.STATUS_PAUSED
                     dbHelper.updateDownloadStatus(Download.STATUS_PAUSED, item.webPageId)
                 }
                 item.status == Download.STATUS_PAUSED -> {
                     itemView.downloadPauseButton.setImageResource(R.drawable.ic_pause_white_vector)
+                    item.status = Download.STATUS_IN_QUEUE
                     if (!Utils.isServiceRunning(activity!!, DownloadService.QUALIFIED_NAME))
                         activity?.startDownloadService()
                 }
@@ -127,6 +129,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<Download> {
 
         itemView.downloadDeleteButton.setOnClickListener {
             dbHelper.deleteDownload(item.webPageId)
+            adapter.removeItem(item)
             //confirmDeleteAlert(item)
         }
     }
@@ -163,11 +166,14 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<Download> {
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onDownloadEvent(event: DownloadEvent) {
         if (event.type == EventType.RUNNING) {
-            adapter.items.find { it.webPageId == event.webPageId }?.status = Download.STATUS_RUNNING
+            adapter.items.firstOrNull { it.webPageId == event.webPageId }?.status = Download.STATUS_RUNNING
+            adapter.items.firstOrNull { it.webPageId == event.webPageId }?.let {
+                it.status = Download.STATUS_RUNNING
+                adapter.updateItem(it)
+            }
         }
         if (event.type == EventType.COMPLETE) {
-            adapter.items.removeAll { it.webPageId == event.webPageId }
+            adapter.removeItem(event.download)
         }
-        adapter.notifyDataSetChanged()
     }
 }

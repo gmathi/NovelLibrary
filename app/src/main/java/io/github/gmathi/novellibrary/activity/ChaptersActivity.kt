@@ -448,7 +448,7 @@ class ChaptersActivity :
                     addNovelToLibrary()
                     addWebPagesToDownload(adapter.items)
                     dialog.dismiss()
-                    manageDownloadsDialog()
+                    //manageDownloadsDialog()
                 })
             }
             item?.itemId == R.id.action_sort -> {
@@ -486,8 +486,8 @@ class ChaptersActivity :
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onDownloadEvent(event: DownloadEvent) {
-        if (event.download?.novelName == novel.name) {
-            adapter.items.find { it.id == event.webPageId }?.let { adapter.updateItem(it) }
+        if (event.download.novelName == novel.name) {
+            adapter.items.firstOrNull { it.id == event.webPageId }?.let { adapter.updateItem(it) }
         }
     }
 

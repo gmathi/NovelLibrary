@@ -24,7 +24,7 @@ fun DBHelper.createDownload(download: Download): Boolean {
     values.put(DBKeys.KEY_ORDER_ID, download.orderId)
     values.put(DBKeys.KEY_METADATA, Gson().toJson(HashMap<String, String?>()))
 
-    this.writableDatabase.insert(DBKeys.TABLE_DOWNLOAD_QUEUE, null, values)
+    this.writableDatabase.insert(DBKeys.TABLE_DOWNLOAD, null, values)
     return true
 }
 
@@ -81,7 +81,7 @@ fun DBHelper.deleteDownloads(novelName: String) {
 }
 
 fun DBHelper.getDownloadItemInQueue(): Download? {
-    val selectQuery = "SELECT * FROM " + DBKeys.TABLE_DOWNLOAD + " WHERE " + DBKeys.KEY_STATUS + " = " + Download.STATUS_IN_QUEUE + " ORDER BY " + DBKeys.KEY_NOVEL_ID + " ASC LIMIT 1"
+    val selectQuery = "SELECT * FROM " + DBKeys.TABLE_DOWNLOAD + " WHERE " + DBKeys.KEY_STATUS + " = " + Download.STATUS_IN_QUEUE + " LIMIT 1"
     Log.d(LOG, selectQuery)
     val cursor = this.readableDatabase.rawQuery(selectQuery, null)
     var download: Download? = null
@@ -115,6 +115,7 @@ fun DBHelper.getDownloadNovelNames(): List<String> {
 private fun getDownload(cursor: Cursor): Download {
     val download = Download(cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_WEB_PAGE_ID)), "", "")
     download.novelName = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME))
+    download.chapter = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER))
     download.status = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_STATUS))
     download.orderId = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
     download.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<java.util.HashMap<String, String>>() {}.type)
