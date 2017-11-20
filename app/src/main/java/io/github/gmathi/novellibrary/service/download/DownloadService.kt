@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit
 class DownloadService : IntentService(TAG) {
 
     lateinit var dbHelper: DBHelper
+    var runThread: Boolean = true
 
     //static components
     companion object {
@@ -27,7 +28,7 @@ class DownloadService : IntentService(TAG) {
         //android.os.Debug.waitForDebugger()
         @Suppress("UNCHECKED_CAST")
         if (isNetworkDown()) return
-
+        runThread = true
         dbHelper = DBHelper.getInstance(this@DownloadService)
         downloadChapters()
     }
@@ -41,7 +42,7 @@ class DownloadService : IntentService(TAG) {
         val threadPool = Executors.newFixedThreadPool(poolSize) as ThreadPoolExecutor
 
         var download = dbHelper.getDownloadItemInQueue()
-        while (download != null) {
+        while (download != null && runThread) {
             if (isNetworkDown()) throw InterruptedException(Constants.NO_NETWORK)
 
             if (dataCenter.experimentalDownload) {
@@ -62,6 +63,10 @@ class DownloadService : IntentService(TAG) {
 
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        runThread = false
+    }
 
     private fun isNetworkDown(): Boolean {
         if (!Utils.checkNetwork(this)) {
