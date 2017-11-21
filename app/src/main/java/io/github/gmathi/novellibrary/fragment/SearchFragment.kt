@@ -22,7 +22,7 @@ class SearchFragment : BaseFragment() {
 
     lateinit var adapter: GenericAdapter<Novel>
     var searchMode: Boolean = false
-    var searchTerm: String? = null
+    private var searchTerm: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

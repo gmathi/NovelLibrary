@@ -111,7 +111,7 @@
     <string name="title_activity_import_library" translatable="false">@string/import_reading_list</string>
 
     <string name="title_activity_language" translatable="false">LanguageActivity</string>
-    <string name="title_activity_novel_downloads" translatable="false">NovelDownloadsActivity</string>
+    <string name="title_activity_novel_downloads" translatable="false">@string/title_downloads</string>
 
 
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>

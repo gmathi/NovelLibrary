@@ -135,6 +135,10 @@ fun Activity.startImportLibraryActivity() {
     startActivityForResult(Intent(this, ImportLibraryActivity::class.java), Constants.IMPORT_LIBRARY_ACT_REQ_CODE)
 }
 
+fun Activity.startNovelDownloadsActivity() {
+    startActivityForResult(Intent(this, NovelDownloadsActivity::class.java), Constants.SETTINGS_ACT_REQ_CODE)
+}
+
 fun Activity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean = false) {
     val intent = Intent(this, NovelDetailsActivity::class.java)
     val bundle = Bundle()

@@ -35,7 +35,6 @@ import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.applyFont
 import kotlinx.android.synthetic.main.activity_novel_details.*
 import kotlinx.android.synthetic.main.content_novel_details.*
-import java.io.File
 
 
 class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener {
@@ -129,10 +128,9 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
     private fun setNovelImage() {
         if (novel.imageUrl != null) {
-            if (novel.imageFilePath != null)
-                Glide.with(this).load(File(novel.imageFilePath)).into(novelDetailsImage)
-            else if (Utils.checkNetwork(this))
-                Glide.with(this).load(novel.imageUrl).into(novelDetailsImage)
+            Glide.with(this)
+                .load(novel.imageUrl)
+                .into(novelDetailsImage)
             novelDetailsImage.setOnClickListener { startImagePreviewActivity(novel.imageUrl, novel.imageFilePath, novelDetailsImage) }
         }
     }
@@ -246,9 +244,11 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (item?.itemId == android.R.id.home) finish()
-        else if (item?.itemId == R.id.action_delete_novel) confirmNovelDelete()
-        else if (item?.itemId == R.id.action_share) shareUrl(novel.url)
+        when {
+            item?.itemId == android.R.id.home -> finish()
+            item?.itemId == R.id.action_delete_novel -> confirmNovelDelete()
+            item?.itemId == R.id.action_share -> shareUrl(novel.url)
+        }
         return super.onOptionsItemSelected(item)
     }
 

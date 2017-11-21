@@ -14,7 +14,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.util.Log
 import android.util.TypedValue
-import com.hanks.library.BuildConfig
+import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.dbHelper
@@ -66,9 +66,7 @@ object Utils {
     }
 
     // convert from byte array to bitmap
-    fun getImage(image: ByteArray): Bitmap {
-        return BitmapFactory.decodeByteArray(image, 0, image.size)
-    }
+    fun getImage(image: ByteArray): Bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
 
     //endregion
 

@@ -97,7 +97,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<Download> {
     //region Adapter Listener Methods - onItemClick(), viewBinder()
     @SuppressLint("SetTextI18n")
     override fun bind(item: Download, itemView: View, position: Int) {
-        itemView.novelName.text = item.novelName
+        itemView.title.text = item.novelName
 
         when {
             item.status == Download.STATUS_IN_QUEUE -> itemView.downloadPauseButton.setImageResource(R.drawable.ic_pause_white_vector)
@@ -105,7 +105,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<Download> {
             item.status == Download.STATUS_RUNNING -> itemView.downloadPauseButton.setImageResource(R.drawable.ic_cloud_download_white_vector)
         }
 
-        itemView.downloadProgress.text = item.chapter
+        itemView.subtitle.text = item.chapter
 
         itemView.downloadPauseButton.setOnClickListener {
 
