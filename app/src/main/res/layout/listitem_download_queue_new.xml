@@ -1,17 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="70dp">
+    android:layout_height="90dp">
 
+    <ImageButton
+        android:id="@+id/closeButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:background="@color/red"
+        app:srcCompat="@drawable/ic_close_white_vector"
+        />
 
     <ImageView
         android:id="@+id/novelIcon"
-        android:layout_width="40dp"
+        android:layout_width="58dp"
         android:layout_height="match_parent"
         android:layout_centerVertical="true"
-        android:layout_margin="8dp"/>
+        android:layout_margin="16dp"/>
 
     <TextView
         android:id="@+id/title"
@@ -22,9 +33,12 @@
         android:layout_marginBottom="4dp"
         android:layout_marginTop="@dimen/default_margin"
         android:layout_toEndOf="@id/novelIcon"
+        android:layout_toLeftOf="@id/closeButton"
         android:layout_toRightOf="@id/novelIcon"
+        android:layout_toStartOf="@id/closeButton"
         android:ellipsize="end"
-        android:maxLines="1"
+        android:maxLines="2"
+        android:textSize="17sp"
         android:textStyle="bold"
         tools:text="This is just an another novel yes yes"/>
 
@@ -39,6 +53,7 @@
         android:layout_toRightOf="@id/novelIcon"
         android:ellipsize="end"
         android:maxLines="1"
+        android:textSize="14sp"
         android:textStyle="italic"
         tools:text="Downloaded: 1/1000"/>
 

@@ -169,7 +169,7 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
         if (dbHelper.getNovelByUrl(item.novelUrl!!) != null) {
             itemView.checkbox.visibility = View.GONE
             itemView.title.setTextColor(ContextCompat.getColor(this@ImportLibraryActivity, R.color.Lime))
-            itemView.subtitle.applyFont(assets).text = "[ Already In Library ]"
+            itemView.subtitle.applyFont(assets).text = getString(R.string.already_in_library)
         } else {
             itemView.title.setTextColor(ContextCompat.getColor(this@ImportLibraryActivity, R.color.White))
             itemView.checkbox.visibility = View.VISIBLE

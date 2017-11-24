@@ -13,6 +13,7 @@ import android.view.animation.AnimationUtils
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.*
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
@@ -92,6 +93,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         if (item.imageUrl != null) {
             Glide.with(this)
                 .load(item.imageUrl)
+                .apply(RequestOptions.circleCropTransform())
                 .into(itemView.novelImageView)
         }
 

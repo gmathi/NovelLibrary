@@ -40,22 +40,34 @@ class BackgroundNovelSyncTask : GcmTaskService() {
     }
 
     private fun startNovelsSync(dbHelper: DBHelper) {
+<<<<<<< Updated upstream
         Log.e(TAG, "start novel sync")
 
         val unfilteredMap: HashMap<String, Int> = HashMap()
         val unfilteredChapMap: HashMap<String, Long> = HashMap()
+=======
+        val novelMap: HashMap<String, Int> = HashMap()
+        val novelsChapMap: HashMap<String, Long> = HashMap()
+>>>>>>> Stashed changes
         dbHelper.getAllNovels().forEach {
             val totalChapters = NovelApi().getChapterCount(it.url)
             if (totalChapters != 0 && totalChapters > it.chapterCount.toInt() && totalChapters > it.newChapterCount.toInt()) {
-                unfilteredMap.put(it.name, (totalChapters - it.chapterCount).toInt())
-                unfilteredChapMap.put(it.name, totalChapters.toLong())
+                novelMap.put(it.name, (totalChapters - it.chapterCount).toInt())
+                novelsChapMap.put(it.name, totalChapters.toLong())
             }
         }
 
+<<<<<<< Updated upstream
         val novels = dbHelper.getAllNovels()
         val novelIds = novels.map { it.name }
         var novelMap = unfilteredMap.filter { novelIds.contains(it.key) }
         val novelsChapMap = HashMap(unfilteredChapMap.filter { novelIds.contains(it.key) })
+=======
+//        val novels = dbHelper.getAllNovels()
+//        val novelNames = novels.map { it.name }
+//        val novelMap = unfilteredMap.filter { novelNames.contains(it.key) }
+//        val novelsChapMap = HashMap(unfilteredChapMap.filter { novelNames.contains(it.key) })
+>>>>>>> Stashed changes
 
         if (novelMap.isEmpty()) return
 

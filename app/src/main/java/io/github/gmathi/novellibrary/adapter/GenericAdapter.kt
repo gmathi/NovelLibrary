@@ -12,6 +12,8 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
 
     override fun onBindViewHolder(holder: ViewHolder<T>, position: Int) = holder.bind(item = items[position], listener = listener, position = position)
 
+    override fun onBindViewHolder(holder: ViewHolder<T>, position: Int, payloads: MutableList<Any>?) = holder.bind(item = items[position], listener = listener, position = position, payloads = payloads)
+
     override fun getItemCount() = items.size
 
     class ViewHolder<T>(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -19,10 +21,19 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
             with(itemView) { setOnClickListener { listener.onItemClick(item) } }
             listener.bind(item = item, itemView = itemView, position = position)
         }
+
+        fun bind(item: T, listener: Listener<T>, position: Int, payloads: MutableList<Any>?) {
+            with(itemView) { setOnClickListener { listener.onItemClick(item) } }
+            listener.bind(item = item, itemView = itemView, position = position, payloads = payloads)
+        }
+
     }
 
     interface Listener<in T> {
         fun bind(item: T, itemView: View, position: Int)
+        fun bind(item: T, itemView: View, position: Int, payloads: MutableList<Any>?) {
+
+        }
         fun onItemClick(item: T)
     }
 

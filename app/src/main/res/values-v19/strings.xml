@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="no_bookmark">No Bookmark!</string>
+    <string name="already_in_library">[ Already In Library ]</string>
 </resources>

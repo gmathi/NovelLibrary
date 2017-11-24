@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import co.metalab.asyncawait.async
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
@@ -134,6 +135,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         if (item.imageUrl != null) {
             Glide.with(this)
                 .load(item.imageUrl)
+                .apply(RequestOptions.circleCropTransform())
                 .into(itemView.novelImageView)
         }
 

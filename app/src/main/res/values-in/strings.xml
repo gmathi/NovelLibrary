@@ -216,6 +216,7 @@
     <string name="other">Dll</string>
     <string name="no_bookmark">No Bookmark!</string>
     <string name="imported_list">Imported List</string>
+    <string name="already_in_library">[ Already In Library ]</string>
 
 
 </resources>
