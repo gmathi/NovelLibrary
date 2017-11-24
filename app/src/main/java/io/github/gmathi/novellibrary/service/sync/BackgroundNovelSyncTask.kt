@@ -30,7 +30,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
     override fun onRunTask(taskParams: TaskParams): Int {
         val context = this@BackgroundNovelSyncTask
         val dbHelper = DBHelper.getInstance(context)
-        
+
         try {
             startNovelsSync(dbHelper)
         } catch (e: Exception) {
@@ -135,7 +135,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         val first = createNotificationBuider(
                 context, "Novel Livrary", "This is the Group Notification base", contentIntent, deleteIntent)
         first.setGroupSummary(true).setGroup(KEY_NOTIFICATION_GROUP)
-        var count = 0
+        var notificationId = 0
         var notilifationList = ArrayList<Notification>()
         for (noval in novalMap) {
             val second = createNotificationBuider(
@@ -145,8 +145,8 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         }
         showNotification(this, first.build(), 0)
         for (noti in notilifationList) {
-            count++
-            showNotification(this, noti, count)
+            notificationId++
+            showNotification(this, noti, notificationId)
 
         }
     }
