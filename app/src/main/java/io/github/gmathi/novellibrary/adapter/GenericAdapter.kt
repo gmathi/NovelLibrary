@@ -12,7 +12,7 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
 
     override fun onBindViewHolder(holder: ViewHolder<T>, position: Int) = holder.bind(item = items[position], listener = listener, position = position)
 
-//    override fun onBindViewHolder(holder: ViewHolder<T>, position: Int, payloads: MutableList<Any>?) = holder.bind(item = items[position], listener = listener, position = position, payloads = payloads)
+    override fun onBindViewHolder(holder: ViewHolder<T>, position: Int, payloads: MutableList<Any>?) = holder.bind(item = items[position], listener = listener, position = position, payloads = payloads)
 
     override fun getItemCount() = items.size
 
@@ -22,18 +22,19 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
             listener.bind(item = item, itemView = itemView, position = position)
         }
 
-//        fun bind(item: T, listener: Listener<T>, position: Int, payloads: MutableList<Any>?) {
-//            with(itemView) { setOnClickListener { listener.onItemClick(item) } }
-//            listener.bind(item = item, itemView = itemView, position = position, payloads = payloads)
-//        }
+        fun bind(item: T, listener: Listener<T>, position: Int, payloads: MutableList<Any>?) {
+            with(itemView) { setOnClickListener { listener.onItemClick(item) } }
+            listener.bind(item = item, itemView = itemView, position = position, payloads = payloads)
+        }
 
     }
 
     interface Listener<in T> {
         fun bind(item: T, itemView: View, position: Int)
-//        fun bind(item: T, itemView: View, position: Int, payloads: MutableList<Any>?) {
-//
-//        }
+        fun bind(item: T, itemView: View, position: Int, payloads: MutableList<Any>?) {
+            bind(item, itemView, position)
+        }
+
         fun onItemClick(item: T)
     }
 
@@ -52,15 +53,6 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
             notifyItemRangeRemoved(0, size)
             return
         }
-
-        //otherwise TODO: Revisit this
-//        if (newItems.size > items.size) {
-//            items.forEach { newItems.remove(it) }
-//            val size = items.size
-//            items.addAll(newItems)
-//            notifyItemRangeInserted(size - 1, newItems.size)
-//            return
-//        }
 
         items.clear()
         items.addAll(newItems)
@@ -91,6 +83,7 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
         }
     }
 
+    @Suppress("unused")
     fun insertItem(item: T, position: Int = -1) {
         val index = items.indexOf(item)
         if (index == -1) {
@@ -106,7 +99,7 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
 
     fun onItemMove(fromPosition: Int, toPosition: Int): Boolean {
         if (fromPosition < toPosition) {
-            for (i in fromPosition..toPosition - 1) {
+            for (i in fromPosition until toPosition) {
                 Collections.swap(items, i, i + 1)
             }
         } else {
