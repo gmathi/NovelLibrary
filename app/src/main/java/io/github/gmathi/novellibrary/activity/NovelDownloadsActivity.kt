@@ -23,7 +23,6 @@ import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.activity_novel_downloads.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
-import kotlinx.android.synthetic.main.listitem_download_queue_old.*
 import kotlinx.android.synthetic.main.listitem_download_queue_old.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -104,7 +103,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         val downloadedPages = dbHelper.getDownloadedChapterCount(novel!!.id)
         itemView.novelProgressText.text = "$downloadedPages / ${novel.newChapterCount}"
 
-        if (itemView.)
+
     }
 
     override fun onItemClick(item: String) {

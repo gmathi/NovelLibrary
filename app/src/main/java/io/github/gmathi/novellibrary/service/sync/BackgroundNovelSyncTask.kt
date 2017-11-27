@@ -126,7 +126,6 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         val first = createNotificationBuilder(
             context, getString(R.string.app_name), getString(R.string.group_notification_text), contentIntent, deleteIntent)
         first.setGroupSummary(true).setGroup(KEY_NOTIFICATION_GROUP)
-        var count = 0
         val notificationList = ArrayList<Notification>()
         for (novel in novelMap) {
             val second = createNotificationBuilder(
@@ -136,11 +135,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         }
         showNotification(this, first.build(), 0)
 
-        for (notification in notificationList) {
-            count++
-            showNotification(this, notification, count)
-        }
-
+        var count = 0
         notificationList.forEach { showNotification(this, it, ++count) }
     }
 
