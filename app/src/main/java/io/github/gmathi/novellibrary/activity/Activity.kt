@@ -39,7 +39,7 @@ fun Activity.snackBar(view: View, message: String) {
         .setAction("Action", null).show()
 }
 
-fun Activity.startChaptersActivity(novel: Novel, jumpToReader: Boolean) {
+fun Activity.startChaptersActivity(novel: Novel, jumpToReader: Boolean = false) {
     val intent = Intent(this, ChaptersActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)

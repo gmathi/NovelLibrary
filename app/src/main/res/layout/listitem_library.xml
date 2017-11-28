@@ -49,9 +49,10 @@
             android:id="@+id/reorderButton"
             android:layout_width="24dp"
             android:layout_height="24dp"
+            android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
+            android:layout_marginBottom="4dp"
             android:scaleType="centerInside"
             app:srcCompat="@drawable/ic_reorder_white_vector"/>
 
@@ -59,16 +60,19 @@
             android:id="@+id/infoButton"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_toStartOf="@id/reorderButton"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="4dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
             android:layout_toLeftOf="@id/reorderButton"
-            android:layout_centerVertical="true"
+            android:layout_toStartOf="@id/reorderButton"
             android:scaleType="centerInside"
             app:srcCompat="@drawable/ic_info_white_vector"/>
 
-
-        <LinearLayout
+        <TextView
+            android:id="@+id/novelTitleTextView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_marginEnd="@dimen/default_margin"
             android:layout_marginLeft="@dimen/default_margin"
@@ -76,73 +80,72 @@
             android:layout_marginStart="@dimen/default_margin"
             android:layout_marginTop="2dp"
             android:layout_toEndOf="@id/novelImageViewLayout"
+            android:layout_toRightOf="@id/novelImageViewLayout"
+            android:ellipsize="end"
+            android:gravity="center_vertical|start"
+            android:maxLines="1"
+            android:textColor="@color/white"
+            android:textIsSelectable="false"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="Realms of Firmament"/>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/novelTitleTextView"
+            android:layout_marginBottom="4dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="@dimen/default_margin"
+            android:layout_marginLeft="@dimen/default_margin"
+            android:layout_marginRight="@dimen/default_margin"
+            android:layout_marginStart="@dimen/default_margin"
+            android:layout_toEndOf="@id/novelImageViewLayout"
             android:layout_toLeftOf="@id/infoButton"
             android:layout_toRightOf="@id/novelImageViewLayout"
             android:layout_toStartOf="@id/infoButton"
-            android:orientation="vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
+            <RatingBar
+                android:id="@+id/novelRatingBar"
+                style="@style/Widget.AppCompat.RatingBar.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="21sp"
+                android:layout_marginTop="2dp"
+                android:numStars="5"
+                android:progressTint="@color/Gold"
+                android:secondaryProgressTint="@android:color/transparent"
+                tools:rating="3.6"/>
 
             <TextView
-                android:id="@+id/novelTitleTextView"
-                android:layout_width="match_parent"
+                android:id="@+id/novelRatingText"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:ellipsize="end"
+                android:layout_marginLeft="2dp"
+                android:layout_marginStart="2dp"
                 android:gravity="center_vertical|start"
-                android:maxLines="1"
-                android:textColor="@color/white"
                 android:textIsSelectable="false"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                tools:text="Realms of Firmament"/>
+                android:textSize="12sp"
+                android:textStyle="italic"
+                tools:text="(3.6)"/>
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/novelProgressText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <RatingBar
-                    android:id="@+id/novelRatingBar"
-                    style="@style/Widget.AppCompat.RatingBar.Small"
-                    android:layout_width="wrap_content"
-                    android:layout_height="21sp"
-                    android:layout_marginTop="2dp"
-                    android:numStars="5"
-                    android:progressTint="@color/Gold"
-                    android:secondaryProgressTint="@android:color/transparent"
-                    tools:rating="3.6"/>
-
-                <TextView
-                    android:id="@+id/novelRatingText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="2dp"
-                    android:layout_marginStart="2dp"
-                    android:gravity="center_vertical|start"
-                    android:textIsSelectable="false"
-                    android:textSize="12sp"
-                    android:textStyle="italic"
-                    tools:text="(3.6)"/>
-
-                <TextView
-                    android:layout_marginLeft="4dp"
-                    android:layout_marginStart="4dp"
-                    android:gravity="center_vertical|end"
-                    android:textIsSelectable="false"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    tools:text="13/306"
-                    android:textColor="@color/White"
-                    android:id="@+id/novelProgressText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-
-            </LinearLayout>
-
+                android:layout_marginLeft="4dp"
+                android:layout_marginStart="4dp"
+                android:gravity="center_vertical|end"
+                android:textColor="@color/White"
+                android:textIsSelectable="false"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="13/306"/>
 
         </LinearLayout>
+
 
     </RelativeLayout>
 
@@ -153,14 +156,14 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
+        android:paddingBottom="2dp"
+        android:paddingLeft="@dimen/default_card_view_margin"
+        android:paddingRight="@dimen/default_card_view_margin"
+        android:paddingTop="2dp"
         android:textColor="@color/white"
         android:visibility="gone"
-        android:paddingTop="2dp"
-        android:paddingBottom="2dp"
-        android:paddingRight="@dimen/default_card_view_margin"
-        android:paddingLeft="@dimen/default_card_view_margin"
-        tools:visibility="visible"
         tools:background="@color/DarkRed"
-        tools:text="4"/>
+        tools:text="4"
+        tools:visibility="visible"/>
 
 </RelativeLayout>

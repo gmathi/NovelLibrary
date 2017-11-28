@@ -84,7 +84,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun onItemClick(item: Novel) {
         if (lastDeletedId != item.id)
-            startNovelDetailsActivity(item, false)
+            activity?.startChaptersActivity(item)
     }
 
     override fun bind(item: Novel, itemView: View, position: Int) {
@@ -144,6 +144,11 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             }
         } else {
             itemView.novelProgressText.text = getString(R.string.no_bookmark)
+        }
+
+        itemView.infoButton.setOnClickListener {
+            if (lastDeletedId != item.id)
+                startNovelDetailsActivity(item, false)
         }
     }
 
