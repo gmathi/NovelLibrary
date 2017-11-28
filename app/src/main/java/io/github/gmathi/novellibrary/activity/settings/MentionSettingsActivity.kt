@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.activity
+package io.github.gmathi.novellibrary.activity.settings
 
 import android.graphics.Rect
 import android.os.Bundle
@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.MenuItem
 import android.view.View
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.activity.*
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults

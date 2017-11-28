@@ -22,6 +22,7 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.Theme
 import com.bumptech.glide.Glide
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.insertNovel
 import io.github.gmathi.novellibrary.database.updateNovel
@@ -89,6 +90,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             try {
                 val downloadedNovel = await { NovelApi().getNovelDetails(novel.url) }
                 novel.copyFrom(downloadedNovel)
+                addNovelToHistory()
                 if (novel.id != -1L) await { dbHelper.updateNovel(novel) }
                 setupViews()
                 progressLayout.showContent()
@@ -288,6 +290,13 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
     override fun onLinkClicked(title: String, url: String) {
         startSearchResultsActivity(title, url)
+    }
+
+    private fun addNovelToHistory() {
+        val history = dataCenter.loadNovelHistory()
+        history.removeAll { novel.name == it.name }
+        history.add(novel)
+        dataCenter.saveNovelHistory(history)
     }
 
     override fun onDestroy() {

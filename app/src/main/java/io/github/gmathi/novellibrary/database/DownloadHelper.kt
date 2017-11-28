@@ -112,6 +112,24 @@ fun DBHelper.getDownloadNovelNames(): List<String> {
     return list
 }
 
+fun DBHelper.hasDownloadsInQueue(novelName: String): Boolean {
+    var hasDownloadsInQueue = false
+    val selectQuery = "SELECT * FROM " + DBKeys.TABLE_DOWNLOAD + " WHERE " +
+        DBKeys.KEY_NAME + " = \"" + novelName + "\" AND " +
+        DBKeys.KEY_STATUS + " = " + Download.STATUS_IN_QUEUE + " LIMIT 1"
+
+    Log.d(LOG, selectQuery)
+    val cursor = this.readableDatabase.rawQuery(selectQuery, null)
+
+    // looping through all rows and adding to list
+    if (cursor != null) {
+        hasDownloadsInQueue = cursor.moveToFirst()
+        cursor.close()
+    }
+
+    return hasDownloadsInQueue
+}
+
 private fun getDownload(cursor: Cursor): Download {
     val download = Download(cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_WEB_PAGE_ID)), "", "")
     download.novelName = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME))

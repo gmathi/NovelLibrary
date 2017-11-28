@@ -94,7 +94,7 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.SettingsActivity"
+            android:name=".activity.settings.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
@@ -120,17 +120,17 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.LibrariesUsedActivity"
+            android:name=".activity.settings.LibrariesUsedActivity"
             android:label="@string/title_activity_libraries_used"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.ContributionsActivity"
+            android:name=".activity.settings.ContributionsActivity"
             android:label="@string/title_activity_contributions"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.CopyrightActivity"
+            android:name=".activity.settings.CopyrightActivity"
             android:label="@string/title_activity_copyright"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
@@ -140,17 +140,17 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.GeneralSettingsActivity"
+            android:name=".activity.settings.GeneralSettingsActivity"
             android:label="@string/title_activity_general_settings"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.ReaderSettingsActivity"
+            android:name=".activity.settings.ReaderSettingsActivity"
             android:label="@string/title_activity_reader_settings"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.MentionSettingsActivity"
+            android:name=".activity.settings.MentionSettingsActivity"
             android:label="@string/title_activity_mention_settings"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
@@ -160,7 +160,7 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.LanguageActivity"
+            android:name=".activity.settings.LanguageActivity"
             android:label="@string/title_activity_language"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
@@ -209,7 +209,7 @@
         <activity
             android:name=".activity.RecentlyViewedNovelsActivity"
             android:label="@string/title_activity_recently_viewed_novels"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/DarkTheme_DarkSide">
         </activity>
     </application>
 

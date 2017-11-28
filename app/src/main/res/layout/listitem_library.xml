@@ -55,6 +55,16 @@
             android:scaleType="centerInside"
             app:srcCompat="@drawable/ic_reorder_white_vector"/>
 
+        <ImageView
+            android:id="@+id/infoButton"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_toStartOf="@id/reorderButton"
+            android:layout_toLeftOf="@id/reorderButton"
+            android:layout_centerVertical="true"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/ic_info_white_vector"/>
+
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -66,9 +76,9 @@
             android:layout_marginStart="@dimen/default_margin"
             android:layout_marginTop="2dp"
             android:layout_toEndOf="@id/novelImageViewLayout"
-            android:layout_toLeftOf="@id/reorderButton"
+            android:layout_toLeftOf="@id/infoButton"
             android:layout_toRightOf="@id/novelImageViewLayout"
-            android:layout_toStartOf="@id/reorderButton"
+            android:layout_toStartOf="@id/infoButton"
             android:orientation="vertical">
 
 

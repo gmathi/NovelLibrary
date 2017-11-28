@@ -34,26 +34,26 @@
                 />
 
             <ImageView
-                android:id="@+id/playPauseImage "
+                android:id="@+id/playPauseImage"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@color/black_overlay_dark"
                 android:scaleType="centerInside"
                 android:visibility="visible"
-                app:srcCompat="@drawable/ic_pause_white_vector"/>
+                app:srcCompat="@drawable/ic_play_arrow_white_vector"/>
 
 
         </android.support.v7.widget.CardView>
 
         <ImageView
-            android:id="@+id/menuButton"
+            android:id="@+id/deleteButton"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:scaleType="centerInside"
-            app:srcCompat="@drawable/ic_more_vert_white_vector"/>
+            app:srcCompat="@drawable/ic_delete_white_vector"/>
 
 
         <LinearLayout
@@ -66,9 +66,9 @@
             android:layout_marginStart="@dimen/default_margin"
             android:layout_marginTop="2dp"
             android:layout_toEndOf="@id/novelImageViewLayout"
-            android:layout_toLeftOf="@id/menuButton"
+            android:layout_toLeftOf="@id/deleteButton"
             android:layout_toRightOf="@id/novelImageViewLayout"
-            android:layout_toStartOf="@id/menuButton"
+            android:layout_toStartOf="@id/deleteButton"
             android:orientation="vertical">
 
 

@@ -1,7 +1,6 @@
-package io.github.gmathi.novellibrary.activity
+package io.github.gmathi.novellibrary.activity.settings
 
 import android.Manifest
-import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.os.Bundle
 import android.os.Environment
@@ -10,13 +9,13 @@ import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
 import android.text.format.Formatter
 import android.util.Log
-import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.thanosfisherman.mayi.Mayi
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
@@ -111,12 +110,12 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemView.widgetButton.text = getString(R.string.clear)
                 itemView.widgetButton.setOnClickListener { deleteFilesDialog() }
             }
+//            3 -> {
+//                itemView.widgetSwitch.visibility = View.VISIBLE
+//                itemView.widgetSwitch.isChecked = dataCenter.experimentalDownload
+//                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.experimentalDownload = value }
+//            }
             3 -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.experimentalDownload
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.experimentalDownload = value }
-            }
-            4 -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.loadLibraryScreen
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.loadLibraryScreen = value }

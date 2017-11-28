@@ -128,9 +128,9 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_settings -> {
                 startSettingsActivity()
             }
-//            R.id.nav_recently_viewed -> {
-//                startRecentlyViewedNovelsActivity()
-//            }
+            R.id.nav_recently_viewed -> {
+                startRecentlyViewedNovelsActivity()
+            }
             R.id.nav_recently_updated -> {
                 startRecentlyUpdatedNovelsActivity()
             }

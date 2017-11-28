@@ -60,7 +60,7 @@
         <item>@string/backup_data</item>
         <item>@string/restore_data</item>
         <item>@string/clear_data</item>
-        <item>@string/faster_downloads</item>
+        <!--<item>@string/faster_downloads</item>-->
         <item>@string/first_screen_library</item>
     </string-array>
 
@@ -68,12 +68,12 @@
         <item>@string/backup_data_description</item>
         <item>@string/restore_data_description</item>
         <item>@string/clear_data_description</item>
-        <item>@string/faster_downloads_description</item>
+        <!--<item>@string/faster_downloads_description</item>-->
         <item>@string/first_screen_library_description</item>
     </string-array>
 
     <string-array name="reader_titles_list" translatable="false">
-        <item>@string/clean_pages</item>
+        <item>@string/reader_mode</item>
         <item>@string/disable_javascript</item>
         <item>@string/swipe_right_for_next_chapter</item>
         <item>@string/show_reader_scroll</item>
@@ -83,7 +83,7 @@
     </string-array>
 
     <string-array name="reader_subtitles_list" translatable="false">
-        <item>@string/clean_pages_description</item>
+        <item>@string/reader_mode_description</item>
         <item>@string/disable_javascript_description</item>
         <item>@string/swipe_right_for_next_chapter_description</item>
         <item>@string/show_reader_scroll_description</item>
@@ -321,6 +321,8 @@
     <string name="imported_list">Imported List</string>
     <string name="already_in_library">[ Already In Library ]</string>
     <string name="group_notification_text">Updated for the novels in your library</string>
+    <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
+    <string name="reader_mode_description">Reader mode will be on permanently</string>
 
 
 </resources>
