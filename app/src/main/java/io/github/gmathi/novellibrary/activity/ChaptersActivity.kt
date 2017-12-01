@@ -101,7 +101,7 @@ class ChaptersActivity :
             } else {
                 swipeRefreshLayout.isRefreshing = false
                 progressLayout.showContent()
-                if (adapter.items.size < novel.chapterCount.toInt()) {
+                if (adapter.items.size < novel.newChapterCount.toInt()) {
                     swipeRefreshLayout.isRefreshing = true
                     getChapters()
                 }
@@ -131,13 +131,23 @@ class ChaptersActivity :
                             novel.newChapterCount = chapterList.size.toLong()
                             dbHelper.updateNovel(novel)
                         }
-                        await { dbHelper.addWebPages(chapterList, novel) }
-                        getChaptersFromDB()
+                        await {
+                            for (i in 0 until chapterList.size) {
+                                val webPage = dbHelper.getWebPage(novel.id, i.toLong())
+                                if (webPage == null) {
+                                    chapterList[i].orderId = i.toLong()
+                                    chapterList[i].novelId = novel.id
+                                    chapterList[i].id = dbHelper.createWebPage(chapterList[i])
+                                } else
+                                    chapterList[i].copyFrom(webPage)
+                            }
+                        }
                     } else {
-                        adapter.updateData(ArrayList(chapterList))
                         swipeRefreshLayout.isRefreshing = false
-                        progressLayout.showContent()
                     }
+                    adapter.updateData(ArrayList(chapterList))
+                    progressLayout.showContent()
+                    swipeRefreshLayout.isRefreshing = false
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

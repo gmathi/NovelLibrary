@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.activity
+package io.github.gmathi.novellibrary.activity.downloads
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -9,6 +9,7 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
