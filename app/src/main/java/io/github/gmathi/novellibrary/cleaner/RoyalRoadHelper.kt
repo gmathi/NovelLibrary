@@ -33,20 +33,20 @@ class RoyalRoadHelper : HtmlHelper() {
     override fun toggleTheme(isDark: Boolean, doc: Document): Document {
         if (isDark) {
             doc.head().getElementsByTag("link").firstOrNull {
-                it.hasAttr("href") && it.attr("href") == "/Content/Themes/Bootstrap/Site.css"
+                it.hasAttr("href") && it.attr("href").contains("/Content/Themes/Bootstrap/Site.css")
             }?.attr("href", "/Content/Themes/Bootstrap/Site-dark.css")
 
             doc.head().getElementsByTag("link").firstOrNull {
-                it.hasAttr("href") && it.attr("href") == "../Site.css"
+                it.hasAttr("href") && it.attr("href").contains("../Site.css")
             }?.attr("href", "../Site-dark.css")
 
         } else {
             doc.head().getElementsByTag("link").firstOrNull {
-                it.hasAttr("href") && it.attr("href") == "/Content/Themes/Bootstrap/Site-dark.css"
+                it.hasAttr("href") && it.attr("href").contains("/Content/Themes/Bootstrap/Site-dark.css")
             }?.attr("href", "/Content/Themes/Bootstrap/Site.css")
 
             doc.head().getElementsByTag("link").firstOrNull {
-                it.hasAttr("href") && it.attr("href") == "../Site-dark.css"
+                it.hasAttr("href") && it.attr("href").contains("../Site-dark.css")
             }?.attr("href", "../Site.css")
         }
 

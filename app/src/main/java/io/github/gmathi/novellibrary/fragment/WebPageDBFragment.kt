@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.fragment
 
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -56,9 +57,8 @@ class WebPageDBFragment : Fragment() {
     private var isCleaned: Boolean = false
     var history: ArrayList<WebPage> = ArrayList()
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_reader, container, false)
-    }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
+        inflater.inflate(R.layout.fragment_reader, container, false)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -137,6 +137,7 @@ class WebPageDBFragment : Fragment() {
     }
 
     private fun setWebView() {
+        readerWebView.setBackgroundColor(Color.argb(1, 0, 0, 0));
         readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled
 
 //        readerWebView.setOnTouchListener { view, motionEvent ->
