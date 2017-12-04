@@ -13,6 +13,8 @@ import android.view.MenuItem
 import android.view.View
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.hanks.library.AnimateCheckBox
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapterWithDragListener
@@ -34,6 +36,7 @@ import kotlinx.android.synthetic.main.listitem_chapter_ultimate.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import java.io.File
 
 class ChaptersActivity :
     BaseActivity(),
@@ -362,6 +365,12 @@ class ChaptersActivity :
                 }
                 shareUrl(urls)
             }
+            R.id.action_delete -> {
+                updateSet.forEach {
+                    deleteWebPage(it)
+                }
+                mode?.finish()
+            }
         }
         return false
     }
@@ -567,6 +576,29 @@ class ChaptersActivity :
             progressLayout.showContent()
             startDownloadService()
         }
+    }
+
+    private fun deleteWebPage(webPage: WebPage) {
+        if (webPage.filePath != null)
+            try {
+                val file = File(webPage.filePath)
+                file.delete()
+                webPage.filePath = null
+                if (webPage.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
+                    val linkedPages: ArrayList<WebPage> = Gson().fromJson(webPage.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+                    linkedPages.forEach {
+                        if (it.filePath != null) {
+                            val linkedFile = File(it.filePath)
+                            linkedFile.delete()
+                        }
+                        it.filePath = null
+                    }
+                    webPage.metaData.put(Constants.MD_OTHER_LINKED_WEB_PAGES, Gson().toJson(linkedPages))
+                }
+                dbHelper.updateWebPage(webPage)
+            } catch (e: Exception) {
+                Utils.error("ChaptersActivity", e.localizedMessage)
+            }
     }
 
     override fun onDestroy() {

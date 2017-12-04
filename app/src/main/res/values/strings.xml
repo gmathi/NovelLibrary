@@ -324,6 +324,7 @@
     <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
     <string name="reader_mode_description">Reader mode will be on permanently</string>
     <string name="title_activity_chapter_downloads">ChapterDownloadsActivity</string>
+    <string name="delete_chapters">Delete Chapters</string>
 
 
 </resources>
