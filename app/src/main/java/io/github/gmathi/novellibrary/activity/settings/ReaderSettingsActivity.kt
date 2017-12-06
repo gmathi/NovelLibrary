@@ -22,6 +22,17 @@ import java.io.File
 
 class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
+    companion object {
+        private val POSITION_CLEAN_CHAPTERS = 0
+        private val POSITION_JAVASCRIPT_DISABLED = 1
+        private val POSITION_JAP_SWIPE = 2
+        private val POSITION_SHOW_READER_SCROLL = 3
+        private val POSITION_SHOW_CHAPTER_COMMENTS = 4
+        private val POSITION_VOLUME_SCROLL = 5
+        private val POSITION_KEEP_SCREEN_ON = 6
+        private val POSITION_ENABLE_IMMERSIVE_MODE = 7
+    }
+
     lateinit var adapter: GenericAdapter<String>
     private lateinit var settingsItems: ArrayList<String>
     private lateinit var settingsItemsDescription: ArrayList<String>
@@ -62,7 +73,7 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         itemView.subtitle.applyFont(assets).text = settingsItemsDescription[position]
         itemView.widgetSwitch.setOnCheckedChangeListener(null)
         when (position) {
-            0 -> {
+            POSITION_CLEAN_CHAPTERS -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.cleanChapters
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
@@ -73,7 +84,7 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     }
                 }
             }
-            1 -> {
+            POSITION_JAVASCRIPT_DISABLED -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.javascriptDisabled
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
@@ -84,32 +95,36 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     }
                 }
             }
-            2 -> {
+            POSITION_JAP_SWIPE -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.japSwipe
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.japSwipe = value }
             }
-            3 -> {
+            POSITION_SHOW_READER_SCROLL -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.showReaderScroll
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.showReaderScroll = value }
             }
-            4 -> {
+            POSITION_SHOW_CHAPTER_COMMENTS -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.showChapterComments
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.showChapterComments = value }
             }
-            5 -> {
+            POSITION_VOLUME_SCROLL -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.volumeScroll
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.volumeScroll = value }
             }
-            6 -> {
+            POSITION_KEEP_SCREEN_ON -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.keepScreenOn
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.keepScreenOn = value }
             }
-
+            POSITION_ENABLE_IMMERSIVE_MODE -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.enableImmersiveMode
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableImmersiveMode = value }
+            }
         }
 
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)

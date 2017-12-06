@@ -1,5 +1,7 @@
 package io.github.gmathi.novellibrary.activity
 
+import android.annotation.TargetApi
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.view.ViewPager
 import android.view.KeyEvent
@@ -14,7 +16,10 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.WebPageFragmentPageListener
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.*
+import io.github.gmathi.novellibrary.database.getWebPage
+import io.github.gmathi.novellibrary.database.getWebPageByRedirectedUrl
+import io.github.gmathi.novellibrary.database.updateBookmarkCurrentWebPageId
+import io.github.gmathi.novellibrary.database.updateWebPageReadStatus
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.model.NightModeChangeEvent
@@ -66,7 +71,6 @@ class ReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener, Fl
             (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment).cleanPage()
             fabClean.visibility = View.INVISIBLE
         }
-
     }
 
     private fun updateBookmark(webPage: WebPage) {
@@ -75,6 +79,29 @@ class ReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener, Fl
         if (webPage.id != -1L) {
             webPage.isRead = 1
             dbHelper.updateWebPageReadStatus(webPage)
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+
+        if (hasFocus && dataCenter.enableImmersiveMode) {
+            val immersiveModeOptions = when (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                true -> {
+                    main_content.fitsSystemWindows = false
+
+                    (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_FULLSCREEN
+                            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+                }
+                false -> (View.SYSTEM_UI_FLAG_LOW_PROFILE)
+            }
+
+            window.decorView.systemUiVisibility = immersiveModeOptions
         }
     }
 
@@ -217,13 +244,11 @@ class ReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener, Fl
 
     fun checkUrl(url: String): Boolean {
         val webPage = dbHelper.getWebPageByRedirectedUrl(novel!!.id, url)
-        if (webPage != null) {
-            viewPager.currentItem = webPage.orderId.toInt()
-            updateBookmark(webPage)
-            return true
-        }
+        if (webPage == null)
+            return false
 
-        return false
+        viewPager.currentItem = webPage.orderId.toInt()
+        updateBookmark(webPage)
+        return true
     }
-
 }
