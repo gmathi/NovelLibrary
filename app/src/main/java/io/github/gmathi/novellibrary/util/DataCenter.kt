@@ -34,6 +34,7 @@ class DataCenter(context: Context) {
         private val SHOW_CHAPTER_COMMENTS = "showChapterComments"
         private val VOLUME_SCROLL = "volumeScroll"
         private val KEEP_SCREEN_ON = "keepScreenOn"
+        private val ENABLE_IMMERSIVE_MODE = "enableImmersiveMode"
     }
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -109,6 +110,10 @@ class DataCenter(context: Context) {
     var keepScreenOn: Boolean
         get() = prefs.getBoolean(KEEP_SCREEN_ON, true)
         set(value) = prefs.edit().putBoolean(KEEP_SCREEN_ON, value).apply()
+
+    var enableImmersiveMode: Boolean
+        get() = prefs.getBoolean(ENABLE_IMMERSIVE_MODE, true)
+        set(value) = prefs.edit().putBoolean(ENABLE_IMMERSIVE_MODE, value).apply()
 
     fun getVerifiedHosts(): ArrayList<String> =
         Gson().fromJson(prefs.getString(VERIFIED_HOSTS, Gson().toJson(HostNames.defaultHostNamesList)), object : TypeToken<ArrayList<String>>() {}.type)

@@ -32,6 +32,13 @@ import java.io.IOException
 
 class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
+    companion object {
+        private val POSITION_BACKUP = 0
+        private val POSITION_RESTORE = 1
+        private val POSITION_CLEAR = 2
+        private val POSITION_LOAD_LIBRARY_SCREEN = 3
+    }
+
     lateinit var adapter: GenericAdapter<String>
     private lateinit var settingsItems: ArrayList<String>
     private lateinit var settingsItemsDescription: ArrayList<String>
@@ -74,7 +81,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         itemView.subtitle.applyFont(assets).text = settingsItemsDescription[position]
         itemView.widgetSwitch.setOnCheckedChangeListener(null)
         when (position) {
-            0 -> {
+            POSITION_BACKUP -> {
                 itemView.widgetButton.visibility = View.VISIBLE
                 itemView.widgetButton.text = getString(R.string.backup)
                 itemView.widgetButton.setOnClickListener {
@@ -89,7 +96,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                         }.check()
                 }
             }
-            1 -> {
+            POSITION_RESTORE -> {
                 itemView.widgetButton.visibility = View.VISIBLE
                 itemView.widgetButton.text = getString(R.string.restore)
                 itemView.widgetButton.setOnClickListener {
@@ -105,7 +112,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
 
                 }
             }
-            2 -> {
+            POSITION_CLEAR -> {
                 itemView.widgetButton.visibility = View.VISIBLE
                 itemView.widgetButton.text = getString(R.string.clear)
                 itemView.widgetButton.setOnClickListener { deleteFilesDialog() }
@@ -115,7 +122,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
 //                itemView.widgetSwitch.isChecked = dataCenter.experimentalDownload
 //                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.experimentalDownload = value }
 //            }
-            3 -> {
+            POSITION_LOAD_LIBRARY_SCREEN -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.loadLibraryScreen
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.loadLibraryScreen = value }

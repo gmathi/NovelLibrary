@@ -80,6 +80,7 @@
         <item>@string/show_comments_section</item>
         <item>@string/volume_scroll</item>
         <item>@string/keep_screen_on</item>
+        <item>@string/immersive_mode</item>
     </string-array>
 
     <string-array name="reader_subtitles_list" translatable="false">
@@ -90,6 +91,7 @@
         <item>@string/show_comments_section_description</item>
         <item>@string/volume_scroll_description</item>
         <item>@string/keep_screen_on_description</item>
+        <item>@string/immersive_mode_description</item>
     </string-array>
 
 
@@ -296,6 +298,7 @@
     <string name="sync_interval_description">Check for novel updates interval</string>
 
     <!-- v0.7 Strings -->
+
     <string name="clean">Clean</string>
     <string name="reader">Reader</string>
     <string name="reader_mode">Reader Mode</string>
@@ -326,5 +329,9 @@
     <string name="title_activity_chapter_downloads">ChapterDownloadsActivity</string>
     <string name="delete_chapters">Delete Chapters</string>
 
+    <!-- v0.8 Strings -->
+
+    <string name="immersive_mode">Show Full Screen</string>
+    <string name="immersive_mode_description">Hide the system bars when reading</string>
 
 </resources>
