@@ -29,7 +29,6 @@ open class HtmlHelper protected constructor() {
                     hostName
 
             when {
-            //host.contains(HostNames.ROYAL_ROAD) -> return RoyalRoadHelper()
                 host.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
                 host.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
                 host.contains(HostNames.QIDIAN) -> return QidianHelper()
@@ -171,40 +170,36 @@ open class HtmlHelper protected constructor() {
 //        val fontName = "lobster_regular.ttf"
         val fontName = "source_sans_pro_regular.ttf"
         val fontFamily = fontName.split(".")[0]
-        val nightModeTextBrightness = 8
-        if (isDark) {
-            doc.head().getElementById("darkTheme")?.remove()
-            doc.head().append("" +
-                "<style id=\"darkTheme\">" +
-                "@font-face { font-family: $fontFamily; src: url(\"file:///android_asset/fonts/$fontName\") } \n" +
-                "body { background-color:#000000; color:rgba(255, 255, 255, 0.$nightModeTextBrightness); font-family: '$fontFamily'; line-height: 1.5; padding:20px;} " +
-                "table {\n" +
-                "    background: #004b7a;\n" +
-                "    margin: 10px auto;\n" +
-                "    width: 90%;\n" +
-                "    border: none;\n" +
-                "    box-shadow: 1px 1px 1px rgba(0,0,0,.75);\n" +
-                "    border-collapse: separate;\n" +
-                "    border-spacing: 2px;" +
-                "}" +
-                "</style> ")
-        } else {
-            doc.head().getElementById("darkTheme")?.remove()
-            doc.head().append("" +
-                "<style id=\"darkTheme\">" +
-                "@font-face { font-family: $fontFamily; src: url(\"file:///android_asset/fonts/$fontName\") } \n" +
-                "body { background-color:rgba(255, 255, 255, 0.$nightModeTextBrightness); color:#000000; font-family: '$fontFamily';; line-height: 1.5; padding:20px;} " +
-                "table {\n" +
-                "    background: #004b7a;\n" +
-                "    margin: 10px auto;\n" +
-                "    width: 90%;\n" +
-                "    border: none;\n" +
-                "    box-shadow: 1px 1px 1px rgba(0,0,0,.75);\n" +
-                "    border-collapse: separate;\n" +
-                "    border-spacing: 2px;" +
-                "}" +
-                "</style> ")
-        }
+        val nightModeTextBrightness = 87
+//        TODO: If needed, add visited color to anchors
+        doc.head().getElementById("darkTheme")?.remove()
+        doc.head().append("""
+            <style id="darkTheme">
+                @font-face {
+                    font-family: $fontFamily;
+                    src: url("file:///android_asset/fonts/$fontName");
+                }
+                body {
+                    ${if (isDark) "background-color" else "color"}: #000;
+                    ${if (isDark) "color" else "background-color"}: rgba(255, 255, 255, .$nightModeTextBrightness);
+                    font-family: '$fontFamily';
+                    line-height: 1.5;
+                    padding: 20px;
+                }
+                a {
+                    color: rgba(${if (isDark) "135, 206, 250" else "0, 0, 238"}, .$nightModeTextBrightness);
+                }
+                table {
+                    background: #004b7a;
+                    margin: 10px auto;
+                    width: 90%;
+                    border: none;
+                    box-shadow: 1px 1px 1px rgba(0, 0, 0, .75);
+                    border-collapse: separate;
+                    border-spacing: 2px;
+                }
+            </style>
+            """.trimIndent())
 
         return doc
     }
