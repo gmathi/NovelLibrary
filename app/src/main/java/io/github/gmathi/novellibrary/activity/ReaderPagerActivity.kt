@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.activity
 
-import android.annotation.TargetApi
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.view.ViewPager
@@ -83,23 +82,22 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.KITKAT)
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
 
         if (hasFocus && dataCenter.enableImmersiveMode) {
-            val immersiveModeOptions = when (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                true -> {
-                    main_content.fitsSystemWindows = false
+            val immersiveModeOptions: Int
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                main_content.fitsSystemWindows = false
 
-                    (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            or View.SYSTEM_UI_FLAG_FULLSCREEN
-                            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-                }
-                false -> (View.SYSTEM_UI_FLAG_LOW_PROFILE)
+                immersiveModeOptions = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+            } else {
+                immersiveModeOptions = (View.SYSTEM_UI_FLAG_LOW_PROFILE)
             }
 
             window.decorView.systemUiVisibility = immersiveModeOptions

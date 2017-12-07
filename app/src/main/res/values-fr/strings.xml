@@ -233,5 +233,7 @@
     <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
     <string name="reader_mode_description">Reader mode will be on permanently</string>
     <string name="delete_chapters">Delete Chapters</string>
+    <string name="immersive_mode">Show Full Screen</string>
+    <string name="immersive_mode_description">Hide the system bars when reading</string>
 
 </resources>

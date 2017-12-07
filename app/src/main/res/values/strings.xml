@@ -331,7 +331,7 @@
 
     <!-- v0.8 Strings -->
 
-    <string name="immersive_mode" translatable="false">Show Full Screen</string>
-    <string name="immersive_mode_description" translatable="false">Hide the system bars when reading</string>
+    <string name="immersive_mode">Show Full Screen</string>
+    <string name="immersive_mode_description">Hide the system bars when reading</string>
 
 </resources>
