@@ -29,7 +29,6 @@ open class HtmlHelper protected constructor() {
                     hostName
 
             when {
-            //host.contains(HostNames.ROYAL_ROAD) -> return RoyalRoadHelper()
                 host.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
                 host.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
                 host.contains(HostNames.QIDIAN) -> return QidianHelper()
