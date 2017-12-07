@@ -5,7 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.inputmethod.InputMethodManager
-import io.github.gmathi.novellibrary.activity.ReaderPagerActivity
+import io.github.gmathi.novellibrary.activity.NewReaderPagerActivity
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.util.Constants
@@ -17,7 +17,7 @@ fun Fragment.hideSoftKeyboard() {
 }
 
 fun Fragment.startReaderPagerActivity(novel: Novel, webPage: WebPage, chapters: ArrayList<WebPage>?) {
-    val intent = Intent(activity, ReaderPagerActivity::class.java)
+    val intent = Intent(activity, NewReaderPagerActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
     bundle.putSerializable("webPage", webPage)

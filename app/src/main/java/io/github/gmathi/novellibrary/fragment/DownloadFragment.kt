@@ -41,7 +41,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<Download> {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-        inflater.inflate(R.layout.activity_download_queue, container, false)
+            inflater.inflate(R.layout.activity_download_queue, container, false)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)

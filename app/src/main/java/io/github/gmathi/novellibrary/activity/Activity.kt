@@ -57,7 +57,7 @@ fun Activity.startMetadataActivity(novel: Novel) {
 }
 
 fun Activity.startReaderPagerActivity(novel: Novel, webPage: WebPage) {
-    val intent = Intent(this, ReaderPagerActivity::class.java)
+    val intent = Intent(this, NewReaderPagerActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
     bundle.putSerializable("webPage", webPage)

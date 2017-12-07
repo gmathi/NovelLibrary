@@ -94,6 +94,11 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
+            android:name=".activity.NewReaderPagerActivity"
+            android:label="@string/title_activity_reader_pager"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
             android:name=".activity.ReaderPagerDBActivity"
             android:label="@string/title_activity_reader_pager"
             android:theme="@style/DarkTheme_DarkSide">

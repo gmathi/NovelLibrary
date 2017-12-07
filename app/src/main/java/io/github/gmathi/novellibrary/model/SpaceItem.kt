@@ -1,30 +1,40 @@
 package io.github.gmathi.novellibrary.model
 
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.DrawerAdapter
 
-/**
- * Created by a6001823 on 11/15/17.
- */
-internal class SpaceItem(private val spaceDp: Int) : DrawerItem<SpaceItem.ViewHolder>() {
+internal class SpaceItem(private var title: String) : DrawerItem<SpaceItem.ViewHolder>() {
+    private var normalItemTextTint: Int = 0
 
     override val isSelectable: Boolean
         get() = false
 
-    override fun createViewHolder(parent: ViewGroup): ViewHolder {
-        val c = parent.context
-        val view = View(c)
-        val height = (c.resources.displayMetrics.density * spaceDp).toInt()
-        view.layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                height)
-        return ViewHolder(view)
+    override fun createViewHolder(parent: ViewGroup): SpaceItem.ViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
+        val v = inflater.inflate(R.layout.item_option, parent, false)
+        return SpaceItem.ViewHolder(v)
     }
 
-    override fun bindViewHolder(holder: ViewHolder) {
-
+    override fun bindViewHolder(holder: ViewHolder,position:Int) {
+        holder.title.text = title
+        holder.title.setTextColor(normalItemTextTint)
     }
 
-    internal class ViewHolder(itemView: View) : DrawerAdapter.ViewHolder(itemView)
+    internal class ViewHolder(itemView: View) : DrawerAdapter.ViewHolder(itemView) {
+
+        internal var title: TextView
+
+        init {
+            title = itemView.findViewById<TextView>(R.id.title) as TextView
+        }
+    }
+    fun withTextTint(normalItemTextTint: Int): SpaceItem {
+        this.normalItemTextTint = normalItemTextTint
+        return this
+    }
+
 }

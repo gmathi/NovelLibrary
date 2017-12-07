@@ -1,7 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.design.widget.Snackbar
@@ -24,8 +23,6 @@ import io.github.gmathi.novellibrary.util.Constants
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
-import android.content.pm.ResolveInfo
-import android.content.pm.PackageManager
 
 
 
@@ -166,5 +163,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         super.onSaveInstanceState(outState)
         outState?.putInt("currentNavId", currentNavId)
     }
+
 
 }

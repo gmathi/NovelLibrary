@@ -4,33 +4,43 @@ import android.view.ViewGroup
 import io.github.gmathi.novellibrary.adapter.DrawerAdapter
 
 
-/**
- * Created by a6001823 on 11/15/17.
- */
-internal abstract class DrawerItem<T : DrawerAdapter.ViewHolder> {
+abstract class DrawerItem<T : DrawerAdapter.ViewHolder> {
 
     protected var isCheckedSlideMenu: Boolean = false
-    protected var isSwitchOn:Boolean =false
+    protected var textOnly: Boolean = false
+    protected var switch: Boolean = false
     open val isSelectable: Boolean
         get() = true
 
     abstract fun createViewHolder(parent: ViewGroup): T
 
-    abstract fun bindViewHolder(holder: T)
+    abstract fun bindViewHolder(holder: T,position: Int)
 
     fun setChecked(isChecked: Boolean): DrawerItem<*> {
         this.isCheckedSlideMenu = isChecked
         return this
     }
-    fun setSwitchOn(isChecked: Boolean): DrawerItem<*> {
-        this.isSwitchOn = isChecked
+
+    fun setSwitchOn(value: Boolean): DrawerItem<*> {
+        this.switch = value
         return this
     }
+
+    fun isSwitchOn(): Boolean {
+        return switch
+    }
+
+    fun setTextOnly(testOnly: Boolean): DrawerItem<*> {
+        this.textOnly = testOnly
+        return this
+    }
+
     fun isChecked(): Boolean {
         return isCheckedSlideMenu
     }
-    fun isSwitch(): Boolean {
-        return isSwitchOn
+
+    fun isTextOnly(): Boolean {
+        return textOnly
     }
 
 }

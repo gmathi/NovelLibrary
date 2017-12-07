@@ -1,33 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="56dp"
-    android:paddingLeft="24dp"
-    android:paddingRight="24dp"
+    android:layout_height="wrap_content"
     android:gravity="center_vertical"
-    android:orientation="horizontal">
+    android:orientation="vertical"
+    android:paddingLeft="@dimen/side_menu_padding"
+    android:paddingRight="@dimen/side_menu_padding">
 
-    <Switch
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/side_menu_height"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/title_reader" />
+
+        <Space
+            android:layout_width="10dp"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/side_menu_text_margin"
+            android:layout_marginRight="@dimen/side_menu_text_margin" />
+
+        <Switch
+            android:id="@+id/switchReaderMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <LinearLayout
         android:visibility="gone"
-        android:id="@+id/switchtest"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:id="@+id/linNightMode"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/side_menu_height"
+        android:orientation="horizontal">
 
-    <ImageView
-        android:id="@+id/icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        <ImageView
+            android:id="@+id/iconNightMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/title_night" />
 
-    <Space
-        android:layout_width="12dp"
-        android:layout_height="wrap_content" />
+        <Space
+            android:layout_width="10dp"
+            android:layout_height="wrap_content" />
 
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:textColor="?android:textColorPrimary" />
+        <TextView
+            android:id="@+id/titleNightMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/side_menu_text_margin"
+            android:layout_marginRight="@dimen/side_menu_text_margin" />
+
+        <Switch
+            android:id="@+id/switchNightMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
 
 </LinearLayout>

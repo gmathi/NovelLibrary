@@ -2,21 +2,21 @@
 <resources>
 
     <string-array name="ld_activityScreenTitles">
-        <item>Dashboard</item>
-        <item>My Account</item>
-        <item>Messages</item>
-        <item>Cart</item>
-        <item />
-        <item>Log Out</item>
+        <item>@string/title_reader</item>
+        <item>@string/title_fonts</item>
+        <item>@string/title_fonts_size</item>
+        <item>@string/title_report_page</item>
+        <item>@string/title_open_in_browser</item>
+        <item>@string/title_share_chapter</item>
     </string-array>
 
     <array name="ld_activityScreenIcons">
-        <item>@drawable/ic_book_white</item>
-        <item>@drawable/ic_file_download_white</item>
-        <item>@drawable/ic_account_legal_white_vector</item>
-        <item>@drawable/ic_action_mic_black</item>
-        <item>0</item>
-        <item>@drawable/ic_call_to_action_white_vector</item>
+        <item>@drawable/ic_book_white_vector</item>
+        <item>@drawable/ic_text_fields_white_vector</item>
+        <item>@drawable/ic_text_fields_white_vector</item>
+        <item>@drawable/ic_bug_report_white_vector</item>
+        <item>@drawable/ic_open_in_browser_white_vector</item>
+        <item>@drawable/ic_share_white_vector</item>
     </array>
 
 </resources>

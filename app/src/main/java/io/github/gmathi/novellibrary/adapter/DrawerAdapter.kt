@@ -7,10 +7,7 @@ import android.view.ViewGroup
 import io.github.gmathi.novellibrary.model.DrawerItem
 
 
-/**
- * Created by a6001823 on 11/15/17.
- */
-internal class DrawerAdapter(private val items: List<DrawerItem<DrawerAdapter.ViewHolder>>) : RecyclerView.Adapter<DrawerAdapter.ViewHolder>() {
+class DrawerAdapter(private val items: List<DrawerItem<DrawerAdapter.ViewHolder>>) : RecyclerView.Adapter<DrawerAdapter.ViewHolder>() {
     private var viewTypes: MutableMap<Class<out DrawerItem<DrawerAdapter.ViewHolder>>, Int>
     private var holderFactories: SparseArray<DrawerItem<DrawerAdapter.ViewHolder>>
 
@@ -18,7 +15,7 @@ internal class DrawerAdapter(private val items: List<DrawerItem<DrawerAdapter.Vi
 
     init {
         this.viewTypes = HashMap()
-        this.holderFactories = SparseArray<DrawerItem<DrawerAdapter.ViewHolder>>()
+        this.holderFactories = SparseArray()
 
         processViewTypes()
     }
@@ -30,7 +27,7 @@ internal class DrawerAdapter(private val items: List<DrawerItem<DrawerAdapter.Vi
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        items[position].bindViewHolder(holder)
+        items[position].bindViewHolder(holder,position)
     }
 
     override fun getItemCount(): Int {
@@ -79,7 +76,7 @@ internal class DrawerAdapter(private val items: List<DrawerItem<DrawerAdapter.Vi
         this.listener = listener
     }
 
-    internal abstract class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
+    abstract class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
 
         var adapter: DrawerAdapter? = null
 
