@@ -67,15 +67,16 @@ fun getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
         .url("https://www.novelupdates.com/wp-admin/admin-ajax.php")
         .post(RequestBody.create(MediaType.parse("application/x-www-form-urlencoded; charset=UTF-8"), "action=nd_getchapters&mypostid=$novelUpdatesNovelId"))
         .build()
-
     val response = OkHttpClient().newCall(request).execute()
-    if (!response.isSuccessful) throw IOException("Unexpected code " + response)
+    response.use {
+        if (!it.isSuccessful) throw IOException("Unexpected code " + it)
 
-    val htmlString = response.body()?.string()
-    val doc = Jsoup.parse(htmlString)
+        val htmlString = it.body()?.string()
+        val doc = Jsoup.parse(htmlString)
 
-    doc?.getElementsByAttribute("data-id")?.mapTo(chapters) {
-        WebPage("https:" + it?.attr("href")!!, it.getElementsByAttribute("title").attr("title"))
+        doc?.getElementsByAttribute("data-id")?.mapTo(chapters) {
+            WebPage("https:" + it?.attr("href")!!, it.getElementsByAttribute("title").attr("title"))
+        }
     }
     return chapters
 }

@@ -64,20 +64,16 @@
             </intent-filter>
         </service>
         <service
-            android:name=".service.download.DownloadNovelService"
-            android:enabled="true"
-            android:exported="false">
-        </service>
-        <service
             android:name=".service.download.DownloadService"
+>>>>>>> 810871f41e008978736abb2b91d6265fc1575fdb
             android:enabled="true"
             android:exported="false">
         </service>
-        <service
-            android:name=".service.sync.SyncNovelsService"
-            android:enabled="true"
-            android:exported="false">
-        </service>
+        <!-- <service -->
+        <!-- android:name=".service.sync.SyncNovelsService" -->
+        <!-- android:enabled="true" -->
+        <!-- android:exported="false"> -->
+        <!-- </service> -->
 
         <activity
             android:name=".activity.NovelDetailsActivity"
@@ -99,12 +95,12 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.ReaderPagerDBActivity"
+            android:name=".activity.NewReaderPagerDBActivity"
             android:label="@string/title_activity_reader_pager"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.SettingsActivity"
+            android:name=".activity.settings.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
@@ -130,17 +126,17 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.LibrariesUsedActivity"
+            android:name=".activity.settings.LibrariesUsedActivity"
             android:label="@string/title_activity_libraries_used"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.ContributionsActivity"
+            android:name=".activity.settings.ContributionsActivity"
             android:label="@string/title_activity_contributions"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.CopyrightActivity"
+            android:name=".activity.settings.CopyrightActivity"
             android:label="@string/title_activity_copyright"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
@@ -150,32 +146,27 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.GeneralSettingsActivity"
+            android:name=".activity.settings.GeneralSettingsActivity"
             android:label="@string/title_activity_general_settings"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.ReaderSettingsActivity"
+            android:name=".activity.settings.ReaderSettingsActivity"
             android:label="@string/title_activity_reader_settings"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.MentionSettingsActivity"
+            android:name=".activity.settings.MentionSettingsActivity"
             android:label="@string/title_activity_mention_settings"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.ChaptersNewActivity"
-            android:label="@string/title_activity_chapters_new"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
-        <activity
-            android:name=".activity.LanguageActivity"
+            android:name=".activity.settings.LanguageActivity"
             android:label="@string/title_activity_language"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.NovelDownloadsActivity"
+            android:name=".activity.downloads.NovelDownloadsActivity"
             android:label="@string/title_activity_novel_downloads"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
@@ -219,6 +210,11 @@
         <activity
             android:name=".activity.RecentlyViewedNovelsActivity"
             android:label="@string/title_activity_recently_viewed_novels"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
+            android:name=".activity.downloads.ChapterDownloadsActivity"
+            android:label="@string/title_activity_chapter_downloads"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
     </application>

@@ -122,14 +122,15 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 replaceFragment(SearchFragment(), SearchFragment::class.toString())
             }
             R.id.nav_downloads -> {
-                replaceFragment(DownloadFragment(), DownloadFragment::class.toString())
+                startNovelDownloadsActivity()
+                //replaceFragment(DownloadFragment(), DownloadFragment::class.toString())
             }
             R.id.nav_settings -> {
                 startSettingsActivity()
             }
-//            R.id.nav_recently_viewed -> {
-//                startRecentlyViewedNovelsActivity()
-//            }
+            R.id.nav_recently_viewed -> {
+                startRecentlyViewedNovelsActivity()
+            }
             R.id.nav_recently_updated -> {
                 startRecentlyUpdatedNovelsActivity()
             }

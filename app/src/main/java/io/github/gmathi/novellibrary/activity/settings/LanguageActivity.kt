@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.activity
+package io.github.gmathi.novellibrary.activity.settings
 
 import android.annotation.SuppressLint
 import android.graphics.Rect
@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.MenuItem
 import android.view.View
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.util.applyFont

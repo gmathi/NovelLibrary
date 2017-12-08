@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.fragment
 
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -13,7 +14,7 @@ import co.metalab.asyncawait.async
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.ReaderPagerDBActivity
+import io.github.gmathi.novellibrary.activity.NewReaderPagerDBActivity
 import io.github.gmathi.novellibrary.activity.startChaptersActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.dataCenter
@@ -56,9 +57,8 @@ class WebPageDBFragment : Fragment() {
     private var isCleaned: Boolean = false
     var history: ArrayList<WebPage> = ArrayList()
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_reader, container, false)
-    }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
+            inflater.inflate(R.layout.fragment_reader, container, false)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -94,14 +94,14 @@ class WebPageDBFragment : Fragment() {
 
             val intentWebPage = dbHelper.getWebPage(novelId, orderId)
             if (intentWebPage == null) {
-                val activity = (activity as ReaderPagerDBActivity?)
+                val activity = (activity as NewReaderPagerDBActivity?)
                 activity?.startChaptersActivity(activity.novel!!, false)
                 activity?.finish()
             } else webPage = intentWebPage
         }
 
         if (webPage == null || webPage?.url == null) {
-            val activity = (activity as ReaderPagerDBActivity?)
+            val activity = (activity as NewReaderPagerDBActivity?)
             activity?.startChaptersActivity(activity.novel!!, false)
             activity?.finish()
             return
@@ -116,7 +116,7 @@ class WebPageDBFragment : Fragment() {
         //Load with downloaded HTML File
         readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
         isCleaned = false
-        activity!!.fabClean.visibility = if (isCleaned || dataCenter.cleanChapters) View.INVISIBLE else View.VISIBLE
+//        activity!!.fabClean.visibility = if (isCleaned || dataCenter.cleanChapters) View.INVISIBLE else View.VISIBLE
 
         if (webPage!!.filePath != null) {
             val internalFilePath = "file://${webPage!!.filePath}"
@@ -137,6 +137,7 @@ class WebPageDBFragment : Fragment() {
     }
 
     private fun setWebView() {
+        readerWebView.setBackgroundColor(Color.argb(1, 0, 0, 0));
         readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled
 
 //        readerWebView.setOnTouchListener { view, motionEvent ->
@@ -245,9 +246,9 @@ class WebPageDBFragment : Fragment() {
 
     private fun loadDocument() {
         readerWebView.loadDataWithBaseURL(
-            if (webPage!!.filePath != null) "file://${webPage!!.filePath}" else doc.location(),
-            doc.outerHtml(),
-            "text/html", "UTF-8", null)
+                if (webPage!!.filePath != null) "file://${webPage!!.filePath}" else doc.location(),
+                doc.outerHtml(),
+                "text/html", "UTF-8", null)
         if (webPage!!.metaData.containsKey("scrollY"))
             readerWebView.scrollTo(0, webPage!!.metaData["scrollY"]!!.toInt())
     }
@@ -320,7 +321,7 @@ class WebPageDBFragment : Fragment() {
             }
         }
 
-        val readerActivity = (activity as ReaderPagerDBActivity?) ?: return false
+        val readerActivity = (activity as NewReaderPagerDBActivity?) ?: return false
 
         return readerActivity.checkUrl(url)
     }

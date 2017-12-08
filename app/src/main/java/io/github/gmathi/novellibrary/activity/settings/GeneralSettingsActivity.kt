@@ -1,7 +1,6 @@
-package io.github.gmathi.novellibrary.activity
+package io.github.gmathi.novellibrary.activity.settings
 
 import android.Manifest
-import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.os.Bundle
 import android.os.Environment
@@ -10,13 +9,13 @@ import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
 import android.text.format.Formatter
 import android.util.Log
-import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.thanosfisherman.mayi.Mayi
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
@@ -32,6 +31,13 @@ import java.io.IOException
 
 
 class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
+
+    companion object {
+        private val POSITION_BACKUP = 0
+        private val POSITION_RESTORE = 1
+        private val POSITION_CLEAR = 2
+        private val POSITION_LOAD_LIBRARY_SCREEN = 3
+    }
 
     lateinit var adapter: GenericAdapter<String>
     private lateinit var settingsItems: ArrayList<String>
@@ -75,7 +81,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         itemView.subtitle.applyFont(assets).text = settingsItemsDescription[position]
         itemView.widgetSwitch.setOnCheckedChangeListener(null)
         when (position) {
-            0 -> {
+            POSITION_BACKUP -> {
                 itemView.widgetButton.visibility = View.VISIBLE
                 itemView.widgetButton.text = getString(R.string.backup)
                 itemView.widgetButton.setOnClickListener {
@@ -90,7 +96,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                         }.check()
                 }
             }
-            1 -> {
+            POSITION_RESTORE -> {
                 itemView.widgetButton.visibility = View.VISIBLE
                 itemView.widgetButton.text = getString(R.string.restore)
                 itemView.widgetButton.setOnClickListener {
@@ -106,17 +112,17 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
 
                 }
             }
-            2 -> {
+            POSITION_CLEAR -> {
                 itemView.widgetButton.visibility = View.VISIBLE
                 itemView.widgetButton.text = getString(R.string.clear)
                 itemView.widgetButton.setOnClickListener { deleteFilesDialog() }
             }
-            3 -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.experimentalDownload
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.experimentalDownload = value }
-            }
-            4 -> {
+//            3 -> {
+//                itemView.widgetSwitch.visibility = View.VISIBLE
+//                itemView.widgetSwitch.isChecked = dataCenter.experimentalDownload
+//                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.experimentalDownload = value }
+//            }
+            POSITION_LOAD_LIBRARY_SCREEN -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.loadLibraryScreen
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.loadLibraryScreen = value }

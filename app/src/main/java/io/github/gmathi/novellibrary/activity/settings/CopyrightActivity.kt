@@ -1,9 +1,9 @@
-package io.github.gmathi.novellibrary.activity
+package io.github.gmathi.novellibrary.activity.settings
 
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.util.applyFont
 import kotlinx.android.synthetic.main.activity_copyright.*
 import kotlinx.android.synthetic.main.content_copyright.*
@@ -15,7 +15,6 @@ class CopyrightActivity : BaseActivity() {
         setContentView(R.layout.activity_copyright)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
         copyrightContentTextView.applyFont(assets)
     }
 

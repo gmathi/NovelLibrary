@@ -16,9 +16,9 @@ import java.io.FileOutputStream
 
 open class HtmlHelper protected constructor() {
 
-    private val TAG = "HtmlHelper"
-
     companion object {
+
+        private val TAG = "HtmlHelper"
 
         fun getInstance(doc: Document, hostName: String = doc.location()): HtmlHelper {
 
@@ -29,7 +29,6 @@ open class HtmlHelper protected constructor() {
                     hostName
 
             when {
-                host.contains(HostNames.ROYAL_ROAD) -> return RoyalRoadHelper()
                 host.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
                 host.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
                 host.contains(HostNames.QIDIAN) -> return QidianHelper()
@@ -39,7 +38,10 @@ open class HtmlHelper protected constructor() {
                 host.contains(HostNames.BAKA_TSUKI) -> return BakaTsukiCleaner()
             }
 
-            var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
+            var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("chapter-content") }
+            if (contentElement != null) return GeneralClassTagHelper(host, "div", "chapter-content")
+
+            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
             if (contentElement != null) return GeneralClassTagHelper(host, "div", "entry-content")
 
             contentElement = doc.body().getElementsByTag("article").firstOrNull { it.hasClass("hentry") }
@@ -63,44 +65,6 @@ open class HtmlHelper protected constructor() {
             return HtmlHelper()
         }
 
-
-        @Deprecated("Use `getInstance(Document): HtmlHelper` instead")
-        fun getInstance(host: String): HtmlHelper {
-            when {
-
-                host.contains(HostNames.ROYAL_ROAD) -> return RoyalRoadHelper()
-                host.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
-                host.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
-                host.contains(HostNames.QIDIAN) -> return QidianHelper()
-                host.contains(HostNames.GOOGLE_DOCS) -> return GoogleDocsCleaner()
-
-            // 'entry-content' - 'div' tag cleaner
-                host.contains(HostNames.MOON_BUNNY_CAFE) -> return EntryContentTagCleaner()
-                host.contains(HostNames.LIGHT_NOVEL_TRANSLATIONS) -> return EntryContentTagCleaner()
-                host.contains(HostNames.SOUSETSUKA) -> return EntryContentTagCleaner()
-                host.contains(HostNames.FANTASY_BOOKS) -> return EntryContentTagCleaner()
-
-            // "WordPress" Sites cleaner
-                host.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsHelper()
-                host.contains(HostNames.WORD_PRESS) -> return WordPressHelper()
-                host.contains(HostNames.PRINCE_REVOLUTION) -> return WordPressHelper()
-
-
-            // "Tumblr" Sites Cleaner
-                host.contains(HostNames.TUMBLR) -> return TumblrCleaner()
-
-            //Generic Class Cleaners
-                host.contains(HostNames.GRAVITY_TALES) -> return GeneralClassTagHelper(HostNames.GRAVITY_TALES, "article", "hentry")
-                host.contains(HostNames.VOLARE_NOVELS) -> return GeneralClassTagHelper(HostNames.VOLARE_NOVELS, "article", "hentry")
-                host.contains(HostNames.SKY_WOOD_TRANSLATIONS) -> return GeneralClassTagHelper(HostNames.SKY_WOOD_TRANSLATIONS, "div", "hentry")
-                host.contains(HostNames.KOBATOCHAN) -> return GeneralClassTagHelper(HostNames.KOBATOCHAN, "div", "entry-content")
-
-            //Generic Id Cleaners
-                host.contains(HostNames.LIBER_SPARK) -> return GeneralIdTagHelper(HostNames.LIBER_SPARK, "div", "chapter_body")
-
-            }
-            return HtmlHelper()
-        }
     }
 
     fun clean(doc: Document, hostDir: File, novelDir: File) {
@@ -149,7 +113,7 @@ open class HtmlHelper protected constructor() {
             file = File(dir, fileName)
             doc = NovelApi().getDocumentWithUserAgentIgnoreContentType(uri.toString())
         } catch (e: Exception) {
-            Utils.warning(TAG, "Uri: $uri", e)
+            Utils.warning(Companion.TAG, "Uri: $uri", e)
             return null
         }
         return convertDocToFile(doc, file)
@@ -162,7 +126,7 @@ open class HtmlHelper protected constructor() {
             val content = doc.toString()
             stream.use { it.write(content.toByteArray()) }
         } catch (e: Exception) {
-            Utils.warning(TAG, "convertDocToFile: ${file.name}", e)
+            Utils.warning(Companion.TAG, "convertDocToFile: ${file.name}", e)
             return null
         }
         return file
@@ -192,40 +156,50 @@ open class HtmlHelper protected constructor() {
             val os = FileOutputStream(file)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os)
         } catch (e: Exception) {
-            Utils.debug(TAG, "Exception Downloading Image: $uri")
+            Utils.debug(Companion.TAG, "Exception Downloading Image: $uri")
             return null
         }
         return file
     }
 
-    fun getTitle(doc: Document): String? {
-        return doc.head().getElementsByTag("title").text()
-    }
+    fun getTitle(doc: Document): String? = doc.head().getElementsByTag("title").text()
 
-    open fun toggleTheme(isDark: Boolean, doc: Document): Document {
-        return doc
-    }
+    open fun toggleTheme(isDark: Boolean, doc: Document): Document = doc
 
     fun toggleThemeDefault(isDark: Boolean, doc: Document): Document {
 //        val fontName = "lobster_regular.ttf"
         val fontName = "source_sans_pro_regular.ttf"
         val fontFamily = fontName.split(".")[0]
-        val nightModeTextBrightness = 8
-        if (isDark) {
-            doc.head().getElementById("darkTheme")?.remove()
-            doc.head().append("" +
-                "<style id=\"darkTheme\">" +
-                "@font-face { font-family: $fontFamily; src: url(\"file:///android_asset/fonts/$fontName\") } \n" +
-                "body { background-color:#000000; color:rgba(255, 255, 255, 0.$nightModeTextBrightness); font-family: '$fontFamily'; line-height: 1.5; padding:20px;} " +
-                "</style> ")
-        } else {
-            doc.head().getElementById("darkTheme")?.remove()
-            doc.head().append("" +
-                "<style id=\"darkTheme\">" +
-                "@font-face { font-family: $fontFamily; src: url(\"file:///android_asset/fonts/$fontName\") } \n" +
-                "body { background-color:rgba(255, 255, 255, 0.$nightModeTextBrightness); color:#000000; font-family: '$fontFamily';; line-height: 1.5; padding:20px;} " +
-                "</style> ")
-        }
+        val nightModeTextBrightness = 87
+//        TODO: If needed, add visited color to anchors
+        doc.head().getElementById("darkTheme")?.remove()
+        doc.head().append("""
+            <style id="darkTheme">
+                @font-face {
+                    font-family: $fontFamily;
+                    src: url("file:///android_asset/fonts/$fontName");
+                }
+                body {
+                    ${if (isDark) "background-color" else "color"}: #000;
+                    ${if (isDark) "color" else "background-color"}: rgba(255, 255, 255, .$nightModeTextBrightness);
+                    font-family: '$fontFamily';
+                    line-height: 1.5;
+                    padding: 20px;
+                }
+                a {
+                    color: rgba(${if (isDark) "135, 206, 250" else "0, 0, 238"}, .$nightModeTextBrightness);
+                }
+                table {
+                    background: #004b7a;
+                    margin: 10px auto;
+                    width: 90%;
+                    border: none;
+                    box-shadow: 1px 1px 1px rgba(0, 0, 0, .75);
+                    border-collapse: separate;
+                    border-spacing: 2px;
+                }
+            </style>
+            """.trimIndent())
 
         return doc
     }

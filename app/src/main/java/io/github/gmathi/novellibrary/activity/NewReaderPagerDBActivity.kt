@@ -1,17 +1,26 @@
 package io.github.gmathi.novellibrary.activity
 
+
+
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
 import android.support.v4.view.ViewPager
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.view.KeyEvent
-import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
 import android.webkit.WebView
+import android.widget.CompoundButton
 import android.widget.SeekBar
 import com.afollestad.materialdialogs.MaterialDialog
-import com.github.rubensousa.floatingtoolbar.FloatingToolbar
+import com.yarolegovich.slidingrootnav.SlideGravity
+import com.yarolegovich.slidingrootnav.SlidingRootNav
+import com.yarolegovich.slidingrootnav.SlidingRootNavBuilder
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.adapter.DrawerAdapter
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.WebPageFragmentPageListener
 import io.github.gmathi.novellibrary.dataCenter
@@ -21,14 +30,26 @@ import io.github.gmathi.novellibrary.database.updateBookmarkCurrentWebPageId
 import io.github.gmathi.novellibrary.database.updateWebPageReadStatus
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
-import io.github.gmathi.novellibrary.model.NightModeChangeEvent
-import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.WebPage
-import io.github.gmathi.novellibrary.util.applyFont
-import kotlinx.android.synthetic.main.activity_reader_pager.*
+import io.github.gmathi.novellibrary.model.*
+import kotlinx.android.synthetic.main.activity_new_reader_pager.*
+import kotlinx.android.synthetic.main.item_option.view.*
+import kotlinx.android.synthetic.main.menu_left_drawer.*
 import org.greenrobot.eventbus.EventBus
+import java.util.*
 
-class ReaderPagerDBActivity23 : BaseActivity(), ViewPager.OnPageChangeListener, FloatingToolbar.ItemClickListener, SeekBar.OnSeekBarChangeListener {
+class NewReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener,  DrawerAdapter.OnItemSelectedListener, SimpleItem.Listener<ReaderMenu>,SeekBar.OnSeekBarChangeListener {
+    private var slidingRootNav: SlidingRootNav? = null
+    lateinit var recyclerView: RecyclerView
+
+    private val posReaderMode = 0
+    private val posFonts = 1
+    private val posFontSize = 2
+    private val posReportPage = 3
+    private val posOpenInBrowser = 4
+    private val posShareChapter = 5
+
+    private var screenTitles: Array<String>? = null
+    lateinit var screenIcons: Array<Drawable?>
 
     var novel: Novel? = null
     var webPage: WebPage? = null
@@ -37,7 +58,7 @@ class ReaderPagerDBActivity23 : BaseActivity(), ViewPager.OnPageChangeListener, 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_reader_pager)
+        setContentView(R.layout.activity_new_reader_pager)
         novel = intent.getSerializableExtra("novel") as Novel?
 
         if (dataCenter.keepScreenOn)
@@ -56,19 +77,19 @@ class ReaderPagerDBActivity23 : BaseActivity(), ViewPager.OnPageChangeListener, 
         if (webPage != null) {
             updateBookmark(webPage!!)
             viewPager.currentItem =
-                if (dataCenter.japSwipe)
-                    novel!!.chapterCount.toInt() - webPage!!.orderId.toInt() - 1
-                else
-                    webPage!!.orderId.toInt()
+                    if (dataCenter.japSwipe)
+                        novel!!.chapterCount.toInt() - webPage!!.orderId.toInt() - 1
+                    else
+                        webPage!!.orderId.toInt()
         }
 
-        floatingToolbar.attachFab(fab)
-        floatingToolbar.setClickListener(this)
+        slideMenuSetup(savedInstanceState)
 
-        fabCleanTextView.applyFont(assets).text = getString(R.string.reader_mode)
-        fabClean.setOnClickListener {
-            (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment).cleanPage()
-            fabClean.visibility = View.INVISIBLE
+        screenIcons = loadScreenIcons()
+        screenTitles = loadScreenTitles()
+        slideMenuAdapterSetup()
+        menuCardView.setOnClickListener {
+            toggleSlideRootNab()
         }
     }
 
@@ -119,20 +140,6 @@ class ReaderPagerDBActivity23 : BaseActivity(), ViewPager.OnPageChangeListener, 
     }
 
 
-    override fun onItemLongClick(item: MenuItem?) {
-
-    }
-
-    override fun onItemClick(item: MenuItem?) {
-        when (item?.itemId) {
-            R.id.action_dark_theme -> toggleDarkTheme()
-            R.id.action_font_size -> changeTextSize()
-            R.id.action_report_page -> reportPage()
-            R.id.action_open_in_browser -> inBrowser()
-            R.id.action_share -> share()
-        }
-    }
-
     private fun toggleDarkTheme() {
         dataCenter.isDarkTheme = !dataCenter.isDarkTheme
 //        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.applyTheme()
@@ -143,9 +150,9 @@ class ReaderPagerDBActivity23 : BaseActivity(), ViewPager.OnPageChangeListener, 
 
     fun changeTextSize() {
         val dialog = MaterialDialog.Builder(this)
-            .title(R.string.text_size)
-            .customView(R.layout.dialog_text_slider, true)
-            .build()
+                .title(R.string.text_size)
+                .customView(R.layout.dialog_text_slider, true)
+                .build()
         dialog.show()
         dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.setOnSeekBarChangeListener(this)
         dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.progress = dataCenter.textSize
@@ -216,22 +223,6 @@ class ReaderPagerDBActivity23 : BaseActivity(), ViewPager.OnPageChangeListener, 
         }
     }
 
-//    override fun onSaveInstanceState(outState: Bundle?) {
-//        super.onSaveInstanceState(outState)
-//        outState?.putSerializable("novel", novel)
-//        outState?.putSerializable("webPage", webPage)
-//        outState?.putSerializable("chapters", chapters)
-//    }
-//
-//    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
-//        super.onRestoreInstanceState(savedInstanceState)
-//        if (savedInstanceState != null) {
-//            novel = savedInstanceState.getSerializable("novel") as Novel?
-//            webPage = savedInstanceState.getSerializable("webPage") as WebPage?
-//            @Suppress("UNCHECKED_CAST")
-//            chapters = savedInstanceState.getSerializable("chapters") as ArrayList<WebPage>
-//        }
-//    }
 
     override fun onBackPressed() {
         if ((viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment).history.isNotEmpty())
@@ -248,5 +239,110 @@ class ReaderPagerDBActivity23 : BaseActivity(), ViewPager.OnPageChangeListener, 
         viewPager.currentItem = webPage.orderId.toInt()
         updateBookmark(webPage)
         return true
+    }
+    private fun slideMenuSetup(savedInstanceState: Bundle?) {
+        slidingRootNav = SlidingRootNavBuilder(this)
+                .withMenuOpened(false)
+                .withContentClickableWhenMenuOpened(true)
+                .withSavedState(savedInstanceState)
+                .withGravity(SlideGravity.RIGHT)
+                .withMenuLayout(R.layout.menu_left_drawer)
+                .inject()
+    }
+
+    private fun slideMenuAdapterSetup() {
+        val adapter = DrawerAdapter(Arrays.asList(
+                createItemFor(posReaderMode).setSwitchOn(true),
+                createItemFor(posFonts),
+                createItemFor(posFontSize),
+                createItemFor(posReportPage),
+                createItemFor(posOpenInBrowser),
+                createItemFor(posShareChapter)
+        ) as List<DrawerItem<DrawerAdapter.ViewHolder>>)
+        adapter.setListener(this)
+
+        list.isNestedScrollingEnabled = false
+        list.layoutManager = LinearLayoutManager(this)
+        list.adapter = adapter
+
+    }
+
+    private fun createItemFor(position: Int): DrawerItem<SimpleItem.ViewHolder> {
+        return SimpleItem(ReaderMenu(screenIcons[position]!!, screenTitles!![position]), this)
+
+
+    }
+
+    private fun toggleSlideRootNab() {
+        if (slidingRootNav!!.isMenuOpened)
+            slidingRootNav!!.closeMenu()
+        else
+            slidingRootNav!!.openMenu()
+    }
+
+    private fun loadScreenTitles(): Array<String> {
+        return resources.getStringArray(R.array.ld_activityScreenTitles)
+    }
+
+    private fun loadScreenIcons(): Array<Drawable?> {
+        val ta = resources.obtainTypedArray(R.array.ld_activityScreenIcons)
+        val icons = arrayOfNulls<Drawable>(ta.length())
+        for (i in 0 until ta.length()) {
+            val id = ta.getResourceId(i, 0)
+            if (id != 0) {
+                icons[i] = ContextCompat.getDrawable(this, id)
+            }
+        }
+        ta.recycle()
+        return icons
+    }
+
+    override fun onItemSelected(position: Int) {
+
+        slidingRootNav!!.closeMenu()
+        when (position) {
+            posReaderMode -> {
+            }
+            posFonts -> {
+                toast("Font Clicked")
+            }
+            posFontSize -> {
+                changeTextSize()
+            }
+            posReportPage -> {
+                reportPage()
+            }
+            posOpenInBrowser -> {
+                inBrowser()
+            }
+            posShareChapter -> {
+                share()
+            }
+        }
+    }
+
+
+    override fun bind(item: ReaderMenu, itemView: View, position: Int, simpleItem: SimpleItem) {
+
+        itemView.title.text = item.title
+        itemView.icon.setImageDrawable(item.icon)
+        if (simpleItem.isSwitchOn())
+            itemView.switchReaderMode.visibility = View.VISIBLE
+        else
+            itemView.switchReaderMode.visibility = View.GONE
+
+
+        itemView.switchReaderMode.setOnCheckedChangeListener({ _: CompoundButton, isChecked: Boolean ->
+            if (isChecked) {
+                (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment).cleanPage()
+                itemView.linNightMode.visibility = View.VISIBLE
+                itemView.titleNightMode.text = getString(R.string.title_night)
+                itemView.iconNightMode.setImageDrawable(item.icon)
+            } else
+                itemView.linNightMode.visibility = View.GONE
+        })
+        itemView.switchNightMode.setOnCheckedChangeListener({ _: CompoundButton, _: Boolean ->
+            toggleDarkTheme()
+        })
     }
 }

@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.view.ViewPager
 import android.view.KeyEvent
@@ -78,6 +79,28 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
                 fabClean.visibility = View.INVISIBLE
             }
 
+        }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+
+        if (hasFocus && dataCenter.enableImmersiveMode) {
+            val immersiveModeOptions: Int
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                main_content.fitsSystemWindows = false
+
+                immersiveModeOptions = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+            } else {
+                immersiveModeOptions = (View.SYSTEM_UI_FLAG_LOW_PROFILE)
+            }
+
+            window.decorView.systemUiVisibility = immersiveModeOptions
         }
     }
 
@@ -223,23 +246,23 @@ class ReaderPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Floa
 
     fun checkUrl(url: String): Boolean {
         val index = chapters.indexOfFirst { it.redirectedUrl != null && it.redirectedUrl!!.contains(url) }
-        if (index != -1) {
-            viewPager.currentItem = index
-            val webPage = chapters[index]
-            if (webPage.novelId != -1L && webPage.id != -1L) {
-                dbHelper.updateBookmarkCurrentWebPageId(webPage.novelId, webPage.id)
-            }
-            if (webPage.id != -1L) {
-                webPage.isRead = 1
-                dbHelper.updateWebPageReadStatus(webPage)
-            }
-            return true
-        } else return false
+        if (index == -1)
+            return false
+
+        viewPager.currentItem = index
+        val webPage = chapters[index]
+        if (webPage.novelId != -1L && webPage.id != -1L) {
+            dbHelper.updateBookmarkCurrentWebPageId(webPage.novelId, webPage.id)
+        }
+        if (webPage.id != -1L) {
+            webPage.isRead = 1
+            dbHelper.updateWebPageReadStatus(webPage)
+        }
+        return true
     }
 
     override fun onDestroy() {
         super.onDestroy()
         async.cancelAll()
     }
-
 }

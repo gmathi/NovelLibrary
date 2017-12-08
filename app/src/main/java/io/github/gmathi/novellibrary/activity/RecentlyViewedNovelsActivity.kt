@@ -1,28 +1,22 @@
 package io.github.gmathi.novellibrary.activity
 
-import android.graphics.Rect
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.RecyclerView
-import android.view.Menu
+import android.util.Log
 import android.view.MenuItem
 import android.view.View
-import co.metalab.asyncawait.async
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.network.NovelApi
-import io.github.gmathi.novellibrary.network.getRecentlyUpdatedNovels
-import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_recently_viewed_novels.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
-import kotlinx.android.synthetic.main.listitem_title_subtitle.view.*
+import kotlinx.android.synthetic.main.listitem_novel.view.*
 
-class RecentlyViewedNovelsActivity : AppCompatActivity()  { //, GenericAdapter.Listener<Novel> {
+class RecentlyViewedNovelsActivity : AppCompatActivity(), GenericAdapter.Listener<Novel> {
 
     lateinit var adapter: GenericAdapter<Novel>
 
@@ -31,79 +25,52 @@ class RecentlyViewedNovelsActivity : AppCompatActivity()  { //, GenericAdapter.L
         setContentView(R.layout.activity_recently_viewed_novels)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
+        setRecyclerView()
     }
 
-//    progressLayout.showLoading()
-//        getRecentlyUpdatedNovels()
-//        setRecyclerView()
-//    }
-//
-//    private fun setRecyclerView() {
-//        adapter = GenericAdapter(items = ArrayList<Novel>(), layoutResId = R.layout.listitem_title_subtitle, listener = this)
-//        recyclerView.setDefaults(adapter)
-//        recyclerView.addItemDecoration(object : DividerItemDecoration(this, DividerItemDecoration.VERTICAL) {
-//
-//            override fun getItemOffsets(outRect: Rect?, view: View?, parent: RecyclerView?, state: RecyclerView.State?) {
-//                val position = parent?.getChildAdapterPosition(view)
-//                if (position == parent?.adapter?.itemCount?.minus(1)) {
-//                    outRect?.setEmpty()
-//                } else {
-//                    super.getItemOffsets(outRect, view, parent, state)
-//                }
-//            }
-//        })
-//        swipeRefreshLayout.setOnRefreshListener { getRecentlyUpdatedNovels() }
-//    }
-//
-//    private fun getRecentlyUpdatedNovels() {
-//        async {
-//
-//            if (!Utils.checkNetwork(this@RecentlyUpdatedNovelsActivity)) {
-//                if (adapter.items.isEmpty())
-//                    progressLayout.showError(ContextCompat.getDrawable(this@RecentlyUpdatedNovelsActivity, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
-//                        progressLayout.showLoading()
-//                        getRecentlyUpdatedNovels()
-//                    })
-//                return@async
-//            }
-//
-//            val items = await { NovelApi().getRecentlyUpdatedNovels() } ?: return@async
-//            adapter.updateData(items)
-//            progressLayout.showContent()
-//            swipeRefreshLayout.isRefreshing = false
-//
-//        }
-//    }
-//
-//    override fun bind(item: Novel, itemView: View, position: Int) {
-//        itemView.chevron.visibility = View.VISIBLE
-//
-//        itemView.title.applyFont(assets).text = item.novelName
-//        itemView.subtitle.applyFont(assets).text = "${item.chapterName} [ ${item.publisherName} ]"
-//
-//        itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
-//        else ContextCompat.getColor(this, android.R.color.transparent))
-//    }
-//
-//    override fun onItemClick(item: Novel) {
-//        val novel = Novel()
-//        if (item.novelName != null && item.novelUrl != null) {
-//            novel.name = item.novelName
-//            novel.url = item.novelUrl
-//            startNovelDetailsActivity(novel)
-//        }
-//    }
-//
-//    //region OptionsMenu
-//    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-//        return super.onCreateOptionsMenu(menu)
-//    }
-//
-//    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-//        if (item?.itemId == android.R.id.home) finish()
-//        return super.onOptionsItemSelected(item)
-//    }
-//    //endregion
+    private fun setRecyclerView() {
+        adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_novel, listener = this)
+        recyclerView.setDefaults(adapter)
+    }
+
+    override fun bind(item: Novel, itemView: View, position: Int) {
+        itemView.novelImageView.setImageResource(android.R.color.transparent)
+        if (item.imageUrl != null) {
+            Glide.with(this)
+                .load(item.imageUrl)
+                .apply(RequestOptions.circleCropTransform())
+                .into(itemView.novelImageView)
+        }
+
+        //Other Data Fields
+        itemView.novelTitleTextView.text = item.name
+        if (item.rating != null) {
+            var ratingText = "(N/A)"
+            try {
+                val rating = item.rating!!.toFloat()
+                itemView.novelRatingBar.rating = rating
+                ratingText = "(" + String.format("%.1f", rating) + ")"
+            } catch (e: Exception) {
+                Log.w("Library Activity", "Rating: " + item.rating, e)
+            }
+            itemView.novelRatingText.text = ratingText
+        }
+    }
+
+    override fun onItemClick(item: Novel) {
+        startNovelDetailsActivity(item)
+    }
+
+    //region OptionsMenu
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        if (item?.itemId == android.R.id.home) finish()
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        adapter.updateData(ArrayList(dataCenter.loadNovelHistory().reversed()))
+    }
+//endregion
 
 }

@@ -69,9 +69,9 @@ dependencies {
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
 
     implementation 'com.google.code.gson:gson:2.8.0'
-    implementation 'org.jsoup:jsoup:1.10.3'
+    implementation 'org.jsoup:jsoup:1.11.2'
     implementation 'org.cryse.widget:persistentsearchview:1.0.4@aar'
-    implementation 'com.github.bumptech.glide:glide:4.0.0-RC1'
+    implementation 'com.github.bumptech.glide:glide:4.3.1'
     implementation 'jp.wasabeef:recyclerview-animators:2.2.6'
     implementation 'org.greenrobot:eventbus:3.0.0'
     implementation 'com.ogaclejapan.smarttablayout:library:1.6.1@aar'
@@ -88,7 +88,7 @@ dependencies {
     implementation 'com.afollestad:drag-select-recyclerview:1.0.0'
     implementation 'com.thanosfisherman.mayi:mayi:1.4'
     implementation 'com.tapadoo.android:alerter:2.0.1'
-    implementation('com.firebaseui:firebase-ui-auth:3.1.0' , {
+    implementation('com.firebaseui:firebase-ui-auth:3.1.0', {
         exclude group: 'com.google.firebase'
         exclude group: 'com.google.android.gms'
 
@@ -105,7 +105,7 @@ dependencies {
     releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
     testImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
 
-    kapt 'com.github.bumptech.glide:compiler:4.0.0-RC1'
+    kapt 'com.github.bumptech.glide:compiler:4.3.1'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 
@@ -120,3 +120,4 @@ kotlin {
 }
 
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'kotlin-kapt'

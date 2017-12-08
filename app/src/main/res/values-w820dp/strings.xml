@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="no_bookmark">No Bookmark!</string>
+
+    <string name="already_in_library">[ Already In Library ]</string>
+    <string name="group_notification_text">Updated for the novels in your library</string>
+    <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
+    <string name="reader_mode_description">Reader mode will be on permanently</string>
+    <string name="delete_chapters">Delete Chapters</string>
 </resources>

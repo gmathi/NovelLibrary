@@ -13,6 +13,9 @@ import android.view.MenuItem
 import android.view.View
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
+
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.hanks.library.AnimateCheckBox
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapterWithDragListener
@@ -34,12 +37,13 @@ import kotlinx.android.synthetic.main.listitem_chapter_ultimate.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import java.io.File
 
 class ChaptersActivity :
-    BaseActivity(),
-    GenericAdapterWithDragListener.Listener<WebPage>,
-    ActionMode.Callback,
-    AnimateCheckBox.OnCheckedChangeListener {
+        BaseActivity(),
+        GenericAdapterWithDragListener.Listener<WebPage>,
+        ActionMode.Callback,
+        AnimateCheckBox.OnCheckedChangeListener {
 
     lateinit var novel: Novel
     lateinit var adapter: GenericAdapterWithDragListener<WebPage>
@@ -101,7 +105,7 @@ class ChaptersActivity :
             } else {
                 swipeRefreshLayout.isRefreshing = false
                 progressLayout.showContent()
-                if (adapter.items.size < novel.chapterCount.toInt()) {
+                if (adapter.items.size < novel.newChapterCount.toInt()) {
                     swipeRefreshLayout.isRefreshing = true
                     getChapters()
                 }
@@ -131,13 +135,23 @@ class ChaptersActivity :
                             novel.newChapterCount = chapterList.size.toLong()
                             dbHelper.updateNovel(novel)
                         }
-                        await { dbHelper.addWebPages(chapterList, novel) }
-                        getChaptersFromDB()
+                        await {
+                            for (i in 0 until chapterList.size) {
+                                val webPage = dbHelper.getWebPage(novel.id, i.toLong())
+                                if (webPage == null) {
+                                    chapterList[i].orderId = i.toLong()
+                                    chapterList[i].novelId = novel.id
+                                    chapterList[i].id = dbHelper.createWebPage(chapterList[i])
+                                } else
+                                    chapterList[i].copyFrom(webPage)
+                            }
+                        }
                     } else {
-                        adapter.updateData(ArrayList(chapterList))
                         swipeRefreshLayout.isRefreshing = false
-                        progressLayout.showContent()
                     }
+                    adapter.updateData(ArrayList(chapterList))
+                    progressLayout.showContent()
+                    swipeRefreshLayout.isRefreshing = false
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -164,7 +178,7 @@ class ChaptersActivity :
         if (dragSelectRecyclerView.findViewHolderForAdapterPosition(position) != null) {
             @Suppress("UNCHECKED_CAST")
             (dragSelectRecyclerView.findViewHolderForAdapterPosition(position) as GenericAdapterWithDragListener.ViewHolder<WebPage>)
-                .itemView?.chapterCheckBox?.isChecked = selected
+                    .itemView?.chapterCheckBox?.isChecked = selected
         } else {
             val webPage = adapter.items[position]
             if (selected)
@@ -352,6 +366,12 @@ class ChaptersActivity :
                 }
                 shareUrl(urls)
             }
+            R.id.action_delete -> {
+                updateSet.forEach {
+                    deleteWebPage(it)
+                }
+                mode?.finish()
+            }
         }
         return false
     }
@@ -379,12 +399,12 @@ class ChaptersActivity :
     private fun confirmDialog(content: String, callback: MaterialDialog.SingleButtonCallback) {
         if (confirmDialog == null || !confirmDialog!!.isShowing) {
             confirmDialog = MaterialDialog.Builder(this)
-                .title(getString(R.string.confirm_action))
-                .content(content)
-                .positiveText(getString(R.string.okay))
-                .negativeText(R.string.cancel)
-                .onPositive(callback)
-                .onNegative { dialog, _ -> dialog.dismiss() }.build()
+                    .title(getString(R.string.confirm_action))
+                    .content(content)
+                    .positiveText(getString(R.string.okay))
+                    .negativeText(R.string.cancel)
+                    .onPositive(callback)
+                    .onNegative { dialog, _ -> dialog.dismiss() }.build()
             confirmDialog!!.show()
         }
     }
@@ -392,12 +412,12 @@ class ChaptersActivity :
     private fun confirmDialog(content: String, positiveCallback: MaterialDialog.SingleButtonCallback, negativeCallback: MaterialDialog.SingleButtonCallback) {
         if (confirmDialog == null || !confirmDialog!!.isShowing) {
             confirmDialog = MaterialDialog.Builder(this)
-                .title(getString(R.string.confirm_action))
-                .content(content)
-                .positiveText(getString(R.string.okay))
-                .negativeText(R.string.cancel)
-                .onPositive(positiveCallback)
-                .onNegative(negativeCallback).build()
+                    .title(getString(R.string.confirm_action))
+                    .content(content)
+                    .positiveText(getString(R.string.okay))
+                    .negativeText(R.string.cancel)
+                    .onPositive(positiveCallback)
+                    .onNegative(negativeCallback).build()
             confirmDialog!!.show()
         }
     }
@@ -405,24 +425,24 @@ class ChaptersActivity :
 
     private fun showNotInLibraryDialog() {
         MaterialDialog.Builder(this)
-            .iconRes(R.drawable.ic_warning_white_vector)
-            .title(getString(R.string.alert))
-            .content(getString(R.string.novel_not_in_library_dialog_content))
-            .positiveText(getString(R.string.okay))
-            .onPositive { dialog, _ -> dialog.dismiss() }
-            .show()
+                .iconRes(R.drawable.ic_warning_white_vector)
+                .title(getString(R.string.alert))
+                .content(getString(R.string.novel_not_in_library_dialog_content))
+                .positiveText(getString(R.string.okay))
+                .onPositive { dialog, _ -> dialog.dismiss() }
+                .show()
     }
 
     private fun manageDownloadsDialog() {
         MaterialDialog.Builder(this)
-            .iconRes(R.drawable.ic_info_white_vector)
-            .title(getString(R.string.manage_downloads))
-            .content("Novel downloads can be managed by navigating to \"Downloads\" through the navigation drawer menu.")
-            .positiveText(getString(R.string.take_me_there))
-            .negativeText(getString(R.string.okay))
-            .onPositive { dialog, _ -> dialog.dismiss(); setResult(Constants.OPEN_DOWNLOADS_RES_CODE); finish() }
-            .onNegative { dialog, _ -> dialog.dismiss() }
-            .show()
+                .iconRes(R.drawable.ic_info_white_vector)
+                .title(getString(R.string.manage_downloads))
+                .content("Novel downloads can be managed by navigating to \"Downloads\" through the navigation drawer menu.")
+                .positiveText(getString(R.string.take_me_there))
+                .negativeText(getString(R.string.okay))
+                .onPositive { dialog, _ -> dialog.dismiss(); setResult(Constants.OPEN_DOWNLOADS_RES_CODE); finish() }
+                .onNegative { dialog, _ -> dialog.dismiss() }
+                .show()
     }
     //endregion
 
@@ -541,6 +561,8 @@ class ChaptersActivity :
                 }
                 progressLayout.showContent()
             }
+            progressLayout.showContent()
+            startDownloadService()
         }
     }
 
@@ -557,6 +579,29 @@ class ChaptersActivity :
             progressLayout.showContent()
             startDownloadService()
         }
+    }
+
+    private fun deleteWebPage(webPage: WebPage) {
+        if (webPage.filePath != null)
+            try {
+                val file = File(webPage.filePath)
+                file.delete()
+                webPage.filePath = null
+                if (webPage.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
+                    val linkedPages: ArrayList<WebPage> = Gson().fromJson(webPage.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+                    linkedPages.forEach {
+                        if (it.filePath != null) {
+                            val linkedFile = File(it.filePath)
+                            linkedFile.delete()
+                        }
+                        it.filePath = null
+                    }
+                    webPage.metaData.put(Constants.MD_OTHER_LINKED_WEB_PAGES, Gson().toJson(linkedPages))
+                }
+                dbHelper.updateWebPage(webPage)
+            } catch (e: Exception) {
+                Utils.error("ChaptersActivity", e.localizedMessage)
+            }
     }
 
     override fun onDestroy() {

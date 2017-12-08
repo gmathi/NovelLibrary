@@ -34,8 +34,8 @@ class RecentlyUpdatedNovelsActivity : AppCompatActivity(), GenericAdapter.Listen
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         progressLayout.showLoading()
-        getRecentlyUpdatedNovels()
         setRecyclerView()
+        getRecentlyUpdatedNovels()
     }
 
     private fun setRecyclerView() {

@@ -18,10 +18,7 @@
             android:id="@+id/nav_downloads"
             android:icon="@drawable/ic_file_download_black_vector"
             android:title="@string/title_downloads"/>
-        <item
-            android:id="@+id/nav_settings"
-            android:icon="@drawable/ic_settings_white_vector"
-            android:title="@string/title_activity_settings"/>
+
     </group>
 
     <item android:title="@string/quick_access">
@@ -39,10 +36,10 @@
             <!--android:actionViewClass="android.widget.SearchView"-->
             <!--android:icon="@drawable/ic_search_black"-->
             <!--android:title="Search"/>-->
-            <!--<item-->
-            <!--android:id="@+id/nav_recently_viewed"-->
-            <!--android:icon="@drawable/ic_update_white_vector"-->
-            <!--android:title="@string/title_activity_recently_viewed_novels"/>-->
+            <item
+                android:id="@+id/nav_recently_viewed"
+                android:icon="@drawable/ic_update_white_vector"
+                android:title="@string/title_activity_recently_viewed_novels"/>
             <item
                 android:id="@+id/nav_recently_updated"
                 android:icon="@drawable/ic_history_white_vector"
@@ -57,6 +54,11 @@
 
     <item android:title="@string/other">
         <menu>
+            <item
+                android:id="@+id/nav_settings"
+                android:icon="@drawable/ic_settings_white_vector"
+                android:title="@string/title_activity_settings"/>
+
             <item
                 android:id="@+id/nav_discord_link"
                 android:icon="@drawable/discord_icon"
