@@ -12,9 +12,13 @@ enum class EventType {
 
 class NovelEvent(var type: EventType, var novelId: Long = -1L, var webPage: WebPage? = null)
 
-class DownloadEvent(var type: EventType, var webPageId: Long = -1L, var download: Download)
+class DownloadWebPageEvent(var type: EventType, var webPageId: Long = -1L, var download: Download)
+
+class DownloadNovelEvent(var type: EventType, var novelName: String)
 
 class ServiceEvent(var type: EventType)
+
+class DownloadActionEvent(var novelName: String, var action: String)
 
 class ChapterEvent(val novel: Novel)
 

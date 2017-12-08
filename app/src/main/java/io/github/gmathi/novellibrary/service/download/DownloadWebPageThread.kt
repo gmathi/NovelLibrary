@@ -6,7 +6,7 @@ import com.google.gson.Gson
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.model.Download
-import io.github.gmathi.novellibrary.model.DownloadEvent
+import io.github.gmathi.novellibrary.model.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
@@ -19,22 +19,18 @@ import org.jsoup.nodes.Document
 import java.io.File
 
 
-class DownloadWebPageThread(val context: Context, val download: Download) : Thread() {
+class DownloadWebPageThread(val context: Context, val download: Download, val dbHelper: DBHelper) : Thread() {
 
     companion object {
         private val TAG = "DownloadWebPageThread"
     }
 
-    private lateinit var dbHelper: DBHelper
     private lateinit var hostDir: File
     private lateinit var novelDir: File
 
     override fun run() {
-        super.run()
         try {
             if (isNetworkDown()) throw InterruptedException(Constants.NO_NETWORK)
-
-            dbHelper = DBHelper.getInstance(context)
 
             val webPage = dbHelper.getWebPage(download.webPageId)!!
 
@@ -42,11 +38,11 @@ class DownloadWebPageThread(val context: Context, val download: Download) : Thre
             novelDir = Utils.getNovelDir(hostDir, download.novelName)
 
             dbHelper.updateDownloadStatus(Download.STATUS_RUNNING, download.webPageId)
-            EventBus.getDefault().post(DownloadEvent(EventType.RUNNING, webPage.id, download))
+            EventBus.getDefault().post(DownloadWebPageEvent(EventType.RUNNING, webPage.id, download))
 
             if (downloadChapter(webPage)) {
                 dbHelper.deleteDownload(download.webPageId)
-                EventBus.getDefault().post(DownloadEvent(EventType.COMPLETE, webPage.id, download))
+                EventBus.getDefault().post(DownloadWebPageEvent(EventType.COMPLETE, webPage.id, download))
             }
 
         } catch (e: InterruptedException) {

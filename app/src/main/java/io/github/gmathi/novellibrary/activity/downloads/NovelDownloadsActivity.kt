@@ -1,7 +1,6 @@
 package io.github.gmathi.novellibrary.activity.downloads
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
@@ -10,14 +9,12 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
+import io.github.gmathi.novellibrary.activity.startDownloadNovelService
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.model.Download
-import io.github.gmathi.novellibrary.model.DownloadEvent
-import io.github.gmathi.novellibrary.model.EventType
-import io.github.gmathi.novellibrary.model.ServiceEvent
-import io.github.gmathi.novellibrary.service.download.DownloadService
+import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.activity_novel_downloads.*
@@ -34,7 +31,6 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     lateinit var adapter: GenericAdapter<String>
-    private var lastDownloadEvent: DownloadEvent? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,31 +43,33 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     private fun setFab() {
-        if (Utils.isServiceRunning(this, DownloadService.QUALIFIED_NAME)) {
-            fab.setImageResource(R.drawable.ic_pause_white_vector)
-            fab.tag = "playing"
-        } else {
-            fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
-            fab.tag = "paused"
-        }
+        fab.hide()
 
-        fab.setOnClickListener { _ ->
-            if (!adapter.items.isEmpty()) {
-                if (fab.tag == "playing") {
-                    //pause all
-                    stopService(Intent(this, DownloadService::class.java))
-                    fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
-                    adapter.notifyDataSetChanged()
-                    fab.tag = "paused"
-                } else if (fab.tag == "paused") {
-                    //play all
-                    startService(Intent(this, DownloadService::class.java))
-                    fab.setImageResource(R.drawable.ic_pause_white_vector)
-                    adapter.notifyDataSetChanged()
-                    fab.tag = "playing"
-                }
-            }
-        }
+//        if (Utils.isServiceRunning(this, DownloadService.QUALIFIED_NAME)) {
+//            fab.setImageResource(R.drawable.ic_pause_white_vector)
+//            fab.tag = "playing"
+//        } else {
+//            fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
+//            fab.tag = "paused"
+//        }
+
+//        fab.setOnClickListener { _ ->
+//            if (!adapter.items.isEmpty()) {
+//                if (fab.tag == "playing") {
+//                    //pause all
+//                    stopService(Intent(this, DownloadService::class.java))
+//                    fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
+//                    adapter.notifyDataSetChanged()
+//                    fab.tag = "paused"
+//                } else if (fab.tag == "paused") {
+//                    //play all
+//                    startService(Intent(this, DownloadService::class.java))
+//                    fab.setImageResource(R.drawable.ic_pause_white_vector)
+//                    adapter.notifyDataSetChanged()
+//                    fab.tag = "playing"
+//                }
+//            }
+//        }
     }
 
     private fun setRecyclerView() {
@@ -101,14 +99,17 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 .into(itemView.novelImageView)
         }
         itemView.novelTitleTextView.text = item
-        val downloadedPages = dbHelper.getDownloadedChapterCount(novel!!.id)
+        //val downloadedPages = dbHelper.getDownloadedChapterCount(novel!!.id)
 
-        if (dbHelper.hasDownloadsInQueue(item)) {
-            itemView.novelProgressText.text = "$downloadedPages / ${novel.newChapterCount}"
+        val remainingDownloadsCount = dbHelper.getRemainingDownloadsCountForNovel(item)
+        itemView.novelProgressText.text = "Remaining $remainingDownloadsCount"
+
+        val isServiceRunning = Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME)
+
+        if (dbHelper.hasDownloadsInQueue(item) && isServiceRunning) {
             itemView.playPauseImage.setImageResource(R.drawable.ic_pause_white_vector)
             itemView.playPauseImage.tag = Download.STATUS_IN_QUEUE
         } else {
-            itemView.novelProgressText.text = "$downloadedPages / ${novel.newChapterCount}"
             itemView.playPauseImage.setImageResource(R.drawable.ic_play_arrow_white_vector)
             itemView.playPauseImage.tag = Download.STATUS_PAUSED
         }
@@ -116,16 +117,24 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         itemView.playPauseImage.setOnClickListener {
             when {
                 itemView.playPauseImage.tag == Download.STATUS_PAUSED -> {
+                    itemView.playPauseImage.setImageResource(R.drawable.ic_pause_white_vector)
+                    itemView.playPauseImage.tag = Download.STATUS_IN_QUEUE
                     dbHelper.updateDownloadStatus(Download.STATUS_IN_QUEUE, item)
-                    if (!Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadService.QUALIFIED_NAME))
-                        startService(Intent(this, DownloadService::class.java))
+                    if (!Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME))
+                        startDownloadNovelService(item)
+                    else {
+                        EventBus.getDefault().post(DownloadActionEvent(item, DownloadNovelService.ACTION_START))
+                    }
                 }
 
                 itemView.playPauseImage.tag == Download.STATUS_IN_QUEUE -> {
+                    itemView.playPauseImage.setImageResource(R.drawable.ic_play_arrow_white_vector)
+                    itemView.playPauseImage.tag = Download.STATUS_PAUSED
                     dbHelper.updateDownloadStatus(Download.STATUS_PAUSED, item)
+                    EventBus.getDefault().post(DownloadActionEvent(item, DownloadNovelService.ACTION_PAUSE))
                 }
             }
-            adapter.notifyDataSetChanged()
+            //adapter.notifyDataSetChanged()
         }
 
         itemView.deleteButton.setOnClickListener {
@@ -141,14 +150,10 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         else {
 
             //Update the cells partially
-            val downloadEvent = payloads[0] as DownloadEvent
+            val downloadEvent = payloads[0] as DownloadWebPageEvent
             if (downloadEvent.download.novelName == item) {
-                //      itemView.playPauseImage.setImageResource(R.drawable.ic_pause_white_vector)
-                val novel = dbHelper.getNovel(item)
-                val downloadedPages = dbHelper.getDownloadedChapterCount(novel!!.id)
-                itemView.novelProgressText.text = "$downloadedPages / ${novel.newChapterCount} (${downloadEvent.download.chapter})"
-            } else {
-                //      itemView.playPauseImage.setImageResource(R.drawable.ic_play_arrow_white_vector)
+                val remainingDownloadsCount = dbHelper.getRemainingDownloadsCountForNovel(item)
+                itemView.novelProgressText.text = "Remaining: $remainingDownloadsCount, Current: ${downloadEvent.download.chapter}"
             }
         }
     }
@@ -184,29 +189,33 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onDownloadEvent(downloadEvent: DownloadEvent) {
-        if (downloadEvent.type == EventType.COMPLETE) {
-            if (lastDownloadEvent == null || lastDownloadEvent?.download?.novelName == downloadEvent.download.novelName)
-                adapter.notifyItemRangeChanged(0, adapter.itemCount, downloadEvent)
-            else {
-                lastDownloadEvent = downloadEvent
-                adapter.updateData(ArrayList(dbHelper.getDownloadNovelNames()))
-            }
+    fun onWebPageDownloadEvent(downloadWebPageEvent: DownloadWebPageEvent) {
+        if (downloadWebPageEvent.type == EventType.COMPLETE) {
+            val index = adapter.items.indexOf(downloadWebPageEvent.download.novelName)
+            adapter.notifyItemRangeChanged(index, 1, downloadWebPageEvent)
         }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onServiceEvent(serviceEvent: ServiceEvent) {
-        if (serviceEvent.type == EventType.COMPLETE) {
-            fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
-            adapter.notifyDataSetChanged()
-            fab.tag = "paused"
-        } else if (serviceEvent.type == EventType.RUNNING) {
-            fab.setImageResource(R.drawable.ic_pause_white_vector)
-            adapter.notifyDataSetChanged()
-            fab.tag = "playing"
+    fun onNovelDownloadEvent(downloadNovelEvent: DownloadNovelEvent) {
+        if (downloadNovelEvent.type == EventType.DELETE) {
+            adapter.removeItem(downloadNovelEvent.novelName)
         }
     }
+
+//    @Subscribe(threadMode = ThreadMode.MAIN)
+//    fun onChapterServiceEvent(serviceEvent: ServiceEvent) {
+//        if (serviceEvent.type == EventType.COMPLETE) {
+//            fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
+//            adapter.notifyDataSetChanged()
+//            fab.tag = "paused"
+//        } else if (serviceEvent.type == EventType.RUNNING) {
+//            fab.setImageResource(R.drawable.ic_pause_white_vector)
+//            adapter.notifyDataSetChanged()
+//            fab.tag = "playing"
+//        }
+//    }
+
 
     override fun onStart() {
         super.onStart()

@@ -60,6 +60,26 @@ fun DBHelper.getAllDownloads(): List<Download> {
     return list
 }
 
+fun DBHelper.getAllDownloadsForNovel(novelName: String): List<Download> {
+    val list = ArrayList<Download>()
+    val selectQuery = "SELECT * FROM " + DBKeys.TABLE_DOWNLOAD + " WHERE " + DBKeys.KEY_NAME + " = \"" + novelName + "\""
+    Log.d(LOG, selectQuery)
+    val cursor = this.readableDatabase.rawQuery(selectQuery, null)
+
+    // looping through all rows and adding to list
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(getDownload(cursor))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+    }
+
+    return list
+}
+
+
 fun DBHelper.updateDownloadStatus(status: Int, webPageId: Long): Long {
     val values = ContentValues()
     values.put(DBKeys.KEY_STATUS, status)
@@ -82,6 +102,19 @@ fun DBHelper.deleteDownloads(novelName: String) {
 
 fun DBHelper.getDownloadItemInQueue(): Download? {
     val selectQuery = "SELECT * FROM " + DBKeys.TABLE_DOWNLOAD + " WHERE " + DBKeys.KEY_STATUS + " = " + Download.STATUS_IN_QUEUE + " LIMIT 1"
+    Log.d(LOG, selectQuery)
+    val cursor = this.readableDatabase.rawQuery(selectQuery, null)
+    var download: Download? = null
+    if (cursor != null) {
+        if (cursor.moveToFirst())
+            download = getDownload(cursor)
+        cursor.close()
+    }
+    return download
+}
+
+fun DBHelper.getDownloadItemInQueue(novelName: String): Download? {
+    val selectQuery = "SELECT * FROM " + DBKeys.TABLE_DOWNLOAD + " WHERE " + DBKeys.KEY_STATUS + " = " + Download.STATUS_IN_QUEUE + " AND " + DBKeys.KEY_NAME + " = \"" + novelName + "\" LIMIT 1"
     Log.d(LOG, selectQuery)
     val cursor = this.readableDatabase.rawQuery(selectQuery, null)
     var download: Download? = null
@@ -138,6 +171,21 @@ private fun getDownload(cursor: Cursor): Download {
     download.orderId = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
     download.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<java.util.HashMap<String, String>>() {}.type)
     return download
+}
+
+fun DBHelper.getRemainingDownloadsCountForNovel(novelName: String): Int {
+    val selectQuery = "SELECT COUNT(*) FROM " + DBKeys.TABLE_DOWNLOAD + " WHERE " + DBKeys.KEY_NAME + " = \"" + novelName + "\""
+    Log.d(LOG, selectQuery)
+    val cursor = this.readableDatabase.rawQuery(selectQuery, null)
+
+    // looping through all rows and adding to list
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+            return cursor.getInt(0)
+        }
+        cursor.close()
+    }
+    return 0
 }
 
 
