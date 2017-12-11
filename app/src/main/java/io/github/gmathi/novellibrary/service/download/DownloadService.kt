@@ -53,7 +53,7 @@ class DownloadService : IntentService(TAG) {
             //if (dataCenter.experimentalDownload) {
             //    threadPool.execute(DownloadWebPageThread(this@DownloadService, download))
             //} else {
-            threadPool.submit(DownloadWebPageThread(this@DownloadService, download))?.get()
+            threadPool.submit(DownloadWebPageThread(this@DownloadService, download, dbHelper))?.get()
             //}
 
             download = dbHelper.getDownloadItemInQueue()

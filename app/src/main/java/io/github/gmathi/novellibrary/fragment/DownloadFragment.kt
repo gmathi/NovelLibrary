@@ -18,7 +18,7 @@ import io.github.gmathi.novellibrary.database.getAllDownloads
 import io.github.gmathi.novellibrary.database.updateDownloadStatus
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Download
-import io.github.gmathi.novellibrary.model.DownloadEvent
+import io.github.gmathi.novellibrary.model.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.service.download.DownloadService
 import io.github.gmathi.novellibrary.util.Utils
@@ -166,16 +166,16 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<Download> {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onDownloadEvent(event: DownloadEvent) {
-        if (event.type == EventType.RUNNING) {
-            adapter.items.firstOrNull { it.webPageId == event.webPageId }?.status = Download.STATUS_RUNNING
-            adapter.items.firstOrNull { it.webPageId == event.webPageId }?.let {
+    fun onDownloadEvent(webPageEvent: DownloadWebPageEvent) {
+        if (webPageEvent.type == EventType.RUNNING) {
+            adapter.items.firstOrNull { it.webPageId == webPageEvent.webPageId }?.status = Download.STATUS_RUNNING
+            adapter.items.firstOrNull { it.webPageId == webPageEvent.webPageId }?.let {
                 it.status = Download.STATUS_RUNNING
                 adapter.updateItem(it)
             }
         }
-        if (event.type == EventType.COMPLETE) {
-            adapter.removeItem(event.download)
+        if (webPageEvent.type == EventType.COMPLETE) {
+            adapter.removeItem(webPageEvent.download)
         }
     }
 }

@@ -69,6 +69,13 @@
             android:enabled="true"
             android:exported="false">
         </service>
+
+        <service
+            android:name=".service.download.DownloadNovelService"
+            android:enabled="true"
+            android:exported="false">
+
+        </service>
         <!-- <service -->
         <!-- android:name=".service.sync.SyncNovelsService" -->
         <!-- android:enabled="true" -->

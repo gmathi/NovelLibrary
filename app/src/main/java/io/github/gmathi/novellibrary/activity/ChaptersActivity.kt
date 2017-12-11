@@ -23,7 +23,7 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Download
-import io.github.gmathi.novellibrary.model.DownloadEvent
+import io.github.gmathi.novellibrary.model.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
@@ -505,9 +505,9 @@ class ChaptersActivity :
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onDownloadEvent(event: DownloadEvent) {
-        if (event.download.novelName == novel.name) {
-            adapter.items.firstOrNull { it.id == event.webPageId }?.let { adapter.updateItem(it) }
+    fun onDownloadEvent(webPageEvent: DownloadWebPageEvent) {
+        if (webPageEvent.download.novelName == novel.name) {
+            adapter.items.firstOrNull { it.id == webPageEvent.webPageId }?.let { adapter.updateItem(it) }
         }
     }
 
@@ -577,7 +577,7 @@ class ChaptersActivity :
                 }
             }
             progressLayout.showContent()
-            startDownloadService()
+            startDownloadNovelService(novel.name)
         }
     }
 

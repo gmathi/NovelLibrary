@@ -13,6 +13,7 @@ import io.github.gmathi.novellibrary.activity.downloads.NovelDownloadsActivity
 import io.github.gmathi.novellibrary.activity.settings.*
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.service.download.DownloadService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.TransitionHelper
@@ -185,4 +186,11 @@ fun Activity.startDownloadService() {
     startService(serviceIntent)
 }
 
+fun Activity.startDownloadNovelService(novelName: String) {
+    val serviceIntent = Intent(this, DownloadNovelService::class.java)
+    val bundle = Bundle()
+    bundle.putString(DownloadNovelService.NOVEL_NAME, novelName)
+    serviceIntent.putExtras(bundle)
+    startService(serviceIntent)
+}
 
