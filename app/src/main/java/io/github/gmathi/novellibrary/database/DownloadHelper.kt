@@ -20,7 +20,7 @@ fun DBHelper.createDownload(download: Download): Boolean {
     values.put(DBKeys.KEY_NAME, download.novelName)
     values.put(DBKeys.KEY_WEB_PAGE_ID, download.webPageId)
     values.put(DBKeys.KEY_CHAPTER, download.chapter)
-    values.put(DBKeys.KEY_STATUS, Download.STATUS_IN_QUEUE)
+    values.put(DBKeys.KEY_STATUS, Download.STATUS_PAUSED)
     values.put(DBKeys.KEY_ORDER_ID, download.orderId)
     values.put(DBKeys.KEY_METADATA, Gson().toJson(HashMap<String, String?>()))
 
@@ -90,6 +90,12 @@ fun DBHelper.updateDownloadStatus(status: Int, novelName: String): Long {
     val values = ContentValues()
     values.put(DBKeys.KEY_STATUS, status)
     return this.writableDatabase.update(DBKeys.TABLE_DOWNLOAD, values, DBKeys.KEY_NAME + " = ?", arrayOf(novelName)).toLong()
+}
+
+fun DBHelper.updateDownloadStatus(status: Int): Long {
+    val values = ContentValues()
+    values.put(DBKeys.KEY_STATUS, status)
+    return this.writableDatabase.update(DBKeys.TABLE_DOWNLOAD, values, null, null).toLong()
 }
 
 fun DBHelper.deleteDownload(webPageId: Long) {

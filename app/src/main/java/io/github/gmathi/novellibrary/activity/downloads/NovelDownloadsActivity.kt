@@ -101,17 +101,18 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         itemView.novelTitleTextView.text = item
         //val downloadedPages = dbHelper.getDownloadedChapterCount(novel!!.id)
 
-        val remainingDownloadsCount = dbHelper.getRemainingDownloadsCountForNovel(item)
-        itemView.novelProgressText.text = "Remaining $remainingDownloadsCount"
 
         val isServiceRunning = Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME)
 
         if (dbHelper.hasDownloadsInQueue(item) && isServiceRunning) {
             itemView.playPauseImage.setImageResource(R.drawable.ic_pause_white_vector)
             itemView.playPauseImage.tag = Download.STATUS_IN_QUEUE
+            val remainingDownloadsCount = dbHelper.getRemainingDownloadsCountForNovel(item)
+            itemView.novelProgressText.text = "${getString(R.string.download_in_queue)} - Remaining: $remainingDownloadsCount"
         } else {
             itemView.playPauseImage.setImageResource(R.drawable.ic_play_arrow_white_vector)
             itemView.playPauseImage.tag = Download.STATUS_PAUSED
+            itemView.novelProgressText.text = getString(R.string.download_paused)
         }
 
         itemView.playPauseImage.setOnClickListener {
@@ -131,6 +132,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     itemView.playPauseImage.setImageResource(R.drawable.ic_play_arrow_white_vector)
                     itemView.playPauseImage.tag = Download.STATUS_PAUSED
                     dbHelper.updateDownloadStatus(Download.STATUS_PAUSED, item)
+                    itemView.novelProgressText.text = getString(R.string.download_paused)
                     EventBus.getDefault().post(DownloadActionEvent(item, DownloadNovelService.ACTION_PAUSE))
                 }
             }
@@ -150,10 +152,30 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         else {
 
             //Update the cells partially
-            val downloadEvent = payloads[0] as DownloadWebPageEvent
-            if (downloadEvent.download.novelName == item) {
-                val remainingDownloadsCount = dbHelper.getRemainingDownloadsCountForNovel(item)
-                itemView.novelProgressText.text = "Remaining: $remainingDownloadsCount, Current: ${downloadEvent.download.chapter}"
+            val downloadEvent = payloads[0]
+
+            if (downloadEvent is DownloadWebPageEvent) {
+                if (downloadEvent.download.novelName == item) {
+                    val remainingDownloadsCount = dbHelper.getRemainingDownloadsCountForNovel(item)
+                    itemView.novelProgressText.text = "Remaining: $remainingDownloadsCount, Current: ${downloadEvent.download.chapter}"
+                }
+            } else if (downloadEvent is DownloadNovelEvent) {
+                if (downloadEvent.novelName == item) {
+                    @Suppress("NON_EXHAUSTIVE_WHEN")
+                    when (downloadEvent.type) {
+                        EventType.PAUSED -> {
+                            itemView.novelProgressText.text = getString(R.string.download_paused)
+                        }
+                        EventType.INSERT -> {
+                            val remainingDownloadsCount = dbHelper.getRemainingDownloadsCountForNovel(item)
+                            itemView.novelProgressText.text = "${getString(R.string.download_in_queue)} - Remaining: $remainingDownloadsCount"
+                        }
+                        EventType.RUNNING -> {
+                            itemView.novelProgressText.text = "Collecting Novel Information…"
+                        }
+                    }
+
+                }
             }
         }
     }
@@ -198,8 +220,17 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onNovelDownloadEvent(downloadNovelEvent: DownloadNovelEvent) {
-        if (downloadNovelEvent.type == EventType.DELETE) {
-            adapter.removeItem(downloadNovelEvent.novelName)
+
+        @Suppress("NON_EXHAUSTIVE_WHEN")
+        when (downloadNovelEvent.type) {
+            EventType.INSERT, EventType.RUNNING, EventType.PAUSED -> {
+                val index = adapter.items.indexOf(downloadNovelEvent.novelName)
+                adapter.notifyItemRangeChanged(index, 1, downloadNovelEvent)
+            }
+
+            EventType.DELETE -> {
+                adapter.removeItem(downloadNovelEvent.novelName)
+            }
         }
     }
 

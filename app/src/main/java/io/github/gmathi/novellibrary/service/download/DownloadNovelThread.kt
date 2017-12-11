@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.getDownloadItemInQueue
+import io.github.gmathi.novellibrary.database.getRemainingDownloadsCountForNovel
 import io.github.gmathi.novellibrary.model.DownloadNovelEvent
 import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.util.Constants
@@ -38,7 +39,12 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
             threadPool?.shutdown()
             try {
                 threadPool?.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)
-                EventBus.getDefault().post(DownloadNovelEvent(EventType.DELETE, novelName))
+
+                if (dbHelper.getRemainingDownloadsCountForNovel(novelName) == 0)
+                    EventBus.getDefault().post(DownloadNovelEvent(EventType.DELETE, novelName))
+                else
+                    EventBus.getDefault().post(DownloadNovelEvent(EventType.PAUSED, novelName))
+
             } catch (e: InterruptedException) {
                 Log.w(Companion.TAG, "Thread pool executor interrupted~")
             }
