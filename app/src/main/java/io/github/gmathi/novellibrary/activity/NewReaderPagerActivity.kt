@@ -24,6 +24,7 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.updateBookmarkCurrentWebPageId
 import io.github.gmathi.novellibrary.database.updateWebPageReadStatus
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.fragment.WebPageFragment
 import io.github.gmathi.novellibrary.model.*
 import io.github.gmathi.novellibrary.network.NovelApi
@@ -58,15 +59,12 @@ class NewReaderPagerActivity : DrawerAdapter.OnItemSelectedListener, SimpleItem.
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_new_reader_pager)
-
         slideMenuSetup(savedInstanceState)
 
         screenIcons = loadScreenIcons()
         screenTitles = loadScreenTitles()
         slideMenuAdapterSetup()
-        menuCardView.setOnClickListener {
-            toggleSlideRootNab()
-        }
+
         if (dataCenter.keepScreenOn)
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
@@ -78,6 +76,16 @@ class NewReaderPagerActivity : DrawerAdapter.OnItemSelectedListener, SimpleItem.
         novel = i_novel!!
         webPage = i_webPage!!
         loadData()
+
+        menuNav.setOnClickListener({toggleSlideRootNab()})
+        applyMenuTint()
+    }
+
+    fun applyMenuTint() {
+        if (dataCenter.isDarkTheme)
+            menuNav.setColorFilter(getResources().getColor(R.color.white), android.graphics.PorterDuff.Mode.MULTIPLY);
+        else
+            menuNav.setColorFilter(getResources().getColor(R.color.black), android.graphics.PorterDuff.Mode.MULTIPLY);
     }
 
     private fun loadData() {
@@ -119,6 +127,7 @@ class NewReaderPagerActivity : DrawerAdapter.OnItemSelectedListener, SimpleItem.
 
 
     private fun toggleDarkTheme() {
+        applyMenuTint()
         dataCenter.isDarkTheme = !dataCenter.isDarkTheme
         EventBus.getDefault().post(NightModeChangeEvent())
     }
@@ -290,7 +299,7 @@ class NewReaderPagerActivity : DrawerAdapter.OnItemSelectedListener, SimpleItem.
             posReaderMode -> {
             }
             posFonts -> {
-                toast("Font Clicked")
+                toast("Font Locked")
             }
             posFontSize -> {
                 changeTextSize()
@@ -307,23 +316,26 @@ class NewReaderPagerActivity : DrawerAdapter.OnItemSelectedListener, SimpleItem.
         }
     }
 
-
     override fun bind(item: ReaderMenu, itemView: View, position: Int, simpleItem: SimpleItem) {
 
         itemView.title.text = item.title
         itemView.icon.setImageDrawable(item.icon)
-        if (simpleItem.isSwitchOn())
+        if (simpleItem.isSwitchOn()) {
+            itemView.titleNightMode.text = getString(R.string.title_night)
             itemView.switchReaderMode.visibility = View.VISIBLE
-        else
+            itemView.switchReaderMode.isChecked = dataCenter.cleanChapters
+            itemView.switchNightMode.isChecked = dataCenter.isDarkTheme
+            if (itemView.switchReaderMode.isChecked)
+                itemView.linNightMode.visibility = View.VISIBLE
+        } else
             itemView.switchReaderMode.visibility = View.GONE
 
 
         itemView.switchReaderMode.setOnCheckedChangeListener({ _: CompoundButton, isChecked: Boolean ->
             if (isChecked) {
-                (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageFragment).cleanPage()
+                dataCenter.cleanChapters = true
+                (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment).cleanPage()
                 itemView.linNightMode.visibility = View.VISIBLE
-                itemView.titleNightMode.text = getString(R.string.title_night)
-                itemView.iconNightMode.setImageDrawable(item.icon)
             } else
                 itemView.linNightMode.visibility = View.GONE
         })
