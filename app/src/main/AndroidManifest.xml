@@ -89,26 +89,6 @@
             android:label=""
             android:theme="@style/AppImagePreview"/>
         <activity
-            android:name=".activity.ReaderPagerActivity"
-            android:label="@string/title_activity_reader_pager"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
-        <activity
-            android:name=".activity.NewReaderPagerActivity"
-            android:label="@string/title_activity_reader_pager"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
-        <activity
-            android:name=".activity.NewReaderPagerDBActivity"
-            android:label="@string/title_activity_reader_pager"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
-        <activity
-            android:name=".activity.ReaderPagerDBActivity"
-            android:label="@string/title_activity_reader_pager"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
-        <activity
             android:name=".activity.ReaderDBPagerActivity"
             android:label="@string/title_activity_reader_pager"
             android:theme="@style/DarkTheme_DarkSide">
@@ -229,12 +209,12 @@
         <activity
             android:name=".activity.downloads.ChapterDownloadsActivity"
             android:label="@string/title_activity_chapter_downloads"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
             android:name=".activity.WebViewActivity"
             android:label="@string/title_activity_web_view"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/DarkTheme_DarkSide">
         </activity>
     </application>
 
