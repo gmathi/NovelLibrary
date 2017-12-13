@@ -33,7 +33,6 @@ import io.github.gmathi.novellibrary.model.*
 import kotlinx.android.synthetic.main.activity_new_reader_pager.*
 import kotlinx.android.synthetic.main.item_option.view.*
 import kotlinx.android.synthetic.main.menu_left_drawer.*
-import org.greenrobot.eventbus.EventBus
 import java.util.*
 
 
@@ -152,7 +151,7 @@ class NewReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener,
 //        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.applyTheme()
 //        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.loadDocument()
 //
-        EventBus.getDefault().post(NightModeChangeEvent())
+//        EventBus.getDefault().post(NightModeChangeEvent())
         applyMenuTint()
     }
 

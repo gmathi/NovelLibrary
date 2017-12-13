@@ -22,7 +22,6 @@ import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.database.updateWebPage
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.model.NightModeChangeEvent
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
@@ -30,8 +29,6 @@ import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.fragment_reader.*
 import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
@@ -341,12 +338,12 @@ class WebPageDBFragment : Fragment() {
         EventBus.getDefault().unregister(this)
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onNightModeChanged(@Suppress("UNUSED_PARAMETER") event: NightModeChangeEvent) {
-        cleanPage()
-        applyTheme()
-        loadDocument()
-    }
+//    @Subscribe(threadMode = ThreadMode.MAIN)
+//    fun onNightModeChanged(@Suppress("UNUSED_PARAMETER") event: NightModeChangeEvent) {
+//        cleanPage()
+//        applyTheme()
+//        loadDocument()
+//    }
 
     //    private fun saveWebPagePosition() {
 //        if (webPage != null) {

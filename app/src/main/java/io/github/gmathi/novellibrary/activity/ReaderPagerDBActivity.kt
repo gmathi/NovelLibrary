@@ -21,14 +21,12 @@ import io.github.gmathi.novellibrary.database.updateBookmarkCurrentWebPageId
 import io.github.gmathi.novellibrary.database.updateWebPageReadStatus
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
-import io.github.gmathi.novellibrary.model.NightModeChangeEvent
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.util.applyFont
 import kotlinx.android.synthetic.main.activity_reader_pager.*
-import org.greenrobot.eventbus.EventBus
 
-class ReaderPagerDBActivity23 : BaseActivity(), ViewPager.OnPageChangeListener, FloatingToolbar.ItemClickListener, SeekBar.OnSeekBarChangeListener {
+class ReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener, FloatingToolbar.ItemClickListener, SeekBar.OnSeekBarChangeListener {
 
     var novel: Novel? = null
     var webPage: WebPage? = null
@@ -134,11 +132,11 @@ class ReaderPagerDBActivity23 : BaseActivity(), ViewPager.OnPageChangeListener, 
     }
 
     private fun toggleDarkTheme() {
-        dataCenter.isDarkTheme = !dataCenter.isDarkTheme
-//        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.applyTheme()
-//        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.loadDocument()
-//
-        EventBus.getDefault().post(NightModeChangeEvent())
+//        dataCenter.isDarkTheme = !dataCenter.isDarkTheme
+////        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.applyTheme()
+////        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.loadDocument()
+////
+//        EventBus.getDefault().post(NightModeChangeEvent())
     }
 
     fun changeTextSize() {

@@ -14,13 +14,13 @@ import co.metalab.asyncawait.async
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.NewReaderPagerDBActivity
+import io.github.gmathi.novellibrary.activity.SoloReaderPagerDBActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.model.NightModeChangeEvent
+import io.github.gmathi.novellibrary.model.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
@@ -86,7 +86,7 @@ class NewWebPageDBFragment : Fragment() {
 
 
         //Load data from webPage in to webView
-        loadWebPage()
+        loadData()
 
 
     }
@@ -105,6 +105,10 @@ class NewWebPageDBFragment : Fragment() {
                     return true
                 }
 
+                //Add current page to history, if it was not already added or if the history is empty
+                if (history.isEmpty()) history.add(webPage!!)
+                else if (history.last() != webPage) history.add(webPage!!)
+
                 //Handle the known links like next and previous chapter if downloaded
                 if (checkUrl(url)) return true
 
@@ -113,10 +117,10 @@ class NewWebPageDBFragment : Fragment() {
             }
         }
         //readerWebView.setOnScrollChangeListener { webView, i, i, i, i ->  }
-        changeTextSize(dataCenter.textSize)
+        changeTextSize()
     }
 
-    fun loadWebPage() {
+    private fun loadData() {
         if (webPage?.filePath != null)
             loadFromFile()
         else
@@ -136,7 +140,7 @@ class NewWebPageDBFragment : Fragment() {
         doc?.let { doc ->
             if (dataCenter.readerMode)
                 cleanDocument(doc)
-            loadDocument()
+            loadCreatedDocument()
         }
 
     }
@@ -157,12 +161,12 @@ class NewWebPageDBFragment : Fragment() {
             htmlHelper.additionalProcessing(doc)
             htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
 
-            loadDocument()
+            loadCreatedDocument()
         }
 
     }
 
-    private fun loadDocument() {
+    private fun loadCreatedDocument() {
         readerWebView.loadDataWithBaseURL(
             if (webPage!!.filePath != null) "file://${webPage!!.filePath}" else doc?.location(),
             doc?.outerHtml(),
@@ -215,9 +219,9 @@ class NewWebPageDBFragment : Fragment() {
         return doc
     }
 
-    fun changeTextSize(size: Int) {
+    private fun changeTextSize() {
         val settings = readerWebView.settings
-        settings.textZoom = (size + 50) * 2
+        settings.textZoom = (dataCenter.textSize + 50) * 2
     }
 
     fun getUrl(): String? {
@@ -225,6 +229,11 @@ class NewWebPageDBFragment : Fragment() {
         return webPage?.url
     }
 
+    fun goBack() {
+        webPage = history.last()
+        history.remove(webPage!!)
+        loadData()
+    }
 
     private fun cleanDocument(doc: Document) {
         try {
@@ -244,7 +253,7 @@ class NewWebPageDBFragment : Fragment() {
     private fun applyTheme() {
         doc?.let {
             HtmlHelper.getInstance(it).toggleTheme(dataCenter.isDarkTheme, it)
-            loadDocument()
+            loadCreatedDocument()
         }
     }
 
@@ -255,22 +264,24 @@ class NewWebPageDBFragment : Fragment() {
             val links: ArrayList<WebPage> = Gson().fromJson(webPage!!.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
             links.forEach {
                 if (it.url == url || (it.redirectedUrl != null && it.redirectedUrl == url)) {
-                    history.add(webPage!!)
                     webPage = it
-                    loadWebPage()
+                    loadData()
                     return@checkUrl true
                 }
             }
         }
 
-        val readerActivity = (activity as NewReaderPagerDBActivity?) ?: return false
-
+        val readerActivity = (activity as SoloReaderPagerDBActivity?) ?: return false
         return readerActivity.checkUrl(url)
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onNightModeChanged(@Suppress("UNUSED_PARAMETER") event: NightModeChangeEvent) {
-        applyTheme()
+    fun onReaderSettingsChanged(event: ReaderSettingsEvent) {
+        when (event.setting) {
+            ReaderSettingsEvent.NIGHT_MODE -> applyTheme()
+            ReaderSettingsEvent.READER_MODE -> loadData()
+            ReaderSettingsEvent.TEXT_SIZE -> changeTextSize()
+        }
     }
 
     override fun onStart() {

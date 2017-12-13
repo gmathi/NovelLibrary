@@ -32,7 +32,6 @@ import io.github.gmathi.novellibrary.network.getChapterUrls
 import kotlinx.android.synthetic.main.activity_new_reader_pager.*
 import kotlinx.android.synthetic.main.item_option.view.*
 import kotlinx.android.synthetic.main.menu_left_drawer.*
-import org.greenrobot.eventbus.EventBus
 import java.util.*
 
 class NewReaderPagerActivity : DrawerAdapter.OnItemSelectedListener, SimpleItem.Listener<ReaderMenu>, BaseActivity(), ViewPager.OnPageChangeListener, SeekBar.OnSeekBarChangeListener {
@@ -126,11 +125,11 @@ class NewReaderPagerActivity : DrawerAdapter.OnItemSelectedListener, SimpleItem.
     }
 
 
-    private fun toggleDarkTheme() {
-        applyMenuTint()
-        dataCenter.isDarkTheme = !dataCenter.isDarkTheme
-        EventBus.getDefault().post(NightModeChangeEvent())
-    }
+//    private fun toggleDarkTheme() {
+//        applyMenuTint()
+//        dataCenter.isDarkTheme = !dataCenter.isDarkTheme
+//        EventBus.getDefault().post(NightModeChangeEvent())
+//    }
 
     fun changeTextSize() {
         val dialog = MaterialDialog.Builder(this)
@@ -340,7 +339,7 @@ class NewReaderPagerActivity : DrawerAdapter.OnItemSelectedListener, SimpleItem.
                 itemView.linNightMode.visibility = View.GONE
         })
         itemView.switchNightMode.setOnCheckedChangeListener({ _: CompoundButton, _: Boolean ->
-            toggleDarkTheme()
+//            toggleDarkTheme()
         })
     }
 

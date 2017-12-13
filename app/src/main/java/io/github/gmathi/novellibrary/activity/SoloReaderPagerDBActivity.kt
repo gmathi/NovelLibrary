@@ -31,6 +31,7 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.NewWebPageDBFragment
 import io.github.gmathi.novellibrary.model.*
 import kotlinx.android.synthetic.main.activity_new_reader_pager.*
+import kotlinx.android.synthetic.main.fragment_reader.*
 import kotlinx.android.synthetic.main.item_option.view.*
 import kotlinx.android.synthetic.main.menu_left_drawer.*
 import org.greenrobot.eventbus.EventBus
@@ -138,16 +139,7 @@ class SoloReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener
         //Do Nothing
     }
 
-
-    private fun toggleDarkTheme() {
-        dataCenter.isDarkTheme = !dataCenter.isDarkTheme
-//        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment?)?.applyTheme()
-//        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment?)?.loadDocument()
-//
-        EventBus.getDefault().post(NightModeChangeEvent())
-    }
-
-    fun changeTextSize() {
+    private fun changeTextSize() {
         val dialog = MaterialDialog.Builder(this)
             .title(R.string.text_size)
             .customView(R.layout.dialog_text_slider, true)
@@ -190,7 +182,7 @@ class SoloReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener
     //region SeekBar Progress Listener
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
         dataCenter.textSize = progress
-        (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment?)?.changeTextSize(progress)
+        EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
     }
 
     override fun onStartTrackingTouch(p0: SeekBar?) {
@@ -224,16 +216,16 @@ class SoloReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener
 
 
     override fun onBackPressed() {
-//        if ((viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment).history.isNotEmpty())
-//            (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment).goBack()
-//        else
-            super.onBackPressed()
+        val currentFrag = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment)
+        when {
+            currentFrag.history.isNotEmpty() -> currentFrag.goBack()
+            currentFrag.readerWebView.canGoBack() -> currentFrag.readerWebView.goBack()
+            else -> super.onBackPressed()
+        }
     }
 
     fun checkUrl(url: String): Boolean {
-        val webPage = dbHelper.getWebPageByRedirectedUrl(novel!!.id, url)
-        if (webPage == null)
-            return false
+        val webPage = dbHelper.getWebPageByRedirectedUrl(novel!!.id, url) ?: return false
 
         viewPager.currentItem = webPage.orderId.toInt()
         updateBookmark(webPage)
@@ -325,27 +317,33 @@ class SoloReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener
 
     override fun bind(item: ReaderMenu, itemView: View, position: Int, simpleItem: SimpleItem) {
 
+
         itemView.title.text = item.title
         itemView.icon.setImageDrawable(item.icon)
-        if (simpleItem.isSwitchOn())
+        if (simpleItem.isSwitchOn()) {
+            itemView.titleNightMode.text = getString(R.string.title_night)
             itemView.switchReaderMode.visibility = View.VISIBLE
-        else
+            itemView.switchReaderMode.isChecked = dataCenter.readerMode
+            itemView.switchNightMode.isChecked = dataCenter.isDarkTheme
+            if (itemView.switchReaderMode.isChecked)
+                itemView.linNightMode.visibility = View.VISIBLE
+        } else
             itemView.switchReaderMode.visibility = View.GONE
-
 
         itemView.switchReaderMode.setOnCheckedChangeListener({ _: CompoundButton, isChecked: Boolean ->
             dataCenter.readerMode = isChecked
-            (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment).loadWebPage()
-
-            if (isChecked) {
-                itemView.linNightMode.visibility = View.VISIBLE
-                itemView.titleNightMode.text = getString(R.string.title_night)
-                itemView.iconNightMode.setImageDrawable(item.icon)
-            } else
-                itemView.linNightMode.visibility = View.GONE
+            itemView.linNightMode.visibility = if (isChecked)
+                View.VISIBLE
+            else
+                View.GONE
+            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
         })
-        itemView.switchNightMode.setOnCheckedChangeListener({ _: CompoundButton, _: Boolean ->
-            toggleDarkTheme()
+
+        itemView.switchNightMode.setOnCheckedChangeListener({ _: CompoundButton, isChecked: Boolean ->
+            dataCenter.isDarkTheme = isChecked
+            //Apply menu tint
+            menuNav.setColorFilter(ContextCompat.getColor(this@SoloReaderPagerDBActivity, if (isChecked) R.color.white else R.color.black), android.graphics.PorterDuff.Mode.MULTIPLY)
+            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
         })
     }
 
