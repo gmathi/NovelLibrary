@@ -251,7 +251,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun startReader(novel: Novel) {
         if (novel.currentWebPageId != -1L) {
-            activity?.startReaderPagerDBActivity(novel)
+            activity?.startReaderDBPagerActivity(novel)
         } else {
             val confirmDialog = activity?.let {
                 MaterialDialog.Builder(it)

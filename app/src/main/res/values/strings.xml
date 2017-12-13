@@ -342,5 +342,6 @@
 
     <string name="immersive_mode">Show Full Screen</string>
     <string name="immersive_mode_description">Hide the system bars when reading</string>
+    <string name="title_activity_web_view">WebViewActivity</string>
 
 </resources>

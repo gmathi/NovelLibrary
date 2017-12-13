@@ -68,12 +68,10 @@
             android:enabled="true"
             android:exported="false">
         </service>
-
         <service
             android:name=".service.download.DownloadNovelService"
             android:enabled="true"
             android:exported="false">
-
         </service>
         <!-- <service -->
         <!-- android:name=".service.sync.SyncNovelsService" -->
@@ -111,7 +109,7 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.SoloReaderPagerDBActivity"
+            android:name=".activity.ReaderDBPagerActivity"
             android:label="@string/title_activity_reader_pager"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
@@ -231,6 +229,11 @@
         <activity
             android:name=".activity.downloads.ChapterDownloadsActivity"
             android:label="@string/title_activity_chapter_downloads"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+        <activity
+            android:name=".activity.WebViewActivity"
+            android:label="@string/title_activity_web_view"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
     </application>

@@ -1,7 +1,6 @@
 package io.github.gmathi.novellibrary.adapter
 
 import android.support.v4.app.Fragment
-import io.github.gmathi.novellibrary.fragment.NewWebPageDBFragment
 import io.github.gmathi.novellibrary.fragment.SearchTermFragment
 import io.github.gmathi.novellibrary.fragment.SearchUrlFragment
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
@@ -65,13 +64,6 @@ class WebPageFragmentPageListener(val novel: Novel) : GenericFragmentStatePagerA
 
     override fun getFragmentForItem(position: Int): Fragment? {
         return WebPageDBFragment.newInstance(novel.id, position.toLong())
-    }
-}
-
-class NewWebPageFragmentPageListener(val novel: Novel) : GenericFragmentStatePagerAdapter.Listener {
-
-    override fun getFragmentForItem(position: Int): Fragment? {
-        return NewWebPageDBFragment.newInstance(novel.id, position.toLong())
     }
 }
 

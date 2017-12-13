@@ -12,7 +12,6 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.downloads.NovelDownloadsActivity
 import io.github.gmathi.novellibrary.activity.settings.*
 import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.service.download.DownloadService
 import io.github.gmathi.novellibrary.util.Constants
@@ -38,7 +37,7 @@ fun Activity.toast(message: String) {
 
 fun Activity.snackBar(view: View, message: String) {
     Snackbar.make(view, message, Snackbar.LENGTH_LONG)
-            .setAction("Action", null).show()
+        .setAction("Action", null).show()
 }
 
 fun Activity.startChaptersActivity(novel: Novel, jumpToReader: Boolean = false) {
@@ -59,18 +58,16 @@ fun Activity.startMetadataActivity(novel: Novel) {
     startActivityForResult(intent, Constants.METADATA_ACT_REQ_CODE)
 }
 
-fun Activity.startReaderPagerActivity(novel: Novel, webPage: WebPage) {
-    val intent = Intent(this, NewReaderPagerActivity::class.java)
+fun Activity.startWebViewActivity(url: String) {
+    val intent = Intent(this, WebViewActivity::class.java)
     val bundle = Bundle()
-    bundle.putSerializable("novel", novel)
-    bundle.putSerializable("webPage", webPage)
-    //bundle.putSerializable("chapters", chapters)
+    bundle.putSerializable("url", url)
     intent.putExtras(bundle)
-    startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
+    startActivity(intent)
 }
 
-fun Activity.startReaderPagerDBActivity(novel: Novel) {
-    val intent = Intent(this, SoloReaderPagerDBActivity::class.java)
+fun Activity.startReaderDBPagerActivity(novel: Novel) {
+    val intent = Intent(this, ReaderDBPagerActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
     intent.putExtras(bundle)
@@ -161,8 +158,8 @@ fun Activity.openInBrowser(url: String) {
 
 fun Activity.sendEmail(email: String, subject: String, body: String) {
     val mailTo = "mailto:" + email +
-            "?&subject=" + Uri.encode(subject) +
-            "&body=" + Uri.encode(body + Utils.getDeviceInfo())
+        "?&subject=" + Uri.encode(subject) +
+        "&body=" + Uri.encode(body + Utils.getDeviceInfo())
     val emailIntent = Intent(Intent.ACTION_VIEW)
     emailIntent.data = Uri.parse(mailTo)
 

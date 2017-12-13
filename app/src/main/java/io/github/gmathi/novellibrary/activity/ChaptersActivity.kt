@@ -72,6 +72,7 @@ class ChaptersActivity :
 
     private fun setRecyclerView() {
         adapter = GenericAdapterWithDragListener(items = ArrayList(), layoutResId = R.layout.listitem_chapter_ultimate, listener = this)
+        dragSelectRecyclerView.isVerticalScrollBarEnabled = true
         dragSelectRecyclerView.setDefaultsNoAnimation(adapter)
         dragSelectRecyclerView.addItemDecoration(object : DividerItemDecoration(this, VERTICAL) {
 
@@ -192,9 +193,9 @@ class ChaptersActivity :
         if (novel.id != -1L) {
             novel.currentWebPageId = item.id
             dbHelper.updateNovel(novel)
-            startReaderPagerDBActivity(novel)
+            startReaderDBPagerActivity(novel)
         } else
-            startReaderPagerActivity(novel, item)
+            startWebViewActivity(item.url)
     }
 
     @SuppressLint("SetTextI18n")
