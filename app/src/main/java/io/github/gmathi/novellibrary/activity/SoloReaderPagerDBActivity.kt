@@ -21,14 +21,14 @@ import com.yarolegovich.slidingrootnav.SlidingRootNavBuilder
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.DrawerAdapter
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
-import io.github.gmathi.novellibrary.adapter.WebPageFragmentPageListener
+import io.github.gmathi.novellibrary.adapter.NewWebPageFragmentPageListener
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.database.getWebPageByRedirectedUrl
 import io.github.gmathi.novellibrary.database.updateBookmarkCurrentWebPageId
 import io.github.gmathi.novellibrary.database.updateWebPageReadStatus
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
+import io.github.gmathi.novellibrary.fragment.NewWebPageDBFragment
 import io.github.gmathi.novellibrary.model.*
 import kotlinx.android.synthetic.main.activity_new_reader_pager.*
 import kotlinx.android.synthetic.main.item_option.view.*
@@ -36,8 +36,7 @@ import kotlinx.android.synthetic.main.menu_left_drawer.*
 import org.greenrobot.eventbus.EventBus
 import java.util.*
 
-
-class NewReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener, DrawerAdapter.OnItemSelectedListener, SimpleItem.Listener<ReaderMenu>, SeekBar.OnSeekBarChangeListener {
+class SoloReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener, DrawerAdapter.OnItemSelectedListener, SimpleItem.Listener<ReaderMenu>, SeekBar.OnSeekBarChangeListener {
     private var slidingRootNav: SlidingRootNav? = null
     lateinit var recyclerView: RecyclerView
 
@@ -59,14 +58,13 @@ class NewReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener,
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_new_reader_pager)
-
         novel = intent.getSerializableExtra("novel") as Novel?
 
         if (dataCenter.keepScreenOn)
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         if (novel == null || novel?.chapterCount?.toInt() == 0) finish()
-        adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, novel!!.chapterCount.toInt(), WebPageFragmentPageListener(novel!!))
+        adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, novel!!.chapterCount.toInt(), NewWebPageFragmentPageListener(novel!!))
         viewPager.addOnPageChangeListener(this)
         viewPager.adapter = adapter
 
@@ -78,10 +76,10 @@ class NewReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener,
         if (webPage != null) {
             updateBookmark(webPage!!)
             viewPager.currentItem =
-                    if (dataCenter.japSwipe)
-                        novel!!.chapterCount.toInt() - webPage!!.orderId.toInt() - 1
-                    else
-                        webPage!!.orderId.toInt()
+                if (dataCenter.japSwipe)
+                    novel!!.chapterCount.toInt() - webPage!!.orderId.toInt() - 1
+                else
+                    webPage!!.orderId.toInt()
         }
 
         slideMenuSetup(savedInstanceState)
@@ -89,15 +87,9 @@ class NewReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener,
         screenIcons = loadScreenIcons()
         screenTitles = loadScreenTitles()
         slideMenuAdapterSetup()
-        menuNav.setOnClickListener({ toggleSlideRootNab() })
-        applyMenuTint()
-    }
-
-    fun applyMenuTint() {
-        if (dataCenter.isDarkTheme)
-            menuNav.setColorFilter(getResources().getColor(R.color.white), android.graphics.PorterDuff.Mode.MULTIPLY);
-        else
-            menuNav.setColorFilter(getResources().getColor(R.color.black), android.graphics.PorterDuff.Mode.MULTIPLY);
+        menuNav.setOnClickListener {
+            toggleSlideRootNab()
+        }
     }
 
     private fun updateBookmark(webPage: WebPage) {
@@ -118,11 +110,11 @@ class NewReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener,
                 main_content.fitsSystemWindows = false
 
                 immersiveModeOptions = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
             } else {
                 immersiveModeOptions = (View.SYSTEM_UI_FLAG_LOW_PROFILE)
             }
@@ -149,26 +141,25 @@ class NewReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener,
 
     private fun toggleDarkTheme() {
         dataCenter.isDarkTheme = !dataCenter.isDarkTheme
-//        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.applyTheme()
-//        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.loadDocument()
+//        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment?)?.applyTheme()
+//        (viewPager.adapter.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment?)?.loadDocument()
 //
         EventBus.getDefault().post(NightModeChangeEvent())
-        applyMenuTint()
     }
 
     fun changeTextSize() {
         val dialog = MaterialDialog.Builder(this)
-                .title(R.string.text_size)
-                .customView(R.layout.dialog_text_slider, true)
-                .build()
+            .title(R.string.text_size)
+            .customView(R.layout.dialog_text_slider, true)
+            .build()
         dialog.show()
         dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.setOnSeekBarChangeListener(this)
         dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.progress = dataCenter.textSize
     }
 
     private fun reportPage() {
-        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
-        val chapterName = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.webPage?.chapter
+        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment?)?.getUrl()
+        val chapterName = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment?)?.webPage?.chapter
         if (url != null) {
             val email = getString(R.string.dev_email)
             val subject = "[IMPROVEMENT]"
@@ -183,13 +174,13 @@ class NewReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener,
     }
 
     private fun inBrowser() {
-        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
+        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment?)?.getUrl()
         if (url != null)
             openInBrowser(url)
     }
 
     private fun share() {
-        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
+        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment?)?.getUrl()
         if (url != null) {
             shareUrl(url)
         }
@@ -199,7 +190,7 @@ class NewReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener,
     //region SeekBar Progress Listener
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
         dataCenter.textSize = progress
-        (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.changeTextSize(progress)
+        (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment?)?.changeTextSize(progress)
     }
 
     override fun onStartTrackingTouch(p0: SeekBar?) {
@@ -213,7 +204,7 @@ class NewReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener,
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val action = event.action
         val keyCode = event.keyCode
-        val webView = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
+        val webView = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
         when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
@@ -233,9 +224,9 @@ class NewReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener,
 
 
     override fun onBackPressed() {
-        if ((viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment).history.isNotEmpty())
-            (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment).goBack()
-        else
+//        if ((viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment).history.isNotEmpty())
+//            (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment).goBack()
+//        else
             super.onBackPressed()
     }
 
@@ -251,22 +242,23 @@ class NewReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener,
 
     private fun slideMenuSetup(savedInstanceState: Bundle?) {
         slidingRootNav = SlidingRootNavBuilder(this)
-                .withMenuOpened(false)
-                .withContentClickableWhenMenuOpened(true)
-                .withSavedState(savedInstanceState)
-                .withGravity(SlideGravity.RIGHT)
-                .withMenuLayout(R.layout.menu_left_drawer)
-                .inject()
+            .withMenuOpened(false)
+            .withContentClickableWhenMenuOpened(true)
+            .withSavedState(savedInstanceState)
+            .withGravity(SlideGravity.RIGHT)
+            .withMenuLayout(R.layout.menu_left_drawer)
+            .inject()
     }
 
     private fun slideMenuAdapterSetup() {
+        @Suppress("UNCHECKED_CAST")
         val adapter = DrawerAdapter(Arrays.asList(
-                createItemFor(posReaderMode).setSwitchOn(true),
-                createItemFor(posFonts),
-                createItemFor(posFontSize),
-                createItemFor(posReportPage),
-                createItemFor(posOpenInBrowser),
-                createItemFor(posShareChapter)
+            createItemFor(posReaderMode).setSwitchOn(true),
+            createItemFor(posFonts),
+            createItemFor(posFontSize),
+            createItemFor(posReportPage),
+            createItemFor(posOpenInBrowser),
+            createItemFor(posShareChapter)
         ) as List<DrawerItem<DrawerAdapter.ViewHolder>>)
         adapter.setListener(this)
 
@@ -313,7 +305,7 @@ class NewReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener,
             posReaderMode -> {
             }
             posFonts -> {
-                toast("Font Locked")
+                toast("Font Clicked")
             }
             posFontSize -> {
                 changeTextSize()
@@ -330,33 +322,31 @@ class NewReaderPagerDBActivity : BaseActivity(), ViewPager.OnPageChangeListener,
         }
     }
 
+
     override fun bind(item: ReaderMenu, itemView: View, position: Int, simpleItem: SimpleItem) {
 
         itemView.title.text = item.title
         itemView.icon.setImageDrawable(item.icon)
-        if (simpleItem.isSwitchOn()) {
-            itemView.titleNightMode.text = getString(R.string.title_night)
+        if (simpleItem.isSwitchOn())
             itemView.switchReaderMode.visibility = View.VISIBLE
-            itemView.switchReaderMode.isChecked = dataCenter.readerMode
-            itemView.switchNightMode.isChecked = dataCenter.isDarkTheme
-            if (itemView.switchReaderMode.isChecked)
-                itemView.linNightMode.visibility = View.VISIBLE
-        } else
+        else
             itemView.switchReaderMode.visibility = View.GONE
 
 
         itemView.switchReaderMode.setOnCheckedChangeListener({ _: CompoundButton, isChecked: Boolean ->
+            dataCenter.readerMode = isChecked
+            (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as NewWebPageDBFragment).loadWebPage()
+
             if (isChecked) {
-                dataCenter.readerMode = true
-                (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment).cleanPage()
                 itemView.linNightMode.visibility = View.VISIBLE
-            } else {
+                itemView.titleNightMode.text = getString(R.string.title_night)
+                itemView.iconNightMode.setImageDrawable(item.icon)
+            } else
                 itemView.linNightMode.visibility = View.GONE
-                dataCenter.readerMode = false
-            }
         })
         itemView.switchNightMode.setOnCheckedChangeListener({ _: CompoundButton, _: Boolean ->
             toggleDarkTheme()
         })
     }
+
 }

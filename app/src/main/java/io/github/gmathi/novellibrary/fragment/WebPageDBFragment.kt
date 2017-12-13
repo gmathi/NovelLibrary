@@ -116,7 +116,7 @@ class WebPageDBFragment : Fragment() {
         //Load with downloaded HTML File
         readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
         isCleaned = false
-//        activity!!.fabClean.visibility = if (isCleaned || dataCenter.cleanChapters) View.INVISIBLE else View.VISIBLE
+//        activity!!.fabClean.visibility = if (isCleaned || dataCenter.readerMode) View.INVISIBLE else View.VISIBLE
 
         if (webPage!!.filePath != null) {
             val internalFilePath = "file://${webPage!!.filePath}"
@@ -126,7 +126,7 @@ class WebPageDBFragment : Fragment() {
             if (url == null) url = internalFilePath
 
             doc = Jsoup.parse(input, "UTF-8", url)
-            if (dataCenter.cleanChapters) cleanPage() else
+            if (dataCenter.readerMode) cleanPage() else
                 loadDocument()
             swipeRefreshLayout.isRefreshing = false
         }
@@ -216,7 +216,7 @@ class WebPageDBFragment : Fragment() {
                     }
                 }
                 val cleaner = HtmlHelper.getInstance(doc)
-                if (dataCenter.cleanChapters) {
+                if (dataCenter.readerMode) {
                     cleaner.removeJS(doc)
                     cleaner.additionalProcessing(doc)
                     cleaner.toggleTheme(dataCenter.isDarkTheme, doc)

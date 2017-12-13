@@ -323,7 +323,7 @@ class NewReaderPagerActivity : DrawerAdapter.OnItemSelectedListener, SimpleItem.
         if (simpleItem.isSwitchOn()) {
             itemView.titleNightMode.text = getString(R.string.title_night)
             itemView.switchReaderMode.visibility = View.VISIBLE
-            itemView.switchReaderMode.isChecked = dataCenter.cleanChapters
+            itemView.switchReaderMode.isChecked = dataCenter.readerMode
             itemView.switchNightMode.isChecked = dataCenter.isDarkTheme
             if (itemView.switchReaderMode.isChecked)
                 itemView.linNightMode.visibility = View.VISIBLE
@@ -333,7 +333,7 @@ class NewReaderPagerActivity : DrawerAdapter.OnItemSelectedListener, SimpleItem.
 
         itemView.switchReaderMode.setOnCheckedChangeListener({ _: CompoundButton, isChecked: Boolean ->
             if (isChecked) {
-                dataCenter.cleanChapters = true
+                dataCenter.readerMode = true
                 (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment).cleanPage()
                 itemView.linNightMode.visibility = View.VISIBLE
             } else

@@ -70,7 +70,7 @@ fun Activity.startReaderPagerActivity(novel: Novel, webPage: WebPage) {
 }
 
 fun Activity.startReaderPagerDBActivity(novel: Novel) {
-    val intent = Intent(this, NewReaderPagerDBActivity::class.java)
+    val intent = Intent(this, SoloReaderPagerDBActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
     intent.putExtras(bundle)

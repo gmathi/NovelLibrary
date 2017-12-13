@@ -25,7 +25,7 @@ class DataCenter(context: Context) {
         private val LOAD_LIBRARY_SCREEN = "loadLibraryScreen"
         private val APP_VERSION_CODE = "appVersionCode"
         private val TEXT_SIZE = "textSize"
-        private val CLEAN_PAGES = "cleanPages"
+        private val READER_MODE = "cleanPages"
         private val JAVASCRIPT = "javascript"
         private val LANGUAGE = "language"
         private val VERIFIED_HOSTS = "verifiedHosts"
@@ -79,9 +79,9 @@ class DataCenter(context: Context) {
         get() = prefs.getInt(APP_VERSION_CODE, 0)
         set(value) = prefs.edit().putInt(APP_VERSION_CODE, value).apply()
 
-    var cleanChapters: Boolean
-        get() = prefs.getBoolean(CLEAN_PAGES, false)
-        set(value) = prefs.edit().putBoolean(CLEAN_PAGES, value).apply()
+    var readerMode: Boolean
+        get() = prefs.getBoolean(READER_MODE, false)
+        set(value) = prefs.edit().putBoolean(READER_MODE, value).apply()
 
     var javascriptDisabled: Boolean
         get() = prefs.getBoolean(JAVASCRIPT, false)

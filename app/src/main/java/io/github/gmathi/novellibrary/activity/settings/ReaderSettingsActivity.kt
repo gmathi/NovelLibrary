@@ -75,9 +75,9 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         when (position) {
             POSITION_CLEAN_CHAPTERS -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.cleanChapters
+                itemView.widgetSwitch.isChecked = dataCenter.readerMode
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
-                    dataCenter.cleanChapters = value
+                    dataCenter.readerMode = value
                     if (value) {
                         dataCenter.javascriptDisabled = value
                         adapter.notifyDataSetChanged()
@@ -90,7 +90,7 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
                     dataCenter.javascriptDisabled = value
                     if (!value) {
-                        dataCenter.cleanChapters = value
+                        dataCenter.readerMode = value
                         adapter.notifyDataSetChanged()
                     }
                 }

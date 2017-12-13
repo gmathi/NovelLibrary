@@ -16,7 +16,7 @@ class CircusTranslationsHelper : HtmlHelper() {
             contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
             contentElement = contentElement?.parent()
         } while (contentElement != null && contentElement.tagName() != "body")
-        contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
+        contentElement?.classNames()?.forEach { contentElement.removeClass(it) }
         doc.getElementById("custom-background-css")?.remove()
     }
 
