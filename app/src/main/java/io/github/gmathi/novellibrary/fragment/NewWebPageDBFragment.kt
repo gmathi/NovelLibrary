@@ -112,6 +112,17 @@ class NewWebPageDBFragment : Fragment() {
                 //Handle the known links like next and previous chapter if downloaded
                 if (checkUrl(url)) return true
 
+                if (dataCenter.readerMode)
+                    url?.let {
+
+                        //If url is an image
+                        if (url.endsWith(".jpg", true) || url.endsWith(".jpeg", true) || url.endsWith(".png"))
+                            return false //default loading
+
+                        downloadWebPage(url)
+                        return true
+                    }
+
                 //If everything else fails, default loading of the WebView
                 return false
             }
@@ -121,6 +132,7 @@ class NewWebPageDBFragment : Fragment() {
     }
 
     private fun loadData() {
+        doc = null
         if (webPage?.filePath != null)
             loadFromFile()
         else
@@ -154,16 +166,7 @@ class NewWebPageDBFragment : Fragment() {
         }
 
         //Download the page and clean it to make it readable!
-        doc = downloadWebPage(webPage?.url)
-        doc?.let { doc ->
-            val htmlHelper = HtmlHelper.getInstance(doc)
-            htmlHelper.removeJS(doc)
-            htmlHelper.additionalProcessing(doc)
-            htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
-
-            loadCreatedDocument()
-        }
-
+        downloadWebPage(webPage?.url)
     }
 
     private fun loadCreatedDocument() {
@@ -176,8 +179,8 @@ class NewWebPageDBFragment : Fragment() {
     }
 
 
-    private fun downloadWebPage(url: String?): Document? {
-        if (url == null) return null
+    private fun downloadWebPage(url: String?) {
+        if (url == null) return
 
         progressLayout.showLoading()
 
@@ -186,12 +189,22 @@ class NewWebPageDBFragment : Fragment() {
             progressLayout.showError(ContextCompat.getDrawable(activity!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
                 downloadWebPage(url)
             })
-            return null
+            return
         }
-        var doc: Document? = null
+
         async download@ {
             try {
+
                 doc = await { NovelApi().getDocumentWithUserAgent(url) }
+
+                //If document fails to load and the fragment is still alive
+                if (doc == null) {
+                    if (isResumed && !isRemoving && !isDetached)
+                        progressLayout.showError(ContextCompat.getDrawable(activity!!, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
+                            downloadWebPage(url)
+                        })
+                    return@download
+                }
 
                 //Update the relative urls with the absolute urls for the images and links
                 doc?.getElementsByTag("img")?.forEach {
@@ -205,6 +218,16 @@ class NewWebPageDBFragment : Fragment() {
                     }
                 }
 
+                //Clean the document & Load the document on the webView
+                doc?.let { doc ->
+                    val htmlHelper = HtmlHelper.getInstance(doc)
+                    htmlHelper.removeJS(doc)
+                    htmlHelper.additionalProcessing(doc)
+                    htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
+
+                    loadCreatedDocument()
+                }
+
                 progressLayout.showContent()
                 swipeRefreshLayout.isRefreshing = false
 
@@ -216,7 +239,6 @@ class NewWebPageDBFragment : Fragment() {
                     })
             }
         }
-        return doc
     }
 
     private fun changeTextSize() {
