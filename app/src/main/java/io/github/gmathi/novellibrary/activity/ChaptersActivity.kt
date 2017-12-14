@@ -13,7 +13,6 @@ import android.view.MenuItem
 import android.view.View
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
-
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.hanks.library.AnimateCheckBox
@@ -40,10 +39,10 @@ import org.greenrobot.eventbus.ThreadMode
 import java.io.File
 
 class ChaptersActivity :
-        BaseActivity(),
-        GenericAdapterWithDragListener.Listener<WebPage>,
-        ActionMode.Callback,
-        AnimateCheckBox.OnCheckedChangeListener {
+    BaseActivity(),
+    GenericAdapterWithDragListener.Listener<WebPage>,
+    ActionMode.Callback,
+    AnimateCheckBox.OnCheckedChangeListener {
 
     lateinit var novel: Novel
     lateinit var adapter: GenericAdapterWithDragListener<WebPage>
@@ -179,7 +178,7 @@ class ChaptersActivity :
         if (dragSelectRecyclerView.findViewHolderForAdapterPosition(position) != null) {
             @Suppress("UNCHECKED_CAST")
             (dragSelectRecyclerView.findViewHolderForAdapterPosition(position) as GenericAdapterWithDragListener.ViewHolder<WebPage>)
-                    .itemView?.chapterCheckBox?.isChecked = selected
+                .itemView?.chapterCheckBox?.isChecked = selected
         } else {
             val webPage = adapter.items[position]
             if (selected)
@@ -400,12 +399,12 @@ class ChaptersActivity :
     private fun confirmDialog(content: String, callback: MaterialDialog.SingleButtonCallback) {
         if (confirmDialog == null || !confirmDialog!!.isShowing) {
             confirmDialog = MaterialDialog.Builder(this)
-                    .title(getString(R.string.confirm_action))
-                    .content(content)
-                    .positiveText(getString(R.string.okay))
-                    .negativeText(R.string.cancel)
-                    .onPositive(callback)
-                    .onNegative { dialog, _ -> dialog.dismiss() }.build()
+                .title(getString(R.string.confirm_action))
+                .content(content)
+                .positiveText(getString(R.string.okay))
+                .negativeText(R.string.cancel)
+                .onPositive(callback)
+                .onNegative { dialog, _ -> dialog.dismiss() }.build()
             confirmDialog!!.show()
         }
     }
@@ -413,12 +412,12 @@ class ChaptersActivity :
     private fun confirmDialog(content: String, positiveCallback: MaterialDialog.SingleButtonCallback, negativeCallback: MaterialDialog.SingleButtonCallback) {
         if (confirmDialog == null || !confirmDialog!!.isShowing) {
             confirmDialog = MaterialDialog.Builder(this)
-                    .title(getString(R.string.confirm_action))
-                    .content(content)
-                    .positiveText(getString(R.string.okay))
-                    .negativeText(R.string.cancel)
-                    .onPositive(positiveCallback)
-                    .onNegative(negativeCallback).build()
+                .title(getString(R.string.confirm_action))
+                .content(content)
+                .positiveText(getString(R.string.okay))
+                .negativeText(R.string.cancel)
+                .onPositive(positiveCallback)
+                .onNegative(negativeCallback).build()
             confirmDialog!!.show()
         }
     }
@@ -426,24 +425,24 @@ class ChaptersActivity :
 
     private fun showNotInLibraryDialog() {
         MaterialDialog.Builder(this)
-                .iconRes(R.drawable.ic_warning_white_vector)
-                .title(getString(R.string.alert))
-                .content(getString(R.string.novel_not_in_library_dialog_content))
-                .positiveText(getString(R.string.okay))
-                .onPositive { dialog, _ -> dialog.dismiss() }
-                .show()
+            .iconRes(R.drawable.ic_warning_white_vector)
+            .title(getString(R.string.alert))
+            .content(getString(R.string.novel_not_in_library_dialog_content))
+            .positiveText(getString(R.string.okay))
+            .onPositive { dialog, _ -> dialog.dismiss() }
+            .show()
     }
 
     private fun manageDownloadsDialog() {
         MaterialDialog.Builder(this)
-                .iconRes(R.drawable.ic_info_white_vector)
-                .title(getString(R.string.manage_downloads))
-                .content("Novel downloads can be managed by navigating to \"Downloads\" through the navigation drawer menu.")
-                .positiveText(getString(R.string.take_me_there))
-                .negativeText(getString(R.string.okay))
-                .onPositive { dialog, _ -> dialog.dismiss(); setResult(Constants.OPEN_DOWNLOADS_RES_CODE); finish() }
-                .onNegative { dialog, _ -> dialog.dismiss() }
-                .show()
+            .iconRes(R.drawable.ic_info_white_vector)
+            .title(getString(R.string.manage_downloads))
+            .content("Novel downloads can be managed by navigating to \"Downloads\" through the navigation drawer menu.")
+            .positiveText(getString(R.string.take_me_there))
+            .negativeText(getString(R.string.okay))
+            .onPositive { dialog, _ -> dialog.dismiss(); setResult(Constants.OPEN_DOWNLOADS_RES_CODE); finish() }
+            .onNegative { dialog, _ -> dialog.dismiss() }
+            .show()
     }
     //endregion
 
