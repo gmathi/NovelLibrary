@@ -134,9 +134,9 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
         if (item.imageUrl != null) {
             Glide.with(this)
-                .load(item.imageUrl)
-                .apply(RequestOptions.circleCropTransform())
-                .into(itemView.novelImageView)
+                    .load(item.imageUrl)
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(itemView.novelImageView)
         }
 
         //Other Data Fields

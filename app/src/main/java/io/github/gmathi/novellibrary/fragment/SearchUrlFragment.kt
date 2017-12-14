@@ -123,9 +123,9 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         itemView.novelImageView.setImageResource(android.R.color.transparent)
         if (item.imageUrl != null) {
             Glide.with(this)
-                .load(item.imageUrl)
-                .apply(RequestOptions.circleCropTransform())
-                .into(itemView.novelImageView)
+                    .load(item.imageUrl)
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(itemView.novelImageView)
         }
 
         //Other Data Fields

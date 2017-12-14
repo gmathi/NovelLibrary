@@ -213,6 +213,7 @@
     <string name="title_activity_recently_viewed_novels">Recently Viewed Romanorum</string>
     <string name="no_bookmark">No Bookmark!</string>
     <string name="imported_list">Imported List</string>
+
     <string name="already_in_library">[ Already In Library ]</string>
     <string name="group_notification_text">Updated for the novels in your library</string>
     <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>

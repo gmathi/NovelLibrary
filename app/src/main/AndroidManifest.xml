@@ -68,12 +68,10 @@
             android:enabled="true"
             android:exported="false">
         </service>
-
         <service
             android:name=".service.download.DownloadNovelService"
             android:enabled="true"
             android:exported="false">
-
         </service>
         <!-- <service -->
         <!-- android:name=".service.sync.SyncNovelsService" -->
@@ -91,12 +89,7 @@
             android:label=""
             android:theme="@style/AppImagePreview"/>
         <activity
-            android:name=".activity.ReaderPagerActivity"
-            android:label="@string/title_activity_reader_pager"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
-        <activity
-            android:name=".activity.ReaderPagerDBActivity"
+            android:name=".activity.ReaderDBPagerActivity"
             android:label="@string/title_activity_reader_pager"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
@@ -162,11 +155,6 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.ChaptersNewActivity"
-            android:label="@string/title_activity_chapters_new"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
-        <activity
             android:name=".activity.settings.LanguageActivity"
             android:label="@string/title_activity_language"
             android:theme="@style/DarkTheme_DarkSide">
@@ -221,7 +209,12 @@
         <activity
             android:name=".activity.downloads.ChapterDownloadsActivity"
             android:label="@string/title_activity_chapter_downloads"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
+            android:name=".activity.WebViewActivity"
+            android:label="@string/title_activity_web_view"
+            android:theme="@style/DarkTheme_DarkSide">
         </activity>
     </application>
 

@@ -24,4 +24,10 @@ class ChapterEvent(val novel: Novel)
 
 class SyncEvent(val novel: Novel, val newChapCount: Int)
 
-class NightModeChangeEvent
+class ReaderSettingsEvent(val setting: String) {
+    companion object {
+        val NIGHT_MODE = "nightMode"
+        val TEXT_SIZE = "textSize"
+        val READER_MODE = "readerMode"
+    }
+}

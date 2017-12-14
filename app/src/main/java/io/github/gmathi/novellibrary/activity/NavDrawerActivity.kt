@@ -165,4 +165,5 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         outState?.putInt("currentNavId", currentNavId)
     }
 
+
 }

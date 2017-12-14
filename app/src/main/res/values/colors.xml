@@ -170,4 +170,6 @@
     <color name="ripple_color">#8cc9f8</color>
     <color name="fancy_button_border_color">@color/SlateGray</color>
 
+    <color name="textColorPrimary">#212121</color>
+    <color name="textColorSecondary">#757575</color>
 </resources>

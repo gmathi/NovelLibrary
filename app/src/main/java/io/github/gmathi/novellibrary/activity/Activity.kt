@@ -12,7 +12,6 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.downloads.NovelDownloadsActivity
 import io.github.gmathi.novellibrary.activity.settings.*
 import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.service.download.DownloadService
 import io.github.gmathi.novellibrary.util.Constants
@@ -59,18 +58,16 @@ fun Activity.startMetadataActivity(novel: Novel) {
     startActivityForResult(intent, Constants.METADATA_ACT_REQ_CODE)
 }
 
-fun Activity.startReaderPagerActivity(novel: Novel, webPage: WebPage) {
-    val intent = Intent(this, ReaderPagerActivity::class.java)
+fun Activity.startWebViewActivity(url: String) {
+    val intent = Intent(this, WebViewActivity::class.java)
     val bundle = Bundle()
-    bundle.putSerializable("novel", novel)
-    bundle.putSerializable("webPage", webPage)
-    //bundle.putSerializable("chapters", chapters)
+    bundle.putSerializable("url", url)
     intent.putExtras(bundle)
-    startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
+    startActivity(intent)
 }
 
-fun Activity.startReaderPagerDBActivity(novel: Novel) {
-    val intent = Intent(this, ReaderPagerDBActivity::class.java)
+fun Activity.startReaderDBPagerActivity(novel: Novel) {
+    val intent = Intent(this, ReaderDBPagerActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
     intent.putExtras(bundle)

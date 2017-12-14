@@ -148,6 +148,14 @@
     <string name="title_search">Search</string>
     <string name="title_downloads">Downloads</string>
 
+    <string name="title_reader">Reader Mode</string>
+    <string name="title_night">Night Mode</string>
+    <string name="title_fonts">Fonts</string>
+    <string name="title_fonts_size">Font Size</string>
+    <string name="title_report_page">Report Page</string>
+    <string name="title_open_in_browser">Open in Browser</string>
+    <string name="title_share_chapter">Share Chapter</string>
+
     <string name="app_description">Your One Stop For All Novels</string>
 
     <!-- Strings related to Settings -->
@@ -322,6 +330,7 @@
     <string name="other">Other</string>
     <string name="no_bookmark">No Bookmark!</string>
     <string name="imported_list">Imported List</string>
+    <string name="menu">menu</string>
     <string name="already_in_library">[ Already In Library ]</string>
     <string name="group_notification_text">Updated for the novels in your library</string>
     <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
@@ -333,5 +342,6 @@
 
     <string name="immersive_mode">Show Full Screen</string>
     <string name="immersive_mode_description">Hide the system bars when reading</string>
+    <string name="title_activity_web_view">WebViewActivity</string>
 
 </resources>

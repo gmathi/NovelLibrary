@@ -131,8 +131,8 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     private fun setNovelImage() {
         if (novel.imageUrl != null) {
             Glide.with(this)
-                .load(novel.imageUrl)
-                .into(novelDetailsImage)
+                    .load(novel.imageUrl)
+                    .into(novelDetailsImage)
             novelDetailsImage.setOnClickListener { startImagePreviewActivity(novel.imageUrl, novel.imageFilePath, novelDetailsImage) }
         }
     }
@@ -256,15 +256,15 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
     private fun confirmNovelDelete() {
         MaterialDialog.Builder(this)
-            .title(getString(R.string.confirm_remove))
-            .content(getString(R.string.confirm_remove_description))
-            .positiveText(getString(R.string.remove))
-            .negativeText(getString(R.string.cancel))
-            .icon(ContextCompat.getDrawable(this, R.drawable.ic_delete_white_vector)!!)
-            .typeface("source_sans_pro_regular.ttf", "source_sans_pro_regular.ttf")
-            .theme(Theme.DARK)
-            .onPositive { _, _ -> deleteNovel() }
-            .show()
+                .title(getString(R.string.confirm_remove))
+                .content(getString(R.string.confirm_remove_description))
+                .positiveText(getString(R.string.remove))
+                .negativeText(getString(R.string.cancel))
+                .icon(ContextCompat.getDrawable(this, R.drawable.ic_delete_white_vector)!!)
+                .typeface("source_sans_pro_regular.ttf", "source_sans_pro_regular.ttf")
+                .theme(Theme.DARK)
+                .onPositive { _, _ -> deleteNovel() }
+                .show()
     }
 
     private fun deleteNovel() {

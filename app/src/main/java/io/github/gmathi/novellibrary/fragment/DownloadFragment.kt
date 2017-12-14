@@ -41,7 +41,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<Download> {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-        inflater.inflate(R.layout.activity_download_queue, container, false)
+            inflater.inflate(R.layout.activity_download_queue, container, false)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -97,6 +97,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<Download> {
     //region Adapter Listener Methods - onItemClick(), viewBinder()
     @SuppressLint("SetTextI18n")
     override fun bind(item: Download, itemView: View, position: Int) {
+
         itemView.title.text = item.novelName
 
         when {
@@ -104,6 +105,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<Download> {
             item.status == Download.STATUS_PAUSED -> itemView.downloadPauseButton.setImageResource(R.drawable.ic_play_arrow_white_vector)
             item.status == Download.STATUS_RUNNING -> itemView.downloadPauseButton.setImageResource(R.drawable.ic_cloud_download_white_vector)
         }
+
 
         itemView.subtitle.text = item.chapter
 

@@ -48,7 +48,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-        inflater.inflate(R.layout.activity_library, container, false)
+            inflater.inflate(R.layout.activity_library, container, false)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -92,9 +92,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
         if (item.imageUrl != null) {
             Glide.with(this)
-                .load(item.imageUrl)
-                .apply(RequestOptions.circleCropTransform())
-                .into(itemView.novelImageView)
+                    .load(item.imageUrl)
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(itemView.novelImageView)
         }
 
         itemView.novelTitleTextView.text = item.name
@@ -113,7 +113,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         itemView.reorderButton.setOnTouchListener { _, event ->
             @Suppress("DEPRECATION")
             if (MotionEventCompat.getActionMasked(event) ==
-                MotionEvent.ACTION_DOWN) {
+                    MotionEvent.ACTION_DOWN) {
                 touchHelper.startDrag(recyclerView.getChildViewHolder(itemView))
             }
             false
@@ -251,15 +251,15 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun startReader(novel: Novel) {
         if (novel.currentWebPageId != -1L) {
-            activity?.startReaderPagerDBActivity(novel)
+            activity?.startReaderDBPagerActivity(novel)
         } else {
             val confirmDialog = activity?.let {
                 MaterialDialog.Builder(it)
-                    .title(getString(R.string.no_bookmark_found_dialog_title))
-                    .content(getString(R.string.no_bookmark_found_dialog_description, novel.name))
-                    .positiveText(getString(R.string.okay))
-                    .negativeText(R.string.cancel)
-                    .onPositive { dialog, _ -> it.startChaptersActivity(novel, false); dialog.dismiss() }
+                        .title(getString(R.string.no_bookmark_found_dialog_title))
+                        .content(getString(R.string.no_bookmark_found_dialog_description, novel.name))
+                        .positiveText(getString(R.string.okay))
+                        .negativeText(R.string.cancel)
+                        .onPositive { dialog, _ -> it.startChaptersActivity(novel, false); dialog.dismiss() }
             }
             confirmDialog!!.show()
         }
@@ -292,25 +292,25 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     override fun onItemDismiss(viewHolderPosition: Int) {
         activity?.let {
             MaterialDialog.Builder(it)
-                .title(getString(R.string.confirm_remove))
-                .content(getString(R.string.confirm_remove_description))
-                .positiveText(R.string.remove)
-                .negativeText(R.string.cancel)
-                .onPositive { dialog, _ ->
-                    run {
-                        val novel = adapter.items[viewHolderPosition]
-                        Utils.deleteNovel(it, novel.id)
-                        adapter.onItemDismiss(viewHolderPosition)
-                        dialog.dismiss()
+                    .title(getString(R.string.confirm_remove))
+                    .content(getString(R.string.confirm_remove_description))
+                    .positiveText(R.string.remove)
+                    .negativeText(R.string.cancel)
+                    .onPositive { dialog, _ ->
+                        run {
+                            val novel = adapter.items[viewHolderPosition]
+                            Utils.deleteNovel(it, novel.id)
+                            adapter.onItemDismiss(viewHolderPosition)
+                            dialog.dismiss()
+                        }
                     }
-                }
-                .onNegative { dialog, _ ->
-                    run {
-                        adapter.notifyDataSetChanged()
-                        dialog.dismiss()
+                    .onNegative { dialog, _ ->
+                        run {
+                            adapter.notifyDataSetChanged()
+                            dialog.dismiss()
+                        }
                     }
-                }
-                .show()
+                    .show()
         }
     }
 

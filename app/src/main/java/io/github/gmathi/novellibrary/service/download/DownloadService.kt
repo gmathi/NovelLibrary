@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.service.download
 import android.app.IntentService
 import android.content.Intent
 import android.util.Log
+
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.getDownloadItemInQueue
 import io.github.gmathi.novellibrary.model.EventType
@@ -30,6 +31,7 @@ class DownloadService : IntentService(TAG) {
         //android.os.Debug.waitForDebugger()
         @Suppress("UNCHECKED_CAST")
         if (isNetworkDown()) return
+
         EventBus.getDefault().post(ServiceEvent(EventType.RUNNING))
 
         runThread = true
@@ -51,7 +53,7 @@ class DownloadService : IntentService(TAG) {
             //if (dataCenter.experimentalDownload) {
             //    threadPool.execute(DownloadWebPageThread(this@DownloadService, download))
             //} else {
-                threadPool.submit(DownloadWebPageThread(this@DownloadService, download, dbHelper))?.get()
+            threadPool.submit(DownloadWebPageThread(this@DownloadService, download, dbHelper))?.get()
             //}
 
             download = dbHelper.getDownloadItemInQueue()
@@ -63,16 +65,17 @@ class DownloadService : IntentService(TAG) {
         } catch (e: Exception) {
             Log.w(TAG, "Thread pool executor interrupted~")
         }
-
     }
 
     override fun onDestroy() {
         super.onDestroy()
+
         EventBus.getDefault().post(ServiceEvent(EventType.COMPLETE))
         runThread = false
     }
 
     private fun isNetworkDown(): Boolean {
+
         if (!Utils.checkNetwork(this@DownloadService)) {
             return true
         }

@@ -14,4 +14,7 @@
     <dimen name="nav_header_height">150dp</dimen>
     <dimen name="default_card_view_margin">8dp</dimen>
     <dimen name="default_padding_list_item">8dp</dimen>
+    <dimen name="side_menu_padding">24dp</dimen>
+    <dimen name="side_menu_height">56dp</dimen>
+    <dimen name="side_menu_text_margin">15dp</dimen>
 </resources>

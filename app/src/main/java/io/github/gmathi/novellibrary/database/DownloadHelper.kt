@@ -151,11 +151,12 @@ fun DBHelper.getDownloadNovelNames(): List<String> {
     return list
 }
 
+
 fun DBHelper.hasDownloadsInQueue(novelName: String): Boolean {
     var hasDownloadsInQueue = false
     val selectQuery = "SELECT * FROM " + DBKeys.TABLE_DOWNLOAD + " WHERE " +
-        DBKeys.KEY_NAME + " = \"" + novelName + "\" AND " +
-        DBKeys.KEY_STATUS + " = " + Download.STATUS_IN_QUEUE + " LIMIT 1"
+            DBKeys.KEY_NAME + " = \"" + novelName + "\" AND " +
+            DBKeys.KEY_STATUS + " = " + Download.STATUS_IN_QUEUE + " LIMIT 1"
 
     Log.d(LOG, selectQuery)
     val cursor = this.readableDatabase.rawQuery(selectQuery, null)

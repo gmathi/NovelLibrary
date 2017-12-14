@@ -216,6 +216,7 @@
     <string name="other">Dll</string>
     <string name="no_bookmark">No Bookmark!</string>
     <string name="imported_list">Imported List</string>
+
     <string name="already_in_library">[ Already In Library ]</string>
     <string name="group_notification_text">Updated for the novels in your library</string>
     <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
@@ -223,6 +224,5 @@
     <string name="delete_chapters">Delete Chapters</string>
     <string name="immersive_mode">Show Full Screen</string>
     <string name="immersive_mode_description">Hide the system bars when reading</string>
-
 
 </resources>
