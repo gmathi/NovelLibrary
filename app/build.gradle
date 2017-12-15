@@ -79,7 +79,6 @@ dependencies {
     implementation 'com.github.rubensousa:floatingtoolbar:1.4.4'
     implementation 'com.github.chrisbanes:PhotoView:2.1.2'
     implementation 'com.github.medyo:fancybuttons:1.8.3'
-    implementation 'com.github.gabrielemariotti.changeloglib:changelog:2.1.0'
     implementation 'co.metalab.asyncawait:asyncawait:1.0.0'
     implementation 'com.github.johnpersano:supertoasts:2.0'
     implementation 'nl.dionsegijn:konfetti:1.0.2'

@@ -71,7 +71,6 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             getString(R.string.reader) -> startReaderSettingsActivity()
             getString(R.string.mentions) -> startMentionSettingsActivity()
             getString(R.string.donate_developer) -> donateDeveloperDialog()
-            getString(R.string.changelog) -> showChangeLog()
             getString(R.string.about_us) -> aboutUsDialog()
         }
     }
@@ -119,37 +118,8 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             dataCenter.lockRoyalRoad = false
             hiddenRightButton.visibility = View.GONE
             hiddenLeftButton.visibility = View.GONE
-//            viewKonfetti.build()
-//                .addColors(Color.YELLOW, Color.GREEN, Color.MAGENTA)
-//                .setDirection(0.0, 359.0)
-//                .setSpeed(1f, 5f)
-//                .setFadeOutEnabled(true)
-//                .setTimeToLive(2000L)
-//                .addShapes(Shape.RECT, Shape.CIRCLE)
-//                .addSizes(Size(12))
-//                .setPosition(-50f, viewKonfetti.width + 50f, -50f, -50f)
-//                .stream(300, 5000L)
-        } else {
-//            viewKonfetti.build()
-//                .addColors(Color.YELLOW, Color.GREEN, Color.MAGENTA)
-//                .setDirection(0.0, 359.0)
-//                .setSpeed(1f, 5f)
-//                .setFadeOutEnabled(true)
-//                .setTimeToLive(100L)
-//                .addShapes(Shape.RECT, Shape.CIRCLE)
-//                .addSizes(Size(12))
-//                .setPosition(-50f, viewKonfetti.width + 50f, -50f, -50f)
-//                .stream(300, 5000L)
         }
     }
 
-    private fun showChangeLog() {
-        MaterialDialog.Builder(this)
-            .title("Change Log")
-            .customView(R.layout.dialog_change_log, true)
-            .positiveText(R.string.close)
-            .onPositive { dialog, _ -> dialog.dismiss() }
-            .show()
-    }
 
 }

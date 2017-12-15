@@ -152,7 +152,6 @@
     <string name="failed_to_load_url">Erreur lors du chargement du contenu !</string>
     <string name="disable_javascript">Désactiver Javascript</string>
     <string name="disable_javascript_description">Quelques sites redirigent vers des pubs avec Javascript</string>
-    <string name="changelog">Journal des Changements</string>
     <string name="donations_description_new">Je suis content que vous vouliez donner ! Cependant, parlez de l’Apllication et partagez la !</string>
     <string name="language">Langues</string>
     <string name="languages_supported">Langues Supportées</string>

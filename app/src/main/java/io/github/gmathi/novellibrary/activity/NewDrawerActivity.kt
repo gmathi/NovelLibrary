@@ -12,11 +12,9 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.View
-import com.afollestad.materialdialogs.MaterialDialog
 import com.yarolegovich.slidingrootnav.SlideGravity
 import com.yarolegovich.slidingrootnav.SlidingRootNav
 import com.yarolegovich.slidingrootnav.SlidingRootNavBuilder
-import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.DrawerAdapter
 import io.github.gmathi.novellibrary.dataCenter
@@ -88,40 +86,29 @@ class NewDrawerActivity : AppCompatActivity(), DrawerAdapter.OnItemSelectedListe
             }
         }
 
-
         loadFragment(currentNavId)
-        if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
-            MaterialDialog.Builder(this)
-                    .title("Change Log")
-                    .customView(R.layout.dialog_change_log, true)
-                    .positiveText(R.string.close)
-                    .onPositive { dialog, _ -> dialog.dismiss() }
-                    .show()
-            dataCenter.appVersionCode = BuildConfig.VERSION_CODE
-        }
-
     }
 
     private fun slideMenuSetup(savedInstanceState: Bundle?) {
         slidingRootNav = SlidingRootNavBuilder(this)
-                .withMenuOpened(false)
-                .withContentClickableWhenMenuOpened(true)
-                .withSavedState(savedInstanceState)
-                .withGravity(SlideGravity.LEFT)
-                .withMenuLayout(R.layout.menu_left_drawer)
-                .inject()
+            .withMenuOpened(false)
+            .withContentClickableWhenMenuOpened(true)
+            .withSavedState(savedInstanceState)
+            .withGravity(SlideGravity.LEFT)
+            .withMenuLayout(R.layout.menu_left_drawer)
+            .inject()
     }
 
     private fun slideMenuAdapterSetup() {
         val adapter = DrawerAdapter(Arrays.asList(
-                createItemFor(posSearch).setChecked(true),
-                createItemFor(posLibrary),
-                createItemFor(posDownloads),
-                createItemFor(posSettings),
-                createItemForTextOnly(posQuickAccess),
-                createItemFor(posUpdateNovels),
-                createItemForTextOnly(posOther),
-                createItemFor(posJoinOnDiscord)) as List<DrawerItem<DrawerAdapter.ViewHolder>>)
+            createItemFor(posSearch).setChecked(true),
+            createItemFor(posLibrary),
+            createItemFor(posDownloads),
+            createItemFor(posSettings),
+            createItemForTextOnly(posQuickAccess),
+            createItemFor(posUpdateNovels),
+            createItemForTextOnly(posOther),
+            createItemFor(posJoinOnDiscord)) as List<DrawerItem<DrawerAdapter.ViewHolder>>)
         adapter.setListener(this)
 
 
@@ -135,18 +122,18 @@ class NewDrawerActivity : AppCompatActivity(), DrawerAdapter.OnItemSelectedListe
 
     private fun createItemForTextOnly(position: Int): DrawerItem<SpaceItem.ViewHolder> {
         return SpaceItem(screenTitles!![position])
-                .withTextTint(R.color.textColorPrimary)
+            .withTextTint(R.color.textColorPrimary)
 
 
     }
 
     private fun createItemFor(position: Int): DrawerItem<SimpleItem.ViewHolder> {
 
-        return SimpleItem(ReaderMenu(screenIcons[position]!!, screenTitles!![position]),this)
-                .withIconTint(R.color.textColorSecondary)
-                .withTextTint(R.color.textColorPrimary)
-                .withSelectedIconTint(R.color.colorAccent)
-                .withSelectedTextTint(R.color.colorAccent)
+        return SimpleItem(ReaderMenu(screenIcons[position]!!, screenTitles!![position]), this)
+            .withIconTint(R.color.textColorSecondary)
+            .withTextTint(R.color.textColorPrimary)
+            .withSelectedIconTint(R.color.colorAccent)
+            .withSelectedTextTint(R.color.colorAccent)
     }
 
     private fun loadScreenTitles(): Array<String> {
@@ -222,11 +209,12 @@ class NewDrawerActivity : AppCompatActivity(), DrawerAdapter.OnItemSelectedListe
 
     private fun replaceFragment(fragment: android.support.v4.app.Fragment, tag: String) {
         supportFragmentManager.beginTransaction()
-                .replace(R.id.container, fragment, tag)
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                .addToBackStack(tag)
-                .commitAllowingStateLoss()
+            .replace(R.id.container, fragment, tag)
+            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+            .addToBackStack(tag)
+            .commitAllowingStateLoss()
     }
+
     override fun onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START)
@@ -251,6 +239,7 @@ class NewDrawerActivity : AppCompatActivity(), DrawerAdapter.OnItemSelectedListe
             }
         }
     }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == Constants.OPEN_DOWNLOADS_RES_CODE) {
             loadFragment(R.id.nav_downloads)

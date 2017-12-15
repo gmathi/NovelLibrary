@@ -150,7 +150,6 @@
     <string name="failed_to_load_url">Hindi makuha ang nilalaman nito!</string>
     <string name="disable_javascript">Huwang ipagana ang Javascript</string>
     <string name="disable_javascript_description">Minsan, dadaan ang mga website sa mga ads kapag gumagana ang javascript</string>
-    <string name="changelog">Change Log</string>
     <string name="donations_description_new">Natutuwa ako na gusto mo ring mag-abuloy sa akin. Ngayon, magpalaganap sa mga tao tungkol aking app.</string>
     <string name="language">Lengguwahe</string>
     <string name="languages_supported">Suportadong lengguwahe</string>

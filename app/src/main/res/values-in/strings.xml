@@ -139,7 +139,6 @@
     <string name="failed_to_load_url">Gagal mendapatkan konten!</string>
     <string name="disable_javascript">Nonaktifkan Javascript</string>
     <string name="disable_javascript_description">Beberapa situs web dapat mengalihkan anda pada iklan saat Javascript diaktifkan</string>
-    <string name="changelog">Ganti Log</string>
     <string name="donations_description_new">Terima kasih banyak atas sumbangannya! Mulai sekarang, tolong sebarkan pesan cinta terhadap aplikasi ini ke sesama pecinta novel!</string>
     <string name="language">Bahasa</string>
     <string name="languages_supported">Bahasa Didukung</string>

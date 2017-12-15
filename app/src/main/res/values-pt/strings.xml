@@ -149,7 +149,6 @@
     <string name="failed_to_load_url">Falha na obtenção do conteúdo!</string>
     <string name="disable_javascript">Desativar Javascript</string>
     <string name="disable_javascript_description">Alguns websites redirecionam para propagandas quando javascipt está ativo</string>
-    <string name="changelog">Últimas Modificações</string>
     <string name="donations_description_new">Estou feliz que você quer doar! Por enquanto, por favor fale sobre e compartilhe o aplicativo com outros amantes da leitura!</string>
     <string name="language">Linguagem</string>
     <string name="languages_supported">Línguas Suportadas</string>

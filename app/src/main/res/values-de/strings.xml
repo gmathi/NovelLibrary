@@ -148,7 +148,6 @@
     <string name="failed_to_load_url">Konnte Inhalte nicht laden!</string>
     <string name="disable_javascript">Javascript abschalten</string>
     <string name="disable_javascript_description">Manche Websiten schalten Werbung wenn Javascript aktiv ist</string>
-    <string name="changelog">Änderungsprotokoll</string>
     <string name="donations_description_new">Ich bin froh, dass du spenden willst! Für jetzt, bitte verbreiten Sie das Wort und teilen Sie die App mit anderen Romanliebhabern!</string>
     <string name="language">Sprache</string>
     <string name="languages_supported">Unterstützte Sprachen</string>

@@ -151,7 +151,6 @@
     <string name="failed_to_load_url">İçeriğe Erişilemedi!</string>
     <string name="disable_javascript">Javascript\'i Devre Dışı Bırak</string>
     <string name="disable_javascript_description">Bazı internet siteleri Javascript açıkken reklamlara yönlendirebilir.</string>
-    <string name="changelog">Değişiklikler</string>
     <string name="donations_description_new">Bağışta bulunmak istemenize sevindim. Bu uygulamayı başka roman severelere de anlatıp bilgiyi paylaş!</string>
     <string name="language">Dil</string>
     <string name="languages_supported">Desteklenen Diller</string>

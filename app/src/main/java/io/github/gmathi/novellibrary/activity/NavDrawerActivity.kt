@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentTransaction
 import android.support.v4.view.GravityCompat
 import android.support.v7.widget.Toolbar
+import android.text.Html
 import android.view.MenuItem
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.BuildConfig
@@ -65,9 +66,13 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         loadFragment(currentNavId)
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                .title("Change Log")
-                .customView(R.layout.dialog_change_log, true)
-                .positiveText(R.string.close)
+                .title("📢 Announcement!")
+                .content(Html.fromHtml("<b><u>Special Thanks:</u></b> " +
+                    "<br/><b>Raj Kumar Shah</b>, Nepal " +
+                    "<br/><b>Ahmad Ouerfelli</b>, Ontario " +
+                    "<br/><b>Arthur Tesse</b>, Paris " +
+                    "<br/>For making the app better!! Cheers!!! 🎊🎉"))
+                .positiveText("Yay")
                 .onPositive { dialog, _ -> dialog.dismiss() }
                 .show()
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
