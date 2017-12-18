@@ -2,10 +2,7 @@ package io.github.gmathi.novellibrary.network
 
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
-import okhttp3.MediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
+import io.github.gmathi.novellibrary.network.HostNames.USER_AGENT
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.IOException
@@ -63,20 +60,33 @@ fun getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
     if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 
     val novelUpdatesNovelId = novel.metaData["PostId"]
-    val request = Request.Builder()
-        .url("https://www.novelupdates.com/wp-admin/admin-ajax.php")
-        .post(RequestBody.create(MediaType.parse("application/x-www-form-urlencoded; charset=UTF-8"), "action=nd_getchapters&mypostid=$novelUpdatesNovelId"))
-        .build()
-    val response = OkHttpClient().newCall(request).execute()
-    response.use {
-        if (!it.isSuccessful) throw IOException("Unexpected code " + it)
+    val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
 
-        val htmlString = it.body()?.string()
-        val doc = Jsoup.parse(htmlString)
+    val doc = Jsoup.connect(url)
+        .data("action", "nd_getchapters")
+        .cookies(NovelApi.cookiesMap)
+        .data("mypostid", novelUpdatesNovelId)
+        .userAgent(USER_AGENT)
+        .post()
 
-        doc?.getElementsByAttribute("data-id")?.mapTo(chapters) {
-            WebPage("https:" + it?.attr("href")!!, it.getElementsByAttribute("title").attr("title"))
-        }
+//    val requestBuilder = Request.Builder()
+//    if (NovelApi.cookies != null)
+//        requestBuilder.addHeader("Cookie", NovelApi.cookies!!)
+//    val request = requestBuilder.url()
+//        .post(RequestBody
+//            .create(MediaType.parse("application/x-www-form-urlencoded; charset=UTF-8"), "action=nd_getchapters&mypostid=$novelUpdatesNovelId")
+//        )
+//        .build()
+//    val response = OkHttpClient().newCall(request).execute()
+//    response.use {
+//        if (!it.isSuccessful) throw IOException("Unexpected code " + it)
+//
+//        val htmlString = it.body()?.string()
+//        val doc = Jsoup.parse(htmlString)
+
+    doc?.getElementsByAttribute("data-id")?.mapTo(chapters) {
+        WebPage("https:" + it?.attr("href")!!, it.getElementsByAttribute("title").attr("title"))
     }
+//    }
     return chapters
 }

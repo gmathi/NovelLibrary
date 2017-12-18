@@ -43,7 +43,7 @@ fun NovelApi.searchNovelUpdatesUrl(searchUrl: String): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocument(searchUrl)
+        val document = getDocumentWithUserAgent(searchUrl)
         val elements = document.body().getElementsByClass("bdrank").filter { it.tagName() == "tr" }
         for (element in elements) {
             val novel = Novel(element.getElementsByTag("img").firstOrNull()?.attr("alt")!!, element.getElementsByTag("a").firstOrNull()?.attr("href")!!)

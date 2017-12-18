@@ -150,6 +150,9 @@ object Utils {
         context.sendBroadcast(localIntent)
     }
 
+    /**
+     * returns - True - if there is connection to the internet
+     */
     fun checkNetwork(context: Context?): Boolean {
         context?.let {
             val connectivityManager = it.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?

@@ -18,6 +18,10 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.TransitionHelper
 import io.github.gmathi.novellibrary.util.Utils
 
+fun Activity.startNavDrawerActivity() {
+    val intent = Intent(this, NavDrawerActivity::class.java)
+    startActivity(intent)
+}
 
 fun Activity.startImagePreviewActivity(url: String?, filePath: String?, view: View) {
     val intent = Intent(this, ImagePreviewActivity::class.java)

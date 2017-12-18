@@ -28,11 +28,11 @@ object HostNames {
     val BAKA_TSUKI = "baka-tsuki.org"
 
 
-    val USER_AGENT = "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Mobile Safari/537.36"
+    val USER_AGENT = "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Mobile Safari/537.36"
 
     private val DEFAULT_ALLOWED_HOST_NAMES_ARRAY = arrayOf(NOVEL_UPDATES, ROYAL_ROAD, KOBATOCHAN, GRAVITY_TALES, WUXIA_WORLD, WORD_PRESS, WLN_UPDATES, CIRCUS_TRANSLATIONS, QIDIAN,
         //PRINCE_REVOLUTION,
-        "patreon.com", "royalroadlupload.blob.core.windows.net", "postimg.org", "lightnovelbastion.com", "fonts.googleapis.com", "ggpht.com", "gravatar.com", "imgur.com", "isohungrytls.com", "bootstrapcdn.com", "cloudflare.com", "wp.com", "scatterdrift.com", "discordapp.com", "chubbycheeksthoughts.com", "omatranslations.com")
+        "patreon.com", "royalroadlupload.blob.core.windows.net", "postimg.org", "lightnovelbastion.com", "fonts.googleapis.com", "ggpht.com", "gravatar.com", "imgur.com", "isohungrytls.com", "bootstrapcdn.com", "CloudFlare.com", "wp.com", "scatterdrift.com", "discordapp.com", "chubbycheeksthoughts.com", "omatranslations.com")
 
     val defaultHostNamesList: ArrayList<String>
         get() = ArrayList(Arrays.asList(*DEFAULT_ALLOWED_HOST_NAMES_ARRAY))

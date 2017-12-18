@@ -12,6 +12,7 @@ class WebViewActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_web_view)
 
+        previewWebView.settings.javaScriptEnabled = true
         previewWebView.webViewClient = WebViewClient()
         previewWebView.loadUrl(intent.getStringExtra("url"))
     }
