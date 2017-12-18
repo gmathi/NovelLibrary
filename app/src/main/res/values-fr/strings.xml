@@ -235,5 +235,12 @@
     <string name="delete_chapters">Delete Chapters</string>
     <string name="immersive_mode">Show Full Screen</string>
     <string name="immersive_mode_description">Hide the system bars when reading</string>
+    <string name="title_reader">Reader Mode</string>
+    <string name="title_night">Night Mode</string>
+    <string name="title_fonts">Fonts</string>
+    <string name="title_fonts_size">Font Size</string>
+    <string name="title_report_page">Report Page</string>
+    <string name="title_open_in_browser">Open in Browser</string>
+    <string name="title_share_chapter">Share Chapter</string>
 
 </resources>

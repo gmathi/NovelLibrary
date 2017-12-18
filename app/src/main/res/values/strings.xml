@@ -110,6 +110,9 @@
     <string name="title_activity_mention_settings" translatable="false">@string/mentions</string>
     <string name="title_activity_chapters_new" translatable="false">@string/chapters</string>
     <string name="title_activity_import_library" translatable="false">@string/import_reading_list</string>
+    <string name="title_activity_chapter_downloads" translatable="false">ChapterDownloadsActivity</string>
+    <string name="title_activity_web_view" translatable="false">WebViewActivity</string>
+
 
     <string name="title_activity_language" translatable="false">LanguageActivity</string>
     <string name="title_activity_novel_downloads" translatable="false">@string/title_downloads</string>
@@ -328,18 +331,15 @@
     <string name="other">Other</string>
     <string name="no_bookmark">No Bookmark!</string>
     <string name="imported_list">Imported List</string>
-    <string name="menu">menu</string>
     <string name="already_in_library">[ Already In Library ]</string>
     <string name="group_notification_text">Updated for the novels in your library</string>
     <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
     <string name="reader_mode_description">Reader mode will be on permanently</string>
-    <string name="title_activity_chapter_downloads">ChapterDownloadsActivity</string>
     <string name="delete_chapters">Delete Chapters</string>
 
     <!-- v0.8 Strings -->
 
     <string name="immersive_mode">Show Full Screen</string>
     <string name="immersive_mode_description">Hide the system bars when reading</string>
-    <string name="title_activity_web_view">WebViewActivity</string>
 
 </resources>
