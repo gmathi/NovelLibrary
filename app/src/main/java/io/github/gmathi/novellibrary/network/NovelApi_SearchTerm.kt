@@ -34,16 +34,22 @@ fun NovelApi.searchNovelUpdates(searchTerms: String): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocument("http://www.novelupdates.com/?s=" + searchTerms)
-        val elements = document.body().getElementsByClass("w-blog-entry-h").filter { it.tagName() == "div" }
-        for (element in elements) {
-            val novel = Novel(element.getElementsByTag("span").firstOrNull { it.hasClass("w-blog-entry-title-h") }?.text()!!, element.getElementsByTag("a").firstOrNull()?.attr("href")!!)
-            novel.imageUrl = element.getElementsByTag("img").firstOrNull()?.attr("src")
-            novel.rating = element.getElementsByTag("span").firstOrNull { it.hasClass("userrate") }?.text()?.replace("Rating: ", "")?.trim()
-            novel.genres = element.getElementsByTag("span").firstOrNull { it.className() == "s-genre" }?.children()?.map { it.text() }
-            novel.shortDescription = element.getElementsByTag("div").firstOrNull { it.className() == "w-blog-entry-short" }?.textNodes()?.get(0)?.text()
-            novel.longDescription = element.getElementsByTag("span").firstOrNull { it.attr("style") == "display:none" }?.textNodes()?.map { it.text() }?.joinToString(separator = "\n") { it }
+        val document = getDocumentWithUserAgent("http://www.novelupdates.com/?s=" + searchTerms)
+        val titleElements = document.body().getElementsByClass("w-blog-entry-title").filter { it.tagName() == "h2" }
+        val dataElements = document.body().getElementsByClass("w-blog-entry").filter { it.tagName() == "div" }
+
+        var i = 0
+        while (i < dataElements.size) {
+
+            val novel = Novel(titleElements[i].getElementsByTag("span").firstOrNull { it.hasClass("w-blog-entry-title-h") }?.text()!!, titleElements[i].getElementsByTag("a").firstOrNull()?.attr("href")!!)
+            novel.imageUrl = dataElements[i].getElementsByTag("img").firstOrNull()?.attr("src")
+            novel.rating = dataElements[i].getElementsByTag("span").firstOrNull { it.hasClass("userrate") }?.text()?.replace("Rating: ", "")?.trim()
+            novel.genres = dataElements[i].getElementsByTag("span").firstOrNull { it.className() == "s-genre" }?.children()?.map { it.text() }
+            novel.shortDescription = dataElements[i].getElementsByTag("div").firstOrNull { it.className() == "w-blog-entry-short" }?.textNodes()?.get(0)?.text()
+            novel.longDescription = dataElements[i].getElementsByTag("span").firstOrNull { it.attr("style") == "display:none" }?.textNodes()?.map { it.text() }?.joinToString(separator = "\n") { it }
             searchResults.add(novel)
+
+            i++
         }
 
     } catch (e: IOException) {

@@ -90,9 +90,9 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
                 }
             } else {
                 if (isFragmentActive() && progressLayout != null)
-                    progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), "Search Failed!", "Exit", {
+                    progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
                         progressLayout.showLoading()
-                        activity?.onBackPressed()
+                        searchNovels()
                     })
             }
         }

@@ -32,7 +32,6 @@ class InitialWebViewActivity : AppCompatActivity() {
         if (!Utils.checkNetwork(this))
             startNavDrawerActivity()
 
-        progressLayout.showLoading()
         previewWebView.settings.javaScriptEnabled = true
         previewWebView.settings.userAgentString = USER_AGENT
         previewWebView.webViewClient = object : WebViewClient() {
@@ -69,6 +68,7 @@ class InitialWebViewActivity : AppCompatActivity() {
                     NovelApi.cookies = cookies
                     NovelApi.cookiesMap = map
                     startNavDrawerActivity()
+                    finish()
                 }
 
             }

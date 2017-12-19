@@ -111,7 +111,7 @@
     <string name="title_activity_chapters_new" translatable="false">@string/chapters</string>
     <string name="title_activity_import_library" translatable="false">@string/import_reading_list</string>
     <string name="title_activity_chapter_downloads" translatable="false">ChapterDownloadsActivity</string>
-    <string name="title_activity_web_view" translatable="false">WebViewActivity</string>
+    <string name="title_activity_web_view" translatable="false">@string/app_name</string>
 
 
     <string name="title_activity_language" translatable="false">LanguageActivity</string>
@@ -341,5 +341,6 @@
 
     <string name="immersive_mode">Show Full Screen</string>
     <string name="immersive_mode_description">Hide the system bars when reading</string>
+    <string name="skip_cloud_flare_string">Please wait 5~10 secs while we skip cloud flare</string>
 
 </resources>
