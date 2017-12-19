@@ -65,6 +65,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
         loadFragment(currentNavId)
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
+            @Suppress("DEPRECATION")
             MaterialDialog.Builder(this)
                 .title("📢 Announcement!")
                 .content(Html.fromHtml("<b><u>Special Thanks:</u></b> " +
@@ -79,6 +80,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         }
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
+        startInitialWebViewActivity()
     }
 
     override fun onBackPressed() {

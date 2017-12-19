@@ -23,6 +23,11 @@ fun Activity.startNavDrawerActivity() {
     startActivity(intent)
 }
 
+fun Activity.startInitialWebViewActivity() {
+    val intent = Intent(this, InitialWebViewActivity::class.java)
+    startActivityForResult(intent, Constants.METADATA_ACT_REQ_CODE)
+}
+
 fun Activity.startImagePreviewActivity(url: String?, filePath: String?, view: View) {
     val intent = Intent(this, ImagePreviewActivity::class.java)
     intent.putExtra("url", url)

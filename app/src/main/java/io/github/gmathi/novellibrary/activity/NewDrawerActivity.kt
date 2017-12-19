@@ -100,6 +100,7 @@ class NewDrawerActivity : AppCompatActivity(), DrawerAdapter.OnItemSelectedListe
     }
 
     private fun slideMenuAdapterSetup() {
+        @Suppress("UNCHECKED_CAST")
         val adapter = DrawerAdapter(Arrays.asList(
             createItemFor(posSearch).setChecked(true),
             createItemFor(posLibrary),

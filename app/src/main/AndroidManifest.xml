@@ -103,6 +103,10 @@
             android:label="@string/title_activity_nav_drawer"
             android:launchMode="singleTask"
             android:theme="@style/DarkTheme_DarkSide">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
         </activity>
         <activity
             android:name=".activity.ChaptersActivity"
@@ -215,11 +219,6 @@
             android:name=".activity.InitialWebViewActivity"
             android:label="@string/title_activity_web_view"
             android:theme="@style/DarkTheme_DarkSide">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
         </activity>
     </application>
 
