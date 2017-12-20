@@ -23,5 +23,4 @@
 
     <include layout="@layout/content_recycler_view"/>
 
-
 </android.support.design.widget.CoordinatorLayout>

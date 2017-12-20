@@ -1,7 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.design.widget.Snackbar
@@ -9,25 +8,22 @@ import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentTransaction
 import android.support.v4.view.GravityCompat
 import android.support.v7.widget.Toolbar
+import android.text.Html
 import android.view.MenuItem
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.updateNewChapterCount
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.DownloadFragment
 import io.github.gmathi.novellibrary.fragment.LibraryFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
+import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.Constants
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
-import android.content.pm.ResolveInfo
-import android.content.pm.PackageManager
-
-
 
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -49,13 +45,19 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             currentNavId = savedInstanceState.getInt("currentNavId")
         }
 
-        if (intent.extras != null && intent.extras.containsKey("novelsChapMap")) {
-            @Suppress("UNCHECKED_CAST")
-            val novelsMap = intent.extras.getSerializable("novelsChapMap") as HashMap<String, Long>
-            novelsMap.keys.forEach {
-                val novel = dbHelper.getNovel(it)
-                if (novel != null) {
-                    dbHelper.updateNewChapterCount(novel.id, novelsMap[it]!!)
+        if (intent.extras != null) {
+            if (intent.extras.containsKey("novelsChapMap")) {
+                @Suppress("UNCHECKED_CAST")
+                val novelsMap = intent.extras.getSerializable("novelsChapMap") as? HashMap<Novel, Int>
+                novelsMap?.keys?.forEach {
+                    dbHelper.updateNewChapterCount(it.id, novelsMap[it]!!.toLong())
+                }
+            }
+
+            if (intent.extras.containsKey("novel")) {
+                val novel = intent.extras.getSerializable("novel") as? Novel
+                novel?.let {
+                    startChaptersActivity(novel)
                 }
             }
         }
@@ -63,16 +65,22 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
         loadFragment(currentNavId)
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
+            @Suppress("DEPRECATION")
             MaterialDialog.Builder(this)
-                .title("Change Log")
-                .customView(R.layout.dialog_change_log, true)
-                .positiveText(R.string.close)
+                .title("📢 Announcement!")
+                .content(Html.fromHtml("<b><u>Special Thanks:</u></b> " +
+                    "<br/><b>Raj Kumar Shah</b>, Nepal " +
+                    "<br/><b>Ahmad Ouerfelli</b>, Ontario " +
+                    "<br/><b>Arthur Tesse</b>, Paris " +
+                    "<br/>For making the app better!! Cheers!!! 🎊🎉"))
+                .positiveText("Yay")
                 .onPositive { dialog, _ -> dialog.dismiss() }
                 .show()
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
+        startInitialWebViewActivity()
     }
 
     override fun onBackPressed() {
@@ -125,14 +133,15 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 replaceFragment(SearchFragment(), SearchFragment::class.toString())
             }
             R.id.nav_downloads -> {
-                replaceFragment(DownloadFragment(), DownloadFragment::class.toString())
+                startNovelDownloadsActivity()
+                //replaceFragment(DownloadFragment(), DownloadFragment::class.toString())
             }
             R.id.nav_settings -> {
                 startSettingsActivity()
             }
-//            R.id.nav_recently_viewed -> {
-//                startRecentlyViewedNovelsActivity()
-//            }
+            R.id.nav_recently_viewed -> {
+                startRecentlyViewedNovelsActivity()
+            }
             R.id.nav_recently_updated -> {
                 startRecentlyUpdatedNovelsActivity()
             }
@@ -166,5 +175,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         super.onSaveInstanceState(outState)
         outState?.putInt("currentNavId", currentNavId)
     }
+
 
 }

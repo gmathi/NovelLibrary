@@ -2,22 +2,11 @@ package io.github.gmathi.novellibrary.model
 
 import java.io.Serializable
 
-class WebPage : Serializable {
-
-    constructor() {
-        //Empty Constructor
-    }
-
-    constructor(url: String, chapter: String) : super() {
-        this.url = url
-        this.chapter = chapter
-    }
+data class WebPage(var url: String, var chapter: String) : Serializable {
 
     var id: Long = -1L
-    var url: String? = null
     var redirectedUrl: String? = null
     var title: String? = null
-    var chapter: String? = null
     var filePath: String? = null
     var novelId: Long = -1L
     var sourceId: Int = -1
@@ -35,10 +24,11 @@ class WebPage : Serializable {
     fun copyFrom(other: WebPage?) {
         if (other != null) {
             id = if (other.id != -1L) other.id else id
-            url = if (other.url != null) other.url else url
+            url = other.url
+            chapter = other.chapter
+
             redirectedUrl = if (other.redirectedUrl != null) other.redirectedUrl else redirectedUrl
             title = if (other.title != null) other.title else title
-            chapter = if (other.chapter != null) other.chapter else chapter
             filePath = if (other.filePath != null) other.filePath else filePath
             novelId = if (other.novelId != -1L) other.novelId else novelId
             sourceId = if (other.sourceId != -1) other.sourceId else sourceId
@@ -49,6 +39,12 @@ class WebPage : Serializable {
                 metaData.put(it, other.metaData[it])
             }
         }
+    }
+
+    override fun hashCode(): Int {
+        var result = url.hashCode()
+        result = 31 * result + chapter.hashCode()
+        return result
     }
 
 }

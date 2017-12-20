@@ -9,14 +9,24 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.activity.downloads.NovelDownloadsActivity
+import io.github.gmathi.novellibrary.activity.settings.*
 import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.WebPage
-import io.github.gmathi.novellibrary.service.download.DownloadChapterService
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
+import io.github.gmathi.novellibrary.service.download.DownloadService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.TransitionHelper
 import io.github.gmathi.novellibrary.util.Utils
 
+fun Activity.startNavDrawerActivity() {
+    val intent = Intent(this, NavDrawerActivity::class.java)
+    startActivity(intent)
+}
+
+fun Activity.startInitialWebViewActivity() {
+    val intent = Intent(this, InitialWebViewActivity::class.java)
+    startActivityForResult(intent, Constants.METADATA_ACT_REQ_CODE)
+}
 
 fun Activity.startImagePreviewActivity(url: String?, filePath: String?, view: View) {
     val intent = Intent(this, ImagePreviewActivity::class.java)
@@ -39,7 +49,7 @@ fun Activity.snackBar(view: View, message: String) {
         .setAction("Action", null).show()
 }
 
-fun Activity.startChaptersActivity(novel: Novel, jumpToReader: Boolean) {
+fun Activity.startChaptersActivity(novel: Novel, jumpToReader: Boolean = false) {
     val intent = Intent(this, ChaptersActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
@@ -57,18 +67,16 @@ fun Activity.startMetadataActivity(novel: Novel) {
     startActivityForResult(intent, Constants.METADATA_ACT_REQ_CODE)
 }
 
-fun Activity.startReaderPagerActivity(novel: Novel, webPage: WebPage, chapters: ArrayList<WebPage>?) {
-    val intent = Intent(this, ReaderPagerActivity::class.java)
+fun Activity.startWebViewActivity(url: String) {
+    val intent = Intent(this, WebViewActivity::class.java)
     val bundle = Bundle()
-    bundle.putSerializable("novel", novel)
-    bundle.putSerializable("webPage", webPage)
-    //bundle.putSerializable("chapters", chapters)
+    bundle.putSerializable("url", url)
     intent.putExtras(bundle)
-    startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
+    startActivity(intent)
 }
 
-fun Activity.startReaderPagerDBActivity(novel: Novel) {
-    val intent = Intent(this, ReaderPagerDBActivity::class.java)
+fun Activity.startReaderDBPagerActivity(novel: Novel) {
+    val intent = Intent(this, ReaderDBPagerActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
     intent.putExtras(bundle)
@@ -136,6 +144,10 @@ fun Activity.startImportLibraryActivity() {
     startActivityForResult(Intent(this, ImportLibraryActivity::class.java), Constants.IMPORT_LIBRARY_ACT_REQ_CODE)
 }
 
+fun Activity.startNovelDownloadsActivity() {
+    startActivityForResult(Intent(this, NovelDownloadsActivity::class.java), Constants.SETTINGS_ACT_REQ_CODE)
+}
+
 fun Activity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean = false) {
     val intent = Intent(this, NovelDetailsActivity::class.java)
     val bundle = Bundle()
@@ -173,19 +185,18 @@ fun Activity.shareUrl(url: String) {
         startActivity(Intent.createChooser(i, "Share URL(s)"))
 }
 
-fun Activity.startNovelDownloadService(novelId: Long) {
-    val serviceIntent = Intent(this, DownloadNovelService::class.java)
-    serviceIntent.putExtra(Constants.NOVEL_ID, novelId)
-    startService(serviceIntent)
-}
-
-fun Activity.startChapterDownloadService(novel: Novel, webPages: ArrayList<WebPage>) {
-    val serviceIntent = Intent(this, DownloadChapterService::class.java)
+fun Activity.startDownloadService() {
+    val serviceIntent = Intent(this, DownloadService::class.java)
     val bundle = Bundle()
-    bundle.putSerializable("novel", novel)
-    bundle.putSerializable("webPages", webPages)
     serviceIntent.putExtras(bundle)
     startService(serviceIntent)
 }
 
+fun Activity.startDownloadNovelService(novelName: String) {
+    val serviceIntent = Intent(this, DownloadNovelService::class.java)
+    val bundle = Bundle()
+    bundle.putString(DownloadNovelService.NOVEL_NAME, novelName)
+    serviceIntent.putExtras(bundle)
+    startService(serviceIntent)
+}
 

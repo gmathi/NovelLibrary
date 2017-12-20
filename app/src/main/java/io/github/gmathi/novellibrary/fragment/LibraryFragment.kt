@@ -1,13 +1,9 @@
 package io.github.gmathi.novellibrary.fragment
 
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
-import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
-import android.os.Looper
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.MotionEventCompat
 import android.support.v7.widget.helper.ItemTouchHelper
@@ -17,13 +13,12 @@ import android.view.animation.AnimationUtils
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.SimpleTarget
-import com.bumptech.glide.request.transition.Transition
+import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.*
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.getAllNovels
-import io.github.gmathi.novellibrary.database.getWebPageByWebPageId
+import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.database.updateNewChapterCount
 import io.github.gmathi.novellibrary.database.updateOrderId
 import io.github.gmathi.novellibrary.dbHelper
@@ -31,7 +26,6 @@ import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterCount
-import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.activity_library.*
 import kotlinx.android.synthetic.main.content_library.*
@@ -39,8 +33,6 @@ import kotlinx.android.synthetic.main.listitem_library.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-import java.io.File
-import java.io.FileOutputStream
 
 
 class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleItemTouchListener {
@@ -55,9 +47,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater!!.inflate(R.layout.activity_library, container, false)
-    }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
+        inflater.inflate(R.layout.activity_library, container, false)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -93,42 +84,17 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun onItemClick(item: Novel) {
         if (lastDeletedId != item.id)
-            startNovelDetailsActivity(item, false)
+            activity?.startChaptersActivity(item)
     }
 
     override fun bind(item: Novel, itemView: View, position: Int) {
         itemView.novelImageView.setImageResource(android.R.color.transparent)
-        if (item.imageFilePath != null) {
-            itemView.novelImageView.setImageDrawable(Drawable.createFromPath(item.imageFilePath))
-        }
 
         if (item.imageUrl != null) {
-            val file = File(activity.filesDir, Constants.IMAGES_DIR_NAME + "/" + Uri.parse(item.imageUrl).getFileName())
-            if (file.exists())
-                item.imageFilePath = file.path
-
-            if (item.imageFilePath == null) {
-                Glide.with(this).asBitmap().load(item.imageUrl).into(object : SimpleTarget<Bitmap>() {
-                    override fun onResourceReady(bitmap: Bitmap?, transition: Transition<in Bitmap>?) {
-                        //itemView.novelImageView.setImageBitmap(bitmap)
-                        Thread(Runnable {
-                            try {
-                                val os = FileOutputStream(file)
-                                bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, os)
-                                bitmap?.recycle()
-                                item.imageFilePath = file.path
-                                Handler(Looper.getMainLooper()).post {
-                                    itemView.novelImageView.setImageDrawable(Drawable.createFromPath(item.imageFilePath))
-                                }
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
-                        }).start()
-                    }
-                })
-            } else {
-                itemView.novelImageView.setImageDrawable(Drawable.createFromPath(item.imageFilePath))
-            }
+            Glide.with(this)
+                .load(item.imageUrl)
+                .apply(RequestOptions.circleCropTransform())
+                .into(itemView.novelImageView)
         }
 
         itemView.novelTitleTextView.text = item.name
@@ -161,23 +127,28 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         if (item.chapterCount < item.newChapterCount) {
             val shape = GradientDrawable()
             shape.cornerRadius = 99f
-            shape.setStroke(1, ContextCompat.getColor(activity, R.color.Black))
-            shape.setColor(ContextCompat.getColor(activity, R.color.DarkRed))
+            activity?.let { ContextCompat.getColor(it, R.color.Black) }?.let { shape.setStroke(1, it) }
+            activity?.let { ContextCompat.getColor(it, R.color.DarkRed) }?.let { shape.setColor(it) }
             itemView.newChapterCount.background = shape
-            itemView.newChapterCount.applyFont(activity.assets).text = (item.newChapterCount - item.chapterCount).toString()
+            itemView.newChapterCount.applyFont(activity?.assets).text = (item.newChapterCount - item.chapterCount).toString()
             itemView.newChapterCount.visibility = View.VISIBLE
         } else {
             itemView.newChapterCount.visibility = View.GONE
         }
 
         if (item.currentWebPageId != -1L) {
-            var orderId = dbHelper.getWebPageByWebPageId(item.currentWebPageId)?.orderId
+            val orderId = dbHelper.getWebPage(item.currentWebPageId)?.orderId
             if (orderId != null) {
                 val progress = "${orderId + 1} / ${item.newChapterCount}"
                 itemView.novelProgressText.text = progress
             }
         } else {
-            itemView.novelProgressText.text = "No Bookmark!"
+            itemView.novelProgressText.text = getString(R.string.no_bookmark)
+        }
+
+        itemView.infoButton.setOnClickListener {
+            if (lastDeletedId != item.id)
+                startNovelDetailsActivity(item, false)
         }
     }
 
@@ -205,7 +176,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 sortNovelsAlphabetically()
             }
             R.id.action_import_reading_list -> {
-                activity.startImportLibraryActivity()
+                activity?.startImportLibraryActivity()
             }
         }
         return super.onOptionsItemSelected(item)
@@ -231,10 +202,10 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             statusCard.visibility = View.VISIBLE
             statusCard.startAnimation(AnimationUtils.loadAnimation(activity, R.anim.alpha_animation))
-            activity.invalidateOptionsMenu()
+            activity?.invalidateOptionsMenu()
             dbHelper.getAllNovels().forEach {
                 try {
-                    val totalChapters = await { NovelApi().getChapterCount(it.url!!) }
+                    val totalChapters = await { NovelApi().getChapterCount(it) }
                     if (totalChapters != 0 && totalChapters > it.chapterCount.toInt() && totalChapters > it.newChapterCount.toInt()) {
                         dbHelper.updateNewChapterCount(it.id, totalChapters.toLong())
                         adapter.updateItem(it)
@@ -248,14 +219,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             if (statusCard == null || activity == null) return@syncing
             statusCard.animation = null
             statusCard.visibility = View.GONE
-            activity.invalidateOptionsMenu()
+            activity?.invalidateOptionsMenu()
         }
-    }
-
-    private fun startDownloadService(novelId: Long) {
-        val serviceIntent = Intent(activity, DownloadNovelService::class.java)
-        serviceIntent.putExtra(Constants.NOVEL_ID, novelId)
-        activity.startService(serviceIntent)
     }
     //endregion
 
@@ -286,14 +251,16 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun startReader(novel: Novel) {
         if (novel.currentWebPageId != -1L) {
-            activity.startReaderPagerDBActivity(novel)
+            activity?.startReaderDBPagerActivity(novel)
         } else {
-            val confirmDialog = MaterialDialog.Builder(activity)
-                .title(getString(R.string.no_bookmark_found_dialog_title))
-                .content(getString(R.string.no_bookmark_found_dialog_description, novel.name))
-                .positiveText(getString(R.string.okay))
-                .negativeText(R.string.cancel)
-                .onPositive { dialog, _ -> activity.startChaptersActivity(novel, false); dialog.dismiss() }
+            val confirmDialog = activity?.let {
+                MaterialDialog.Builder(it)
+                    .title(getString(R.string.no_bookmark_found_dialog_title))
+                    .content(getString(R.string.no_bookmark_found_dialog_description, novel.name))
+                    .positiveText(getString(R.string.okay))
+                    .negativeText(R.string.cancel)
+                    .onPositive { dialog, _ -> it.startChaptersActivity(novel, false); dialog.dismiss() }
+            }
             confirmDialog!!.show()
         }
     }
@@ -305,7 +272,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         if (jumpToReader)
             bundle.putBoolean(Constants.JUMP, true)
         intent.putExtras(bundle)
-        activity.startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
+        activity?.startActivityForResult(intent, Constants.NOVEL_DETAILS_REQ_CODE)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -323,26 +290,28 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     override fun onItemDismiss(viewHolderPosition: Int) {
-        MaterialDialog.Builder(activity)
-            .title(getString(R.string.confirm_remove))
-            .content(getString(R.string.confirm_remove_description))
-            .positiveText(R.string.remove)
-            .negativeText(R.string.cancel)
-            .onPositive { dialog, _ ->
-                run {
-                    val novel = adapter.items[viewHolderPosition]
-                    Utils.deleteNovel(activity, novel.id)
-                    adapter.onItemDismiss(viewHolderPosition)
-                    dialog.dismiss()
+        activity?.let {
+            MaterialDialog.Builder(it)
+                .title(getString(R.string.confirm_remove))
+                .content(getString(R.string.confirm_remove_description))
+                .positiveText(R.string.remove)
+                .negativeText(R.string.cancel)
+                .onPositive { dialog, _ ->
+                    run {
+                        val novel = adapter.items[viewHolderPosition]
+                        Utils.deleteNovel(it, novel.id)
+                        adapter.onItemDismiss(viewHolderPosition)
+                        dialog.dismiss()
+                    }
                 }
-            }
-            .onNegative { dialog, _ ->
-                run {
-                    adapter.notifyDataSetChanged()
-                    dialog.dismiss()
+                .onNegative { dialog, _ ->
+                    run {
+                        adapter.notifyDataSetChanged()
+                        dialog.dismiss()
+                    }
                 }
-            }
-            .show()
+                .show()
+        }
     }
 
     override fun onItemMove(source: Int, target: Int) {

@@ -21,29 +21,27 @@ fun NovelApi.getNUNovelDetails(url: String): Novel? {
     var novel: Novel? = null
     try {
         val document = getDocumentWithUserAgent(url)
-        novel = Novel()
-        novel.url = url
-        novel.name = document.getElementsByClass("seriestitlenu").firstOrNull()?.text()
+        novel = Novel(document.getElementsByClass("seriestitlenu").firstOrNull()?.text() ?: "NameUnableToFetch", url)
         novel.imageUrl = document.getElementsByClass("seriesimg").firstOrNull()?.getElementsByTag("img")?.attr("src")
         novel.longDescription = document.body().getElementById("editdescription")?.text()
         novel.chapterCount = getNUChapterCount(document).toLong()
         novel.newChapterCount = novel.chapterCount
-        novel.rating = document.body().getElementsByClass("uvotes")?.firstOrNull() { it.id() == "span" }?.text()?.substring(1, 4)
+        novel.rating = document.body().getElementsByClass("uvotes")?.firstOrNull { it.id() == "span" }?.text()?.substring(1, 4)
 
         novel.genres = document.body().getElementById("seriesgenre")?.children()?.map { it.text() }
 
         novel.metaData.put("Author(s)",
-            document.getElementsByClass("genre").filter { it.id() == "authtag" }.map { it.outerHtml() }.joinToString(", "))
+            document.getElementsByClass("genre").filter { it.id() == "authtag" }.joinToString(", ") { it.outerHtml() })
         novel.metaData.put("Artist(s)",
-            document.getElementsByClass("genre").filter { it.id() == "artiststag" }.map { it.outerHtml() }.joinToString(", "))
+            document.getElementsByClass("genre").filter { it.id() == "artiststag" }.joinToString(", ") { it.outerHtml() })
         novel.metaData.put("Genre(s)",
-            document.getElementsByClass("genre").filter { it.hasAttr("gid") }.map { it.outerHtml() }.joinToString(", "))
+            document.getElementsByClass("genre").filter { it.hasAttr("gid") }.joinToString(", ") { it.outerHtml() })
         novel.metaData.put("Year",
             document.getElementById("edityear").text())
         novel.metaData.put("Type",
             document.getElementsByClass("genre type").firstOrNull()?.outerHtml())
         novel.metaData.put("Tags",
-            document.getElementsByClass("genre").filter { it.id() == "etagme" }.map { it.outerHtml() }.joinToString(", "))
+            document.getElementsByClass("genre").filter { it.id() == "etagme" }.joinToString(", ") { it.outerHtml() })
         novel.metaData.put("Language",
             document.getElementsByClass("genre lang").firstOrNull { it.tagName() == "a" && it.hasAttr("lid") }?.outerHtml())
         novel.metaData.put("Status in Country of Origin",
@@ -74,9 +72,8 @@ fun NovelApi.getRRNovelDetails(url: String): Novel? {
     var novel: Novel? = null
     try {
         val document = getDocumentWithUserAgent(url)
-        novel = Novel()
+        novel = Novel(document.getElementsByAttributeValue("property", "name")?.firstOrNull { it.tagName() == "h1" }?.text() ?: "NameUnableToFetch", url)
 
-        novel.name = document.getElementsByAttributeValue("property", "name")?.firstOrNull { it.tagName() == "h1" }?.text()
         //document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("name") && it.attr("name") == "twitter:title" }?.attr("content")
         novel.imageUrl = document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("property") && it.attr("property") == "og:image" }?.attr("content")
         novel.rating = document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("property") && it.attr("property") == "books:rating:value" }?.attr("content")
@@ -97,9 +94,7 @@ fun NovelApi.getWlnNovelDetails(url: String): Novel? {
     var novel: Novel? = null
     try {
         val document = getDocumentWithUserAgent(url)
-        novel = Novel()
-
-        novel.name = document.body().getElementsByTag("h2")?.firstOrNull()?.text()
+        novel = Novel(document.body().getElementsByTag("h2")?.firstOrNull()?.text() ?: "NameUnableToFetch", url)
         novel.imageUrl = document.body().getElementsByClass("coverimg")?.firstOrNull { it.tagName() == "img" }?.absUrl("src")
 
         val scriptContent = document.getElementsByTag("script")?.outerHtml()
@@ -120,37 +115,37 @@ fun NovelApi.getWlnNovelDetails(url: String): Novel? {
         novel.chapterCount = getWLNUChapterCount(document).toLong()
 
         novel.metaData.put("Author(s)",
-            document.getElementsByTag("span")?.filter { it.id() == "author" }?.map {
+            document.getElementsByTag("span")?.filter { it.id() == "author" }?.joinToString(", ") {
                 val linkElement = it.getElementsByTag("a")?.firstOrNull()
                 if (linkElement != null) {
                     "<a href=\"${it.getElementsByTag("a")?.firstOrNull()?.absUrl("href")}\">${it.getElementsByTag("a")?.firstOrNull()?.text()}</a>"
                 } else {
                     it.text()
                 }
-            }?.joinToString(", "))
+            })
 
         novel.metaData.put("Artist(s)",
-            document.getElementsByTag("span")?.filter { it.id() == "illustrators" }?.map {
+            document.getElementsByTag("span")?.filter { it.id() == "illustrators" }?.joinToString(", ") {
                 val linkElement = it.getElementsByTag("a")?.firstOrNull()
                 if (linkElement != null) {
                     "<a href=\"${it.getElementsByTag("a")?.firstOrNull()?.absUrl("href")}\">${it.getElementsByTag("a")?.firstOrNull()?.text()}</a>"
                 } else {
                     it.text()
                 }
-            }?.joinToString(", "))
+            })
 
         novel.metaData.put("Tags",
-            document.getElementsByTag("span")?.filter { it.id() == "tag" }?.map {
+            document.getElementsByTag("span")?.filter { it.id() == "tag" }?.joinToString(", ") {
                 val linkElement = it.getElementsByTag("a")?.firstOrNull()
                 if (linkElement != null) {
                     "<a href=\"${it.getElementsByTag("a")?.firstOrNull()?.absUrl("href")}\">${it.getElementsByTag("a")?.firstOrNull()?.text()}</a>"
                 } else {
                     it.text()
                 }
-            }?.joinToString(", "))
+            })
 
         novel.metaData.put("Genre(s)",
-            document.body().getElementsByTag("a")?.filter { it.hasAttr("href") && it.attr("href").contains("/genre-id/") }?.map { "<a href=\"${it.absUrl("href")}\">${it.text()}</a>" }?.joinToString(", "))
+            document.body().getElementsByTag("a")?.filter { it.hasAttr("href") && it.attr("href").contains("/genre-id/") }?.joinToString(", ") { "<a href=\"${it.absUrl("href")}\">${it.text()}</a>" })
         novel.metaData.put("Type",
             document.getElementById("type")?.getElementsByClass("dropitem-text")?.text())
         novel.metaData.put("Language",
@@ -162,7 +157,7 @@ fun NovelApi.getWlnNovelDetails(url: String): Novel? {
         novel.metaData.put("Licensed (in English)",
             document.getElementById("license_en")?.getElementsByClass("dropitem-text")?.text())
         novel.metaData.put("Publisher(s)",
-            document.getElementsByTag("span")?.filter { it.id() == "publisher" }?.map { "<a href=\"${it.getElementsByTag("a")?.firstOrNull()?.absUrl("href")}\">${it.getElementsByTag("a")?.firstOrNull()?.text()}</a>" }?.joinToString(", "))
+            document.getElementsByTag("span")?.filter { it.id() == "publisher" }?.joinToString(", ") { "<a href=\"${it.getElementsByTag("a")?.firstOrNull()?.absUrl("href")}\">${it.getElementsByTag("a")?.firstOrNull()?.text()}</a>" })
         novel.metaData.put("OEL/Translated",
             document.getElementById("tl_type")?.text())
         novel.metaData.put("Demographic",
@@ -172,7 +167,7 @@ fun NovelApi.getWlnNovelDetails(url: String): Novel? {
         novel.metaData.put("Initial publish date",
             document.getElementById("pub_date")?.text())
         novel.metaData.put("Alternate Names",
-            document.getElementsByTag("span")?.filter { it.id() == "altnames" }?.map { it.text() }?.joinToString(", "))
+            document.getElementsByTag("span")?.filter { it.id() == "altnames" }?.joinToString(", ") { it.text() })
         novel.metaData.put("Homepage",
             document.getElementById("website")?.getElementsByTag("a")?.firstOrNull()?.outerHtml())
 

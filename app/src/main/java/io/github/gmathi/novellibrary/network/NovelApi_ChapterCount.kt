@@ -1,30 +1,23 @@
 package io.github.gmathi.novellibrary.network
 
+import io.github.gmathi.novellibrary.model.Novel
 import org.jsoup.nodes.Document
 import java.io.IOException
 import java.net.URI
 
 
-fun NovelApi.getChapterCount(novelUrl: String): Int {
-    val host = URI(novelUrl).host
+fun NovelApi.getChapterCount(novel: Novel): Int {
+    val host = URI(novel.url).host
     when {
-        host.contains(HostNames.NOVEL_UPDATES) -> return getNUChapterCount(novelUrl)
-        host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterCount(novelUrl)
-        host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterCount(novelUrl)
+        host.contains(HostNames.NOVEL_UPDATES) -> return getNUChapterCount(novel)
+        host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterCount(novel.url)
+        host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterCount(novel.url)
     }
     return 0
 }
 
-fun NovelApi.getNUChapterCount(url: String): Int {
-    var chapterCount = 0
-    try {
-        val document = getDocument(url)
-        chapterCount = getNUChapterCount(document)
-
-    } catch (e: IOException) {
-        e.printStackTrace()
-    }
-    return chapterCount
+fun NovelApi.getNUChapterCount(novel: Novel): Int {
+    return getNUALLChapterUrls(novel).size
 }
 
 fun NovelApi.getNUChapterCount(document: Document): Int {
@@ -52,7 +45,7 @@ fun getNUChapterCountFromPageDoc(doc: Document): Int {
     val tableElement = doc.body().getElementsByAttributeValueMatching("id", "myTable").firstOrNull { it.tagName() == "table" }
     val elements = tableElement?.getElementsByClass("chp-release")?.filter { it.tagName() == "a" }
     if (elements != null)
-        return elements.size/2
+        return elements.size / 2
     return 0
 }
 

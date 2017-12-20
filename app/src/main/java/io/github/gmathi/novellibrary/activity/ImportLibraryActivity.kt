@@ -19,6 +19,7 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.addWebPages
 import io.github.gmathi.novellibrary.database.addWebPagesFromImportList
 import io.github.gmathi.novellibrary.database.getNovelByUrl
+import io.github.gmathi.novellibrary.database.insertNovel
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.ImportListItem
 import io.github.gmathi.novellibrary.network.HostNames
@@ -168,7 +169,7 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
         if (dbHelper.getNovelByUrl(item.novelUrl!!) != null) {
             itemView.checkbox.visibility = View.GONE
             itemView.title.setTextColor(ContextCompat.getColor(this@ImportLibraryActivity, R.color.Lime))
-            itemView.subtitle.applyFont(assets).text = "[ Already In Library ]"
+            itemView.subtitle.applyFont(assets).text = getString(R.string.already_in_library)
         } else {
             itemView.title.setTextColor(ContextCompat.getColor(this@ImportLibraryActivity, R.color.White))
             itemView.checkbox.visibility = View.VISIBLE

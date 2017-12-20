@@ -22,16 +22,15 @@ class SearchFragment : BaseFragment() {
 
     lateinit var adapter: GenericAdapter<Novel>
     var searchMode: Boolean = false
-    var searchTerm: String? = null
+    private var searchTerm: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater!!.inflate(R.layout.fragment_search, container, false)
-    }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
+            inflater.inflate(R.layout.fragment_search, container, false)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -67,7 +66,7 @@ class SearchFragment : BaseFragment() {
         //searchView.setHomeButtonVisibility(View.GONE)
         searchView.setHomeButtonListener {
             hideSoftKeyboard()
-            activity.drawerLayout.openDrawer(GravityCompat.START)
+            activity?.drawerLayout?.openDrawer(GravityCompat.START)
         }
         searchView.setSuggestionBuilder(SuggestionsBuilder())
         searchView.setSearchListener(object : PersistentSearchView.SearchListener {
@@ -84,25 +83,25 @@ class SearchFragment : BaseFragment() {
             override fun onSearchEditOpened() {
                 searchViewBgTint.visibility = View.VISIBLE
                 searchViewBgTint
-                    .animate()
-                    .alpha(1.0f)
-                    .setDuration(300)
-                    .setListener(SimpleAnimationListener())
-                    .start()
+                        .animate()
+                        .alpha(1.0f)
+                        .setDuration(300)
+                        .setListener(SimpleAnimationListener())
+                        .start()
             }
 
             override fun onSearchEditClosed() {
                 searchViewBgTint
-                    .animate()
-                    .alpha(0.0f)
-                    .setDuration(300)
-                    .setListener(object : SimpleAnimationListener() {
-                        override fun onAnimationEnd(animation: Animator) {
-                            super.onAnimationEnd(animation)
-                            searchViewBgTint.visibility = View.GONE
-                        }
-                    })
-                    .start()
+                        .animate()
+                        .alpha(0.0f)
+                        .setDuration(300)
+                        .setListener(object : SimpleAnimationListener() {
+                            override fun onAnimationEnd(animation: Animator) {
+                                super.onAnimationEnd(animation)
+                                searchViewBgTint.visibility = View.GONE
+                            }
+                        })
+                        .start()
             }
 
             override fun onSearchExit() {
@@ -138,10 +137,10 @@ class SearchFragment : BaseFragment() {
         this.searchTerm = searchTerm
 
         val titles: Array<out String>
-        val searchPageAdapter:GenericFragmentStatePagerAdapter
+        val searchPageAdapter: GenericFragmentStatePagerAdapter
         if (dataCenter.lockRoyalRoad) {
-             titles = resources.getStringArray(R.array.search_results_tab_titles)
-             searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, SearchResultsListener(searchTerm))
+            titles = resources.getStringArray(R.array.search_results_tab_titles)
+            searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, SearchResultsListener(searchTerm))
         } else {
             titles = resources.getStringArray(R.array.search_results_tab_titles_unlocked)
             searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, SearchResultsUnlockedListener(searchTerm))
@@ -157,10 +156,10 @@ class SearchFragment : BaseFragment() {
         setViewPager()
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
+    override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState?.putBoolean("searchMode", searchMode);
-        if (searchTerm != null) outState?.putString("searchTerm", searchTerm)
+        outState.putBoolean("searchMode", searchMode)
+        if (searchTerm != null) outState.putString("searchTerm", searchTerm)
     }
 
 }

@@ -2,15 +2,12 @@ package io.github.gmathi.novellibrary.service.download
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
-import io.github.gmathi.novellibrary.database.getDownloadQueue
-import io.github.gmathi.novellibrary.database.updateDownloadQueueStatus
-import io.github.gmathi.novellibrary.database.updateWebPage
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.database.*
+import io.github.gmathi.novellibrary.model.Download
+import io.github.gmathi.novellibrary.model.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.EventType
-import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
@@ -22,34 +19,36 @@ import org.jsoup.nodes.Document
 import java.io.File
 
 
-class DownloadWebPageThread(val context: Context, val webPage: WebPage, private val hostDir: File, private val novelDir: File, val isCompleteNovelDownload: Boolean) : Thread() {
+class DownloadWebPageThread(val context: Context, val download: Download, val dbHelper: DBHelper) : Thread() {
 
-    private val TAG = "DownloadWebPageThread"
+    companion object {
+        private val TAG = "DownloadWebPageThread"
+    }
+
+    private lateinit var hostDir: File
+    private lateinit var novelDir: File
 
     override fun run() {
-        super.run()
         try {
             if (isNetworkDown()) throw InterruptedException(Constants.NO_NETWORK)
-            if (webPage.filePath != null) return
 
-            if (isCompleteNovelDownload) {
-                val dq = dbHelper.getDownloadQueue(webPage.novelId)
-                if (dq == null || dq.status == Constants.STATUS_STOPPED) return
-            }
+            val webPage = dbHelper.getWebPage(download.webPageId)!!
+
+            hostDir = Utils.getHostDir(context, webPage.url)
+            novelDir = Utils.getNovelDir(hostDir, download.novelName)
+
+            dbHelper.updateDownloadStatus(Download.STATUS_RUNNING, download.webPageId)
+            EventBus.getDefault().post(DownloadWebPageEvent(EventType.RUNNING, webPage.id, download))
 
             if (downloadChapter(webPage)) {
-
-                if (isCompleteNovelDownload) {
-                    val dq = dbHelper.getDownloadQueue(webPage.novelId)
-                    if (dq == null || dq.status == Constants.STATUS_STOPPED) return
-                }
-                EventBus.getDefault().post(NovelEvent(EventType.UPDATE, webPage.novelId, webPage))
+                dbHelper.deleteDownload(download.webPageId)
+                EventBus.getDefault().post(DownloadWebPageEvent(EventType.COMPLETE, webPage.id, download))
             }
 
         } catch (e: InterruptedException) {
-            Log.w(TAG, "Interrupting the Thread: ${webPage.novelId}, ${e.localizedMessage}")
+            Utils.error(TAG, "Interrupting the Thread: ${download.novelName}-${download.webPageId}, ${e.localizedMessage}")
         } catch (e: Exception) {
-            Log.e(TAG, "This is really bad!!", e)
+            Utils.error(TAG, "This is really bad!!", e)
         }
 
     }
@@ -57,17 +56,12 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, private 
     private fun downloadChapter(webPage: WebPage): Boolean {
         val doc: Document
         try {
-            doc = NovelApi().getDocumentWithUserAgent(webPage.url!!)
+            doc = NovelApi().getDocumentWithUserAgent(webPage.url)
         } catch (e: Exception) {
-            Log.w(DownloadNovelService.TAG, webPage.url!!)
+            Utils.error(TAG, "Error getting WebPage: ${webPage.url}")
             e.printStackTrace()
             return false
         }
-//
-//        if (doc.location().contains("rssbook") && doc.location().contains(HostNames.QIDIAN)) {
-//            webPage.url = doc.location().replace("rssbook", "book")
-//            return downloadChapter(webPage)
-//        }
 
         val uri = Uri.parse(doc.location())
         if (!StringUtil.isBlank(uri.host)) {
@@ -100,7 +94,7 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, private 
         try {
             doc = NovelApi().getDocumentWithUserAgent(otherChapterLink)
         } catch (e: Exception) {
-            Log.w(DownloadNovelService.TAG, otherChapterLink)
+            Utils.error(TAG, "Error getting WebPage: $otherChapterLink")
             e.printStackTrace()
             return null
         }
@@ -113,7 +107,7 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, private 
         htmlHelper.clean(doc, hostDir, novelDir)
 
         otherWebPage.title = htmlHelper.getTitle(doc)
-        if (otherWebPage.title!=null && otherWebPage.title == "") otherWebPage.title = doc.location()
+        if (otherWebPage.title != null && otherWebPage.title == "") otherWebPage.title = doc.location()
 
         otherWebPage.id = -2L
 
@@ -125,9 +119,7 @@ class DownloadWebPageThread(val context: Context, val webPage: WebPage, private 
 
 
     private fun onNoNetwork() {
-        Log.e(DownloadNovelService.TAG, Constants.NO_NETWORK)
-        dbHelper.updateDownloadQueueStatus(Constants.STATUS_STOPPED.toLong(), webPage.novelId)
-        EventBus.getDefault().post(NovelEvent(EventType.UPDATE, -1L))
+        Utils.error(TAG, Constants.NO_NETWORK)
     }
 
     private fun isNetworkDown(): Boolean {

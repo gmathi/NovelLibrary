@@ -32,7 +32,7 @@ class QidianHelper : HtmlHelper() {
             contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
             contentElement = contentElement?.parent()
         } while (contentElement != null && contentElement.tagName() != "body")
-        contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
+        contentElement?.classNames()?.forEach { contentElement.removeClass(it) }
     }
 
     override fun downloadImage(element: Element, dir: File): File? {

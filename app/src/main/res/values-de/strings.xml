@@ -148,7 +148,6 @@
     <string name="failed_to_load_url">Konnte Inhalte nicht laden!</string>
     <string name="disable_javascript">Javascript abschalten</string>
     <string name="disable_javascript_description">Manche Websiten schalten Werbung wenn Javascript aktiv ist</string>
-    <string name="changelog">Änderungsprotokoll</string>
     <string name="donations_description_new">Ich bin froh, dass du spenden willst! Für jetzt, bitte verbreiten Sie das Wort und teilen Sie die App mit anderen Romanliebhabern!</string>
     <string name="language">Sprache</string>
     <string name="languages_supported">Unterstützte Sprachen</string>
@@ -223,6 +222,24 @@
     <string name="other">Andere</string>
     <string name="title_activity_recently_updated_novels">Kürzlich aktualisierte Romane</string>
     <string name="title_activity_recently_viewed_novels">Kürzlich angesehene Romane</string>
+    <string name="no_bookmark">No Bookmark!</string>
+    <string name="imported_list">Imported List</string>
+
+    <string name="already_in_library">[ Already In Library ]</string>
+    <string name="group_notification_text">Updated for the novels in your library</string>
+    <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
+    <string name="reader_mode_description">Reader mode will be on permanently</string>
+    <string name="delete_chapters">Delete Chapters</string>
+    <string name="immersive_mode">Show Full Screen</string>
+    <string name="immersive_mode_description">Hide the system bars when reading</string>
+    <string name="title_reader">Reader Mode</string>
+    <string name="title_night">Night Mode</string>
+    <string name="title_fonts">Fonts</string>
+    <string name="title_fonts_size">Font Size</string>
+    <string name="title_report_page">Report Page</string>
+    <string name="title_open_in_browser">Open in Browser</string>
+    <string name="title_share_chapter">Share Chapter</string>
+    <string name="skip_cloud_flare_string">Please wait 5~10 secs while we bypass cloud flare</string>
 
 
 </resources>

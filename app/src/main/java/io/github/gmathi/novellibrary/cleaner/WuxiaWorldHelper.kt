@@ -18,7 +18,7 @@ class WuxiaWorldHelper : HtmlHelper() {
             contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
             contentElement = contentElement?.parent()
         } while (contentElement != null && contentElement.tagName() != "body")
-        contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
+        contentElement?.classNames()?.forEach { contentElement.removeClass(it) }
         doc.getElementsByTag("a").filter { it.text() == "Next Chapter" || it.text() == "Previous Chapter" }.forEach { it.remove() }
         doc.getElementById("custom-background-css")?.remove()
     }

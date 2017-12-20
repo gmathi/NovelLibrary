@@ -68,9 +68,9 @@
                                 android:id="@+id/novelDetailsAuthor"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_marginBottom="4dp"
                                 android:maxLines="2"
                                 android:textColorLink="@color/white"
-                                android:layout_marginBottom="4dp"
                                 android:textSize="16sp"
                                 />
 
@@ -135,12 +135,12 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
-                            android:layout_marginEnd="@dimen/default_margin"
                             android:layout_alignParentRight="true"
+                            android:layout_marginEnd="@dimen/default_margin"
+                            android:layout_marginRight="@dimen/default_margin"
                             android:layout_marginTop="95dp"
                             app:srcCompat="@drawable/ic_open_in_browser_white_vector"
-                            tools:ignore="NotSibling"
-                            android:layout_marginRight="@dimen/default_margin"/>
+                            tools:ignore="NotSibling"/>
 
                     </RelativeLayout>
 
@@ -248,7 +248,9 @@
                             android:layout_margin="@dimen/default_margin"
                             android:layout_marginBottom="8dp"
                             android:layout_toEndOf="@id/novelDetailsChapterIcon"
+                            android:layout_toLeftOf="@id/chevron"
                             android:layout_toRightOf="@id/novelDetailsChapterIcon"
+                            android:layout_toStartOf="@id/chevron"
                             android:text="@string/chapters"
                             android:textAllCaps="true"
                             android:textColor="@color/white"
@@ -256,6 +258,7 @@
                             android:textStyle="bold"/>
 
                         <ImageView
+                            android:id="@+id/chevron"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"

@@ -1,18 +1,20 @@
 package io.github.gmathi.novellibrary.service.firebase
 
-import android.util.Log
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.iid.FirebaseInstanceIdService
+import io.github.gmathi.novellibrary.util.Utils
 
 
 class NLFirebaseInstanceIdService : FirebaseInstanceIdService() {
 
-    private val TAG: String = "NLFirebaseInstanceIdService"
+    companion object {
+        private val TAG: String = "NLFInstanceIdService"
+    }
 
     override fun onTokenRefresh() {
         // Get updated InstanceID token.
         val refreshedToken = FirebaseInstanceId.getInstance().token
-        Log.d(TAG, "Refreshed token: " + refreshedToken!!)
+        Utils.debug(TAG, "Refreshed token: " + refreshedToken!!)
 
         // If you want to send messages to this application instance or
         // manage this apps subscriptions on the server side, send the
