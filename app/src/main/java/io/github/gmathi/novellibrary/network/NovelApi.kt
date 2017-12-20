@@ -8,14 +8,11 @@ import java.util.regex.Pattern
 import javax.net.ssl.SSLPeerUnverifiedException
 
 
-
-
 class NovelApi {
 
     companion object {
-        var cookies: String? = null
-        var cookiesList: List<String>? = null
-        var cookiesMap: HashMap<String, String>? = null
+        var cookies: String? = ""
+        var cookiesMap: HashMap<String, String>? = HashMap()
     }
 
     fun getDocument(url: String): Document {
