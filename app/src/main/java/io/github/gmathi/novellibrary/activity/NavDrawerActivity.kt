@@ -60,27 +60,27 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                     startChaptersActivity(novel)
                 }
             }
+        } else {
+            loadFragment(currentNavId)
+            if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
+                @Suppress("DEPRECATION")
+                MaterialDialog.Builder(this)
+                        .title("📢 Announcement!")
+                        .content(Html.fromHtml("<b><u>Special Thanks:</u></b> " +
+                                "<br/><b>Raj Kumar Shah</b>, Nepal " +
+                                "<br/><b>Ahmad Ouerfelli</b>, Ontario " +
+                                "<br/><b>Arthur Tesse</b>, Paris " +
+                                "<br/>For making the app better!! Cheers!!! 🎊🎉"))
+                        .positiveText("Yay")
+                        .onPositive { dialog, _ -> dialog.dismiss() }
+                        .show()
+                dataCenter.appVersionCode = BuildConfig.VERSION_CODE
+            }
+            snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
+
+            startInitialWebViewActivity()
+
         }
-
-
-        loadFragment(currentNavId)
-        if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
-            @Suppress("DEPRECATION")
-            MaterialDialog.Builder(this)
-                .title("📢 Announcement!")
-                .content(Html.fromHtml("<b><u>Special Thanks:</u></b> " +
-                    "<br/><b>Raj Kumar Shah</b>, Nepal " +
-                    "<br/><b>Ahmad Ouerfelli</b>, Ontario " +
-                    "<br/><b>Arthur Tesse</b>, Paris " +
-                    "<br/>For making the app better!! Cheers!!! 🎊🎉"))
-                .positiveText("Yay")
-                .onPositive { dialog, _ -> dialog.dismiss() }
-                .show()
-            dataCenter.appVersionCode = BuildConfig.VERSION_CODE
-        }
-        snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
-
-        startInitialWebViewActivity()
     }
 
     override fun onBackPressed() {
@@ -153,10 +153,10 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun replaceFragment(fragment: Fragment, tag: String) {
         supportFragmentManager.beginTransaction()
-            .replace(R.id.navFragmentContainer, fragment, tag)
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-            .addToBackStack(tag)
-            .commitAllowingStateLoss()
+                .replace(R.id.navFragmentContainer, fragment, tag)
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                .addToBackStack(tag)
+                .commitAllowingStateLoss()
     }
 
     fun setToolbar(toolbar: Toolbar?) {

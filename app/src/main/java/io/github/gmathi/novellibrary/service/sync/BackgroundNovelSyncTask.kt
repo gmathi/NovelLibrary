@@ -16,6 +16,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.getAllNovels
+import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterCount
@@ -28,6 +29,14 @@ class BackgroundNovelSyncTask : GcmTaskService() {
     override fun onRunTask(taskParams: TaskParams): Int {
         val context = this@BackgroundNovelSyncTask
         val dbHelper = DBHelper.getInstance(context)
+
+        //TODO: DELETE Test Code
+        val novel = dbHelper.getAllNovels().get(0);
+        if (novel != null) {
+            novel?.chapterCount = 400
+            novel?.newChapterCount = 400
+            dbHelper.updateNovel(novel!!)
+        }
 
         try {
             startNovelsSync(dbHelper)
@@ -87,7 +96,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
                     //specify target service - must extend GcmTaskService
                     .setService(thisClass)
                     //repeat every 60 seconds
-                    .setPeriod(60 * 60)
+                    .setPeriod(60)
                     //specify how much earlier the task can be executed (in seconds)
                     //.setFlex(60*60)
                     //tag that is unique to this task (can be used to cancel task)
@@ -126,7 +135,8 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
         novelMap.forEach { novel ->
             val notificationBuilder = createNotificationBuilder(
-                context, novel.key.name, getString(R.string.new_chapters_notification_content_single, novel, novel.value), createNovelDetailsPendingIntent(novelMap, novel.key), deleteIntent)
+                context, novel.key.name, getString(R.string.new_chapters_notification_content_single, novel.value-novel.key.chapterCount),
+                    createNovelDetailsPendingIntent(novelMap, novel.key), deleteIntent)
             notificationBuilder.setGroup(KEY_NOTIFICATION_GROUP)
             notificationList.add(notificationBuilder.build())
         }

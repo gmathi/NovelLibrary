@@ -184,7 +184,7 @@
     <string name="download_all_new_chapters_dialog_content">İndirmeleri yönetici programı kullanarak düzenleyin. Yayımlanmış tüm bölümler indirilsin mi?</string>
     <string name="quick_access">Hızlı Erişim</string>
     <string name="new_chapters_notification_content_full">%1$d Romanda %2$d yeni bölüm. Okumak için tıklayın!</string>
-    <string name="new_chapters_notification_content_single">%1$s (%2$d yeni bölüm)</string>
+    <string name="new_chapters_notification_content_single">%1$d yeni bölüm</string>
     <string name="new_chapters_notification_title">Yeni Bölümler Geldi!</string>
     <string name="sync_in_progress">Senkronize Ediliyor</string>
 

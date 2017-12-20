@@ -185,7 +185,7 @@
     <string name="download_all_new_chapters_dialog_content">Gérez les téléchargements dans le Gestionnaire. Télécharger tous les nouveaux chapitres ?</string>
     <string name="quick_access">Accès Rapide</string>
     <string name="new_chapters_notification_content_full">%1$d Romans avec un total de %2$d nouveaux chapitres. Cliquez pour commencer à lire !</string>
-    <string name="new_chapters_notification_content_single">%1$s (%2$d nouveaux chapitres)</string>
+    <string name="new_chapters_notification_content_single">%1$d nouveaux chapitres</string>
     <string name="new_chapters_notification_title">Nouveaux Chapitres Disponibles!</string>
     <string name="sync_in_progress">Mise à jour en cours</string>
 
