@@ -31,11 +31,13 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         val dbHelper = DBHelper.getInstance(context)
 
         //TODO: DELETE Test Code
-        val novel = dbHelper.getAllNovels().get(0);
-        if (novel != null) {
-            novel?.chapterCount = 400
-            novel?.newChapterCount = 400
-            dbHelper.updateNovel(novel!!)
+        val novellist = dbHelper.getAllNovels();
+        if (novellist != null) {
+            novellist.forEach({
+                it?.chapterCount = 400
+                it?.newChapterCount = 400
+                dbHelper.updateNovel(it!!)
+            })
         }
 
         try {
@@ -93,23 +95,23 @@ class BackgroundNovelSyncTask : GcmTaskService() {
             //in this method, single Repeating task is scheduled (the target service that will be called is MyTaskService.class)
             try {
                 val periodic = PeriodicTask.Builder()
-                    //specify target service - must extend GcmTaskService
-                    .setService(thisClass)
-                    //repeat every 60 seconds
-                    .setPeriod(60)
-                    //specify how much earlier the task can be executed (in seconds)
-                    //.setFlex(60*60)
-                    //tag that is unique to this task (can be used to cancel task)
-                    .setTag(TAG)
-                    //whether the task persists after device reboot
-                    .setPersisted(true)
-                    //if another task with same tag is already scheduled, replace it with this task
-                    .setUpdateCurrent(true)
-                    //set required network state, this line is optional
-                    .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
-                    //request that charging must be connected, this line is optional
-                    .setRequiresCharging(false)
-                    .build()
+                        //specify target service - must extend GcmTaskService
+                        .setService(thisClass)
+                        //repeat every 60 seconds
+                        .setPeriod(60)
+                        //specify how much earlier the task can be executed (in seconds)
+                        //.setFlex(60*60)
+                        //tag that is unique to this task (can be used to cancel task)
+                        .setTag(TAG)
+                        //whether the task persists after device reboot
+                        .setPersisted(true)
+                        //if another task with same tag is already scheduled, replace it with this task
+                        .setUpdateCurrent(true)
+                        //set required network state, this line is optional
+                        .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
+                        //request that charging must be connected, this line is optional
+                        .setRequiresCharging(false)
+                        .build()
                 GcmNetworkManager.getInstance(context).schedule(periodic)
                 Log.v(TAG, "repeating task scheduled")
             } catch (e: Exception) {
@@ -121,22 +123,25 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
         private fun cancelAll(context: Context) {
             GcmNetworkManager
-                .getInstance(context)
-                .cancelAllTasks(thisClass)
+                    .getInstance(context)
+                    .cancelAllTasks(thisClass)
         }
 
     }
 
     private fun showBundledNotifications(context: Context, novelMap: HashMap<Novel, Int>, contentIntent: PendingIntent, deleteIntent: PendingIntent) {
         val first = createNotificationBuilder(
-            context, getString(R.string.app_name), getString(R.string.group_notification_text), contentIntent, deleteIntent)
+                context, getString(R.string.app_name), getString(R.string.group_notification_text), contentIntent, deleteIntent)
         first.setGroupSummary(true).setGroup(KEY_NOTIFICATION_GROUP)
         val notificationList = ArrayList<Notification>()
 
         novelMap.forEach { novel ->
             val notificationBuilder = createNotificationBuilder(
-                context, novel.key.name, getString(R.string.new_chapters_notification_content_single, novel.value-novel.key.chapterCount),
-                    createNovelDetailsPendingIntent(novelMap, novel.key), deleteIntent)
+                    context,
+                    novel.key.name,
+                    getString(R.string.new_chapters_notification_content_single, novel.value - novel.key.chapterCount),
+                    createNovelDetailsPendingIntent(novelMap, novel.key),
+                    deleteIntent)
             notificationBuilder.setGroup(KEY_NOTIFICATION_GROUP)
             notificationList.add(notificationBuilder.build())
         }
@@ -151,15 +156,15 @@ class BackgroundNovelSyncTask : GcmTaskService() {
     private fun createNotificationBuilder(context: Context, title: String, message: String, contentIntent: PendingIntent, deleteIntent: PendingIntent): NotificationCompat.Builder {
 
         val largeIcon = BitmapFactory.decodeResource(context.resources,
-            R.drawable.ic_library_add_white_vector)
+                R.drawable.ic_library_add_white_vector)
         val mBuilder = NotificationCompat.Builder(this, "default")
-            .setContentTitle(title)
-            .setContentText(message)
-            .setLargeIcon(largeIcon)
-            .setContentIntent(contentIntent)
-            .setDeleteIntent(deleteIntent)
-            .setColor(ContextCompat.getColor(context, R.color.alice_blue))
-            .setAutoCancel(true)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setLargeIcon(largeIcon)
+                .setContentIntent(contentIntent)
+                .setDeleteIntent(deleteIntent)
+                .setColor(ContextCompat.getColor(context, R.color.alice_blue))
+                .setAutoCancel(true)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             mBuilder.setSmallIcon(R.drawable.ic_book_white_vector)
         else
