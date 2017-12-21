@@ -19,6 +19,7 @@ import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.getWebPage
+import io.github.gmathi.novellibrary.database.updateWebPage
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.model.WebPage
@@ -315,6 +316,15 @@ class WebPageDBFragment : BaseFragment() {
                 loadData()
             }
             ReaderSettingsEvent.TEXT_SIZE -> changeTextSize()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (webPage != null) {
+            webPage!!.metaData.put("scrollY", readerWebView.scrollY.toString())
+            if (webPage!!.id > -1L)
+                dbHelper.updateWebPage(webPage!!)
         }
     }
 

@@ -162,7 +162,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             loadFragment(R.id.nav_downloads)
         }
         if (requestCode == Constants.IWV_ACT_REQ_CODE) {
-            if (intent.extras.containsKey("novel")) {
+            if (intent.extras != null && intent.extras.containsKey("novel")) {
                 val novel = intent.extras.getSerializable("novel") as? Novel
                 novel?.let {
                     startChaptersActivity(novel)
