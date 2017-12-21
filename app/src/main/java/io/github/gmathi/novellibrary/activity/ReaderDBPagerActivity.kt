@@ -40,15 +40,18 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
     private var slidingRootNav: SlidingRootNav? = null
     lateinit var recyclerView: RecyclerView
 
-    private val posReaderMode = 0
-    private val posFonts = 1
-    private val posFontSize = 2
-    private val posReportPage = 3
-    private val posOpenInBrowser = 4
-    private val posShareChapter = 5
+    companion object {
+        private val READER_MODE = 0
+        private val JAVA_SCRIPT = 1
+        private val FONTS = 2
+        private val FONT_SIZE = 3
+        private val REPORT_PAGE = 4
+        private val OPEN_IN_BROWSER = 5
+        private val SHARE_CHAPTER = 6
+    }
 
     private var screenTitles: Array<String>? = null
-    lateinit var screenIcons: Array<Drawable?>
+    private lateinit var screenIcons: Array<Drawable?>
 
     var novel: Novel? = null
     var webPage: WebPage? = null
@@ -244,12 +247,13 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
     private fun slideMenuAdapterSetup() {
         @Suppress("UNCHECKED_CAST")
         val adapter = DrawerAdapter(Arrays.asList(
-            createItemFor(posReaderMode).setSwitchOn(true),
-            createItemFor(posFonts),
-            createItemFor(posFontSize),
-            createItemFor(posReportPage),
-            createItemFor(posOpenInBrowser),
-            createItemFor(posShareChapter)
+            createItemFor(READER_MODE).setSwitchOn(true),
+            createItemFor(JAVA_SCRIPT).setSwitchOn(true),
+            createItemFor(FONTS),
+            createItemFor(FONT_SIZE),
+            createItemFor(REPORT_PAGE),
+            createItemFor(OPEN_IN_BROWSER),
+            createItemFor(SHARE_CHAPTER)
         ) as List<DrawerItem<DrawerAdapter.ViewHolder>>)
         adapter.setListener(this)
 
@@ -261,8 +265,6 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
 
     private fun createItemFor(position: Int): DrawerItem<SimpleItem.ViewHolder> {
         return SimpleItem(ReaderMenu(screenIcons[position]!!, screenTitles!![position]), this)
-
-
     }
 
     private fun toggleSlideRootNab() {
@@ -289,31 +291,23 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
         return icons
     }
 
+    /**
+     *     Handle Slide Menu Nav Options
+     */
     override fun onItemSelected(position: Int) {
-
         slidingRootNav!!.closeMenu()
         when (position) {
-            posReaderMode -> {
-            }
-            posFonts -> {
-                toast("Fonts Locked!")
-            }
-            posFontSize -> {
-                changeTextSize()
-            }
-            posReportPage -> {
-                reportPage()
-            }
-            posOpenInBrowser -> {
-                inBrowser()
-            }
-            posShareChapter -> {
-                share()
-            }
+            FONTS -> toast("Fonts Locked!")
+            FONT_SIZE -> changeTextSize()
+            REPORT_PAGE -> reportPage()
+            OPEN_IN_BROWSER -> inBrowser()
+            SHARE_CHAPTER -> share()
         }
     }
 
-
+    /**
+     *     For Reader Mode & Night Mode toggle
+     */
     override fun bind(item: ReaderMenu, itemView: View, position: Int, simpleItem: SimpleItem) {
 
         itemView.title.text = item.title
@@ -339,8 +333,6 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
 
         itemView.switchNightMode.setOnCheckedChangeListener({ _: CompoundButton, isChecked: Boolean ->
             dataCenter.isDarkTheme = isChecked
-            //Apply menu tint
-            menuNav.setColorFilter(ContextCompat.getColor(this@ReaderDBPagerActivity, if (isChecked) R.color.white else R.color.black), android.graphics.PorterDuff.Mode.MULTIPLY)
             EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
         })
     }

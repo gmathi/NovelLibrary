@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.fragment
 
 import android.annotation.SuppressLint
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
@@ -24,6 +25,7 @@ import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
+import kotlinx.android.synthetic.main.activity_new_reader_pager.*
 import kotlinx.android.synthetic.main.fragment_reader.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -62,7 +64,14 @@ class WebPageDBFragment : BaseFragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        if (activity == null) return
+        val activity = activity as? ReaderDBPagerActivity ?: return
+
+        //Show the menu button on scroll
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            readerWebView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
+                if (scrollY > oldScrollY && scrollY > 0) activity.menuNav.visibility = View.GONE
+                if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) activity.menuNav.visibility = View.VISIBLE
+            }
 
         setWebView()
 
@@ -79,7 +88,7 @@ class WebPageDBFragment : BaseFragment() {
             dbHelper.getWebPage(novelId, orderId)
 
             val intentWebPage = dbHelper.getWebPage(novelId, orderId)
-            if (intentWebPage == null) activity?.finish()
+            if (intentWebPage == null) activity.finish()
             else webPage = intentWebPage
         }
 
@@ -322,6 +331,14 @@ class WebPageDBFragment : BaseFragment() {
     override fun onDestroy() {
         async.cancelAll()
         super.onDestroy()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (webPage != null) {
+            outState.putSerializable("webPage", webPage)
+        }
+        outState.putSerializable("history", history)
     }
 
 }
