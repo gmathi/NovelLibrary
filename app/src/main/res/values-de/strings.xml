@@ -180,7 +180,7 @@
     <string name="download_all_new_chapters_dialog_content">Verwalten Sie neue Downloads mit dem Download-Manager. Laden Sie alle neuen Kapitel freigegeben?</string>
     <string name="quick_access">Schnellzugriff</string>
     <string name="new_chapters_notification_content_full">%1$d Romane mit insgesamt %2$d neuen Kapiteln. Klicken Sie zum Lesen!</string>
-    <string name="new_chapters_notification_content_single">%1$s (%2$d neue Kapitel)</string>
+    <string name="new_chapters_notification_content_single">%1$d neue Kapitel</string>
     <string name="new_chapters_notification_title">Neue Kapitel verfügbar</string>    
     <string name="sync_in_progress">Sync in progress</string>
 

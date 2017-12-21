@@ -183,7 +183,7 @@
     <string name="download_all_new_chapters_dialog_content">I-manage ang pag-download ng mga libro gamit ng download manager. I-download ang mga bagong palabas ng kabanata?</string>
     <string name="quick_access">Quick Access</string>
     <string name="new_chapters_notification_content_full">Mayroon kang %1$d libro na may kabuuan na %2$d bagong kabanata. I-click ang para magsimula na sa pagbabasa!</string>
-    <string name="new_chapters_notification_content_single">%1$s (%2$d bagong kabanata!)</string>
+    <string name="new_chapters_notification_content_single">%1$d bagong kabanata!</string>
     <string name="new_chapters_notification_title">Mayroong bagong kabanata!</string>
     <string name="sync_in_progress">Mayroon isang pag-sync na gumaganap.</string>
 
