@@ -133,6 +133,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         val first = createNotificationBuilder(
                 context, getString(R.string.app_name), getString(R.string.group_notification_text), contentIntent, deleteIntent)
         first.setGroupSummary(true).setGroup(KEY_NOTIFICATION_GROUP)
+
         val notificationList = ArrayList<Notification>()
 
         novelMap.forEach { novel ->
@@ -186,7 +187,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         novelDetailsBundle.putSerializable("novelsChapMap", novelsMap)
         novelDetailsBundle.putSerializable("novel", novel)
         novelDetailsIntent.putExtras(novelDetailsBundle)
-        return PendingIntent.getActivity(this.applicationContext, 0, novelDetailsIntent, PendingIntent.FLAG_CANCEL_CURRENT)
+        return PendingIntent.getActivity(this.applicationContext, novel.hashCode(), novelDetailsIntent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
     //endregion
