@@ -62,7 +62,7 @@ class WebPageDBFragment : BaseFragment() {
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-            inflater.inflate(R.layout.fragment_reader, container, false)
+        inflater.inflate(R.layout.fragment_reader, container, false)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -199,9 +199,9 @@ class WebPageDBFragment : BaseFragment() {
 
     private fun loadCreatedDocument() {
         readerWebView.loadDataWithBaseURL(
-                if (webPage!!.filePath != null) "file://${webPage!!.filePath}" else doc?.location(),
-                doc?.outerHtml(),
-                "text/html", "UTF-8", null)
+            if (webPage!!.filePath != null) "file://${webPage!!.filePath}" else doc?.location(),
+            doc?.outerHtml(),
+            "text/html", "UTF-8", null)
         if (webPage!!.metaData.containsKey("scrollY"))
             readerWebView.scrollTo(0, webPage!!.metaData["scrollY"]!!.toInt())
     }
