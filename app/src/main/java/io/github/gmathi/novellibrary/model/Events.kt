@@ -29,6 +29,8 @@ class ReaderSettingsEvent(val setting: String) {
         val NIGHT_MODE = "nightMode"
         val TEXT_SIZE = "textSize"
         val READER_MODE = "readerMode"
-        val JAVA_SCTIPT="javaScript"
+        val JAVA_SCRIPT = "javaScript"
+        val FONT = "font"
+
     }
 }

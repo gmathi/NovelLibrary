@@ -49,7 +49,7 @@ android {
 }
 
 def support_lib_version = "27.0.2"
-def gcm_services_version = "11.6.2"
+def gcm_services_version = "11.8.0"
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
@@ -97,6 +97,9 @@ dependencies {
     })
 
     implementation('com.afollestad.material-dialogs:core:0.9.4.5', {
+        exclude group: 'com.android.support'
+    })
+    implementation('com.afollestad.material-dialogs:commons:0.9.6.0', {
         exclude group: 'com.android.support'
     })
 

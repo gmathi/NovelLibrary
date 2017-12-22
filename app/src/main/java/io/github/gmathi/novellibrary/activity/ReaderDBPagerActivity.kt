@@ -1,9 +1,11 @@
 package io.github.gmathi.novellibrary.activity
 
 
+import android.Manifest
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.ViewPager
 import android.support.v7.widget.LinearLayoutManager
@@ -15,6 +17,8 @@ import android.webkit.WebView
 import android.widget.CompoundButton
 import android.widget.SeekBar
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.folderselector.FileChooserDialog
+import com.thanosfisherman.mayi.Mayi
 import com.yarolegovich.slidingrootnav.SlideGravity
 import com.yarolegovich.slidingrootnav.SlidingRootNav
 import com.yarolegovich.slidingrootnav.SlidingRootNavBuilder
@@ -34,9 +38,18 @@ import kotlinx.android.synthetic.main.activity_new_reader_pager.*
 import kotlinx.android.synthetic.main.item_option.view.*
 import kotlinx.android.synthetic.main.menu_left_drawer.*
 import org.greenrobot.eventbus.EventBus
+import java.io.File
 import java.util.*
 
-class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, DrawerAdapter.OnItemSelectedListener, SimpleItem.Listener<ReaderMenu>, SeekBar.OnSeekBarChangeListener {
+
+class ReaderDBPagerActivity :
+    BaseActivity(),
+    ViewPager.OnPageChangeListener,
+    DrawerAdapter.OnItemSelectedListener,
+    SimpleItem.Listener<ReaderMenu>,
+    SeekBar.OnSeekBarChangeListener,
+    FileChooserDialog.FileCallback {
+
     private var slidingRootNav: SlidingRootNav? = null
     lateinit var recyclerView: RecyclerView
 
@@ -79,10 +92,10 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
         if (webPage != null) {
             updateBookmark(webPage!!)
             viewPager.currentItem =
-                    if (dataCenter.japSwipe)
-                        novel!!.chapterCount.toInt() - webPage!!.orderId.toInt() - 1
-                    else
-                        webPage!!.orderId.toInt()
+                if (dataCenter.japSwipe)
+                    novel!!.chapterCount.toInt() - webPage!!.orderId.toInt() - 1
+                else
+                    webPage!!.orderId.toInt()
         }
 
         slideMenuSetup(savedInstanceState)
@@ -113,11 +126,11 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
                 main_content.fitsSystemWindows = false
 
                 immersiveModeOptions = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
             } else {
                 immersiveModeOptions = (View.SYSTEM_UI_FLAG_LOW_PROFILE)
             }
@@ -143,9 +156,9 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
 
     private fun changeTextSize() {
         val dialog = MaterialDialog.Builder(this)
-                .title(R.string.text_size)
-                .customView(R.layout.dialog_text_slider, true)
-                .build()
+            .title(R.string.text_size)
+            .customView(R.layout.dialog_text_slider, true)
+            .build()
         dialog.show()
         dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.setOnSeekBarChangeListener(this)
         dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.progress = dataCenter.textSize
@@ -236,24 +249,24 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
 
     private fun slideMenuSetup(savedInstanceState: Bundle?) {
         slidingRootNav = SlidingRootNavBuilder(this)
-                .withMenuOpened(false)
-                .withContentClickableWhenMenuOpened(true)
-                .withSavedState(savedInstanceState)
-                .withGravity(SlideGravity.RIGHT)
-                .withMenuLayout(R.layout.menu_left_drawer)
-                .inject()
+            .withMenuOpened(false)
+            .withContentClickableWhenMenuOpened(true)
+            .withSavedState(savedInstanceState)
+            .withGravity(SlideGravity.RIGHT)
+            .withMenuLayout(R.layout.menu_left_drawer)
+            .inject()
     }
 
     private fun slideMenuAdapterSetup() {
         @Suppress("UNCHECKED_CAST")
         val adapter = DrawerAdapter(Arrays.asList(
-                createItemFor(READER_MODE).setSwitchOn(true),
-                createItemFor(JAVA_SCRIPT).setSwitchOn(true),
-                createItemFor(FONTS),
-                createItemFor(FONT_SIZE),
-                createItemFor(REPORT_PAGE),
-                createItemFor(OPEN_IN_BROWSER),
-                createItemFor(SHARE_CHAPTER)
+            createItemFor(READER_MODE).setSwitchOn(true),
+            createItemFor(JAVA_SCRIPT).setSwitchOn(true),
+            createItemFor(FONTS),
+            createItemFor(FONT_SIZE),
+            createItemFor(REPORT_PAGE),
+            createItemFor(OPEN_IN_BROWSER),
+            createItemFor(SHARE_CHAPTER)
         ) as List<DrawerItem<DrawerAdapter.ViewHolder>>)
         adapter.setListener(this)
 
@@ -297,7 +310,20 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
     override fun onItemSelected(position: Int) {
         slidingRootNav!!.closeMenu()
         when (position) {
-            FONTS -> toast("Fonts Locked!")
+            FONTS -> {
+                Mayi.withActivity(this@ReaderDBPagerActivity)
+                    .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    .onResult {
+                        if (it.isGranted)
+                            openFontChooserDialog()
+                        else
+                            MaterialDialog.Builder(this)
+                                .content("Enable \"Write External Storage\" permission for Novel Library " +
+                                    "from your device Settings -> Applications -> Novel Library -> Permissions")
+                                .positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
+                                .show()
+                    }.check()
+            }
             FONT_SIZE -> changeTextSize()
             REPORT_PAGE -> reportPage()
             OPEN_IN_BROWSER -> inBrowser()
@@ -336,7 +362,7 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
                 EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
             } else if (position == JAVA_SCRIPT) {
                 dataCenter.javascriptDisabled = !isChecked
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCTIPT))
+                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCRIPT))
             }
         })
 
@@ -345,6 +371,25 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
             EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
         })
 
+    }
+
+    private fun openFontChooserDialog() {
+        FileChooserDialog.Builder(this)
+            .initialPath(Environment.getExternalStorageDirectory().path)  // changes initial path, defaults to external storage directory
+            .extensionsFilter(".ttf") // Optional extension filter, will override mimeType()
+            .tag("optional-identifier")
+            .goUpLabel("Up") // custom go up label, default label is "..."
+            .show(this) // an AppCompatActivity which implements FileCallback
+    }
+
+    override fun onFileSelection(dialog: FileChooserDialog, file: File) {
+        dialog.dismiss()
+        dataCenter.fontPath = file.path
+        EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+    }
+
+    override fun onFileChooserDismissed(dialog: FileChooserDialog) {
+        //Do Nothing
     }
 
 }

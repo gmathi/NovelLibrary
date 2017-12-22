@@ -335,8 +335,7 @@ class WebPageDBFragment : BaseFragment() {
                 loadData()
             }
             ReaderSettingsEvent.TEXT_SIZE -> changeTextSize()
-            ReaderSettingsEvent.JAVA_SCTIPT -> {
-                readerWebView.settings.javaScriptEnabled = dataCenter.javascriptDisabled
+            ReaderSettingsEvent.JAVA_SCRIPT, ReaderSettingsEvent.FONT -> {
                 loadData()
             }
         }
