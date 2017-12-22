@@ -53,15 +53,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                     dbHelper.updateNewChapterCount(it.id, novelsMap[it]!!.toLong())
                 }
             }
-
-            if (intent.extras.containsKey("novel")) {
-                val novel = intent.extras.getSerializable("novel") as? Novel
-                novel?.let {
-                    startChaptersActivity(novel)
-                }
-            }
         }
-
 
         loadFragment(currentNavId)
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
@@ -148,6 +140,9 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_discord_link -> {
                 openInBrowser("https://discord.gg/g2cQswh")
             }
+            R.id.nav_refresh_cloud_flare_cookies -> {
+                startInitialWebViewActivity()
+            }
         }
     }
 
@@ -168,6 +163,15 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == Constants.OPEN_DOWNLOADS_RES_CODE) {
             loadFragment(R.id.nav_downloads)
+        }
+        if (requestCode == Constants.IWV_ACT_REQ_CODE) {
+            if (intent.extras != null && intent.extras.containsKey("novel")) {
+                val novel = intent.extras.getSerializable("novel") as? Novel
+                novel?.let {
+                    intent.extras.remove("novel")
+                    startChaptersActivity(novel)
+                }
+            }
         }
     }
 

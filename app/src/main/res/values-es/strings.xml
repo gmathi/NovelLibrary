@@ -183,7 +183,7 @@
     <string name="download_all_new_chapters_dialog_content">Manage novel downloads using download manager. Download all new chapters released?</string>
     <string name="quick_access">Quick Access</string>
     <string name="new_chapters_notification_content_full">%1$d novels with a total of %2$d new chapters. Click to start reading!</string>
-    <string name="new_chapters_notification_content_single">%1$s (%2$d new chapters)</string>
+    <string name="new_chapters_notification_content_single">%1$d new chapters</string>
     <string name="new_chapters_notification_title">New Chapters Available!</string>
     <string name="sync_in_progress">Sync in progress</string>
 
@@ -243,6 +243,8 @@
     <string name="title_open_in_browser">Open in Browser</string>
     <string name="title_share_chapter">Share Chapter</string>
     <string name="skip_cloud_flare_string">Please wait 5~10 secs while we bypass cloud flare</string>
+    <string name="title_java_script">JavaScript</string>
+    <string name="refresh_cloud_flare_cookies">Refresh CloudFlare Cookies</string>
 
 
 </resources>

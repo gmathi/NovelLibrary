@@ -168,7 +168,7 @@
     <string name="download_all_new_chapters_dialog_content">Curo novis utens download procurator downloads. Omnia nova capitula dimisit?</string>
     <string name="quick_access">Access Velox</string>
     <string name="new_chapters_notification_content_full">%1$d novo &amp; %2$d conscripserit summa cum ed. Click legere incipere!</string>
-    <string name="new_chapters_notification_content_single">%1$s (%2$d novo Chapter)</string>
+    <string name="new_chapters_notification_content_single">%1$d novo Chapter</string>
     <string name="new_chapters_notification_title">Capituli Available New!</string>
     <string name="sync_in_progress">Sync in progressus</string>
 
@@ -228,5 +228,7 @@
     <string name="title_open_in_browser">Open in Browser</string>
     <string name="title_share_chapter">Share Chapter</string>
     <string name="skip_cloud_flare_string">Please wait 5~10 secs while we bypass cloud flare</string>
+    <string name="title_java_script">JavaScript</string>
+    <string name="refresh_cloud_flare_cookies">Refresh CloudFlare Cookies</string>
 
 </resources>

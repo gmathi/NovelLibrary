@@ -183,7 +183,7 @@
     <string name="download_all_new_chapters_dialog_content">I-manage ang pag-download ng mga libro gamit ng download manager. I-download ang mga bagong palabas ng kabanata?</string>
     <string name="quick_access">Quick Access</string>
     <string name="new_chapters_notification_content_full">Mayroon kang %1$d libro na may kabuuan na %2$d bagong kabanata. I-click ang para magsimula na sa pagbabasa!</string>
-    <string name="new_chapters_notification_content_single">%1$s (%2$d bagong kabanata!)</string>
+    <string name="new_chapters_notification_content_single">%1$d bagong kabanata!</string>
     <string name="new_chapters_notification_title">Mayroong bagong kabanata!</string>
     <string name="sync_in_progress">Mayroon isang pag-sync na gumaganap.</string>
 
@@ -242,5 +242,7 @@
     <string name="title_open_in_browser">Open in Browser</string>
     <string name="title_share_chapter">Share Chapter</string>
     <string name="skip_cloud_flare_string">Please wait 5~10 secs while we bypass cloud flare</string>
+    <string name="title_java_script">JavaScript</string>
+    <string name="refresh_cloud_flare_cookies">Refresh CloudFlare Cookies</string>
 
 </resources>

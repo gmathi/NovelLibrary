@@ -40,15 +40,18 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
     private var slidingRootNav: SlidingRootNav? = null
     lateinit var recyclerView: RecyclerView
 
-    private val posReaderMode = 0
-    private val posFonts = 1
-    private val posFontSize = 2
-    private val posReportPage = 3
-    private val posOpenInBrowser = 4
-    private val posShareChapter = 5
+    companion object {
+        private val READER_MODE = 0
+        private val JAVA_SCRIPT = 1
+        private val FONTS = 2
+        private val FONT_SIZE = 3
+        private val REPORT_PAGE = 4
+        private val OPEN_IN_BROWSER = 5
+        private val SHARE_CHAPTER = 6
+    }
 
     private var screenTitles: Array<String>? = null
-    lateinit var screenIcons: Array<Drawable?>
+    private lateinit var screenIcons: Array<Drawable?>
 
     var novel: Novel? = null
     var webPage: WebPage? = null
@@ -76,10 +79,10 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
         if (webPage != null) {
             updateBookmark(webPage!!)
             viewPager.currentItem =
-                if (dataCenter.japSwipe)
-                    novel!!.chapterCount.toInt() - webPage!!.orderId.toInt() - 1
-                else
-                    webPage!!.orderId.toInt()
+                    if (dataCenter.japSwipe)
+                        novel!!.chapterCount.toInt() - webPage!!.orderId.toInt() - 1
+                    else
+                        webPage!!.orderId.toInt()
         }
 
         slideMenuSetup(savedInstanceState)
@@ -110,11 +113,11 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
                 main_content.fitsSystemWindows = false
 
                 immersiveModeOptions = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
             } else {
                 immersiveModeOptions = (View.SYSTEM_UI_FLAG_LOW_PROFILE)
             }
@@ -140,9 +143,9 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
 
     private fun changeTextSize() {
         val dialog = MaterialDialog.Builder(this)
-            .title(R.string.text_size)
-            .customView(R.layout.dialog_text_slider, true)
-            .build()
+                .title(R.string.text_size)
+                .customView(R.layout.dialog_text_slider, true)
+                .build()
         dialog.show()
         dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.setOnSeekBarChangeListener(this)
         dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.progress = dataCenter.textSize
@@ -233,23 +236,24 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
 
     private fun slideMenuSetup(savedInstanceState: Bundle?) {
         slidingRootNav = SlidingRootNavBuilder(this)
-            .withMenuOpened(false)
-            .withContentClickableWhenMenuOpened(true)
-            .withSavedState(savedInstanceState)
-            .withGravity(SlideGravity.RIGHT)
-            .withMenuLayout(R.layout.menu_left_drawer)
-            .inject()
+                .withMenuOpened(false)
+                .withContentClickableWhenMenuOpened(true)
+                .withSavedState(savedInstanceState)
+                .withGravity(SlideGravity.RIGHT)
+                .withMenuLayout(R.layout.menu_left_drawer)
+                .inject()
     }
 
     private fun slideMenuAdapterSetup() {
         @Suppress("UNCHECKED_CAST")
         val adapter = DrawerAdapter(Arrays.asList(
-            createItemFor(posReaderMode).setSwitchOn(true),
-            createItemFor(posFonts),
-            createItemFor(posFontSize),
-            createItemFor(posReportPage),
-            createItemFor(posOpenInBrowser),
-            createItemFor(posShareChapter)
+                createItemFor(READER_MODE).setSwitchOn(true),
+                createItemFor(JAVA_SCRIPT).setSwitchOn(true),
+                createItemFor(FONTS),
+                createItemFor(FONT_SIZE),
+                createItemFor(REPORT_PAGE),
+                createItemFor(OPEN_IN_BROWSER),
+                createItemFor(SHARE_CHAPTER)
         ) as List<DrawerItem<DrawerAdapter.ViewHolder>>)
         adapter.setListener(this)
 
@@ -261,8 +265,6 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
 
     private fun createItemFor(position: Int): DrawerItem<SimpleItem.ViewHolder> {
         return SimpleItem(ReaderMenu(screenIcons[position]!!, screenTitles!![position]), this)
-
-
     }
 
     private fun toggleSlideRootNab() {
@@ -289,60 +291,60 @@ class ReaderDBPagerActivity : BaseActivity(), ViewPager.OnPageChangeListener, Dr
         return icons
     }
 
+    /**
+     *     Handle Slide Menu Nav Options
+     */
     override fun onItemSelected(position: Int) {
-
         slidingRootNav!!.closeMenu()
         when (position) {
-            posReaderMode -> {
-            }
-            posFonts -> {
-                toast("Fonts Locked!")
-            }
-            posFontSize -> {
-                changeTextSize()
-            }
-            posReportPage -> {
-                reportPage()
-            }
-            posOpenInBrowser -> {
-                inBrowser()
-            }
-            posShareChapter -> {
-                share()
-            }
+            FONTS -> toast("Fonts Locked!")
+            FONT_SIZE -> changeTextSize()
+            REPORT_PAGE -> reportPage()
+            OPEN_IN_BROWSER -> inBrowser()
+            SHARE_CHAPTER -> share()
         }
     }
 
-
+    /**
+     *     For Reader Mode & Night Mode toggle
+     */
     override fun bind(item: ReaderMenu, itemView: View, position: Int, simpleItem: SimpleItem) {
 
         itemView.title.text = item.title
         itemView.icon.setImageDrawable(item.icon)
-        if (simpleItem.isSwitchOn()) {
+        if (simpleItem.isSwitchOn() && position == READER_MODE) {
             itemView.titleNightMode.text = getString(R.string.title_night)
             itemView.switchReaderMode.visibility = View.VISIBLE
             itemView.switchReaderMode.isChecked = dataCenter.readerMode
             itemView.switchNightMode.isChecked = dataCenter.isDarkTheme
             if (itemView.switchReaderMode.isChecked)
                 itemView.linNightMode.visibility = View.VISIBLE
+        } else if (simpleItem.isSwitchOn() && position == JAVA_SCRIPT) {
+            itemView.switchReaderMode.visibility = View.VISIBLE
+            itemView.switchReaderMode.isChecked = dataCenter.javascriptDisabled
         } else
             itemView.switchReaderMode.visibility = View.GONE
 
+
         itemView.switchReaderMode.setOnCheckedChangeListener({ _: CompoundButton, isChecked: Boolean ->
-            dataCenter.readerMode = isChecked
-            itemView.linNightMode.visibility = if (isChecked)
-                View.VISIBLE
-            else
-                View.GONE
-            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+            if (position == READER_MODE) {
+                dataCenter.readerMode = isChecked
+                itemView.linNightMode.visibility = if (isChecked)
+                    View.VISIBLE
+                else
+                    View.GONE
+                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+            } else if (position == JAVA_SCRIPT) {
+                dataCenter.javascriptDisabled = !isChecked
+                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCTIPT))
+            }
         })
 
         itemView.switchNightMode.setOnCheckedChangeListener({ _: CompoundButton, isChecked: Boolean ->
             dataCenter.isDarkTheme = isChecked
-            //Apply menu tint
-            menuNav.setColorFilter(ContextCompat.getColor(this@ReaderDBPagerActivity, if (isChecked) R.color.white else R.color.black), android.graphics.PorterDuff.Mode.MULTIPLY)
             EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
         })
+
     }
 
 }
