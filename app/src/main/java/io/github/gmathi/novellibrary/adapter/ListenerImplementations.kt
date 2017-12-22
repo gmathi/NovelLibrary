@@ -67,8 +67,6 @@ class WebPageFragmentPageListener(val novel: Novel) : GenericFragmentStatePagerA
     }
 }
 
-
-
 //endregion
 
 

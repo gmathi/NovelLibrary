@@ -150,7 +150,6 @@
     <string name="failed_to_load_url">Hindi makuha ang nilalaman nito!</string>
     <string name="disable_javascript">Huwang ipagana ang Javascript</string>
     <string name="disable_javascript_description">Minsan, dadaan ang mga website sa mga ads kapag gumagana ang javascript</string>
-    <string name="changelog">Change Log</string>
     <string name="donations_description_new">Natutuwa ako na gusto mo ring mag-abuloy sa akin. Ngayon, magpalaganap sa mga tao tungkol aking app.</string>
     <string name="language">Lengguwahe</string>
     <string name="languages_supported">Suportadong lengguwahe</string>
@@ -225,5 +224,23 @@
     <string name="keep_screen_on_description">Keeps the screen on while you are reading</string>
     <string name="join_us_on_discord">Join us on Discord</string>
     <string name="other">Other</string>
+    <string name="no_bookmark">No Bookmark!</string>
+    <string name="imported_list">Imported List</string>
+
+    <string name="already_in_library">[ Already In Library ]</string>
+    <string name="group_notification_text">Updated for the novels in your library</string>
+    <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
+    <string name="reader_mode_description">Reader mode will be on permanently</string>
+    <string name="delete_chapters">Delete Chapters</string>
+    <string name="immersive_mode">Show Full Screen</string>
+    <string name="immersive_mode_description">Hide the system bars when reading</string>
+    <string name="title_reader">Reader Mode</string>
+    <string name="title_night">Night Mode</string>
+    <string name="title_fonts">Fonts</string>
+    <string name="title_fonts_size">Font Size</string>
+    <string name="title_report_page">Report Page</string>
+    <string name="title_open_in_browser">Open in Browser</string>
+    <string name="title_share_chapter">Share Chapter</string>
+    <string name="skip_cloud_flare_string">Please wait 5~10 secs while we bypass cloud flare</string>
 
 </resources>

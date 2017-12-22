@@ -26,8 +26,6 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
 
-
-
 val dataCenter: DataCenter by lazy {
     NovelLibraryApplication.dataCenter!!
 }
@@ -44,8 +42,8 @@ class NovelLibraryApplication : MultiDexApplication() {
 
     override fun onCreate() {
         dataCenter = DataCenter(applicationContext)
-        dbHelper = DBHelper(applicationContext)
-        HostNames.setHostNamesList(dataCenter!!.getVerifiedHosts())
+        dbHelper = DBHelper.getInstance(applicationContext)
+        HostNames.hostNamesList = dataCenter!!.getVerifiedHosts()
         super.onCreate()
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
 
@@ -69,23 +67,13 @@ class NovelLibraryApplication : MultiDexApplication() {
         }
 
         initChannels(applicationContext)
-
-// TODO: DELETE TEST CODE
-//        val novel = dbHelper!!.getNovel("Everyone Else is a Returnee")
-//        if (novel !=null) {
-//            novel?.chapterCount = 180
-//            novel?.newChapterCount = 180
-//            dbHelper!!.updateNovel(novel!!)
-//        }
-
         startSyncService()
     }
 
     @Throws(KeyManagementException::class, NoSuchAlgorithmException::class)
-    fun enableSSLSocket() {
+    private fun enableSSLSocket() {
 
-        HttpsURLConnection.setDefaultHostnameVerifier {
-            hostName: String?, _ ->
+        HttpsURLConnection.setDefaultHostnameVerifier { hostName: String?, _ ->
             if (hostName != null) HostNames.isVerifiedHost(hostName) else false
         }
 
@@ -101,14 +89,12 @@ class NovelLibraryApplication : MultiDexApplication() {
             override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
             }
 
-            override fun getAcceptedIssuers(): Array<X509Certificate?> {
-                return arrayOfNulls(0)
-            }
+            override fun getAcceptedIssuers(): Array<X509Certificate?> = arrayOfNulls(0)
         }), SecureRandom())
         HttpsURLConnection.setDefaultSSLSocketFactory(context.socketFactory)
     }
 
-    fun initChannels(context: Context) {
+    private fun initChannels(context: Context) {
         if (Build.VERSION.SDK_INT < 26) {
             return
         }
@@ -120,7 +106,7 @@ class NovelLibraryApplication : MultiDexApplication() {
         notificationManager.createNotificationChannel(channel)
     }
 
-    fun startSyncService() {
+    private fun startSyncService() {
         BackgroundNovelSyncTask.scheduleRepeat(applicationContext)
     }
 
@@ -128,7 +114,6 @@ class NovelLibraryApplication : MultiDexApplication() {
         super.attachBaseContext(base)
         MultiDex.install(this)
     }
-
 
 
 }

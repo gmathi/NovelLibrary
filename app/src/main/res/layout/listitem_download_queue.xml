@@ -62,7 +62,7 @@
 
 
     <TextView
-        android:id="@+id/novelName"
+        android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
@@ -77,11 +77,11 @@
         tools:text="This is just an another novel yes yes"/>
 
     <TextView
-        android:id="@+id/downloadProgress"
+        android:id="@+id/subtitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_below="@id/novelName"
+        android:layout_below="@id/title"
         android:layout_toEndOf="@id/novelIcon"
         android:layout_alignWithParentIfMissing="true"
         android:layout_toRightOf="@id/novelIcon"

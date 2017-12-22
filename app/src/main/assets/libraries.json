@@ -50,11 +50,6 @@
     "link": "https://github.com/sjwall/MaterialTapTargetPrompt"
   },
   {
-    "name": "ChangeLog Library",
-    "description": "ChangeLog Library provides an easy way to display a change log in your Android app.",
-    "link": "https://github.com/gabrielemariotti/changeloglib"
-  },
-  {
     "name": "google-gson v2.8.0",
     "description": "A Java serialization/deserialization library to convert Java Objects into JSON and back",
     "link": "https://github.com/google/gson"

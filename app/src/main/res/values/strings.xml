@@ -45,7 +45,6 @@
         <item>@string/reader</item>
         <item>@string/mentions</item>
         <item>@string/donate_developer</item>
-        <item>@string/changelog</item>
         <item>@string/about_us</item>
     </string-array>
 
@@ -60,7 +59,7 @@
         <item>@string/backup_data</item>
         <item>@string/restore_data</item>
         <item>@string/clear_data</item>
-        <item>@string/faster_downloads</item>
+        <!--<item>@string/faster_downloads</item>-->
         <item>@string/first_screen_library</item>
     </string-array>
 
@@ -68,28 +67,30 @@
         <item>@string/backup_data_description</item>
         <item>@string/restore_data_description</item>
         <item>@string/clear_data_description</item>
-        <item>@string/faster_downloads_description</item>
+        <!--<item>@string/faster_downloads_description</item>-->
         <item>@string/first_screen_library_description</item>
     </string-array>
 
     <string-array name="reader_titles_list" translatable="false">
-        <item>@string/clean_pages</item>
+        <item>@string/reader_mode</item>
         <item>@string/disable_javascript</item>
         <item>@string/swipe_right_for_next_chapter</item>
         <item>@string/show_reader_scroll</item>
         <item>@string/show_comments_section</item>
         <item>@string/volume_scroll</item>
         <item>@string/keep_screen_on</item>
+        <item>@string/immersive_mode</item>
     </string-array>
 
     <string-array name="reader_subtitles_list" translatable="false">
-        <item>@string/clean_pages_description</item>
+        <item>@string/reader_mode_description</item>
         <item>@string/disable_javascript_description</item>
         <item>@string/swipe_right_for_next_chapter_description</item>
         <item>@string/show_reader_scroll_description</item>
         <item>@string/show_comments_section_description</item>
         <item>@string/volume_scroll_description</item>
         <item>@string/keep_screen_on_description</item>
+        <item>@string/immersive_mode_description</item>
     </string-array>
 
 
@@ -109,9 +110,12 @@
     <string name="title_activity_mention_settings" translatable="false">@string/mentions</string>
     <string name="title_activity_chapters_new" translatable="false">@string/chapters</string>
     <string name="title_activity_import_library" translatable="false">@string/import_reading_list</string>
+    <string name="title_activity_chapter_downloads" translatable="false">ChapterDownloadsActivity</string>
+    <string name="title_activity_web_view" translatable="false">@string/app_name</string>
+
 
     <string name="title_activity_language" translatable="false">LanguageActivity</string>
-    <string name="title_activity_novel_downloads" translatable="false">NovelDownloadsActivity</string>
+    <string name="title_activity_novel_downloads" translatable="false">@string/title_downloads</string>
 
 
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
@@ -145,6 +149,14 @@
     <string name="title_library">Library</string>
     <string name="title_search">Search</string>
     <string name="title_downloads">Downloads</string>
+
+    <string name="title_reader">Reader Mode</string>
+    <string name="title_night">Night Mode</string>
+    <string name="title_fonts">Fonts</string>
+    <string name="title_fonts_size">Font Size</string>
+    <string name="title_report_page">Report Page</string>
+    <string name="title_open_in_browser">Open in Browser</string>
+    <string name="title_share_chapter">Share Chapter</string>
 
     <string name="app_description">Your One Stop For All Novels</string>
 
@@ -243,7 +255,6 @@
     <string name="failed_to_load_url">Failed getting content!</string>
     <string name="disable_javascript">Disable Javascript</string>
     <string name="disable_javascript_description">Some websites redirect to ads in when javascript is enabled</string>
-    <string name="changelog">Change Log</string>
     <string name="donations_description_new">I am happy that you want to donate! For now, please spread the word and share the app with fellow novel lovers!</string>
     <string name="language">Language</string>
     <string name="languages_supported">Languages Supported</string>
@@ -296,6 +307,7 @@
     <string name="sync_interval_description">Check for novel updates interval</string>
 
     <!-- v0.7 Strings -->
+
     <string name="clean">Clean</string>
     <string name="reader">Reader</string>
     <string name="reader_mode">Reader Mode</string>
@@ -317,6 +329,18 @@
     <string name="keep_screen_on_description">Keeps the screen on while you are reading</string>
     <string name="join_us_on_discord">Join us on Discord</string>
     <string name="other">Other</string>
+    <string name="no_bookmark">No Bookmark!</string>
+    <string name="imported_list">Imported List</string>
+    <string name="already_in_library">[ Already In Library ]</string>
+    <string name="group_notification_text">Updated for the novels in your library</string>
+    <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
+    <string name="reader_mode_description">Reader mode will be on permanently</string>
+    <string name="delete_chapters">Delete Chapters</string>
 
+    <!-- v0.8 Strings -->
+
+    <string name="immersive_mode">Show Full Screen</string>
+    <string name="immersive_mode_description">Hide the system bars when reading</string>
+    <string name="skip_cloud_flare_string">Please wait 5~10 secs while we skip cloud flare</string>
 
 </resources>

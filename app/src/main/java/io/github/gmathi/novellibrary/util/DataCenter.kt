@@ -5,58 +5,47 @@ import android.content.SharedPreferences
 import android.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.HostNames
 import java.util.*
 
 
 class DataCenter(context: Context) {
 
-    private val BOOKMARKS_LIST = "bookmarksList"
-    private val CACHE_LIST = "cacheList"
-    private val SEARCH_HISTORY_LIST = "searchHistoryList"
+    companion object {
 
-    private val IS_DARK_THEME = "isDarkTheme"
-    private val DOWNLOAD_LATEST_FIRST = "downloadLatestFirst"
-    private val EXPERIMENTAL_DOWNLOAD = "experimentalDownload"
-    private val QUEUE_NOVEL_DOWNLOADS = "queueNovelDownloads"
-    private val LOCK_ROYAL_ROAD = "lockRoyalRoad"
-    private val LOAD_LIBRARY_SCREEN = "loadLibraryScreen"
-    private val APP_VERSION_CODE = "appVersionCode"
-    private val TEXT_SIZE = "textSize"
-    private val CLEAN_PAGES = "cleanPages"
-    private val JAVASCRIPT = "javascript"
-    private val LANGUAGE = "language"
-    private val VERIFIED_HOSTS = "verifiedHosts"
-    private val JAP_SWIPE = "japSwipe"
-    private val SHOW_READER_SCROLL = "showReaderScroll"
-    private val SHOW_CHAPTER_COMMENTS = "showChapterComments"
-    private val VOLUME_SCROLL = "volumeScroll"
-    private val KEEP_SCREEN_ON = "keepScreenOn"
+        private val SEARCH_HISTORY_LIST = "searchHistoryList"
+        private val NOVEL_HISTORY_LIST = "novelHistoryList"
 
-    val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-
-    var bookmarksJson: String
-        get() = prefs.getString(BOOKMARKS_LIST, "[]")
-        set(value) = prefs.edit().putString(BOOKMARKS_LIST, value).apply()
-
-    var cacheJson: String
-        get() = prefs.getString(CACHE_LIST, "{}")
-        set(value) = prefs.edit().putString(CACHE_LIST, value).apply()
-
-    var cacheMap: HashMap<String, ArrayList<WebPage>> = HashMap()
-
-    fun loadCacheMap() {
-        cacheMap = Gson().fromJson(cacheJson, object : TypeToken<HashMap<String, ArrayList<WebPage>>>() {}.type)
+        private val IS_DARK_THEME = "isDarkTheme"
+        private val DOWNLOAD_LATEST_FIRST = "downloadLatestFirst"
+        private val EXPERIMENTAL_DOWNLOAD = "experimentalDownload"
+        private val QUEUE_NOVEL_DOWNLOADS = "queueNovelDownloads"
+        private val LOCK_ROYAL_ROAD = "lockRoyalRoad"
+        private val LOAD_LIBRARY_SCREEN = "loadLibraryScreen"
+        private val APP_VERSION_CODE = "appVersionCode"
+        private val TEXT_SIZE = "textSize"
+        private val READER_MODE = "cleanPages"
+        private val JAVASCRIPT = "javascript"
+        private val LANGUAGE = "language"
+        private val VERIFIED_HOSTS = "verifiedHosts"
+        private val JAP_SWIPE = "japSwipe"
+        private val SHOW_READER_SCROLL = "showReaderScroll"
+        private val SHOW_CHAPTER_COMMENTS = "showChapterComments"
+        private val VOLUME_SCROLL = "volumeScroll"
+        private val KEEP_SCREEN_ON = "keepScreenOn"
+        private val ENABLE_IMMERSIVE_MODE = "enableImmersiveMode"
     }
 
-    fun saveCacheMap() {
-        cacheJson = Gson().toJson(cacheMap)
-    }
+    private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
     fun loadSearchHistory(): ArrayList<String> = Gson().fromJson(prefs.getString(SEARCH_HISTORY_LIST, "[]"), object : TypeToken<ArrayList<String>>() {}.type)
 
     fun saveSearchHistory(history: ArrayList<String>) = prefs.edit().putString(SEARCH_HISTORY_LIST, Gson().toJson(history)).apply()
+
+    fun loadNovelHistory(): ArrayList<Novel> = Gson().fromJson(prefs.getString(NOVEL_HISTORY_LIST, "[]"), object : TypeToken<ArrayList<Novel>>() {}.type)
+
+    fun saveNovelHistory(history: ArrayList<Novel>) = prefs.edit().putString(NOVEL_HISTORY_LIST, Gson().toJson(history)).apply()
 
     var isDarkTheme: Boolean
         get() = prefs.getBoolean(IS_DARK_THEME, true)
@@ -90,9 +79,9 @@ class DataCenter(context: Context) {
         get() = prefs.getInt(APP_VERSION_CODE, 0)
         set(value) = prefs.edit().putInt(APP_VERSION_CODE, value).apply()
 
-    var cleanChapters: Boolean
-        get() = prefs.getBoolean(CLEAN_PAGES, false)
-        set(value) = prefs.edit().putBoolean(CLEAN_PAGES, value).apply()
+    var readerMode: Boolean
+        get() = prefs.getBoolean(READER_MODE, false)
+        set(value) = prefs.edit().putBoolean(READER_MODE, value).apply()
 
     var javascriptDisabled: Boolean
         get() = prefs.getBoolean(JAVASCRIPT, false)
@@ -122,14 +111,17 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(KEEP_SCREEN_ON, true)
         set(value) = prefs.edit().putBoolean(KEEP_SCREEN_ON, value).apply()
 
-    fun getVerifiedHosts(): ArrayList<String> {
-        return Gson().fromJson(prefs.getString(VERIFIED_HOSTS, Gson().toJson(HostNames.getDefaultHostNamesList())), object : TypeToken<ArrayList<String>>() {}.type)
-    }
+    var enableImmersiveMode: Boolean
+        get() = prefs.getBoolean(ENABLE_IMMERSIVE_MODE, true)
+        set(value) = prefs.edit().putBoolean(ENABLE_IMMERSIVE_MODE, value).apply()
+
+    fun getVerifiedHosts(): ArrayList<String> =
+            Gson().fromJson(prefs.getString(VERIFIED_HOSTS, Gson().toJson(HostNames.defaultHostNamesList)), object : TypeToken<ArrayList<String>>() {}.type)
 
     fun saveVerifiedHost(host: String) {
         if (!HostNames.isVerifiedHost(host))
             HostNames.addHost(host)
-        prefs.edit().putString(VERIFIED_HOSTS, Gson().toJson(HostNames.getHostNamesList())).apply()
+        prefs.edit().putString(VERIFIED_HOSTS, Gson().toJson(HostNames.hostNamesList)).apply()
     }
 
     fun clearVerifiedHosts() {

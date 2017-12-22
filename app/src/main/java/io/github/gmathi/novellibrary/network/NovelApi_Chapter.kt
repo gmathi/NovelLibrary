@@ -2,10 +2,7 @@ package io.github.gmathi.novellibrary.network
 
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
-import okhttp3.MediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
+import io.github.gmathi.novellibrary.network.HostNames.USER_AGENT
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.IOException
@@ -16,14 +13,14 @@ fun NovelApi.getChapterUrls(novel: Novel): ArrayList<WebPage>? {
     val host = URI(novel.url).host
     when {
         host.contains(HostNames.NOVEL_UPDATES) -> return getNUALLChapterUrls(novel)
-        host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterUrls(novel.url!!)
-        host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterUrls(novel.url!!)
+        host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterUrls(novel.url)
+        host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterUrls(novel.url)
     }
     return null
 }
 
 //Get RoyalRoad Chapter URLs
-fun NovelApi.getRRChapterUrls(url: String): ArrayList<WebPage>? {
+fun getRRChapterUrls(url: String): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
         val document = Jsoup.connect(url).get()
@@ -36,20 +33,20 @@ fun NovelApi.getRRChapterUrls(url: String): ArrayList<WebPage>? {
     return chapters
 }
 
-fun NovelApi.getWLNUChapterUrls(url: String): ArrayList<WebPage>? {
+fun getWLNUChapterUrls(url: String): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
         val document = Jsoup.connect(url).get()
         chapters = ArrayList()
         val trElements = document.body().getElementsByTag("tr")?.filter { it.id() == "release-entry" }
-        trElements?.mapTo(chapters) { WebPage(url = it.child(0).child(0).attr("href"), chapter = it.getElementsByClass("numeric").map { it.text() }.joinToString(separator = ".")) }
+        trElements?.mapTo(chapters) { WebPage(url = it.child(0).child(0).attr("href"), chapter = it.getElementsByClass("numeric").joinToString(separator = ".") { it.text() }) }
     } catch (e: IOException) {
         e.printStackTrace()
     }
     return chapters
 }
 
-fun NovelApi.getNUChapterUrlsFromDoc(doc: Document): ArrayList<WebPage> {
+fun getNUChapterUrlsFromDoc(doc: Document): ArrayList<WebPage> {
     val chapters = ArrayList<WebPage>()
     val tableElement = doc.body().getElementsByAttributeValueMatching("id", "myTable").firstOrNull { it.tagName() == "table" }
     val elements = tableElement?.getElementsByClass("chp-release")?.filter { it.tagName() == "a" }
@@ -58,24 +55,38 @@ fun NovelApi.getNUChapterUrlsFromDoc(doc: Document): ArrayList<WebPage> {
     return chapters
 }
 
-fun NovelApi.getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
+fun getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
     val chapters = ArrayList<WebPage>()
     if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 
     val novelUpdatesNovelId = novel.metaData["PostId"]
-    val request = Request.Builder()
-        .url("http://www.novelupdates.com/wp-admin/admin-ajax.php")
-        .post(RequestBody.create(MediaType.parse("application/x-www-form-urlencoded; charset=UTF-8"), "action=nd_getchapters&mypostid=$novelUpdatesNovelId"))
-        .build()
+    val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
 
-    val response = OkHttpClient().newCall(request).execute()
-    if (!response.isSuccessful) throw IOException("Unexpected code " + response)
+    val doc = Jsoup.connect(url)
+        .data("action", "nd_getchapters")
+        .cookies(NovelApi.cookiesMap)
+        .data("mypostid", novelUpdatesNovelId)
+        .userAgent(USER_AGENT)
+        .post()
 
-    val htmlString = response.body()?.string()
-    val doc = Jsoup.parse(htmlString)
+//    val requestBuilder = Request.Builder()
+//    if (NovelApi.cookies != null)
+//        requestBuilder.addHeader("Cookie", NovelApi.cookies!!)
+//    val request = requestBuilder.url()
+//        .post(RequestBody
+//            .create(MediaType.parse("application/x-www-form-urlencoded; charset=UTF-8"), "action=nd_getchapters&mypostid=$novelUpdatesNovelId")
+//        )
+//        .build()
+//    val response = OkHttpClient().newCall(request).execute()
+//    response.use {
+//        if (!it.isSuccessful) throw IOException("Unexpected code " + it)
+//
+//        val htmlString = it.body()?.string()
+//        val doc = Jsoup.parse(htmlString)
 
     doc?.getElementsByAttribute("data-id")?.mapTo(chapters) {
-        WebPage(it?.attr("href")!!, it.getElementsByAttribute("title").attr("title"))
+        WebPage("https:" + it?.attr("href")!!, it.getElementsByAttribute("title").attr("title"))
     }
+//    }
     return chapters
 }

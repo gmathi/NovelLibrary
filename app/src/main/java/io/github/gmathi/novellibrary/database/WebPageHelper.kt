@@ -103,7 +103,7 @@ fun DBHelper.addWebPagesFromImportList(webPages: List<WebPage>, novel: Novel, bo
     }
 }
 
-fun DBHelper.getWebPageByWebPageId(webPageId: Long): WebPage? {
+fun DBHelper.getWebPage(webPageId: Long): WebPage? {
     val db = this.readableDatabase
     val selectQuery = "SELECT  * FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_ID + " = " + webPageId
     Log.d(LOG, selectQuery)
@@ -292,11 +292,9 @@ fun DBHelper.deleteWebPage(novelId: Long) {
 }
 
 private fun getWebPageFromCursor(cursor: Cursor): WebPage {
-    val webPage = WebPage()
+    val webPage = WebPage(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL)), cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER)))
     webPage.id = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ID))
-    webPage.url = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL))
     webPage.redirectedUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_REDIRECT_URL))
-    webPage.chapter = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER))
     webPage.title = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_TITLE))
     webPage.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
     webPage.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
@@ -306,6 +304,20 @@ private fun getWebPageFromCursor(cursor: Cursor): WebPage {
     webPage.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
 
     return webPage
+}
+
+fun DBHelper.getDownloadedChapterCount(novelId: Long): Int {
+    val selectQuery = "SELECT count(novel_id) FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novelId + " AND file_path IS NOT NULL"
+    Log.d(LOG, selectQuery)
+    val cursor = this.readableDatabase.rawQuery(selectQuery, null)
+    var currentChapterCount = 0
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+            currentChapterCount = cursor.getInt(0)
+        }
+        cursor.close()
+    }
+    return currentChapterCount
 }
 
 

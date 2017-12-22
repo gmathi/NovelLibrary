@@ -11,26 +11,22 @@ import android.support.v7.widget.RecyclerView
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.animation.AnimationUtils
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
-import com.github.johnpersano.supertoasts.library.Style
-import com.github.johnpersano.supertoasts.library.SuperActivityToast
-import com.github.johnpersano.supertoasts.library.utils.PaletteUtils
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.hanks.library.AnimateCheckBox
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapterWithDragListener
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.model.EventType
+import io.github.gmathi.novellibrary.model.Download
+import io.github.gmathi.novellibrary.model.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterUrls
-import io.github.gmathi.novellibrary.service.download.DownloadChapterService
-import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
@@ -40,6 +36,7 @@ import kotlinx.android.synthetic.main.listitem_chapter_ultimate.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import java.io.File
 
 class ChaptersActivity :
     BaseActivity(),
@@ -65,17 +62,16 @@ class ChaptersActivity :
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         novel = intent.getSerializableExtra("novel") as Novel
-        val dbNovel = dbHelper.getNovel(novel.name!!)
+        val dbNovel = dbHelper.getNovel(novel.name)
         if (dbNovel != null) novel.copyFrom(dbNovel)
 
         setRecyclerView()
-        if (novel.id != -1L)
-            setDownloadStatus()
         setData()
     }
 
     private fun setRecyclerView() {
         adapter = GenericAdapterWithDragListener(items = ArrayList(), layoutResId = R.layout.listitem_chapter_ultimate, listener = this)
+        dragSelectRecyclerView.isVerticalScrollBarEnabled = true
         dragSelectRecyclerView.setDefaultsNoAnimation(adapter)
         dragSelectRecyclerView.addItemDecoration(object : DividerItemDecoration(this, VERTICAL) {
 
@@ -109,7 +105,7 @@ class ChaptersActivity :
             } else {
                 swipeRefreshLayout.isRefreshing = false
                 progressLayout.showContent()
-                if (adapter.items.size < novel.chapterCount.toInt()) {
+                if (adapter.items.size < novel.newChapterCount.toInt()) {
                     swipeRefreshLayout.isRefreshing = true
                     getChapters()
                 }
@@ -139,13 +135,23 @@ class ChaptersActivity :
                             novel.newChapterCount = chapterList.size.toLong()
                             dbHelper.updateNovel(novel)
                         }
-                        await { dbHelper.addWebPages(chapterList, novel) }
-                        getChaptersFromDB()
+                        await {
+                            for (i in 0 until chapterList.size) {
+                                val webPage = dbHelper.getWebPage(novel.id, i.toLong())
+                                if (webPage == null) {
+                                    chapterList[i].orderId = i.toLong()
+                                    chapterList[i].novelId = novel.id
+                                    chapterList[i].id = dbHelper.createWebPage(chapterList[i])
+                                } else
+                                    chapterList[i].copyFrom(webPage)
+                            }
+                        }
                     } else {
-                        adapter.updateData(ArrayList(chapterList))
                         swipeRefreshLayout.isRefreshing = false
-                        progressLayout.showContent()
                     }
+                    adapter.updateData(ArrayList(chapterList))
+                    progressLayout.showContent()
+                    swipeRefreshLayout.isRefreshing = false
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -186,9 +192,9 @@ class ChaptersActivity :
         if (novel.id != -1L) {
             novel.currentWebPageId = item.id
             dbHelper.updateNovel(novel)
-            startReaderPagerDBActivity(novel)
+            startReaderDBPagerActivity(novel)
         } else
-            startReaderPagerActivity(novel, item, adapter.items)
+            startWebViewActivity(item.url)
     }
 
     @SuppressLint("SetTextI18n")
@@ -199,16 +205,16 @@ class ChaptersActivity :
             itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@ChaptersActivity, R.color.DarkGreen))
             itemView.greenView.animation = null
         } else {
-            if (Constants.STATUS_DOWNLOAD.toString() == item.metaData[Constants.DOWNLOADING]) {
-                if (item.id != -1L && DownloadChapterService.chapters.contains(item)) {
-                    itemView.greenView.visibility = View.VISIBLE
-                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@ChaptersActivity, R.color.white))
-                    itemView.greenView.startAnimation(AnimationUtils.loadAnimation(this@ChaptersActivity, R.anim.alpha_animation))
-                } else {
-                    itemView.greenView.visibility = View.VISIBLE
-                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@ChaptersActivity, R.color.Red))
-                    itemView.greenView.animation = null
-                }
+            if (Download.STATUS_IN_QUEUE.toString() == item.metaData[Constants.DOWNLOADING]) {
+//                if (item.id != -1L && DownloadService.chapters.contains(item)) {
+//                    itemView.greenView.visibility = View.VISIBLE
+//                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@ChaptersActivity, R.color.white))
+//                    itemView.greenView.startAnimation(AnimationUtils.loadAnimation(this@ChaptersActivity, R.anim.alpha_animation))
+//                } else {
+//                    itemView.greenView.visibility = View.VISIBLE
+//                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@ChaptersActivity, R.color.Red))
+//                    itemView.greenView.animation = null
+//                }
             } else
                 itemView.greenView.visibility = View.GONE
         }
@@ -216,11 +222,10 @@ class ChaptersActivity :
         itemView.isReadView.visibility = if (item.isRead == 1) View.VISIBLE else View.GONE
         itemView.bookmarkView.visibility = if (item.id != -1L && item.id == novel.currentWebPageId) View.VISIBLE else View.INVISIBLE
 
-        if (item.chapter != null)
-            itemView.chapterTitle.text = item.chapter
+        itemView.chapterTitle.text = item.chapter
 
         if (item.title != null) {
-            if ((item.chapter != null) && item.title!!.contains(item.chapter!!))
+            if (item.title!!.contains(item.chapter))
                 itemView.chapterTitle.text = item.title
             else
                 itemView.chapterTitle.text = "${item.chapter}: ${item.title}"
@@ -338,15 +343,10 @@ class ChaptersActivity :
                     } else {
                         val listToDownload = ArrayList(updateSet.filter { it.filePath == null })
                         if (listToDownload.isNotEmpty()) {
-                            startChapterDownloadService(novel, ArrayList(updateSet.filter { it.filePath == null }))
-                            SuperActivityToast.create(this@ChaptersActivity, Style(), Style.TYPE_STANDARD)
-                                .setText(getString(R.string.background_chapter_downloads))
-                                .setDuration(Style.DURATION_LONG)
-                                .setFrame(Style.FRAME_KITKAT)
-                                .setColor(PaletteUtils.getSolidColor(PaletteUtils.MATERIAL_GREEN))
-                                .setAnimations(Style.ANIMATIONS_POP).show()
+                            addWebPagesToDownload(ArrayList(updateSet.filter { it.filePath == null }))
                         }
                         dialog.dismiss()
+                        manageDownloadsDialog()
                         mode?.finish()
                     }
                 })
@@ -358,13 +358,19 @@ class ChaptersActivity :
                 clearSelection()
             }
             R.id.action_share_chapter -> {
-                val urls = updateSet.map {
+                val urls = updateSet.joinToString(separator = ", ") {
                     if (it.redirectedUrl != null)
                         it.redirectedUrl!!
                     else
-                        it.url!!
-                }.joinToString(separator = ", ")
+                        it.url
+                }
                 shareUrl(urls)
+            }
+            R.id.action_delete -> {
+                updateSet.forEach {
+                    deleteWebPage(it)
+                }
+                mode?.finish()
             }
         }
         return false
@@ -460,11 +466,9 @@ class ChaptersActivity :
             item?.itemId == R.id.action_download -> {
                 confirmDialog(if (novel.id != -1L) getString(R.string.download_all_new_chapters_dialog_content) else getString(R.string.download_all_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
                     addNovelToLibrary()
-                    dbHelper.createDownloadQueue(novel.id)
-                    dbHelper.updateDownloadQueueStatus(Constants.STATUS_DOWNLOAD, novel.id)
-                    startNovelDownloadService(novelId = novel.id)
-                    setDownloadStatus()
+                    addWebPagesToDownload(adapter.items)
                     dialog.dismiss()
+                    //manageDownloadsDialog()
                 })
             }
             item?.itemId == R.id.action_sort -> {
@@ -488,66 +492,6 @@ class ChaptersActivity :
     }
     //endregion
 
-    //region Update Download Status
-
-    private fun setDownloadStatus() {
-        statusCard.setOnClickListener { manageDownloadsDialog() }
-        async {
-            val dq = await { dbHelper.getDownloadQueue(novel.id) } ?: return@async
-            removeDownloadMenuIcon = true
-            invalidateOptionsMenu()
-            val allWebPages = await { dbHelper.getAllWebPages(novel.id) }
-            val readableWebPages = await { dbHelper.getAllReadableWebPages(novel.id) }
-            var removeIcon = false
-
-            when (dq.status) {
-                Constants.STATUS_STOPPED -> {
-                    //     statusCard.animation = null
-                    statusCard.visibility = View.VISIBLE
-                    statusText.text = getString(R.string.downloading_status, getString(R.string.downloading), getString(R.string.status), getString(R.string.download_paused))
-                    removeIcon = true
-                }
-
-                Constants.STATUS_DOWNLOAD -> {
-                    // statusCard.startAnimation(AnimationUtils.loadAnimation(this@ChaptersNewActivity, R.anim.alpha_animation))
-                    statusCard.visibility = View.VISIBLE
-                    if (DownloadNovelService.novelId == novel.id)
-                        if (allWebPages.size == novel.chapterCount.toInt())
-                            statusText.text = getString(R.string.downloading_status, getString(R.string.downloading), getString(R.string.status), getString(R.string.chapter_count, readableWebPages.size, allWebPages.size))
-                        else
-                            statusText.text = getString(R.string.downloading_status, getString(R.string.downloading), getString(R.string.status), getString(R.string.collection_chapters_info))
-                    else
-                        statusText.text = getString(R.string.downloading_status, getString(R.string.downloading), getString(R.string.status), getString(R.string.download_paused))
-                    removeIcon = true
-                }
-
-                Constants.STATUS_COMPLETE -> {
-                    //    statusCard.animation = null
-                    statusCard.visibility = View.GONE
-                    removeIcon = novel.chapterCount.toInt() == readableWebPages.size
-                }
-            }
-
-            if (statusText.text.contains("aused"))
-                statusCard.setCardBackgroundColor(ContextCompat.getColor(this@ChaptersActivity, R.color.DarkRed))
-            else
-                statusCard.setCardBackgroundColor(ContextCompat.getColor(this@ChaptersActivity, R.color.DarkGreen))
-
-            if (removeIcon != removeDownloadMenuIcon) {
-                removeDownloadMenuIcon = removeIcon
-                invalidateOptionsMenu()
-            }
-        }
-    }
-
-    private fun updateDownloadStatus(orderId: Long?) {
-        statusCard.setCardBackgroundColor(ContextCompat.getColor(this@ChaptersActivity, R.color.DarkGreen))
-        if (orderId != null)
-            statusText.text = getString(R.string.downloading_status, getString(R.string.downloading), getString(R.string.status), getString(R.string.chapter_count, dbHelper.getAllReadableWebPages(novel.id).size, novel.chapterCount))
-    }
-
-    //endregion
-
     //region Event Bus
 
     override fun onResume() {
@@ -561,15 +505,9 @@ class ChaptersActivity :
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onNovelEvent(event: NovelEvent) {
-        val webPage = event.webPage
-        if (webPage != null) {
-            adapter.updateItem(webPage)
-        }
-        if ((event.type == EventType.UPDATE && event.webPage == null) || event.type == EventType.COMPLETE)
-            setDownloadStatus()
-        else if (event.type == EventType.UPDATE && event.webPage != null) {
-            updateDownloadStatus(event.webPage?.orderId)
+    fun onDownloadEvent(webPageEvent: DownloadWebPageEvent) {
+        if (webPageEvent.download.novelName == novel.name) {
+            adapter.items.firstOrNull { it.id == webPageEvent.webPageId }?.let { adapter.updateItem(it) }
         }
     }
 
@@ -587,13 +525,83 @@ class ChaptersActivity :
     private fun addNovelToLibrary() {
         async {
             if (novel.id == -1L) {
+
                 progressLayout.showLoading()
                 novel.id = await { dbHelper.insertNovel(novel) }
-                if (isSortedAsc) await { dbHelper.addWebPages(adapter.items, novel) }
-                else await { dbHelper.addWebPages(adapter.items.asReversed(), novel) }
-                getChaptersFromDB()
+
+                await {
+
+                    val db = dbHelper.writableDatabase
+                    db.beginTransaction()
+
+                    try {
+                        if (isSortedAsc) {
+                            for (i in 0 until adapter.items.size) {
+                                val webPage = dbHelper.getWebPage(novel.id, i.toLong())
+                                if (webPage == null) {
+                                    adapter.items[i].orderId = i.toLong()
+                                    adapter.items[i].novelId = novel.id
+                                    adapter.items[i].id = dbHelper.createWebPage(adapter.items[i], db)
+                                } else adapter.items[i].copyFrom(webPage)
+                            }
+                        } else {
+                            for (i in 0 until adapter.items.size) {
+                                val size = adapter.items.size - 1
+                                val webPage = dbHelper.getWebPage(novel.id, i.toLong())
+                                if (webPage == null) {
+                                    adapter.items[size - i].orderId = i.toLong()
+                                    adapter.items[size - i].novelId = novel.id
+                                    adapter.items[size - i].id = dbHelper.createWebPage(adapter.items[size - i], db)
+                                } else adapter.items[size - i].copyFrom(webPage)
+                            }
+                        }
+                    } finally {
+                        db.endTransaction()
+                    }
+                }
+                progressLayout.showContent()
             }
+            progressLayout.showContent()
+            startDownloadService()
         }
+    }
+
+    private fun addWebPagesToDownload(webPages: List<WebPage>) {
+        async {
+            progressLayout.showLoading()
+            await {
+                webPages.forEach {
+                    val download = Download(it.id, novel.name, it.chapter)
+                    download.orderId = it.orderId.toInt()
+                    dbHelper.createDownload(download)
+                }
+            }
+            progressLayout.showContent()
+            startDownloadNovelService(novel.name)
+        }
+    }
+
+    private fun deleteWebPage(webPage: WebPage) {
+        if (webPage.filePath != null)
+            try {
+                val file = File(webPage.filePath)
+                file.delete()
+                webPage.filePath = null
+                if (webPage.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
+                    val linkedPages: ArrayList<WebPage> = Gson().fromJson(webPage.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+                    linkedPages.forEach {
+                        if (it.filePath != null) {
+                            val linkedFile = File(it.filePath)
+                            linkedFile.delete()
+                        }
+                        it.filePath = null
+                    }
+                    webPage.metaData.put(Constants.MD_OTHER_LINKED_WEB_PAGES, Gson().toJson(linkedPages))
+                }
+                dbHelper.updateWebPage(webPage)
+            } catch (e: Exception) {
+                Utils.error("ChaptersActivity", e.localizedMessage)
+            }
     }
 
     override fun onDestroy() {

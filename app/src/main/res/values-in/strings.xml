@@ -1,0 +1,235 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+       Important please do not change the order of the string-arrays or generally anything unless it's text you're translating
+
+       What You'll Need:
+
+       1. A good text editor I recommend Atom (https://atom.io/), Sublime (https://www.sublimetext.com/), Brackets (http://brackets.io/) if you want to use something else no problem
+       2. A little knowledge on basic HTML things like <p> <b> <i> <br/> since there are certain parts I used a bit of html to format information https://www.w3schools.com/tags/
+       3. Know what character escaping is, because you cannot use characters like ' or , or ; or & or $ or % e.t.c without escaping them. e.g.
+          What\'s Trending should become What\'s Trending (Refer to http://www.ascii.cl/htmlcodes.htm look at the HTML Name Column for some conventions) not what i am looking for?
+
+       Just a quick note for translators, if you see some text that has %s or %d or %f just leave those as they are those are place holders:
+       %s - is a place holder for text most likely coming from NovelLibrary, e.g. %s liked your status post -> will be eCookie or Josh liked your status post
+       %d - is a place holder for a number, e.g. You have %d notifications -> will be You have 1 or 3 or 10 notifications
+       %f - is also a place holder for a decimal number works exactly as the others mentioned above
+
+       I know different languages have different rules like RTL so if you need to change the positions/order of %s or %d or %f you can still do so just don't remove the % sign
+       N.B. If any of the tags <string name="abc" translatable="false" ></string> have an attribute labeled translatable="false" it means you should not translate it!
+       So you can just omit those fields
+
+       Special Cases:
+       1. There are some cases I used <![CDATA[ some text here ]]>  CDATA sections are used to escape blocks of text containing characters that would otherwise be regarded as markup.
+       The only delimiter that is recognized in a CDATA section is the "]]>" string that ends the CDATA section. CDATA sections cannot be nested.
+       Their primary purpose is for including material such as XML fragments, without needing to escape all the delimiters.
+
+       Uploading your files:
+       You may just send the files directly and the file name should be something like strings_en.xml for english and strings_fr.xml for french respective of your locale
+       To All Translators I am very grateful for your help! :)
+   -->
+
+
+    <string-array name="search_tab_titles">
+        <item>Populer-Sekarang</item>
+        <item>Peringkat-Terbaik</item>
+        <item>Peringkat-Aktif</item>
+    </string-array>
+
+    <string name="title_activity_novel_details">Novel</string>
+    <string name="title_activity_settings">Pengaturan</string>
+    <string name="title_activity_chapters">Chapter</string>
+    <string name="title_activity_meta_data">Informasi Lebih Lanjut</string>
+    <string name="title_activity_recently_updated_novels">Novel Yang Baru Diperbarui</string>
+    <string name="title_activity_recently_viewed_novels">Novel Yang Baru Dilihat</string>
+
+
+    <string name="action_settings">Pengaturan</string>
+    <string name="action_sync">Sinkronisasi Pembaruan</string>
+    <string name="action_favourite">Favorit</string>
+    <string name="action_bookmark">Bookmark</string>
+
+
+    <string name="title_library">Daftar Bacaan</string>
+    <string name="title_search">Pencarian</string>
+    <string name="title_downloads">Daftar Unduhan</string>
+
+    <string name="app_description">Tempat Membaca Novel Anda</string>
+
+    <!-- Transition Names -->
+    <string name="synopsis">Sinopsis</string>
+    <string name="genres">Jenis</string>
+    <string name="chapters">Chapter</string>
+    <string name="legal">Legal</string>
+
+    <string name="download">Unduh</string>
+    <string name="downloaded">Telah Diunduh</string>
+    <string name="downloading">Sedang Mengunduh</string>
+    <string name="chapters_loading_message">Pemuatan konten dapat memakan banyak waktu, tergantung oleh jumlah chapter yang ada</string>
+
+    <string name="no_internet">Tidak ada internet!</string>
+    <string name="try_again">Cobalah sekali lagi</string>
+    <string name="clear">Hapus</string>
+    <string name="clear_data">Hapus Cache &amp; Data</string>
+    <string name="clear_data_description">Hapus Cache, files dan database</string>
+    <string name="sync">Sinkronisasi</string>
+    <string name="remove_from_library">Hapus dari koleksi</string>
+    <string name="cancel">Batalkan</string>
+    <string name="remove">Hapus</string>
+    <string name="confirm_remove">Pastikan Penghapusan</string>
+    <string name="confirm_remove_description">Novel akan dihapus dari daftar bacaan termasuk semua chapter yang telah diunduh</string>
+    <string name="remove_from_downloads">Hapus dari daftar unduhan?</string>
+    <string name="add_to_library">Masukkan ke daftar bacaan</string>
+    <string name="in_library">Di dalam daftar bacaan</string>
+    <string name="sort">Sortir</string>
+    <string name="sort_chapters">Sortir Chapter</string>
+    <string name="clearing_data">Hapus Data</string>
+    <string name="please_wait">Tolong ditunggu…</string>
+    <string name="theme">Tema</string>
+    <string name="toggle_theme">Toggle Tema</string>
+    <string name="close_menu">Tutup Menu</string>
+    <string name="close">Tutup</string>
+    <string name="text_size">Ukuran Text</string>
+    <string name="more_information">Informasi lebih lanjut</string>
+    <string name="more_info_description">Penulis, Lisensi, Penerjemah, …</string>
+    <string name="search_novel">Cari Novel</string>
+    <string name="bug_report">Lapor Bug</string>
+    <string name="open_in_browser">Buka di Browser</string>
+    <string name="share">Bagikan</string>
+    <string name="copyright_notice">Pemberitahuan Hak Cipta</string>
+    <string name="donate_developer">Sumbangan ke pengembang</string>
+    <string name="about_us">Tentang Kami</string>
+    <string name="libraries_used">Sumber yang digunakan</string>
+    <string name="contributions">Kontribusi</string>
+    <string name="donate">Sumbangan</string>
+    <string name="donation_email_body">Terimakasih atas kerja kerasnya. Saya ingin melihat fitur ini di versi selanjutnya dan terimalah sumbangan dari saya..</string>
+    <string name="content_restricted">Konten terlarang!</string>
+    <string name="lock_hint">Tombol tersembunyi untuk membuka konten. Semoga berhasil menemukannya!!</string>
+
+
+    <string name="copyright_content" tools:ignore="TypographyQuotes">
+        "Novel Library adalah sebuah aplikasi yang menyediakan jasa pengumpulan buku untuk pecinta novel."
+        "Semua kontek di Novel Library dibagikan secara manual oleh para pembaca atau secara otomatis dari internet"
+        "menggunakan program kami. Novel Updates tidak menghasilkan konten apapun. \n\n"
+
+        "Hak Cipta dari semua konten yang ada di aplikasi Novel Library adalah milik penulis novel"
+        "dan penerbitnya. Jika anda memiliki pertanyaan mengenai hak cipta, tolong kontak "
+        "kami, dan kami akan segera membalas dan menghapus konten tersebut dari aplikasi kami. \n\n"
+
+        "Semua konten di aplikasi Novel Library merupakan karya dari penulis masing-masing, dan bukan diwakili"
+        "oleh aplikasi ini. Kami tidak memiliki tanggung jawab secara hukum. "
+        "Jika anda menemukan konten yang imelanggar hukum, tolong laporkan dan kami akan segera menghapusnya. \n\n"
+
+        "contact: gmathi.developer@gmail.com\n"
+
+    </string>
+
+    <string name="donate_content" tools:ignore="TypographyQuotes">
+        "Sumbangan akan mempercepat update and menambah fitur-fitur baru. "
+        "Anda dapat mengirimkan sumbangan melalui aplikasi Gmail ke gmathi.developer@gmail.com "
+    </string>
+    <string name="app_exit">Tekan tombol ‘kembali’ lagi untuk keluar dari Novel Library</string>
+    <string name="general">Umum</string>
+    <string name="faster_downloads">Unduhan cepat</string>
+    <string name="faster_downloads_description">Mengunduh dengan sangat cepat namun dapat melambatkan atau menyembabkan HP anda hang.</string>
+    <string name="first_screen_library">Jadikan “Daftar Bacaan” menu utama</string>
+    <string name="first_screen_library_description">Jika dimatikan “Pencarian” akan jadi menu utama.</string>
+    <string name="clean_pages">Hapus Chapter</string>
+    <string name="clean_pages_description">Hapus Chapter sebelum memuat.</string>
+    <string name="failed_to_load_url">Gagal mendapatkan konten!</string>
+    <string name="disable_javascript">Nonaktifkan Javascript</string>
+    <string name="disable_javascript_description">Beberapa situs web dapat mengalihkan anda pada iklan saat Javascript diaktifkan</string>
+    <string name="donations_description_new">Terima kasih banyak atas sumbangannya! Mulai sekarang, tolong sebarkan pesan cinta terhadap aplikasi ini ke sesama pecinta novel!</string>
+    <string name="language">Bahasa</string>
+    <string name="languages_supported">Bahasa Didukung</string>
+    <string name="download_chapters">Unduh Chapter</string>
+    <string name="mark_read">Tandai telah dibaca</string>
+    <string name="mark_unread">Tandai belum dibaca</string>
+    <string name="unread">Belum Dibaca</string>
+    <string name="read">Telah Dibaca</string>
+    <string name="chapters_selected">%1$d Terpilih</string>
+    <string name="okay">OK</string>
+    <string name="confirm_action">Pastikan Tindakan</string>
+    <string name="mark_chapters_unread_dialog_content">Tandai Chapter belum dibaca?</string>
+    <string name="mark_chapters_read_dialog_content">Tandai Chapter telah dibaca?</string>
+    <string name="download_chapters_dialog_content">Unduh chapter? \n Catatan: Pengunduhan chapter tidak dapat dihentikan maupun digagalkan.</string>
+    <string name="alert">Perhatian</string>
+    <string name="novel_not_in_library_dialog_content">Novel harus dimasukkan ke dalam daftar bacaan, sebelum chapter dapat di unduh satu-persatu!</string>
+    <string name="download_all_chapters_dialog_content">Tata unduhan novel menggunakan Download Manager. Unduh semua chapter?</string>
+    <string name="background_chapter_downloads">Pengunduhan chapter telah dimulai</string>
+
+    <!-- v0.5 Strings -->
+
+    <string name="select_all_from_page">Pilih Semua Halaman</string>
+    <string name="clear_selection_from_page">Pilih Yang Akan Dihapus</string>
+    <string name="download_in_queue">Di Dalam Antrian</string>
+    <string name="download_paused">Sedang Berhenti</string>
+    <string name="status">Status</string>
+    <string name="manage_downloads">Atur Unduhan</string>
+    <string name="manage_downloads_dialog_content">Novel yang telah diunduh dapat diatur di menu “downloads” di menu navigasi</string>
+    <string name="take_me_there">Bawa Aku Kesana</string>
+    <string name="collection_chapters_info">Mengumpulkan Informasi Chapter</string>
+    <string name="download_all_new_chapters_dialog_content">Atur novel yang telah diunduh menggunakan download manager. Unduh semua chapter yang telah dirilis?</string>
+    <string name="quick_access">Akses Cepat</string>
+    <string name="new_chapters_notification_content_full">%1$d novel dengan total chapter %2$d chapter baru. Klik untuk mulai membaca!</string>
+    <string name="new_chapters_notification_content_single">%1$s (%2$d chapter baru)</string>
+    <string name="new_chapters_notification_title">Ada Chapter Baru!</string>
+    <string name="sync_in_progress">Sinkronisasis Sedang Dilakukan</string>
+	
+	 <!-- v0.6 Strings -->
+
+    <string name="mentions">Informasi Novel</string>
+    <string name="select_all">Pilih Semua</string>
+    <string name="clear_selection">Hapus Pilihan</string>
+    <string name="download_novel">Unduh Novel</string>
+    <string name="add_to_library_dialog_content">The novel needs to be added to Library before you can download/mark individual chapters. Do you want to add this novel - %s to the Library?</string>
+    <string name="swipe_right_for_next_chapter">Jap Style Swipe</string>
+    <string name="swipe_right_for_next_chapter_description">Swipe right for next chapter</string>
+    <string name="no_bookmark_found_dialog_title">Start Reading?</string>
+    <string name="no_bookmark_found_dialog_description">Looks like you haven\'t read ‘%s’ yet, why don\'t you start now?</string>
+    <string name="sync_interval">Sync Interval</string>
+    <string name="sync_interval_description">Check for novel updates interval</string>
+
+	
+    <!-- v0.7 Strings -->
+    <string name="clean">Clean</string>
+    <string name="reader">Membaca</string>
+    <string name="reader_mode">Mode Membaca</string>
+    <string name="show_reader_scroll">Perlihatkan Scrollbar</string>
+    <string name="show_reader_scroll_description">Perlihatkan Scrollbar di pojok kanan layar untuk melacak status novel yang dibaca</string>
+    <string name="show_comments_section">Perlihatkan Komentar</string>
+    <string name="show_comments_section_description">Perlihatkan Komentar di Chapter pada Mode Membaca. (Tidak Untuk Semua Situs)</string>
+    <string name="backup">Data Cadangan</string>
+    <string name="backup_data">Buat Data Cadangan</string>
+    <string name="backup_data_description">Buat Data Cadangan di internal storage/sd card</string>
+    <string name="restore">Pemulihan</string>
+    <string name="restore_data">Pemulihan Data</string>
+    <string name="restore_data_description">Pemulihan Data dari internal storage/sd card</string>
+    <string name="import_reading_list">Impor Daftar Bacaan</string>
+    <string name="nu_reading_list_url">URL Daftar Bacaan NU</string>
+    <string name="volume_scroll">Geser Dengan Tombol Volume</string>
+    <string name="volume_scroll_description">Gunakan tombol volume untuk menggeser layar ke atas dan bawah</string>
+    <string name="keep_screen_on">Layar Selalu Menyala</string>
+    <string name="keep_screen_on_description">Biarkan layar selalu menyala saat membaca</string>
+    <string name="join_us_on_discord">Bergabunglah ke Discord kami</string>
+    <string name="other">Dll</string>
+    <string name="no_bookmark">No Bookmark!</string>
+    <string name="imported_list">Imported List</string>
+
+    <string name="already_in_library">[ Already In Library ]</string>
+    <string name="group_notification_text">Updated for the novels in your library</string>
+    <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
+    <string name="reader_mode_description">Reader mode will be on permanently</string>
+    <string name="delete_chapters">Delete Chapters</string>
+    <string name="immersive_mode">Show Full Screen</string>
+    <string name="immersive_mode_description">Hide the system bars when reading</string>
+    <string name="title_reader">Reader Mode</string>
+    <string name="title_night">Night Mode</string>
+    <string name="title_fonts">Fonts</string>
+    <string name="title_fonts_size">Font Size</string>
+    <string name="title_report_page">Report Page</string>
+    <string name="title_open_in_browser">Open in Browser</string>
+    <string name="title_share_chapter">Share Chapter</string>
+    <string name="skip_cloud_flare_string">Please wait 5~10 secs while we bypass cloud flare</string>
+
+</resources>
