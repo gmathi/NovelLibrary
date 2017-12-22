@@ -142,7 +142,7 @@ class WebPageDBFragment : BaseFragment() {
                 val cookies = CookieManager.getInstance().getCookie(url)
                 Log.e("WebViewDBFragment", "All the cookiesMap in a string:" + cookies)
 
-                if (cookies.contains("cfduid") && cookies.contains("cf_clearance")) {
+                if (cookies != null && cookies.contains("cfduid") && cookies.contains("cf_clearance")) {
                     val map: HashMap<String, String> = HashMap()
                     val cookiesArray = cookies.split("; ")
                     cookiesArray.forEach { cookie ->
