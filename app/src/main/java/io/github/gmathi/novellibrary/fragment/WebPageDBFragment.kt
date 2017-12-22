@@ -5,9 +5,11 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import co.metalab.asyncawait.async
@@ -134,6 +136,23 @@ class WebPageDBFragment : BaseFragment() {
 
                 //If everything else fails, default loading of the WebView
                 return false
+            }
+
+            override fun onPageFinished(view: WebView?, url: String?) {
+                val cookies = CookieManager.getInstance().getCookie(url)
+                Log.e("WebViewDBFragment", "All the cookiesMap in a string:" + cookies)
+
+                if (cookies.contains("cfduid") && cookies.contains("cf_clearance")) {
+                    val map: HashMap<String, String> = HashMap()
+                    val cookiesArray = cookies.split("; ")
+                    cookiesArray.forEach { cookie ->
+                        val cookieSplit = cookie.split("=")
+                        map.put(cookieSplit[0], cookieSplit[1])
+                    }
+                    NovelApi.cookies = cookies
+                    NovelApi.cookiesMap = map
+                }
+
             }
         }
         //readerWebView.setOnScrollChangeListener { webView, i, i, i, i ->  }

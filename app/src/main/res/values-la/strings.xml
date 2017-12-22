@@ -229,5 +229,6 @@
     <string name="title_share_chapter">Share Chapter</string>
     <string name="skip_cloud_flare_string">Please wait 5~10 secs while we bypass cloud flare</string>
     <string name="title_java_script">JavaScript</string>
+    <string name="refresh_cloud_flare_cookies">Refresh CloudFlare Cookies</string>
 
 </resources>

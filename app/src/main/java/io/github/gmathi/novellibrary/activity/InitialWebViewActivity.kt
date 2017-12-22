@@ -50,7 +50,7 @@ class InitialWebViewActivity : AppCompatActivity() {
 
             fun handleUri(uri: Uri?): Boolean {
                 Log.e(TAG, "url:$uri")
-                if (uri?.toString() == mainUrl) startNavDrawerActivity()
+                //if (uri?.toString() == mainUrl) startNavDrawerActivity()
                 return false
             }
 

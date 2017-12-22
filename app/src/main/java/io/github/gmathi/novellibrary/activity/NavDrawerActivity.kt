@@ -140,6 +140,9 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_discord_link -> {
                 openInBrowser("https://discord.gg/g2cQswh")
             }
+            R.id.nav_refresh_cloud_flare_cookies -> {
+                startInitialWebViewActivity()
+            }
         }
     }
 
