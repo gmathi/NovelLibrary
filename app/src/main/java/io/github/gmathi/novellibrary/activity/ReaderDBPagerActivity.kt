@@ -347,7 +347,7 @@ class ReaderDBPagerActivity :
                 itemView.linNightMode.visibility = View.VISIBLE
         } else if (simpleItem.isSwitchOn() && position == JAVA_SCRIPT) {
             itemView.switchReaderMode.visibility = View.VISIBLE
-            itemView.switchReaderMode.isChecked = dataCenter.javascriptDisabled
+            itemView.switchReaderMode.isChecked = !dataCenter.javascriptDisabled
         } else
             itemView.switchReaderMode.visibility = View.GONE
 
