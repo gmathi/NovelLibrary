@@ -35,6 +35,7 @@ class DataCenter(context: Context) {
         private val VOLUME_SCROLL = "volumeScroll"
         private val KEEP_SCREEN_ON = "keepScreenOn"
         private val ENABLE_IMMERSIVE_MODE = "enableImmersiveMode"
+        private val FONT_PATH = "fontPath"
     }
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -114,6 +115,10 @@ class DataCenter(context: Context) {
     var enableImmersiveMode: Boolean
         get() = prefs.getBoolean(ENABLE_IMMERSIVE_MODE, true)
         set(value) = prefs.edit().putBoolean(ENABLE_IMMERSIVE_MODE, value).apply()
+
+    var fontPath: String
+        get() = prefs.getString(FONT_PATH, "")
+        set(value) = prefs.edit().putString(FONT_PATH, value).apply()
 
     fun getVerifiedHosts(): ArrayList<String> =
             Gson().fromJson(prefs.getString(VERIFIED_HOSTS, Gson().toJson(HostNames.defaultHostNamesList)), object : TypeToken<ArrayList<String>>() {}.type)

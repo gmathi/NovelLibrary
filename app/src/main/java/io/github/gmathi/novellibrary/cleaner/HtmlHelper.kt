@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.cleaner
 
 import android.graphics.Bitmap
 import android.net.Uri
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Utils
@@ -167,17 +168,40 @@ open class HtmlHelper protected constructor() {
     open fun toggleTheme(isDark: Boolean, doc: Document): Document = doc
 
     fun toggleThemeDefault(isDark: Boolean, doc: Document): Document {
+
+
+////        val fontName = "lobster_regular.ttf"
+////        val fontName = "source_sans_pro_regular.ttf"
+//        val fontFamily = fontName.split(".")[0]
+//        val nightModeTextBrightness = 87
+//        doc.head().getElementById("darkTheme")?.remove()
+//        doc.head().append("""
+//            <style id="darkTheme">
+//                @font-face {
+//                    font-family: Bungee-Regular;
+//                    src: url("file:///storage/emulated/0/Download/Bungee-Regular.ttf");
+//                }
+
+        //font path: /storage/emulated/0/Download/Bungee-Regular.ttf
+//        var fontName = "risque_regular.ttf"
 //        val fontName = "lobster_regular.ttf"
-        val fontName = "source_sans_pro_regular.ttf"
-        val fontFamily = fontName.split(".")[0]
+        var fontName = "source_sans_pro_regular.ttf"
+        var fontUrl =  "/android_asset/fonts/$fontName"
+
+        val fontFile = File(dataCenter.fontPath)
+        if (fontFile.exists()) {
+            fontName = fontFile.name
+            fontUrl = fontFile.path
+        }
+
+        val fontFamily = fontName.substring(0, fontName.lastIndexOf("."))
         val nightModeTextBrightness = 87
-//        TODO: If needed, add visited color to anchors
         doc.head().getElementById("darkTheme")?.remove()
         doc.head().append("""
             <style id="darkTheme">
                 @font-face {
                     font-family: $fontFamily;
-                    src: url("file:///android_asset/fonts/$fontName");
+                    src: url("file://$fontUrl");
                 }
                 body {
                     ${if (isDark) "background-color" else "color"}: #000;

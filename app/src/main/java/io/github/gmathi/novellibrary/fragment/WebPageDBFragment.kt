@@ -98,7 +98,7 @@ class WebPageDBFragment : BaseFragment() {
 
         //Load data from webPage in to webView
         loadData()
-
+        swipeRefreshLayout.setOnRefreshListener { loadData() }
 
     }
 
@@ -161,6 +161,8 @@ class WebPageDBFragment : BaseFragment() {
 
     private fun loadData() {
         doc = null
+        readerWebView.stopLoading()
+        readerWebView.clearView()
         if (webPage?.filePath != null)
             loadFromFile()
         else
@@ -168,6 +170,7 @@ class WebPageDBFragment : BaseFragment() {
     }
 
     private fun loadFromFile() {
+        swipeRefreshLayout.isRefreshing = false
         swipeRefreshLayout.isEnabled = false
         val internalFilePath = "file://${webPage?.filePath}"
         val input = File(internalFilePath.substring(7))
@@ -185,15 +188,16 @@ class WebPageDBFragment : BaseFragment() {
 
     }
 
-
     private fun loadFromWeb() {
         swipeRefreshLayout.isEnabled = true
         if (!dataCenter.readerMode) {
+            swipeRefreshLayout.isRefreshing = false
             readerWebView.loadUrl(webPage?.url)
             return
         }
 
         //Download the page and clean it to make it readable!
+        async.cancelAll()
         downloadWebPage(webPage?.url)
     }
 
@@ -329,14 +333,22 @@ class WebPageDBFragment : BaseFragment() {
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onReaderSettingsChanged(event: ReaderSettingsEvent) {
         when (event.setting) {
-            ReaderSettingsEvent.NIGHT_MODE -> applyTheme()
+            ReaderSettingsEvent.NIGHT_MODE -> {
+                applyTheme()
+            }
             ReaderSettingsEvent.READER_MODE -> {
+                readerWebView.loadUrl("about:blank")
                 readerWebView.clearHistory()
                 loadData()
             }
-            ReaderSettingsEvent.TEXT_SIZE -> changeTextSize()
-            ReaderSettingsEvent.JAVA_SCTIPT -> {
-                readerWebView.settings.javaScriptEnabled = dataCenter.javascriptDisabled
+            ReaderSettingsEvent.TEXT_SIZE -> {
+                changeTextSize()
+            }
+            ReaderSettingsEvent.JAVA_SCRIPT -> {
+                readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled
+                loadData()
+            }
+            ReaderSettingsEvent.FONT -> {
                 loadData()
             }
         }
