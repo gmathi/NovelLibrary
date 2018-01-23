@@ -321,6 +321,26 @@ class WebPageDBFragment : BaseFragment() {
             htmlHelper.removeJS(doc)
             htmlHelper.additionalProcessing(doc)
             htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
+
+            //Add the links-content to the doc
+            if (webPage!!.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
+                val links: ArrayList<WebPage> = Gson().fromJson(webPage!!.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+                links.forEach {
+                    val internalFilePath = "file://${it.filePath}"
+                    val input = File(internalFilePath.substring(7))
+
+                    var url = it.redirectedUrl
+                    if (url == null) url = internalFilePath
+                    val otherDoc = Jsoup.parse(input, "UTF-8", url)
+                    if (otherDoc != null) {
+                        val helper = HtmlHelper.getInstance(otherDoc)
+                        helper.removeJS(otherDoc)
+                        helper.additionalProcessing(otherDoc)
+                        doc.body().append(otherDoc.body().html())
+                    }
+                }
+            }
+
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
