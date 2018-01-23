@@ -45,4 +45,9 @@ object HostNames {
     fun isVerifiedHost(hostName: String): Boolean = hostNamesList.any { hostName.contains(it) }
 
     fun addHost(hostName: String): Boolean = hostNamesList.add(hostName)
+
+    private val DONT_DOWNLOAD_HOSTS = arrayOf("facebook", "google", "twitter", "live.com", "hotmail.com", "gmail.com")
+
+    fun isItDoNotDownloadHost(hostName: String): Boolean = DONT_DOWNLOAD_HOSTS.any { hostName.contains(it) }
+
 }

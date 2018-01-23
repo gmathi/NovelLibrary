@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.fragment
 
 import android.annotation.SuppressLint
 import android.graphics.Color
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
@@ -25,6 +26,7 @@ import io.github.gmathi.novellibrary.database.updateWebPage
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
@@ -256,6 +258,28 @@ class WebPageDBFragment : BaseFragment() {
                     htmlHelper.removeJS(doc)
                     htmlHelper.additionalProcessing(doc)
                     htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
+
+                    //Add the links-content to the doc
+                    val hrefElements = doc.body().getElementsByTag("a")
+                    hrefElements?.forEach {
+                        if (it.hasAttr("href")) {
+
+                            val linkedUrl = it.attr("href")
+                            try {
+                                val uri = Uri.parse(linkedUrl)
+                                if (!HostNames.isItDoNotDownloadHost(uri.host)) {
+                                    val otherDoc = await { NovelApi().getDocumentWithUserAgent(it.attr("href")) }
+                                    val helper = HtmlHelper.getInstance(otherDoc)
+                                    helper.removeJS(otherDoc)
+                                    helper.additionalProcessing(otherDoc)
+                                    doc.body().append(otherDoc.body().html())
+                                }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+
+                        }
+                    }
 
                     loadCreatedDocument()
                 }
