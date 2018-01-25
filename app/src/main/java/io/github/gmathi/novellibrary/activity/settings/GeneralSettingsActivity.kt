@@ -1,6 +1,8 @@
 package io.github.gmathi.novellibrary.activity.settings
 
 import android.Manifest
+import android.accounts.AccountManager
+import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
 import android.os.Environment
@@ -13,12 +15,27 @@ import android.view.MenuItem
 import android.view.View
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
+import com.google.api.client.extensions.android.http.AndroidHttp
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException
+import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException
+import com.google.api.client.http.FileContent
+import com.google.api.client.http.GenericUrl
+import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.client.util.ExponentialBackOff
+import com.google.api.services.drive.Drive
+import com.google.api.services.drive.DriveScopes
+import com.google.api.services.drive.model.FileList
+import com.google.api.services.drive.model.ParentReference
 import com.thanosfisherman.mayi.Mayi
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.applyFont
@@ -28,15 +45,31 @@ import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_title_subtitle_widget.view.*
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
+import java.util.*
+import java.util.regex.Pattern
+import javax.net.ssl.SSLPeerUnverifiedException
 
 
 class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     companion object {
-        private val POSITION_BACKUP = 0
-        private val POSITION_RESTORE = 1
-        private val POSITION_CLEAR = 2
-        private val POSITION_LOAD_LIBRARY_SCREEN = 3
+        private const val POSITION_BACKUP = 0
+        private const val POSITION_RESTORE = 1
+        private const val POSITION_CLEAR = 2
+        private const val POSITION_GOOGLE_BACKUP = 3
+        private const val POSITION_GOOGLE_RESTORE = 4
+        private const val POSITION_LOAD_LIBRARY_SCREEN = 5
+
+        private val SCOPES = arrayOf(DriveScopes.DRIVE)
+
+        const val REQUEST_ACCOUNT_PICKER = 1000
+        const val REQUEST_AUTHORIZATION = 1001
+        const val REQUEST_GOOGLE_PLAY_SERVICES = 1002
+        const val REQUEST_PERMISSION_GET_ACCOUNTS = 1003
+
+        const val BACKUP_FOLDER_NAME = "NovelLibrary-Backup"
+
     }
 
     lateinit var adapter: GenericAdapter<String>
@@ -44,6 +77,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     private lateinit var settingsItemsDescription: ArrayList<String>
 
     private var confirmDialog: MaterialDialog? = null
+    private lateinit var credential: GoogleAccountCredential
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +85,11 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setRecyclerView()
+
+        val scopesList: ArrayList<String> = ArrayList()
+        scopesList.add(DriveScopes.DRIVE)
+
+        credential = GoogleAccountCredential.usingOAuth2(applicationContext, scopesList).setBackOff(ExponentialBackOff())
     }
 
     private fun setRecyclerView() {
@@ -117,11 +156,27 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemView.widgetButton.text = getString(R.string.clear)
                 itemView.widgetButton.setOnClickListener { deleteFilesDialog() }
             }
-//            3 -> {
-//                itemView.widgetSwitch.visibility = View.VISIBLE
-//                itemView.widgetSwitch.isChecked = dataCenter.experimentalDownload
-//                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.experimentalDownload = value }
-//            }
+
+            POSITION_GOOGLE_BACKUP -> {
+                itemView.widgetButton.visibility = View.VISIBLE
+                itemView.widgetButton.text = getString(R.string.backup)
+                itemView.widgetButton.setOnClickListener {
+                    it.isEnabled = false
+                    getResultsFromApi_Backup()
+                    it.isEnabled = true
+                }
+            }
+
+            POSITION_GOOGLE_RESTORE -> {
+                itemView.widgetButton.visibility = View.VISIBLE
+                itemView.widgetButton.text = getString(R.string.restore)
+                itemView.widgetButton.setOnClickListener {
+                    it.isEnabled = false
+                    getResultsFromApi_Restore()
+                    it.isEnabled = true
+                }
+            }
+
             POSITION_LOAD_LIBRARY_SCREEN -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.loadLibraryScreen
@@ -182,16 +237,16 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     }
 
     private fun deleteDir(dir: File?): Boolean {
-        if (dir != null && dir.isDirectory) {
+        return if (dir != null && dir.isDirectory) {
             val children = dir.list()
             for (i in children.indices) {
                 deleteDir(File(dir, children[i]))
             }
-            return dir.delete()
+            dir.delete()
         } else if (dir != null && dir.isFile) {
-            return dir.delete()
+            dir.delete()
         } else {
-            return false
+            false
         }
     }
     //endregion
@@ -390,4 +445,379 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     }
 
 
+    //region Google Drive APIs
+
+    @Suppress("FunctionName")
+    private fun getResultsFromApi_Backup() {
+        if (!isGooglePlayServicesAvailable()) {
+            acquireGooglePlayServices()
+        } else if (credential.selectedAccountName == null) {
+            chooseAccount_Backup()
+        } else if (!Utils.checkNetwork(this@GeneralSettingsActivity)) {
+            showDialog(content = "No Internet Connection!")
+        } else {
+            backupToGoogleDrive()
+        }
+    }
+
+    @Suppress("FunctionName")
+    private fun getResultsFromApi_Restore() {
+        if (!isGooglePlayServicesAvailable()) {
+            acquireGooglePlayServices()
+        } else if (credential.selectedAccountName == null) {
+            chooseAccount_Restore()
+        } else if (!Utils.checkNetwork(this@GeneralSettingsActivity)) {
+            showDialog(content = "No Internet Connection!")
+        } else {
+            restoreFromGoogleDrive()
+        }
+    }
+
+    private fun isGooglePlayServicesAvailable(): Boolean {
+        val apiAvailability = GoogleApiAvailability.getInstance()
+        val connectionStatusCode = apiAvailability.isGooglePlayServicesAvailable(this)
+        return connectionStatusCode == ConnectionResult.SUCCESS
+    }
+
+    private fun acquireGooglePlayServices() {
+        val apiAvailability = GoogleApiAvailability.getInstance()
+        val connectionStatusCode = apiAvailability.isGooglePlayServicesAvailable(this)
+        if (apiAvailability.isUserResolvableError(connectionStatusCode)) {
+            showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode)
+        }
+    }
+
+    private fun showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode: Int) {
+        val apiAvailability = GoogleApiAvailability.getInstance()
+        val dialog = apiAvailability.getErrorDialog(this@GeneralSettingsActivity, connectionStatusCode, REQUEST_GOOGLE_PLAY_SERVICES)
+        dialog.show()
+    }
+
+    @Suppress("FunctionName")
+    private fun chooseAccount_Backup() {
+        Mayi.withActivity(this@GeneralSettingsActivity)
+            .withPermission(Manifest.permission.GET_ACCOUNTS)
+            .onResult {
+                if (it.isGranted) {
+
+                    val accountName = dataCenter.googleAccountName
+                    if (accountName.isNotEmpty()) {
+                        credential.selectedAccountName = accountName
+                        getResultsFromApi_Backup()
+                    } else {
+                        // Start a dialog from which the user can choose an account
+                        startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER)
+                    }
+                } else
+                    showDialog(content = "Enable \"Get Accounts\" permission for Novel Library " +
+                        "from your device Settings -> Applications -> Novel Library -> Permissions")
+            }.check()
+
+    }
+
+    @Suppress("FunctionName")
+    private fun chooseAccount_Restore() {
+        Mayi.withActivity(this@GeneralSettingsActivity)
+            .withPermission(Manifest.permission.GET_ACCOUNTS)
+            .onResult {
+                if (it.isGranted) {
+
+                    val accountName = dataCenter.googleAccountName
+                    if (accountName.isNotEmpty()) {
+                        credential.selectedAccountName = accountName
+                        getResultsFromApi_Restore()
+                    } else {
+                        // Start a dialog from which the user can choose an account
+                        startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER)
+                    }
+                } else
+                    showDialog(content = "Enable \"Get Accounts\" permission for Novel Library " +
+                        "from your device Settings -> Applications -> Novel Library -> Permissions")
+            }.check()
+
+    }
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            REQUEST_GOOGLE_PLAY_SERVICES -> {
+                if (resultCode != RESULT_OK) {
+                    showDialog(content =
+                    "This app requires Google Play Services. Please install " +
+                        "Google Play Services on your device and relaunch this app.")
+                } else {
+                    //getResultsFromApi_Backup()
+                }
+            }
+
+            REQUEST_ACCOUNT_PICKER -> {
+                if (resultCode == RESULT_OK && data != null && data.extras != null) {
+                    val accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME)
+                    if (accountName != null) {
+                        dataCenter.googleAccountName = accountName
+                        credential.selectedAccountName = accountName
+                        //getResultsFromApi()
+                    }
+                }
+            }
+
+            REQUEST_AUTHORIZATION -> {
+                if (resultCode == RESULT_OK) {
+                    //getResultsFromApi_Backup()
+                }
+            }
+        }
+    }
+
+    private fun backupToGoogleDrive() {
+        async {
+
+            val transport = AndroidHttp.newCompatibleTransport()
+            val jsonFactory = JacksonFactory.getDefaultInstance()
+            val service: Drive = Drive.Builder(transport, jsonFactory, credential).setApplicationName(getString(R.string.app_name)).build()
+
+            showDialog(isProgress = true, content = "Uploading data to Google Drive...")
+
+            try {
+                val result: FileList = await {
+                    service.files().list()
+                        .setQ("title = '$BACKUP_FOLDER_NAME' and mimeType = 'application/vnd.google-apps.folder'")
+                        .setMaxResults(10).execute()
+                }
+
+                val backupFolder: com.google.api.services.drive.model.File
+                if (result.items.isEmpty()) {
+                    backupFolder = com.google.api.services.drive.model.File()
+                    backupFolder.title = BACKUP_FOLDER_NAME
+                    backupFolder.mimeType = "application/vnd.google-apps.folder"
+
+                    val fileInsert = await { service.files().insert(backupFolder).setFields("id").execute() }
+                    backupFolder.id = fileInsert.id
+                } else {
+                    backupFolder = result.items[0]
+                }
+
+                val data = Environment.getDataDirectory()
+                val baseDir = File(data, "//data//io.github.gmathi.novellibrary")
+                val currentDBsPath = File(baseDir, databasesDirName)
+                //val currentFilesDir = File(baseDir, filesDirName)
+                val currentSharedPrefsPath = File(baseDir, sharedPrefsDirName)
+
+                //Backup Databases
+                if (currentDBsPath.exists() && currentDBsPath.isDirectory) {
+
+                    val resultDbFolder: FileList = await {
+                        service.files().list()
+                            .setQ("title = '$databasesDirName' and mimeType = 'application/vnd.google-apps.folder' and parents in '${backupFolder.id}'")
+                            .setMaxResults(10).execute()
+                    }
+
+                    val dbFolder: com.google.api.services.drive.model.File
+                    if (resultDbFolder.items.isEmpty()) {
+                        dbFolder = com.google.api.services.drive.model.File()
+                        dbFolder.title = databasesDirName
+                        dbFolder.mimeType = "application/vnd.google-apps.folder"
+                        dbFolder.parents = Collections.singletonList(ParentReference().setId(backupFolder.id))
+
+                        val fileInsert = await { service.files().insert(dbFolder).setFields("id").execute() }
+                        dbFolder.id = fileInsert.id
+                    } else {
+                        dbFolder = resultDbFolder.items[0]
+                        val filesToDelete = await { service.files().list().setQ("parents in '${dbFolder.id}'").setMaxResults(30).execute() }
+                        filesToDelete.items.forEach {
+                            await { service.files().delete(it.id).execute() }
+                        }
+                    }
+
+                    currentDBsPath.listFiles().forEach {
+                        val fileToUpload = com.google.api.services.drive.model.File()
+                        fileToUpload.title = it.name
+                        fileToUpload.parents = Collections.singletonList(ParentReference().setId(dbFolder.id))
+                        val mediaContent = FileContent("application/x-sqlite3", it)
+                        await { service.files().insert(fileToUpload, mediaContent).setFields("id, parents").execute() }
+                    }
+                }
+
+                //Backup Shared Preferences
+                // --> /data/data/io.github.gmathi.novellibrary/shared_prefs
+                if (currentSharedPrefsPath.exists() && currentSharedPrefsPath.isDirectory) {
+
+                    val resultSharedPrefFolder: FileList = await {
+                        service.files().list()
+                            .setQ("title = '$sharedPrefsDirName' and mimeType = 'application/vnd.google-apps.folder' and parents in '${backupFolder.id}'")
+                            .setMaxResults(10).execute()
+                    }
+
+                    val sharedPrefFolder: com.google.api.services.drive.model.File
+                    if (resultSharedPrefFolder.items.isEmpty()) {
+                        sharedPrefFolder = com.google.api.services.drive.model.File()
+                        sharedPrefFolder.title = sharedPrefsDirName
+                        sharedPrefFolder.mimeType = "application/vnd.google-apps.folder"
+                        sharedPrefFolder.parents = Collections.singletonList(ParentReference().setId(backupFolder.id))
+
+                        val fileInsert = await { service.files().insert(sharedPrefFolder).setFields("id").execute() }
+                        sharedPrefFolder.id = fileInsert.id
+                    } else {
+                        sharedPrefFolder = resultSharedPrefFolder.items[0]
+                        val filesToDelete = await { service.files().list().setQ("parents in '${sharedPrefFolder.id}'").setMaxResults(30).execute() }
+                        filesToDelete.items.forEach {
+                            await { service.files().delete(it.id).execute() }
+                        }
+                    }
+
+                    currentSharedPrefsPath.listFiles().forEach {
+                        val fileToUpload = com.google.api.services.drive.model.File()
+                        fileToUpload.title = it.name
+                        fileToUpload.parents = Collections.singletonList(ParentReference().setId(sharedPrefFolder.id))
+                        val mediaContent = FileContent("application/xml", it)
+                        await { service.files().insert(fileToUpload, mediaContent).setFields("id, parents").execute() }
+                    }
+                }
+
+                showDialog(iconRes = R.drawable.ic_info_white_vector, content = "Backup Successful")
+
+            } catch (e: Exception) {
+                when (e) {
+                    is GooglePlayServicesAvailabilityIOException -> showGooglePlayServicesAvailabilityErrorDialog(e.connectionStatusCode)
+                    is UserRecoverableAuthIOException -> startActivityForResult(e.intent, REQUEST_AUTHORIZATION)
+                    else -> e.printStackTrace()
+                }
+                showDialog(content = "Backup Failed!")
+            }
+
+        }
+    }
+
+    private fun restoreFromGoogleDrive() {
+        async {
+
+            val transport = AndroidHttp.newCompatibleTransport()
+            val jsonFactory = JacksonFactory.getDefaultInstance()
+            val service: Drive = Drive.Builder(transport, jsonFactory, credential).setApplicationName(getString(R.string.app_name)).build()
+
+            showDialog(isProgress = true, content = "Restoring data from Google Drive...")
+
+            try {
+                val result: FileList = await {
+                    service.files().list()
+                        .setQ("title = '$BACKUP_FOLDER_NAME' and mimeType = 'application/vnd.google-apps.folder'")
+                        .setMaxResults(10).execute()
+                }
+
+                val backupFolder: com.google.api.services.drive.model.File
+                if (result.items.isEmpty()) {
+                    showDialog(content = "Not backup found!")
+                    return@async
+                } else {
+                    backupFolder = result.items[0]
+                }
+
+                val data = Environment.getDataDirectory()
+                val baseDir = File(data, "//data//io.github.gmathi.novellibrary")
+                val currentDBsPath = File(baseDir, databasesDirName)
+                val currentSharedPrefsPath = File(baseDir, sharedPrefsDirName)
+
+                //Restore Databases from Google Drive
+
+                val resultDbFolder: FileList = await {
+                    service.files().list()
+                        .setQ("title = '$databasesDirName' and mimeType = 'application/vnd.google-apps.folder' and parents in '${backupFolder.id}'")
+                        .setMaxResults(10).execute()
+                }
+
+                val dbFolder: com.google.api.services.drive.model.File
+                if (!resultDbFolder.items.isEmpty()) {
+                    if (!currentDBsPath.exists()) currentDBsPath.mkdir()
+
+                    dbFolder = resultDbFolder.items[0]
+                    val filesToCopy = await { service.files().list().setQ("parents in '${dbFolder.id}'").setMaxResults(30).execute() }
+                    filesToCopy.items.forEach {
+                        val inputStream = await { downloadFile(service, it) }
+                        if (inputStream != null) {
+                            val file = File(currentDBsPath, it.title)
+                           // if (file.exists()) file.delete()
+                            await { Utils.copyFile(inputStream, file) }
+                        }
+                    }
+                }
+
+
+                //Restore Shared Preferences from Google Drive
+                // --> /data/data/io.github.gmathi.novellibrary/shared_prefs
+                if (currentSharedPrefsPath.exists() && currentSharedPrefsPath.isDirectory) {
+
+                    val resultSharedPrefFolder: FileList = await {
+                        service.files().list()
+                            .setQ("title = '$sharedPrefsDirName' and mimeType = 'application/vnd.google-apps.folder' and parents in '${backupFolder.id}'")
+                            .setMaxResults(10).execute()
+                    }
+
+                    val sharedPrefFolder: com.google.api.services.drive.model.File
+                    if (!resultSharedPrefFolder.items.isEmpty()) {
+                        if (!currentSharedPrefsPath.exists()) currentSharedPrefsPath.mkdir()
+
+                        sharedPrefFolder = resultSharedPrefFolder.items[0]
+                        val filesToCopy = await { service.files().list().setQ("parents in '${sharedPrefFolder.id}'").setMaxResults(30).execute() }
+                        filesToCopy.items.forEach {
+                            val inputStream = await { downloadFile(service, it) }
+                            if (inputStream != null) {
+                                val file = File(currentDBsPath, it.title)
+                           //     if (file.exists()) file.delete()
+                                await { Utils.copyFile(inputStream, file) }
+                            }
+                        }
+                    }
+                }
+
+                showDialog(iconRes = R.drawable.ic_info_white_vector, content = "Restore Successful")
+
+            } catch (e: Exception) {
+                when (e) {
+                    is GooglePlayServicesAvailabilityIOException -> showGooglePlayServicesAvailabilityErrorDialog(e.connectionStatusCode)
+                    is UserRecoverableAuthIOException -> startActivityForResult(e.intent, REQUEST_AUTHORIZATION)
+//                    is SSLPeerUnverifiedException -> {
+//                        val p = Pattern.compile("Hostname\\s(.*?)\\snot", Pattern.DOTALL or Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE or Pattern.MULTILINE) // Regex for the value of the key
+//                        val m = p.matcher(e.localizedMessage)
+//                        if (m.find()) {
+//                            val hostName = m.group(1)
+//                            if (!HostNames.isVerifiedHost(hostName)) {
+//                                dataCenter.saveVerifiedHost(m.group(1))
+//                            }
+//                        }
+//                        showDialog(content = "Restore Unsuccessful due to host verification fail! Host has been added. Try again now!")
+//                    }
+                    else -> {
+                        showDialog(content = "Restore Failed!")
+                        e.printStackTrace()
+                    }
+                }
+            }
+
+        }
+    }
+
+    private fun downloadFile(service: Drive, file: com.google.api.services.drive.model.File): InputStream? {
+        if (file.downloadUrl != null && file.downloadUrl.isNotEmpty()) {
+            try {
+                val resp = service.requestFactory.buildGetRequest(GenericUrl(file.downloadUrl)).execute()
+                return resp.content
+            } catch (e: SSLPeerUnverifiedException) {
+                val p = Pattern.compile("Hostname\\s(.*?)\\snot", Pattern.DOTALL or Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE or Pattern.MULTILINE) // Regex for the value of the key
+                val m = p.matcher(e.localizedMessage)
+                if (m.find()) {
+                    val hostName = m.group(1)
+                    if (!HostNames.isVerifiedHost(hostName)) {
+                        dataCenter.saveVerifiedHost(m.group(1))
+                        return downloadFile(service, file)
+                    }
+                }
+            }
+            return null
+        } else {
+            return null
+        }
+    }
+
+//endregion
 }

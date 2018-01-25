@@ -8,9 +8,7 @@ import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentTransaction
 import android.support.v4.view.GravityCompat
 import android.support.v7.widget.Toolbar
-import android.text.Html
 import android.view.MenuItem
-import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
@@ -56,20 +54,24 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         }
 
         loadFragment(currentNavId)
-        if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
-            @Suppress("DEPRECATION")
-            MaterialDialog.Builder(this)
-                .title("📢 Announcement!")
-                .content(Html.fromHtml("<b><u>Special Thanks:</u></b> " +
-                    "<br/><b>Raj Kumar Shah</b>, Nepal " +
-                    "<br/><b>Ahmad Ouerfelli</b>, Ontario " +
-                    "<br/><b>Arthur Tesse</b>, Paris " +
-                    "<br/>For making the app better!! Cheers!!! 🎊🎉"))
-                .positiveText("Yay")
-                .onPositive { dialog, _ -> dialog.dismiss() }
-                .show()
-            dataCenter.appVersionCode = BuildConfig.VERSION_CODE
-        }
+        //if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
+//            @Suppress("DEPRECATION")
+//            MaterialDialog.Builder(this)
+//                .title("📢 Announcement!")
+//                .content(Html.fromHtml("<b><u>Special Thanks:</u></b> " +
+//                    "<br/><b>Raj Kumar Shah</b>, Nepal " +
+//                    "<br/><b>Ahmad Ouerfelli</b>, Ontario " +
+//                    "<br/><b>Arthur Tesse</b>, Paris " +
+//                    "<br/>For making the app better!! Cheers!!! 🎊🎉"))
+//                .positiveText("Yay")
+//                .onPositive { dialog, _ -> dialog.dismiss() }
+//                .show()
+        dataCenter.saveVerifiedHost("www.googleapis.com")
+        dataCenter.saveVerifiedHost("*.googleusercontent.com")
+        
+        dataCenter.appVersionCode = BuildConfig.VERSION_CODE
+        //}
+
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
         startInitialWebViewActivity()

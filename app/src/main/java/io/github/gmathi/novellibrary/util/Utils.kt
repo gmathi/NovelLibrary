@@ -174,6 +174,19 @@ object Utils {
         }
     }
 
+    @Throws(IOException::class)
+    fun copyFile(src: InputStream, dst: File) {
+        val outStream = FileOutputStream(dst)
+        val buffer = ByteArray(8 * 1024)
+        var bytesRead: Int = src.read(buffer)
+        while (bytesRead != -1) {
+            outStream.write(buffer, 0, bytesRead)
+            bytesRead = src.read(buffer)
+        }
+        src.close()
+        outStream.close()
+    }
+
     /**
      * Returns whether an SD card is present and writable
      */
