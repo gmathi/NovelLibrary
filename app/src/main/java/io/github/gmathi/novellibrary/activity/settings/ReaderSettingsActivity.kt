@@ -23,14 +23,16 @@ import java.io.File
 class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     companion object {
-        private val POSITION_CLEAN_CHAPTERS = 0
-        private val POSITION_JAVASCRIPT_DISABLED = 1
-        private val POSITION_JAP_SWIPE = 2
-        private val POSITION_SHOW_READER_SCROLL = 3
-        private val POSITION_SHOW_CHAPTER_COMMENTS = 4
-        private val POSITION_VOLUME_SCROLL = 5
-        private val POSITION_KEEP_SCREEN_ON = 6
-        private val POSITION_ENABLE_IMMERSIVE_MODE = 7
+        private const val POSITION_CLEAN_CHAPTERS = 0
+        private const val POSITION_JAVASCRIPT_DISABLED = 1
+        private const val POSITION_JAP_SWIPE = 2
+        private const val POSITION_SHOW_READER_SCROLL = 3
+        private const val POSITION_SHOW_CHAPTER_COMMENTS = 4
+        private const val POSITION_VOLUME_SCROLL = 5
+        private const val POSITION_KEEP_SCREEN_ON = 6
+        private const val POSITION_ENABLE_IMMERSIVE_MODE = 7
+        private const val POSITION_ENABLE_CLUSTER_PAGES = 8
+
     }
 
     lateinit var adapter: GenericAdapter<String>
@@ -124,6 +126,11 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.enableImmersiveMode
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableImmersiveMode = value }
+            }
+            POSITION_ENABLE_CLUSTER_PAGES -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.enableClusterPages
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableClusterPages = value }
             }
         }
 

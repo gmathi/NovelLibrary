@@ -2,10 +2,9 @@ package io.github.gmathi.novellibrary.activity
 
 
 import android.Manifest
+import android.content.Intent
 import android.graphics.drawable.Drawable
-import android.os.Build
-import android.os.Bundle
-import android.os.Environment
+import android.os.*
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.ViewPager
 import android.support.v7.widget.LinearLayoutManager
@@ -34,6 +33,7 @@ import io.github.gmathi.novellibrary.database.updateWebPageReadStatus
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.util.Constants
 import kotlinx.android.synthetic.main.activity_new_reader_pager.*
 import kotlinx.android.synthetic.main.item_option.view.*
 import kotlinx.android.synthetic.main.menu_left_drawer.*
@@ -392,4 +392,12 @@ class ReaderDBPagerActivity :
         //Do Nothing
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == Constants.IWV_ACT_REQ_CODE) {
+            Handler(Looper.getMainLooper()).post {
+                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+            }
+        }
+    }
 }

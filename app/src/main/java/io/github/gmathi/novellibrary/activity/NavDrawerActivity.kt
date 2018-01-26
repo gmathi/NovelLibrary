@@ -54,7 +54,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         }
 
         loadFragment(currentNavId)
-        //if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
+        if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
 //            @Suppress("DEPRECATION")
 //            MaterialDialog.Builder(this)
 //                .title("📢 Announcement!")
@@ -68,13 +68,13 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 //                .show()
         dataCenter.saveVerifiedHost("www.googleapis.com")
         dataCenter.saveVerifiedHost("*.googleusercontent.com")
-        
+
         dataCenter.appVersionCode = BuildConfig.VERSION_CODE
-        //}
+        }
 
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
-        startInitialWebViewActivity()
+        //startInitialWebViewActivity()
     }
 
     override fun onBackPressed() {

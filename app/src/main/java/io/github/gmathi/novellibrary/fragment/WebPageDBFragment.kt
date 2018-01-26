@@ -18,6 +18,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ReaderDBPagerActivity
+import io.github.gmathi.novellibrary.activity.startInitialWebViewActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getNovel
@@ -117,6 +118,9 @@ class WebPageDBFragment : BaseFragment() {
                 if (url == doc?.location()) {
                     return true
                 }
+
+                if (url == "abc://retry_internal")
+                    (activity as ReaderDBPagerActivity).startInitialWebViewActivity()
 
                 //Add current page to history, if it was not already added or if the history is empty
 //                if (history.isEmpty()) history.add(webPage!!)
@@ -259,25 +263,27 @@ class WebPageDBFragment : BaseFragment() {
                     htmlHelper.additionalProcessing(doc)
                     htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
 
-                    //Add the links-content to the doc
-                    val hrefElements = doc.body().getElementsByTag("a")
-                    hrefElements?.forEach {
-                        if (it.hasAttr("href")) {
+                    if (dataCenter.enableClusterPages) {
+                        //Add the links-content to the doc
+                        val hrefElements = doc.body().getElementsByTag("a")
+                        hrefElements?.forEach {
+                            if (it.hasAttr("href")) {
 
-                            val linkedUrl = it.attr("href")
-                            try {
-                                val uri = Uri.parse(linkedUrl)
-                                if (!HostNames.isItDoNotDownloadHost(uri.host)) {
-                                    val otherDoc = await { NovelApi().getDocumentWithUserAgent(it.attr("href")) }
-                                    val helper = HtmlHelper.getInstance(otherDoc)
-                                    helper.removeJS(otherDoc)
-                                    helper.additionalProcessing(otherDoc)
-                                    doc.body().append(otherDoc.body().html())
+                                val linkedUrl = it.attr("href")
+                                try {
+                                    val uri = Uri.parse(linkedUrl)
+                                    if (!HostNames.isItDoNotDownloadHost(uri.host)) {
+                                        val otherDoc = await { NovelApi().getDocumentWithUserAgent(it.attr("href")) }
+                                        val helper = HtmlHelper.getInstance(otherDoc)
+                                        helper.removeJS(otherDoc)
+                                        helper.additionalProcessing(otherDoc)
+                                        doc.body().append(otherDoc.body().html())
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
                                 }
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
 
+                            }
                         }
                     }
 
@@ -322,21 +328,23 @@ class WebPageDBFragment : BaseFragment() {
             htmlHelper.additionalProcessing(doc)
             htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
 
-            //Add the links-content to the doc
-            if (webPage!!.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
-                val links: ArrayList<WebPage> = Gson().fromJson(webPage!!.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
-                links.forEach {
-                    val internalFilePath = "file://${it.filePath}"
-                    val input = File(internalFilePath.substring(7))
+            if (dataCenter.enableClusterPages) {
+                //Add the links-content to the doc
+                if (webPage!!.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
+                    val links: ArrayList<WebPage> = Gson().fromJson(webPage!!.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+                    links.forEach {
+                        val internalFilePath = "file://${it.filePath}"
+                        val input = File(internalFilePath.substring(7))
 
-                    var url = it.redirectedUrl
-                    if (url == null) url = internalFilePath
-                    val otherDoc = Jsoup.parse(input, "UTF-8", url)
-                    if (otherDoc != null) {
-                        val helper = HtmlHelper.getInstance(otherDoc)
-                        helper.removeJS(otherDoc)
-                        helper.additionalProcessing(otherDoc)
-                        doc.body().append(otherDoc.body().html())
+                        var url = it.redirectedUrl
+                        if (url == null) url = internalFilePath
+                        val otherDoc = Jsoup.parse(input, "UTF-8", url)
+                        if (otherDoc != null) {
+                            val helper = HtmlHelper.getInstance(otherDoc)
+                            helper.removeJS(otherDoc)
+                            helper.additionalProcessing(otherDoc)
+                            doc.body().append(otherDoc.body().html())
+                        }
                     }
                 }
             }

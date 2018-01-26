@@ -37,6 +37,8 @@ class DataCenter(context: Context) {
         private const val ENABLE_IMMERSIVE_MODE = "enableImmersiveMode"
         private const val FONT_PATH = "fontPath"
         private const val GOOGLE_ACCOUNT_NAME = "googleAccountName"
+        private const val ENABLE_CLUSTER_PAGES = "enableClusterPages"
+
     }
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -125,6 +127,9 @@ class DataCenter(context: Context) {
         get() = prefs.getString(GOOGLE_ACCOUNT_NAME, "")
         set(value) = prefs.edit().putString(GOOGLE_ACCOUNT_NAME, value).apply()
 
+    var enableClusterPages: Boolean
+        get() = prefs.getBoolean(ENABLE_CLUSTER_PAGES, true)
+        set(value) = prefs.edit().putBoolean(ENABLE_CLUSTER_PAGES, value).apply()
 
 
     fun getVerifiedHosts(): ArrayList<String> =

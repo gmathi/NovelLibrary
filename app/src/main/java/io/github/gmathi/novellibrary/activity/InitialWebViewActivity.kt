@@ -63,11 +63,11 @@ class InitialWebViewActivity : AppCompatActivity() {
                     val cookiesArray = cookies.split("; ")
                     cookiesArray.forEach { cookie ->
                         val cookieSplit = cookie.split("=")
-                        map.put(cookieSplit[0], cookieSplit[1])
+                        map[cookieSplit[0]] = cookieSplit[1]
                     }
                     NovelApi.cookies = cookies
                     NovelApi.cookiesMap = map
-                    startNavDrawerActivity()
+                    //startNavDrawerActivity()
                     finish()
                 }
 
