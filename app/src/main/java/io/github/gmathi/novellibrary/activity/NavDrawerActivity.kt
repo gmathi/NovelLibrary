@@ -58,23 +58,23 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 //            @Suppress("DEPRECATION")
 //            MaterialDialog.Builder(this)
 //                .title("📢 Announcement!")
-//                .content(Html.fromHtml("<b><u>Special Thanks:</u></b> " +
-//                    "<br/><b>Raj Kumar Shah</b>, Nepal " +
-//                    "<br/><b>Ahmad Ouerfelli</b>, Ontario " +
-//                    "<br/><b>Arthur Tesse</b>, Paris " +
-//                    "<br/>For making the app better!! Cheers!!! 🎊🎉"))
+//                .content(Html.fromHtml("<b><u>New Features:</u></b> " +
+//                    "<br/><b>Cluster Pages</b> - All links in one page. Can be toggled from Reader Settings. " +
+//                    "<br/><b>Google Cloud Backup/Restore</b> - Backup and Restore from google cloud " +
+//                    "<br/><b>Refresh Cloud Flare from Reader Page</b>" +
+//                    "<br/>For the glory of the app!! Ahooo Ahooo!!! 🎊🎉"))
 //                .positiveText("Yay")
 //                .onPositive { dialog, _ -> dialog.dismiss() }
 //                .show()
-        dataCenter.saveVerifiedHost("www.googleapis.com")
-        dataCenter.saveVerifiedHost("*.googleusercontent.com")
+            //dataCenter.saveVerifiedHost("www.googleapis.com")
+            //dataCenter.saveVerifiedHost("*.googleusercontent.com")
 
-        dataCenter.appVersionCode = BuildConfig.VERSION_CODE
+            dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
 
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
-        //startInitialWebViewActivity()
+        startInitialWebViewActivity()
     }
 
     override fun onBackPressed() {

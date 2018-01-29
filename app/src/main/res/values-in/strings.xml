@@ -233,5 +233,11 @@
     <string name="skip_cloud_flare_string">Please wait 5~10 secs while we bypass cloud flare</string>
     <string name="title_java_script">JavaScript</string>
     <string name="refresh_cloud_flare_cookies">Refresh CloudFlare Cookies</string>
+    <string name="google_backup">Google Drive Backup</string>
+    <string name="google_backup_description">Backup Data to your Google Drive. Note: Will not backup the downloaded files.</string>
+    <string name="google_restore">Google Drive Restore</string>
+    <string name="google_restore_description">Restore Data to your Google Drive</string>
+    <string name="cluster_pages">Merge All Links To Single Page</string>
+    <string name="cluster_pages_description">Merges all the web pages in to a single web page, so that the announcement posts are shown in the same screen</string>
 
 </resources>

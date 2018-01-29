@@ -17,7 +17,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 27
         multiDexEnabled true
-        versionCode 40
+        versionCode 41
         versionName "0.8.3.beta"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -94,6 +94,8 @@ dependencies {
         exclude group: 'com.google.firebase'
         exclude group: 'com.google.android.gms'
         exclude group: 'com.android.support'
+        exclude group: 'com.google.api-client'
+        exclude group: 'com.google.apis'
     })
 
     implementation('com.afollestad.material-dialogs:core:0.9.4.5', {
@@ -110,11 +112,15 @@ dependencies {
 
     implementation('com.google.api-client:google-api-client-android:1.23.0') {
         exclude group: 'org.apache.httpcomponents'
-        exclude group:'com.google.code.findbugs'
+        exclude group: 'com.google.code.findbugs'
+        exclude group: 'com.google.android.gms'
+        exclude group: 'com.firebaseui'
     }
     implementation('com.google.apis:google-api-services-drive:v2-rev294-1.23.0') {
         exclude group: 'org.apache.httpcomponents'
-        exclude group:'com.google.code.findbugs'
+        exclude group: 'com.google.code.findbugs'
+        exclude group: 'com.google.android.gms'
+        exclude group: 'com.firebaseui'
     }
 
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.1'

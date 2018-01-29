@@ -63,10 +63,12 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
 
         private val SCOPES = arrayOf(DriveScopes.DRIVE)
 
-        const val REQUEST_ACCOUNT_PICKER = 1000
-        const val REQUEST_AUTHORIZATION = 1001
-        const val REQUEST_GOOGLE_PLAY_SERVICES = 1002
-        const val REQUEST_PERMISSION_GET_ACCOUNTS = 1003
+        const val REQUEST_ACCOUNT_PICKER_BACKUP = 1000
+        const val REQUEST_ACCOUNT_PICKER_RESTORE = 2000
+        const val REQUEST_AUTHORIZATION_BACKUP = 1001
+        const val REQUEST_AUTHORIZATION_RESTORE = 2001
+        const val REQUEST_GOOGLE_PLAY_SERVICES_BACKUP = 1002
+        const val REQUEST_GOOGLE_PLAY_SERVICES_RESTORE = 2002
 
         const val BACKUP_FOLDER_NAME = "NovelLibrary-Backup"
 
@@ -450,7 +452,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     @Suppress("FunctionName")
     private fun getResultsFromApi_Backup() {
         if (!isGooglePlayServicesAvailable()) {
-            acquireGooglePlayServices()
+            acquireGooglePlayServices(REQUEST_GOOGLE_PLAY_SERVICES_BACKUP)
         } else if (credential.selectedAccountName == null) {
             chooseAccount_Backup()
         } else if (!Utils.checkNetwork(this@GeneralSettingsActivity)) {
@@ -463,7 +465,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     @Suppress("FunctionName")
     private fun getResultsFromApi_Restore() {
         if (!isGooglePlayServicesAvailable()) {
-            acquireGooglePlayServices()
+            acquireGooglePlayServices(REQUEST_GOOGLE_PLAY_SERVICES_RESTORE)
         } else if (credential.selectedAccountName == null) {
             chooseAccount_Restore()
         } else if (!Utils.checkNetwork(this@GeneralSettingsActivity)) {
@@ -479,17 +481,17 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         return connectionStatusCode == ConnectionResult.SUCCESS
     }
 
-    private fun acquireGooglePlayServices() {
+    private fun acquireGooglePlayServices(requestCode: Int) {
         val apiAvailability = GoogleApiAvailability.getInstance()
         val connectionStatusCode = apiAvailability.isGooglePlayServicesAvailable(this)
         if (apiAvailability.isUserResolvableError(connectionStatusCode)) {
-            showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode)
+            showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode, requestCode)
         }
     }
 
-    private fun showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode: Int) {
+    private fun showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode: Int, requestCode: Int) {
         val apiAvailability = GoogleApiAvailability.getInstance()
-        val dialog = apiAvailability.getErrorDialog(this@GeneralSettingsActivity, connectionStatusCode, REQUEST_GOOGLE_PLAY_SERVICES)
+        val dialog = apiAvailability.getErrorDialog(this@GeneralSettingsActivity, connectionStatusCode, requestCode)
         dialog.show()
     }
 
@@ -506,7 +508,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                         getResultsFromApi_Backup()
                     } else {
                         // Start a dialog from which the user can choose an account
-                        startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER)
+                        startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER_BACKUP)
                     }
                 } else
                     showDialog(content = "Enable \"Get Accounts\" permission for Novel Library " +
@@ -528,7 +530,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                         getResultsFromApi_Restore()
                     } else {
                         // Start a dialog from which the user can choose an account
-                        startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER)
+                        startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER_RESTORE)
                     }
                 } else
                     showDialog(content = "Enable \"Get Accounts\" permission for Novel Library " +
@@ -541,30 +543,57 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
-            REQUEST_GOOGLE_PLAY_SERVICES -> {
+            REQUEST_GOOGLE_PLAY_SERVICES_BACKUP -> {
                 if (resultCode != RESULT_OK) {
                     showDialog(content =
                     "This app requires Google Play Services. Please install " +
                         "Google Play Services on your device and relaunch this app.")
                 } else {
-                    //getResultsFromApi_Backup()
+                    getResultsFromApi_Backup()
                 }
             }
 
-            REQUEST_ACCOUNT_PICKER -> {
+            REQUEST_GOOGLE_PLAY_SERVICES_RESTORE -> {
+                if (resultCode != RESULT_OK) {
+                    showDialog(content =
+                    "This app requires Google Play Services. Please install " +
+                        "Google Play Services on your device and relaunch this app.")
+                } else {
+                    getResultsFromApi_Restore()
+                }
+            }
+
+            REQUEST_ACCOUNT_PICKER_BACKUP -> {
                 if (resultCode == RESULT_OK && data != null && data.extras != null) {
                     val accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME)
                     if (accountName != null) {
                         dataCenter.googleAccountName = accountName
                         credential.selectedAccountName = accountName
-                        //getResultsFromApi()
+                        getResultsFromApi_Backup()
                     }
                 }
             }
 
-            REQUEST_AUTHORIZATION -> {
+            REQUEST_ACCOUNT_PICKER_RESTORE -> {
+                if (resultCode == RESULT_OK && data != null && data.extras != null) {
+                    val accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME)
+                    if (accountName != null) {
+                        dataCenter.googleAccountName = accountName
+                        credential.selectedAccountName = accountName
+                        getResultsFromApi_Restore()
+                    }
+                }
+            }
+
+            REQUEST_AUTHORIZATION_BACKUP -> {
                 if (resultCode == RESULT_OK) {
-                    //getResultsFromApi_Backup()
+                    getResultsFromApi_Backup()
+                }
+            }
+
+            REQUEST_AUTHORIZATION_RESTORE -> {
+                if (resultCode == RESULT_OK) {
+                    getResultsFromApi_Restore()
                 }
             }
         }
@@ -679,8 +708,8 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
 
             } catch (e: Exception) {
                 when (e) {
-                    is GooglePlayServicesAvailabilityIOException -> showGooglePlayServicesAvailabilityErrorDialog(e.connectionStatusCode)
-                    is UserRecoverableAuthIOException -> startActivityForResult(e.intent, REQUEST_AUTHORIZATION)
+                    is GooglePlayServicesAvailabilityIOException -> showGooglePlayServicesAvailabilityErrorDialog(e.connectionStatusCode, REQUEST_GOOGLE_PLAY_SERVICES_BACKUP)
+                    is UserRecoverableAuthIOException -> startActivityForResult(e.intent, REQUEST_AUTHORIZATION_BACKUP)
                     else -> e.printStackTrace()
                 }
                 showDialog(content = "Backup Failed!")
@@ -736,7 +765,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                         val inputStream = await { downloadFile(service, it) }
                         if (inputStream != null) {
                             val file = File(currentDBsPath, it.title)
-                           // if (file.exists()) file.delete()
+                            // if (file.exists()) file.delete()
                             await { Utils.copyFile(inputStream, file) }
                         }
                     }
@@ -763,7 +792,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                             val inputStream = await { downloadFile(service, it) }
                             if (inputStream != null) {
                                 val file = File(currentDBsPath, it.title)
-                           //     if (file.exists()) file.delete()
+                                //     if (file.exists()) file.delete()
                                 await { Utils.copyFile(inputStream, file) }
                             }
                         }
@@ -774,19 +803,8 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
 
             } catch (e: Exception) {
                 when (e) {
-                    is GooglePlayServicesAvailabilityIOException -> showGooglePlayServicesAvailabilityErrorDialog(e.connectionStatusCode)
-                    is UserRecoverableAuthIOException -> startActivityForResult(e.intent, REQUEST_AUTHORIZATION)
-//                    is SSLPeerUnverifiedException -> {
-//                        val p = Pattern.compile("Hostname\\s(.*?)\\snot", Pattern.DOTALL or Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE or Pattern.MULTILINE) // Regex for the value of the key
-//                        val m = p.matcher(e.localizedMessage)
-//                        if (m.find()) {
-//                            val hostName = m.group(1)
-//                            if (!HostNames.isVerifiedHost(hostName)) {
-//                                dataCenter.saveVerifiedHost(m.group(1))
-//                            }
-//                        }
-//                        showDialog(content = "Restore Unsuccessful due to host verification fail! Host has been added. Try again now!")
-//                    }
+                    is GooglePlayServicesAvailabilityIOException -> showGooglePlayServicesAvailabilityErrorDialog(e.connectionStatusCode, REQUEST_GOOGLE_PLAY_SERVICES_RESTORE)
+                    is UserRecoverableAuthIOException -> startActivityForResult(e.intent, REQUEST_AUTHORIZATION_RESTORE)
                     else -> {
                         showDialog(content = "Restore Failed!")
                         e.printStackTrace()

@@ -128,7 +128,7 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putString(GOOGLE_ACCOUNT_NAME, value).apply()
 
     var enableClusterPages: Boolean
-        get() = prefs.getBoolean(ENABLE_CLUSTER_PAGES, true)
+        get() = prefs.getBoolean(ENABLE_CLUSTER_PAGES, false)
         set(value) = prefs.edit().putBoolean(ENABLE_CLUSTER_PAGES, value).apply()
 
 
