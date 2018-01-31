@@ -21,7 +21,7 @@ class SearchUrlActivity : BaseActivity() {
         replaceFragment(fragment, "SearchUrlFragment")
     }
 
-    fun replaceFragment(fragment: Fragment, tag: String) {
+    private fun replaceFragment(fragment: Fragment, tag: String) {
         val existingFrag = supportFragmentManager.findFragmentByTag(tag)
         var replaceFrag = fragment
         if (existingFrag != null) {

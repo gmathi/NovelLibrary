@@ -33,7 +33,7 @@ object HostNames {
     private val DEFAULT_ALLOWED_HOST_NAMES_ARRAY = arrayOf(NOVEL_UPDATES, ROYAL_ROAD, KOBATOCHAN, GRAVITY_TALES, WUXIA_WORLD, WORD_PRESS, WLN_UPDATES, CIRCUS_TRANSLATIONS, QIDIAN,
         //PRINCE_REVOLUTION,
         "patreon.com", "royalroadlupload.blob.core.windows.net", "postimg.org", "lightnovelbastion.com", "fonts.googleapis.com", "ggpht.com", "gravatar.com", "imgur.com", "isohungrytls.com", "bootstrapcdn.com", "CloudFlare.com", "wp.com", "scatterdrift.com",
-        "discordapp.com", "chubbycheeksthoughts.com", "omatranslations.com", "www.googleapis.com", "*.googleusercontent.com" )
+        "discordapp.com", "chubbycheeksthoughts.com", "omatranslations.com", "www.googleapis.com", "*.googleusercontent.com")
 
     val defaultHostNamesList: ArrayList<String>
         get() = ArrayList(Arrays.asList(*DEFAULT_ALLOWED_HOST_NAMES_ARRAY))
@@ -43,7 +43,15 @@ object HostNames {
             hostNamesList.addAll(hostNames)
         }
 
-    fun isVerifiedHost(hostName: String): Boolean = hostNamesList.any { hostName.contains(it) }
+    fun isVerifiedHost(hostName: String): Boolean {
+        return try {
+            !hostNamesList.isEmpty() && hostNamesList.any { it.contains(hostName) }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
 
     fun addHost(hostName: String): Boolean = hostNamesList.add(hostName)
 

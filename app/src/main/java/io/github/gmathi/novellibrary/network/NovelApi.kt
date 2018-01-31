@@ -18,15 +18,6 @@ class NovelApi {
     fun getDocument(url: String): Document {
         try {
 
-//            val antibot = OkHttpAntiAntibotCloudFlareFactory().createInstance()
-//            val html = antibot.getUrl(url)
-//            antibot.close() //not really necessary in this case, since it does nothing
-//            return Jsoup.parse(html)
-
-//            val cf = CloudFlare(url)
-//            cf.setUA(USER_AGENT)
-//            val cookiesMap = cf.List2Map(cf.cookiesMap())
-
             return Jsoup
                 .connect(url)
                 .cookies(cookiesMap)
