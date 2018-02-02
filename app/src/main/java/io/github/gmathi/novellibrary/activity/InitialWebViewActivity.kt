@@ -30,7 +30,7 @@ class InitialWebViewActivity : AppCompatActivity() {
         setContentView(R.layout.activity_initial_web_view)
 
         if (!Utils.checkNetwork(this))
-            startNavDrawerActivity()
+            finish()
 
         previewWebView.settings.javaScriptEnabled = true
         previewWebView.settings.userAgentString = USER_AGENT
