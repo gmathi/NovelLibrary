@@ -12,19 +12,19 @@ class NovelApi {
 
     companion object {
         var cookies: String? = ""
-        var cookiesMap: HashMap<String, String>? = HashMap()
+        var cookiesMap: Map<String, String>? = HashMap()
     }
 
     fun getDocument(url: String): Document {
         try {
 
             return Jsoup
-                .connect(url)
-                .cookies(cookiesMap)
-                .referrer(url)
-                .ignoreHttpErrors(true)
-                .timeout(30000)
-                .get()
+                    .connect(url)
+                    .cookies(cookiesMap)
+                    .referrer(url)
+                    .ignoreHttpErrors(true)
+                    .timeout(30000)
+                    .get()
         } catch (e: SSLPeerUnverifiedException) {
             val p = Pattern.compile("Hostname\\s(.*?)\\snot", Pattern.DOTALL or Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE or Pattern.MULTILINE) // Regex for the value of the key
             val m = p.matcher(e.localizedMessage)
@@ -42,13 +42,13 @@ class NovelApi {
     fun getDocumentWithUserAgent(url: String, canLoop: Boolean = true): Document {
         try {
             val doc = Jsoup
-                .connect(url)
-                .referrer(url)
-                .cookies(cookiesMap)
-                .ignoreHttpErrors(true)
-                .timeout(30000)
-                .userAgent(USER_AGENT)
-                .get()
+                    .connect(url)
+                    .referrer(url)
+                    .cookies(cookiesMap)
+                    .ignoreHttpErrors(true)
+                    .timeout(30000)
+                    .userAgent(dataCenter.userAgent)
+                    .get()
 
             if (canLoop && doc != null && doc.location().contains("rssbook") && doc.location().contains(HostNames.QIDIAN)) {
                 return getDocumentWithUserAgent(doc.location().replace("rssbook", "book"), false)
@@ -73,13 +73,13 @@ class NovelApi {
     fun getDocumentWithUserAgentIgnoreContentType(url: String): Document {
         try {
             return Jsoup
-                .connect(url)
-                .referrer(url)
-                .timeout(30000)
-                .cookies(cookiesMap)
-                .userAgent(USER_AGENT)
-                .ignoreContentType(true)
-                .get()
+                    .connect(url)
+                    .referrer(url)
+                    .timeout(30000)
+                    .cookies(cookiesMap)
+                    .userAgent(dataCenter.userAgent)
+                    .ignoreContentType(true)
+                    .get()
         } catch (e: SSLPeerUnverifiedException) {
             val p = Pattern.compile("Hostname\\s(.*?)\\snot", Pattern.DOTALL or Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE or Pattern.MULTILINE) // Regex for the value of the key
             val m = p.matcher(e.localizedMessage)

@@ -33,7 +33,7 @@ object HostNames {
     private val DEFAULT_ALLOWED_HOST_NAMES_ARRAY = arrayOf(NOVEL_UPDATES, ROYAL_ROAD, KOBATOCHAN, GRAVITY_TALES, WUXIA_WORLD, WORD_PRESS, WLN_UPDATES, CIRCUS_TRANSLATIONS, QIDIAN,
         //PRINCE_REVOLUTION,
         "patreon.com", "royalroadlupload.blob.core.windows.net", "postimg.org", "lightnovelbastion.com", "fonts.googleapis.com", "ggpht.com", "gravatar.com", "imgur.com", "isohungrytls.com", "bootstrapcdn.com", "CloudFlare.com", "wp.com", "scatterdrift.com",
-        "discordapp.com", "chubbycheeksthoughts.com", "omatranslations.com", "www.googleapis.com", "*.googleusercontent.com")
+        "discordapp.com", "chubbycheeksthoughts.com", "omatranslations.com", "www.googleapis.com", "*.googleusercontent.com", "cdn.novelupdates.com", "*.novelupdates.com", "www.novelupdates.com")
 
     val defaultHostNamesList: ArrayList<String>
         get() = ArrayList(Arrays.asList(*DEFAULT_ALLOWED_HOST_NAMES_ARRAY))

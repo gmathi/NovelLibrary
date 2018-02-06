@@ -16,6 +16,7 @@ import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.searchUrl
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.getGlideUrl
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
@@ -123,7 +124,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         itemView.novelImageView.setImageResource(android.R.color.transparent)
         if (item.imageUrl != null) {
             Glide.with(this)
-                    .load(item.imageUrl)
+                    .load(item.imageUrl?.getGlideUrl())
                     .apply(RequestOptions.circleCropTransform())
                     .into(itemView.novelImageView)
         }

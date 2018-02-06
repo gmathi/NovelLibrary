@@ -92,7 +92,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
         if (item.imageUrl != null) {
             Glide.with(this)
-                .load(item.imageUrl)
+                .load(item.imageUrl?.getGlideUrl())
                 .apply(RequestOptions.circleCropTransform())
                 .into(itemView.novelImageView)
         }

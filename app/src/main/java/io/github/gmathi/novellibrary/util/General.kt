@@ -12,10 +12,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
 import android.widget.TextView
+import com.bumptech.glide.load.model.GlideUrl
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.adapter.GenericAdapterWithDragListener
 import io.github.gmathi.novellibrary.dataCenter
 import jp.wasabeef.recyclerview.animators.SlideInRightAnimator
+import com.bumptech.glide.load.model.LazyHeaders
 
 
 fun ViewGroup.inflate(layoutRes: Int): View {
@@ -35,6 +37,14 @@ fun String.writableFileName(): String {
     if (fileName.length > 150)
         fileName = fileName.substring(0, 150)
     return fileName
+}
+
+fun String.getGlideUrl(): GlideUrl {
+    val builder = LazyHeaders.Builder()
+            .addHeader("User-Agent", dataCenter.userAgent)
+            .addHeader("Cookie", dataCenter.cfCookiesString)
+
+    return GlideUrl(this, builder.build())
 }
 
 /**
@@ -86,7 +96,6 @@ fun <T> RecyclerView.setDefaultsNoAnimation(adapter: GenericAdapterWithDragListe
 }
 
 
-
 fun Uri.getFileName(): String {
     return (this.lastPathSegment + this.toString().substringAfter("?", "")).writableFileName()
 }
@@ -112,7 +121,7 @@ fun TextView.setTypeface(style: Int): TextView {
 }
 
 
-private fun  String?.contains(chapter: String?): Boolean {
+private fun String?.contains(chapter: String?): Boolean {
     return (this != null) && (chapter != null) && this.contains(chapter)
 }
 

@@ -89,6 +89,7 @@ dependencies {
     implementation 'com.tapadoo.android:alerter:2.0.1'
     implementation 'com.yarolegovich:sliding-root-nav:1.1.0'
     implementation 'com.mikepenz:fastadapter:3.0.4@aar'
+    implementation 'com.loopj.android:android-async-http:1.4.9'
 
     implementation('com.firebaseui:firebase-ui-auth:3.1.0', {
         exclude group: 'com.google.firebase'

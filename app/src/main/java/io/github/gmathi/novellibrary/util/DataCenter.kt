@@ -38,6 +38,11 @@ class DataCenter(context: Context) {
         private const val FONT_PATH = "fontPath"
         private const val GOOGLE_ACCOUNT_NAME = "googleAccountName"
         private const val ENABLE_CLUSTER_PAGES = "enableClusterPages"
+        private const val CF_COOKIES_USER_AGENT = "cfCookiesUserAgent"
+        private const val CF_COOKIES_STRING = "cfCookiesString"
+
+        const val CF_COOKIES_CLEARANCE = "cf_clearance"
+        const val CF_COOKIES_DUID = "__cfduid"
 
     }
 
@@ -131,6 +136,21 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(ENABLE_CLUSTER_PAGES, false)
         set(value) = prefs.edit().putBoolean(ENABLE_CLUSTER_PAGES, value).apply()
 
+    var userAgent: String
+        get() = prefs.getString(CF_COOKIES_USER_AGENT, HostNames.USER_AGENT)
+        set(value) = prefs.edit().putString(CF_COOKIES_USER_AGENT, value).apply()
+
+    var cfClearance: String
+        get() = prefs.getString(CF_COOKIES_CLEARANCE, "")
+        set(value) = prefs.edit().putString(CF_COOKIES_CLEARANCE, value).apply()
+
+    var cfDuid: String
+        get() = prefs.getString(CF_COOKIES_DUID, "")
+        set(value) = prefs.edit().putString(CF_COOKIES_DUID, value).apply()
+
+    var cfCookiesString: String
+        get() = prefs.getString(CF_COOKIES_STRING, "")
+        set(value) = prefs.edit().putString(CF_COOKIES_STRING, value).apply()
 
     fun getVerifiedHosts(): ArrayList<String> =
             Gson().fromJson(prefs.getString(VERIFIED_HOSTS, Gson().toJson(HostNames.defaultHostNamesList)), object : TypeToken<ArrayList<String>>() {}.type)
