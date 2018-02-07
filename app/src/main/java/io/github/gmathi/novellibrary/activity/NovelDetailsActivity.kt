@@ -30,10 +30,7 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getNovelDetails
-import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.TextViewLinkHandler
-import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.applyFont
+import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.activity_novel_details.*
 import kotlinx.android.synthetic.main.content_novel_details.*
 
@@ -131,7 +128,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     private fun setNovelImage() {
         if (novel.imageUrl != null) {
             Glide.with(this)
-                    .load(novel.imageUrl)
+                    .load(novel.imageUrl?.getGlideUrl())
                     .into(novelDetailsImage)
             novelDetailsImage.setOnClickListener { startImagePreviewActivity(novel.imageUrl, novel.imageFilePath, novelDetailsImage) }
         }

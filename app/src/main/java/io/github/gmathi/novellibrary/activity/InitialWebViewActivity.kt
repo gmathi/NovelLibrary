@@ -20,17 +20,17 @@ import kotlinx.android.synthetic.main.activity_initial_web_view.*
 class InitialWebViewActivity : AppCompatActivity() {
 
     companion object {
-        val TAG = "InitialWebViewActivity"
+        const val TAG = "InitialWebViewActivity"
     }
 
-    var mainUrl: String? = null
+    private var mainUrl: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_initial_web_view)
 
         if (!Utils.checkNetwork(this))
-            startNavDrawerActivity()
+            finish()
 
         previewWebView.settings.javaScriptEnabled = true
         previewWebView.settings.userAgentString = USER_AGENT
@@ -58,19 +58,20 @@ class InitialWebViewActivity : AppCompatActivity() {
                 val cookies = CookieManager.getInstance().getCookie(url)
                 Log.e(TAG, "All the cookiesMap in a string:" + cookies)
 
-                if (cookies.contains("cfduid") && cookies.contains("cf_clearance")) {
+                if (cookies != null && cookies.contains("cfduid") && cookies.contains("cf_clearance")) {
                     val map: HashMap<String, String> = HashMap()
                     val cookiesArray = cookies.split("; ")
                     cookiesArray.forEach { cookie ->
                         val cookieSplit = cookie.split("=")
-                        map.put(cookieSplit[0], cookieSplit[1])
+                        map[cookieSplit[0]] = cookieSplit[1]
                     }
                     NovelApi.cookies = cookies
                     NovelApi.cookiesMap = map
-                    startNavDrawerActivity()
+                    //startNavDrawerActivity()
+                    finish()
+                } else {
                     finish()
                 }
-
             }
 
 

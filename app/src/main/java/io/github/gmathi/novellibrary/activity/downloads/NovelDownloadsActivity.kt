@@ -16,6 +16,7 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.*
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.getGlideUrl
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.activity_novel_downloads.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
@@ -94,7 +95,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         val novel = dbHelper.getNovel(item)
         if (novel?.imageUrl != null) {
             Glide.with(this)
-                .load(novel.imageUrl)
+                .load(novel.imageUrl?.getGlideUrl())
                 .apply(RequestOptions.circleCropTransform())
                 .into(itemView.novelImageView)
         }

@@ -10,6 +10,7 @@ import android.support.v4.view.GravityCompat
 import android.support.v7.widget.Toolbar
 import android.text.Html
 import android.view.MenuItem
+import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
@@ -20,6 +21,8 @@ import io.github.gmathi.novellibrary.fragment.DownloadFragment
 import io.github.gmathi.novellibrary.fragment.LibraryFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.network.CloudFlare
+import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.Constants
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
@@ -55,24 +58,54 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             }
         }
 
-        loadFragment(currentNavId)
-        if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
-            @Suppress("DEPRECATION")
-            MaterialDialog.Builder(this)
-                .title("📢 Announcement!")
-                .content(Html.fromHtml("<b><u>Special Thanks:</u></b> " +
-                    "<br/><b>Raj Kumar Shah</b>, Nepal " +
-                    "<br/><b>Ahmad Ouerfelli</b>, Ontario " +
-                    "<br/><b>Arthur Tesse</b>, Paris " +
-                    "<br/>For making the app better!! Cheers!!! 🎊🎉"))
-                .positiveText("Yay")
-                .onPositive { dialog, _ -> dialog.dismiss() }
-                .show()
-            dataCenter.appVersionCode = BuildConfig.VERSION_CODE
-        }
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
-        startInitialWebViewActivity()
+
+        checkForCloudFlare()
+
+
+        //loadFragment(currentNavId)
+        if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
+//            @Suppress("DEPRECATION")
+//            MaterialDialog.Builder(this)
+//                .title("📢 Announcement!")
+//                .content(Html.fromHtml("<b><u>New Features:</u></b> " +
+//                    "<br/><b>Experimental: Cluster Pages</b> - All links in one page. Can be toggled from Reader Settings. Don't use it, if you are not sure." +
+//                    "<br/><b>Fixed (I think so...): Google Cloud Backup/Restore</b> - Backup and Restore from google cloud " +
+//                    "<br/>For the glory of the app!! Ahooo Ahooo!!! 🎊🎉"))
+//                .positiveText("Yay")
+//                .onPositive { dialog, _ -> dialog.dismiss() }
+//                .show()
+//            try {
+                //dataCenter.resetVerifiedHosts()
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//            }
+            dataCenter.appVersionCode = BuildConfig.VERSION_CODE
+        }
+//
+
+    }
+
+    private fun checkForCloudFlare() {
+        async {
+
+            val listener = object : CloudFlare.Companion.Listener {
+                override fun onSuccess() {
+                    loadFragment(currentNavId)
+                }
+
+                override fun onFailure() {
+                    MaterialDialog.Builder(this@NavDrawerActivity)
+                            .content("Cloud Flare ByPass Failed")
+                            .positiveText("Try Again")
+                            .onPositive { dialog, _ -> dialog.dismiss(); checkForCloudFlare() }
+                            .show()
+                }
+            }
+
+            await { CloudFlare(this@NavDrawerActivity, listener).check() }
+        }
     }
 
     override fun onBackPressed() {
@@ -148,10 +181,10 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun replaceFragment(fragment: Fragment, tag: String) {
         supportFragmentManager.beginTransaction()
-            .replace(R.id.navFragmentContainer, fragment, tag)
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-            .addToBackStack(tag)
-            .commitAllowingStateLoss()
+                .replace(R.id.navFragmentContainer, fragment, tag)
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                .addToBackStack(tag)
+                .commitAllowingStateLoss()
     }
 
     fun setToolbar(toolbar: Toolbar?) {
@@ -178,6 +211,11 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
         outState?.putInt("currentNavId", currentNavId)
+    }
+
+    override fun onDestroy() {
+        async.cancelAll()
+        super.onDestroy()
     }
 
 

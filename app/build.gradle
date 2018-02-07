@@ -11,14 +11,14 @@ if (keystorePropertiesFile.exists() && keystorePropertiesFile.canRead()) {
 
 android {
     compileSdkVersion 27
-    buildToolsVersion '27.0.1'
+    buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "io.github.gmathi.novellibrary"
         minSdkVersion 16
         targetSdkVersion 27
         multiDexEnabled true
-        versionCode 37
-        versionName "0.8.1.beta"
+        versionCode 43
+        versionName "0.8.5.beta"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         resConfigs "auto"
@@ -89,11 +89,14 @@ dependencies {
     implementation 'com.tapadoo.android:alerter:2.0.1'
     implementation 'com.yarolegovich:sliding-root-nav:1.1.0'
     implementation 'com.mikepenz:fastadapter:3.0.4@aar'
+    implementation 'com.loopj.android:android-async-http:1.4.9'
 
     implementation('com.firebaseui:firebase-ui-auth:3.1.0', {
         exclude group: 'com.google.firebase'
         exclude group: 'com.google.android.gms'
         exclude group: 'com.android.support'
+        exclude group: 'com.google.api-client'
+        exclude group: 'com.google.apis'
     })
 
     implementation('com.afollestad.material-dialogs:core:0.9.4.5', {
@@ -104,8 +107,22 @@ dependencies {
     })
 
     implementation "com.google.android.gms:play-services-gcm:$gcm_services_version"
+    implementation "com.google.android.gms:play-services-auth:$gcm_services_version"
     implementation "com.google.firebase:firebase-messaging:$gcm_services_version"
     implementation "com.google.firebase:firebase-auth:$gcm_services_version"
+
+    implementation('com.google.api-client:google-api-client-android:1.23.0') {
+        exclude group: 'org.apache.httpcomponents'
+        exclude group: 'com.google.code.findbugs'
+        exclude group: 'com.google.android.gms'
+        exclude group: 'com.firebaseui'
+    }
+    implementation('com.google.apis:google-api-services-drive:v2-rev294-1.23.0') {
+        exclude group: 'org.apache.httpcomponents'
+        exclude group: 'com.google.code.findbugs'
+        exclude group: 'com.google.android.gms'
+        exclude group: 'com.firebaseui'
+    }
 
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.1'
     releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'

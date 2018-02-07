@@ -25,13 +25,13 @@ class DownloadNovelService : IntentService(TAG) {
 
     //static components
     companion object {
-        val TAG = "DownloadNovelService"
-        val QUALIFIED_NAME = "io.github.gmathi.novellibrary.service.download.DownloadNovelService"
-        val MAX_PARALLEL_DOWNLOADS = 5
+        const val TAG = "DownloadNovelService"
+        const val QUALIFIED_NAME = "io.github.gmathi.novellibrary.service.download.DownloadNovelService"
+        const val MAX_PARALLEL_DOWNLOADS = 5
 
-        val NOVEL_NAME = "name"
-        val ACTION_START = "action_start"
-        val ACTION_PAUSE = "action_pause"
+        const val NOVEL_NAME = "name"
+        const val ACTION_START = "action_start"
+        const val ACTION_PAUSE = "action_pause"
     }
 
 
@@ -40,14 +40,20 @@ class DownloadNovelService : IntentService(TAG) {
 
 
         dbHelper = DBHelper.getInstance(this)
-        EventBus.getDefault().register(this)
+        try {
+            EventBus.getDefault().register(this)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+
         val novelName = workIntent.getStringExtra(NOVEL_NAME)
 
         //Initialize Thread Pool
         threadPool = Executors.newFixedThreadPool(MAX_PARALLEL_DOWNLOADS) as ThreadPoolExecutor
 
         val downloadNovelThread = DownloadNovelThread(this, novelName, dbHelper)
-        threadListMap.put(novelName, downloadNovelThread)
+        threadListMap[novelName] = downloadNovelThread
 
         futures.add(threadPool.submit(downloadNovelThread, null as Any?))
 
@@ -83,7 +89,7 @@ class DownloadNovelService : IntentService(TAG) {
             val downloadNovelThread = threadListMap[novelName]
             if (downloadNovelThread != null && downloadNovelThread.isAlive) {
                 downloadNovelThread.interrupt()
-                threadListMap.put(novelName, null)
+                threadListMap[novelName] = null
             }
         }
     }

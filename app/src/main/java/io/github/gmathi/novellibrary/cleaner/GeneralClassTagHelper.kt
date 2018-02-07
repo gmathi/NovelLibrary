@@ -64,10 +64,18 @@ class GeneralClassTagHelper(private val hostName: String, private val tagName: S
 
     private fun removeDirectionalLinks(contentElement: Element?) {
         contentElement?.getElementsByTag("a")?.filter {
-            it.text().contains("Previous Chapter", ignoreCase = true)
-                || it.text().contains("Next Chapter", ignoreCase = true)
-                || it.text().contains("Project Page", ignoreCase = true)
-                || it.text().contains("Index", ignoreCase = true)
+            it.text().equals("Previous Chapter", ignoreCase = true)
+                || it.text().equals("Next Chapter", ignoreCase = true)
+                || it.text().equals("Project Page", ignoreCase = true)
+                || it.text().equals("Index", ignoreCase = true)
+                || it.text().equals("[Previous Chapter]", ignoreCase = true)
+                || it.text().equals("[Next Chapter]", ignoreCase = true)
+                || it.text().equals("[Table of Contents]", ignoreCase = true)
+                || it.text().equals("Next", ignoreCase = true)
+                || it.text().equals("TOC", ignoreCase = true)
+                || it.text().equals("Previous", ignoreCase = true)
+
+
 
         }?.forEach { it?.remove() }
     }
