@@ -161,7 +161,7 @@ class DataCenter(context: Context) {
         prefs.edit().putString(VERIFIED_HOSTS, Gson().toJson(HostNames.hostNamesList)).apply()
     }
 
-    fun clearVerifiedHosts() {
-        prefs.edit().putString(VERIFIED_HOSTS, "[]").apply()
+    fun updateVerifiedHosts(hostNames: ArrayList<String> ) {
+        prefs.edit().putString(VERIFIED_HOSTS, Gson().toJson(hostNames)).apply()
     }
 }

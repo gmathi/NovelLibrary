@@ -15,6 +15,7 @@ import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.util.Utils
 import java.io.File
 import java.security.KeyManagementException
 import java.security.NoSuchAlgorithmException
@@ -43,8 +44,17 @@ class NovelLibraryApplication : MultiDexApplication() {
     override fun onCreate() {
         dataCenter = DataCenter(applicationContext)
         dbHelper = DBHelper.getInstance(applicationContext)
-        HostNames.hostNamesList = dataCenter!!.getVerifiedHosts()
         super.onCreate()
+
+        try {
+            HostNames.hostNamesList = dataCenter!!.getVerifiedHosts()
+            HostNames.defaultHostNamesList.forEach { if (!HostNames.isVerifiedHost(it)) HostNames.hostNamesList.add(it) }
+            dataCenter?.updateVerifiedHosts(HostNames.hostNamesList)
+        } catch (e: Exception) {
+            Utils.error("NovelLibraryApplication", "Adding the defaultHostNames to hostNamesList", e)
+        }
+
+
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
 
         if (LeakCanary.isInAnalyzerProcess(this)) {

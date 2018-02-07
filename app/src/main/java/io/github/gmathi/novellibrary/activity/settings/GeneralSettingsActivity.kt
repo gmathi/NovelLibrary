@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.activity.settings
 
 import android.Manifest
 import android.accounts.AccountManager
+import android.app.PendingIntent.getActivity
 import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
@@ -612,7 +613,8 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 val result: FileList = await {
                     service.files().list()
                         .setQ("title = '$BACKUP_FOLDER_NAME' and mimeType = 'application/vnd.google-apps.folder'")
-                        .setMaxResults(10).execute()
+                        .setMaxResults(10)
+                        .execute()
                 }
 
                 val backupFolder: com.google.api.services.drive.model.File

@@ -22,6 +22,7 @@ import io.github.gmathi.novellibrary.fragment.LibraryFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.CloudFlare
+import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.Constants
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
@@ -64,7 +65,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
 
         //loadFragment(currentNavId)
-//        if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
+        if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
 //            @Suppress("DEPRECATION")
 //            MaterialDialog.Builder(this)
 //                .title("📢 Announcement!")
@@ -76,13 +77,12 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 //                .onPositive { dialog, _ -> dialog.dismiss() }
 //                .show()
 //            try {
-//                dataCenter.saveVerifiedHost("www.googleapis.com")
-//                dataCenter.saveVerifiedHost("*.googleusercontent.com")
+                //dataCenter.resetVerifiedHosts()
 //            } catch (e: Exception) {
 //                e.printStackTrace()
 //            }
-//            dataCenter.appVersionCode = BuildConfig.VERSION_CODE
-//        }
+            dataCenter.appVersionCode = BuildConfig.VERSION_CODE
+        }
 //
 
     }
