@@ -13,7 +13,9 @@ import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import co.metalab.asyncawait.async
+import com.afollestad.materialdialogs.MaterialDialog
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
@@ -27,6 +29,7 @@ import io.github.gmathi.novellibrary.database.updateWebPage
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.network.CloudFlare
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
@@ -105,6 +108,34 @@ class WebPageDBFragment : BaseFragment() {
 
     }
 
+    private fun checkForCloudFlare() {
+        async {
+
+            val listener = object : CloudFlare.Companion.Listener {
+                override fun onSuccess() {
+                    //  loadFragment(currentNavId)
+                    if (activity != null)
+                        Toast.makeText(activity, "Cloud Flare Bypassed", Toast.LENGTH_SHORT).show()
+                    readerWebView.loadUrl("about:blank")
+                    readerWebView.clearHistory()
+                    loadData()
+                }
+
+                override fun onFailure() {
+                    if (activity != null)
+                        MaterialDialog.Builder(activity!!)
+                            .content("Cloud Flare ByPass Failed")
+                            .positiveText("Try Again")
+                            .onPositive { dialog, _ -> dialog.dismiss(); checkForCloudFlare() }
+                            .show()
+                }
+            }
+
+            if (activity != null)
+                await { CloudFlare(activity!!, listener).check() }
+        }
+    }
+
     @SuppressLint("JavascriptInterface", "AddJavascriptInterface")
     private fun setWebView() {
         readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
@@ -120,7 +151,7 @@ class WebPageDBFragment : BaseFragment() {
                 }
 
                 if (url == "abc://retry_internal")
-                    (activity as ReaderDBPagerActivity).startInitialWebViewActivity()
+                    checkForCloudFlare()
 
                 //Add current page to history, if it was not already added or if the history is empty
 //                if (history.isEmpty()) history.add(webPage!!)

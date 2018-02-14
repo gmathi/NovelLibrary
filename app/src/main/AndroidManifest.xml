@@ -221,6 +221,10 @@
             android:label="@string/title_activity_web_view"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
+        <activity android:name=".activity.settings.MainActivity"
+            android:label="@string/title_activity_web_view"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
     </application>
 
 </manifest>

@@ -107,22 +107,23 @@ dependencies {
     })
 
     implementation "com.google.android.gms:play-services-gcm:$gcm_services_version"
+    implementation "com.google.android.gms:play-services-drive:$gcm_services_version"
     implementation "com.google.android.gms:play-services-auth:$gcm_services_version"
     implementation "com.google.firebase:firebase-messaging:$gcm_services_version"
     implementation "com.google.firebase:firebase-auth:$gcm_services_version"
 
-    implementation('com.google.api-client:google-api-client-android:1.23.0') {
-        exclude group: 'org.apache.httpcomponents'
-        exclude group: 'com.google.code.findbugs'
-        exclude group: 'com.google.android.gms'
-        exclude group: 'com.firebaseui'
-    }
-    implementation('com.google.apis:google-api-services-drive:v2-rev294-1.23.0') {
-        exclude group: 'org.apache.httpcomponents'
-        exclude group: 'com.google.code.findbugs'
-        exclude group: 'com.google.android.gms'
-        exclude group: 'com.firebaseui'
-    }
+//    implementation('com.google.api-client:google-api-client-android:1.23.0') {
+//        exclude group: 'org.apache.httpcomponents'
+//        exclude group: 'com.google.code.findbugs'
+//        exclude group: 'com.google.android.gms'
+//        exclude group: 'com.firebaseui'
+//    }
+//    implementation('com.google.apis:google-api-services-drive:v2-rev294-1.23.0') {
+//        exclude group: 'org.apache.httpcomponents'
+//        exclude group: 'com.google.code.findbugs'
+//        exclude group: 'com.google.android.gms'
+//        exclude group: 'com.firebaseui'
+//    }
 
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.1'
     releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'

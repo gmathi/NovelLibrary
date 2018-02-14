@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.util
 
+import android.app.Activity
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Context.ACTIVITY_SERVICE
@@ -12,8 +13,11 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.support.v4.content.ContextCompat
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.util.TypedValue
+import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.getNovel
@@ -231,6 +235,27 @@ object Utils {
     fun isServiceRunning(context: Context, serviceQualifiedName: String): Boolean {
         val manager = context.getSystemService(ACTIVITY_SERVICE) as ActivityManager
         return manager.getRunningServices(Integer.MAX_VALUE).any { serviceQualifiedName == it.service.className }
+    }
+
+    fun dialogBuilder(activity: AppCompatActivity, title: String? = null, content: String? = null, iconRes: Int = R.drawable.ic_warning_white_vector, isProgress: Boolean = false): MaterialDialog.Builder {
+        val dialogBuilder = MaterialDialog.Builder(activity)
+
+        if (title != null)
+            dialogBuilder.title(activity.getString(R.string.confirm_action))
+
+        if (isProgress)
+            dialogBuilder.progress(true, 100)
+
+        if (content != null)
+            dialogBuilder.content(content)
+
+        dialogBuilder
+            .iconRes(iconRes)
+
+        if (!isProgress)
+            dialogBuilder.positiveText(activity.getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
+
+        return dialogBuilder
     }
 
 
