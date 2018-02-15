@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.cleaner
 
 import android.net.Uri
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -19,7 +20,9 @@ class WuxiaWorldHelper : HtmlHelper() {
             contentElement = contentElement?.parent()
         } while (contentElement != null && contentElement.tagName() != "body")
         contentElement?.classNames()?.forEach { contentElement.removeClass(it) }
-        doc.getElementsByTag("a").filter { it.text() == "Next Chapter" || it.text() == "Previous Chapter" }.forEach { it.remove() }
+
+        if (!dataCenter.enableDirectionalLinks)
+            doc.getElementsByTag("a").filter { it.text() == "Next Chapter" || it.text() == "Previous Chapter" }.forEach { it.remove() }
         doc.getElementById("custom-background-css")?.remove()
     }
 

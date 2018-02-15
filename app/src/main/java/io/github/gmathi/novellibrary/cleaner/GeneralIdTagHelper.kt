@@ -16,7 +16,9 @@ class GeneralIdTagHelper(private val hostName: String, val tagName: String, val 
         var contentElement = doc.body().getElementsByTag(tagName).firstOrNull { it.id() == id }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
 
-        removeDirectionalLinks(contentElement)
+        if (!dataCenter.enableDirectionalLinks)
+            removeDirectionalLinks(contentElement)
+
         doc.getElementsByClass("post-navigation")?.remove()
 
         if (!dataCenter.showChapterComments) {

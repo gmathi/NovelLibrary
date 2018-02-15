@@ -17,7 +17,9 @@ class BakaTsukiCleaner : HtmlHelper() {
         var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.id() == "content" }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
 
-        removeDirectionalLinks(contentElement)
+        if (!dataCenter.enableDirectionalLinks)
+            removeDirectionalLinks(contentElement)
+
         doc.getElementsByClass("post-navigation")?.remove()
 
 

@@ -169,9 +169,9 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemView.widgetButton.visibility = View.VISIBLE
                 itemView.widgetButton.text = getString(R.string.backup)
                 itemView.widgetButton.setOnClickListener {
-//                    showDialog(content = "Still being developed!")
+                    showDialog(content = "Still being developed!")
 //                    it.isEnabled = false
-                    signInBackUp()
+//                    signInBackUp()
 //                    it.isEnabled = true
                 }
             }

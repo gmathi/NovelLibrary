@@ -82,7 +82,9 @@
         <item>@string/volume_scroll</item>
         <item>@string/keep_screen_on</item>
         <item>@string/immersive_mode</item>
-        <item>@string/cluster_pages</item>
+        <item>@string/merge_pages</item>
+        <item>@string/directional_links</item>
+        <item>@string/reader_mode_button_visibility</item>
     </string-array>
 
     <string-array name="reader_subtitles_list" translatable="false">
@@ -94,7 +96,9 @@
         <item>@string/volume_scroll_description</item>
         <item>@string/keep_screen_on_description</item>
         <item>@string/immersive_mode_description</item>
-        <item>@string/cluster_pages_description</item>
+        <item>@string/merge_pages_description</item>
+        <item>@string/directional_links_description</item>
+        <item>@string/reader_mode_button_visibility_description</item>
     </string-array>
 
 
@@ -344,6 +348,7 @@
     <string name="title_java_script">JavaScript</string>
     <string name="title_fonts">Fonts</string>
     <string name="title_fonts_size">Font Size</string>
+    <string name="title_merge_pages">Merge Pages</string>
     <string name="title_report_page">Report Page</string>
     <string name="title_open_in_browser">Open in Browser</string>
     <string name="title_share_chapter">Share Chapter</string>
@@ -355,8 +360,14 @@
     <string name="google_restore">Google Drive Restore</string>
     <string name="google_restore_description">Restore Data to your Google Drive</string>
 
-    <string name="cluster_pages">Merge All Links To Single Page</string>
-    <string name="cluster_pages_description">Merges all the web pages in to a single web page, so that the announcement posts are shown in the same screen</string>
+    <string name="merge_pages">Merge All Links To Single Page</string>
+    <string name="merge_pages_description">Merges all the web pages in to a single web page, so that the announcement posts are shown in the same screen</string>
+
+    <string name="directional_links">Directional Links</string>
+    <string name="directional_links_description">"Next Chapter" &amp; "Previous Chapter" Links will be shown on the reader mode screen</string>
+
+    <string name="reader_mode_button_visibility">Reader Mode Button Visibility</string>
+    <string name="reader_mode_button_visibility_description">The reader mode menu icon will be hidden, if this is enabled. You can also open reader mode menu by swiping from the far right edge of the screen</string>
 
 
 </resources>
