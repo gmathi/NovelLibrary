@@ -9,7 +9,6 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.downloads.NovelDownloadsActivity
 import io.github.gmathi.novellibrary.activity.settings.*
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService

@@ -160,7 +160,7 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.downloads.NovelDownloadsActivity"
+            android:name=".activity.NovelDownloadsActivity"
             android:label="@string/title_activity_novel_downloads"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
@@ -204,11 +204,6 @@
         <activity
             android:name=".activity.RecentlyViewedNovelsActivity"
             android:label="@string/title_activity_recently_viewed_novels"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
-        <activity
-            android:name=".activity.downloads.ChapterDownloadsActivity"
-            android:label="@string/title_activity_chapter_downloads"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
