@@ -202,9 +202,10 @@ class WebPageDBFragment : BaseFragment() {
             loadUrl("about:blank")
         }
 
-        when (webPage?.filePath != null) {
-            true -> loadFromFile()
-            false -> loadFromWeb()
+        if (webPage?.filePath != null) {
+            loadFromFile()
+        } else {
+            loadFromWeb()
         }
     }
 

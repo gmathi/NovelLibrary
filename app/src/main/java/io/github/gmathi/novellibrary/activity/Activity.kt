@@ -22,11 +22,6 @@ fun Activity.startNavDrawerActivity() {
     startActivity(intent)
 }
 
-fun Activity.startInitialWebViewActivity() {
-    val intent = Intent(this, InitialWebViewActivity::class.java)
-    startActivityForResult(intent, Constants.IWV_ACT_REQ_CODE)
-}
-
 fun Activity.startMainActivity() {
     val intent = Intent(this, MainActivity::class.java)
     startActivityForResult(intent, Constants.IWV_ACT_REQ_CODE)

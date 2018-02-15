@@ -236,5 +236,10 @@
     <string name="google_restore_description">Restore Data to your Google Drive</string>
     <string name="cluster_pages">Merge All Links To Single Page</string>
     <string name="cluster_pages_description">Merges all the web pages in to a single web page, so that the announcement posts are shown in the same screen</string>
+    <string name="cloudflare_bypass_description">Please wait while the Cloudflare browser check is being bypassed</string>
+    <string name="cloudflare_bypass_failure_retry">Try again</string>
+    <string name="cloudflare_bypass_failure_title">Cloudflare Bypass Failed</string>
+    <string name="cloudflare_bypass_success">Cloudflare bypassed successfully</string>
+    <string name="cloudflare_bypass_connection_error">No internet connection</string>
 
 </resources>
