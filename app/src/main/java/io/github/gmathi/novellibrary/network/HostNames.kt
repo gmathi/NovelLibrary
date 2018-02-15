@@ -3,7 +3,6 @@ package io.github.gmathi.novellibrary.network
 
 import java.util.*
 
-@Suppress("MemberVisibilityCanBePrivate", "unused")
 object HostNames {
 
     const val NOVEL_UPDATES = "novelupdates.com"
@@ -55,9 +54,4 @@ object HostNames {
 
 
     fun addHost(hostName: String): Boolean = hostNamesList.add(hostName)
-
-    private val DONT_DOWNLOAD_HOSTS = arrayOf("facebook", "google", "twitter", "live.com", "hotmail.com", "gmail.com")
-
-    fun isItDoNotDownloadHost(hostName: String): Boolean = DONT_DOWNLOAD_HOSTS.any { hostName.contains(it) }
-
 }

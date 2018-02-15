@@ -2,7 +2,6 @@ package io.github.gmathi.novellibrary.fragment
 
 import android.annotation.SuppressLint
 import android.graphics.Color
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
@@ -20,7 +19,6 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ReaderDBPagerActivity
-import io.github.gmathi.novellibrary.activity.startInitialWebViewActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getNovel
@@ -30,12 +28,12 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.CloudFlare
-import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_new_reader_pager.*
 import kotlinx.android.synthetic.main.fragment_reader.*
+import okhttp3.HttpUrl
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -287,7 +285,7 @@ class WebPageDBFragment : BaseFragment() {
                     }
                 }
 
-                //Clean the document & Load the document on the webView
+                // Process the document and load it onto the webView
                 doc?.let { doc ->
                     val htmlHelper = HtmlHelper.getInstance(doc)
                     htmlHelper.removeJS(doc)
@@ -295,16 +293,19 @@ class WebPageDBFragment : BaseFragment() {
                     htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
 
                     if (dataCenter.enableClusterPages) {
-                        //Add the links-content to the doc
+                        // Get URL domain name of the chapter provider
+                        val baseUrlDomain = getUrlDomain(doc.location())
+
+                        // Add the content of the links to the doc
                         val hrefElements = doc.body().getElementsByTag("a")
                         hrefElements?.forEach {
                             if (it.hasAttr("href")) {
-
                                 val linkedUrl = it.attr("href")
                                 try {
-                                    val uri = Uri.parse(linkedUrl)
-                                    if (!HostNames.isItDoNotDownloadHost(uri.host)) {
-                                        val otherDoc = await { NovelApi().getDocumentWithUserAgent(it.attr("href")) }
+                                    // Check if URL is from chapter provider
+                                    val urlDomain = getUrlDomain(linkedUrl)
+                                    if (urlDomain == baseUrlDomain) {
+                                        val otherDoc = await { NovelApi().getDocumentWithUserAgent(linkedUrl) }
                                         val helper = HtmlHelper.getInstance(otherDoc)
                                         helper.removeJS(otherDoc)
                                         helper.additionalProcessing(otherDoc)
@@ -313,7 +314,6 @@ class WebPageDBFragment : BaseFragment() {
                                 } catch (e: Exception) {
                                     e.printStackTrace()
                                 }
-
                             }
                         }
                     }
@@ -339,9 +339,10 @@ class WebPageDBFragment : BaseFragment() {
         settings.textZoom = (dataCenter.textSize + 50) * 2
     }
 
-    fun getUrl(): String? {
-        //if (doc.location() != null) return doc.location()
-        return webPage?.url
+    fun getUrl() = webPage?.url
+
+    private fun getUrlDomain(url: String? = getUrl()): String? {
+        return url?.let { HttpUrl.parse(url)?.topPrivateDomain() }
     }
 
     fun goBack() {
@@ -439,10 +440,11 @@ class WebPageDBFragment : BaseFragment() {
 
     override fun onPause() {
         super.onPause()
-        if (webPage != null) {
-            webPage!!.metaData.put("scrollY", readerWebView.scrollY.toString())
-            if (webPage!!.id > -1L)
-                dbHelper.updateWebPage(webPage!!)
+        webPage?.let {
+            it.metaData.put("scrollY", readerWebView.scrollY.toString())
+            if (it.id > -1L) {
+                dbHelper.updateWebPage(it)
+            }
         }
     }
 
@@ -468,5 +470,4 @@ class WebPageDBFragment : BaseFragment() {
         }
         outState.putSerializable("history", history)
     }
-
 }
