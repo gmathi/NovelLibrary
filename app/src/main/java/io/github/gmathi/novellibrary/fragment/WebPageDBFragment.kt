@@ -196,31 +196,37 @@ class WebPageDBFragment : BaseFragment() {
 
     private fun loadData() {
         doc = null
-        readerWebView.stopLoading()
-        readerWebView.clearView()
-        if (webPage?.filePath != null)
-            loadFromFile()
-        else
-            loadFromWeb()
+
+        readerWebView.apply {
+            stopLoading()
+            loadUrl("about:blank")
+        }
+
+        when (webPage?.filePath != null) {
+            true -> loadFromFile()
+            false -> loadFromWeb()
+        }
     }
 
     private fun loadFromFile() {
-        swipeRefreshLayout.isRefreshing = false
-        swipeRefreshLayout.isEnabled = false
-        val internalFilePath = "file://${webPage?.filePath}"
-        val input = File(internalFilePath.substring(7))
-
-        var url = webPage!!.redirectedUrl
-        if (url == null) url = internalFilePath
-
-        doc = Jsoup.parse(input, "UTF-8", url)
-
-        doc?.let { doc ->
-            if (dataCenter.readerMode)
-                cleanDocument(doc)
-            loadCreatedDocument()
+        swipeRefreshLayout.apply {
+            isRefreshing = false
+            isEnabled = false
         }
 
+        val protocol = "file://"
+        val internalFilePath = "$protocol${webPage?.filePath}"
+        val input = File(internalFilePath.substring(protocol.length))
+
+        val url = webPage!!.redirectedUrl ?: internalFilePath
+
+        doc = Jsoup.parse(input, "UTF-8", url)
+        doc?.let { doc ->
+            if (dataCenter.readerMode) {
+                cleanDocument(doc)
+            }
+            loadCreatedDocument()
+        }
     }
 
     private fun loadFromWeb() {
