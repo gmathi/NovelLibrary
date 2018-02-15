@@ -2,14 +2,16 @@ package io.github.gmathi.novellibrary.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.support.design.widget.NavigationView
 import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentTransaction
 import android.support.v4.view.GravityCompat
 import android.support.v7.widget.Toolbar
-import android.text.Html
 import android.view.MenuItem
+import android.widget.Toast
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.BuildConfig
@@ -22,8 +24,8 @@ import io.github.gmathi.novellibrary.fragment.LibraryFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.CloudFlare
-import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
@@ -61,10 +63,10 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
 
-        checkForCloudFlare()
-
-
-        //loadFragment(currentNavId)
+        if (Utils.checkNetwork(this))
+            checkForCloudFlare()
+        else
+            loadFragment(currentNavId)
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
 //            @Suppress("DEPRECATION")
 //            MaterialDialog.Builder(this)
@@ -77,7 +79,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 //                .onPositive { dialog, _ -> dialog.dismiss() }
 //                .show()
 //            try {
-                //dataCenter.resetVerifiedHosts()
+            //dataCenter.resetVerifiedHosts()
 //            } catch (e: Exception) {
 //                e.printStackTrace()
 //            }
@@ -90,20 +92,30 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun checkForCloudFlare() {
         async {
 
+            val loadingDialog = Utils.dialogBuilder(this@NavDrawerActivity, content = "Please wait while cloud flare cookies is bypassed", isProgress = true).cancelable(false).build()
+
             val listener = object : CloudFlare.Companion.Listener {
                 override fun onSuccess() {
                     loadFragment(currentNavId)
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(this@NavDrawerActivity, "Cloud Flare Bypassed", Toast.LENGTH_SHORT).show()
+                        loadingDialog.dismiss()
+                    }
                 }
 
                 override fun onFailure() {
-                    MaterialDialog.Builder(this@NavDrawerActivity)
+                    Handler(Looper.getMainLooper()).post {
+                        loadingDialog.hide()
+                        MaterialDialog.Builder(this@NavDrawerActivity)
                             .content("Cloud Flare ByPass Failed")
                             .positiveText("Try Again")
                             .onPositive { dialog, _ -> dialog.dismiss(); checkForCloudFlare() }
                             .show()
+                    }
                 }
             }
 
+            loadingDialog.show()
             await { CloudFlare(this@NavDrawerActivity, listener).check() }
         }
     }
@@ -174,17 +186,21 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 openInBrowser("https://discord.gg/g2cQswh")
             }
             R.id.nav_refresh_cloud_flare_cookies -> {
-                startInitialWebViewActivity()
+                //startInitialWebViewActivity()
+                if (Utils.checkNetwork(this))
+                    checkForCloudFlare()
+                else
+                    Toast.makeText(this, "No Internet Connection", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun replaceFragment(fragment: Fragment, tag: String) {
         supportFragmentManager.beginTransaction()
-                .replace(R.id.navFragmentContainer, fragment, tag)
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                .addToBackStack(tag)
-                .commitAllowingStateLoss()
+            .replace(R.id.navFragmentContainer, fragment, tag)
+            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+            .addToBackStack(tag)
+            .commitAllowingStateLoss()
     }
 
     fun setToolbar(toolbar: Toolbar?) {

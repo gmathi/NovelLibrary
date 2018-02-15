@@ -40,6 +40,9 @@ class DataCenter(context: Context) {
         private const val ENABLE_CLUSTER_PAGES = "enableClusterPages"
         private const val CF_COOKIES_USER_AGENT = "cfCookiesUserAgent"
         private const val CF_COOKIES_STRING = "cfCookiesString"
+        private const val DIRECTIONAL_LINKS = "enableDirectionalLinks"
+        private const val READER_MODE_BUTTON_VISIBILITY = "isReaderModeButtonVisible"
+
 
         const val CF_COOKIES_CLEARANCE = "cf_clearance"
         const val CF_COOKIES_DUID = "__cfduid"
@@ -151,6 +154,15 @@ class DataCenter(context: Context) {
     var cfCookiesString: String
         get() = prefs.getString(CF_COOKIES_STRING, "")
         set(value) = prefs.edit().putString(CF_COOKIES_STRING, value).apply()
+
+    var enableDirectionalLinks: Boolean
+        get() = prefs.getBoolean(DIRECTIONAL_LINKS, false)
+        set(value) = prefs.edit().putBoolean(DIRECTIONAL_LINKS, value).apply()
+
+    var isReaderModeButtonVisible: Boolean
+        get() = prefs.getBoolean(READER_MODE_BUTTON_VISIBILITY, true)
+        set(value) = prefs.edit().putBoolean(READER_MODE_BUTTON_VISIBILITY, value).apply()
+
 
     fun getVerifiedHosts(): ArrayList<String> =
             Gson().fromJson(prefs.getString(VERIFIED_HOSTS, Gson().toJson(HostNames.defaultHostNamesList)), object : TypeToken<ArrayList<String>>() {}.type)

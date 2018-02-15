@@ -3,8 +3,10 @@ package io.github.gmathi.novellibrary.activity
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
@@ -62,15 +64,33 @@ class RecentlyViewedNovelsActivity : AppCompatActivity(), GenericAdapter.Listene
     }
 
     //region OptionsMenu
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_recently_viewed_novels, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         if (item?.itemId == android.R.id.home) finish()
+        if (item?.itemId == R.id.action_clear)
+            MaterialDialog.Builder(this)
+                .content("Are you sure you want to clear all the recently viewed novels list?")
+                .positiveText("Yes")
+                .onPositive { dialog, _ ->
+                    dataCenter.saveNovelHistory(ArrayList())
+                    adapter.updateData(ArrayList(dataCenter.loadNovelHistory().reversed()))
+                    dialog.dismiss()
+                }
+                .negativeText("No")
+                .onNegative { dialog, _ -> dialog.dismiss() }
+                .show()
         return super.onOptionsItemSelected(item)
     }
+    //endregion
 
     override fun onResume() {
         super.onResume()
         adapter.updateData(ArrayList(dataCenter.loadNovelHistory().reversed()))
     }
-//endregion
+
 
 }

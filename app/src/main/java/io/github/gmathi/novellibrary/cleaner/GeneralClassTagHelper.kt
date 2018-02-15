@@ -17,7 +17,9 @@ class GeneralClassTagHelper(private val hostName: String, private val tagName: S
         var contentElement = doc.body().getElementsByTag(tagName).firstOrNull { it.hasClass(className) }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
 
-        removeDirectionalLinks(contentElement)
+        if (!dataCenter.enableDirectionalLinks)
+            removeDirectionalLinks(contentElement)
+
         doc.getElementsByClass("post-navigation")?.remove()
 
         if (!dataCenter.showChapterComments) {
@@ -74,7 +76,6 @@ class GeneralClassTagHelper(private val hostName: String, private val tagName: S
                 || it.text().equals("Next", ignoreCase = true)
                 || it.text().equals("TOC", ignoreCase = true)
                 || it.text().equals("Previous", ignoreCase = true)
-
 
 
         }?.forEach { it?.remove() }

@@ -1,0 +1,13 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context=".activity.RecentlyViewedNovelsActivity">
+
+    <item
+        android:id="@+id/action_clear"
+        android:icon="@drawable/ic_clear_all_white_vector"
+        android:title="@string/clear"
+        android:titleCondensed="@string/clear"
+        app:showAsAction="ifRoom|withText"/>
+
+</menu>

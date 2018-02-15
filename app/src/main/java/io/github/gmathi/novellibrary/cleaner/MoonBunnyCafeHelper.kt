@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.cleaner
 
 import android.net.Uri
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -15,16 +16,12 @@ class MoonBunnyCafeHelper : HtmlHelper() {
 //        contentElement?.child(contentElement.children().size - 1)?.remove()
 //        //contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
 
-        contentElement?.getElementsByTag("a")?.firstOrNull {
-            it.text().contains("Previous Chapter")
-                || it.text().contains("Next Chapter")
-                || it.text().contains("Project Page")
-        }?.parent()?.remove()
-        contentElement?.getElementsByTag("a")?.firstOrNull {
-            it.text().contains("Previous Chapter")
-                || it.text().contains("Next Chapter")
-                || it.text().contains("Project Page")
-        }?.parent()?.remove()
+        if (!dataCenter.enableDirectionalLinks)
+            contentElement?.getElementsByTag("a")?.firstOrNull {
+                it.text().contains("Previous Chapter")
+                    || it.text().contains("Next Chapter")
+                    || it.text().contains("Project Page")
+            }?.parent()?.remove()
 
         do {
             contentElement?.siblingElements()?.remove()

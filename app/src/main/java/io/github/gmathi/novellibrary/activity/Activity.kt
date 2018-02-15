@@ -28,6 +28,11 @@ fun Activity.startInitialWebViewActivity() {
     startActivityForResult(intent, Constants.IWV_ACT_REQ_CODE)
 }
 
+fun Activity.startMainActivity() {
+    val intent = Intent(this, MainActivity::class.java)
+    startActivityForResult(intent, Constants.IWV_ACT_REQ_CODE)
+}
+
 fun Activity.startImagePreviewActivity(url: String?, filePath: String?, view: View) {
     val intent = Intent(this, ImagePreviewActivity::class.java)
     intent.putExtra("url", url)
