@@ -32,6 +32,8 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         private const val POSITION_KEEP_SCREEN_ON = 6
         private const val POSITION_ENABLE_IMMERSIVE_MODE = 7
         private const val POSITION_ENABLE_CLUSTER_PAGES = 8
+        private const val POSITION_DIRECTONAL_LINKS = 9
+        private const val POSITION_READER_MODE_BUTTON_VISIBILITY = 10
 
     }
 
@@ -131,6 +133,16 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.enableClusterPages
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableClusterPages = value }
+            }
+            POSITION_DIRECTONAL_LINKS -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.enableDirectionalLinks
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableDirectionalLinks = value }
+            }
+            POSITION_READER_MODE_BUTTON_VISIBILITY -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.isReaderModeButtonVisible
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.isReaderModeButtonVisible = value }
             }
         }
 

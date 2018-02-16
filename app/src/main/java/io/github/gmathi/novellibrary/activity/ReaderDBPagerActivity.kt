@@ -58,9 +58,10 @@ class ReaderDBPagerActivity :
         private const val JAVA_SCRIPT = 1
         private const val FONTS = 2
         private const val FONT_SIZE = 3
-        private const val REPORT_PAGE = 4
-        private const val OPEN_IN_BROWSER = 5
-        private const val SHARE_CHAPTER = 6
+        private const val MERGE_PAGES = 4
+        private const val REPORT_PAGE = 5
+        private const val OPEN_IN_BROWSER = 6
+        private const val SHARE_CHAPTER = 7
 
         private const val VOLUME_SCROLL_STEP = 50
     }
@@ -108,6 +109,9 @@ class ReaderDBPagerActivity :
         menuNav.setOnClickListener {
             toggleSlideRootNab()
         }
+
+        if (!dataCenter.isReaderModeButtonVisible)
+            menuNav.visibility = View.INVISIBLE
     }
 
     private fun updateBookmark(webPage: WebPage) {
@@ -266,6 +270,7 @@ class ReaderDBPagerActivity :
             createItemFor(JAVA_SCRIPT).setSwitchOn(true),
             createItemFor(FONTS),
             createItemFor(FONT_SIZE),
+            createItemFor(MERGE_PAGES).setSwitchOn(true),
             createItemFor(REPORT_PAGE),
             createItemFor(OPEN_IN_BROWSER),
             createItemFor(SHARE_CHAPTER)
@@ -340,6 +345,7 @@ class ReaderDBPagerActivity :
 
         itemView.title.text = item.title
         itemView.icon.setImageDrawable(item.icon)
+        itemView.switchReaderMode.setOnCheckedChangeListener(null)
         if (simpleItem.isSwitchOn() && position == READER_MODE) {
             itemView.titleNightMode.text = getString(R.string.title_night)
             itemView.switchReaderMode.visibility = View.VISIBLE
@@ -350,21 +356,31 @@ class ReaderDBPagerActivity :
         } else if (simpleItem.isSwitchOn() && position == JAVA_SCRIPT) {
             itemView.switchReaderMode.visibility = View.VISIBLE
             itemView.switchReaderMode.isChecked = !dataCenter.javascriptDisabled
+        } else if (simpleItem.isSwitchOn() && position == MERGE_PAGES) {
+            itemView.switchReaderMode.visibility = View.VISIBLE
+            itemView.switchReaderMode.isChecked = dataCenter.enableClusterPages
         } else
             itemView.switchReaderMode.visibility = View.GONE
 
 
         itemView.switchReaderMode.setOnCheckedChangeListener({ _: CompoundButton, isChecked: Boolean ->
-            if (position == READER_MODE) {
-                dataCenter.readerMode = isChecked
-                itemView.linNightMode.visibility = if (isChecked)
-                    View.VISIBLE
-                else
-                    View.GONE
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
-            } else if (position == JAVA_SCRIPT) {
-                dataCenter.javascriptDisabled = !isChecked
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCRIPT))
+            when (position) {
+                READER_MODE -> {
+                    dataCenter.readerMode = isChecked
+                    itemView.linNightMode.visibility = if (isChecked)
+                        View.VISIBLE
+                    else
+                        View.GONE
+                    EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+                }
+                JAVA_SCRIPT -> {
+                    dataCenter.javascriptDisabled = !isChecked
+                    EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCRIPT))
+                }
+                MERGE_PAGES -> {
+                    dataCenter.enableClusterPages = isChecked
+                    EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+                }
             }
         })
 

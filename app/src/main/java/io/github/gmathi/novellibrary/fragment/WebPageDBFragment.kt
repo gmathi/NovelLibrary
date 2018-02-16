@@ -73,8 +73,8 @@ class WebPageDBFragment : BaseFragment() {
 
         val activity = activity as? ReaderDBPagerActivity ?: return
 
-        //Show the menu button on scroll
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+        // Show the menu button on scroll
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && dataCenter.isReaderModeButtonVisible)
             readerWebView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
                 if (scrollY > oldScrollY && scrollY > 0) activity.menuNav.visibility = View.GONE
                 if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) activity.menuNav.visibility = View.VISIBLE
@@ -100,9 +100,9 @@ class WebPageDBFragment : BaseFragment() {
         }
 
 
-        //Load data from webPage in to webView
+        // Load data from webPage into webView
         loadData()
-        swipeRefreshLayout.setOnRefreshListener { loadData() }
+        swipeRefreshLayout.setOnRefreshListener { loadData(true) }
 
     }
 
@@ -194,7 +194,7 @@ class WebPageDBFragment : BaseFragment() {
         changeTextSize()
     }
 
-    private fun loadData() {
+    private fun loadData(liveFromWeb: Boolean = false) {
         doc = null
 
         readerWebView.apply {
@@ -202,7 +202,7 @@ class WebPageDBFragment : BaseFragment() {
             loadUrl("about:blank")
         }
 
-        if (webPage?.filePath != null) {
+        if (webPage?.filePath != null && !liveFromWeb) {
             loadFromFile()
         } else {
             loadFromWeb()
