@@ -54,20 +54,22 @@ class ReaderDBPagerActivity :
     lateinit var recyclerView: RecyclerView
 
     companion object {
-        private val READER_MODE = 0
-        private val JAVA_SCRIPT = 1
-        private val FONTS = 2
-        private val FONT_SIZE = 3
-        private val REPORT_PAGE = 4
-        private val OPEN_IN_BROWSER = 5
-        private val SHARE_CHAPTER = 6
+        private const val READER_MODE = 0
+        private const val JAVA_SCRIPT = 1
+        private const val FONTS = 2
+        private const val FONT_SIZE = 3
+        private const val REPORT_PAGE = 4
+        private const val OPEN_IN_BROWSER = 5
+        private const val SHARE_CHAPTER = 6
+
+        private const val VOLUME_SCROLL_STEP = 50
     }
 
     private var screenTitles: Array<String>? = null
     private lateinit var screenIcons: Array<Drawable?>
 
     var novel: Novel? = null
-    var webPage: WebPage? = null
+    private var webPage: WebPage? = null
 
     private var adapter: GenericFragmentStatePagerAdapter? = null
 
@@ -215,13 +217,13 @@ class ReaderDBPagerActivity :
         return when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
-                    webView?.pageUp(false)
+                    webView?.scrollBy(0, -VOLUME_SCROLL_STEP)
                 }
                 dataCenter.volumeScroll
             }
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
-                    webView?.pageDown(false)
+                    webView?.scrollBy(0, VOLUME_SCROLL_STEP)
                 }
                 dataCenter.volumeScroll
             }

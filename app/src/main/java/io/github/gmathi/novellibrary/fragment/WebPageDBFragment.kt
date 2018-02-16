@@ -182,7 +182,7 @@ class WebPageDBFragment : BaseFragment() {
                     val cookiesArray = cookies.split("; ")
                     cookiesArray.forEach { cookie ->
                         val cookieSplit = cookie.split("=")
-                        map.put(cookieSplit[0], cookieSplit[1])
+                        map[cookieSplit[0]] = cookieSplit[1]
                     }
                     NovelApi.cookies = cookies
                     NovelApi.cookiesMap = map
@@ -244,12 +244,16 @@ class WebPageDBFragment : BaseFragment() {
     }
 
     private fun loadCreatedDocument() {
-        readerWebView.loadDataWithBaseURL(
-            if (webPage!!.filePath != null) "file://${webPage!!.filePath}" else doc?.location(),
-            doc?.outerHtml(),
-            "text/html", "UTF-8", null)
-        if (webPage!!.metaData.containsKey("scrollY"))
-            readerWebView.scrollTo(0, webPage!!.metaData["scrollY"]!!.toInt())
+        webPage?.let {
+            readerWebView.loadDataWithBaseURL(
+                    if (it.filePath != null) "file://${it.filePath}" else doc?.location(),
+                    doc?.outerHtml(),
+                    "text/html", "UTF-8", null
+            )
+            if (it.metaData.containsKey("scrollY")) {
+                readerWebView.scrollTo(0, it.metaData["scrollY"]!!.toInt())
+            }
+        }
     }
 
 
@@ -368,7 +372,7 @@ class WebPageDBFragment : BaseFragment() {
             htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
 
             if (dataCenter.enableClusterPages) {
-                //Add the links-content to the doc
+                // Add the content of the links to the doc
                 if (webPage!!.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
                     val links: ArrayList<WebPage> = Gson().fromJson(webPage!!.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
                     links.forEach {
@@ -448,7 +452,7 @@ class WebPageDBFragment : BaseFragment() {
     override fun onPause() {
         super.onPause()
         webPage?.let {
-            it.metaData.put("scrollY", readerWebView.scrollY.toString())
+            it.metaData["scrollY"] = readerWebView.scrollY.toString()
             if (it.id > -1L) {
                 dbHelper.updateWebPage(it)
             }
