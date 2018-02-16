@@ -206,6 +206,9 @@ open class HtmlHelper protected constructor() {
                     font-family: $fontFamily;
                     src: url("file://$fontUrl");
                 }
+                html {
+                    scroll-behavior: smooth;
+                }
                 body {
                     ${if (isDark) "background-color" else "color"}: #000;
                     ${if (isDark) "color" else "background-color"}: rgba(255, 255, 255, .$nightModeTextBrightness);

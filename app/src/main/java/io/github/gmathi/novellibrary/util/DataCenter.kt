@@ -43,10 +43,8 @@ class DataCenter(context: Context) {
         private const val DIRECTIONAL_LINKS = "enableDirectionalLinks"
         private const val READER_MODE_BUTTON_VISIBILITY = "isReaderModeButtonVisible"
 
-
         const val CF_COOKIES_CLEARANCE = "cf_clearance"
         const val CF_COOKIES_DUID = "__cfduid"
-
     }
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)

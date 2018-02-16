@@ -82,7 +82,7 @@ class WebPageDBFragment : BaseFragment() {
 
         setWebView()
 
-        //Get data from args or savedInstance in case of device rotation
+        // Get data from args or savedInstance in case of device rotation
         @Suppress("UNCHECKED_CAST")
         if (savedInstanceState != null && savedInstanceState.containsKey("webPage")) {
             webPage = savedInstanceState.getSerializable("webPage") as WebPage
