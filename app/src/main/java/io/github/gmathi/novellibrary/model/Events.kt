@@ -31,6 +31,5 @@ class ReaderSettingsEvent(val setting: String) {
         const val READER_MODE = "readerMode"
         const val JAVA_SCRIPT = "javaScript"
         const val FONT = "font"
-
     }
 }

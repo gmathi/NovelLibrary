@@ -9,7 +9,6 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.downloads.NovelDownloadsActivity
 import io.github.gmathi.novellibrary.activity.settings.*
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
@@ -21,11 +20,6 @@ import io.github.gmathi.novellibrary.util.Utils
 fun Activity.startNavDrawerActivity() {
     val intent = Intent(this, NavDrawerActivity::class.java)
     startActivity(intent)
-}
-
-fun Activity.startInitialWebViewActivity() {
-    val intent = Intent(this, InitialWebViewActivity::class.java)
-    startActivityForResult(intent, Constants.IWV_ACT_REQ_CODE)
 }
 
 fun Activity.startMainActivity() {

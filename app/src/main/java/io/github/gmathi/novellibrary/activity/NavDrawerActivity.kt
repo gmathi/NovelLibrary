@@ -90,15 +90,19 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun checkForCloudFlare() {
-        async {
+        val cfDescStr = getString(R.string.cloudflare_bypass_description)
+        val cfSuccessStr  = getString(R.string.cloudflare_bypass_success)
+        val cfFailTitleStr  = getString(R.string.cloudflare_bypass_failure_title)
+        val cfFailRetryStr  = getString(R.string.cloudflare_bypass_failure_retry)
 
-            val loadingDialog = Utils.dialogBuilder(this@NavDrawerActivity, content = "Please wait while cloud flare cookies is bypassed", isProgress = true).cancelable(false).build()
+        async {
+            val loadingDialog = Utils.dialogBuilder(this@NavDrawerActivity, content = cfDescStr, isProgress = true).cancelable(false).build()
 
             val listener = object : CloudFlare.Companion.Listener {
                 override fun onSuccess() {
                     loadFragment(currentNavId)
                     Handler(Looper.getMainLooper()).post {
-                        Toast.makeText(this@NavDrawerActivity, "Cloud Flare Bypassed", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@NavDrawerActivity, cfSuccessStr, Toast.LENGTH_SHORT).show()
                         loadingDialog.dismiss()
                     }
                 }
@@ -107,9 +111,12 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                     Handler(Looper.getMainLooper()).post {
                         loadingDialog.hide()
                         MaterialDialog.Builder(this@NavDrawerActivity)
-                            .content("Cloud Flare ByPass Failed")
-                            .positiveText("Try Again")
-                            .onPositive { dialog, _ -> dialog.dismiss(); checkForCloudFlare() }
+                            .content(cfFailTitleStr)
+                            .positiveText(cfFailRetryStr)
+                            .onPositive { dialog, _ ->
+                                dialog.dismiss()
+                                checkForCloudFlare()
+                            }
                             .show()
                     }
                 }
@@ -186,11 +193,11 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 openInBrowser("https://discord.gg/g2cQswh")
             }
             R.id.nav_refresh_cloud_flare_cookies -> {
-                //startInitialWebViewActivity()
-                if (Utils.checkNetwork(this))
+                if (Utils.checkNetwork(this)) {
                     checkForCloudFlare()
-                else
-                    Toast.makeText(this, "No Internet Connection", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, getString(R.string.no_internet), Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
