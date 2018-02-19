@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.cleaner
 import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
@@ -49,7 +50,7 @@ class GoogleDocsCleaner : HtmlHelper() {
             <style id="darkTheme">
                 @font-face {
                     font-family: $fontFamily;
-                    src: url("file://$fontUrl");
+                    src: url("$FILE_PROTOCOL$fontUrl");
                 }
                 body {
                     ${if (isDark) "background-color" else "color"}: #000;

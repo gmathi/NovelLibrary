@@ -17,6 +17,7 @@ import android.widget.CompoundButton
 import android.widget.SeekBar
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.folderselector.FileChooserDialog
+import com.crashlytics.android.Crashlytics
 import com.thanosfisherman.mayi.Mayi
 import com.yarolegovich.slidingrootnav.SlideGravity
 import com.yarolegovich.slidingrootnav.SlidingRootNav
@@ -392,12 +393,23 @@ class ReaderDBPagerActivity :
     }
 
     private fun openFontChooserDialog() {
-        FileChooserDialog.Builder(this)
-            .initialPath(Environment.getExternalStorageDirectory().path)  // changes initial path, defaults to external storage directory
-            .extensionsFilter(".ttf") // Optional extension filter, will override mimeType()
-            .tag("optional-identifier")
-            .goUpLabel("Up") // custom go up label, default label is "..."
-            .show(this) // an AppCompatActivity which implements FileCallback
+        try {
+            val externalDirectory = Environment.getExternalStorageDirectory()
+            if (externalDirectory != null && externalDirectory.exists())
+                FileChooserDialog.Builder(this)
+                    .initialPath(externalDirectory.path)  // changes initial path, defaults to external storage directory
+                    .extensionsFilter(".ttf") // Optional extension filter, will override mimeType()
+                    .tag("optional-identifier")
+                    .goUpLabel("Up") // custom go up label, default label is "..."
+                    .show(this) // an AppCompatActivity which implements FileCallback
+            else
+                MaterialDialog.Builder(this)
+                    .content("Cannot find the internal storage or sd card. Please check your storage settings.")
+                    .positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
+                    .show()
+        } catch (e: Exception) {
+            Crashlytics.logException(e)
+        }
     }
 
     override fun onFileSelection(dialog: FileChooserDialog, file: File) {

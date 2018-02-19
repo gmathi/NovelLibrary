@@ -30,6 +30,7 @@ import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.CloudFlare
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_new_reader_pager.*
 import kotlinx.android.synthetic.main.fragment_reader.*
@@ -51,8 +52,8 @@ class WebPageDBFragment : BaseFragment() {
 
 
     companion object {
-        private val NOVEL_ID = "novelId"
-        private val ORDER_ID = "orderId"
+        private const val NOVEL_ID = "novelId"
+        private const val ORDER_ID = "orderId"
 
         fun newInstance(novelId: Long, orderId: Long): WebPageDBFragment {
             val fragment = WebPageDBFragment()
@@ -210,14 +211,18 @@ class WebPageDBFragment : BaseFragment() {
     }
 
     private fun loadFromFile() {
+
+        val internalFilePath = "$FILE_PROTOCOL${webPage?.filePath}"
+        val input = File(internalFilePath.substring(FILE_PROTOCOL.length))
+        if (!input.exists()) {
+            loadFromWeb()
+            return
+        }
+
         swipeRefreshLayout.apply {
             isRefreshing = false
             isEnabled = false
         }
-
-        val protocol = "file://"
-        val internalFilePath = "$protocol${webPage?.filePath}"
-        val input = File(internalFilePath.substring(protocol.length))
 
         val url = webPage!!.redirectedUrl ?: internalFilePath
 
@@ -246,9 +251,9 @@ class WebPageDBFragment : BaseFragment() {
     private fun loadCreatedDocument() {
         webPage?.let {
             readerWebView.loadDataWithBaseURL(
-                    if (it.filePath != null) "file://${it.filePath}" else doc?.location(),
-                    doc?.outerHtml(),
-                    "text/html", "UTF-8", null
+                if (it.filePath != null) "$FILE_PROTOCOL${it.filePath}" else doc?.location(),
+                doc?.outerHtml(),
+                "text/html", "UTF-8", null
             )
             if (it.metaData.containsKey("scrollY")) {
                 readerWebView.scrollTo(0, it.metaData["scrollY"]!!.toInt())
@@ -376,7 +381,7 @@ class WebPageDBFragment : BaseFragment() {
                 if (webPage!!.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
                     val links: ArrayList<WebPage> = Gson().fromJson(webPage!!.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
                     links.forEach {
-                        val internalFilePath = "file://${it.filePath}"
+                        val internalFilePath = "$FILE_PROTOCOL${it.filePath}"
                         val input = File(internalFilePath.substring(7))
 
                         var url = it.redirectedUrl

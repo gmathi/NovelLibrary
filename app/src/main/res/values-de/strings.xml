@@ -254,10 +254,8 @@
     <string name="reader_mode_button_visibility">Reader Mode Button Visibility</string>
     <string name="reader_mode_button_visibility_description">The reader mode menu icon will be hidden, if this is enabled. You can also open reader mode menu by swiping from the far right edge of the screen</string>
     <string name="cloudflare_bypass_description">Please wait while the Cloudflare browser check is being bypassed</string>
-    <string name="cloudflare_bypass_failure_retry">Try again</string>
     <string name="cloudflare_bypass_failure_title">Cloudflare Bypass Failed</string>
     <string name="cloudflare_bypass_success">Cloudflare bypassed successfully</string>
-    <string name="cloudflare_bypass_connection_error">No internet connection</string>
 
 
 </resources>

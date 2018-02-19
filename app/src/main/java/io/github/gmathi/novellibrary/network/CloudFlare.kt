@@ -168,6 +168,7 @@ class CloudFlare(val context: Context, val listener: Listener) {
                     return true
                 }
 
+                //listener.onFailure()
                 return false
             }
 

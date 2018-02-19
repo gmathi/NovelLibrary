@@ -91,38 +91,37 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun checkForCloudFlare() {
         val cfDescStr = getString(R.string.cloudflare_bypass_description)
-        val cfSuccessStr  = getString(R.string.cloudflare_bypass_success)
-        val cfFailTitleStr  = getString(R.string.cloudflare_bypass_failure_title)
-        val cfFailRetryStr  = getString(R.string.cloudflare_bypass_failure_retry)
+        val cfSuccessStr = getString(R.string.cloudflare_bypass_success)
+        val cfFailTitleStr = getString(R.string.cloudflare_bypass_failure_title)
+        val cfFailRetryStr = getString(R.string.try_again)
 
-        async {
-            val loadingDialog = Utils.dialogBuilder(this@NavDrawerActivity, content = cfDescStr, isProgress = true).cancelable(false).build()
+        val loadingDialog = Utils.dialogBuilder(this@NavDrawerActivity, content = cfDescStr, isProgress = true).cancelable(false).build()
 
-            val listener = object : CloudFlare.Companion.Listener {
-                override fun onSuccess() {
-                    loadFragment(currentNavId)
-                    Handler(Looper.getMainLooper()).post {
-                        Toast.makeText(this@NavDrawerActivity, cfSuccessStr, Toast.LENGTH_SHORT).show()
-                        loadingDialog.dismiss()
-                    }
-                }
-
-                override fun onFailure() {
-                    Handler(Looper.getMainLooper()).post {
-                        loadingDialog.hide()
-                        MaterialDialog.Builder(this@NavDrawerActivity)
-                            .content(cfFailTitleStr)
-                            .positiveText(cfFailRetryStr)
-                            .onPositive { dialog, _ ->
-                                dialog.dismiss()
-                                checkForCloudFlare()
-                            }
-                            .show()
-                    }
+        val listener = object : CloudFlare.Companion.Listener {
+            override fun onSuccess() {
+                loadFragment(currentNavId)
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(this@NavDrawerActivity, cfSuccessStr, Toast.LENGTH_SHORT).show()
+                    loadingDialog.dismiss()
                 }
             }
 
-            loadingDialog.show()
+            override fun onFailure() {
+                Handler(Looper.getMainLooper()).post {
+                    loadingDialog.hide()
+                    MaterialDialog.Builder(this@NavDrawerActivity)
+                        .content(cfFailTitleStr)
+                        .positiveText(cfFailRetryStr)
+                        .onPositive { dialog, _ ->
+                            dialog.dismiss()
+                            checkForCloudFlare()
+                        }
+                        .show()
+                }
+            }
+        }
+        loadingDialog.show()
+        async {
             await { CloudFlare(this@NavDrawerActivity, listener).check() }
         }
     }
