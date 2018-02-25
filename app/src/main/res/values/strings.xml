@@ -101,6 +101,29 @@
         <item>@string/reader_mode_button_visibility_description</item>
     </string-array>
 
+    <string-array name="reader_mode_menu_titles_list" translatable="false">
+        <item>@string/title_reader</item>
+        <item>@string/title_java_script</item>
+        <item>@string/title_fonts</item>
+        <item>@string/title_fonts_size</item>
+        <item>@string/title_merge_pages</item>
+        <item>@string/title_report_page</item>
+        <item>@string/title_open_in_browser</item>
+        <item>@string/title_share_chapter</item>
+    </string-array>
+
+    <array name="reader_mode_menu_icons_list" translatable="false">
+        <item>@drawable/ic_book_white_vector</item>
+        <item>@drawable/ic_code_white_vector</item>
+        <item>@drawable/ic_fonts_vector</item>
+        <item>@drawable/ic_text_fields_white_vector</item>
+        <item>@drawable/ic_library_books_white_vector</item>
+        <item>@drawable/ic_bug_report_white_vector</item>
+        <item>@drawable/ic_open_in_browser_white_vector</item>
+        <item>@drawable/ic_share_white_vector</item>
+    </array>
+    
+
 
     <!--<item>Latest Updates</item>-->
     <!--<item>Active-Only Ranking</item>-->

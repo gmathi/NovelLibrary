@@ -14,6 +14,7 @@ import android.view.MenuItem
 import android.widget.Toast
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
+import com.crashlytics.android.Crashlytics
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
@@ -41,7 +42,20 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         setContentView(R.layout.activity_nav_drawer)
         navigationView.setNavigationItemSelectedListener(this)
 
-        currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
+        try {
+            currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
+        } catch (e: Exception) {
+            Crashlytics.logException(e)
+            MaterialDialog.Builder(this@NavDrawerActivity)
+                .content("Error initiating the app. The developer has been notified about this!")
+                .positiveText("Quit")
+                .cancelable(false)
+                .onPositive { dialog, _ ->
+                    dialog.dismiss()
+                    finish()
+                }
+                .show()
+        }
 
         if (intent.hasExtra("currentNavId"))
             currentNavId = intent.getIntExtra("currentNavId", currentNavId)
@@ -99,9 +113,10 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
         val listener = object : CloudFlare.Companion.Listener {
             override fun onSuccess() {
-                loadFragment(currentNavId)
                 Handler(Looper.getMainLooper()).post {
                     Toast.makeText(this@NavDrawerActivity, cfSuccessStr, Toast.LENGTH_SHORT).show()
+                    loadFragment(currentNavId)
+                    checkIntentForNotificationData()
                     loadingDialog.dismiss()
                 }
             }
@@ -191,13 +206,13 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_discord_link -> {
                 openInBrowser("https://discord.gg/g2cQswh")
             }
-            R.id.nav_refresh_cloud_flare_cookies -> {
-                if (Utils.checkNetwork(this)) {
-                    checkForCloudFlare()
-                } else {
-                    Toast.makeText(this, getString(R.string.no_internet), Toast.LENGTH_SHORT).show()
-                }
-            }
+//            R.id.nav_refresh_cloud_flare_cookies -> {
+//                if (Utils.checkNetwork(this)) {
+//                    checkForCloudFlare()
+//                } else {
+//                    Toast.makeText(this, getString(R.string.no_internet), Toast.LENGTH_SHORT).show()
+//                }
+//            }
         }
     }
 
@@ -220,12 +235,16 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             loadFragment(R.id.nav_downloads)
         }
         if (requestCode == Constants.IWV_ACT_REQ_CODE) {
-            if (intent.extras != null && intent.extras.containsKey("novel")) {
-                val novel = intent.extras.getSerializable("novel") as? Novel
-                novel?.let {
-                    intent.extras.remove("novel")
-                    startChaptersActivity(novel)
-                }
+            checkIntentForNotificationData()
+        }
+    }
+
+    private fun checkIntentForNotificationData() {
+        if (intent.extras != null && intent.extras.containsKey("novel")) {
+            val novel = intent.extras.getSerializable("novel") as? Novel
+            novel?.let {
+                intent.extras.remove("novel")
+                startChaptersActivity(novel)
             }
         }
     }

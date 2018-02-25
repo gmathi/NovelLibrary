@@ -44,6 +44,7 @@ class NovelLibraryApplication : MultiDexApplication() {
     override fun onCreate() {
         dataCenter = DataCenter(applicationContext)
         dbHelper = DBHelper.getInstance(applicationContext)
+
         super.onCreate()
 
         try {

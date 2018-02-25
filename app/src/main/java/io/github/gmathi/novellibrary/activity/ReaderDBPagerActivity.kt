@@ -296,11 +296,11 @@ class ReaderDBPagerActivity :
     }
 
     private fun loadScreenTitles(): Array<String> {
-        return resources.getStringArray(R.array.ld_activityScreenTitles)
+        return resources.getStringArray(R.array.reader_mode_menu_titles_list)
     }
 
     private fun loadScreenIcons(): Array<Drawable?> {
-        val ta = resources.obtainTypedArray(R.array.ld_activityScreenIcons)
+        val ta = resources.obtainTypedArray(R.array.reader_mode_menu_icons_list)
         val icons = arrayOfNulls<Drawable>(ta.length())
         for (i in 0 until ta.length()) {
             val id = ta.getResourceId(i, 0)

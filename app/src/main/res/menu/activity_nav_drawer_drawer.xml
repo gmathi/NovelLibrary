@@ -37,10 +37,10 @@
             <!--android:icon="@drawable/ic_search_black"-->
             <!--android:title="Search"/>-->
 
-            <item
-                android:id="@+id/nav_refresh_cloud_flare_cookies"
-                android:icon="@drawable/ic_refresh_white_vector"
-                android:title="@string/refresh_cloud_flare_cookies"/>
+            <!--<item-->
+                <!--android:id="@+id/nav_refresh_cloud_flare_cookies"-->
+                <!--android:icon="@drawable/ic_refresh_white_vector"-->
+                <!--android:title="@string/refresh_cloud_flare_cookies"/>-->
 
             <item
                 android:id="@+id/nav_recently_updated"
