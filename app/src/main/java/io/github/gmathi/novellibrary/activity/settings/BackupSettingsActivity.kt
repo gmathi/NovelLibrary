@@ -30,6 +30,8 @@ import kotlinx.android.synthetic.main.listitem_title_subtitle_widget.view.*
 import java.io.File
 import java.io.IOException
 import java.util.*
+import com.mikepenz.fastadapter.adapters.ItemAdapter.items
+
 
 class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, FolderChooserDialog.FolderCallback {
 
@@ -226,7 +228,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
         }
     }
 
-    private fun backupData(backupDir: File) {
+    private fun backupData(backupDir: File, shouldBackupDatabase: Boolean = true, shouldBackupPreferences: Boolean = true, shouldBackupFiles: Boolean = true) {
         async {
             val data = Environment.getDataDirectory()
             val baseDir = File(data, "//data//io.github.gmathi.novellibrary")
@@ -246,7 +248,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                     backupDir.mkdir()
 
                 //Backup Databases
-                if (currentDBsPath.exists() && currentDBsPath.isDirectory) {
+                if (shouldBackupDatabase && currentDBsPath.exists() && currentDBsPath.isDirectory) {
                     if (!backupDBsPath.exists()) backupDBsPath.mkdir()
                     currentDBsPath.listFiles().forEach {
                         await { Utils.copyFile(it, File(backupDBsPath, it.name)) }
@@ -254,14 +256,13 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                 }
 
                 //Backup Files
-                if (currentFilesDir.exists() && currentFilesDir.isDirectory) {
+                if (shouldBackupFiles && currentFilesDir.exists() && currentFilesDir.isDirectory) {
                     if (!backupFilesDir.exists()) backupFilesDir.mkdir()
                     await { recursiveCopy(currentFilesDir, backupFilesDir) }
                 }
 
                 //Backup Shared Preferences
-                // --> /data/data/io.github.gmathi.novellibrary/shared_prefs
-                if (currentSharedPrefsPath.exists() && currentSharedPrefsPath.isDirectory) {
+                if (shouldBackupPreferences && currentSharedPrefsPath.exists() && currentSharedPrefsPath.isDirectory) {
                     if (!backupSharedPrefsPath.exists()) backupSharedPrefsPath.mkdir()
                     currentSharedPrefsPath.listFiles().forEach {
                         await { Utils.copyFile(it, File(backupSharedPrefsPath, it.name)) }
@@ -309,7 +310,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
         }
     }
 
-    private fun restoreData(backupDir: File) {
+    private fun restoreData(backupDir: File, shouldRestoreDatabase: Boolean = true, shouldRestorePreferences: Boolean = true, shouldRestoreFiles: Boolean = true) {
         async {
             val data = Environment.getDataDirectory()
             val baseDir = File(data, "//data//io.github.gmathi.novellibrary")
@@ -331,7 +332,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                 }
 
                 //Restore Databases
-                if (backupDBsPath.exists() && backupDBsPath.isDirectory) {
+                if (shouldRestoreDatabase && backupDBsPath.exists() && backupDBsPath.isDirectory) {
                     if (!currentDBsPath.exists()) currentDBsPath.mkdir()
                     backupDBsPath.listFiles().forEach {
                         await { Utils.copyFile(it, File(currentDBsPath, it.name)) }
@@ -339,13 +340,13 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                 }
 
                 //Restore Files
-                if (backupFilesDir.exists() && backupFilesDir.isDirectory) {
+                if (shouldRestoreFiles && backupFilesDir.exists() && backupFilesDir.isDirectory) {
                     if (!currentFilesDir.exists()) currentFilesDir.mkdir()
                     await { recursiveCopy(backupFilesDir, currentFilesDir) }
                 }
 
                 //Restore Shared Preferences
-                if (backupSharedPrefsPath.exists() && backupSharedPrefsPath.isDirectory) {
+                if (shouldRestorePreferences && backupSharedPrefsPath.exists() && backupSharedPrefsPath.isDirectory) {
                     if (!currentSharedPrefsPath.exists()) currentSharedPrefsPath.mkdir()
                     backupSharedPrefsPath.listFiles().forEach {
                         await { Utils.copyFile(it, File(currentSharedPrefsPath, it.name)) }
@@ -751,22 +752,36 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
     //region FolderChooserDialog.FolderCallback
 
     override fun onFolderSelection(dialog: FolderChooserDialog, folder: File) {
-        when (dialog.tag) {
-            getString(R.string.backup) -> {
-                if (folder.canWrite()) {
-                    val backupDir = File(folder, BACKUP_DIR)
-                    backupData(backupDir)
-                } else
-                    showDialog(content = "Cannot write to SD card. Please check your SD card permissions")
-            }
+        val tag = dialog.tag
+        val title: String = if (tag == getString(R.string.backup)) "Choose Backup Options" else "Choose Restore Options"
 
-            getString(R.string.restore) -> {
-                if (folder.canRead() && folder.canWrite()) {
-                    restoreData(folder)
-                }
-            }
-        }
-        dialog.dismiss()
+        // dialog.dismiss()
+        MaterialDialog.Builder(this)
+            .title(title)
+            .items(R.array.backup_and_restore_options)
+            .itemsCallbackMultiChoice(arrayOf(0, 1, 2), { _, which, _ ->
+                if (which.isNotEmpty())
+                    when (tag) {
+                        getString(R.string.backup) -> {
+                            if (folder.canWrite()) {
+                                val backupDir = File(folder, BACKUP_DIR)
+                                backupData(backupDir, which.contains(0), which.contains(1), which.contains(2))
+                            } else
+                                showDialog(content = "Cannot write to SD card. Please check your SD card permissions")
+                        }
+
+                        getString(R.string.restore) -> {
+                            if (folder.canRead() && folder.canWrite()) {
+                                restoreData(folder, which.contains(0), which.contains(1), which.contains(2))
+                            } else
+                                showDialog(content = "Cannot read or write to SD card. Please check your SD card permissions")
+                        }
+                    }
+                true
+            })
+            .positiveText(R.string.okay)
+            .show()
+
     }
 
     override fun onFolderChooserDismissed(dialog: FolderChooserDialog) {

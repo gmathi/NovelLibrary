@@ -136,6 +136,11 @@
         <item>@drawable/ic_share_white_vector</item>
     </array>
 
+    <string-array name="backup_and_restore_options" translatable="false">
+        <item>@string/title_library</item>
+        <item>@string/preferences</item>
+        <item>@string/downloaded_files</item>
+    </string-array>
 
     <!--<item>Latest Updates</item>-->
     <!--<item>Active-Only Ranking</item>-->
@@ -418,6 +423,9 @@
     <string name="backup_data_description">Choose a folder to in internal storage/sd card for backup</string>
     <string name="restore_data">Manual Restore Data</string>
     <string name="restore_data_description">Choose a folder to in internal storage/sd card to restore</string>
+
+    <string name="preferences">Preferences (reader settings, e.t.c.)</string>
+    <string name="downloaded_files">Downloaded Chapters(Files)</string>
 
 
 </resources>
