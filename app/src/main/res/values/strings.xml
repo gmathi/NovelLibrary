@@ -56,22 +56,35 @@
     </string-array>
 
     <string-array name="general_titles_list" translatable="false">
-        <item>@string/backup_data</item>
-        <item>@string/restore_data</item>
-        <item>@string/clear_data</item>
-        <item>@string/google_backup</item>
-        <item>@string/google_restore</item>
         <item>@string/first_screen_library</item>
+        <item>@string/backup_and_restore</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
+        <item>@string/first_screen_library_description</item>
+        <item>@string/backup_and_restore_description</item>
+    </string-array>
+
+    <string-array name="backup_and_restore_titles_list" translatable="false">
+        <item>@string/internal_full_backup_data</item>
+        <item>@string/internal_full_restore_data</item>
+        <item>@string/internal_clear_data</item>
+        <item>@string/backup_data</item>
+        <item>@string/restore_data</item>
+        <item>@string/google_backup</item>
+        <item>@string/google_restore</item>
+    </string-array>
+
+    <string-array name="backup_and_restore_subtitles_list" translatable="false">
+        <item>@string/internal_full_backup_data_description</item>
+        <item>@string/internal_full_restore_data_description</item>
+        <item>@string/internal_clear_data_description</item>
         <item>@string/backup_data_description</item>
         <item>@string/restore_data_description</item>
-        <item>@string/clear_data_description</item>
         <item>@string/google_backup_description</item>
         <item>@string/google_restore_description</item>
-        <item>@string/first_screen_library_description</item>
     </string-array>
+
 
     <string-array name="reader_titles_list" translatable="false">
         <item>@string/reader_mode</item>
@@ -122,7 +135,6 @@
         <item>@drawable/ic_open_in_browser_white_vector</item>
         <item>@drawable/ic_share_white_vector</item>
     </array>
-    
 
 
     <!--<item>Latest Updates</item>-->
@@ -137,6 +149,7 @@
     <string name="title_activity_copyright" translatable="false">@string/copyright_notice</string>
     <string name="title_activity_search_results" translatable="false">SearchResultsActivity</string>
     <string name="title_activity_general_settings" translatable="false">@string/general</string>
+    <string name="title_activity_backup_n_restore_settings" translatable="false">@string/backup_and_restore</string>
     <string name="title_activity_reader_settings" translatable="false">@string/reader</string>
     <string name="title_activity_mention_settings" translatable="false">@string/mentions</string>
     <string name="title_activity_chapters_new" translatable="false">@string/chapters</string>
@@ -339,11 +352,7 @@
     <string name="show_comments_section">Show Comments</string>
     <string name="show_comments_section_description">Shows the chapter’s comments section in the reader mode. (Limited Websites Supported)</string>
     <string name="backup">Backup</string>
-    <string name="backup_data">Backup Data</string>
-    <string name="backup_data_description">Backup Data to internal storage/sd card</string>
     <string name="restore">Restore</string>
-    <string name="restore_data">Restore Data</string>
-    <string name="restore_data_description">Restore Data from internal storage/sd card</string>
     <string name="import_reading_list">Import Reading List</string>
     <string name="nu_reading_list_url">NU Reading List URL</string>
     <string name="volume_scroll">Scroll With Volume Buttons</string>
@@ -391,8 +400,24 @@
     <string name="reader_mode_button_visibility">Reader Mode Button Visibility</string>
     <string name="reader_mode_button_visibility_description">The reader mode menu icon will be hidden, if this is enabled. You can also open reader mode menu by swiping from the far right edge of the screen</string>
 
-    <string name="cloudflare_bypass_description">Please wait while the Cloudflare browser check is being bypassed</string>
-    <string name="cloudflare_bypass_success">Cloudflare bypassed successfully</string>
-    <string name="cloudflare_bypass_failure_title">Cloudflare Bypass Failed</string>
+    <string name="cloud_flare_bypass_description">Please wait while the CloudFlare browser check is being bypassed</string>
+    <string name="cloud_flare_bypass_success">CloudFlare Bypass Successful</string>
+    <string name="cloud_flare_bypass_failure_title">CloudFlare Bypass Failed</string>
+
+    <string name="backup_and_restore">Backup &amp; Restore</string>
+    <string name="backup_and_restore_description">Backup &amp; Restore data automatically or manually choose your own folder. Alternatively you can also use Google drive</string>
+
+    <string name="internal_full_backup_data">Auto Backup All Data</string>
+    <string name="internal_full_backup_data_description">Fully Backups Data to internal storage/sd card. (Backups to Auto-generated folders)</string>
+    <string name="internal_full_restore_data">Auto Restore All Data</string>
+    <string name="internal_full_restore_data_description">Fully Restores Data from internal storage/sd card (Restores from the Auto-generated folders)</string>
+    <string name="internal_clear_data">Clear Cache &amp; Data</string>
+    <string name="internal_clear_data_description">Clears the cache, files and database (including the Auto-generated folders)</string>
+
+    <string name="backup_data">Manual Backup Data</string>
+    <string name="backup_data_description">Choose a folder to in internal storage/sd card for backup</string>
+    <string name="restore_data">Manual Restore Data</string>
+    <string name="restore_data_description">Choose a folder to in internal storage/sd card to restore</string>
+
 
 </resources>

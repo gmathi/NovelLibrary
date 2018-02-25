@@ -113,6 +113,11 @@ fun Activity.startGeneralSettingsActivity() {
     startActivity(intent)
 }
 
+fun Activity.startBackupSettingsActivity() {
+    val intent = Intent(this, BackupSettingsActivity::class.java)
+    startActivity(intent)
+}
+
 fun Activity.startReaderSettingsActivity() {
     val intent = Intent(this, ReaderSettingsActivity::class.java)
     startActivity(intent)

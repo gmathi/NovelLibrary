@@ -11,7 +11,6 @@ import android.support.v4.app.FragmentTransaction
 import android.support.v4.view.GravityCompat
 import android.support.v7.widget.Toolbar
 import android.view.MenuItem
-import android.widget.Toast
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.crashlytics.android.Crashlytics
@@ -37,10 +36,14 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private var snackBar: Snackbar? = null
     private var currentNavId: Int = R.id.nav_search
 
+    private var cloudFlareLoadingDialog: MaterialDialog? = null
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_nav_drawer)
         navigationView.setNavigationItemSelectedListener(this)
+
 
         try {
             currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
@@ -76,7 +79,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
-
         if (Utils.checkNetwork(this))
             checkForCloudFlare()
         else
@@ -104,29 +106,25 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun checkForCloudFlare() {
-        val cfDescStr = getString(R.string.cloudflare_bypass_description)
-        val cfSuccessStr = getString(R.string.cloudflare_bypass_success)
-        val cfFailTitleStr = getString(R.string.cloudflare_bypass_failure_title)
-        val cfFailRetryStr = getString(R.string.try_again)
 
-        val loadingDialog = Utils.dialogBuilder(this@NavDrawerActivity, content = cfDescStr, isProgress = true).cancelable(false).build()
+        cloudFlareLoadingDialog = Utils.dialogBuilder(this@NavDrawerActivity, content = getString(R.string.cloud_flare_bypass_description), isProgress = true).cancelable(false).build()
 
         val listener = object : CloudFlare.Companion.Listener {
             override fun onSuccess() {
                 Handler(Looper.getMainLooper()).post {
-                    Toast.makeText(this@NavDrawerActivity, cfSuccessStr, Toast.LENGTH_SHORT).show()
+                    Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
                     loadFragment(currentNavId)
                     checkIntentForNotificationData()
-                    loadingDialog.dismiss()
+                    cloudFlareLoadingDialog?.dismiss()
                 }
             }
 
             override fun onFailure() {
                 Handler(Looper.getMainLooper()).post {
-                    loadingDialog.hide()
+                    cloudFlareLoadingDialog?.hide()
                     MaterialDialog.Builder(this@NavDrawerActivity)
-                        .content(cfFailTitleStr)
-                        .positiveText(cfFailRetryStr)
+                        .content(getString(R.string.cloud_flare_bypass_success))
+                        .positiveText(getString(R.string.try_again))
                         .onPositive { dialog, _ ->
                             dialog.dismiss()
                             checkForCloudFlare()
@@ -135,7 +133,9 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 }
             }
         }
-        loadingDialog.show()
+
+        cloudFlareLoadingDialog?.show()
+
         async {
             await { CloudFlare(this@NavDrawerActivity, listener).check() }
         }

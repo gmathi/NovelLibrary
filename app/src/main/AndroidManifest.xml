@@ -145,6 +145,11 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
+            android:name=".activity.settings.BackupSettingsActivity"
+            android:label="@string/title_activity_backup_n_restore_settings"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
             android:name=".activity.settings.ReaderSettingsActivity"
             android:label="@string/title_activity_reader_settings"
             android:theme="@style/DarkTheme_DarkSide">
