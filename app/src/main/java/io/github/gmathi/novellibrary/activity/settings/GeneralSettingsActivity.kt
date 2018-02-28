@@ -52,11 +52,13 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
 
         private const val POSITION_LOAD_LIBRARY_SCREEN = 0
         private const val POSITION_BACKUP_AND_RESTORE = 1
+        private const val POSITION_ENABLE_CLOUD_FLARE = 2
     }
 
     lateinit var adapter: GenericAdapter<String>
     private lateinit var settingsItems: ArrayList<String>
     private lateinit var settingsItemsDescription: ArrayList<String>
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -103,6 +105,12 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
 
             POSITION_BACKUP_AND_RESTORE -> {
                 itemView.widgetChevron.visibility = View.VISIBLE
+            }
+
+            POSITION_ENABLE_CLOUD_FLARE -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.enableCloudFlare
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableCloudFlare = value }
             }
         }
 

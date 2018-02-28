@@ -10,6 +10,7 @@ import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentTransaction
 import android.support.v4.view.GravityCompat
 import android.support.v7.widget.Toolbar
+import android.text.Html
 import android.view.MenuItem
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
@@ -79,29 +80,23 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
-        if (Utils.checkNetwork(this))
+        if (dataCenter.enableCloudFlare && Utils.checkNetwork(this)) {
             checkForCloudFlare()
-        else
+        } else {
+            checkIntentForNotificationData()
             loadFragment(currentNavId)
+        }
+
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
-//            @Suppress("DEPRECATION")
-//            MaterialDialog.Builder(this)
-//                .title("📢 Announcement!")
-//                .content(Html.fromHtml("<b><u>New Features:</u></b> " +
-//                    "<br/><b>Experimental: Cluster Pages</b> - All links in one page. Can be toggled from Reader Settings. Don't use it, if you are not sure." +
-//                    "<br/><b>Fixed (I think so...): Google Cloud Backup/Restore</b> - Backup and Restore from google cloud " +
-//                    "<br/>For the glory of the app!! Ahooo Ahooo!!! 🎊🎉"))
-//                .positiveText("Yay")
-//                .onPositive { dialog, _ -> dialog.dismiss() }
-//                .show()
-//            try {
-            //dataCenter.resetVerifiedHosts()
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//            }
+            MaterialDialog.Builder(this)
+                .title("📢 Announcement!")
+                .content("Manual Backup & No More Cloud Flare (You can still enable it from general settings) 🎊🎉")
+                .positiveText("Yay")
+                .onPositive { dialog, _ -> dialog.dismiss() }
+                .show()
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
-//
+
 
     }
 
@@ -206,13 +201,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_discord_link -> {
                 openInBrowser("https://discord.gg/g2cQswh")
             }
-//            R.id.nav_refresh_cloud_flare_cookies -> {
-//                if (Utils.checkNetwork(this)) {
-//                    checkForCloudFlare()
-//                } else {
-//                    Toast.makeText(this, getString(R.string.no_internet), Toast.LENGTH_SHORT).show()
-//                }
-//            }
         }
     }
 

@@ -80,15 +80,14 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
     }
 
     override fun bind(item: String, itemView: View, position: Int) {
-        itemView.widgetChevron.visibility = View.INVISIBLE
-        itemView.widgetSwitch.visibility = View.INVISIBLE
-        itemView.widgetButton.visibility = View.INVISIBLE
+        itemView.widgetChevron.visibility = View.GONE
+        itemView.widgetSwitch.visibility = View.GONE
+        itemView.widgetButton.visibility = View.GONE
+        itemView.widget.visibility = View.GONE
 
         itemView.title.applyFont(assets).text = item
         itemView.subtitle.applyFont(assets).text = settingsItemsDescription[position]
         itemView.widgetSwitch.setOnCheckedChangeListener(null)
-
-
 
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
         else ContextCompat.getColor(this, android.R.color.transparent))

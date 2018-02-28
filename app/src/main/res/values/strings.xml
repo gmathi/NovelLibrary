@@ -58,11 +58,13 @@
     <string-array name="general_titles_list" translatable="false">
         <item>@string/first_screen_library</item>
         <item>@string/backup_and_restore</item>
+        <item>@string/enable_cloud_flare</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
         <item>@string/first_screen_library_description</item>
         <item>@string/backup_and_restore_description</item>
+        <item>@string/enable_cloud_flare_description</item>
     </string-array>
 
     <string-array name="backup_and_restore_titles_list" translatable="false">
@@ -423,6 +425,9 @@
     <string name="backup_data_description">Choose a folder to in internal storage/sd card for backup</string>
     <string name="restore_data">Manual Restore Data</string>
     <string name="restore_data_description">Choose a folder to in internal storage/sd card to restore</string>
+
+    <string name="enable_cloud_flare">Cloud Flare Cookies</string>
+    <string name="enable_cloud_flare_description">You need to restart the app, after you toggle this!</string>
 
     <string name="preferences">Preferences (reader settings, e.t.c.)</string>
     <string name="downloaded_files">Downloaded Chapters(Files)</string>
