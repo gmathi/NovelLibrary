@@ -12,7 +12,7 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
 
     override fun onBindViewHolder(holder: ViewHolder<T>, position: Int) = holder.bind(item = items[position], listener = listener, position = position)
 
-    override fun onBindViewHolder(holder: ViewHolder<T>, position: Int, payloads: MutableList<Any>?) = holder.bind(item = items[position], listener = listener, position = position, payloads = payloads)
+    override fun onBindViewHolder(holder: ViewHolder<T>, position: Int, payloads: MutableList<Any>) = holder.bind(item = items[position], listener = listener, position = position, payloads = payloads)
 
     override fun getItemCount() = items.size
 

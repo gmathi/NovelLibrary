@@ -18,8 +18,8 @@ android {
         minSdkVersion 16
         targetSdkVersion 27
         multiDexEnabled true
-        versionCode 45
-        versionName "0.8.7.beta"
+        versionCode 46
+        versionName "0.8.8.beta"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         resConfigs "auto"
@@ -49,7 +49,7 @@ android {
     }
 }
 
-def support_lib_version = "27.0.2"
+def support_lib_version = "27.1.0"
 def gcm_services_version = "11.8.0"
 
 dependencies {
@@ -60,7 +60,7 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
-    implementation 'com.android.support:multidex:1.0.2'
+    implementation 'com.android.support:multidex:1.0.3'
 
     implementation "com.android.support:support-v4:$support_lib_version"
     implementation "com.android.support:appcompat-v7:$support_lib_version"
