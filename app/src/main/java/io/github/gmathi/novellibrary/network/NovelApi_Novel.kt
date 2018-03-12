@@ -24,42 +24,28 @@ fun NovelApi.getNUNovelDetails(url: String): Novel? {
         novel = Novel(document.getElementsByClass("seriestitlenu").firstOrNull()?.text() ?: "NameUnableToFetch", url)
         novel.imageUrl = document.getElementsByClass("seriesimg").firstOrNull()?.getElementsByTag("img")?.attr("src")
         novel.longDescription = document.body().getElementById("editdescription")?.text()
-        novel.chapterCount = getNUChapterCount(document).toLong()
-        novel.newChapterCount = novel.chapterCount
         novel.rating = document.body().getElementsByClass("uvotes")?.firstOrNull { it.id() == "span" }?.text()?.substring(1, 4)
 
         novel.genres = document.body().getElementById("seriesgenre")?.children()?.map { it.text() }
 
-        novel.metaData.put("Author(s)",
-            document.getElementsByClass("genre").filter { it.id() == "authtag" }.joinToString(", ") { it.outerHtml() })
-        novel.metaData.put("Artist(s)",
-            document.getElementsByClass("genre").filter { it.id() == "artiststag" }.joinToString(", ") { it.outerHtml() })
-        novel.metaData.put("Genre(s)",
-            document.getElementsByClass("genre").filter { it.hasAttr("gid") }.joinToString(", ") { it.outerHtml() })
-        novel.metaData.put("Year",
-            document.getElementById("edityear").text())
-        novel.metaData.put("Type",
-            document.getElementsByClass("genre type").firstOrNull()?.outerHtml())
-        novel.metaData.put("Tags",
-            document.getElementsByClass("genre").filter { it.id() == "etagme" }.joinToString(", ") { it.outerHtml() })
-        novel.metaData.put("Language",
-            document.getElementsByClass("genre lang").firstOrNull { it.tagName() == "a" && it.hasAttr("lid") }?.outerHtml())
-        novel.metaData.put("Status in Country of Origin",
-            document.getElementById("editstatus").text())
-        novel.metaData.put("Licensed (in English)",
-            document.getElementById("showlicensed").text())
-        novel.metaData.put("Completely Translated",
-            document.getElementById("showtranslated").outerHtml())
-        novel.metaData.put("Original Publisher",
-            document.getElementsByClass("genre").filter { it.id() == "myopub" }.map { it.outerHtml() }.joinToString(", "))
-        novel.metaData.put("Completely Translated",
-            document.getElementById("showtranslated").text())
-        novel.metaData.put("English Publisher",
-            document.getElementsByClass("genre").filter { it.id() == "myepub" }.map { it.outerHtml() }.joinToString(", "))
-        novel.metaData.put("Associated Names",
-            document.getElementById("editassociated").text())
-        novel.metaData.put("PostId", document.getElementById("mypostid").attr("value"))
+        novel.metaData["Author(s)"] = document.getElementsByClass("genre").filter { it.id() == "authtag" }.joinToString(", ") { it.outerHtml() }
+        novel.metaData["Artist(s)"] = document.getElementsByClass("genre").filter { it.id() == "artiststag" }.joinToString(", ") { it.outerHtml() }
+        novel.metaData["Genre(s)"] = document.getElementsByClass("genre").filter { it.hasAttr("gid") }.joinToString(", ") { it.outerHtml() }
+        novel.metaData["Year"] = document.getElementById("edityear").text()
+        novel.metaData["Type"] = document.getElementsByClass("genre type").firstOrNull()?.outerHtml()
+        novel.metaData["Tags"] = document.getElementsByClass("genre").filter { it.id() == "etagme" }.joinToString(", ") { it.outerHtml() }
+        novel.metaData["Language"] = document.getElementsByClass("genre lang").firstOrNull { it.tagName() == "a" && it.hasAttr("lid") }?.outerHtml()
+        novel.metaData["Status in Country of Origin"] = document.getElementById("editstatus").text()
+        novel.metaData["Licensed (in English)"] = document.getElementById("showlicensed").text()
+        novel.metaData["Completely Translated"] = document.getElementById("showtranslated").outerHtml()
+        novel.metaData["Original Publisher"] = document.getElementsByClass("genre").filter { it.id() == "myopub" }.map { it.outerHtml() }.joinToString(", ")
+        novel.metaData["Completely Translated"] = document.getElementById("showtranslated").text()
+        novel.metaData["English Publisher"] = document.getElementsByClass("genre").filter { it.id() == "myepub" }.map { it.outerHtml() }.joinToString(", ")
+        novel.metaData["Associated Names"] = document.getElementById("editassociated").text()
+        novel.metaData["PostId"] = document.getElementById("mypostid").attr("value")
 
+        novel.chapterCount = getNUChapterCount(novel).toLong()
+        novel.newChapterCount = novel.chapterCount
 
     } catch (e: IOException) {
         e.printStackTrace()
@@ -81,8 +67,7 @@ fun NovelApi.getRRNovelDetails(url: String): Novel? {
         novel.genres = document.body().getElementsByAttributeValue("property", "genre")?.map { it.text() }
         novel.chapterCount = getRRChapterCount(document).toLong()
 
-        novel.metaData.put("Author(s)",
-            document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("property") && it.attr("property") == "books:author" }?.attr("content"))
+        novel.metaData["Author(s)"] = document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("property") && it.attr("property") == "books:author" }?.attr("content")
 
     } catch (e: IOException) {
         e.printStackTrace()
@@ -114,62 +99,46 @@ fun NovelApi.getWlnNovelDetails(url: String): Novel? {
         novel.genres = document.body().getElementsByTag("a")?.filter { it.hasAttr("href") && it.attr("href").contains("/genre-id/") }?.map { it.text() }
         novel.chapterCount = getWLNUChapterCount(document).toLong()
 
-        novel.metaData.put("Author(s)",
-            document.getElementsByTag("span")?.filter { it.id() == "author" }?.joinToString(", ") {
-                val linkElement = it.getElementsByTag("a")?.firstOrNull()
-                if (linkElement != null) {
-                    "<a href=\"${it.getElementsByTag("a")?.firstOrNull()?.absUrl("href")}\">${it.getElementsByTag("a")?.firstOrNull()?.text()}</a>"
-                } else {
-                    it.text()
-                }
-            })
+        novel.metaData["Author(s)"] = document.getElementsByTag("span")?.filter { it.id() == "author" }?.joinToString(", ") {
+            val linkElement = it.getElementsByTag("a")?.firstOrNull()
+            if (linkElement != null) {
+                "<a href=\"${it.getElementsByTag("a")?.firstOrNull()?.absUrl("href")}\">${it.getElementsByTag("a")?.firstOrNull()?.text()}</a>"
+            } else {
+                it.text()
+            }
+        }
 
-        novel.metaData.put("Artist(s)",
-            document.getElementsByTag("span")?.filter { it.id() == "illustrators" }?.joinToString(", ") {
-                val linkElement = it.getElementsByTag("a")?.firstOrNull()
-                if (linkElement != null) {
-                    "<a href=\"${it.getElementsByTag("a")?.firstOrNull()?.absUrl("href")}\">${it.getElementsByTag("a")?.firstOrNull()?.text()}</a>"
-                } else {
-                    it.text()
-                }
-            })
+        novel.metaData["Artist(s)"] = document.getElementsByTag("span")?.filter { it.id() == "illustrators" }?.joinToString(", ") {
+            val linkElement = it.getElementsByTag("a")?.firstOrNull()
+            if (linkElement != null) {
+                "<a href=\"${it.getElementsByTag("a")?.firstOrNull()?.absUrl("href")}\">${it.getElementsByTag("a")?.firstOrNull()?.text()}</a>"
+            } else {
+                it.text()
+            }
+        }
 
-        novel.metaData.put("Tags",
-            document.getElementsByTag("span")?.filter { it.id() == "tag" }?.joinToString(", ") {
-                val linkElement = it.getElementsByTag("a")?.firstOrNull()
-                if (linkElement != null) {
-                    "<a href=\"${it.getElementsByTag("a")?.firstOrNull()?.absUrl("href")}\">${it.getElementsByTag("a")?.firstOrNull()?.text()}</a>"
-                } else {
-                    it.text()
-                }
-            })
+        novel.metaData["Tags"] = document.getElementsByTag("span")?.filter { it.id() == "tag" }?.joinToString(", ") {
+            val linkElement = it.getElementsByTag("a")?.firstOrNull()
+            if (linkElement != null) {
+                "<a href=\"${it.getElementsByTag("a")?.firstOrNull()?.absUrl("href")}\">${it.getElementsByTag("a")?.firstOrNull()?.text()}</a>"
+            } else {
+                it.text()
+            }
+        }
 
-        novel.metaData.put("Genre(s)",
-            document.body().getElementsByTag("a")?.filter { it.hasAttr("href") && it.attr("href").contains("/genre-id/") }?.joinToString(", ") { "<a href=\"${it.absUrl("href")}\">${it.text()}</a>" })
-        novel.metaData.put("Type",
-            document.getElementById("type")?.getElementsByClass("dropitem-text")?.text())
-        novel.metaData.put("Language",
-            document.getElementById("orig_lang")?.text())
-        novel.metaData.put("Country of Origin",
-            document.getElementById("origin_loc")?.getElementsByClass("dropitem-text")?.text())
-        novel.metaData.put("Status in Country of Origin",
-            document.getElementById("orig_status")?.text())
-        novel.metaData.put("Licensed (in English)",
-            document.getElementById("license_en")?.getElementsByClass("dropitem-text")?.text())
-        novel.metaData.put("Publisher(s)",
-            document.getElementsByTag("span")?.filter { it.id() == "publisher" }?.joinToString(", ") { "<a href=\"${it.getElementsByTag("a")?.firstOrNull()?.absUrl("href")}\">${it.getElementsByTag("a")?.firstOrNull()?.text()}</a>" })
-        novel.metaData.put("OEL/Translated",
-            document.getElementById("tl_type")?.text())
-        novel.metaData.put("Demographic",
-            document.getElementById("demographic")?.text())
-        novel.metaData.put("General Text",
-            document.getElementById("region")?.getElementsByClass("dropitem-text")?.text())
-        novel.metaData.put("Initial publish date",
-            document.getElementById("pub_date")?.text())
-        novel.metaData.put("Alternate Names",
-            document.getElementsByTag("span")?.filter { it.id() == "altnames" }?.joinToString(", ") { it.text() })
-        novel.metaData.put("Homepage",
-            document.getElementById("website")?.getElementsByTag("a")?.firstOrNull()?.outerHtml())
+        novel.metaData["Genre(s)"] = document.body().getElementsByTag("a")?.filter { it.hasAttr("href") && it.attr("href").contains("/genre-id/") }?.joinToString(", ") { "<a href=\"${it.absUrl("href")}\">${it.text()}</a>" }
+        novel.metaData["Type"] = document.getElementById("type")?.getElementsByClass("dropitem-text")?.text()
+        novel.metaData["Language"] = document.getElementById("orig_lang")?.text()
+        novel.metaData["Country of Origin"] = document.getElementById("origin_loc")?.getElementsByClass("dropitem-text")?.text()
+        novel.metaData["Status in Country of Origin"] = document.getElementById("orig_status")?.text()
+        novel.metaData["Licensed (in English)"] = document.getElementById("license_en")?.getElementsByClass("dropitem-text")?.text()
+        novel.metaData["Publisher(s)"] = document.getElementsByTag("span")?.filter { it.id() == "publisher" }?.joinToString(", ") { "<a href=\"${it.getElementsByTag("a")?.firstOrNull()?.absUrl("href")}\">${it.getElementsByTag("a")?.firstOrNull()?.text()}</a>" }
+        novel.metaData["OEL/Translated"] = document.getElementById("tl_type")?.text()
+        novel.metaData["Demographic"] = document.getElementById("demographic")?.text()
+        novel.metaData["General Text"] = document.getElementById("region")?.getElementsByClass("dropitem-text")?.text()
+        novel.metaData["Initial publish date"] = document.getElementById("pub_date")?.text()
+        novel.metaData["Alternate Names"] = document.getElementsByTag("span")?.filter { it.id() == "altnames" }?.joinToString(", ") { it.text() }
+        novel.metaData["Homepage"] = document.getElementById("website")?.getElementsByTag("a")?.firstOrNull()?.outerHtml()
 
 
     } catch (e: IOException) {
