@@ -172,19 +172,24 @@ class ReaderDBPagerActivity :
     }
 
     private fun reportPage() {
-        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
-        val chapterName = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.webPage?.chapter
-        if (url != null) {
-            val email = getString(R.string.dev_email)
-            val subject = "[IMPROVEMENT]"
-            val body = StringBuilder()
-            body.append("Please improve the viewing experience of this page.\n")
-            body.append("Novel Name: ${novel?.name} \n")
-            body.append("Novel Url: ${novel?.url} \n")
-            body.append("Chapter Name: $chapterName \n ")
-            body.append("Chapter Url: $url \n ")
-            sendEmail(email, subject, body.toString())
-        }
+        MaterialDialog.Builder(this)
+            .content("Please use discord to report a bug.")
+            .positiveText("Ok")
+            .onPositive { dialog, _ -> dialog.dismiss() }
+            .show()
+//        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
+//        val chapterName = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.webPage?.chapter
+//        if (url != null) {
+//            val email = getString(R.string.dev_email)
+//            val subject = "[IMPROVEMENT]"
+//            val body = StringBuilder()
+//            body.append("Please improve the viewing experience of this page.\n")
+//            body.append("Novel Name: ${novel?.name} \n")
+//            body.append("Novel Url: ${novel?.url} \n")
+//            body.append("Chapter Name: $chapterName \n ")
+//            body.append("Chapter Url: $url \n ")
+//            sendEmail(email, subject, body.toString())
+//        }
     }
 
     private fun inBrowser() {

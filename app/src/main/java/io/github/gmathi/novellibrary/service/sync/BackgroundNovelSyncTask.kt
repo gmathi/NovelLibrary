@@ -54,8 +54,6 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         val deltaCountMap: HashMap<Novel, Int> = HashMap()
         val totalCountMap: HashMap<Novel, Int> = HashMap()
 
-
-
         dbHelper.getAllNovels().forEach {
             try {
                 val totalChapters = NovelApi().getChapterCount(it)

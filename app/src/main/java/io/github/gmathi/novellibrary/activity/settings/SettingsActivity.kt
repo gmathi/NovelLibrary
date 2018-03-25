@@ -84,7 +84,12 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         if (item?.itemId == android.R.id.home) finish()
         if (item?.itemId == R.id.action_report_page)
-            sendEmail("gmathi.developer@gmail.com", "[BUG REPORT]", "Bug Report: \n //Add Your Bug Details Below \n")
+            MaterialDialog.Builder(this)
+                .content("Please use discord to report a bug.")
+                .positiveText("Ok")
+                .onPositive { dialog, _ -> dialog.dismiss() }
+                .show()
+        //            sendEmail("gmathi.developer@gmail.com", "[BUG REPORT]", "Bug Report: \n //Add Your Bug Details Below \n")
         return super.onOptionsItemSelected(item)
     }
     //endregion

@@ -173,7 +173,7 @@
     <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
     <string name="transition_user_banner" translatable="false">trans_banner_img</string>
     <string name="transition_image_preview" translatable="false">trans_image_preview</string>
-    <string name="dev_email" translatable="false">gmathi.developer@gmail.com</string>
+    <string name="dev_email" translatable="false">-</string>
     <string name="downloading_status" translatable="false">%1$s - %2$s: %3$s</string>
     <string name="chapter_count" translatable="false">%1$d / %2$d</string>
 
