@@ -7,6 +7,7 @@ import android.support.v4.content.ContextCompat
 import android.view.View
 import com.bumptech.glide.Glide
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_image_preview.*
 import java.io.File
@@ -33,7 +34,7 @@ class ImagePreviewActivity : Activity() {
         if (Utils.checkNetwork(this) && url != null)
             Glide.with(this).load(url).into(previewImageView)
         else if (filePath != null)
-            Glide.with(this).load(File(filePath.replace("file://", ""))).into(previewImageView)
+            Glide.with(this).load(File(filePath.replace(FILE_PROTOCOL, ""))).into(previewImageView)
     }
 
 }

@@ -145,6 +145,11 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
+            android:name=".activity.settings.BackupSettingsActivity"
+            android:label="@string/title_activity_backup_n_restore_settings"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
+        <activity
             android:name=".activity.settings.ReaderSettingsActivity"
             android:label="@string/title_activity_reader_settings"
             android:theme="@style/DarkTheme_DarkSide">
@@ -160,7 +165,7 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.downloads.NovelDownloadsActivity"
+            android:name=".activity.NovelDownloadsActivity"
             android:label="@string/title_activity_novel_downloads"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
@@ -207,17 +212,7 @@
             android:theme="@style/DarkTheme_DarkSide">
         </activity>
         <activity
-            android:name=".activity.downloads.ChapterDownloadsActivity"
-            android:label="@string/title_activity_chapter_downloads"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
-        <activity
             android:name=".activity.WebViewActivity"
-            android:label="@string/title_activity_web_view"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
-        <activity
-            android:name=".activity.InitialWebViewActivity"
             android:label="@string/title_activity_web_view"
             android:theme="@style/DarkTheme_DarkSide">
         </activity>

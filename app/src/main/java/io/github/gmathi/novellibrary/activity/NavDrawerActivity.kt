@@ -10,10 +10,11 @@ import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentTransaction
 import android.support.v4.view.GravityCompat
 import android.support.v7.widget.Toolbar
+import android.text.Html
 import android.view.MenuItem
-import android.widget.Toast
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
+import com.crashlytics.android.Crashlytics
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
@@ -36,12 +37,29 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private var snackBar: Snackbar? = null
     private var currentNavId: Int = R.id.nav_search
 
+    private var cloudFlareLoadingDialog: MaterialDialog? = null
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_nav_drawer)
         navigationView.setNavigationItemSelectedListener(this)
 
-        currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
+
+        try {
+            currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
+        } catch (e: Exception) {
+            Crashlytics.logException(e)
+            MaterialDialog.Builder(this@NavDrawerActivity)
+                .content("Error initiating the app. The developer has been notified about this!")
+                .positiveText("Quit")
+                .cancelable(false)
+                .onPositive { dialog, _ ->
+                    dialog.dismiss()
+                    finish()
+                }
+                .show()
+        }
 
         if (intent.hasExtra("currentNavId"))
             currentNavId = intent.getIntExtra("currentNavId", currentNavId)
@@ -62,60 +80,58 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
-
-        if (Utils.checkNetwork(this))
+        if (dataCenter.enableCloudFlare && Utils.checkNetwork(this)) {
             checkForCloudFlare()
-        else
+        } else {
+            checkIntentForNotificationData()
             loadFragment(currentNavId)
+        }
+
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
-//            @Suppress("DEPRECATION")
-//            MaterialDialog.Builder(this)
-//                .title("📢 Announcement!")
-//                .content(Html.fromHtml("<b><u>New Features:</u></b> " +
-//                    "<br/><b>Experimental: Cluster Pages</b> - All links in one page. Can be toggled from Reader Settings. Don't use it, if you are not sure." +
-//                    "<br/><b>Fixed (I think so...): Google Cloud Backup/Restore</b> - Backup and Restore from google cloud " +
-//                    "<br/>For the glory of the app!! Ahooo Ahooo!!! 🎊🎉"))
-//                .positiveText("Yay")
-//                .onPositive { dialog, _ -> dialog.dismiss() }
-//                .show()
-//            try {
-            //dataCenter.resetVerifiedHosts()
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//            }
+            MaterialDialog.Builder(this)
+                .title("📢 Announcement!")
+                .content("Manual Backup & No More Cloud Flare (You can still enable it from general settings) 🎊🎉")
+                .positiveText("Yay")
+                .onPositive { dialog, _ -> dialog.dismiss() }
+                .show()
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
-//
+
 
     }
 
     private fun checkForCloudFlare() {
-        async {
 
-            val loadingDialog = Utils.dialogBuilder(this@NavDrawerActivity, content = "Please wait while cloud flare cookies is bypassed", isProgress = true).cancelable(false).build()
+        cloudFlareLoadingDialog = Utils.dialogBuilder(this@NavDrawerActivity, content = getString(R.string.cloud_flare_bypass_description), isProgress = true).cancelable(false).build()
 
-            val listener = object : CloudFlare.Companion.Listener {
-                override fun onSuccess() {
+        val listener = object : CloudFlare.Companion.Listener {
+            override fun onSuccess() {
+                Handler(Looper.getMainLooper()).post {
+                    Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
                     loadFragment(currentNavId)
-                    Handler(Looper.getMainLooper()).post {
-                        Toast.makeText(this@NavDrawerActivity, "Cloud Flare Bypassed", Toast.LENGTH_SHORT).show()
-                        loadingDialog.dismiss()
-                    }
-                }
-
-                override fun onFailure() {
-                    Handler(Looper.getMainLooper()).post {
-                        loadingDialog.hide()
-                        MaterialDialog.Builder(this@NavDrawerActivity)
-                            .content("Cloud Flare ByPass Failed")
-                            .positiveText("Try Again")
-                            .onPositive { dialog, _ -> dialog.dismiss(); checkForCloudFlare() }
-                            .show()
-                    }
+                    checkIntentForNotificationData()
+                    cloudFlareLoadingDialog?.dismiss()
                 }
             }
 
-            loadingDialog.show()
+            override fun onFailure() {
+                Handler(Looper.getMainLooper()).post {
+                    cloudFlareLoadingDialog?.hide()
+                    MaterialDialog.Builder(this@NavDrawerActivity)
+                        .content(getString(R.string.cloud_flare_bypass_success))
+                        .positiveText(getString(R.string.try_again))
+                        .onPositive { dialog, _ ->
+                            dialog.dismiss()
+                            checkForCloudFlare()
+                        }
+                        .show()
+                }
+            }
+        }
+
+        cloudFlareLoadingDialog?.show()
+
+        async {
             await { CloudFlare(this@NavDrawerActivity, listener).check() }
         }
     }
@@ -185,13 +201,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_discord_link -> {
                 openInBrowser("https://discord.gg/g2cQswh")
             }
-            R.id.nav_refresh_cloud_flare_cookies -> {
-                //startInitialWebViewActivity()
-                if (Utils.checkNetwork(this))
-                    checkForCloudFlare()
-                else
-                    Toast.makeText(this, "No Internet Connection", Toast.LENGTH_SHORT).show()
-            }
         }
     }
 
@@ -214,12 +223,16 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             loadFragment(R.id.nav_downloads)
         }
         if (requestCode == Constants.IWV_ACT_REQ_CODE) {
-            if (intent.extras != null && intent.extras.containsKey("novel")) {
-                val novel = intent.extras.getSerializable("novel") as? Novel
-                novel?.let {
-                    intent.extras.remove("novel")
-                    startChaptersActivity(novel)
-                }
+            checkIntentForNotificationData()
+        }
+    }
+
+    private fun checkIntentForNotificationData() {
+        if (intent.extras != null && intent.extras.containsKey("novel")) {
+            val novel = intent.extras.getSerializable("novel") as? Novel
+            novel?.let {
+                intent.extras.remove("novel")
+                startChaptersActivity(novel)
             }
         }
     }

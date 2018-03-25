@@ -17,6 +17,7 @@ import android.widget.CompoundButton
 import android.widget.SeekBar
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.folderselector.FileChooserDialog
+import com.crashlytics.android.Crashlytics
 import com.thanosfisherman.mayi.Mayi
 import com.yarolegovich.slidingrootnav.SlideGravity
 import com.yarolegovich.slidingrootnav.SlidingRootNav
@@ -62,13 +63,15 @@ class ReaderDBPagerActivity :
         private const val REPORT_PAGE = 5
         private const val OPEN_IN_BROWSER = 6
         private const val SHARE_CHAPTER = 7
+
+        private const val VOLUME_SCROLL_STEP = 50
     }
 
     private var screenTitles: Array<String>? = null
     private lateinit var screenIcons: Array<Drawable?>
 
     var novel: Novel? = null
-    var webPage: WebPage? = null
+    private var webPage: WebPage? = null
 
     private var adapter: GenericFragmentStatePagerAdapter? = null
 
@@ -169,19 +172,24 @@ class ReaderDBPagerActivity :
     }
 
     private fun reportPage() {
-        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
-        val chapterName = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.webPage?.chapter
-        if (url != null) {
-            val email = getString(R.string.dev_email)
-            val subject = "[IMPROVEMENT]"
-            val body = StringBuilder()
-            body.append("Please improve the viewing experience of this page.\n")
-            body.append("Novel Name: ${novel?.name} \n")
-            body.append("Novel Url: ${novel?.url} \n")
-            body.append("Chapter Name: $chapterName \n ")
-            body.append("Chapter Url: $url \n ")
-            sendEmail(email, subject, body.toString())
-        }
+        MaterialDialog.Builder(this)
+            .content("Please use discord to report a bug.")
+            .positiveText("Ok")
+            .onPositive { dialog, _ -> dialog.dismiss() }
+            .show()
+//        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
+//        val chapterName = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.webPage?.chapter
+//        if (url != null) {
+//            val email = getString(R.string.dev_email)
+//            val subject = "[IMPROVEMENT]"
+//            val body = StringBuilder()
+//            body.append("Please improve the viewing experience of this page.\n")
+//            body.append("Novel Name: ${novel?.name} \n")
+//            body.append("Novel Url: ${novel?.url} \n")
+//            body.append("Chapter Name: $chapterName \n ")
+//            body.append("Chapter Url: $url \n ")
+//            sendEmail(email, subject, body.toString())
+//        }
     }
 
     private fun inBrowser() {
@@ -219,13 +227,13 @@ class ReaderDBPagerActivity :
         return when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
-                    webView?.pageUp(false)
+                    webView?.scrollBy(0, -VOLUME_SCROLL_STEP)
                 }
                 dataCenter.volumeScroll
             }
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
-                    webView?.pageDown(false)
+                    webView?.scrollBy(0, VOLUME_SCROLL_STEP)
                 }
                 dataCenter.volumeScroll
             }
@@ -293,11 +301,11 @@ class ReaderDBPagerActivity :
     }
 
     private fun loadScreenTitles(): Array<String> {
-        return resources.getStringArray(R.array.ld_activityScreenTitles)
+        return resources.getStringArray(R.array.reader_mode_menu_titles_list)
     }
 
     private fun loadScreenIcons(): Array<Drawable?> {
-        val ta = resources.obtainTypedArray(R.array.ld_activityScreenIcons)
+        val ta = resources.obtainTypedArray(R.array.reader_mode_menu_icons_list)
         val icons = arrayOfNulls<Drawable>(ta.length())
         for (i in 0 until ta.length()) {
             val id = ta.getResourceId(i, 0)
@@ -390,12 +398,23 @@ class ReaderDBPagerActivity :
     }
 
     private fun openFontChooserDialog() {
-        FileChooserDialog.Builder(this)
-            .initialPath(Environment.getExternalStorageDirectory().path)  // changes initial path, defaults to external storage directory
-            .extensionsFilter(".ttf") // Optional extension filter, will override mimeType()
-            .tag("optional-identifier")
-            .goUpLabel("Up") // custom go up label, default label is "..."
-            .show(this) // an AppCompatActivity which implements FileCallback
+        try {
+            val externalDirectory = Environment.getExternalStorageDirectory()
+            if (externalDirectory != null && externalDirectory.exists())
+                FileChooserDialog.Builder(this)
+                    .initialPath(externalDirectory.path)  // changes initial path, defaults to external storage directory
+                    .extensionsFilter(".ttf") // Optional extension filter, will override mimeType()
+                    .tag("optional-identifier")
+                    .goUpLabel("Up") // custom go up label, default label is "..."
+                    .show(this) // an AppCompatActivity which implements FileCallback
+            else
+                MaterialDialog.Builder(this)
+                    .content("Cannot find the internal storage or sd card. Please check your storage settings.")
+                    .positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
+                    .show()
+        } catch (e: Exception) {
+            Crashlytics.logException(e)
+        }
     }
 
     override fun onFileSelection(dialog: FileChooserDialog, file: File) {

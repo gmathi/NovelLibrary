@@ -569,12 +569,10 @@ class ChaptersActivity :
     private fun addWebPagesToDownload(webPages: List<WebPage>) {
         async {
             progressLayout.showLoading()
-            await {
-                webPages.forEach {
-                    val download = Download(it.id, novel.name, it.chapter)
-                    download.orderId = it.orderId.toInt()
-                    dbHelper.createDownload(download)
-                }
+            webPages.forEach {
+                val download = Download(it.id, novel.name, it.chapter)
+                download.orderId = it.orderId.toInt()
+                await { dbHelper.createDownload(download) }
             }
             progressLayout.showContent()
             startDownloadNovelService(novel.name)

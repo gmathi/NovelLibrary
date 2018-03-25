@@ -57,5 +57,9 @@ class Novel(var name: String, var url: String) : Serializable {
         return result
     }
 
+    override fun toString(): String {
+        return "Novel(name='$name', url='$url', id=$id, imageUrl=$imageUrl, rating=$rating, shortDescription=$shortDescription, longDescription=$longDescription, imageFilePath=$imageFilePath, genres=$genres, currentWebPageId=$currentWebPageId, orderId=$orderId, chapterCount=$chapterCount, newChapterCount=$newChapterCount, metaData=$metaData)"
+    }
+
 
 }

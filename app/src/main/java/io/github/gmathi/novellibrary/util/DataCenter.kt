@@ -42,11 +42,11 @@ class DataCenter(context: Context) {
         private const val CF_COOKIES_STRING = "cfCookiesString"
         private const val DIRECTIONAL_LINKS = "enableDirectionalLinks"
         private const val READER_MODE_BUTTON_VISIBILITY = "isReaderModeButtonVisible"
+        private const val ENABLE_CLOUD_FLARE = "enableCloudFlare"
 
 
         const val CF_COOKIES_CLEARANCE = "cf_clearance"
         const val CF_COOKIES_DUID = "__cfduid"
-
     }
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -163,6 +163,9 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(READER_MODE_BUTTON_VISIBILITY, true)
         set(value) = prefs.edit().putBoolean(READER_MODE_BUTTON_VISIBILITY, value).apply()
 
+    var enableCloudFlare: Boolean
+        get() = prefs.getBoolean(ENABLE_CLOUD_FLARE, false)
+        set(value) = prefs.edit().putBoolean(ENABLE_CLOUD_FLARE, value).apply()
 
     fun getVerifiedHosts(): ArrayList<String> =
             Gson().fromJson(prefs.getString(VERIFIED_HOSTS, Gson().toJson(HostNames.defaultHostNamesList)), object : TypeToken<ArrayList<String>>() {}.type)

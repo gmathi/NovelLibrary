@@ -241,5 +241,20 @@
     <string name="directional_links_description">Next Chapter &amp; Previous Chapter Links will be shown on the reader mode screen</string>
     <string name="reader_mode_button_visibility">Reader Mode Button Visibility</string>
     <string name="reader_mode_button_visibility_description">The reader mode menu icon will be hidden, if this is enabled. You can also open reader mode menu by swiping from the far right edge of the screen</string>
+    <string name="cloud_flare_bypass_description">Please wait while the Cloudflare browser check is being bypassed</string>
+    <string name="cloud_flare_bypass_failure_title">Cloudflare Bypass Failed</string>
+    <string name="cloud_flare_bypass_success">Cloudflare bypassed successfully</string>
+    <string name="backup_and_restore">Backup &amp; Restore</string>
+    <string name="backup_and_restore_description">Backup &amp; Restore data automatically or manually choose your own folder. Alternatively you can also use Google drive</string>
+    <string name="internal_full_backup_data">Auto Backup All Data</string>
+    <string name="internal_full_backup_data_description">Fully Backups Data to internal storage/sd card. (Backups to Auto-generated folders)</string>
+    <string name="internal_full_restore_data">Auto Restore All Data</string>
+    <string name="internal_full_restore_data_description">Fully Restores Data from internal storage/sd card (Restores from the Auto-generated folders)</string>
+    <string name="internal_clear_data">Clear Cache &amp; Data</string>
+    <string name="internal_clear_data_description">Clears the cache, files and database (including the Auto-generated folders)</string>
+    <string name="enable_cloud_flare">Cloud Flare Cookies</string>
+    <string name="enable_cloud_flare_description">You need to restart the app, after you toggle this!</string>
+    <string name="preferences">Preferences (reader settings, e.t.c.)</string>
+    <string name="downloaded_files">Downloaded Chapters(Files)</string>
 
 </resources>

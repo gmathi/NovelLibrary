@@ -22,7 +22,7 @@ import java.io.File
 class DownloadWebPageThread(val context: Context, val download: Download, val dbHelper: DBHelper) : Thread() {
 
     companion object {
-        private val TAG = "DownloadWebPageThread"
+        private const val TAG = "DownloadWebPageThread"
     }
 
     private lateinit var hostDir: File
@@ -77,7 +77,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             if (otherLinks.isNotEmpty()) {
                 val otherWebPages = ArrayList<WebPage>()
                 otherLinks.mapNotNullTo(otherWebPages) { it -> downloadOtherChapterLinks(it, hostDir, novelDir) }
-                webPage.metaData.put(Constants.MD_OTHER_LINKED_WEB_PAGES, Gson().toJson(otherWebPages))
+                webPage.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES] = Gson().toJson(otherWebPages)
             }
 
             if (webPage.metaData.containsKey(Constants.DOWNLOADING))

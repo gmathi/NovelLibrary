@@ -5,6 +5,7 @@ import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.getFileName
 import io.github.gmathi.novellibrary.util.writableFileName
@@ -19,7 +20,7 @@ open class HtmlHelper protected constructor() {
 
     companion object {
 
-        private val TAG = "HtmlHelper"
+        private const val TAG = "HtmlHelper"
 
         fun getInstance(doc: Document, hostName: String = doc.location()): HtmlHelper {
 
@@ -172,22 +173,6 @@ open class HtmlHelper protected constructor() {
 
     fun toggleThemeDefault(isDark: Boolean, doc: Document): Document {
 
-
-////        val fontName = "lobster_regular.ttf"
-////        val fontName = "source_sans_pro_regular.ttf"
-//        val fontFamily = fontName.split(".")[0]
-//        val nightModeTextBrightness = 87
-//        doc.head().getElementById("darkTheme")?.remove()
-//        doc.head().append("""
-//            <style id="darkTheme">
-//                @font-face {
-//                    font-family: Bungee-Regular;
-//                    src: url("file:///storage/emulated/0/Download/Bungee-Regular.ttf");
-//                }
-
-        //font path: /storage/emulated/0/Download/Bungee-Regular.ttf
-//        var fontName = "risque_regular.ttf"
-//        val fontName = "lobster_regular.ttf"
         var fontName = "source_sans_pro_regular.ttf"
         var fontUrl =  "/android_asset/fonts/$fontName"
 
@@ -204,7 +189,10 @@ open class HtmlHelper protected constructor() {
             <style id="darkTheme">
                 @font-face {
                     font-family: $fontFamily;
-                    src: url("file://$fontUrl");
+                    src: url("$FILE_PROTOCOL$fontUrl");
+                }
+                html {
+                    scroll-behavior: smooth;
                 }
                 body {
                     ${if (isDark) "background-color" else "color"}: #000;
