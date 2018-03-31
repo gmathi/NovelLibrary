@@ -88,12 +88,12 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         }
 
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
-            MaterialDialog.Builder(this)
-                .title("📢 Announcement!")
-                .content("Manual Backup & No More Cloud Flare (You can still enable it from general settings) 🎊🎉")
-                .positiveText("Yay")
-                .onPositive { dialog, _ -> dialog.dismiss() }
-                .show()
+//            MaterialDialog.Builder(this)
+//                .title("📢 Announcement!")
+//                .content("Manual Backup & No More Cloud Flare (You can still enable it from general settings) 🎊🎉")
+//                .positiveText("Yay")
+//                .onPositive { dialog, _ -> dialog.dismiss() }
+//                .show()
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
 
