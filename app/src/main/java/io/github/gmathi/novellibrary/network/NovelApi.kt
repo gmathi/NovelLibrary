@@ -1,9 +1,11 @@
 package io.github.gmathi.novellibrary.network
 
+import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames.USER_AGENT
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import java.io.IOException
 import java.util.regex.Pattern
 import javax.net.ssl.SSLPeerUnverifiedException
 
@@ -63,6 +65,15 @@ class NovelApi {
                 val hostName = m.group(1)
                 if (!HostNames.isVerifiedHost(hostName)) {
                     dataCenter.saveVerifiedHost(m.group(1))
+                    return getDocumentWithUserAgent(url)
+                }
+            }
+            throw e
+        } catch (e: IOException) {
+            if (e.localizedMessage.contains("was not verified")) {
+                val hostName = Uri.parse(url)?.host!!
+                if (!HostNames.isVerifiedHost(hostName)) {
+                    dataCenter.saveVerifiedHost(hostName)
                     return getDocumentWithUserAgent(url)
                 }
             }
