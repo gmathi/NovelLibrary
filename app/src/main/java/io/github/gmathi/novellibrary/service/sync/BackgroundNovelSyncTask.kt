@@ -147,7 +147,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
             val notificationBuilder = createNotificationBuilder(
                 context,
                 novel.key.name,
-                getString(R.string.new_chapters_notification_content_single, novel.value - novel.key.chapterCount),
+                getString(R.string.new_chapters_notification_content_single, (novel.value - novel.key.chapterCount).toInt()),
                 createNovelDetailsPendingIntent(novelMap, novel.key),
                 deleteIntent)
             notificationBuilder.setGroup(KEY_NOTIFICATION_GROUP)

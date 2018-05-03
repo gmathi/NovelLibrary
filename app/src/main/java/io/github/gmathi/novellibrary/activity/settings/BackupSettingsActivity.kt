@@ -30,7 +30,6 @@ import kotlinx.android.synthetic.main.listitem_title_subtitle_widget.view.*
 import java.io.File
 import java.io.IOException
 import java.util.*
-import com.mikepenz.fastadapter.adapters.ItemAdapter.items
 
 
 class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, FolderChooserDialog.FolderCallback {
