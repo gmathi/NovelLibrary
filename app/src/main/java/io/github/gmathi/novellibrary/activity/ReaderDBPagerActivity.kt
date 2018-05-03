@@ -35,7 +35,7 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.model.*
 import io.github.gmathi.novellibrary.util.Constants
-import kotlinx.android.synthetic.main.activity_new_reader_pager.*
+import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.item_option.view.*
 import kotlinx.android.synthetic.main.menu_left_drawer.*
 import org.greenrobot.eventbus.EventBus
@@ -77,7 +77,7 @@ class ReaderDBPagerActivity :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_new_reader_pager)
+        setContentView(R.layout.activity_reader_pager)
         novel = intent.getSerializableExtra("novel") as Novel?
 
         if (dataCenter.keepScreenOn)

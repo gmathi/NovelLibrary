@@ -32,7 +32,7 @@ import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Utils
-import kotlinx.android.synthetic.main.activity_new_reader_pager.*
+import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.fragment_reader.*
 import okhttp3.HttpUrl
 import org.greenrobot.eventbus.EventBus

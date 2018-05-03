@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:fancy="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.mgn.bingenovelreader.activity.NovelDetailsActivity"
+    tools:context=".activity.NovelDetailsActivity"
     tools:showIn="@layout/activity_novel_details">
 
 
@@ -44,7 +43,7 @@
                             android:layout_height="180dp"
                             android:layout_alignParentLeft="true"
                             android:layout_alignParentStart="true"
-                            android:layout_alignParentTop="true"/>
+                            android:layout_alignParentTop="true" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -62,7 +61,7 @@
                                 android:layout_height="50dp"
                                 android:maxLines="2"
                                 android:textColor="@color/white"
-                                android:textSize="17sp"/>
+                                android:textSize="17sp" />
 
                             <TextView
                                 android:id="@+id/novelDetailsAuthor"
@@ -71,16 +70,14 @@
                                 android:layout_marginBottom="4dp"
                                 android:maxLines="2"
                                 android:textColorLink="@color/white"
-                                android:textSize="16sp"
-                                />
+                                android:textSize="16sp" />
 
                             <TextView
                                 android:id="@+id/novelDetailsStatus"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginBottom="2dp"
-                                android:textSize="14sp"
-                                />
+                                android:textSize="14sp" />
 
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -98,7 +95,7 @@
                                     android:numStars="5"
                                     android:progressTint="@color/Gold"
                                     android:secondaryProgressTint="@android:color/transparent"
-                                    tools:rating="3.6"/>
+                                    tools:rating="3.6" />
 
                                 <TextView
                                     android:id="@+id/novelDetailsRatingText"
@@ -110,7 +107,7 @@
                                     android:textIsSelectable="false"
                                     android:textSize="14sp"
                                     android:textStyle="italic"
-                                    tools:text="(3.6)"/>
+                                    tools:text="(3.6)" />
 
                             </LinearLayout>
 
@@ -126,7 +123,7 @@
                                 fancy:fb_defaultColor="@android:color/transparent"
                                 fancy:fb_focusColor="@color/ripple_color"
                                 fancy:fb_iconResource="@drawable/ic_library_add_white_vector"
-                                fancy:fb_text="@string/add_to_library"/>
+                                fancy:fb_text="@string/add_to_library" />
 
                         </LinearLayout>
 
@@ -140,14 +137,14 @@
                             android:layout_marginRight="@dimen/default_margin"
                             android:layout_marginTop="95dp"
                             app:srcCompat="@drawable/ic_open_in_browser_white_vector"
-                            tools:ignore="NotSibling"/>
+                            tools:ignore="NotSibling" />
 
                     </RelativeLayout>
 
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:background="@color/SlateGray"/>
+                        android:background="@color/SlateGray" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -164,7 +161,7 @@
                             android:textAllCaps="true"
                             android:textColor="@color/white"
                             android:textSize="12sp"
-                            android:textStyle="bold"/>
+                            android:textStyle="bold" />
 
                         <HorizontalScrollView
                             android:id="@+id/novelDetailsGenresList"
@@ -189,7 +186,7 @@
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:background="@color/SlateGray"/>
+                        android:background="@color/SlateGray" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -205,7 +202,7 @@
                             android:textAllCaps="true"
                             android:textColor="@color/white"
                             android:textSize="12sp"
-                            android:textStyle="bold"/>
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/novelDetailsDescription"
@@ -213,14 +210,13 @@
                             android:layout_height="wrap_content"
                             android:minHeight="30dp"
                             android:textColorLink="@color/RoyalBlue"
-                            android:textSize="14sp"
-                            />
+                            android:textSize="14sp" />
                     </LinearLayout>
 
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:background="@color/SlateGray"/>
+                        android:background="@color/SlateGray" />
 
                     <RelativeLayout
                         android:id="@+id/novelDetailsChaptersLayout"
@@ -237,7 +233,7 @@
                             android:layout_alignParentLeft="true"
                             android:layout_alignParentStart="true"
                             android:layout_centerVertical="true"
-                            app:srcCompat="@drawable/ic_library_books_white_vector"/>
+                            app:srcCompat="@drawable/ic_library_books_white_vector" />
 
 
                         <TextView
@@ -255,7 +251,7 @@
                             android:textAllCaps="true"
                             android:textColor="@color/white"
                             android:textSize="12sp"
-                            android:textStyle="bold"/>
+                            android:textStyle="bold" />
 
                         <ImageView
                             android:id="@+id/chevron"
@@ -264,14 +260,14 @@
                             android:layout_alignParentEnd="true"
                             android:layout_alignParentRight="true"
                             android:layout_centerVertical="true"
-                            app:srcCompat="@drawable/ic_chevron_right_white_vector"/>
+                            app:srcCompat="@drawable/ic_chevron_right_white_vector" />
 
                     </RelativeLayout>
 
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:background="@color/SlateGray"/>
+                        android:background="@color/SlateGray" />
 
                     <RelativeLayout
                         android:id="@+id/novelDetailsMetadataLayout"
@@ -287,7 +283,7 @@
                             android:layout_alignParentLeft="true"
                             android:layout_alignParentStart="true"
                             android:layout_centerVertical="true"
-                            app:srcCompat="@drawable/ic_art_track_white_vector"/>
+                            app:srcCompat="@drawable/ic_art_track_white_vector" />
 
                         <ImageView
                             android:id="@+id/novelDetailsMetadataChevron"
@@ -296,7 +292,7 @@
                             android:layout_alignParentEnd="true"
                             android:layout_alignParentRight="true"
                             android:layout_centerVertical="true"
-                            app:srcCompat="@drawable/ic_chevron_right_white_vector"/>
+                            app:srcCompat="@drawable/ic_chevron_right_white_vector" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -318,7 +314,7 @@
                                 android:textAllCaps="true"
                                 android:textColor="@color/white"
                                 android:textSize="12sp"
-                                android:textStyle="bold"/>
+                                android:textStyle="bold" />
 
                             <TextView
                                 android:id="@+id/novelDetailsMetadataDescription"
@@ -326,7 +322,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
                                 android:text="@string/more_info_description"
-                                android:textSize="12sp"/>
+                                android:textSize="12sp" />
 
                         </LinearLayout>
 
@@ -336,11 +332,11 @@
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:background="@color/SlateGray"/>
+                        android:background="@color/SlateGray" />
 
                     <View
                         android:layout_width="match_parent"
-                        android:layout_height="30dp"/>
+                        android:layout_height="30dp" />
 
 
                 </LinearLayout>
