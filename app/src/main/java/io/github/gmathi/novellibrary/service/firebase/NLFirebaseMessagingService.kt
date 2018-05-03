@@ -8,7 +8,7 @@ import io.github.gmathi.novellibrary.util.Utils
 class NLFirebaseMessagingService : FirebaseMessagingService() {
 
     companion object {
-        private val TAG: String = "NLFirebaseMessagingService"
+        private const val TAG: String = "NLFirebaseMessagingService"
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage?) {
@@ -19,7 +19,7 @@ class NLFirebaseMessagingService : FirebaseMessagingService() {
         Utils.debug(TAG, "From: " + remoteMessage!!.from)
 
         // Check if message contains a data payload.
-        if (remoteMessage.data.size > 0) {
+        if (remoteMessage.data.isNotEmpty()) {
             Utils.debug(TAG, "Message data payload: " + remoteMessage.data)
 
 //            if (/* Check if data needs to be processed by long running job */ true) {
