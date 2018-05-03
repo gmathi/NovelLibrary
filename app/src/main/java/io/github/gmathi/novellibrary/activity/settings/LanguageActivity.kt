@@ -21,8 +21,8 @@ import java.util.*
 
 class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
-    val languagesMap = HashMap<String, String>()
-    val languagesImageResourceMap = HashMap<String, Int>()
+    private val languagesMap = HashMap<String, String>()
+    private val languagesImageResourceMap = HashMap<String, Int>()
 
     lateinit var adapter: GenericAdapter<String>
 
@@ -37,23 +37,23 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     private fun setLanguages() {
-        languagesMap.put("English", "en_US")
-        languagesMap.put("German", "de_DE")
-        languagesMap.put("Indonesian", "id_ID")
-        languagesMap.put("Portuguese", "pt_BR")
-        languagesMap.put("Spanish", "es_CL")
-        languagesMap.put("Turkish", "tr_TR")
-        languagesMap.put("French", "fr_FR")
-        languagesMap.put("Tagalog", "tr_PH")
+        languagesMap["English"] = "en_US"
+        languagesMap["German"] = "de_DE"
+        languagesMap["Indonesian"] = "id_ID"
+        languagesMap["Portuguese"] = "pt_BR"
+        languagesMap["Spanish"] = "es_CL"
+        languagesMap["Turkish"] = "tr_TR"
+        languagesMap["French"] = "fr_FR"
+        languagesMap["Tagalog"] = "tr_PH"
 
-        languagesImageResourceMap.put("English", R.drawable.flag_us)
-        languagesImageResourceMap.put("German", R.drawable.flag_de)
-        languagesImageResourceMap.put("Indonesian", R.drawable.flag_id)
-        languagesImageResourceMap.put("Portuguese", R.drawable.flag_br)
-        languagesImageResourceMap.put("Spanish", R.drawable.flag_cl)
-        languagesImageResourceMap.put("Turkish", R.drawable.flag_tr)
-        languagesImageResourceMap.put("French", R.drawable.flag_fr)
-        languagesImageResourceMap.put("Tagalog", R.drawable.flag_tl)
+        languagesImageResourceMap["English"] = R.drawable.flag_us
+        languagesImageResourceMap["German"] = R.drawable.flag_de
+        languagesImageResourceMap["Indonesian"] = R.drawable.flag_id
+        languagesImageResourceMap["Portuguese"] = R.drawable.flag_br
+        languagesImageResourceMap["Spanish"] = R.drawable.flag_cl
+        languagesImageResourceMap["Turkish"] = R.drawable.flag_tr
+        languagesImageResourceMap["French"] = R.drawable.flag_fr
+        languagesImageResourceMap["Tagalog"] = R.drawable.flag_tl
     }
 
     private fun setRecyclerView() {

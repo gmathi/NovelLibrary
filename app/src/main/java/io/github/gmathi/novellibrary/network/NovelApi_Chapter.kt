@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.network
 
-import com.crashlytics.android.Crashlytics
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.HostNames.USER_AGENT

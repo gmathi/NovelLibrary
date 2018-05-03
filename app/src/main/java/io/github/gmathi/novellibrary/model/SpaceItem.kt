@@ -25,16 +25,7 @@ internal class SpaceItem(private var title: String) : DrawerItem<SpaceItem.ViewH
     }
 
     internal class ViewHolder(itemView: View) : DrawerAdapter.ViewHolder(itemView) {
-
-        internal var title: TextView
-
-        init {
-            title = itemView.findViewById<TextView>(R.id.title) as TextView
-        }
-    }
-    fun withTextTint(normalItemTextTint: Int): SpaceItem {
-        this.normalItemTextTint = normalItemTextTint
-        return this
+        internal var title: TextView = itemView.findViewById(R.id.title) as TextView
     }
 
 }

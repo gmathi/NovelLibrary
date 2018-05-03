@@ -2,7 +2,6 @@ package io.github.gmathi.novellibrary.cleaner
 
 import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element

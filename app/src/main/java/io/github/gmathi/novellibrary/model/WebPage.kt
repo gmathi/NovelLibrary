@@ -36,7 +36,7 @@ data class WebPage(var url: String, var chapter: String) : Serializable {
             orderId = if (other.orderId != -1L) other.orderId else orderId
 
             other.metaData.keys.forEach {
-                metaData.put(it, other.metaData[it])
+                metaData[it] = other.metaData[it]
             }
         }
     }

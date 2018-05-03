@@ -71,7 +71,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         if (deltaCountMap.isEmpty()) return
 
         val novelDetailsIntent = Intent(this, NavDrawerActivity::class.java)
-        novelDetailsIntent.action = Constants.ACTION.MAIN_ACTION
+        novelDetailsIntent.action = Constants.Action.MAIN_ACTION
         novelDetailsIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val novelDetailsBundle = Bundle()
         novelDetailsBundle.putInt("currentNavId", R.id.nav_library)
@@ -94,8 +94,8 @@ class BackgroundNovelSyncTask : GcmTaskService() {
     companion object {
 
         private val thisClass = BackgroundNovelSyncTask::class.java
-        val TAG = "BackgroundNovelSyncTask"
-        private val KEY_NOTIFICATION_GROUP = "KEY_NOTIFICATION_GROUP"
+        const val TAG = "BackgroundNovelSyncTask"
+        private const val KEY_NOTIFICATION_GROUP = "KEY_NOTIFICATION_GROUP"
 
         fun scheduleRepeat(context: Context) {
             cancelAll(context)
@@ -187,7 +187,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
     private fun createNovelDetailsPendingIntent(novelsMap: HashMap<Novel, Int>, novel: Novel): PendingIntent {
         val novelDetailsIntent = Intent(this, NavDrawerActivity::class.java)
-        novelDetailsIntent.action = Constants.ACTION.MAIN_ACTION
+        novelDetailsIntent.action = Constants.Action.MAIN_ACTION
         novelDetailsIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val novelDetailsBundle = Bundle()
         novelDetailsBundle.putInt("currentNavId", R.id.nav_library)

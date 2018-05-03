@@ -45,9 +45,9 @@ import java.io.File
 
 class WebPageDBFragment : BaseFragment() {
 
-    var webPage: WebPage? = null
-    var doc: Document? = null
+    private var webPage: WebPage? = null
 
+    var doc: Document? = null
     var history: ArrayList<WebPage> = ArrayList()
 
 

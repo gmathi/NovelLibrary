@@ -13,7 +13,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-private val LOG = "WebPageHelper"
+private const val LOG = "WebPageHelper"
 
 fun DBHelper.createWebPage(webPage: WebPage): Long {
 
@@ -52,7 +52,7 @@ fun DBHelper.createWebPage(webPage: WebPage, db: SQLiteDatabase): Long {
 
 fun DBHelper.addWebPages(webPages: ArrayList<WebPage>, novel: Novel, pageNum: Int) {
 
-    for (i in 0..webPages.size - 1) {
+    for (i in 0 until webPages.size) {
         val orderId = (novel.chapterCount - (Constants.CHAPTER_PAGE_SIZE * pageNum) - 1 - i)
         val webPage = getWebPage(novel.id, orderId)
         if (webPage == null) {

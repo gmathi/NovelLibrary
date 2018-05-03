@@ -10,7 +10,7 @@ class DBHelper
 private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAME, null, DBKeys.DATABASE_VERSION) {
 
     companion object {
-        private val TAG = "DBHelper"
+        private const val TAG = "DBHelper"
 
         private var sInstance: DBHelper? = null
 

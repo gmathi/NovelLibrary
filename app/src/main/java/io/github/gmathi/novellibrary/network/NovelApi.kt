@@ -2,7 +2,6 @@ package io.github.gmathi.novellibrary.network
 
 import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.network.HostNames.USER_AGENT
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.IOException

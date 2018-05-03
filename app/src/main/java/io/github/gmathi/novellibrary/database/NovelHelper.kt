@@ -8,7 +8,7 @@ import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelGenre
 import java.util.*
 
-private val LOG = "NovelHelper"
+private const val LOG = "NovelHelper"
 
 fun DBHelper.insertNovel(novel: Novel): Long {
     val novelId = createNovel(novel)

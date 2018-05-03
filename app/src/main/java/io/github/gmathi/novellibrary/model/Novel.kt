@@ -34,7 +34,7 @@ class Novel(var name: String, var url: String) : Serializable {
             orderId = if (otherNovel.orderId != -1L) otherNovel.orderId else orderId
 
             otherNovel.metaData.keys.forEach {
-                metaData.put(it, otherNovel.metaData[it])
+                metaData[it] = otherNovel.metaData[it]
             }
         }
     }

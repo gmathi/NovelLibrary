@@ -118,7 +118,7 @@ open class HtmlHelper protected constructor() {
             file = File(dir, fileName)
             doc = NovelApi().getDocumentWithUserAgentIgnoreContentType(uri.toString())
         } catch (e: Exception) {
-            Utils.warning(Companion.TAG, "Uri: $uri", e)
+            Utils.warning(TAG, "Uri: $uri", e)
             return null
         }
         return convertDocToFile(doc, file)
@@ -131,7 +131,7 @@ open class HtmlHelper protected constructor() {
             val content = doc.toString()
             stream.use { it.write(content.toByteArray()) }
         } catch (e: Exception) {
-            Utils.warning(Companion.TAG, "convertDocToFile: ${file.name}", e)
+            Utils.warning(TAG, "convertDocToFile: ${file.name}", e)
             return null
         }
         return file
@@ -161,7 +161,7 @@ open class HtmlHelper protected constructor() {
             val os = FileOutputStream(file)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os)
         } catch (e: Exception) {
-            Utils.debug(Companion.TAG, "Exception Downloading Image: $uri")
+            Utils.debug(TAG, "Exception Downloading Image: $uri")
             return null
         }
         return file

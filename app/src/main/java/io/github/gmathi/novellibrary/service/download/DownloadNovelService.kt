@@ -78,7 +78,7 @@ class DownloadNovelService : IntentService(TAG) {
             }
 
             downloadNovelThread = DownloadNovelThread(this, novelName, dbHelper)
-            threadListMap.put(novelName, downloadNovelThread)
+            threadListMap[novelName] = downloadNovelThread
             futures.add(threadPool.submit(downloadNovelThread, null as Any?))
             if (futures.size > 5)
                 EventBus.getDefault().post(DownloadNovelEvent(EventType.INSERT, novelName))
@@ -97,7 +97,7 @@ class DownloadNovelService : IntentService(TAG) {
 
     override fun onDestroy() {
         EventBus.getDefault().unregister(this)
-        dbHelper.updateDownloadStatus(Download.Companion.STATUS_PAUSED)
+        dbHelper.updateDownloadStatus(Download.STATUS_PAUSED)
         super.onDestroy()
     }
 

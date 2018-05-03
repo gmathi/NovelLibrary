@@ -3,65 +3,65 @@ package io.github.gmathi.novellibrary.database
 
 object DBKeys {
 
-    internal val INITIAL_VERSION = 1
-    internal val VER_NOVEL_ORDER_ID = 2
-    internal val VER_WEB_PAGE_ORDER_ID = 3
-    internal val VER_NOVEL_SYNC = 4
-    internal val VER_CHAPTER_SOURCE = 5
-    internal val VER_DOWNLOADS = 6
+    internal const val INITIAL_VERSION = 1
+    internal const val VER_NOVEL_ORDER_ID = 2
+    internal const val VER_WEB_PAGE_ORDER_ID = 3
+    internal const val VER_NOVEL_SYNC = 4
+    internal const val VER_CHAPTER_SOURCE = 5
+    internal const val VER_DOWNLOADS = 6
 
     internal val DATABASE_VERSION = VER_DOWNLOADS
 
 
-    internal val DATABASE_NAME = "bnr_db"
+    internal const val DATABASE_NAME = "bnr_db"
 
     // Table names
-    internal val TABLE_NOVEL = "novel"
-    internal val TABLE_WEB_PAGE = "web_page"
-    internal val TABLE_GENRE = "genre"
-    internal val TABLE_NOVEL_GENRE = "novel_genre"
-    internal val TABLE_DOWNLOAD_QUEUE = "download_queue"
-    internal val TABLE_DOWNLOAD = "download"
-    internal val TABLE_SOURCE = "source"
+    internal const val TABLE_NOVEL = "novel"
+    internal const val TABLE_WEB_PAGE = "web_page"
+    internal const val TABLE_GENRE = "genre"
+    internal const val TABLE_NOVEL_GENRE = "novel_genre"
+    internal const val TABLE_DOWNLOAD_QUEUE = "download_queue"
+    internal const val TABLE_DOWNLOAD = "download"
+    internal const val TABLE_SOURCE = "source"
 
     // Common column names
-    internal val KEY_ID = "id"
-    internal val KEY_NAME = "name"
-    internal val KEY_URL = "url"
-    internal val KEY_METADATA = "metadata"
-    internal val KEY_NOVEL_ID = "novel_id"
-    internal val KEY_ORDER_ID = "order_id"
+    internal const val KEY_ID = "id"
+    internal const val KEY_NAME = "name"
+    internal const val KEY_URL = "url"
+    internal const val KEY_METADATA = "metadata"
+    internal const val KEY_NOVEL_ID = "novel_id"
+    internal const val KEY_ORDER_ID = "order_id"
 
     // Table novel columns
-    internal val KEY_IMAGE_URL = "image_url"
-    internal val KEY_RATING = "rating"
-    internal val KEY_SHORT_DESCRIPTION = "short_description"
-    internal val KEY_LONG_DESCRIPTION = "long_description"
-    internal val KEY_IMAGE_FILE_PATH = "image_file_path"
-    internal val KEY_CURRENT_WEB_PAGE_ID = "current_web_page_id"
-    internal val KEY_CHAPTER_COUNT = "chapter_count"
-    internal val KEY_NEW_CHAPTER_COUNT = "new_chapter_count"
+    internal const val KEY_IMAGE_URL = "image_url"
+    internal const val KEY_RATING = "rating"
+    internal const val KEY_SHORT_DESCRIPTION = "short_description"
+    internal const val KEY_LONG_DESCRIPTION = "long_description"
+    internal const val KEY_IMAGE_FILE_PATH = "image_file_path"
+    internal const val KEY_CURRENT_WEB_PAGE_ID = "current_web_page_id"
+    internal const val KEY_CHAPTER_COUNT = "chapter_count"
+    internal const val KEY_NEW_CHAPTER_COUNT = "new_chapter_count"
 
 
     // Table web_page columns
-    internal val KEY_TITLE = "title"
-    internal val KEY_CHAPTER = "chapter"
-    internal val KEY_FILE_PATH = "file_path"
-    internal val KEY_REDIRECT_URL = "redirect_url"
-    internal val KEY_IS_READ = "is_read"
-    internal val KEY_SOURCE_ID = "source_id"
+    internal const val KEY_TITLE = "title"
+    internal const val KEY_CHAPTER = "chapter"
+    internal const val KEY_FILE_PATH = "file_path"
+    internal const val KEY_REDIRECT_URL = "redirect_url"
+    internal const val KEY_IS_READ = "is_read"
+    internal const val KEY_SOURCE_ID = "source_id"
 
     // Table novel_genre columns
-    internal val KEY_GENRE_ID = "genre_id"
+    internal const val KEY_GENRE_ID = "genre_id"
 
     //Table download_queue columns
-    internal val KEY_STATUS = "status"
-    internal val KEY_TOTAL_CHAPTERS = "total_chapters"
-    internal val KEY_CURRENT_CHAPTER = "current_chapter"
-    internal val KEY_CHAPTER_URLS_CACHED = "chapter_urls_cached"
+    internal const val KEY_STATUS = "status"
+    internal const val KEY_TOTAL_CHAPTERS = "total_chapters"
+    internal const val KEY_CURRENT_CHAPTER = "current_chapter"
+    internal const val KEY_CHAPTER_URLS_CACHED = "chapter_urls_cached"
 
     //Table download_queue_columns
-    internal val KEY_WEB_PAGE_ID = "web_page_id"
+    internal const val KEY_WEB_PAGE_ID = "web_page_id"
 
     //Table source
 

@@ -9,7 +9,7 @@ import java.util.regex.Pattern
 
 class QidianHelper : HtmlHelper() {
 
-    var continueReadingUrl: String? = null
+    private var continueReadingUrl: String? = null
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc)

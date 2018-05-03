@@ -32,7 +32,7 @@ import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.activity_chapters.*
 import kotlinx.android.synthetic.main.content_chapters.*
-import kotlinx.android.synthetic.main.listitem_chapter_ultimate.view.*
+import kotlinx.android.synthetic.main.listitem_chapter.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -70,7 +70,7 @@ class ChaptersActivity :
     }
 
     private fun setRecyclerView() {
-        adapter = GenericAdapterWithDragListener(items = ArrayList(), layoutResId = R.layout.listitem_chapter_ultimate, listener = this)
+        adapter = GenericAdapterWithDragListener(items = ArrayList(), layoutResId = R.layout.listitem_chapter, listener = this)
         dragSelectRecyclerView.isVerticalScrollBarEnabled = true
         dragSelectRecyclerView.setDefaultsNoAnimation(adapter)
         dragSelectRecyclerView.addItemDecoration(object : DividerItemDecoration(this, VERTICAL) {
@@ -594,7 +594,7 @@ class ChaptersActivity :
                         }
                         it.filePath = null
                     }
-                    webPage.metaData.put(Constants.MD_OTHER_LINKED_WEB_PAGES, Gson().toJson(linkedPages))
+                    webPage.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES] = Gson().toJson(linkedPages)
                 }
                 dbHelper.updateWebPage(webPage)
             } catch (e: Exception) {
