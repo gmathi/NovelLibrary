@@ -39,6 +39,8 @@ class NovelLibraryApplication : MultiDexApplication() {
     companion object {
         var dataCenter: DataCenter? = null
         var dbHelper: DBHelper? = null
+
+        private const val TAG = "NovelLibraryApplication"
     }
 
     override fun onCreate() {
@@ -49,12 +51,9 @@ class NovelLibraryApplication : MultiDexApplication() {
 
         try {
             HostNames.hostNamesList = dataCenter!!.getVerifiedHosts()
-            HostNames.defaultHostNamesList.forEach { if (!HostNames.isVerifiedHost(it)) HostNames.hostNamesList.add(it) }
-            dataCenter?.updateVerifiedHosts(HostNames.hostNamesList)
         } catch (e: Exception) {
-            Utils.error("NovelLibraryApplication", "Adding the defaultHostNames to hostNamesList", e)
+            Utils.error(TAG, "Set the HostNames.hostNamesList from dataCenter", e)
         }
-
 
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
 
@@ -70,7 +69,7 @@ class NovelLibraryApplication : MultiDexApplication() {
         try {
             enableSSLSocket()
         } catch (e: Exception) {
-            Log.e("NovelLibraryApplication", e.localizedMessage, e)
+            Log.e(TAG, "enableSSLSocket(): ${e.localizedMessage}", e)
         }
 
         if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -78,7 +77,9 @@ class NovelLibraryApplication : MultiDexApplication() {
         }
 
         initChannels(applicationContext)
-        startSyncService()
+
+        if (dataCenter!!.enableNotifications)
+            startSyncService()
     }
 
     @Throws(KeyManagementException::class, NoSuchAlgorithmException::class)
@@ -111,8 +112,8 @@ class NovelLibraryApplication : MultiDexApplication() {
         }
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channel = NotificationChannel(getString(R.string.default_notification_channel_id),
-            "Default Channel",
-            NotificationManager.IMPORTANCE_DEFAULT)
+                "Default Channel",
+                NotificationManager.IMPORTANCE_DEFAULT)
         channel.description = "Default Channel Description"
         notificationManager.createNotificationChannel(channel)
     }

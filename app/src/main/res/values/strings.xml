@@ -59,12 +59,14 @@
         <item>@string/first_screen_library</item>
         <item>@string/backup_and_restore</item>
         <item>@string/enable_cloud_flare</item>
+        <item>@string/disable_notifications</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
         <item>@string/first_screen_library_description</item>
         <item>@string/backup_and_restore_description</item>
         <item>@string/enable_cloud_flare_description</item>
+        <item>@string/disable_notifications_description</item>
     </string-array>
 
     <string-array name="backup_and_restore_titles_list" translatable="false">
@@ -431,6 +433,9 @@
 
     <string name="preferences">Preferences (reader settings, e.t.c.)</string>
     <string name="downloaded_files">Downloaded Chapters(Files)</string>
+
+    <string name="disable_notifications">Enable Notifications</string>
+    <string name="disable_notifications_description">Enables the hourly notifications when new chapter updates are available</string>
 
 
 </resources>

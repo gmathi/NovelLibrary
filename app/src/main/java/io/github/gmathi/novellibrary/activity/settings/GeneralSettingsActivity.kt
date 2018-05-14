@@ -12,6 +12,7 @@ import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.activity.startBackupSettingsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_settings.*
@@ -27,6 +28,8 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         private const val POSITION_LOAD_LIBRARY_SCREEN = 0
         private const val POSITION_BACKUP_AND_RESTORE = 1
         private const val POSITION_ENABLE_CLOUD_FLARE = 2
+        private const val POSITION_ENABLE_NOTIFICATIONS = 3
+
     }
 
     lateinit var adapter: GenericAdapter<String>
@@ -84,6 +87,18 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.enableCloudFlare
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableCloudFlare = value }
+            }
+
+            POSITION_ENABLE_NOTIFICATIONS -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.enableNotifications
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
+                    dataCenter.enableNotifications = value
+                    if (value)
+                        BackgroundNovelSyncTask.scheduleRepeat(applicationContext)
+                    else
+                        BackgroundNovelSyncTask.cancelAll(applicationContext)
+                }
             }
         }
 

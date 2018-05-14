@@ -13,8 +13,9 @@ class WuxiaWorldHelper : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc)
-        var contentElement = doc.selectFirst("div.fr-view")
-        contentElement.select("span[style]")?.forEach { it?.removeAttr("style") }
+        var contentElement = doc.selectFirst("div.p-15")
+        contentElement?.selectFirst("div.font-resize")?.remove()
+        contentElement?.select("span[style]")?.forEach { it?.removeAttr("style") }
 
         do {
             contentElement?.siblingElements()?.remove()
