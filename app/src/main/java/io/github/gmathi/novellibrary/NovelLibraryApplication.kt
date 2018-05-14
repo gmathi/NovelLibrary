@@ -25,6 +25,8 @@ import java.security.cert.X509Certificate
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException
+import com.google.android.gms.security.ProviderInstaller
 
 
 val dataCenter: DataCenter by lazy {
@@ -72,6 +74,10 @@ class NovelLibraryApplication : MultiDexApplication() {
             Log.e(TAG, "enableSSLSocket(): ${e.localizedMessage}", e)
         }
 
+        //BugFix for <5.0 devices
+        //https://stackoverflow.com/questions/29916962/javax-net-ssl-sslhandshakeexception-javax-net-ssl-sslprotocolexception-ssl-han
+        updateAndroidSecurityProvider()
+
         if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true)
         }
@@ -104,6 +110,16 @@ class NovelLibraryApplication : MultiDexApplication() {
             override fun getAcceptedIssuers(): Array<X509Certificate?> = arrayOfNulls(0)
         }), SecureRandom())
         HttpsURLConnection.setDefaultSSLSocketFactory(context.socketFactory)
+    }
+
+    private fun updateAndroidSecurityProvider() {
+        try {
+            ProviderInstaller.installIfNeeded(this)
+        } catch (e: GooglePlayServicesNotAvailableException) {
+            Utils.error("SecurityException", "Google Play Services not available.")
+        } catch (e: Exception) {
+            Utils.error("Exception", "Other Exception: ${e.localizedMessage}", e)
+        }
     }
 
     private fun initChannels(context: Context) {
