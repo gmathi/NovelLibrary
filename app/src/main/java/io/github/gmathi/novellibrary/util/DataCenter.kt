@@ -8,6 +8,7 @@ import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.HostNames
 import java.util.*
+import javax.net.ssl.HostnameVerifier
 
 
 class DataCenter(context: Context) {
@@ -177,13 +178,8 @@ class DataCenter(context: Context) {
 
     fun saveVerifiedHost(host: String) {
         val hostNames = getVerifiedHosts()
-        if (!hostNames.contains(host)) {
-            hostNames.add(host)
-            prefs.edit().putString(VERIFIED_HOSTS, Gson().toJson(hostNames)).apply()
-        }
-    }
-
-    fun updateVerifiedHosts(hostNames: ArrayList<String>) {
+        hostNames.add(host)
         prefs.edit().putString(VERIFIED_HOSTS, Gson().toJson(hostNames)).apply()
+        HostNames.hostNamesList = hostNames
     }
 }

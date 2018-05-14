@@ -65,7 +65,6 @@ class WebPageDBFragment : BaseFragment() {
         }
     }
 
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
         inflater.inflate(R.layout.fragment_reader, container, false)
 
@@ -278,7 +277,7 @@ class WebPageDBFragment : BaseFragment() {
         async download@ {
             try {
 
-                doc = await { NovelApi().getDocumentWithUserAgent(url) }
+                doc = await { NovelApi.getDocumentWithUserAgent(url) }
 
                 //If document fails to load and the fragment is still alive
                 if (doc == null) {
@@ -321,7 +320,7 @@ class WebPageDBFragment : BaseFragment() {
                                     // Check if URL is from chapter provider
                                     val urlDomain = getUrlDomain(linkedUrl)
                                     if (urlDomain == baseUrlDomain) {
-                                        val otherDoc = await { NovelApi().getDocumentWithUserAgent(linkedUrl) }
+                                        val otherDoc = await { NovelApi.getDocumentWithUserAgent(linkedUrl) }
                                         val helper = HtmlHelper.getInstance(otherDoc)
                                         helper.removeJS(otherDoc)
                                         helper.additionalProcessing(otherDoc)

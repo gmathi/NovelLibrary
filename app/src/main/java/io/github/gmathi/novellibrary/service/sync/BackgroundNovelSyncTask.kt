@@ -56,7 +56,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
         dbHelper.getAllNovels().forEach {
             try {
-                val totalChapters = NovelApi().getChapterCount(it)
+                val totalChapters = NovelApi.getChapterCount(it)
                 if (totalChapters != 0 && totalChapters > it.chapterCount.toInt() && totalChapters > it.newChapterCount.toInt()) {
                     deltaCountMap[it] = (totalChapters - it.chapterCount).toInt()
                     totalCountMap[it] = totalChapters

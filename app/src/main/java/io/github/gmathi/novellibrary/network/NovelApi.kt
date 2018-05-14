@@ -9,12 +9,10 @@ import java.util.regex.Pattern
 import javax.net.ssl.SSLPeerUnverifiedException
 
 
-class NovelApi {
+object NovelApi {
 
-    companion object {
-        var cookies: String? = ""
-        var cookiesMap: Map<String, String>? = HashMap()
-    }
+    var cookies: String? = ""
+    var cookiesMap: Map<String, String>? = HashMap()
 
     fun getDocument(url: String): Document {
         try {
@@ -31,8 +29,9 @@ class NovelApi {
             val m = p.matcher(e.localizedMessage)
             if (m.find()) {
                 val hostName = m.group(1)
-                if (!HostNames.isVerifiedHost(hostName)) {
-                    dataCenter.saveVerifiedHost(m.group(1))
+                val hostNames = dataCenter.getVerifiedHosts()
+                if (!hostNames.contains(hostName)) {
+                    dataCenter.saveVerifiedHost(hostName)
                     return getDocument(url)
                 }
             }
@@ -62,8 +61,9 @@ class NovelApi {
             val m = p.matcher(e.localizedMessage)
             if (m.find()) {
                 val hostName = m.group(1)
-                if (!HostNames.isVerifiedHost(hostName)) {
-                    dataCenter.saveVerifiedHost(m.group(1))
+                val hostNames = dataCenter.getVerifiedHosts()
+                if (!hostNames.contains(hostName)) {
+                    dataCenter.saveVerifiedHost(hostName)
                     return getDocumentWithUserAgent(url)
                 }
             }
@@ -80,6 +80,7 @@ class NovelApi {
         }
     }
 
+    @Suppress("unused")
     fun getDocumentWithUserAgentIgnoreContentType(url: String): Document {
         try {
             return Jsoup
@@ -95,8 +96,9 @@ class NovelApi {
             val m = p.matcher(e.localizedMessage)
             if (m.find()) {
                 val hostName = m.group(1)
-                if (!HostNames.isVerifiedHost(hostName)) {
-                    dataCenter.saveVerifiedHost(m.group(1))
+                val hostNames = dataCenter.getVerifiedHosts()
+                if (!hostNames.contains(hostName)) {
+                    dataCenter.saveVerifiedHost(hostName)
                     return getDocumentWithUserAgent(url)
                 }
             }

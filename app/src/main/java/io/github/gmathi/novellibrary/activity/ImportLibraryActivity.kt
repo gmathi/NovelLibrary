@@ -111,7 +111,7 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
             try {
                 val url = getUrl() ?: return@async
                 progressLayout.showLoading()
-                val doc = await { NovelApi().getDocumentWithUserAgent(url) }
+                val doc = await { NovelApi.getDocumentWithUserAgent(url) }
                 val novels = doc.body()?.getElementsByClass("mb-box-btn")?.filter { it.tagName() == "a" }
                 if (novels != null && novels.isNotEmpty()) {
                     importList.clear()
@@ -282,9 +282,9 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
     }
 
     private fun importNovelToLibrary(importListItem: ImportListItem) {
-        val novel = NovelApi().getNUNovelDetails(importListItem.novelUrl!!) ?: return
+        val novel = NovelApi.getNUNovelDetails(importListItem.novelUrl!!) ?: return
         novel.id = dbHelper.insertNovel(novel)
-        val webPages = NovelApi().getChapterUrls(novel)?.asReversed() ?: return
+        val webPages = NovelApi.getChapterUrls(novel)?.asReversed() ?: return
         val index = webPages.indexOfFirst { it.chapter == importListItem.currentlyReadingChapterName }
         if (index != -1) {
             dbHelper.addWebPagesFromImportList(webPages, novel, index)

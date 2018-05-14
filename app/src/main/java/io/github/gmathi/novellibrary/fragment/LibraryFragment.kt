@@ -205,7 +205,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             activity?.invalidateOptionsMenu()
             dbHelper.getAllNovels().forEach {
                 try {
-                    val totalChapters = await { NovelApi().getChapterCount(it) }
+                    val totalChapters = await { NovelApi.getChapterCount(it) }
                     if (totalChapters != 0 && totalChapters > it.chapterCount.toInt() && totalChapters > it.newChapterCount.toInt()) {
                         dbHelper.updateNewChapterCount(it.id, totalChapters.toLong())
                         adapter.updateItem(it)

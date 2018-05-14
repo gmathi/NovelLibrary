@@ -85,7 +85,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
         async {
             try {
-                val downloadedNovel = await { NovelApi().getNovelDetails(novel.url) }
+                val downloadedNovel = await { NovelApi.getNovelDetails(novel.url) }
                 novel.copyFrom(downloadedNovel)
                 addNovelToHistory()
                 if (novel.id != -1L) await { dbHelper.updateNovel(novel) }

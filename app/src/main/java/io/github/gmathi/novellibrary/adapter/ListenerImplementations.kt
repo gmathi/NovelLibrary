@@ -58,6 +58,7 @@ class SearchResultsUnlockedListener(val searchTerms: String) : GenericFragmentSt
             else -> null
         }
     }
+
 }
 
 class WebPageFragmentPageListener(val novel: Novel) : GenericFragmentStatePagerAdapter.Listener {

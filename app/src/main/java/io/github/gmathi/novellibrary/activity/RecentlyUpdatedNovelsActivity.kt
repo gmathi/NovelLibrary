@@ -67,7 +67,7 @@ class RecentlyUpdatedNovelsActivity : AppCompatActivity(), GenericAdapter.Listen
                 return@async
             }
 
-            val items = await { NovelApi().getRecentlyUpdatedNovels() } ?: return@async
+            val items = await { NovelApi.getRecentlyUpdatedNovels() } ?: return@async
             adapter.updateData(items)
             progressLayout.showContent()
             swipeRefreshLayout.isRefreshing = false

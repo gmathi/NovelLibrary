@@ -116,7 +116,7 @@ open class HtmlHelper protected constructor() {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: " + uri.toString())
             val fileName = uri.getFileName()
             file = File(dir, fileName)
-            doc = NovelApi().getDocumentWithUserAgentIgnoreContentType(uri.toString())
+            doc = NovelApi.getDocumentWithUserAgentIgnoreContentType(uri.toString())
         } catch (e: Exception) {
             Utils.warning(TAG, "Uri: $uri", e)
             return null

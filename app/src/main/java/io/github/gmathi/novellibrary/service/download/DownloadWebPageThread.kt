@@ -56,7 +56,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
     private fun downloadChapter(webPage: WebPage): Boolean {
         val doc: Document
         try {
-            doc = NovelApi().getDocumentWithUserAgent(webPage.url)
+            doc = NovelApi.getDocumentWithUserAgent(webPage.url)
         } catch (e: Exception) {
             Utils.error(TAG, "Error getting WebPage: ${webPage.url}")
             e.printStackTrace()
@@ -92,7 +92,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
         val doc: Document
         try {
-            doc = NovelApi().getDocumentWithUserAgent(otherChapterLink)
+            doc = NovelApi.getDocumentWithUserAgent(otherChapterLink)
         } catch (e: Exception) {
             Utils.error(TAG, "Error getting WebPage: $otherChapterLink")
             e.printStackTrace()

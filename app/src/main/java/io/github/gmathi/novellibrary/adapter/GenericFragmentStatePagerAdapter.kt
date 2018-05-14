@@ -17,4 +17,5 @@ class GenericFragmentStatePagerAdapter(manager: FragmentManager, val titles: Arr
     interface Listener {
         fun getFragmentForItem(position: Int): Fragment?
     }
+
 }

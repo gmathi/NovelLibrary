@@ -83,7 +83,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
                 return@search
             }
 
-            val results = await { NovelApi().searchUrl(searchUrl) }
+            val results = await { NovelApi.searchUrl(searchUrl) }
             if (results != null) {
                 if (isVisible && (!isDetached || !isRemoving)) {
                     loadSearchResults(results)

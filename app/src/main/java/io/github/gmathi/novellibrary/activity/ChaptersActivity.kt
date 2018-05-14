@@ -127,7 +127,7 @@ class ChaptersActivity :
 
             //Download latest chapters from network
             try {
-                val chapterList = await { NovelApi().getChapterUrls(novel)?.reversed() }
+                val chapterList = await { NovelApi.getChapterUrls(novel)?.reversed() }
                 if (chapterList != null) {
                     if (novel.id != -1L) {
                         await {
