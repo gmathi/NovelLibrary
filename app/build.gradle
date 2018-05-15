@@ -88,6 +88,7 @@ dependencies {
     implementation 'com.tapadoo.android:alerter:2.0.1'
     implementation 'com.yarolegovich:sliding-root-nav:1.1.0'
     implementation 'com.loopj.android:android-async-http:1.4.9'
+    implementation 'com.futuremind.recyclerfastscroll:fastscroll:0.2.5'
 
     //implementation 'com.mikepenz:fastadapter:3.2.5'
 
@@ -106,11 +107,11 @@ dependencies {
         exclude group: 'com.android.support'
     })
 
-    implementation "com.google.android.gms:play-services-gcm:15.0.0"
-    implementation "com.google.android.gms:play-services-drive:15.0.0"
-    implementation "com.google.android.gms:play-services-auth:15.0.0"
+    implementation "com.google.android.gms:play-services-gcm:15.0.1"
+    implementation "com.google.android.gms:play-services-drive:15.0.1"
+    implementation "com.google.android.gms:play-services-auth:15.0.1"
     implementation "com.google.firebase:firebase-messaging:15.0.2"
-    implementation "com.google.firebase:firebase-auth:15.0.0"
+    implementation "com.google.firebase:firebase-auth:15.1.0"
     implementation "com.google.firebase:firebase-core:15.0.2"
 
     implementation('com.crashlytics.sdk.android:crashlytics:2.9.0@aar') {

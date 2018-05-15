@@ -4,16 +4,19 @@ import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
 import com.afollestad.dragselectrecyclerview.IDragSelectAdapter
+import com.futuremind.recyclerviewfastscroll.SectionTitleProvider
 import io.github.gmathi.novellibrary.util.inflate
 import java.util.*
 
-class GenericAdapterWithDragListener<T>(val items: ArrayList<T>, val layoutResId: Int, val listener: Listener<T>) : RecyclerView.Adapter<GenericAdapterWithDragListener.ViewHolder<T>>(), IDragSelectAdapter {
+class GenericAdapterWithDragListener<T>(val items: ArrayList<T>, val layoutResId: Int, val listener: Listener<T>) : RecyclerView.Adapter<GenericAdapterWithDragListener.ViewHolder<T>>(), IDragSelectAdapter, SectionTitleProvider {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder<T>(parent.inflate(layoutResId))
 
     override fun onBindViewHolder(holder: ViewHolder<T>, position: Int) = holder.bind(item = items[position], listener = listener, position = position)
 
     override fun getItemCount() = items.size
+
+    override fun getSectionTitle(position: Int): String = listener.getSectionTitle(position)
 
     class ViewHolder<T>(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(item: T, listener: Listener<T>, position: Int) {
@@ -26,7 +29,9 @@ class GenericAdapterWithDragListener<T>(val items: ArrayList<T>, val layoutResId
         fun bind(item: T, itemView: View, position: Int)
         fun onItemSelected(position: Int, selected: Boolean)
         fun onItemClick(item: T)
+        fun getSectionTitle(position: Int): String
     }
+
 
     fun updateData(newItems: ArrayList<T>) {
         //Empty Current List --> Add All

@@ -84,6 +84,7 @@ class ChaptersActivity :
                 }
             }
         })
+        fastScrollView.setRecyclerView(dragSelectRecyclerView)
         swipeRefreshLayout.isEnabled = false
         swipeRefreshLayout.setOnRefreshListener { getChapters() }
     }
@@ -169,6 +170,10 @@ class ChaptersActivity :
     }
 
     //region Adapter Listener Methods - onItemClick(), viewBinder()
+
+    override fun getSectionTitle(position: Int): String {
+        return adapter.items[position].chapter
+    }
 
     override fun onItemSelected(position: Int, selected: Boolean) {
         if (dragSelectRecyclerView.findViewHolderForAdapterPosition(position) != null) {
