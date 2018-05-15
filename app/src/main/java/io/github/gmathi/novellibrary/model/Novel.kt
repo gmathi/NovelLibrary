@@ -12,8 +12,8 @@ class Novel(var name: String, var url: String) : Serializable {
     var genres: List<String>? = null
     var currentWebPageId: Long = -1
     var orderId: Long = -1
-    var chapterCount = 0L
-    var newChapterCount = 0L
+    var newReleasesCount = 0L
+    var chaptersCount = 0L
     var metaData: HashMap<String, String?> = HashMap()
 
 
@@ -29,8 +29,8 @@ class Novel(var name: String, var url: String) : Serializable {
             longDescription = if (otherNovel.longDescription != null) otherNovel.longDescription else longDescription
             shortDescription = if (otherNovel.shortDescription != null) otherNovel.shortDescription else shortDescription
             currentWebPageId = if (otherNovel.currentWebPageId != -1L) otherNovel.currentWebPageId else currentWebPageId
-            chapterCount = if (otherNovel.chapterCount != 0L) otherNovel.chapterCount else chapterCount
-            newChapterCount = if (otherNovel.newChapterCount != 0L) otherNovel.newChapterCount else newChapterCount
+            newReleasesCount = if (otherNovel.newReleasesCount != 0L) otherNovel.newReleasesCount else newReleasesCount
+            chaptersCount = if (otherNovel.chaptersCount != 0L) otherNovel.chaptersCount else chaptersCount
             orderId = if (otherNovel.orderId != -1L) otherNovel.orderId else orderId
 
             otherNovel.metaData.keys.forEach {
@@ -58,7 +58,7 @@ class Novel(var name: String, var url: String) : Serializable {
     }
 
     override fun toString(): String {
-        return "Novel(name='$name', url='$url', id=$id, imageUrl=$imageUrl, rating=$rating, shortDescription=$shortDescription, longDescription=$longDescription, imageFilePath=$imageFilePath, genres=$genres, currentWebPageId=$currentWebPageId, orderId=$orderId, chapterCount=$chapterCount, newChapterCount=$newChapterCount, metaData=$metaData)"
+        return "Novel(name='$name', url='$url', id=$id, imageUrl=$imageUrl, rating=$rating, shortDescription=$shortDescription, longDescription=$longDescription, imageFilePath=$imageFilePath, genres=$genres, currentWebPageId=$currentWebPageId, orderId=$orderId, newReleasesCount=$newReleasesCount, chaptersCount=$chaptersCount, metaData=$metaData)"
     }
 
 

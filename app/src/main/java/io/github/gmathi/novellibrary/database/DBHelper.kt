@@ -46,8 +46,8 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         }
 
         if (version == DBKeys.VER_NOVEL_ORDER_ID) {
-            db.execSQL("ALTER TABLE " + DBKeys.TABLE_NOVEL + " ADD COLUMN " + DBKeys.KEY_CHAPTER_COUNT + " INTEGER")
-            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_CHAPTER_COUNT + "=0")
+            db.execSQL("ALTER TABLE " + DBKeys.TABLE_NOVEL + " ADD COLUMN " + DBKeys.KEY_NEW_RELEASES_COUNT + " INTEGER")
+            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_NEW_RELEASES_COUNT + "=0")
             db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_CURRENT_WEB_PAGE_ID + "=-1")
             db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_WEB_PAGE)
             db.execSQL(DBKeys.CREATE_TABLE_WEB_PAGE)
@@ -55,8 +55,8 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         }
 
         if (version == DBKeys.VER_WEB_PAGE_ORDER_ID) {
-            db.execSQL("ALTER TABLE " + DBKeys.TABLE_NOVEL + " ADD COLUMN " + DBKeys.KEY_NEW_CHAPTER_COUNT + " INTEGER")
-            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_NEW_CHAPTER_COUNT + "=" + DBKeys.KEY_CHAPTER_COUNT)
+            db.execSQL("ALTER TABLE " + DBKeys.TABLE_NOVEL + " ADD COLUMN " + DBKeys.KEY_CHAPTERS_COUNT + " INTEGER")
+            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_CHAPTERS_COUNT + "=" + DBKeys.KEY_NEW_RELEASES_COUNT)
             version = DBKeys.VER_NOVEL_SYNC
         }
 
@@ -75,7 +75,11 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         }
 
         if (version == DBKeys.VER_DOWNLOADS) {
+            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_CHAPTERS_COUNT + "=" + DBKeys.KEY_NEW_RELEASES_COUNT)
+            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_NEW_RELEASES_COUNT + "= 0")
+        }
 
+        if (version == DBKeys.VER_NEW_RELEASES) {
 
         }
 

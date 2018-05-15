@@ -30,7 +30,7 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
 
             while (download != null) {
 
-                if (!Utils.checkNetwork(context)) throw InterruptedException(Constants.NO_NETWORK)
+                if (!Utils.isConnectedToNetwork(context)) throw InterruptedException(Constants.NO_NETWORK)
                 threadPool?.submit(DownloadWebPageThread(context, download, dbHelper))?.get()
 
                 download = dbHelper.getDownloadItemInQueue(novelName)

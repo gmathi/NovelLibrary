@@ -58,7 +58,7 @@ class RecentlyUpdatedNovelsActivity : AppCompatActivity(), GenericAdapter.Listen
     private fun getRecentlyUpdatedNovels() {
         async {
 
-            if (!Utils.checkNetwork(this@RecentlyUpdatedNovelsActivity)) {
+            if (!Utils.isConnectedToNetwork(this@RecentlyUpdatedNovelsActivity)) {
                 if (adapter.items.isEmpty())
                     progressLayout.showError(ContextCompat.getDrawable(this@RecentlyUpdatedNovelsActivity, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
                         progressLayout.showLoading()

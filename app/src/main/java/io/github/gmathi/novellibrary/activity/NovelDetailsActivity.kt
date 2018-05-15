@@ -53,7 +53,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         supportActionBar?.title = novel.name
 
         if (novel.id != -1L) {
-            if (!Utils.checkNetwork(this))
+            if (!Utils.isConnectedToNetwork(this))
                 setupViews()
             else
                 progressLayout.showLoading()
@@ -72,7 +72,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun getNovelInfo() {
-        if (!Utils.checkNetwork(this)) {
+        if (!Utils.isConnectedToNetwork(this)) {
             if (novel.id == -1L) {
                 swipeRefreshLayout.isRefreshing = false
                 progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
@@ -117,9 +117,9 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         setNovelAddToLibraryButton()
         setNovelGenre()
         setNovelDescription()
-        novelDetailsChapters.text = getString(R.string.chapters) + " (${novel.chapterCount})"
+        novelDetailsChapters.text = getString(R.string.chapters) + " (${novel.chaptersCount})"
         novelDetailsChaptersLayout.setOnClickListener {
-            if (novel.chapterCount != 0L) startChaptersActivity(novel, false)
+            if (novel.chaptersCount != 0L) startChaptersActivity(novel, false)
         }
         novelDetailsMetadataLayout.setOnClickListener { startMetadataActivity(novel) }
         openInBrowserButton.setOnClickListener { openInBrowser(novel.url) }

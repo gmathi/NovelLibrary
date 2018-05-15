@@ -15,13 +15,13 @@ import com.crashlytics.android.Crashlytics
 import com.google.android.gms.gcm.*
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
-import io.github.gmathi.novellibrary.database.DBHelper
-import io.github.gmathi.novellibrary.database.getAllNovels
+import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterCount
-import io.github.gmathi.novellibrary.receiver.sync.SyncNovelUpdateReceiver
+import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Utils
 
 
 class BackgroundNovelSyncTask : GcmTaskService() {
@@ -34,14 +34,15 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 //        val novellist = dbHelper.getAllNovels();
 //        if (novellist != null) {
 //            novellist.forEach({
-//                it?.chapterCount = 400
-//                it?.newChapterCount = 400
+//                it?.newReleasesCount = 400
+//                it?.chaptersCount = 400
 //                dbHelper.updateNovel(it!!)
 //            })
 //        }
 
         try {
-            startNovelsSync(dbHelper)
+            if (Utils.isConnectedToNetwork(context))
+                startNovelsSync(dbHelper)
         } catch (e: Exception) {
             return GcmNetworkManager.RESULT_RESCHEDULE
         }
@@ -51,14 +52,13 @@ class BackgroundNovelSyncTask : GcmTaskService() {
     private fun startNovelsSync(dbHelper: DBHelper) {
         Log.e(TAG, "start novel sync")
 
-        val deltaCountMap: HashMap<Novel, Int> = HashMap()
         val totalCountMap: HashMap<Novel, Int> = HashMap()
 
-        dbHelper.getAllNovels().forEach {
+        val novels = dbHelper.getAllNovels()
+        novels.forEach {
             try {
                 val totalChapters = NovelApi.getChapterCount(it)
-                if (totalChapters != 0 && totalChapters > it.chapterCount.toInt() && totalChapters > it.newChapterCount.toInt()) {
-                    deltaCountMap[it] = (totalChapters - it.chapterCount).toInt()
+                if (totalChapters != 0 && totalChapters > it.chaptersCount.toInt()) {
                     totalCountMap[it] = totalChapters
                 }
             } catch (e: Exception) {
@@ -68,7 +68,14 @@ class BackgroundNovelSyncTask : GcmTaskService() {
             }
         }
 
-        if (deltaCountMap.isEmpty()) return
+        if (totalCountMap.isEmpty()) return
+
+        //Update DB with new chapters
+        totalCountMap.forEach {
+            val novel = it.key
+            dbHelper.updateChaptersAndReleasesCount(novel.id, it.value.toLong(), novel.newReleasesCount + (it.value - novel.chaptersCount))
+            updateChapters(novel, dbHelper)
+        }
 
         val novelDetailsIntent = Intent(this, NavDrawerActivity::class.java)
         novelDetailsIntent.action = Constants.Action.MAIN_ACTION
@@ -89,12 +96,38 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
     }
 
-    //region Helper Methods
+    private fun updateChapters(novel: Novel, dbHelper: DBHelper) {
+        if (!Utils.isConnectedToNetwork(this@BackgroundNovelSyncTask) || novel.id == -1L)
+            return
+
+        //Download latest chapters from network
+        try {
+            val chapterList = NovelApi.getChapterUrls(novel)?.reversed()
+            chapterList?.let {
+
+                //We start the insertion from the last since that is faster, instead of checking the 1st 1000 chaps.
+                for (i in it.size - 1 downTo 0) {
+                    val webPage = dbHelper.getWebPage(novel.id, i.toLong())
+                    if (webPage == null) {
+                        it[i].orderId = i.toLong()
+                        it[i].novelId = novel.id
+                        dbHelper.createWebPage(it[i])
+                    } else
+                        return@let
+                }
+            }
+        } catch (e: Exception) {
+            Crashlytics.log("Novel: $novel")
+            Crashlytics.logException(e)
+        }
+    }
+
+//region Helper Methods
 
     companion object {
 
         private val thisClass = BackgroundNovelSyncTask::class.java
-        const val TAG = "BackgroundNovelSyncTask"
+        private const val TAG = "BackgroundNovelSyncTask"
         private const val KEY_NOTIFICATION_GROUP = "KEY_NOTIFICATION_GROUP"
 
         fun scheduleRepeat(context: Context) {
@@ -143,12 +176,12 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
         val notificationList = ArrayList<Notification>()
 
-        novelMap.forEach { novel ->
+        novelMap.forEach { singleNovelMap ->
             val notificationBuilder = createNotificationBuilder(
                     context,
-                    novel.key.name,
-                    getString(R.string.new_chapters_notification_content_single, (novel.value - novel.key.chapterCount).toInt()),
-                    createNovelDetailsPendingIntent(novelMap, novel.key),
+                    singleNovelMap.key.name,
+                    getString(R.string.new_chapters_notification_content_single, singleNovelMap.key.newReleasesCount.toInt()),
+                    createNovelDetailsPendingIntent(novelMap, singleNovelMap.key),
                     deleteIntent)
             notificationBuilder.setGroup(KEY_NOTIFICATION_GROUP)
             notificationList.add(notificationBuilder.build())
@@ -197,6 +230,6 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         return PendingIntent.getActivity(this.applicationContext, novel.hashCode(), novelDetailsIntent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
-    //endregion
+//endregion
 
 }

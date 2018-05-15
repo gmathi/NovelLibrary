@@ -41,7 +41,7 @@
             android:value="@string/default_notification_channel_id"/>
 
         <receiver
-            android:name=".receiver.sync.SyncNovelUpdateReceiver"
+            android:name=".service.sync.SyncNovelUpdateReceiver"
             android:exported="false">
         </receiver>
 

@@ -20,7 +20,7 @@
 //    var imageFilePath: String? = null
 //    var currentWebPageUrl: String? = null
 //    var orderId: Long = -1
-//    var chapterCount = 0L
+//    var newReleasesCount = 0L
 //    var updatedChapterCount = 0L
 //
 //    var genres: RealmList<RGenre>? = RealmList()
@@ -37,7 +37,7 @@
 //            imageFilePath = if (otherNovel.imageFilePath != null) otherNovel.imageFilePath else imageFilePath
 //            longDescription = if (otherNovel.longDescription != null) otherNovel.longDescription else longDescription
 //            currentWebPageUrl = if (otherNovel.currentWebPageUrl != null) otherNovel.currentWebPageUrl else currentWebPageUrl
-//            chapterCount = if (otherNovel.chapterCount != 0L) otherNovel.chapterCount else chapterCount
+//            newReleasesCount = if (otherNovel.newReleasesCount != 0L) otherNovel.newReleasesCount else newReleasesCount
 //            updatedChapterCount = if (otherNovel.updatedChapterCount != 0L) otherNovel.updatedChapterCount else updatedChapterCount
 //            orderId = if (otherNovel.orderId != -1L) otherNovel.orderId else orderId
 //        }

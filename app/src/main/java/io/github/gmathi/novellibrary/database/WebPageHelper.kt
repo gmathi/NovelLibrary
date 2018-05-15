@@ -49,19 +49,18 @@ fun DBHelper.createWebPage(webPage: WebPage, db: SQLiteDatabase): Long {
     return db.insert(DBKeys.TABLE_WEB_PAGE, null, values)
 }
 
-
-fun DBHelper.addWebPages(webPages: ArrayList<WebPage>, novel: Novel, pageNum: Int) {
-
-    for (i in 0 until webPages.size) {
-        val orderId = (novel.chapterCount - (Constants.CHAPTER_PAGE_SIZE * pageNum) - 1 - i)
-        val webPage = getWebPage(novel.id, orderId)
-        if (webPage == null) {
-            webPages[i].orderId = orderId
-            webPages[i].novelId = novel.id
-            createWebPage(webPages[i])
-        }
-    }
-}
+//fun DBHelper.addWebPages(webPages: ArrayList<WebPage>, novel: Novel, pageNum: Int) {
+//
+//    for (i in 0 until webPages.size) {
+//        val orderId = (novel.chaptersCount - (Constants.CHAPTER_PAGE_SIZE * pageNum) - 1 - i)
+//        val webPage = getWebPage(novel.id, orderId)
+//        if (webPage == null) {
+//            webPages[i].orderId = orderId
+//            webPages[i].novelId = novel.id
+//            createWebPage(webPages[i])
+//        }
+//    }
+//}
 
 fun DBHelper.addWebPages(webPages: List<WebPage>, novel: Novel) {
     val db = this.writableDatabase
@@ -179,25 +178,25 @@ fun DBHelper.getWebPageByRedirectedUrl(novelId: Long, redirectedUrl: String): We
 }
 
 
-fun DBHelper.getWebPages(novel: Novel, pageNum: Int): ArrayList<WebPage> {
-    val list = ArrayList<WebPage>()
-    val orderIdStartIndex = novel.chapterCount - (Constants.CHAPTER_PAGE_SIZE * pageNum) - 1
-    val selectQuery = "SELECT * FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novel.id + " AND " + DBKeys.KEY_ORDER_ID + " <= " + orderIdStartIndex + " AND " + DBKeys.KEY_ORDER_ID + " > " + (orderIdStartIndex - Constants.CHAPTER_PAGE_SIZE) + " ORDER BY " + DBKeys.KEY_ORDER_ID + " DESC"
-    Log.d(LOG, selectQuery)
-    val db = this.readableDatabase
-    val cursor = db.rawQuery(selectQuery, null)
-
-    if (cursor != null) {
-        if (cursor.moveToFirst()) {
-            do {
-                list.add(getWebPageFromCursor(cursor))
-            } while (cursor.moveToNext())
-        }
-        cursor.close()
-    }
-    return list
-
-}
+//fun DBHelper.getWebPages(novel: Novel, pageNum: Int): ArrayList<WebPage> {
+//    val list = ArrayList<WebPage>()
+//    val orderIdStartIndex = novel.chaptersCount - (Constants.CHAPTER_PAGE_SIZE * pageNum) - 1
+//    val selectQuery = "SELECT * FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novel.id + " AND " + DBKeys.KEY_ORDER_ID + " <= " + orderIdStartIndex + " AND " + DBKeys.KEY_ORDER_ID + " > " + (orderIdStartIndex - Constants.CHAPTER_PAGE_SIZE) + " ORDER BY " + DBKeys.KEY_ORDER_ID + " DESC"
+//    Log.d(LOG, selectQuery)
+//    val db = this.readableDatabase
+//    val cursor = db.rawQuery(selectQuery, null)
+//
+//    if (cursor != null) {
+//        if (cursor.moveToFirst()) {
+//            do {
+//                list.add(getWebPageFromCursor(cursor))
+//            } while (cursor.moveToNext())
+//        }
+//        cursor.close()
+//    }
+//    return list
+//
+//}
 
 fun DBHelper.getAllWebPages(novelId: Long): List<WebPage> {
     val list = ArrayList<WebPage>()

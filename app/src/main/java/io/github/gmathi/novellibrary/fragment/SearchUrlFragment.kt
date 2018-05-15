@@ -75,7 +75,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
         async search@ {
 
-            if (!Utils.checkNetwork(activity)) {
+            if (!Utils.isConnectedToNetwork(activity)) {
                 progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
                     progressLayout.showLoading()
                     searchNovels()

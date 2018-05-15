@@ -9,8 +9,10 @@ object DBKeys {
     internal const val VER_NOVEL_SYNC = 4
     internal const val VER_CHAPTER_SOURCE = 5
     internal const val VER_DOWNLOADS = 6
+    internal const val VER_NEW_RELEASES = 7
 
-    internal val DATABASE_VERSION = VER_DOWNLOADS
+
+    internal const val DATABASE_VERSION = VER_NEW_RELEASES
 
 
     internal const val DATABASE_NAME = "bnr_db"
@@ -39,8 +41,8 @@ object DBKeys {
     internal const val KEY_LONG_DESCRIPTION = "long_description"
     internal const val KEY_IMAGE_FILE_PATH = "image_file_path"
     internal const val KEY_CURRENT_WEB_PAGE_ID = "current_web_page_id"
-    internal const val KEY_CHAPTER_COUNT = "chapter_count"
-    internal const val KEY_NEW_CHAPTER_COUNT = "new_chapter_count"
+    internal const val KEY_NEW_RELEASES_COUNT = "chapter_count"
+    internal const val KEY_CHAPTERS_COUNT = "new_chapter_count"
 
 
     // Table web_page columns
@@ -80,8 +82,8 @@ object DBKeys {
             + KEY_METADATA + " TEXT, "
             + KEY_CURRENT_WEB_PAGE_ID + " INTEGER, "
             + KEY_ORDER_ID + " INTEGER, "
-            + KEY_CHAPTER_COUNT + " INTEGER, "
-            + KEY_NEW_CHAPTER_COUNT + " INTEGER, "
+            + KEY_NEW_RELEASES_COUNT + " INTEGER, "
+            + KEY_CHAPTERS_COUNT + " INTEGER, "
             + "FOREIGN KEY (" + KEY_CURRENT_WEB_PAGE_ID + ") REFERENCES " + TABLE_WEB_PAGE + "(" + KEY_ID + ")"
             + ")")
 
@@ -152,7 +154,7 @@ object DBKeys {
     //            "CREATE TABLE " + TABLE_DOWNLOAD_QUEUE + " ("
     //                    + KEY_ID + " INTEGER PRIMARY KEY, "
     //                    + KEY_NAME + " TEXT UNIQUE ON CONFLICT IGNORE, "
-    //                    + KEY_CHAPTER_COUNT + " INTEGER,"
+    //                    + KEY_NEW_RELEASES_COUNT + " INTEGER,"
     //                    + KEY_METADATA + " TEXT"
     //                    + ")";
 

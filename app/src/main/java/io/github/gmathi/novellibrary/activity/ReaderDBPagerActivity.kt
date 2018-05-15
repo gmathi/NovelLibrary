@@ -27,10 +27,7 @@ import io.github.gmathi.novellibrary.adapter.DrawerAdapter
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.WebPageFragmentPageListener
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.getWebPage
-import io.github.gmathi.novellibrary.database.getWebPageByRedirectedUrl
-import io.github.gmathi.novellibrary.database.updateBookmarkCurrentWebPageId
-import io.github.gmathi.novellibrary.database.updateWebPageReadStatus
+import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.model.*
@@ -79,12 +76,13 @@ class ReaderDBPagerActivity :
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader_pager)
         novel = intent.getSerializableExtra("novel") as Novel?
+        if (novel == null || novel?.chaptersCount?.toInt() == 0) finish()
 
         if (dataCenter.keepScreenOn)
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        if (novel == null || novel?.chapterCount?.toInt() == 0) finish()
-        adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, novel!!.chapterCount.toInt(), WebPageFragmentPageListener(novel!!))
+        dbHelper.updateNewReleasesCount(novel!!.id, 0L)
+        adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, novel!!.chaptersCount.toInt(), WebPageFragmentPageListener(novel!!))
         viewPager.addOnPageChangeListener(this)
         viewPager.adapter = adapter
 
@@ -97,7 +95,7 @@ class ReaderDBPagerActivity :
             updateBookmark(webPage!!)
             viewPager.currentItem =
                 if (dataCenter.japSwipe)
-                    novel!!.chapterCount.toInt() - webPage!!.orderId.toInt() - 1
+                    novel!!.chaptersCount.toInt() - webPage!!.orderId.toInt() - 1
                 else
                     webPage!!.orderId.toInt()
         }
@@ -147,7 +145,7 @@ class ReaderDBPagerActivity :
     }
 
     override fun onPageSelected(position: Int) {
-        val orderId = if (dataCenter.japSwipe) novel!!.chapterCount.toInt() - position - 1 else position
+        val orderId = if (dataCenter.japSwipe) novel!!.chaptersCount.toInt() - position - 1 else position
         val webPage = dbHelper.getWebPage(novel!!.id, orderId.toLong())
         if (webPage != null) updateBookmark(webPage)
         //fabClean.visibility = View.VISIBLE

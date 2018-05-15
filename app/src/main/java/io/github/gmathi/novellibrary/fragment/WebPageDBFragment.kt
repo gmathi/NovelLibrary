@@ -90,7 +90,7 @@ class WebPageDBFragment : BaseFragment() {
         } else {
             val novelId = arguments!!.getLong(NOVEL_ID)
             val novel = dbHelper.getNovel(novelId)
-            val orderId = if (dataCenter.japSwipe) novel!!.chapterCount - arguments!!.getLong(ORDER_ID) - 1 else arguments!!.getLong(ORDER_ID)
+            val orderId = if (dataCenter.japSwipe) novel!!.chaptersCount - arguments!!.getLong(ORDER_ID) - 1 else arguments!!.getLong(ORDER_ID)
 
             dbHelper.getWebPage(novelId, orderId)
 
@@ -267,7 +267,7 @@ class WebPageDBFragment : BaseFragment() {
         progressLayout.showLoading()
 
         //If no network
-        if (!Utils.checkNetwork(activity)) {
+        if (!Utils.isConnectedToNetwork(activity)) {
             progressLayout.showError(ContextCompat.getDrawable(activity!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
                 downloadWebPage(url)
             })

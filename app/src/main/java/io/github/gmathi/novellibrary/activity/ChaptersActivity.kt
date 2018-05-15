@@ -39,10 +39,10 @@ import org.greenrobot.eventbus.ThreadMode
 import java.io.File
 
 class ChaptersActivity :
-    BaseActivity(),
-    GenericAdapterWithDragListener.Listener<WebPage>,
-    ActionMode.Callback,
-    AnimateCheckBox.OnCheckedChangeListener {
+        BaseActivity(),
+        GenericAdapterWithDragListener.Listener<WebPage>,
+        ActionMode.Callback,
+        AnimateCheckBox.OnCheckedChangeListener {
 
     lateinit var novel: Novel
     lateinit var adapter: GenericAdapterWithDragListener<WebPage>
@@ -62,9 +62,9 @@ class ChaptersActivity :
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         novel = intent.getSerializableExtra("novel") as Novel
+        dbHelper.updateNewReleasesCount(novel.id, 0L)
         val dbNovel = dbHelper.getNovel(novel.name)
         if (dbNovel != null) novel.copyFrom(dbNovel)
-
         setRecyclerView()
         setData()
     }
@@ -105,7 +105,7 @@ class ChaptersActivity :
             } else {
                 swipeRefreshLayout.isRefreshing = false
                 progressLayout.showContent()
-                if (adapter.items.size < novel.newChapterCount.toInt()) {
+                if (adapter.items.size < novel.chaptersCount.toInt()) {
                     swipeRefreshLayout.isRefreshing = true
                     getChapters()
                 }
@@ -114,9 +114,9 @@ class ChaptersActivity :
     }
 
     private fun getChapters() {
-        async chapters@ {
+        async chapters@{
 
-            if (!Utils.checkNetwork(this@ChaptersActivity)) {
+            if (!Utils.isConnectedToNetwork(this@ChaptersActivity)) {
                 if (adapter.items.isEmpty())
                     progressLayout.showError(ContextCompat.getDrawable(this@ChaptersActivity, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
                         progressLayout.showLoading()
@@ -131,11 +131,7 @@ class ChaptersActivity :
                 if (chapterList != null) {
                     if (novel.id != -1L) {
                         await {
-                            novel.chapterCount = chapterList.size.toLong()
-                            novel.newChapterCount = chapterList.size.toLong()
-                            dbHelper.updateNovel(novel)
-                        }
-                        await {
+                            dbHelper.updateChaptersAndReleasesCount(novel.id, chapterList.size.toLong(), 0L)
                             for (i in 0 until chapterList.size) {
                                 val webPage = dbHelper.getWebPage(novel.id, i.toLong())
                                 if (webPage == null) {
@@ -178,7 +174,7 @@ class ChaptersActivity :
         if (dragSelectRecyclerView.findViewHolderForAdapterPosition(position) != null) {
             @Suppress("UNCHECKED_CAST")
             (dragSelectRecyclerView.findViewHolderForAdapterPosition(position) as GenericAdapterWithDragListener.ViewHolder<WebPage>)
-                .itemView?.chapterCheckBox?.isChecked = selected
+                    .itemView?.chapterCheckBox?.isChecked = selected
         } else {
             val webPage = adapter.items[position]
             if (selected)
@@ -399,12 +395,12 @@ class ChaptersActivity :
     private fun confirmDialog(content: String, callback: MaterialDialog.SingleButtonCallback) {
         if (confirmDialog == null || !confirmDialog!!.isShowing) {
             confirmDialog = MaterialDialog.Builder(this)
-                .title(getString(R.string.confirm_action))
-                .content(content)
-                .positiveText(getString(R.string.okay))
-                .negativeText(R.string.cancel)
-                .onPositive(callback)
-                .onNegative { dialog, _ -> dialog.dismiss() }.build()
+                    .title(getString(R.string.confirm_action))
+                    .content(content)
+                    .positiveText(getString(R.string.okay))
+                    .negativeText(R.string.cancel)
+                    .onPositive(callback)
+                    .onNegative { dialog, _ -> dialog.dismiss() }.build()
             confirmDialog!!.show()
         }
     }
@@ -412,12 +408,12 @@ class ChaptersActivity :
     private fun confirmDialog(content: String, positiveCallback: MaterialDialog.SingleButtonCallback, negativeCallback: MaterialDialog.SingleButtonCallback) {
         if (confirmDialog == null || !confirmDialog!!.isShowing) {
             confirmDialog = MaterialDialog.Builder(this)
-                .title(getString(R.string.confirm_action))
-                .content(content)
-                .positiveText(getString(R.string.okay))
-                .negativeText(R.string.cancel)
-                .onPositive(positiveCallback)
-                .onNegative(negativeCallback).build()
+                    .title(getString(R.string.confirm_action))
+                    .content(content)
+                    .positiveText(getString(R.string.okay))
+                    .negativeText(R.string.cancel)
+                    .onPositive(positiveCallback)
+                    .onNegative(negativeCallback).build()
             confirmDialog!!.show()
         }
     }
@@ -425,24 +421,24 @@ class ChaptersActivity :
 
     private fun showNotInLibraryDialog() {
         MaterialDialog.Builder(this)
-            .iconRes(R.drawable.ic_warning_white_vector)
-            .title(getString(R.string.alert))
-            .content(getString(R.string.novel_not_in_library_dialog_content))
-            .positiveText(getString(R.string.okay))
-            .onPositive { dialog, _ -> dialog.dismiss() }
-            .show()
+                .iconRes(R.drawable.ic_warning_white_vector)
+                .title(getString(R.string.alert))
+                .content(getString(R.string.novel_not_in_library_dialog_content))
+                .positiveText(getString(R.string.okay))
+                .onPositive { dialog, _ -> dialog.dismiss() }
+                .show()
     }
 
     private fun manageDownloadsDialog() {
         MaterialDialog.Builder(this)
-            .iconRes(R.drawable.ic_info_white_vector)
-            .title(getString(R.string.manage_downloads))
-            .content("Novel downloads can be managed by navigating to \"Downloads\" through the navigation drawer menu.")
-            .positiveText(getString(R.string.take_me_there))
-            .negativeText(getString(R.string.okay))
-            .onPositive { dialog, _ -> dialog.dismiss(); setResult(Constants.OPEN_DOWNLOADS_RES_CODE); finish() }
-            .onNegative { dialog, _ -> dialog.dismiss() }
-            .show()
+                .iconRes(R.drawable.ic_info_white_vector)
+                .title(getString(R.string.manage_downloads))
+                .content("Novel downloads can be managed by navigating to \"Downloads\" through the navigation drawer menu.")
+                .positiveText(getString(R.string.take_me_there))
+                .negativeText(getString(R.string.okay))
+                .onPositive { dialog, _ -> dialog.dismiss(); setResult(Constants.OPEN_DOWNLOADS_RES_CODE); finish() }
+                .onNegative { dialog, _ -> dialog.dismiss() }
+                .show()
     }
     //endregion
 

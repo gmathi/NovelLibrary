@@ -17,7 +17,7 @@ import com.crashlytics.android.Crashlytics
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.updateNewChapterCount
+import io.github.gmathi.novellibrary.database.updateTotalChapterCount
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.DownloadFragment
 import io.github.gmathi.novellibrary.fragment.LibraryFragment
@@ -71,14 +71,14 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 @Suppress("UNCHECKED_CAST")
                 val novelsMap = intent.extras.getSerializable("novelsChapMap") as? HashMap<Novel, Int>
                 novelsMap?.keys?.forEach {
-                    dbHelper.updateNewChapterCount(it.id, novelsMap[it]!!.toLong())
+                    dbHelper.updateTotalChapterCount(it.id, novelsMap[it]!!.toLong())
                 }
             }
         }
 
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
-        if (dataCenter.enableCloudFlare && Utils.checkNetwork(this)) {
+        if (dataCenter.enableCloudFlare && Utils.isConnectedToNetwork(this)) {
             checkForCloudFlare()
         } else {
             checkIntentForNotificationData()
@@ -86,15 +86,14 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         }
 
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
-//            MaterialDialog.Builder(this)
-//                .title("📢 Announcement!")
-//                .content("Manual Backup & No More Cloud Flare (You can still enable it from general settings) 🎊🎉")
-//                .positiveText("Yay")
-//                .onPositive { dialog, _ -> dialog.dismiss() }
-//                .show()
+            MaterialDialog.Builder(this)
+                .title("📢 Announcement!")
+                .content("Please refresh/sync your library for the new changes to be effective")
+                .positiveText("Yes Sir!!")
+                .onPositive { dialog, _ -> dialog.dismiss() }
+                .show()
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
-
 
     }
 

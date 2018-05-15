@@ -76,7 +76,7 @@ class DownloadService : IntentService(TAG) {
 
     private fun isNetworkDown(): Boolean {
 
-        if (!Utils.checkNetwork(this@DownloadService)) {
+        if (!Utils.isConnectedToNetwork(this@DownloadService)) {
             return true
         }
         return false

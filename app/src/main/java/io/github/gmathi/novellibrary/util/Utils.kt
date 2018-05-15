@@ -155,7 +155,7 @@ object Utils {
     /**
      * returns - True - if there is connection to the internet
      */
-    fun checkNetwork(context: Context?): Boolean {
+    fun isConnectedToNetwork(context: Context?): Boolean {
         context?.let {
             val connectivityManager = it.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
             val netInfo = connectivityManager?.activeNetworkInfo

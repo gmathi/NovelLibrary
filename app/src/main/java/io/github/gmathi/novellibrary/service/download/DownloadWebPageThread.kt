@@ -123,7 +123,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
     }
 
     private fun isNetworkDown(): Boolean {
-        if (!Utils.checkNetwork(context)) {
+        if (!Utils.isConnectedToNetwork(context)) {
             onNoNetwork()
             return true
         }
