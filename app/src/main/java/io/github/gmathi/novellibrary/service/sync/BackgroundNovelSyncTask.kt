@@ -86,13 +86,8 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         novelDetailsIntent.putExtras(novelDetailsBundle)
         val contentIntent = PendingIntent.getActivity(this.applicationContext, 0, novelDetailsIntent, PendingIntent.FLAG_CANCEL_CURRENT)
 
-        val broadcastIntent = Intent(this, SyncNovelUpdateReceiver::class.java)
-        val broadcastBundle = Bundle()
-        broadcastBundle.putSerializable("novelsChapMap", totalCountMap)
-        broadcastIntent.putExtras(broadcastBundle)
-        val deleteIntent = PendingIntent.getBroadcast(this.applicationContext, 0, broadcastIntent, 0)
 
-        showBundledNotifications(this, totalCountMap, contentIntent, deleteIntent)
+        showBundledNotifications(this, totalCountMap, contentIntent)
 
     }
 
@@ -169,9 +164,9 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
     }
 
-    private fun showBundledNotifications(context: Context, novelMap: HashMap<Novel, Int>, contentIntent: PendingIntent, deleteIntent: PendingIntent) {
+    private fun showBundledNotifications(context: Context, novelMap: HashMap<Novel, Int>, contentIntent: PendingIntent) {
         val first = createNotificationBuilder(
-                context, getString(R.string.app_name), getString(R.string.group_notification_text), contentIntent, deleteIntent)
+                context, getString(R.string.app_name), getString(R.string.group_notification_text), contentIntent)
         first.setGroupSummary(true).setGroup(KEY_NOTIFICATION_GROUP)
 
         val notificationList = ArrayList<Notification>()
@@ -181,8 +176,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
                     context,
                     singleNovelMap.key.name,
                     getString(R.string.new_chapters_notification_content_single, singleNovelMap.key.newReleasesCount.toInt()),
-                    createNovelDetailsPendingIntent(novelMap, singleNovelMap.key),
-                    deleteIntent)
+                    createNovelDetailsPendingIntent(novelMap, singleNovelMap.key))
             notificationBuilder.setGroup(KEY_NOTIFICATION_GROUP)
             notificationList.add(notificationBuilder.build())
         }
@@ -194,7 +188,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
     }
 
 
-    private fun createNotificationBuilder(context: Context, title: String, message: String, contentIntent: PendingIntent, deleteIntent: PendingIntent): NotificationCompat.Builder {
+    private fun createNotificationBuilder(context: Context, title: String, message: String, contentIntent: PendingIntent): NotificationCompat.Builder {
 
         val largeIcon = BitmapFactory.decodeResource(context.resources,
                 R.drawable.ic_library_add_white_vector)
@@ -203,7 +197,6 @@ class BackgroundNovelSyncTask : GcmTaskService() {
                 .setContentText(message)
                 .setLargeIcon(largeIcon)
                 .setContentIntent(contentIntent)
-                .setDeleteIntent(deleteIntent)
                 .setColor(ContextCompat.getColor(context, R.color.alice_blue))
                 .setAutoCancel(true)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)

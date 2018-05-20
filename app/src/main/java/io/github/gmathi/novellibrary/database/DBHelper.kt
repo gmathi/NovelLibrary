@@ -31,6 +31,7 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         db.execSQL(DBKeys.CREATE_TABLE_NOVEL_GENRE)
         db.execSQL(DBKeys.CREATE_TABLE_DOWNLOAD)
         db.execSQL(DBKeys.CREATE_TABLE_SOURCE)
+        db.execSQL(DBKeys.CREATE_TABLE_NOVEL_SECTION)
         db.execSQL("INSERT INTO " + DBKeys.TABLE_SOURCE + " (" + DBKeys.KEY_ID + ", " + DBKeys.KEY_NAME + ") VALUES (-1, 'All')")
 
     }
@@ -77,6 +78,10 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         if (version == DBKeys.VER_DOWNLOADS) {
             db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_CHAPTERS_COUNT + "=" + DBKeys.KEY_NEW_RELEASES_COUNT)
             db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_NEW_RELEASES_COUNT + "= 0")
+            db.execSQL(DBKeys.CREATE_TABLE_NOVEL_SECTION)
+            db.execSQL("ALTER TABLE " + DBKeys.TABLE_NOVEL + " ADD COLUMN " + DBKeys.KEY_NOVEL_SECTION_ID + " INTEGER")
+            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_NOVEL_SECTION_ID + "= -1")
+            version = DBKeys.VER_NEW_RELEASES
         }
 
         if (version == DBKeys.VER_NEW_RELEASES) {
@@ -105,6 +110,8 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_DOWNLOAD_QUEUE)
         db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_SOURCE)
         db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_DOWNLOAD)
+        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_NOVEL_SECTION)
+
         // create new tables
         onCreate(db)
     }

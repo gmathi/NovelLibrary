@@ -169,6 +169,8 @@
 
     <string name="title_activity_language" translatable="false">LanguageActivity</string>
     <string name="title_activity_novel_downloads" translatable="false">@string/title_downloads</string>
+    <string name="title_activity_novel_sections" translatable="false">@string/title_novel_sections</string>
+
 
 
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
@@ -437,5 +439,5 @@
     <string name="disable_notifications">Enable Notifications</string>
     <string name="disable_notifications_description">Enables the hourly notifications when new chapter updates are available</string>
 
-
+    <string name="title_novel_sections">Novel Sections</string>
 </resources>

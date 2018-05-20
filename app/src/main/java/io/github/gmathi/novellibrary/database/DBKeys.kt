@@ -25,6 +25,7 @@ object DBKeys {
     internal const val TABLE_DOWNLOAD_QUEUE = "download_queue"
     internal const val TABLE_DOWNLOAD = "download"
     internal const val TABLE_SOURCE = "source"
+    internal const val TABLE_NOVEL_SECTION = "novel_section"
 
     // Common column names
     internal const val KEY_ID = "id"
@@ -43,6 +44,8 @@ object DBKeys {
     internal const val KEY_CURRENT_WEB_PAGE_ID = "current_web_page_id"
     internal const val KEY_NEW_RELEASES_COUNT = "chapter_count"
     internal const val KEY_CHAPTERS_COUNT = "new_chapter_count"
+    internal const val KEY_NOVEL_SECTION_ID = "novel_section_id"
+
 
 
     // Table web_page columns
@@ -69,7 +72,7 @@ object DBKeys {
 
 
     // novel table create statement
-    internal val CREATE_TABLE_NOVEL = (
+    internal const val CREATE_TABLE_NOVEL = (
         "CREATE TABLE " + TABLE_NOVEL + " ("
             + KEY_ID + " INTEGER PRIMARY KEY, "
             + KEY_NAME + " TEXT, "
@@ -84,11 +87,12 @@ object DBKeys {
             + KEY_ORDER_ID + " INTEGER, "
             + KEY_NEW_RELEASES_COUNT + " INTEGER, "
             + KEY_CHAPTERS_COUNT + " INTEGER, "
+            + KEY_NOVEL_SECTION_ID + " INTEGER, "
             + "FOREIGN KEY (" + KEY_CURRENT_WEB_PAGE_ID + ") REFERENCES " + TABLE_WEB_PAGE + "(" + KEY_ID + ")"
             + ")")
 
     // web_page table create statement
-    internal val CREATE_TABLE_WEB_PAGE = (
+    internal const val CREATE_TABLE_WEB_PAGE = (
         "CREATE TABLE " + TABLE_WEB_PAGE + " ("
             + KEY_ID + " INTEGER PRIMARY KEY, "
             + KEY_URL + " TEXT, "
@@ -106,14 +110,14 @@ object DBKeys {
             + ")")
 
     // genre table create statement
-    internal val CREATE_TABLE_GENRE = (
+    internal const val CREATE_TABLE_GENRE = (
         "CREATE TABLE " + TABLE_GENRE + " ("
             + KEY_ID + " INTEGER PRIMARY KEY, "
             + KEY_NAME + " TEXT"
             + ")")
 
     // novel_genre table create statement
-    internal val CREATE_TABLE_NOVEL_GENRE = (
+    internal const val CREATE_TABLE_NOVEL_GENRE = (
         "CREATE TABLE " + TABLE_NOVEL_GENRE + " ("
             + KEY_NOVEL_ID + " INTEGER, "
             + KEY_GENRE_ID + " INTEGER, "
@@ -130,7 +134,7 @@ object DBKeys {
 //            + ")")
 
     // source table create statement
-    internal val CREATE_TABLE_SOURCE = (
+    internal const val CREATE_TABLE_SOURCE = (
         "CREATE TABLE " + TABLE_SOURCE + " ("
             + KEY_ID + " INTEGER PRIMARY KEY, "
             + KEY_NAME + " TEXT"
@@ -138,7 +142,7 @@ object DBKeys {
 
 
     // downloads table create statement
-    internal val CREATE_TABLE_DOWNLOAD = (
+    internal const val CREATE_TABLE_DOWNLOAD = (
         "CREATE TABLE " + TABLE_DOWNLOAD + " ("
             + KEY_NAME + " TEXT, "
             + KEY_WEB_PAGE_ID + " INTEGER PRIMARY KEY, "
@@ -148,6 +152,13 @@ object DBKeys {
             + KEY_METADATA + " TEXT"
             + ")")
 
+    // novel_section table create statement
+    internal const val CREATE_TABLE_NOVEL_SECTION = (
+            "CREATE TABLE " + TABLE_NOVEL_SECTION + " ("
+                    + KEY_ID + " INTEGER PRIMARY KEY, "
+                    + KEY_NAME + " TEXT, "
+                    + KEY_ORDER_ID + " INTEGER"
+                    + ")")
 
     //    // sync table create statement
     //    static final String CREATE_TABLE_SYNC =

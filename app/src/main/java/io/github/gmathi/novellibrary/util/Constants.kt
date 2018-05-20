@@ -49,6 +49,7 @@ object Constants {
     const val RECENT_UPDATED_ACT_REQ_CODE = 15
     const val RECENT_VIEWED_ACT_REQ_CODE = 16
     const val IWV_ACT_REQ_CODE = 16
+    const val NOVEL_SECTIONS_ACT_REQ_CODE = 17
 
     const val SETTINGS_ACT_RES_CODE = 10
     const val LANG_ACT_RES_CODE = 12

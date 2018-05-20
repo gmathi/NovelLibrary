@@ -143,6 +143,10 @@ fun Activity.startImportLibraryActivity() {
     startActivityForResult(Intent(this, ImportLibraryActivity::class.java), Constants.IMPORT_LIBRARY_ACT_REQ_CODE)
 }
 
+fun Activity.startNovelSectionsActivity() {
+    startActivityForResult(Intent(this, NovelSectionsActivity::class.java), Constants.NOVEL_SECTIONS_ACT_REQ_CODE)
+}
+
 fun Activity.startNovelDownloadsActivity() {
     startActivityForResult(Intent(this, NovelDownloadsActivity::class.java), Constants.SETTINGS_ACT_REQ_CODE)
 }

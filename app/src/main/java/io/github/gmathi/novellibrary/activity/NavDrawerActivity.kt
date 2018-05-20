@@ -17,10 +17,12 @@ import com.crashlytics.android.Crashlytics
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.database.createNovelSection
 import io.github.gmathi.novellibrary.database.updateTotalChapterCount
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.DownloadFragment
 import io.github.gmathi.novellibrary.fragment.LibraryFragment
+import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.CloudFlare
@@ -94,6 +96,13 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 .show()
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
+
+//        dbHelper.createNovelSection("Reading")
+//        dbHelper.createNovelSection("OnHold")
+//        dbHelper.createNovelSection("General")
+//        dbHelper.createNovelSection("Completed")
+//        dbHelper.createNovelSection("Hiatus")
+//        dbHelper.createNovelSection("#923 283")
 
     }
 
@@ -177,7 +186,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         currentNavId = id
         when (id) {
             R.id.nav_library -> {
-                replaceFragment(LibraryFragment(), LibraryFragment::class.toString())
+                replaceFragment(LibraryPagerFragment(), LibraryPagerFragment::class.toString())
             }
             R.id.nav_search -> {
                 replaceFragment(SearchFragment(), SearchFragment::class.toString())

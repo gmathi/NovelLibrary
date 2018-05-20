@@ -15,6 +15,7 @@ class Novel(var name: String, var url: String) : Serializable {
     var newReleasesCount = 0L
     var chaptersCount = 0L
     var metaData: HashMap<String, String?> = HashMap()
+    var novelSectionId: Long = -1L
 
 
     fun copyFrom(otherNovel: Novel?) {
@@ -32,6 +33,7 @@ class Novel(var name: String, var url: String) : Serializable {
             newReleasesCount = if (otherNovel.newReleasesCount != 0L) otherNovel.newReleasesCount else newReleasesCount
             chaptersCount = if (otherNovel.chaptersCount != 0L) otherNovel.chaptersCount else chaptersCount
             orderId = if (otherNovel.orderId != -1L) otherNovel.orderId else orderId
+            novelSectionId = if (otherNovel.novelSectionId != -1L) otherNovel.novelSectionId else novelSectionId
 
             otherNovel.metaData.keys.forEach {
                 metaData[it] = otherNovel.metaData[it]
@@ -58,7 +60,7 @@ class Novel(var name: String, var url: String) : Serializable {
     }
 
     override fun toString(): String {
-        return "Novel(name='$name', url='$url', id=$id, imageUrl=$imageUrl, rating=$rating, shortDescription=$shortDescription, longDescription=$longDescription, imageFilePath=$imageFilePath, genres=$genres, currentWebPageId=$currentWebPageId, orderId=$orderId, newReleasesCount=$newReleasesCount, chaptersCount=$chaptersCount, metaData=$metaData)"
+        return "Novel(name='$name', url='$url', id=$id, imageUrl=$imageUrl, rating=$rating, shortDescription=$shortDescription, longDescription=$longDescription, imageFilePath=$imageFilePath, genres=$genres, currentWebPageId=$currentWebPageId, orderId=$orderId, newReleasesCount=$newReleasesCount, chaptersCount=$chaptersCount, metaData=$metaData, novelSectionId=$novelSectionId)"
     }
 
 
