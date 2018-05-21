@@ -81,6 +81,12 @@ fun DBHelper.updateNovelSectionOrderId(novelSectionId: Long, orderId: Long) {
     this.writableDatabase.update(DBKeys.TABLE_NOVEL_SECTION, values, DBKeys.KEY_ID + " = ?", arrayOf(novelSectionId.toString())).toLong()
 }
 
+fun DBHelper.updateNovelSectionName(novelSectionId: Long, name: String) {
+    val values = ContentValues()
+    values.put(DBKeys.KEY_NAME, name)
+    this.writableDatabase.update(DBKeys.TABLE_NOVEL_SECTION, values, DBKeys.KEY_ID + " = ?", arrayOf(novelSectionId.toString())).toLong()
+}
+
 
 fun DBHelper.deleteNovelSection(id: Long) {
     val db = this.writableDatabase

@@ -240,7 +240,7 @@
     <string name="cancel">Cancel</string>
     <string name="remove">Remove</string>
     <string name="confirm_remove">Confirm Remove</string>
-    <string name="confirm_remove_description">Novel will be removed from the library while also deleting all its chapters</string>
+    <string name="confirm_remove_description_novel">Novel will be removed from the library while also deleting all its chapters</string>
     <string name="remove_from_downloads">Remove From Downloads?</string>
     <string name="add_to_library">Add To Library</string>
     <string name="in_library">In Library</string>
@@ -440,4 +440,14 @@
     <string name="disable_notifications_description">Enables the hourly notifications when new chapter updates are available</string>
 
     <string name="title_novel_sections">Novel Sections</string>
+    <string name="add_novel_section">Add Novel Section</string>
+
+    <string name="confirm_remove_description_novel_section">Novel Section will be removed and all the novels with be moved to currently reading</string>
+    <string name="rename">Rename</string>
+    <string name="add_novel_section_title">Add Novel Section</string>
+    <string name="add_novel_section_description">Enter the name for new Novel Section:</string>
+    <string name="novel_section_name">Novel Section Name</string>
+    <string name="novel_section_empty_message">Add \"Novel Sections\" &amp; categorize your novels</string>
+    <string name="novel_section_name_error">Novel Section name cannot be a existing one or empty</string>
+
 </resources>

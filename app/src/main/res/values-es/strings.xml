@@ -88,7 +88,7 @@
     <string name="cancel">Cancel</string>
     <string name="remove">Remove</string>
     <string name="confirm_remove">Confirm Remove</string>
-    <string name="confirm_remove_description">Novel will be removed from the library while also deleting all its chapters</string>
+    <string name="confirm_remove_description_novel">Novel will be removed from the library while also deleting all its chapters</string>
     <string name="remove_from_downloads">Remove From Downloads?</string>
     <string name="add_to_library">Add To Library</string>
     <string name="in_library">In Library</string>

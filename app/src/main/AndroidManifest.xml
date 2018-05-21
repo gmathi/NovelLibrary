@@ -195,7 +195,7 @@
         <activity
             android:name=".activity.NovelSectionsActivity"
             android:label="@string/title_activity_novel_sections"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/DarkTheme_DarkSide" />
     </application>
 
 </manifest>

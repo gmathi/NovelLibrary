@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
+import io.github.gmathi.novellibrary.activity.NovelSectionsActivity
 import io.github.gmathi.novellibrary.activity.startNovelSectionsActivity
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.LibraryPageListener
@@ -38,7 +39,7 @@ class LibraryPagerFragment : BaseFragment() {
         setViewPager()
 
         novelSectionSettings.setOnClickListener {
-            activity?.startNovelSectionsActivity()
+            startActivityForResult(Intent(activity, NovelSectionsActivity::class.java), Constants.NOVEL_SECTIONS_ACT_REQ_CODE)
         }
 
     }
@@ -48,6 +49,7 @@ class LibraryPagerFragment : BaseFragment() {
             childFragmentManager.popBackStack()
 
         //We Manually add this because we want it to be static and the name to be change in different languages
+        novelSections.clear()
         novelSections.add(NovelSection(-1L, "Currently Reading"))
         novelSections.addAll(dbHelper.getAllNovelSections())
 
@@ -66,6 +68,8 @@ class LibraryPagerFragment : BaseFragment() {
         //TODO: NOT WORKING!!!
         if (requestCode == Constants.NOVEL_SECTIONS_ACT_REQ_CODE) {
             setViewPager()
+        } else {
+            super.onActivityResult(requestCode, resultCode, data)
         }
     }
 

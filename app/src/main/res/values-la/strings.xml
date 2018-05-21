@@ -74,7 +74,7 @@
     <string name="cancel">Cancel</string>
     <string name="remove">Rescinde</string>
     <string name="confirm_remove">Auctoriza delere</string>
-    <string name="confirm_remove_description">Hanc Novellum et omnis capites suum delebit</string>
+    <string name="confirm_remove_description_novel">Hanc Novellum et omnis capites suum delebit</string>
     <string name="remove_from_downloads">Remove ab Tentus?</string>
     <string name="add_to_library">Adde Bibliotheca</string>
     <string name="in_library">In Bibliotheca</string>

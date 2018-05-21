@@ -17,11 +17,9 @@ import com.crashlytics.android.Crashlytics
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.createNovelSection
 import io.github.gmathi.novellibrary.database.updateTotalChapterCount
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.DownloadFragment
-import io.github.gmathi.novellibrary.fragment.LibraryFragment
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.Novel
@@ -51,14 +49,14 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         } catch (e: Exception) {
             Crashlytics.logException(e)
             MaterialDialog.Builder(this@NavDrawerActivity)
-                .content("Error initiating the app. The developer has been notified about this!")
-                .positiveText("Quit")
-                .cancelable(false)
-                .onPositive { dialog, _ ->
-                    dialog.dismiss()
-                    finish()
-                }
-                .show()
+                    .content("Error initiating the app. The developer has been notified about this!")
+                    .positiveText("Quit")
+                    .cancelable(false)
+                    .onPositive { dialog, _ ->
+                        dialog.dismiss()
+                        finish()
+                    }
+                    .show()
         }
 
         if (intent.hasExtra("currentNavId"))
@@ -89,11 +87,11 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                .title("📢 Announcement!")
-                .content("Please refresh/sync your library for the new changes to be effective")
-                .positiveText("Yes Sir!!")
-                .onPositive { dialog, _ -> dialog.dismiss() }
-                .show()
+                    .title("📢 Announcement!")
+                    .content("Please refresh/sync your library for the new changes to be effective")
+                    .positiveText("Yes Sir!!")
+                    .onPositive { dialog, _ -> dialog.dismiss() }
+                    .show()
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
 
@@ -124,13 +122,13 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 Handler(Looper.getMainLooper()).post {
                     cloudFlareLoadingDialog?.hide()
                     MaterialDialog.Builder(this@NavDrawerActivity)
-                        .content(getString(R.string.cloud_flare_bypass_success))
-                        .positiveText(getString(R.string.try_again))
-                        .onPositive { dialog, _ ->
-                            dialog.dismiss()
-                            checkForCloudFlare()
-                        }
-                        .show()
+                            .content(getString(R.string.cloud_flare_bypass_success))
+                            .positiveText(getString(R.string.try_again))
+                            .onPositive { dialog, _ ->
+                                dialog.dismiss()
+                                checkForCloudFlare()
+                            }
+                            .show()
                 }
             }
         }
@@ -212,10 +210,10 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun replaceFragment(fragment: Fragment, tag: String) {
         supportFragmentManager.beginTransaction()
-            .replace(R.id.navFragmentContainer, fragment, tag)
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-            .addToBackStack(tag)
-            .commitAllowingStateLoss()
+                .replace(R.id.navFragmentContainer, fragment, tag)
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                .addToBackStack(tag)
+                .commitAllowingStateLoss()
     }
 
     fun setToolbar(toolbar: Toolbar?) {
@@ -225,11 +223,10 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (resultCode == Constants.OPEN_DOWNLOADS_RES_CODE) {
-            loadFragment(R.id.nav_downloads)
-        }
-        if (requestCode == Constants.IWV_ACT_REQ_CODE) {
-            checkIntentForNotificationData()
+        when {
+            resultCode == Constants.OPEN_DOWNLOADS_RES_CODE -> loadFragment(R.id.nav_downloads)
+            requestCode == Constants.IWV_ACT_REQ_CODE -> checkIntentForNotificationData()
+            else -> super.onActivityResult(requestCode, resultCode, data)
         }
     }
 

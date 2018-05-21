@@ -89,7 +89,7 @@
     <string name="cancel">İptal</string>
     <string name="remove">Kaldır</string>
     <string name="confirm_remove">Kaldırmayı Onayla</string>
-    <string name="confirm_remove_description">Roman kütüphaneden kaldırlacak ve tüm bölümleri silinecektir.</string>
+    <string name="confirm_remove_description_novel">Roman kütüphaneden kaldırlacak ve tüm bölümleri silinecektir.</string>
     <string name="remove_from_downloads">İndirilenlerden silinsin mı?</string>
     <string name="add_to_library">Kütüphaneye Ekle</string>
     <string name="in_library">Kütüphanede</string>

@@ -254,7 +254,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     private fun confirmNovelDelete() {
         MaterialDialog.Builder(this)
                 .title(getString(R.string.confirm_remove))
-                .content(getString(R.string.confirm_remove_description))
+                .content(getString(R.string.confirm_remove_description_novel))
                 .positiveText(getString(R.string.remove))
                 .negativeText(getString(R.string.cancel))
                 .icon(ContextCompat.getDrawable(this, R.drawable.ic_delete_white_vector)!!)

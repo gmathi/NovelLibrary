@@ -18,7 +18,10 @@ import android.util.TypedValue
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.database.deleteNovelSection
+import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.database.getNovel
+import io.github.gmathi.novellibrary.database.updateNovelSectionId
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import java.io.*
@@ -30,8 +33,8 @@ object Utils {
     fun getThemeAccentColor(context: Context): Int {
         val typedValue = TypedValue()
         val a = context.obtainStyledAttributes(
-            typedValue.data,
-            intArrayOf(R.attr.colorAccent)
+                typedValue.data,
+                intArrayOf(R.attr.colorAccent)
         )
         val color = a.getColor(0, Color.CYAN)
         a.recycle()
@@ -42,8 +45,8 @@ object Utils {
     fun getThemePrimaryColor(context: Context): Int {
         val typedValue = TypedValue()
         val a = context.obtainStyledAttributes(
-            typedValue.data,
-            intArrayOf(R.attr.colorPrimary)
+                typedValue.data,
+                intArrayOf(R.attr.colorPrimary)
         )
         val color = a.getColor(0, Color.BLUE)
         a.recycle()
@@ -248,7 +251,7 @@ object Utils {
             dialogBuilder.content(content)
 
         dialogBuilder
-            .iconRes(iconRes)
+                .iconRes(iconRes)
 
         if (!isProgress)
             dialogBuilder.positiveText(activity.getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }

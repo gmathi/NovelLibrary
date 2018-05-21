@@ -89,7 +89,7 @@
     <string name="cancel">Annuler</string>
     <string name="remove">Retirer</string>
     <string name="confirm_remove">Confirmation de la Suppression</string>
-    <string name="confirm_remove_description">Le Roman va être supprimé de la Bibliothèque ainsi que ses chapitres</string>
+    <string name="confirm_remove_description_novel">Le Roman va être supprimé de la Bibliothèque ainsi que ses chapitres</string>
     <string name="remove_from_downloads">Retirer des Téléchargements ?</string>
     <string name="add_to_library">Ajouter à la Bibliothèque</string>
     <string name="in_library">Ajouté</string>

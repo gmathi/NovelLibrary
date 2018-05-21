@@ -88,7 +88,7 @@
     <string name="cancel">Cancelar</string>
     <string name="remove">Remover</string>
     <string name="confirm_remove">Confirmar Remoção</string>
-    <string name="confirm_remove_description">Série será removida da biblioteca e todos seus capítulos serão deletados</string>
+    <string name="confirm_remove_description_novel">Série será removida da biblioteca e todos seus capítulos serão deletados</string>
     <string name="remove_from_downloads">Remover dos Downloads?</string>
     <string name="add_to_library">Adicionar à Biblioteca</string>
     <string name="in_library">In Library</string>

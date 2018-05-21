@@ -364,7 +364,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         activity?.let {
             MaterialDialog.Builder(it)
                 .title(getString(R.string.confirm_remove))
-                .content(getString(R.string.confirm_remove_description))
+                .content(getString(R.string.confirm_remove_description_novel))
                 .positiveText(R.string.remove)
                 .negativeText(R.string.cancel)
                 .onPositive { dialog, _ ->

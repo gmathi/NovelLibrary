@@ -86,7 +86,7 @@
     <string name="cancel">Beenden</string>
     <string name="remove">Entfernen</string>
     <string name="confirm_remove">Entfernen bestätigen</string>
-    <string name="confirm_remove_description">Novel und all ihre Kapitel werden aus der Bibliothek entfernt</string>
+    <string name="confirm_remove_description_novel">Novel und all ihre Kapitel werden aus der Bibliothek entfernt</string>
     <string name="remove_from_downloads">Aus Downloads entfernen?</string>
     <string name="add_to_library">Zur Bibliothek hinzufügen</string>
     <string name="in_library">In Bibliothek</string>

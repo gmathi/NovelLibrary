@@ -89,7 +89,7 @@
     <string name="cancel">ikansela</string>
     <string name="remove">Itangal</string>
     <string name="confirm_remove">Ikumpirma ang pagtangal</string>
-    <string name="confirm_remove_description">Ang libro ay itatangal mula sa aklatan. </string>
+    <string name="confirm_remove_description_novel">Ang libro ay itatangal mula sa aklatan. </string>
     <string name="remove_from_downloads">Itangal mula sa mga Downloads?</string>
     <string name="add_to_library">I-dagdag sa aklatan</string>
     <string name="in_library">Nasa aklatan</string>

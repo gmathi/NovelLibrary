@@ -77,7 +77,7 @@
     <string name="cancel">Batalkan</string>
     <string name="remove">Hapus</string>
     <string name="confirm_remove">Pastikan Penghapusan</string>
-    <string name="confirm_remove_description">Novel akan dihapus dari daftar bacaan termasuk semua chapter yang telah diunduh</string>
+    <string name="confirm_remove_description_novel">Novel akan dihapus dari daftar bacaan termasuk semua chapter yang telah diunduh</string>
     <string name="remove_from_downloads">Hapus dari daftar unduhan?</string>
     <string name="add_to_library">Masukkan ke daftar bacaan</string>
     <string name="in_library">Di dalam daftar bacaan</string>
