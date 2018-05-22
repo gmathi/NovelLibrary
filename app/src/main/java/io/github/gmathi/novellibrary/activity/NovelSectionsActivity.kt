@@ -103,11 +103,11 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
 
             popup.setOnMenuItemClickListener {
                 when (it.itemId) {
-                    R.id.action_rename_novel_section -> {
+                    R.id.action_novel_section_rename -> {
                         onItemRename(position)
                         true
                     }
-                    R.id.action_remove_novel_section -> {
+                    R.id.action_novel_section_remove -> {
                         onItemRemove(position)
                         true
                     }

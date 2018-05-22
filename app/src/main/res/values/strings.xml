@@ -187,7 +187,7 @@
         <item>Active-Ranked</item>
     </string-array>
 
-    <string name="title_activity_novel_details">Novel</string>
+    <string name="title_activity_novel_details">Novel Details</string>
     <string name="title_activity_settings">Settings</string>
     <string name="title_activity_chapters">Chapters</string>
     <string name="title_activity_meta_data">More Information</string>
@@ -449,5 +449,8 @@
     <string name="novel_section_name">Novel Section Name</string>
     <string name="novel_section_empty_message">Add \"Novel Sections\" &amp; categorize your novels</string>
     <string name="novel_section_name_error">Novel Section name cannot be a existing one or empty</string>
+    <string name="assign_novel_section">Assign Novel Section</string>
+    <string name="move_up_down">Move Up/Down</string>
+    <string name="no_novel_sections_error">No Novel Sections Found!</string>
 
 </resources>

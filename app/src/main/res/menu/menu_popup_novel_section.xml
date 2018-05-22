@@ -3,11 +3,11 @@
     tools:context=".activity.NovelSectionsActivity">
 
     <item
-        android:id="@+id/action_rename_novel_section"
+        android:id="@+id/action_novel_section_rename"
         android:title="@string/rename" />
 
     <item
-        android:id="@+id/action_remove_novel_section"
+        android:id="@+id/action_novel_section_remove"
         android:title="@string/remove" />
 
 </menu>
