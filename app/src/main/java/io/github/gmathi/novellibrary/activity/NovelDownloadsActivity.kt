@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.activity.downloads
+package io.github.gmathi.novellibrary.activity
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -8,14 +8,13 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.BaseActivity
-import io.github.gmathi.novellibrary.activity.startDownloadNovelService
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.*
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.getGlideUrl
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.activity_novel_downloads.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
@@ -27,7 +26,7 @@ import org.greenrobot.eventbus.ThreadMode
 class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     companion object {
-        private val TAG = "NovelDownloadsActivity"
+        private const val TAG = "NovelDownloadsActivity"
     }
 
     lateinit var adapter: GenericAdapter<String>
@@ -94,7 +93,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         val novel = dbHelper.getNovel(item)
         if (novel?.imageUrl != null) {
             Glide.with(this)
-                .load(novel.imageUrl)
+                .load(novel.imageUrl?.getGlideUrl())
                 .apply(RequestOptions.circleCropTransform())
                 .into(itemView.novelImageView)
         }

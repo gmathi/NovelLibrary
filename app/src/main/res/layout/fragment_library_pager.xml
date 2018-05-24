@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:popupTheme="@style/AppTheme.PopupOverlay"/>
+
+    </android.support.design.widget.AppBarLayout>
+
+    <include layout="@layout/content_library_pager"/>
+
+    <!--<com.github.clans.fab.FloatingActionMenu-->
+    <!--android:id="@+id/fabMenu"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_gravity="bottom|end"-->
+    <!--android:layout_margin="@dimen/fab_margin"-->
+    <!--app:menu_labels_ellipsize="end"-->
+    <!--app:menu_labels_singleLine="true">-->
+
+    <!--<com.github.clans.fab.FloatingActionButton-->
+    <!--android:id="@+id/fabDownload"-->
+    <!--style="@style/MenuButtonsStyle"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:src="@drawable/ic_file_download_black"-->
+    <!--app:fab_label="Downloads"-->
+    <!--app:srcCompat="@drawable/ic_file_download_black_vector"/>-->
+
+    <!--<com.github.clans.fab.FloatingActionButton-->
+    <!--android:id="@+id/fabSearch"-->
+    <!--style="@style/MenuButtonsStyle"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:src="@drawable/ic_search_black"-->
+    <!--android:tint="@android:color/white"-->
+    <!--app:fab_label="Search Novels"/>-->
+
+    <!--</com.github.clans.fab.FloatingActionMenu>-->
+
+</android.support.design.widget.CoordinatorLayout>

@@ -36,14 +36,22 @@
             <!--android:actionViewClass="android.widget.SearchView"-->
             <!--android:icon="@drawable/ic_search_black"-->
             <!--android:title="Search"/>-->
-            <item
-                android:id="@+id/nav_recently_viewed"
-                android:icon="@drawable/ic_update_white_vector"
-                android:title="@string/title_activity_recently_viewed_novels"/>
+
+            <!--<item-->
+                <!--android:id="@+id/nav_refresh_cloud_flare_cookies"-->
+                <!--android:icon="@drawable/ic_refresh_white_vector"-->
+                <!--android:title="@string/refresh_cloud_flare_cookies"/>-->
+
             <item
                 android:id="@+id/nav_recently_updated"
                 android:icon="@drawable/ic_history_white_vector"
                 android:title="@string/title_activity_recently_updated_novels"/>
+
+            <item
+                android:id="@+id/nav_recently_viewed"
+                android:icon="@drawable/ic_update_white_vector"
+                android:title="@string/title_activity_recently_viewed_novels"/>
+
 
             <!--<item-->
             <!--android:id="@+id/nav_legal"-->

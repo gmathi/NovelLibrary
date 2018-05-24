@@ -8,26 +8,24 @@ import io.github.gmathi.novellibrary.model.DrawerItem
 
 
 class DrawerAdapter(private val items: List<DrawerItem<DrawerAdapter.ViewHolder>>) : RecyclerView.Adapter<DrawerAdapter.ViewHolder>() {
-    private var viewTypes: MutableMap<Class<out DrawerItem<DrawerAdapter.ViewHolder>>, Int>
-    private var holderFactories: SparseArray<DrawerItem<DrawerAdapter.ViewHolder>>
+    private var viewTypes: MutableMap<Class<out DrawerItem<DrawerAdapter.ViewHolder>>, Int> = HashMap()
+    private var holderFactories: SparseArray<DrawerItem<DrawerAdapter.ViewHolder>> = SparseArray()
 
     private var listener: OnItemSelectedListener? = null
 
     init {
-        this.viewTypes = HashMap()
-        this.holderFactories = SparseArray()
 
         processViewTypes()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        var holder = holderFactories.get(viewType).createViewHolder(parent)
+        val holder = holderFactories.get(viewType).createViewHolder(parent)
         holder.adapter = this
         return holder
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        items[position].bindViewHolder(holder,position)
+        items[position].bindViewHolder(holder, position)
     }
 
     override fun getItemCount(): Int {
@@ -42,7 +40,7 @@ class DrawerAdapter(private val items: List<DrawerItem<DrawerAdapter.ViewHolder>
         var type = 0
         for (item in items) {
             if (!viewTypes.containsKey(item.javaClass)) {
-                viewTypes.put(item.javaClass, type)
+                viewTypes[item.javaClass] = type
                 holderFactories.put(type, item)
                 type++
             }
@@ -76,17 +74,16 @@ class DrawerAdapter(private val items: List<DrawerItem<DrawerAdapter.ViewHolder>
         this.listener = listener
     }
 
-    abstract class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
+    abstract class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         var adapter: DrawerAdapter? = null
 
         init {
-            itemView.setOnClickListener(this)
+            itemView.setOnClickListener {
+                adapter!!.setSelected(adapterPosition)
+            }
         }
 
-        override fun onClick(v: View) {
-            adapter!!.setSelected(adapterPosition)
-        }
     }
 
     interface OnItemSelectedListener {

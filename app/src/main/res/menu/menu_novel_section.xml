@@ -1,0 +1,13 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context=".activity.NovelSectionsActivity">
+
+    <item
+        android:id="@+id/action_add_novel_section"
+        android:icon="@drawable/ic_add_box_white_vector"
+        android:title="@string/add_novel_section"
+        android:titleCondensed="Add"
+        app:showAsAction="always"/>
+
+</menu>

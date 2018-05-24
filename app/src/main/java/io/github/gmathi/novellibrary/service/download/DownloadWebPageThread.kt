@@ -22,7 +22,7 @@ import java.io.File
 class DownloadWebPageThread(val context: Context, val download: Download, val dbHelper: DBHelper) : Thread() {
 
     companion object {
-        private val TAG = "DownloadWebPageThread"
+        private const val TAG = "DownloadWebPageThread"
     }
 
     private lateinit var hostDir: File
@@ -56,7 +56,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
     private fun downloadChapter(webPage: WebPage): Boolean {
         val doc: Document
         try {
-            doc = NovelApi().getDocumentWithUserAgent(webPage.url)
+            doc = NovelApi.getDocumentWithUserAgent(webPage.url)
         } catch (e: Exception) {
             Utils.error(TAG, "Error getting WebPage: ${webPage.url}")
             e.printStackTrace()
@@ -77,7 +77,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             if (otherLinks.isNotEmpty()) {
                 val otherWebPages = ArrayList<WebPage>()
                 otherLinks.mapNotNullTo(otherWebPages) { it -> downloadOtherChapterLinks(it, hostDir, novelDir) }
-                webPage.metaData.put(Constants.MD_OTHER_LINKED_WEB_PAGES, Gson().toJson(otherWebPages))
+                webPage.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES] = Gson().toJson(otherWebPages)
             }
 
             if (webPage.metaData.containsKey(Constants.DOWNLOADING))
@@ -92,7 +92,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
         val doc: Document
         try {
-            doc = NovelApi().getDocumentWithUserAgent(otherChapterLink)
+            doc = NovelApi.getDocumentWithUserAgent(otherChapterLink)
         } catch (e: Exception) {
             Utils.error(TAG, "Error getting WebPage: $otherChapterLink")
             e.printStackTrace()
@@ -123,7 +123,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
     }
 
     private fun isNetworkDown(): Boolean {
-        if (!Utils.checkNetwork(context)) {
+        if (!Utils.isConnectedToNetwork(context)) {
             onNoNetwork()
             return true
         }

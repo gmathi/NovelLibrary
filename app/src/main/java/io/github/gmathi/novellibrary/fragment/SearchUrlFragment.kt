@@ -16,6 +16,7 @@ import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.searchUrl
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.getGlideUrl
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
@@ -74,7 +75,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
         async search@ {
 
-            if (!Utils.checkNetwork(activity)) {
+            if (!Utils.isConnectedToNetwork(activity)) {
                 progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
                     progressLayout.showLoading()
                     searchNovels()
@@ -82,7 +83,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
                 return@search
             }
 
-            val results = await { NovelApi().searchUrl(searchUrl) }
+            val results = await { NovelApi.searchUrl(searchUrl) }
             if (results != null) {
                 if (isVisible && (!isDetached || !isRemoving)) {
                     loadSearchResults(results)
@@ -123,7 +124,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         itemView.novelImageView.setImageResource(android.R.color.transparent)
         if (item.imageUrl != null) {
             Glide.with(this)
-                    .load(item.imageUrl)
+                    .load(item.imageUrl?.getGlideUrl())
                     .apply(RequestOptions.circleCropTransform())
                     .into(itemView.novelImageView)
         }

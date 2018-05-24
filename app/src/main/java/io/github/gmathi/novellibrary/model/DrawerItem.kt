@@ -6,9 +6,9 @@ import io.github.gmathi.novellibrary.adapter.DrawerAdapter
 
 abstract class DrawerItem<T : DrawerAdapter.ViewHolder> {
 
-    protected var isCheckedSlideMenu: Boolean = false
-    protected var textOnly: Boolean = false
-    protected var switch: Boolean = false
+    private var isCheckedSlideMenu: Boolean = false
+    private var textOnly: Boolean = false
+    private var switch: Boolean = false
     open val isSelectable: Boolean
         get() = true
 

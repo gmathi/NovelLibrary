@@ -16,7 +16,7 @@ fun NovelApi.searchRoyalRoad(searchTerms: String): ArrayList<Novel>? {
                 val urlElement = searchContentElement.getElementsByTag("a")?.firstOrNull()
                 val novel = Novel(urlElement?.text()!!, "https://www.royalroadl.com${urlElement.attr("href")}")
                 novel.imageUrl = element.getElementsByTag("img").firstOrNull()?.attr("src")
-                novel.metaData.put("Author(s)", searchContentElement.getElementsByClass("author")?.firstOrNull { it.tagName() == "span" }?.text()?.substring(3))
+                novel.metaData["Author(s)"] = searchContentElement.getElementsByClass("author")?.firstOrNull { it.tagName() == "span" }?.text()?.substring(3)
                 novel.rating = "N/A"
                 novel.longDescription = searchContentElement.getElementsByTag("div")?.firstOrNull { it.hasClass("fiction-description") }?.text()
                 novel.shortDescription = novel.longDescription?.split("\n")?.firstOrNull()

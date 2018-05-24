@@ -16,6 +16,7 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.*
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.getGlideUrl
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
@@ -85,7 +86,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
                 return@search
             }
 
-            if (!Utils.checkNetwork(activity)) {
+            if (!Utils.isConnectedToNetwork(activity)) {
                 progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
                     progressLayout.showLoading()
                     searchNovels()
@@ -97,9 +98,9 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
             var results: ArrayList<Novel>? = null
 
             when (resultType) {
-                HostNames.NOVEL_UPDATES -> results = await { NovelApi().searchNovelUpdates(searchTerms) }
-                HostNames.ROYAL_ROAD -> results = await { NovelApi().searchRoyalRoad(searchTerms) }
-                HostNames.WLN_UPDATES -> results = await { NovelApi().searchWlnUpdates(searchTerms) }
+                HostNames.NOVEL_UPDATES -> results = await { NovelApi.searchNovelUpdates(searchTerms) }
+                HostNames.ROYAL_ROAD -> results = await { NovelApi.searchRoyalRoad(searchTerms) }
+                HostNames.WLN_UPDATES -> results = await { NovelApi.searchWlnUpdates(searchTerms) }
             }
 
             if (results == null) results = ArrayList()
@@ -134,7 +135,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
         if (item.imageUrl != null) {
             Glide.with(this)
-                    .load(item.imageUrl)
+                    .load(item.imageUrl?.getGlideUrl())
                     .apply(RequestOptions.circleCropTransform())
                     .into(itemView.novelImageView)
         }

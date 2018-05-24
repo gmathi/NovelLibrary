@@ -30,10 +30,7 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getNovelDetails
-import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.TextViewLinkHandler
-import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.applyFont
+import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.activity_novel_details.*
 import kotlinx.android.synthetic.main.content_novel_details.*
 
@@ -56,7 +53,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         supportActionBar?.title = novel.name
 
         if (novel.id != -1L) {
-            if (!Utils.checkNetwork(this))
+            if (!Utils.isConnectedToNetwork(this))
                 setupViews()
             else
                 progressLayout.showLoading()
@@ -75,7 +72,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun getNovelInfo() {
-        if (!Utils.checkNetwork(this)) {
+        if (!Utils.isConnectedToNetwork(this)) {
             if (novel.id == -1L) {
                 swipeRefreshLayout.isRefreshing = false
                 progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
@@ -88,7 +85,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
         async {
             try {
-                val downloadedNovel = await { NovelApi().getNovelDetails(novel.url) }
+                val downloadedNovel = await { NovelApi.getNovelDetails(novel.url) }
                 novel.copyFrom(downloadedNovel)
                 addNovelToHistory()
                 if (novel.id != -1L) await { dbHelper.updateNovel(novel) }
@@ -120,9 +117,9 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         setNovelAddToLibraryButton()
         setNovelGenre()
         setNovelDescription()
-        novelDetailsChapters.text = getString(R.string.chapters) + " (${novel.chapterCount})"
+        novelDetailsChapters.text = getString(R.string.chapters) + " (${novel.chaptersCount})"
         novelDetailsChaptersLayout.setOnClickListener {
-            if (novel.chapterCount != 0L) startChaptersActivity(novel, false)
+            if (novel.chaptersCount != 0L) startChaptersActivity(novel, false)
         }
         novelDetailsMetadataLayout.setOnClickListener { startMetadataActivity(novel) }
         openInBrowserButton.setOnClickListener { openInBrowser(novel.url) }
@@ -131,7 +128,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     private fun setNovelImage() {
         if (novel.imageUrl != null) {
             Glide.with(this)
-                    .load(novel.imageUrl)
+                    .load(novel.imageUrl?.getGlideUrl())
                     .into(novelDetailsImage)
             novelDetailsImage.setOnClickListener { startImagePreviewActivity(novel.imageUrl, novel.imageFilePath, novelDetailsImage) }
         }
@@ -257,7 +254,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     private fun confirmNovelDelete() {
         MaterialDialog.Builder(this)
                 .title(getString(R.string.confirm_remove))
-                .content(getString(R.string.confirm_remove_description))
+                .content(getString(R.string.confirm_remove_description_novel))
                 .positiveText(getString(R.string.remove))
                 .negativeText(getString(R.string.cancel))
                 .icon(ContextCompat.getDrawable(this, R.drawable.ic_delete_white_vector)!!)

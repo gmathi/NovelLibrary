@@ -10,7 +10,7 @@ import java.util.*
 import kotlin.collections.HashMap
 
 
-private val LOG = "DownloadHelper"
+private const val LOG = "DownloadHelper"
 
 fun DBHelper.createDownload(download: Download): Boolean {
 //    val existingDownload = getDownload(download.webPageId)
@@ -20,6 +20,7 @@ fun DBHelper.createDownload(download: Download): Boolean {
     values.put(DBKeys.KEY_NAME, download.novelName)
     values.put(DBKeys.KEY_WEB_PAGE_ID, download.webPageId)
     values.put(DBKeys.KEY_CHAPTER, download.chapter)
+    // TODO: By default, downloads should be queued
     values.put(DBKeys.KEY_STATUS, Download.STATUS_PAUSED)
     values.put(DBKeys.KEY_ORDER_ID, download.orderId)
     values.put(DBKeys.KEY_METADATA, Gson().toJson(HashMap<String, String?>()))

@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.cleaner
 
 import android.net.Uri
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -12,14 +13,20 @@ class WuxiaWorldHelper : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc)
-        var contentElement = doc.getElementsByAttributeValue("itemprop", "articleBody").firstOrNull()
+        var contentElement = doc.selectFirst("div.p-15")
+        contentElement?.selectFirst("div.font-resize")?.remove()
+        contentElement?.select("span[style]")?.forEach { it?.removeAttr("style") }
+
         do {
             contentElement?.siblingElements()?.remove()
             contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
+            contentElement?.attr("style", "")
             contentElement = contentElement?.parent()
         } while (contentElement != null && contentElement.tagName() != "body")
         contentElement?.classNames()?.forEach { contentElement.removeClass(it) }
-        doc.getElementsByTag("a").filter { it.text() == "Next Chapter" || it.text() == "Previous Chapter" }.forEach { it.remove() }
+
+        if (!dataCenter.enableDirectionalLinks)
+            doc.getElementsByTag("a")?.filter { it.text() == "Next Chapter" || it.text() == "Previous Chapter" }?.forEach { it.remove() }
         doc.getElementById("custom-background-css")?.remove()
     }
 
@@ -32,7 +39,7 @@ class WuxiaWorldHelper : HtmlHelper() {
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
 
         val links = ArrayList<String>()
-        val otherLinks = doc.getElementsByAttributeValue("itemprop", "articleBody").firstOrNull()?.getElementsByAttributeValueContaining("href", HostNames.WUXIA_WORLD)
+        val otherLinks = doc.selectFirst("div.fr-view")?.getElementsByAttributeValueContaining("href", HostNames.WUXIA_WORLD)
         if (otherLinks != null && otherLinks.isNotEmpty()) {
             otherLinks.mapTo(links) { it.attr("href") }
         }

@@ -17,7 +17,9 @@ class GeneralClassTagHelper(private val hostName: String, private val tagName: S
         var contentElement = doc.body().getElementsByTag(tagName).firstOrNull { it.hasClass(className) }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
 
-        removeDirectionalLinks(contentElement)
+        if (!dataCenter.enableDirectionalLinks)
+            removeDirectionalLinks(contentElement)
+
         doc.getElementsByClass("post-navigation")?.remove()
 
         if (!dataCenter.showChapterComments) {
@@ -64,10 +66,17 @@ class GeneralClassTagHelper(private val hostName: String, private val tagName: S
 
     private fun removeDirectionalLinks(contentElement: Element?) {
         contentElement?.getElementsByTag("a")?.filter {
-            it.text().contains("Previous Chapter", ignoreCase = true)
-                || it.text().contains("Next Chapter", ignoreCase = true)
-                || it.text().contains("Project Page", ignoreCase = true)
-                || it.text().contains("Index", ignoreCase = true)
+            it.text().equals("Previous Chapter", ignoreCase = true)
+                || it.text().equals("Next Chapter", ignoreCase = true)
+                || it.text().equals("Project Page", ignoreCase = true)
+                || it.text().equals("Index", ignoreCase = true)
+                || it.text().equals("[Previous Chapter]", ignoreCase = true)
+                || it.text().equals("[Next Chapter]", ignoreCase = true)
+                || it.text().equals("[Table of Contents]", ignoreCase = true)
+                || it.text().equals("Next", ignoreCase = true)
+                || it.text().equals("TOC", ignoreCase = true)
+                || it.text().equals("Previous", ignoreCase = true)
+
 
         }?.forEach { it?.remove() }
     }

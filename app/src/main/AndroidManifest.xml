@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="io.github.gmathi.novellibrary">
+    package="io.github.gmathi.novellibrary">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.CLEAR_APP_CACHE"/>
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
 
     <application
         android:name=".NovelLibraryApplication"
@@ -16,6 +16,7 @@
         android:label="@string/app_name"
         android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher"
+        android:fullBackupContent="@xml/my_backup_rules"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
@@ -26,33 +27,28 @@
         -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/ic_book_white_vector"/>
+            android:resource="@drawable/ic_book_white_vector" />
         <!--
              Set color used with incoming notification messages. This is used when no color is set for the incoming
              notification message. See README(https://goo.gl/6BKBk7) for more.
         -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
-            android:resource="@color/colorAccent"/>
+            android:resource="@color/colorAccent" />
         <!-- [END fcm_default_icon] -->
         <!-- [START fcm_default_channel] -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel"
-            android:value="@string/default_notification_channel_id"/>
-
-        <receiver
-            android:name=".receiver.sync.SyncNovelUpdateReceiver"
-            android:exported="false">
-        </receiver>
+            android:value="@string/default_notification_channel_id" />
 
         <service android:name=".service.firebase.NLFirebaseInstanceIdService">
             <intent-filter>
-                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
         <service android:name=".service.firebase.NLFirebaseMessagingService">
             <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
         <service
@@ -60,19 +56,17 @@
             android:exported="true"
             android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE">
             <intent-filter>
-                <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY"/>
+                <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY" />
             </intent-filter>
         </service>
         <service
             android:name=".service.download.DownloadService"
             android:enabled="true"
-            android:exported="false">
-        </service>
+            android:exported="false" />
         <service
             android:name=".service.download.DownloadNovelService"
             android:enabled="true"
-            android:exported="false">
-        </service>
+            android:exported="false" />
         <!-- <service -->
         <!-- android:name=".service.sync.SyncNovelsService" -->
         <!-- android:enabled="true" -->
@@ -82,87 +76,78 @@
         <activity
             android:name=".activity.NovelDetailsActivity"
             android:label="@string/title_activity_novel_details"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.ImagePreviewActivity"
             android:label=""
-            android:theme="@style/AppImagePreview"/>
+            android:theme="@style/AppImagePreview" />
         <activity
             android:name=".activity.ReaderDBPagerActivity"
             android:label="@string/title_activity_reader_pager"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.NavDrawerActivity"
             android:label="@string/title_activity_nav_drawer"
             android:launchMode="singleTask"
             android:theme="@style/DarkTheme_DarkSide">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
             android:name=".activity.ChaptersActivity"
             android:label="@string/title_activity_chapters"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.MetaDataActivity"
             android:label="@string/title_activity_meta_data"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.LibrariesUsedActivity"
             android:label="@string/title_activity_libraries_used"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.ContributionsActivity"
             android:label="@string/title_activity_contributions"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.CopyrightActivity"
             android:label="@string/title_activity_copyright"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.SearchUrlActivity"
             android:label="@string/title_activity_search_results"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.GeneralSettingsActivity"
             android:label="@string/title_activity_general_settings"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:theme="@style/DarkTheme_DarkSide" />
+        <activity
+            android:name=".activity.settings.BackupSettingsActivity"
+            android:label="@string/title_activity_backup_n_restore_settings"
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.ReaderSettingsActivity"
             android:label="@string/title_activity_reader_settings"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.MentionSettingsActivity"
             android:label="@string/title_activity_mention_settings"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.LanguageActivity"
             android:label="@string/title_activity_language"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
-            android:name=".activity.downloads.NovelDownloadsActivity"
+            android:name=".activity.NovelDownloadsActivity"
             android:label="@string/title_activity_novel_downloads"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.ImportLibraryActivity"
             android:label="@string/title_activity_import_library"
@@ -170,56 +155,47 @@
             android:theme="@style/DarkTheme_DarkSide">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="io.github.gmathi.novellibrary.activity.NavDrawerActivity"/>
+                android:value="io.github.gmathi.novellibrary.activity.NavDrawerActivity" />
 
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
+                <action android:name="android.intent.action.VIEW" />
 
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
                     android:host="novelupdates.com"
                     android:pathPrefix="/readlist/"
-                    android:scheme="http"/>
+                    android:scheme="http" />
                 <data
                     android:host="www.novelupdates.com"
                     android:pathPrefix="/readlist/"
-                    android:scheme="http"/>
+                    android:scheme="http" />
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.SEND"/>
+                <action android:name="android.intent.action.SEND" />
 
-                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.DEFAULT" />
 
-                <data android:mimeType="text/plain"/>
+                <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
         <activity
             android:name=".activity.RecentlyUpdatedNovelsActivity"
             android:label="@string/title_activity_recently_updated_novels"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.RecentlyViewedNovelsActivity"
             android:label="@string/title_activity_recently_viewed_novels"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
-        <activity
-            android:name=".activity.downloads.ChapterDownloadsActivity"
-            android:label="@string/title_activity_chapter_downloads"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.WebViewActivity"
             android:label="@string/title_activity_web_view"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
-            android:name=".activity.InitialWebViewActivity"
-            android:label="@string/title_activity_web_view"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
+            android:name=".activity.NovelSectionsActivity"
+            android:label="@string/title_activity_novel_sections"
+            android:theme="@style/DarkTheme_DarkSide" />
     </application>
 
 </manifest>

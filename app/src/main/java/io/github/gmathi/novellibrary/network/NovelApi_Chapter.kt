@@ -87,6 +87,7 @@ fun getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
     doc?.getElementsByAttribute("data-id")?.mapTo(chapters) {
         WebPage("https:" + it?.attr("href")!!, it.getElementsByAttribute("title").attr("title"))
     }
+
 //    }
     return chapters
 }

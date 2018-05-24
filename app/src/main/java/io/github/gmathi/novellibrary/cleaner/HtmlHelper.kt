@@ -2,8 +2,10 @@ package io.github.gmathi.novellibrary.cleaner
 
 import android.graphics.Bitmap
 import android.net.Uri
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.getFileName
 import io.github.gmathi.novellibrary.util.writableFileName
@@ -18,7 +20,7 @@ open class HtmlHelper protected constructor() {
 
     companion object {
 
-        private val TAG = "HtmlHelper"
+        private const val TAG = "HtmlHelper"
 
         fun getInstance(doc: Document, hostName: String = doc.location()): HtmlHelper {
 
@@ -61,6 +63,9 @@ open class HtmlHelper protected constructor() {
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.id() == "content" }
             if (contentElement != null) return GeneralIdTagHelper(host, "div", "content")
+
+            contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
+            if (contentElement != null) return CloudFlareDDoSTagHelper()
 
             return HtmlHelper()
         }
@@ -111,9 +116,9 @@ open class HtmlHelper protected constructor() {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: " + uri.toString())
             val fileName = uri.getFileName()
             file = File(dir, fileName)
-            doc = NovelApi().getDocumentWithUserAgentIgnoreContentType(uri.toString())
+            doc = NovelApi.getDocumentWithUserAgentIgnoreContentType(uri.toString())
         } catch (e: Exception) {
-            Utils.warning(Companion.TAG, "Uri: $uri", e)
+            Utils.warning(TAG, "Uri: $uri", e)
             return null
         }
         return convertDocToFile(doc, file)
@@ -126,7 +131,7 @@ open class HtmlHelper protected constructor() {
             val content = doc.toString()
             stream.use { it.write(content.toByteArray()) }
         } catch (e: Exception) {
-            Utils.warning(Companion.TAG, "convertDocToFile: ${file.name}", e)
+            Utils.warning(TAG, "convertDocToFile: ${file.name}", e)
             return null
         }
         return file
@@ -156,7 +161,7 @@ open class HtmlHelper protected constructor() {
             val os = FileOutputStream(file)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os)
         } catch (e: Exception) {
-            Utils.debug(Companion.TAG, "Exception Downloading Image: $uri")
+            Utils.debug(TAG, "Exception Downloading Image: $uri")
             return null
         }
         return file
@@ -167,17 +172,27 @@ open class HtmlHelper protected constructor() {
     open fun toggleTheme(isDark: Boolean, doc: Document): Document = doc
 
     fun toggleThemeDefault(isDark: Boolean, doc: Document): Document {
-//        val fontName = "lobster_regular.ttf"
-        val fontName = "source_sans_pro_regular.ttf"
-        val fontFamily = fontName.split(".")[0]
+
+        var fontName = "source_sans_pro_regular.ttf"
+        var fontUrl =  "/android_asset/fonts/$fontName"
+
+        val fontFile = File(dataCenter.fontPath)
+        if (fontFile.exists()) {
+            fontName = fontFile.name
+            fontUrl = fontFile.path
+        }
+
+        val fontFamily = fontName.substring(0, fontName.lastIndexOf("."))
         val nightModeTextBrightness = 87
-//        TODO: If needed, add visited color to anchors
         doc.head().getElementById("darkTheme")?.remove()
         doc.head().append("""
             <style id="darkTheme">
                 @font-face {
                     font-family: $fontFamily;
-                    src: url("file:///android_asset/fonts/$fontName");
+                    src: url("$FILE_PROTOCOL$fontUrl");
+                }
+                html {
+                    scroll-behavior: smooth;
                 }
                 body {
                     ${if (isDark) "background-color" else "color"}: #000;

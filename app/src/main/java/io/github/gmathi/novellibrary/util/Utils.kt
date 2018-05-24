@@ -12,14 +12,18 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.util.TypedValue
+import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import java.io.*
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 object Utils {
@@ -28,8 +32,8 @@ object Utils {
     fun getThemeAccentColor(context: Context): Int {
         val typedValue = TypedValue()
         val a = context.obtainStyledAttributes(
-            typedValue.data,
-            intArrayOf(R.attr.colorAccent)
+                typedValue.data,
+                intArrayOf(R.attr.colorAccent)
         )
         val color = a.getColor(0, Color.CYAN)
         a.recycle()
@@ -40,8 +44,8 @@ object Utils {
     fun getThemePrimaryColor(context: Context): Int {
         val typedValue = TypedValue()
         val a = context.obtainStyledAttributes(
-            typedValue.data,
-            intArrayOf(R.attr.colorPrimary)
+                typedValue.data,
+                intArrayOf(R.attr.colorPrimary)
         )
         val color = a.getColor(0, Color.BLUE)
         a.recycle()
@@ -153,7 +157,7 @@ object Utils {
     /**
      * returns - True - if there is connection to the internet
      */
-    fun checkNetwork(context: Context?): Boolean {
+    fun isConnectedToNetwork(context: Context?): Boolean {
         context?.let {
             val connectivityManager = it.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
             val netInfo = connectivityManager?.activeNetworkInfo
@@ -172,6 +176,19 @@ object Utils {
             inChannel?.close()
             outChannel?.close()
         }
+    }
+
+    @Throws(IOException::class)
+    fun copyFile(src: InputStream, dst: File) {
+        val outStream = FileOutputStream(dst)
+        val buffer = ByteArray(8 * 1024)
+        var bytesRead: Int = src.read(buffer)
+        while (bytesRead != -1) {
+            outStream.write(buffer, 0, bytesRead)
+            bytesRead = src.read(buffer)
+        }
+        src.close()
+        outStream.close()
     }
 
     /**
@@ -219,6 +236,29 @@ object Utils {
         val manager = context.getSystemService(ACTIVITY_SERVICE) as ActivityManager
         return manager.getRunningServices(Integer.MAX_VALUE).any { serviceQualifiedName == it.service.className }
     }
+
+    fun dialogBuilder(activity: AppCompatActivity, title: String? = null, content: String? = null, iconRes: Int = R.drawable.ic_warning_white_vector, isProgress: Boolean = false): MaterialDialog.Builder {
+        val dialogBuilder = MaterialDialog.Builder(activity)
+
+        if (title != null)
+            dialogBuilder.title(activity.getString(R.string.confirm_action))
+
+        if (isProgress)
+            dialogBuilder.progress(true, 100)
+
+        if (content != null)
+            dialogBuilder.content(content)
+
+        dialogBuilder
+                .iconRes(iconRes)
+
+        if (!isProgress)
+            dialogBuilder.positiveText(activity.getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
+
+        return dialogBuilder
+    }
+
+    fun getCurrentFormattedDate() = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date())
 
 
 }

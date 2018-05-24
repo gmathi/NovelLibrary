@@ -8,33 +8,47 @@ import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.HostNames
 import java.util.*
+import javax.net.ssl.HostnameVerifier
 
 
 class DataCenter(context: Context) {
 
     companion object {
 
-        private val SEARCH_HISTORY_LIST = "searchHistoryList"
-        private val NOVEL_HISTORY_LIST = "novelHistoryList"
+        private const val SEARCH_HISTORY_LIST = "searchHistoryList"
+        private const val NOVEL_HISTORY_LIST = "novelHistoryList"
 
-        private val IS_DARK_THEME = "isDarkTheme"
-        private val DOWNLOAD_LATEST_FIRST = "downloadLatestFirst"
-        private val EXPERIMENTAL_DOWNLOAD = "experimentalDownload"
-        private val QUEUE_NOVEL_DOWNLOADS = "queueNovelDownloads"
-        private val LOCK_ROYAL_ROAD = "lockRoyalRoad"
-        private val LOAD_LIBRARY_SCREEN = "loadLibraryScreen"
-        private val APP_VERSION_CODE = "appVersionCode"
-        private val TEXT_SIZE = "textSize"
-        private val READER_MODE = "cleanPages"
-        private val JAVASCRIPT = "javascript"
-        private val LANGUAGE = "language"
-        private val VERIFIED_HOSTS = "verifiedHosts"
-        private val JAP_SWIPE = "japSwipe"
-        private val SHOW_READER_SCROLL = "showReaderScroll"
-        private val SHOW_CHAPTER_COMMENTS = "showChapterComments"
-        private val VOLUME_SCROLL = "volumeScroll"
-        private val KEEP_SCREEN_ON = "keepScreenOn"
-        private val ENABLE_IMMERSIVE_MODE = "enableImmersiveMode"
+        private const val IS_DARK_THEME = "isDarkTheme"
+        private const val DOWNLOAD_LATEST_FIRST = "downloadLatestFirst"
+        private const val EXPERIMENTAL_DOWNLOAD = "experimentalDownload"
+        private const val QUEUE_NOVEL_DOWNLOADS = "queueNovelDownloads"
+        private const val LOCK_ROYAL_ROAD = "lockRoyalRoad"
+        private const val LOAD_LIBRARY_SCREEN = "loadLibraryScreen"
+        private const val APP_VERSION_CODE = "appVersionCode"
+        private const val TEXT_SIZE = "textSize"
+        private const val READER_MODE = "cleanPages"
+        private const val JAVASCRIPT = "javascript"
+        private const val LANGUAGE = "language"
+        private const val VERIFIED_HOSTS = "verifiedHosts"
+        private const val JAP_SWIPE = "japSwipe"
+        private const val SHOW_READER_SCROLL = "showReaderScroll"
+        private const val SHOW_CHAPTER_COMMENTS = "showChapterComments"
+        private const val VOLUME_SCROLL = "volumeScroll"
+        private const val KEEP_SCREEN_ON = "keepScreenOn"
+        private const val ENABLE_IMMERSIVE_MODE = "enableImmersiveMode"
+        private const val FONT_PATH = "fontPath"
+        private const val GOOGLE_ACCOUNT_NAME = "googleAccountName"
+        private const val ENABLE_CLUSTER_PAGES = "enableClusterPages"
+        private const val CF_COOKIES_USER_AGENT = "cfCookiesUserAgent"
+        private const val CF_COOKIES_STRING = "cfCookiesString"
+        private const val DIRECTIONAL_LINKS = "enableDirectionalLinks"
+        private const val READER_MODE_BUTTON_VISIBILITY = "isReaderModeButtonVisible"
+        private const val ENABLE_CLOUD_FLARE = "enableCloudFlare"
+        private const val ENABLE_NOTIFICATIONS = "enableNotifications"
+
+
+        const val CF_COOKIES_CLEARANCE = "cf_clearance"
+        const val CF_COOKIES_DUID = "__cfduid"
     }
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -115,16 +129,57 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(ENABLE_IMMERSIVE_MODE, true)
         set(value) = prefs.edit().putBoolean(ENABLE_IMMERSIVE_MODE, value).apply()
 
+    var fontPath: String
+        get() = prefs.getString(FONT_PATH, "")
+        set(value) = prefs.edit().putString(FONT_PATH, value).apply()
+
+    var googleAccountName: String
+        get() = prefs.getString(GOOGLE_ACCOUNT_NAME, "")
+        set(value) = prefs.edit().putString(GOOGLE_ACCOUNT_NAME, value).apply()
+
+    var enableClusterPages: Boolean
+        get() = prefs.getBoolean(ENABLE_CLUSTER_PAGES, false)
+        set(value) = prefs.edit().putBoolean(ENABLE_CLUSTER_PAGES, value).apply()
+
+    var userAgent: String
+        get() = prefs.getString(CF_COOKIES_USER_AGENT, HostNames.USER_AGENT)
+        set(value) = prefs.edit().putString(CF_COOKIES_USER_AGENT, value).apply()
+
+    var cfClearance: String
+        get() = prefs.getString(CF_COOKIES_CLEARANCE, "")
+        set(value) = prefs.edit().putString(CF_COOKIES_CLEARANCE, value).apply()
+
+    var cfDuid: String
+        get() = prefs.getString(CF_COOKIES_DUID, "")
+        set(value) = prefs.edit().putString(CF_COOKIES_DUID, value).apply()
+
+    var cfCookiesString: String
+        get() = prefs.getString(CF_COOKIES_STRING, "")
+        set(value) = prefs.edit().putString(CF_COOKIES_STRING, value).apply()
+
+    var enableDirectionalLinks: Boolean
+        get() = prefs.getBoolean(DIRECTIONAL_LINKS, false)
+        set(value) = prefs.edit().putBoolean(DIRECTIONAL_LINKS, value).apply()
+
+    var isReaderModeButtonVisible: Boolean
+        get() = prefs.getBoolean(READER_MODE_BUTTON_VISIBILITY, true)
+        set(value) = prefs.edit().putBoolean(READER_MODE_BUTTON_VISIBILITY, value).apply()
+
+    var enableCloudFlare: Boolean
+        get() = prefs.getBoolean(ENABLE_CLOUD_FLARE, false)
+        set(value) = prefs.edit().putBoolean(ENABLE_CLOUD_FLARE, value).apply()
+
+    var enableNotifications: Boolean
+        get() = prefs.getBoolean(ENABLE_NOTIFICATIONS, true)
+        set(value) = prefs.edit().putBoolean(ENABLE_NOTIFICATIONS, value).apply()
+
     fun getVerifiedHosts(): ArrayList<String> =
             Gson().fromJson(prefs.getString(VERIFIED_HOSTS, Gson().toJson(HostNames.defaultHostNamesList)), object : TypeToken<ArrayList<String>>() {}.type)
 
     fun saveVerifiedHost(host: String) {
-        if (!HostNames.isVerifiedHost(host))
-            HostNames.addHost(host)
-        prefs.edit().putString(VERIFIED_HOSTS, Gson().toJson(HostNames.hostNamesList)).apply()
-    }
-
-    fun clearVerifiedHosts() {
-        prefs.edit().putString(VERIFIED_HOSTS, "[]").apply()
+        val hostNames = getVerifiedHosts()
+        hostNames.add(host)
+        prefs.edit().putString(VERIFIED_HOSTS, Gson().toJson(hostNames)).apply()
+        HostNames.hostNamesList = hostNames
     }
 }

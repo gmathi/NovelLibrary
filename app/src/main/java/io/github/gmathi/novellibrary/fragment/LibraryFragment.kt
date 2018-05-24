@@ -5,29 +5,31 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.support.v4.content.ContextCompat
-import android.support.v4.view.MotionEventCompat
+import android.support.v7.widget.PopupMenu
 import android.support.v7.widget.helper.ItemTouchHelper
 import android.util.Log
 import android.view.*
-import android.view.animation.AnimationUtils
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.crashlytics.android.Crashlytics
+import com.tapadoo.alerter.Alerter
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.*
+import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
+import io.github.gmathi.novellibrary.activity.startChaptersActivity
+import io.github.gmathi.novellibrary.activity.startImportLibraryActivity
+import io.github.gmathi.novellibrary.activity.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.database.getAllNovels
-import io.github.gmathi.novellibrary.database.getWebPage
-import io.github.gmathi.novellibrary.database.updateNewChapterCount
-import io.github.gmathi.novellibrary.database.updateOrderId
+import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelEvent
+import io.github.gmathi.novellibrary.model.NovelSectionEvent
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterCount
+import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.util.*
-import kotlinx.android.synthetic.main.activity_library.*
 import kotlinx.android.synthetic.main.content_library.*
 import kotlinx.android.synthetic.main.listitem_library.view.*
 import org.greenrobot.eventbus.EventBus
@@ -39,8 +41,24 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     lateinit var adapter: GenericAdapter<Novel>
     private lateinit var touchHelper: ItemTouchHelper
+
+    private var novelSectionId: Long = -1L
     private var lastDeletedId: Long = -1
     private var isSorted = false
+    private var syncDialog: MaterialDialog? = null
+
+    companion object {
+
+        private const val NOVEL_SECTION_ID = "novelSectionId"
+
+        fun newInstance(novelSectionId: Long): LibraryFragment {
+            val bundle = Bundle()
+            bundle.putLong(NOVEL_SECTION_ID, novelSectionId)
+            val fragment = LibraryFragment()
+            fragment.arguments = bundle
+            return fragment
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,12 +66,12 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-        inflater.inflate(R.layout.activity_library, container, false)
+            inflater.inflate(R.layout.content_library, container, false)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        toolbar.title = getString(R.string.title_library)
-        (activity as NavDrawerActivity).setToolbar(toolbar)
+        novelSectionId = arguments!!.getLong(NOVEL_SECTION_ID)
+
         setRecyclerView()
         progressLayout.showLoading()
         setData()
@@ -72,7 +90,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun setData() {
         updateOrderIds()
-        adapter.updateData(ArrayList(dbHelper.getAllNovels()))
+        adapter.updateData(ArrayList(dbHelper.getAllNovels(novelSectionId)))
         if (swipeRefreshLayout != null && progressLayout != null) {
             swipeRefreshLayout.isRefreshing = false
             progressLayout.showContent()
@@ -92,45 +110,70 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
         if (item.imageUrl != null) {
             Glide.with(this)
-                .load(item.imageUrl)
-                .apply(RequestOptions.circleCropTransform())
-                .into(itemView.novelImageView)
+                    .load(item.imageUrl?.getGlideUrl())
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(itemView.novelImageView)
         }
 
         itemView.novelTitleTextView.text = item.name
-        if (item.rating != null) {
-            var ratingText = "(N/A)"
-            try {
-                val rating = item.rating!!.toFloat()
-                itemView.novelRatingBar.rating = rating
-                ratingText = "(" + String.format("%.1f", rating) + ")"
-            } catch (e: Exception) {
-                Log.w("Library Activity", "Rating: " + item.rating, e)
+
+        val lastRead = item.metaData[Constants.MetaDataKeys.LAST_READ_DATE] ?: "N/A"
+        val lastUpdated = item.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] ?: "N/A"
+
+        itemView.lastOpenedDate.text = getString(R.string.last_read_n_updated, lastRead, lastUpdated)
+
+        itemView.popMenu.setOnClickListener {
+            val popup = PopupMenu(activity!!, it)
+            popup.menuInflater.inflate(R.menu.menu_popup_novel, popup.menu)
+
+            popup.setOnMenuItemClickListener {
+                when (it.itemId) {
+                    R.id.action_novel_details -> {
+                        if (lastDeletedId != item.id)
+                            startNovelDetailsActivity(item, false)
+                        true
+                    }
+//                    R.id.action_novel_reorder -> {
+//                        touchHelper.startDrag(recyclerView.getChildViewHolder(itemView))
+//                        true
+//                    }
+                    R.id.action_novel_assign_novel_section -> {
+                        showNovelSectionsList(position)
+                        true
+                    }
+                    R.id.action_novel_remove -> {
+                        onItemDismiss(position)
+                        true
+                    }
+                    else -> {
+                        true
+                    }
+                }
             }
-            itemView.novelRatingText.text = ratingText
+            popup.show()
         }
 
-        itemView.reorderButton.setOnTouchListener { _, event ->
-            @Suppress("DEPRECATION")
-            if (MotionEventCompat.getActionMasked(event) ==
-                MotionEvent.ACTION_DOWN) {
-                touchHelper.startDrag(recyclerView.getChildViewHolder(itemView))
-            }
-            false
-        }
+//        itemView.reorderButton.setOnTouchListener { _, event ->
+//            @Suppress("DEPRECATION")
+//            if (MotionEventCompat.getActionMasked(event) ==
+//                MotionEvent.ACTION_DOWN) {
+//                touchHelper.startDrag(recyclerView.getChildViewHolder(itemView))
+//            }
+//            false
+//        }
 
         itemView.readChapterImage.setOnClickListener {
             startReader(item)
         }
 
 
-        if (item.chapterCount < item.newChapterCount) {
+        if (item.newReleasesCount != 0L) {
             val shape = GradientDrawable()
             shape.cornerRadius = 99f
             activity?.let { ContextCompat.getColor(it, R.color.Black) }?.let { shape.setStroke(1, it) }
             activity?.let { ContextCompat.getColor(it, R.color.DarkRed) }?.let { shape.setColor(it) }
             itemView.newChapterCount.background = shape
-            itemView.newChapterCount.applyFont(activity?.assets).text = (item.newChapterCount - item.chapterCount).toString()
+            itemView.newChapterCount.applyFont(activity?.assets).text = item.newReleasesCount.toString()
             itemView.newChapterCount.visibility = View.VISIBLE
         } else {
             itemView.newChapterCount.visibility = View.GONE
@@ -139,17 +182,13 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         if (item.currentWebPageId != -1L) {
             val orderId = dbHelper.getWebPage(item.currentWebPageId)?.orderId
             if (orderId != null) {
-                val progress = "${orderId + 1} / ${item.newChapterCount}"
+                val progress = "${orderId + 1} / ${item.chaptersCount}"
                 itemView.novelProgressText.text = progress
             }
         } else {
             itemView.novelProgressText.text = getString(R.string.no_bookmark)
         }
 
-        itemView.infoButton.setOnClickListener {
-            if (lastDeletedId != item.id)
-                startNovelDetailsActivity(item, false)
-        }
     }
 
     //endregion
@@ -161,15 +200,22 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
-        if (activity != null && statusCard != null)
-            menu.getItem(0).isVisible = statusCard.visibility == View.GONE
+        if (activity != null)
+            menu.getItem(0).isVisible = (syncDialog == null)
         super.onPrepareOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.action_sync -> {
-                syncNovels()
+                activity?.let {
+                    if (Utils.isConnectedToNetwork(it))
+                        syncNovels()
+                    else {
+                        Alerter.clearCurrent(it)
+                        Alerter.create(it).setText("No Internet Connection!").setIcon(R.drawable.ic_warning_white_vector).setBackgroundColorRes(R.color.Red).show()
+                    }
+                }
                 return true
             }
             R.id.action_sort -> {
@@ -196,32 +242,80 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun syncNovels() {
         //activity.startSyncService()
-        async syncing@ {
+        async syncing@{
 
-            if (statusCard == null || activity == null) return@syncing
+            if (activity == null) return@syncing
 
-            statusCard.visibility = View.VISIBLE
-            statusCard.startAnimation(AnimationUtils.loadAnimation(activity, R.anim.alpha_animation))
+            if (syncDialog != null && syncDialog!!.isShowing)
+                syncDialog!!.hide()
+
+            syncDialog = MaterialDialog.Builder(activity!!)
+                    .title(R.string.sync_in_progress)
+                    .content(R.string.please_wait)
+                    .progress(true, 0)
+                    .cancelable(false)
+                    .build()
+
+            syncDialog!!.show()
             activity?.invalidateOptionsMenu()
-            dbHelper.getAllNovels().forEach {
+
+            val totalCountMap: HashMap<Novel, Int> = HashMap()
+            val novels = dbHelper.getAllNovels(novelSectionId)
+            novels.forEach {
                 try {
-                    val totalChapters = await { NovelApi().getChapterCount(it) }
-                    if (totalChapters != 0 && totalChapters > it.chapterCount.toInt() && totalChapters > it.newChapterCount.toInt()) {
-                        dbHelper.updateNewChapterCount(it.id, totalChapters.toLong())
-                        adapter.updateItem(it)
+                    val totalChapters = await { NovelApi.getChapterCount(it) }
+                    if (totalChapters != 0 && totalChapters > it.chaptersCount.toInt()) {
+                        totalCountMap[it] = totalChapters
                     }
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    Crashlytics.log("Novel: $it")
+                    Crashlytics.logException(e)
+                    return@forEach
                 }
             }
+
+            //Update DB with new chapters
+            totalCountMap.forEach {
+                val novel = it.key
+                dbHelper.updateChaptersAndReleasesCount(novel.id, it.value.toLong(), novel.newReleasesCount + (it.value - novel.chaptersCount))
+
+                novel.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
+                dbHelper.updateNovelMetaData(novel)
+
+                //updateChapters(novel, dbHelper)
+                if (!Utils.isConnectedToNetwork(activity) || novel.id == -1L)
+                    return@forEach
+
+                //Download latest chapters from network
+                try {
+                    val chapterList = await { NovelApi.getChapterUrls(novel) }?.reversed()
+                    chapterList?.let {
+
+                        //We start the insertion from the last since that is faster, instead of checking the 1st 1000 chaps.
+                        for (i in it.size - 1 downTo 0) {
+                            val webPage = dbHelper.getWebPage(novel.id, i.toLong())
+                            if (webPage == null) {
+                                it[i].orderId = i.toLong()
+                                it[i].novelId = novel.id
+                                dbHelper.createWebPage(it[i])
+                            } else
+                                return@let
+                        }
+                    }
+                } catch (e: Exception) {
+                    Crashlytics.log("Novel: $novel")
+                    Crashlytics.logException(e)
+                }
+            }
+
             setData()
 
-            if (statusCard == null || activity == null) return@syncing
-            statusCard.animation = null
-            statusCard.visibility = View.GONE
+            syncDialog!!.hide()
+            syncDialog = null
             activity?.invalidateOptionsMenu()
         }
     }
+
     //endregion
 
     override fun onStart() {
@@ -231,7 +325,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun onResume() {
         super.onResume()
-        adapter.updateData(ArrayList(dbHelper.getAllNovels()))
+        adapter.updateData(ArrayList(dbHelper.getAllNovels(novelSectionId)))
     }
 
     override fun onPause() {
@@ -255,11 +349,11 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         } else {
             val confirmDialog = activity?.let {
                 MaterialDialog.Builder(it)
-                    .title(getString(R.string.no_bookmark_found_dialog_title))
-                    .content(getString(R.string.no_bookmark_found_dialog_description, novel.name))
-                    .positiveText(getString(R.string.okay))
-                    .negativeText(R.string.cancel)
-                    .onPositive { dialog, _ -> it.startChaptersActivity(novel, false); dialog.dismiss() }
+                        .title(getString(R.string.no_bookmark_found_dialog_title))
+                        .content(getString(R.string.no_bookmark_found_dialog_description, novel.name))
+                        .positiveText(getString(R.string.okay))
+                        .negativeText(R.string.cancel)
+                        .onPositive { dialog, _ -> it.startChaptersActivity(novel, false); dialog.dismiss() }
             }
             confirmDialog!!.show()
         }
@@ -286,31 +380,33 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             return
         } else if (requestCode == Constants.READER_ACT_REQ_CODE || requestCode == Constants.NOVEL_DETAILS_RES_CODE) {
             setData()
+        } else {
+            super.onActivityResult(requestCode, resultCode, data)
         }
     }
 
     override fun onItemDismiss(viewHolderPosition: Int) {
         activity?.let {
             MaterialDialog.Builder(it)
-                .title(getString(R.string.confirm_remove))
-                .content(getString(R.string.confirm_remove_description))
-                .positiveText(R.string.remove)
-                .negativeText(R.string.cancel)
-                .onPositive { dialog, _ ->
-                    run {
-                        val novel = adapter.items[viewHolderPosition]
-                        Utils.deleteNovel(it, novel.id)
-                        adapter.onItemDismiss(viewHolderPosition)
-                        dialog.dismiss()
+                    .title(getString(R.string.confirm_remove))
+                    .content(getString(R.string.confirm_remove_description_novel))
+                    .positiveText(R.string.remove)
+                    .negativeText(R.string.cancel)
+                    .onPositive { dialog, _ ->
+                        run {
+                            val novel = adapter.items[viewHolderPosition]
+                            Utils.deleteNovel(it, novel.id)
+                            adapter.onItemDismiss(viewHolderPosition)
+                            dialog.dismiss()
+                        }
                     }
-                }
-                .onNegative { dialog, _ ->
-                    run {
-                        adapter.notifyDataSetChanged()
-                        dialog.dismiss()
+                    .onNegative { dialog, _ ->
+                        run {
+                            adapter.notifyDataSetChanged()
+                            dialog.dismiss()
+                        }
                     }
-                }
-                .show()
+                    .show()
         }
     }
 
@@ -321,8 +417,33 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     private fun updateOrderIds() {
         if (adapter.items.isNotEmpty())
             for (i in 0 until adapter.items.size) {
-                dbHelper.updateOrderId(adapter.items[i].id, i.toLong())
+                dbHelper.updateNovelOrderId(adapter.items[i].id, i.toLong())
             }
+    }
+
+    private fun showNovelSectionsList(position: Int) {
+        val novelSections = dbHelper.getAllNovelSections()
+        if (novelSections.isEmpty()) {
+            MaterialDialog.Builder(activity!!).content(getString(R.string.no_novel_sections_error)).show()
+            return
+        }
+
+        MaterialDialog.Builder(activity!!)
+                .title("Choose A Novel Section")
+                .items(novelSections.map { it.name })
+                .itemsCallback({ _, _, which, _ ->
+                    dbHelper.updateNovelSectionId(adapter.items[position].id, novelSections[which].id)
+                    EventBus.getDefault().post(NovelSectionEvent(novelSections[which].id))
+                    setData()
+                })
+                .show()
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onNovelSectionEvent(novelSectionEvent: NovelSectionEvent) {
+        if (novelSectionEvent.novelSectionId == novelSectionId) {
+            setData()
+        }
     }
 
     override fun onDestroy() {

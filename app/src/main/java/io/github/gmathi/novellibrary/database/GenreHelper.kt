@@ -7,7 +7,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-private val LOG = "GenreHelper"
+private const val LOG = "GenreHelper"
 
 fun DBHelper.createGenre(genreName: String): Long {
     val genre = getGenre(genreName)

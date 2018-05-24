@@ -93,5 +93,20 @@
     "name": "May I? - Android Runtime-Permission library v1.4",
     "description": "Yet another runtime permission library for android.",
     "link": "https://thanosfisherman.github.io/posts/mayi/"
+  },
+  {
+    "name": "Alerter",
+    "description": "An Android Alerting Library.",
+    "link": "https://github.com/Tapadoo/Alerter"
+  },
+  {
+    "name": "SlidingRootNav",
+    "description": "DrawerLayout-like ViewGroup, where a \"drawer\" is hidden under the content view, which can be shifted to make the drawer visible.",
+    "link": "https://github.com/yarolegovich/SlidingRootNav"
+  },
+  {
+    "name": "Android Asynchronous Http Client",
+    "description": "A Callback-Based Http Client Library for Android.",
+    "link": "http://loopj.com/android-async-http/"
   }
 ]

@@ -8,7 +8,7 @@ import io.github.gmathi.novellibrary.util.Utils
 class NLFirebaseInstanceIdService : FirebaseInstanceIdService() {
 
     companion object {
-        private val TAG: String = "NLFInstanceIdService"
+        private const val TAG: String = "NLFInstanceIdService"
     }
 
     override fun onTokenRefresh() {

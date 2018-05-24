@@ -8,7 +8,7 @@ import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelGenre
 import java.util.*
 
-private val LOG = "NovelHelper"
+private const val LOG = "NovelHelper"
 
 fun DBHelper.insertNovel(novel: Novel): Long {
     val novelId = createNovel(novel)
@@ -33,9 +33,10 @@ fun DBHelper.createNovel(novel: Novel): Long {
     values.put(DBKeys.KEY_SHORT_DESCRIPTION, novel.shortDescription)
     values.put(DBKeys.KEY_LONG_DESCRIPTION, novel.longDescription)
     values.put(DBKeys.KEY_IMAGE_FILE_PATH, novel.imageFilePath)
-    values.put(DBKeys.KEY_CHAPTER_COUNT, novel.chapterCount)
-    values.put(DBKeys.KEY_NEW_CHAPTER_COUNT, novel.newChapterCount)
+    values.put(DBKeys.KEY_NEW_RELEASES_COUNT, novel.newReleasesCount)
+    values.put(DBKeys.KEY_CHAPTERS_COUNT, novel.chaptersCount)
     values.put(DBKeys.KEY_CURRENT_WEB_PAGE_ID, novel.currentWebPageId)
+    values.put(DBKeys.KEY_NOVEL_SECTION_ID, novel.novelSectionId)
 
     return db.insert(DBKeys.TABLE_NOVEL, null, values)
 }
@@ -70,9 +71,10 @@ fun DBHelper.getNovelFromQuery(selectQuery: String): Novel? {
             novel.shortDescription = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_SHORT_DESCRIPTION))
             novel.longDescription = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_LONG_DESCRIPTION))
             novel.imageFilePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_IMAGE_FILE_PATH))
-            novel.chapterCount = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CHAPTER_COUNT))
-            novel.newChapterCount = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NEW_CHAPTER_COUNT))
+            novel.newReleasesCount = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NEW_RELEASES_COUNT))
+            novel.chaptersCount = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CHAPTERS_COUNT))
             novel.currentWebPageId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CURRENT_WEB_PAGE_ID))
+            novel.novelSectionId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_SECTION_ID))
         }
         cursor.close()
     }
@@ -99,22 +101,6 @@ fun DBHelper.getNovelId(novelName: String): Long {
 
 fun DBHelper.getAllNovels(): List<Novel> {
 
-//    val selectQuery = "select * from novel"
-//    " SELECT n.id, n.name, n.url, n.rating, n.image_file_path, n.current_web_page_id," +
-//            " group_concat(g.name) as Genres" +
-//            " FROM novel_genre ng, genre g, novel n" +
-//            " WHERE ng.genre_id = g.id AND ng.novel_id = n.id" +
-//            " GROUP BY ng.novel_id"
-
-//    val selectQuery = "SELECT n.id, n.name, n.url, n.rating, n.image_file_path, n.current_web_page_id," +
-//        " group_concat(g.name) as Genres" +
-//        " FROM novel n" +
-//        " LEFT JOIN novel_genre ng" +
-//        " ON ng.novel_id = n.id" +
-//        " LEFT JOIN genre g" +
-//        " ON ng.genre_id = g.id" +
-//        " GROUP BY n.id"
-
     val selectQuery = "select * from novel ORDER BY " + DBKeys.KEY_ORDER_ID + " ASC"
 
     Log.d(LOG, selectQuery)
@@ -135,9 +121,50 @@ fun DBHelper.getAllNovels(): List<Novel> {
                 novel.longDescription = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_LONG_DESCRIPTION))
                 novel.imageFilePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_IMAGE_FILE_PATH))
                 novel.currentWebPageId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CURRENT_WEB_PAGE_ID))
-                novel.chapterCount = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CHAPTER_COUNT))
-                novel.newChapterCount = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NEW_CHAPTER_COUNT))
+                novel.newReleasesCount = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NEW_RELEASES_COUNT))
+                novel.chaptersCount = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CHAPTERS_COUNT))
                 novel.orderId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
+                novel.novelSectionId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_SECTION_ID))
+                list.add(novel)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+    }
+
+    list.forEach {
+
+    }
+
+
+    return list
+}
+
+fun DBHelper.getAllNovels(novelSectionId: Long): List<Novel> {
+
+    val selectQuery = "SELECT * FROM novel WHERE ${DBKeys.KEY_NOVEL_SECTION_ID} = $novelSectionId ORDER BY ${DBKeys.KEY_ORDER_ID} ASC"
+
+    Log.d(LOG, selectQuery)
+
+    val db = this.readableDatabase
+    val cursor = db.rawQuery(selectQuery, null)
+
+    val list = ArrayList<Novel>()
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+            do {
+                val novel = Novel(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME)), cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL)))
+                novel.id = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ID))
+                novel.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
+                novel.imageUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_IMAGE_URL))
+                novel.rating = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_RATING))
+                novel.shortDescription = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_SHORT_DESCRIPTION))
+                novel.longDescription = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_LONG_DESCRIPTION))
+                novel.imageFilePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_IMAGE_FILE_PATH))
+                novel.currentWebPageId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CURRENT_WEB_PAGE_ID))
+                novel.newReleasesCount = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NEW_RELEASES_COUNT))
+                novel.chaptersCount = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CHAPTERS_COUNT))
+                novel.orderId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
+                novel.novelSectionId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_SECTION_ID))
                 list.add(novel)
             } while (cursor.moveToNext())
         }
@@ -163,16 +190,18 @@ fun DBHelper.updateNovel(novel: Novel): Long {
     values.put(DBKeys.KEY_IMAGE_URL, novel.imageUrl)
     values.put(DBKeys.KEY_RATING, novel.rating)
     values.put(DBKeys.KEY_SHORT_DESCRIPTION, novel.shortDescription)
-    if (novel.chapterCount != 0L)
-        values.put(DBKeys.KEY_CHAPTER_COUNT, novel.chapterCount)
-    if (novel.newChapterCount != 0L)
-    values.put(DBKeys.KEY_NEW_CHAPTER_COUNT, novel.newChapterCount)
+    if (novel.newReleasesCount != 0L)
+        values.put(DBKeys.KEY_NEW_RELEASES_COUNT, novel.newReleasesCount)
+    if (novel.chaptersCount != 0L)
+        values.put(DBKeys.KEY_CHAPTERS_COUNT, novel.chaptersCount)
 
     values.put(DBKeys.KEY_LONG_DESCRIPTION, novel.longDescription)
     if (novel.imageFilePath != null)
         values.put(DBKeys.KEY_IMAGE_FILE_PATH, novel.imageFilePath)
     if (novel.currentWebPageId != -1L)
         values.put(DBKeys.KEY_CURRENT_WEB_PAGE_ID, novel.currentWebPageId)
+    if (novel.novelSectionId != -1L)
+        values.put(DBKeys.KEY_NOVEL_SECTION_ID, novel.novelSectionId)
     if (novel.genres != null) {
         novel.genres?.forEach {
             val genreId = createGenre(it)
@@ -184,9 +213,15 @@ fun DBHelper.updateNovel(novel: Novel): Long {
     return this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novel.id.toString())).toLong()
 }
 
-fun DBHelper.updateOrderId(novelId: Long, orderId: Long) {
+fun DBHelper.updateNovelOrderId(novelId: Long, orderId: Long) {
     val values = ContentValues()
     values.put(DBKeys.KEY_ORDER_ID, orderId)
+    this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
+}
+
+fun DBHelper.updateNovelSectionId(novelId: Long, novelSectionId: Long) {
+    val values = ContentValues()
+    values.put(DBKeys.KEY_NOVEL_SECTION_ID, novelSectionId)
     this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
 }
 
@@ -196,11 +231,31 @@ fun DBHelper.updateBookmarkCurrentWebPageId(novelId: Long, currentWebPageId: Lon
     this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
 }
 
-fun DBHelper.updateNewChapterCount(novelId: Long, newChapterCount: Long) {
+fun DBHelper.updateTotalChapterCount(novelId: Long, totalChaptersCount: Long) {
     val values = ContentValues()
-    values.put(DBKeys.KEY_NEW_CHAPTER_COUNT, newChapterCount)
+    values.put(DBKeys.KEY_CHAPTERS_COUNT, totalChaptersCount)
     this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
 }
+
+fun DBHelper.updateNewReleasesCount(novelId: Long, newReleasesCount: Long) {
+    val values = ContentValues()
+    values.put(DBKeys.KEY_NEW_RELEASES_COUNT, newReleasesCount)
+    this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
+}
+
+fun DBHelper.updateNovelMetaData(novel: Novel) {
+    val values = ContentValues()
+    values.put(DBKeys.KEY_METADATA, Gson().toJson(novel.metaData))
+    this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novel.id.toString())).toLong()
+}
+
+fun DBHelper.updateChaptersAndReleasesCount(novelId: Long, totalChaptersCount: Long, newReleasesCount: Long) {
+    val values = ContentValues()
+    values.put(DBKeys.KEY_CHAPTERS_COUNT, totalChaptersCount)
+    values.put(DBKeys.KEY_NEW_RELEASES_COUNT, newReleasesCount)
+    this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
+}
+
 
 fun DBHelper.deleteNovel(id: Long) {
     this.writableDatabase.delete(DBKeys.TABLE_NOVEL, DBKeys.KEY_ID + " = ?", arrayOf(id.toString()))
