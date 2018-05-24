@@ -116,17 +116,11 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         }
 
         itemView.novelTitleTextView.text = item.name
-        if (item.rating != null) {
-            var ratingText = "(N/A)"
-            try {
-                val rating = item.rating!!.toFloat()
-                itemView.novelRatingBar.rating = rating
-                ratingText = "(" + String.format("%.1f", rating) + ")"
-            } catch (e: Exception) {
-                Log.w("Library Activity", "Rating: " + item.rating, e)
-            }
-            itemView.novelRatingText.text = ratingText
-        }
+
+        val lastRead = item.metaData[Constants.MetaDataKeys.LAST_READ_DATE] ?: "N/A"
+        val lastUpdated = item.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] ?: "N/A"
+
+        itemView.lastOpenedDate.text = getString(R.string.last_read_n_updated, lastRead, lastUpdated)
 
         itemView.popMenu.setOnClickListener {
             val popup = PopupMenu(activity!!, it)
@@ -284,6 +278,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             totalCountMap.forEach {
                 val novel = it.key
                 dbHelper.updateChaptersAndReleasesCount(novel.id, it.value.toLong(), novel.newReleasesCount + (it.value - novel.chaptersCount))
+
+                novel.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
+                dbHelper.updateNovelMetaData(novel)
 
                 //updateChapters(novel, dbHelper)
                 if (!Utils.isConnectedToNetwork(activity) || novel.id == -1L)

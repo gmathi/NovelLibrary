@@ -243,6 +243,12 @@ fun DBHelper.updateNewReleasesCount(novelId: Long, newReleasesCount: Long) {
     this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
 }
 
+fun DBHelper.updateNovelMetaData(novel: Novel) {
+    val values = ContentValues()
+    values.put(DBKeys.KEY_METADATA, Gson().toJson(novel.metaData))
+    this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novel.id.toString())).toLong()
+}
+
 fun DBHelper.updateChaptersAndReleasesCount(novelId: Long, totalChaptersCount: Long, newReleasesCount: Long) {
     val values = ContentValues()
     values.put(DBKeys.KEY_CHAPTERS_COUNT, totalChaptersCount)

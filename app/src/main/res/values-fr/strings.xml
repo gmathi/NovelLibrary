@@ -272,4 +272,22 @@
     <string name="preferences">Preferences (reader settings, e.t.c.)</string>
     <string name="downloaded_files">Downloaded Chapters(Files)</string>
 
+    <string name="disable_notifications">Enable Notifications</string>
+    <string name="disable_notifications_description">Enables the hourly notifications when new chapter updates are available</string>
+
+    <string name="title_novel_sections">Novel Sections</string>
+    <string name="add_novel_section">Add Novel Section</string>
+
+    <string name="confirm_remove_description_novel_section">Novel Section will be removed and all the novels with be moved to currently reading</string>
+    <string name="rename">Rename</string>
+    <string name="add_novel_section_title">Add Novel Section</string>
+    <string name="add_novel_section_description">Enter the name for new Novel Section:</string>
+    <string name="novel_section_name">Novel Section Name</string>
+    <string name="novel_section_empty_message">Add \"Novel Sections\" &amp; categorize your novels</string>
+    <string name="novel_section_name_error">Novel Section name cannot be a existing one or empty</string>
+    <string name="assign_novel_section">Assign Novel Section</string>
+    <string name="move_up_down">Move Up/Down</string>
+    <string name="no_novel_sections_error">No Novel Sections Found!</string>
+    <string name="last_read_n_updated">Last Read: %1$s\nLast Updated: %2$s</string>
+
 </resources>

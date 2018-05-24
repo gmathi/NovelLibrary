@@ -108,6 +108,8 @@ class ChaptersActivity :
                 progressLayout.showContent()
                 if (adapter.items.size < novel.chaptersCount.toInt()) {
                     swipeRefreshLayout.isRefreshing = true
+                    novel.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
+                    dbHelper.updateNovelMetaData(novel)
                     getChapters()
                 }
             }

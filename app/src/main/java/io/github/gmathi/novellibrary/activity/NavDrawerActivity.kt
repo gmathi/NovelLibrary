@@ -88,8 +88,8 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
                     .title("📢 Announcement!")
-                    .content("Please refresh/sync your library for the new changes to be effective")
-                    .positiveText("Yes Sir!!")
+                    .content("Please refresh/sync your library for the new changes to be effective! \nDownloads will be fixed in next update. Thank you for your patience.")
+                    .positiveText("Ok")
                     .onPositive { dialog, _ -> dialog.dismiss() }
                     .show()
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE

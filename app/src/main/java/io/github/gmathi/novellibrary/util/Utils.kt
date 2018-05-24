@@ -18,13 +18,12 @@ import android.util.TypedValue
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.database.deleteNovelSection
-import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.database.getNovel
-import io.github.gmathi.novellibrary.database.updateNovelSectionId
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import java.io.*
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 object Utils {
@@ -258,6 +257,8 @@ object Utils {
 
         return dialogBuilder
     }
+
+    fun getCurrentFormattedDate() = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date())
 
 
 }

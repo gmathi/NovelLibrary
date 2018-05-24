@@ -83,5 +83,11 @@ object Constants {
         }
     }
 
+    object MetaDataKeys {
+        const val LAST_READ_DATE = "lastReadDate"
+        const val LAST_UPDATED_DATE = "lastUpdatedDate"
+    }
+
+
 
 }

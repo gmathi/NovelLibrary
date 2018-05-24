@@ -9,7 +9,6 @@
     android:foreground="?selectableItemBackground"
     android:padding="@dimen/default_padding_list_item">
 
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="60dp"
@@ -64,7 +63,6 @@
             android:layout_marginLeft="@dimen/default_margin"
             android:layout_marginRight="@dimen/default_margin"
             android:layout_marginStart="@dimen/default_margin"
-            android:layout_marginTop="2dp"
             android:layout_toEndOf="@id/novelImageViewLayout"
             android:layout_toLeftOf="@id/popMenu"
             android:layout_toRightOf="@id/novelImageViewLayout"
@@ -96,20 +94,10 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <RatingBar
-                android:id="@+id/novelRatingBar"
-                style="@style/Widget.AppCompat.RatingBar.Small"
-                android:layout_width="wrap_content"
-                android:layout_height="21sp"
-                android:layout_marginTop="2dp"
-                android:numStars="5"
-                android:progressTint="@color/Gold"
-                android:secondaryProgressTint="@android:color/transparent"
-                tools:rating="3.6" />
-
             <TextView
-                android:id="@+id/novelRatingText"
-                android:layout_width="wrap_content"
+                android:id="@+id/lastOpenedDate"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="2dp"
                 android:layout_marginStart="2dp"
@@ -117,11 +105,11 @@
                 android:textIsSelectable="false"
                 android:textSize="12sp"
                 android:textStyle="italic"
-                tools:text="(3.6)" />
+                tools:text="Last Read: 17 May 2018\nLast Updated: 17 May 2018" />
 
             <TextView
                 android:id="@+id/novelProgressText"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="4dp"
                 android:layout_marginStart="4dp"
@@ -130,7 +118,7 @@
                 android:textIsSelectable="false"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                tools:text="13/306" />
+                tools:text="No Bookmark!" />
 
         </LinearLayout>
 
