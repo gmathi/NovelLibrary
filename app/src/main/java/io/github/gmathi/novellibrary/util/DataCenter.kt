@@ -58,8 +58,7 @@ class DataCenter(context: Context) {
     fun saveSearchHistory(history: ArrayList<String>) = prefs.edit().putString(SEARCH_HISTORY_LIST, Gson().toJson(history)).apply()
 
     fun loadNovelHistory(): ArrayList<Novel> = Gson().fromJson(prefs.getString(NOVEL_HISTORY_LIST, "[]"), object : TypeToken<ArrayList<Novel>>() {}.type)
-
-    fun saveNovelHistory(history: ArrayList<Novel>) = prefs.edit().putString(NOVEL_HISTORY_LIST, Gson().toJson(history)).apply()
+    fun removeNovelHistory() = prefs.edit().remove(NOVEL_HISTORY_LIST).apply()
 
     var isDarkTheme: Boolean
         get() = prefs.getBoolean(IS_DARK_THEME, true)

@@ -1,9 +1,13 @@
 package io.github.gmathi.novellibrary.database
 
+import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import com.google.gson.Gson
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.util.Constants
 
 
 class DBHelper
@@ -32,6 +36,7 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         db.execSQL(DBKeys.CREATE_TABLE_DOWNLOAD)
         db.execSQL(DBKeys.CREATE_TABLE_SOURCE)
         db.execSQL(DBKeys.CREATE_TABLE_NOVEL_SECTION)
+        db.execSQL(DBKeys.CREATE_TABLE_LARGE_PREFERENCE)
         db.execSQL("INSERT INTO " + DBKeys.TABLE_SOURCE + " (" + DBKeys.KEY_ID + ", " + DBKeys.KEY_NAME + ") VALUES (-1, 'All')")
 
     }
@@ -85,18 +90,26 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         }
 
         if (version == DBKeys.VER_NEW_RELEASES) {
+            db.execSQL(DBKeys.CREATE_TABLE_LARGE_PREFERENCE)
 
+            //Move Novel History Preferences to database because it is a huge data
+            val history = dataCenter.loadNovelHistory()
+            val values = ContentValues()
+            values.put(DBKeys.KEY_NAME, Constants.LargePrefenceKeys.RVN_HISTORY)
+            values.put(DBKeys.KEY_VALUE, Gson().toJson(history))
+            db.insert(DBKeys.TABLE_LARGE_PREFERENCE, null, values)
+            dataCenter.removeNovelHistory()
+
+            version = DBKeys.VER_LARGE_PREFERENCE
         }
 
-        // on upgrade drop older tables
-//        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_NOVEL)
-//        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_WEB_PAGE)
-//        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_GENRE)
-//        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_NOVEL_GENRE)
-//        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_DOWNLOAD_QUEUE)
+        if (version == DBKeys.VER_LARGE_PREFERENCE) {
 
-        // create new tables
-        //onCreate(db)
+
+            //version = DBKeys.VER_LARGE_PREFERENCE
+        }
+
+
     }
 
     fun removeAll() {
@@ -111,6 +124,7 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_SOURCE)
         db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_DOWNLOAD)
         db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_NOVEL_SECTION)
+        db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_LARGE_PREFERENCE)
 
         // create new tables
         onCreate(db)

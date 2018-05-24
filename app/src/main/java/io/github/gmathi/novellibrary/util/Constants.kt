@@ -88,6 +88,10 @@ object Constants {
         const val LAST_UPDATED_DATE = "lastUpdatedDate"
     }
 
+    object LargePrefenceKeys {
+        const val RVN_HISTORY = "recentlyViewNovelsHistory"
+    }
+
 
 
 }

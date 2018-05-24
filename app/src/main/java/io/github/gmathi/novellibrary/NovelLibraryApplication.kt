@@ -10,6 +10,8 @@ import android.support.multidex.MultiDexApplication
 import android.support.v7.app.AppCompatDelegate
 import android.util.Log
 import android.webkit.WebView
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException
+import com.google.android.gms.security.ProviderInstaller
 import com.squareup.leakcanary.LeakCanary
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.network.HostNames
@@ -25,8 +27,6 @@ import java.security.cert.X509Certificate
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException
-import com.google.android.gms.security.ProviderInstaller
 
 
 val dataCenter: DataCenter by lazy {
@@ -53,6 +53,9 @@ class NovelLibraryApplication : MultiDexApplication() {
 
         try {
             HostNames.hostNamesList = dataCenter!!.getVerifiedHosts()
+            HostNames.defaultHostNamesList.forEach {
+                HostNames.addHost(it)
+            }
         } catch (e: Exception) {
             Utils.error(TAG, "Set the HostNames.hostNamesList from dataCenter", e)
         }
