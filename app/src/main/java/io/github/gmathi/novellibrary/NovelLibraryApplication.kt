@@ -25,6 +25,8 @@ import java.security.cert.X509Certificate
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException
+import com.google.android.gms.security.ProviderInstaller
 
 
 val dataCenter: DataCenter by lazy {
@@ -39,6 +41,8 @@ class NovelLibraryApplication : MultiDexApplication() {
     companion object {
         var dataCenter: DataCenter? = null
         var dbHelper: DBHelper? = null
+
+        private const val TAG = "NovelLibraryApplication"
     }
 
     override fun onCreate() {
@@ -49,12 +53,9 @@ class NovelLibraryApplication : MultiDexApplication() {
 
         try {
             HostNames.hostNamesList = dataCenter!!.getVerifiedHosts()
-            HostNames.defaultHostNamesList.forEach { if (!HostNames.isVerifiedHost(it)) HostNames.hostNamesList.add(it) }
-            dataCenter?.updateVerifiedHosts(HostNames.hostNamesList)
         } catch (e: Exception) {
-            Utils.error("NovelLibraryApplication", "Adding the defaultHostNames to hostNamesList", e)
+            Utils.error(TAG, "Set the HostNames.hostNamesList from dataCenter", e)
         }
-
 
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
 
@@ -70,15 +71,21 @@ class NovelLibraryApplication : MultiDexApplication() {
         try {
             enableSSLSocket()
         } catch (e: Exception) {
-            Log.e("NovelLibraryApplication", e.localizedMessage, e)
+            Log.e(TAG, "enableSSLSocket(): ${e.localizedMessage}", e)
         }
+
+        //BugFix for <5.0 devices
+        //https://stackoverflow.com/questions/29916962/javax-net-ssl-sslhandshakeexception-javax-net-ssl-sslprotocolexception-ssl-han
+        updateAndroidSecurityProvider()
 
         if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true)
         }
 
         initChannels(applicationContext)
-        startSyncService()
+
+        if (dataCenter!!.enableNotifications)
+            startSyncService()
     }
 
     @Throws(KeyManagementException::class, NoSuchAlgorithmException::class)
@@ -105,14 +112,24 @@ class NovelLibraryApplication : MultiDexApplication() {
         HttpsURLConnection.setDefaultSSLSocketFactory(context.socketFactory)
     }
 
+    private fun updateAndroidSecurityProvider() {
+        try {
+            ProviderInstaller.installIfNeeded(this)
+        } catch (e: GooglePlayServicesNotAvailableException) {
+            Utils.error("SecurityException", "Google Play Services not available.")
+        } catch (e: Exception) {
+            Utils.error("Exception", "Other Exception: ${e.localizedMessage}", e)
+        }
+    }
+
     private fun initChannels(context: Context) {
         if (Build.VERSION.SDK_INT < 26) {
             return
         }
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channel = NotificationChannel(getString(R.string.default_notification_channel_id),
-            "Default Channel",
-            NotificationManager.IMPORTANCE_DEFAULT)
+                "Default Channel",
+                NotificationManager.IMPORTANCE_DEFAULT)
         channel.description = "Default Channel Description"
         notificationManager.createNotificationChannel(channel)
     }

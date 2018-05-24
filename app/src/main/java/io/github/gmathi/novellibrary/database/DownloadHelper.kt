@@ -10,7 +10,7 @@ import java.util.*
 import kotlin.collections.HashMap
 
 
-private val LOG = "DownloadHelper"
+private const val LOG = "DownloadHelper"
 
 fun DBHelper.createDownload(download: Download): Boolean {
 //    val existingDownload = getDownload(download.webPageId)

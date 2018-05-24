@@ -32,7 +32,7 @@ import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Utils
-import kotlinx.android.synthetic.main.activity_new_reader_pager.*
+import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.fragment_reader.*
 import okhttp3.HttpUrl
 import org.greenrobot.eventbus.EventBus
@@ -45,9 +45,9 @@ import java.io.File
 
 class WebPageDBFragment : BaseFragment() {
 
-    var webPage: WebPage? = null
-    var doc: Document? = null
+    private var webPage: WebPage? = null
 
+    var doc: Document? = null
     var history: ArrayList<WebPage> = ArrayList()
 
 
@@ -64,7 +64,6 @@ class WebPageDBFragment : BaseFragment() {
             return fragment
         }
     }
-
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
         inflater.inflate(R.layout.fragment_reader, container, false)
@@ -91,7 +90,7 @@ class WebPageDBFragment : BaseFragment() {
         } else {
             val novelId = arguments!!.getLong(NOVEL_ID)
             val novel = dbHelper.getNovel(novelId)
-            val orderId = if (dataCenter.japSwipe) novel!!.chapterCount - arguments!!.getLong(ORDER_ID) - 1 else arguments!!.getLong(ORDER_ID)
+            val orderId = if (dataCenter.japSwipe) novel!!.chaptersCount - arguments!!.getLong(ORDER_ID) - 1 else arguments!!.getLong(ORDER_ID)
 
             dbHelper.getWebPage(novelId, orderId)
 
@@ -268,7 +267,7 @@ class WebPageDBFragment : BaseFragment() {
         progressLayout.showLoading()
 
         //If no network
-        if (!Utils.checkNetwork(activity)) {
+        if (!Utils.isConnectedToNetwork(activity)) {
             progressLayout.showError(ContextCompat.getDrawable(activity!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
                 downloadWebPage(url)
             })
@@ -278,7 +277,7 @@ class WebPageDBFragment : BaseFragment() {
         async download@ {
             try {
 
-                doc = await { NovelApi().getDocumentWithUserAgent(url) }
+                doc = await { NovelApi.getDocumentWithUserAgent(url) }
 
                 //If document fails to load and the fragment is still alive
                 if (doc == null) {
@@ -321,7 +320,7 @@ class WebPageDBFragment : BaseFragment() {
                                     // Check if URL is from chapter provider
                                     val urlDomain = getUrlDomain(linkedUrl)
                                     if (urlDomain == baseUrlDomain) {
-                                        val otherDoc = await { NovelApi().getDocumentWithUserAgent(linkedUrl) }
+                                        val otherDoc = await { NovelApi.getDocumentWithUserAgent(linkedUrl) }
                                         val helper = HtmlHelper.getInstance(otherDoc)
                                         helper.removeJS(otherDoc)
                                         helper.additionalProcessing(otherDoc)

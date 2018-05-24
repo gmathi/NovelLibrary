@@ -31,7 +31,7 @@ class ImagePreviewActivity : Activity() {
 
 
 
-        if (Utils.checkNetwork(this) && url != null)
+        if (Utils.isConnectedToNetwork(this) && url != null)
             Glide.with(this).load(url).into(previewImageView)
         else if (filePath != null)
             Glide.with(this).load(File(filePath.replace(FILE_PROTOCOL, ""))).into(previewImageView)

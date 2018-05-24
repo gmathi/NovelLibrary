@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:background="@color/black_transparent"
+    android:padding="@dimen/default_padding_list_item">
+
+
+    <ImageView
+        android:id="@+id/reorderButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="@dimen/default_margin"
+        android:layout_marginStart="@dimen/default_margin"
+        android:layout_toLeftOf="@id/popMenu"
+        android:layout_toStartOf="@id/popMenu"
+        android:scaleType="centerInside"
+        app:srcCompat="@drawable/ic_reorder_white_vector" />
+
+    <ImageView
+        android:id="@+id/popMenu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:scaleType="centerInside"
+        app:srcCompat="@drawable/ic_more_vert_white_vector" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignWithParentIfMissing="true"
+        android:layout_marginEnd="@dimen/default_margin"
+        android:layout_marginLeft="@dimen/default_margin"
+        android:layout_marginRight="@dimen/default_margin"
+        android:layout_marginStart="@dimen/default_margin"
+        android:layout_marginTop="2dp"
+        android:layout_toLeftOf="@id/reorderButton"
+        android:layout_toStartOf="@id/reorderButton"
+        android:orientation="vertical">
+
+
+        <TextView
+            android:id="@+id/novelSectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="8dp"
+            android:ellipsize="end"
+            android:gravity="center_vertical|start"
+            android:maxLines="2"
+            android:textColor="@color/white"
+            android:textIsSelectable="false"
+            android:textSize="14sp"
+            tools:text="Realms of Firmament" />
+
+
+    </LinearLayout>
+
+</RelativeLayout>

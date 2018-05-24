@@ -44,8 +44,7 @@ fun NovelApi.getNUNovelDetails(url: String): Novel? {
         novel.metaData["Associated Names"] = document.getElementById("editassociated").text()
         novel.metaData["PostId"] = document.getElementById("mypostid").attr("value")
 
-        novel.chapterCount = getNUChapterCount(novel).toLong()
-        novel.newChapterCount = novel.chapterCount
+        novel.chaptersCount = getNUChapterCount(novel).toLong()
 
     } catch (e: IOException) {
         e.printStackTrace()
@@ -65,7 +64,7 @@ fun NovelApi.getRRNovelDetails(url: String): Novel? {
         novel.rating = document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("property") && it.attr("property") == "books:rating:value" }?.attr("content")
         novel.longDescription = document.body().getElementsByAttributeValue("property", "description").firstOrNull { it.tagName() == "div" }?.text()
         novel.genres = document.body().getElementsByAttributeValue("property", "genre")?.map { it.text() }
-        novel.chapterCount = getRRChapterCount(document).toLong()
+        novel.chaptersCount = getRRChapterCount(document).toLong()
 
         novel.metaData["Author(s)"] = document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("property") && it.attr("property") == "books:author" }?.attr("content")
 
@@ -97,7 +96,7 @@ fun NovelApi.getWlnNovelDetails(url: String): Novel? {
 
         novel.longDescription = document.body().getElementsByClass("description")?.firstOrNull { it.tagName() == "span" }?.getElementsByTag("p")?.text()
         novel.genres = document.body().getElementsByTag("a")?.filter { it.hasAttr("href") && it.attr("href").contains("/genre-id/") }?.map { it.text() }
-        novel.chapterCount = getWLNUChapterCount(document).toLong()
+        novel.chaptersCount = getWLNUChapterCount(document).toLong()
 
         novel.metaData["Author(s)"] = document.getElementsByTag("span")?.filter { it.id() == "author" }?.joinToString(", ") {
             val linkElement = it.getElementsByTag("a")?.firstOrNull()

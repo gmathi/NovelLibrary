@@ -1,10 +1,12 @@
 package io.github.gmathi.novellibrary.adapter
 
 import android.support.v4.app.Fragment
+import io.github.gmathi.novellibrary.fragment.LibraryFragment
 import io.github.gmathi.novellibrary.fragment.SearchTermFragment
 import io.github.gmathi.novellibrary.fragment.SearchUrlFragment
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.model.NovelSection
 import io.github.gmathi.novellibrary.network.HostNames
 
 //region Fragment Page Listeners
@@ -58,12 +60,19 @@ class SearchResultsUnlockedListener(val searchTerms: String) : GenericFragmentSt
             else -> null
         }
     }
+
 }
 
 class WebPageFragmentPageListener(val novel: Novel) : GenericFragmentStatePagerAdapter.Listener {
 
     override fun getFragmentForItem(position: Int): Fragment? {
         return WebPageDBFragment.newInstance(novel.id, position.toLong())
+    }
+}
+
+class LibraryPageListener(val novelSections: ArrayList<NovelSection>) : GenericFragmentStatePagerAdapter.Listener {
+    override fun getFragmentForItem(position: Int): Fragment? {
+        return LibraryFragment.newInstance(novelSections[position].id)
     }
 }
 

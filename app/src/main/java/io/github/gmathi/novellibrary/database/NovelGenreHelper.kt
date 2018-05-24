@@ -5,7 +5,7 @@ import android.util.Log
 import io.github.gmathi.novellibrary.model.NovelGenre
 import java.util.*
 
-private val LOG = "NovelGenreHelper"
+private const val LOG = "NovelGenreHelper"
 
 fun DBHelper.createNovelGenre(arg: NovelGenre): Long {
     if (!hasNovelGenreEntry(arg)) {

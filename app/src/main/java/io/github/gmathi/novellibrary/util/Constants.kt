@@ -49,6 +49,7 @@ object Constants {
     const val RECENT_UPDATED_ACT_REQ_CODE = 15
     const val RECENT_VIEWED_ACT_REQ_CODE = 16
     const val IWV_ACT_REQ_CODE = 16
+    const val NOVEL_SECTIONS_ACT_REQ_CODE = 17
 
     const val SETTINGS_ACT_RES_CODE = 10
     const val LANG_ACT_RES_CODE = 12
@@ -71,7 +72,7 @@ object Constants {
     //Intent Keys
     const val JUMP = "jumpToReader"
 
-    interface ACTION {
+    interface Action {
         companion object {
             const val MAIN_ACTION = "com.truiton.foregroundservice.action.main"
             const val PREV_ACTION = "com.truiton.foregroundservice.action.prev"
@@ -82,13 +83,11 @@ object Constants {
         }
     }
 
-    interface NOTIFICATION_ID {
-        companion object {
-            const val FOREGROUND_SERVICE = 101
-            const val FOREGROUND_DOWNLOAD_NOVEL_SERVICE = 102
-            const val SYNC_CHAPTERS = 103
-        }
+    object MetaDataKeys {
+        const val LAST_READ_DATE = "lastReadDate"
+        const val LAST_UPDATED_DATE = "lastUpdatedDate"
     }
+
 
 
 }

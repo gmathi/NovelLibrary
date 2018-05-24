@@ -23,8 +23,8 @@ class DownloadService : IntentService(TAG) {
 
     //static components
     companion object {
-        val TAG = "DownloadService"
-        val QUALIFIED_NAME = "io.github.gmathi.novellibrary.service.download.DownloadService"
+        const val TAG = "DownloadService"
+        const val QUALIFIED_NAME = "io.github.gmathi.novellibrary.service.download.DownloadService"
     }
 
     override fun onHandleIntent(workIntent: Intent) {
@@ -76,7 +76,7 @@ class DownloadService : IntentService(TAG) {
 
     private fun isNetworkDown(): Boolean {
 
-        if (!Utils.checkNetwork(this@DownloadService)) {
+        if (!Utils.isConnectedToNetwork(this@DownloadService)) {
             return true
         }
         return false

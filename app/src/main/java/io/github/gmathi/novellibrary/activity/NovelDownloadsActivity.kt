@@ -26,7 +26,7 @@ import org.greenrobot.eventbus.ThreadMode
 class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     companion object {
-        private val TAG = "NovelDownloadsActivity"
+        private const val TAG = "NovelDownloadsActivity"
     }
 
     lateinit var adapter: GenericAdapter<String>

@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:app="http://schemas.android.com/apk/res-auto"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?selectableItemBackground"
-                android:padding="@dimen/default_padding_list_item">
-
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?selectableItemBackground"
+    android:padding="@dimen/default_padding_list_item">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -30,8 +29,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_margin="1dp"
-                android:scaleType="centerCrop"
-                />
+                android:scaleType="centerCrop" />
 
             <ImageView
                 android:id="@+id/readChapterImage"
@@ -41,46 +39,34 @@
                 android:background="@color/black_overlay"
                 android:scaleType="centerInside"
                 android:visibility="visible"
-                app:srcCompat="@drawable/ic_visibility_white_vector"/>
+                app:srcCompat="@drawable/ic_visibility_white_vector" />
 
         </android.support.v7.widget.CardView>
 
         <ImageView
-            android:id="@+id/reorderButton"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_alignParentBottom="true"
+            android:id="@+id/popMenu"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:layout_marginBottom="4dp"
+            android:layout_centerVertical="true"
             android:scaleType="centerInside"
-            app:srcCompat="@drawable/ic_reorder_white_vector"/>
+            app:srcCompat="@drawable/ic_more_vert_white_vector" />
 
-        <ImageView
-            android:id="@+id/infoButton"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_alignParentBottom="true"
-            android:layout_marginBottom="4dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:layout_toLeftOf="@id/reorderButton"
-            android:layout_toStartOf="@id/reorderButton"
-            android:scaleType="centerInside"
-            app:srcCompat="@drawable/ic_info_white_vector"/>
 
         <TextView
             android:id="@+id/novelTitleTextView"
-            android:layout_width="match_parent"
+            android:layout_width="256dp"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_marginEnd="@dimen/default_margin"
             android:layout_marginLeft="@dimen/default_margin"
             android:layout_marginRight="@dimen/default_margin"
             android:layout_marginStart="@dimen/default_margin"
-            android:layout_marginTop="2dp"
             android:layout_toEndOf="@id/novelImageViewLayout"
+            android:layout_toLeftOf="@id/popMenu"
             android:layout_toRightOf="@id/novelImageViewLayout"
+            android:layout_toStartOf="@id/popMenu"
             android:ellipsize="end"
             android:gravity="center_vertical|start"
             android:maxLines="1"
@@ -88,40 +74,30 @@
             android:textIsSelectable="false"
             android:textSize="14sp"
             android:textStyle="bold"
-            tools:text="Realms of Firmament"/>
+            tools:text="Realms of Firmament" />
 
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="268dp"
             android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
             android:layout_below="@id/novelTitleTextView"
             android:layout_marginBottom="4dp"
-            android:layout_alignParentBottom="true"
             android:layout_marginEnd="@dimen/default_margin"
             android:layout_marginLeft="@dimen/default_margin"
             android:layout_marginRight="@dimen/default_margin"
             android:layout_marginStart="@dimen/default_margin"
             android:layout_toEndOf="@id/novelImageViewLayout"
-            android:layout_toLeftOf="@id/infoButton"
+            android:layout_toLeftOf="@id/popMenu"
             android:layout_toRightOf="@id/novelImageViewLayout"
-            android:layout_toStartOf="@id/infoButton"
+            android:layout_toStartOf="@id/popMenu"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <RatingBar
-                android:id="@+id/novelRatingBar"
-                style="@style/Widget.AppCompat.RatingBar.Small"
-                android:layout_width="wrap_content"
-                android:layout_height="21sp"
-                android:layout_marginTop="2dp"
-                android:numStars="5"
-                android:progressTint="@color/Gold"
-                android:secondaryProgressTint="@android:color/transparent"
-                tools:rating="3.6"/>
-
             <TextView
-                android:id="@+id/novelRatingText"
-                android:layout_width="wrap_content"
+                android:id="@+id/lastOpenedDate"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="2dp"
                 android:layout_marginStart="2dp"
@@ -129,11 +105,11 @@
                 android:textIsSelectable="false"
                 android:textSize="12sp"
                 android:textStyle="italic"
-                tools:text="(3.6)"/>
+                tools:text="Last Read: 17 May 2018\nLast Updated: 17 May 2018" />
 
             <TextView
                 android:id="@+id/novelProgressText"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="4dp"
                 android:layout_marginStart="4dp"
@@ -142,7 +118,7 @@
                 android:textIsSelectable="false"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                tools:text="13/306"/>
+                tools:text="No Bookmark!" />
 
         </LinearLayout>
 
@@ -164,6 +140,6 @@
         android:visibility="gone"
         tools:background="@color/DarkRed"
         tools:text="4"
-        tools:visibility="visible"/>
+        tools:visibility="visible" />
 
 </RelativeLayout>

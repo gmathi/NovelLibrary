@@ -1,19 +1,18 @@
 package io.github.gmathi.novellibrary.network
 
+import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.network.HostNames.USER_AGENT
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import java.io.IOException
 import java.util.regex.Pattern
 import javax.net.ssl.SSLPeerUnverifiedException
 
 
-class NovelApi {
+object NovelApi {
 
-    companion object {
-        var cookies: String? = ""
-        var cookiesMap: Map<String, String>? = HashMap()
-    }
+    var cookies: String? = ""
+    var cookiesMap: Map<String, String>? = HashMap()
 
     fun getDocument(url: String): Document {
         try {
@@ -30,8 +29,9 @@ class NovelApi {
             val m = p.matcher(e.localizedMessage)
             if (m.find()) {
                 val hostName = m.group(1)
-                if (!HostNames.isVerifiedHost(hostName)) {
-                    dataCenter.saveVerifiedHost(m.group(1))
+                val hostNames = dataCenter.getVerifiedHosts()
+                if (!hostNames.contains(hostName)) {
+                    dataCenter.saveVerifiedHost(hostName)
                     return getDocument(url)
                 }
             }
@@ -61,8 +61,18 @@ class NovelApi {
             val m = p.matcher(e.localizedMessage)
             if (m.find()) {
                 val hostName = m.group(1)
+                val hostNames = dataCenter.getVerifiedHosts()
+                if (!hostNames.contains(hostName)) {
+                    dataCenter.saveVerifiedHost(hostName)
+                    return getDocumentWithUserAgent(url)
+                }
+            }
+            throw e
+        } catch (e: IOException) {
+            if (e.localizedMessage.contains("was not verified")) {
+                val hostName = Uri.parse(url)?.host!!
                 if (!HostNames.isVerifiedHost(hostName)) {
-                    dataCenter.saveVerifiedHost(m.group(1))
+                    dataCenter.saveVerifiedHost(hostName)
                     return getDocumentWithUserAgent(url)
                 }
             }
@@ -70,6 +80,7 @@ class NovelApi {
         }
     }
 
+    @Suppress("unused")
     fun getDocumentWithUserAgentIgnoreContentType(url: String): Document {
         try {
             return Jsoup
@@ -85,8 +96,9 @@ class NovelApi {
             val m = p.matcher(e.localizedMessage)
             if (m.find()) {
                 val hostName = m.group(1)
-                if (!HostNames.isVerifiedHost(hostName)) {
-                    dataCenter.saveVerifiedHost(m.group(1))
+                val hostNames = dataCenter.getVerifiedHosts()
+                if (!hostNames.contains(hostName)) {
+                    dataCenter.saveVerifiedHost(hostName)
                     return getDocumentWithUserAgent(url)
                 }
             }

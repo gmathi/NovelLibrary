@@ -20,7 +20,7 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
     private var threadPool: ThreadPoolExecutor? = null
 
     companion object {
-        private val TAG = "DownloadNovelThread"
+        private const val TAG = "DownloadNovelThread"
     }
 
     override fun run() {
@@ -30,7 +30,7 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
 
             while (download != null) {
 
-                if (!Utils.checkNetwork(context)) throw InterruptedException(Constants.NO_NETWORK)
+                if (!Utils.isConnectedToNetwork(context)) throw InterruptedException(Constants.NO_NETWORK)
                 threadPool?.submit(DownloadWebPageThread(context, download, dbHelper))?.get()
 
                 download = dbHelper.getDownloadItemInQueue(novelName)
@@ -46,14 +46,14 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
                     EventBus.getDefault().post(DownloadNovelEvent(EventType.PAUSED, novelName))
 
             } catch (e: InterruptedException) {
-                Log.w(Companion.TAG, "Thread pool executor interrupted~")
+                Log.w(TAG, "Thread pool executor interrupted~")
             }
 
         } catch (e: InterruptedException) {
-            Log.w(Companion.TAG, "Interrupting the Thread: $novelName, ${e.localizedMessage}")
+            Log.w(TAG, "Interrupting the Thread: $novelName, ${e.localizedMessage}")
             threadPool?.shutdownNow()
         } catch (e: Exception) {
-            Log.e(Companion.TAG, "This is really bad!!", e)
+            Log.e(TAG, "This is really bad!!", e)
             threadPool?.shutdownNow()
         }
     }

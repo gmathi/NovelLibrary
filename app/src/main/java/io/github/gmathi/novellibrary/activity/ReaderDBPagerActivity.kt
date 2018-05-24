@@ -27,29 +27,28 @@ import io.github.gmathi.novellibrary.adapter.DrawerAdapter
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.WebPageFragmentPageListener
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.getWebPage
-import io.github.gmathi.novellibrary.database.getWebPageByRedirectedUrl
-import io.github.gmathi.novellibrary.database.updateBookmarkCurrentWebPageId
-import io.github.gmathi.novellibrary.database.updateWebPageReadStatus
+import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.model.*
 import io.github.gmathi.novellibrary.util.Constants
-import kotlinx.android.synthetic.main.activity_new_reader_pager.*
+import io.github.gmathi.novellibrary.util.Utils
+import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.item_option.view.*
 import kotlinx.android.synthetic.main.menu_left_drawer.*
 import org.greenrobot.eventbus.EventBus
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.*
 
 
 class ReaderDBPagerActivity :
-    BaseActivity(),
-    ViewPager.OnPageChangeListener,
-    DrawerAdapter.OnItemSelectedListener,
-    SimpleItem.Listener<ReaderMenu>,
-    SeekBar.OnSeekBarChangeListener,
-    FileChooserDialog.FileCallback {
+        BaseActivity(),
+        ViewPager.OnPageChangeListener,
+        DrawerAdapter.OnItemSelectedListener,
+        SimpleItem.Listener<ReaderMenu>,
+        SeekBar.OnSeekBarChangeListener,
+        FileChooserDialog.FileCallback {
 
     private var slidingRootNav: SlidingRootNav? = null
     lateinit var recyclerView: RecyclerView
@@ -77,14 +76,15 @@ class ReaderDBPagerActivity :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_new_reader_pager)
+        setContentView(R.layout.activity_reader_pager)
         novel = intent.getSerializableExtra("novel") as Novel?
+        if (novel == null || novel?.chaptersCount?.toInt() == 0) finish()
 
         if (dataCenter.keepScreenOn)
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        if (novel == null || novel?.chapterCount?.toInt() == 0) finish()
-        adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, novel!!.chapterCount.toInt(), WebPageFragmentPageListener(novel!!))
+        dbHelper.updateNewReleasesCount(novel!!.id, 0L)
+        adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, novel!!.chaptersCount.toInt(), WebPageFragmentPageListener(novel!!))
         viewPager.addOnPageChangeListener(this)
         viewPager.adapter = adapter
 
@@ -96,10 +96,10 @@ class ReaderDBPagerActivity :
         if (webPage != null) {
             updateBookmark(webPage!!)
             viewPager.currentItem =
-                if (dataCenter.japSwipe)
-                    novel!!.chapterCount.toInt() - webPage!!.orderId.toInt() - 1
-                else
-                    webPage!!.orderId.toInt()
+                    if (dataCenter.japSwipe)
+                        novel!!.chaptersCount.toInt() - webPage!!.orderId.toInt() - 1
+                    else
+                        webPage!!.orderId.toInt()
         }
 
         slideMenuSetup(savedInstanceState)
@@ -133,11 +133,11 @@ class ReaderDBPagerActivity :
                 main_content.fitsSystemWindows = false
 
                 immersiveModeOptions = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
             } else {
                 immersiveModeOptions = (View.SYSTEM_UI_FLAG_LOW_PROFILE)
             }
@@ -147,7 +147,7 @@ class ReaderDBPagerActivity :
     }
 
     override fun onPageSelected(position: Int) {
-        val orderId = if (dataCenter.japSwipe) novel!!.chapterCount.toInt() - position - 1 else position
+        val orderId = if (dataCenter.japSwipe) novel!!.chaptersCount.toInt() - position - 1 else position
         val webPage = dbHelper.getWebPage(novel!!.id, orderId.toLong())
         if (webPage != null) updateBookmark(webPage)
         //fabClean.visibility = View.VISIBLE
@@ -163,9 +163,9 @@ class ReaderDBPagerActivity :
 
     private fun changeTextSize() {
         val dialog = MaterialDialog.Builder(this)
-            .title(R.string.text_size)
-            .customView(R.layout.dialog_text_slider, true)
-            .build()
+                .title(R.string.text_size)
+                .customView(R.layout.dialog_text_slider, true)
+                .build()
         dialog.show()
         dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.setOnSeekBarChangeListener(this)
         dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.progress = dataCenter.textSize
@@ -173,10 +173,10 @@ class ReaderDBPagerActivity :
 
     private fun reportPage() {
         MaterialDialog.Builder(this)
-            .content("Please use discord to report a bug.")
-            .positiveText("Ok")
-            .onPositive { dialog, _ -> dialog.dismiss() }
-            .show()
+                .content("Please use discord to report a bug.")
+                .positiveText("Ok")
+                .onPositive { dialog, _ -> dialog.dismiss() }
+                .show()
 //        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
 //        val chapterName = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.webPage?.chapter
 //        if (url != null) {
@@ -261,25 +261,25 @@ class ReaderDBPagerActivity :
 
     private fun slideMenuSetup(savedInstanceState: Bundle?) {
         slidingRootNav = SlidingRootNavBuilder(this)
-            .withMenuOpened(false)
-            .withContentClickableWhenMenuOpened(true)
-            .withSavedState(savedInstanceState)
-            .withGravity(SlideGravity.RIGHT)
-            .withMenuLayout(R.layout.menu_left_drawer)
-            .inject()
+                .withMenuOpened(false)
+                .withContentClickableWhenMenuOpened(true)
+                .withSavedState(savedInstanceState)
+                .withGravity(SlideGravity.RIGHT)
+                .withMenuLayout(R.layout.menu_left_drawer)
+                .inject()
     }
 
     private fun slideMenuAdapterSetup() {
         @Suppress("UNCHECKED_CAST")
         val adapter = DrawerAdapter(Arrays.asList(
-            createItemFor(READER_MODE).setSwitchOn(true),
-            createItemFor(JAVA_SCRIPT).setSwitchOn(true),
-            createItemFor(FONTS),
-            createItemFor(FONT_SIZE),
-            createItemFor(MERGE_PAGES).setSwitchOn(true),
-            createItemFor(REPORT_PAGE),
-            createItemFor(OPEN_IN_BROWSER),
-            createItemFor(SHARE_CHAPTER)
+                createItemFor(READER_MODE).setSwitchOn(true),
+                createItemFor(JAVA_SCRIPT).setSwitchOn(true),
+                createItemFor(FONTS),
+                createItemFor(FONT_SIZE),
+                createItemFor(MERGE_PAGES).setSwitchOn(true),
+                createItemFor(REPORT_PAGE),
+                createItemFor(OPEN_IN_BROWSER),
+                createItemFor(SHARE_CHAPTER)
         ) as List<DrawerItem<DrawerAdapter.ViewHolder>>)
         adapter.setListener(this)
 
@@ -325,17 +325,17 @@ class ReaderDBPagerActivity :
         when (position) {
             FONTS -> {
                 Mayi.withActivity(this@ReaderDBPagerActivity)
-                    .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    .onResult {
-                        if (it.isGranted)
-                            openFontChooserDialog()
-                        else
-                            MaterialDialog.Builder(this)
-                                .content("Enable \"Write External Storage\" permission for Novel Library " +
-                                    "from your device Settings -> Applications -> Novel Library -> Permissions")
-                                .positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
-                                .show()
-                    }.check()
+                        .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        .onResult {
+                            if (it.isGranted)
+                                openFontChooserDialog()
+                            else
+                                MaterialDialog.Builder(this)
+                                        .content("Enable \"Write External Storage\" permission for Novel Library " +
+                                                "from your device Settings -> Applications -> Novel Library -> Permissions")
+                                        .positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
+                                        .show()
+                        }.check()
             }
             FONT_SIZE -> changeTextSize()
             REPORT_PAGE -> reportPage()
@@ -402,16 +402,16 @@ class ReaderDBPagerActivity :
             val externalDirectory = Environment.getExternalStorageDirectory()
             if (externalDirectory != null && externalDirectory.exists())
                 FileChooserDialog.Builder(this)
-                    .initialPath(externalDirectory.path)  // changes initial path, defaults to external storage directory
-                    .extensionsFilter(".ttf") // Optional extension filter, will override mimeType()
-                    .tag("optional-identifier")
-                    .goUpLabel("Up") // custom go up label, default label is "..."
-                    .show(this) // an AppCompatActivity which implements FileCallback
+                        .initialPath(externalDirectory.path)  // changes initial path, defaults to external storage directory
+                        .extensionsFilter(".ttf") // Optional extension filter, will override mimeType()
+                        .tag("optional-identifier")
+                        .goUpLabel("Up") // custom go up label, default label is "..."
+                        .show(this) // an AppCompatActivity which implements FileCallback
             else
                 MaterialDialog.Builder(this)
-                    .content("Cannot find the internal storage or sd card. Please check your storage settings.")
-                    .positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
-                    .show()
+                        .content("Cannot find the internal storage or sd card. Please check your storage settings.")
+                        .positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
+                        .show()
         } catch (e: Exception) {
             Crashlytics.logException(e)
         }
@@ -434,5 +434,11 @@ class ReaderDBPagerActivity :
                 EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        novel!!.metaData[Constants.MetaDataKeys.LAST_READ_DATE] = Utils.getCurrentFormattedDate()
+        dbHelper.updateNovelMetaData(novel!!)
     }
 }
