@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.nguyenhoanglam.progresslayout.ProgressLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/progressLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+    <com.ogaclejapan.smarttablayout.SmartTabLayout
+        android:id="@+id/tabStrip"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        android:layout_alignParentTop="true"
+        android:layout_gravity="center"
+        android:clipToPadding="false"
+        android:paddingBottom="4dp"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
+        app:stl_defaultTabTextColor="@color/white"
+        app:stl_defaultTabTextHorizontalPadding="24dp"
+        app:stl_indicatorColor="@color/colorAccent"
+        app:stl_indicatorCornerRadius="1.5dp"
+        app:stl_indicatorInterpolation="smart"
+        app:stl_indicatorThickness="3dp"
+        app:stl_underlineColor="@android:color/transparent" />
+
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/tabStrip"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+
+</com.nguyenhoanglam.progresslayout.ProgressLayout>

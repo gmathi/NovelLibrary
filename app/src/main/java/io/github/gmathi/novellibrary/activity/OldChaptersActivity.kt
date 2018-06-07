@@ -38,7 +38,7 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import java.io.File
 
-class ChaptersActivity :
+class OldChaptersActivity :
         BaseActivity(),
         GenericAdapterWithDragListener.Listener<WebPage>,
         ActionMode.Callback,
@@ -50,6 +50,7 @@ class ChaptersActivity :
     private var isSortedAsc: Boolean = true
     private var updateSet: HashSet<WebPage> = HashSet()
     private var removeDownloadMenuIcon: Boolean = false
+
     private var actionMode: ActionMode? = null
     private var confirmDialog: MaterialDialog? = null
 
@@ -119,9 +120,9 @@ class ChaptersActivity :
     private fun getChapters() {
         async chapters@{
 
-            if (!Utils.isConnectedToNetwork(this@ChaptersActivity)) {
+            if (!Utils.isConnectedToNetwork(this@OldChaptersActivity)) {
                 if (adapter.items.isEmpty())
-                    progressLayout.showError(ContextCompat.getDrawable(this@ChaptersActivity, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+                    progressLayout.showError(ContextCompat.getDrawable(this@OldChaptersActivity, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
                         progressLayout.showLoading()
                         getChapters()
                     })
@@ -155,7 +156,7 @@ class ChaptersActivity :
             } catch (e: Exception) {
                 e.printStackTrace()
                 if (progressLayout.isLoading)
-                    progressLayout.showError(ContextCompat.getDrawable(this@ChaptersActivity, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
+                    progressLayout.showError(ContextCompat.getDrawable(this@OldChaptersActivity, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
                         progressLayout.showLoading()
                         getChapters()
                     })
@@ -205,17 +206,17 @@ class ChaptersActivity :
 
         if (item.filePath != null) {
             itemView.greenView.visibility = View.VISIBLE
-            itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@ChaptersActivity, R.color.DarkGreen))
+            itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@OldChaptersActivity, R.color.DarkGreen))
             itemView.greenView.animation = null
         } else {
             if (Download.STATUS_IN_QUEUE.toString() == item.metaData[Constants.DOWNLOADING]) {
 //                if (item.id != -1L && DownloadService.chapters.contains(item)) {
 //                    itemView.greenView.visibility = View.VISIBLE
-//                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@ChaptersActivity, R.color.white))
-//                    itemView.greenView.startAnimation(AnimationUtils.loadAnimation(this@ChaptersActivity, R.anim.alpha_animation))
+//                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@OldChaptersActivity, R.color.white))
+//                    itemView.greenView.startAnimation(AnimationUtils.loadAnimation(this@OldChaptersActivity, R.anim.alpha_animation))
 //                } else {
 //                    itemView.greenView.visibility = View.VISIBLE
-//                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@ChaptersActivity, R.color.Red))
+//                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@OldChaptersActivity, R.color.Red))
 //                    itemView.greenView.animation = null
 //                }
             } else
@@ -237,7 +238,7 @@ class ChaptersActivity :
         //itemView.chapterCheckBox.visibility = if (novel.id != -1L) View.VISIBLE else View.GONE
         itemView.chapterCheckBox.isChecked = updateSet.contains(item)
         itemView.chapterCheckBox.tag = item
-        itemView.chapterCheckBox.setOnCheckedChangeListener(this@ChaptersActivity)
+        itemView.chapterCheckBox.setOnCheckedChangeListener(this@OldChaptersActivity)
 
 //        itemView.chapterCheckBox.setOnLongClickListener {
 //            dragSelectRecyclerView.setDragSelectActive(true, position)
@@ -247,9 +248,9 @@ class ChaptersActivity :
             dragSelectRecyclerView.setDragSelectActive(true, position)
 
 //            if (item.redirectedUrl != null)
-//                this@ChaptersActivity.shareUrl(item.redirectedUrl!!)
+//                this@OldChaptersActivity.shareUrl(item.redirectedUrl!!)
 //            else
-//                this@ChaptersActivity.shareUrl(item.url!!)
+//                this@OldChaptersActivity.shareUrl(item.url!!)
             true
         }
     }
@@ -601,7 +602,7 @@ class ChaptersActivity :
                 }
                 dbHelper.updateWebPage(webPage)
             } catch (e: Exception) {
-                Utils.error("ChaptersActivity", e.localizedMessage)
+                Utils.error("OldChaptersActivity", e.localizedMessage)
             }
     }
 

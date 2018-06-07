@@ -216,6 +216,24 @@ fun DBHelper.getAllWebPages(novelId: Long): List<WebPage> {
     return list
 }
 
+fun DBHelper.getAllWebPages(novelId: Long, sourceId: Long): List<WebPage> {
+    val list = ArrayList<WebPage>()
+    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_WEB_PAGE} WHERE ${DBKeys.KEY_NOVEL_ID} = $novelId AND ${DBKeys.KEY_SOURCE_ID} = $sourceId ORDER BY ${DBKeys.KEY_ORDER_ID} ASC"
+    Log.d(LOG, selectQuery)
+    val db = this.readableDatabase
+    val cursor = db.rawQuery(selectQuery, null)
+
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(getWebPageFromCursor(cursor))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+    }
+    return list
+}
+
 fun DBHelper.getAllWebPagesToDownload(novelId: Long): List<WebPage> {
     val list = ArrayList<WebPage>()
     val selectQuery = "SELECT * FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novelId + " AND file_path IS NULL ORDER BY " + DBKeys.KEY_ID + " ASC"
@@ -298,7 +316,7 @@ private fun getWebPageFromCursor(cursor: Cursor): WebPage {
     webPage.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
     webPage.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
     webPage.isRead = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_IS_READ))
-    webPage.sourceId = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_SOURCE_ID))
+    webPage.sourceId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_SOURCE_ID))
     webPage.orderId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
     webPage.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
 

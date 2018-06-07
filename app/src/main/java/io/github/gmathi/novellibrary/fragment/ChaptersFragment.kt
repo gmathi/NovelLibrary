@@ -1,0 +1,268 @@
+package io.github.gmathi.novellibrary.fragment
+
+import android.annotation.SuppressLint
+import android.graphics.Rect
+import android.os.Bundle
+import android.support.v4.content.ContextCompat
+import android.support.v7.widget.DividerItemDecoration
+import android.support.v7.widget.RecyclerView
+import android.view.*
+import android.widget.Toast
+import co.metalab.asyncawait.async
+import com.afollestad.materialdialogs.MaterialDialog
+import com.hanks.library.AnimateCheckBox
+import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.activity.ChaptersPagerActivity
+import io.github.gmathi.novellibrary.adapter.GenericAdapterSelectTitleProvider
+import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.database.updateNovel
+import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
+import kotlinx.android.synthetic.main.content_source_chapters.*
+import kotlinx.android.synthetic.main.listitem_chapter.view.*
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
+
+class ChaptersFragment : BaseFragment(),
+        GenericAdapterSelectTitleProvider.Listener<WebPage>,
+        AnimateCheckBox.OnCheckedChangeListener {
+
+    companion object {
+
+        private const val NOVEL = "novel"
+        private const val SOURCE_ID = "sourceId"
+
+        fun newInstance(novel: Novel, sourceId: Long): ChaptersFragment {
+            val bundle = Bundle()
+            bundle.putSerializable(NOVEL, novel)
+            bundle.putLong(SOURCE_ID, sourceId)
+            val fragment = ChaptersFragment()
+            fragment.arguments = bundle
+            return fragment
+        }
+    }
+
+    lateinit var novel: Novel
+    lateinit var adapter: GenericAdapterSelectTitleProvider<WebPage>
+
+    private var sourceId: Long = -1L
+    private var isSortedAsc: Boolean = true
+
+    private var counter = 0
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
+            inflater.inflate(R.layout.content_source_chapters, container, false)
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        novel = arguments!!.getSerializable(NOVEL) as Novel
+        sourceId = arguments!!.getLong(SOURCE_ID)
+
+        progressLayout.showLoading()
+        setRecyclerView()
+        setData()
+    }
+
+    private fun setRecyclerView() {
+        adapter = GenericAdapterSelectTitleProvider(items = ArrayList(), layoutResId = R.layout.listitem_chapter, listener = this)
+        recyclerView.isVerticalScrollBarEnabled = true
+        recyclerView.setDefaultsNoAnimation(adapter)
+        recyclerView.addItemDecoration(object : DividerItemDecoration(context, VERTICAL) {
+
+            override fun getItemOffsets(outRect: Rect?, view: View?, parent: RecyclerView?, state: RecyclerView.State?) {
+                val position = parent?.getChildAdapterPosition(view)
+                if (position == parent?.adapter?.itemCount?.minus(1)) {
+                    outRect?.setEmpty()
+                } else {
+                    super.getItemOffsets(outRect, view, parent, state)
+                }
+            }
+        })
+        fastScrollView.setRecyclerView(recyclerView)
+        swipeRefreshLayout.isEnabled = false
+    }
+
+    private fun setData() {
+        val chaptersPagerActivity = activity as? ChaptersPagerActivity
+        if (chaptersPagerActivity != null) {
+            val chapters = chaptersPagerActivity.chapters.filter { it.sourceId == sourceId }
+            if (!chapters.isEmpty()) {
+                adapter.updateData(if (isSortedAsc) ArrayList(chapters) else ArrayList(chapters.reversed()))
+                progressLayout.showContent()
+                scrollToBookmark()
+            } else
+                progressLayout.showEmpty(ContextCompat.getDrawable(chaptersPagerActivity, R.drawable.ic_warning_white_vector), "No Chapters Found!")
+        }
+    }
+
+    private fun scrollToBookmark() {
+        if (novel.currentWebPageId != -1L) {
+            val index = adapter.items.indexOfFirst { it.id == novel.currentWebPageId }
+            if (index != -1)
+                recyclerView.scrollToPosition(index)
+        }
+    }
+
+    //region Adapter Listener Methods - onItemClick(), viewBinder()
+
+    override fun getSectionTitle(position: Int): String {
+        return adapter.items[position].chapter
+    }
+
+    override fun onItemClick(item: WebPage) {
+        if (novel.id != -1L) {
+            novel.currentWebPageId = item.id
+            dbHelper.updateNovel(novel)
+            startReaderDBPagerActivity(novel)
+        } else
+            startWebViewActivity(item.url)
+    }
+
+    @SuppressLint("SetTextI18n")
+    override fun bind(item: WebPage, itemView: View, position: Int) {
+
+        if (item.filePath != null) {
+            itemView.greenView.visibility = View.VISIBLE
+            itemView.greenView.setBackgroundColor(ContextCompat.getColor(context!!, R.color.DarkGreen))
+            itemView.greenView.animation = null
+        } else {
+            if (Download.STATUS_IN_QUEUE.toString() == item.metaData[Constants.DOWNLOADING]) {
+//                if (item.id != -1L && DownloadService.chapters.contains(item)) {
+//                    itemView.greenView.visibility = View.VISIBLE
+//                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@OldChaptersActivity, R.color.white))
+//                    itemView.greenView.startAnimation(AnimationUtils.loadAnimation(this@OldChaptersActivity, R.anim.alpha_animation))
+//                } else {
+//                    itemView.greenView.visibility = View.VISIBLE
+//                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@OldChaptersActivity, R.color.Red))
+//                    itemView.greenView.animation = null
+//                }
+            } else
+                itemView.greenView.visibility = View.GONE
+        }
+
+        itemView.isReadView.visibility = if (item.isRead == 1) View.VISIBLE else View.GONE
+        itemView.bookmarkView.visibility = if (item.id != -1L && item.id == novel.currentWebPageId) View.VISIBLE else View.INVISIBLE
+
+        itemView.chapterTitle.text = item.chapter
+
+        if (item.title != null) {
+            if (item.title!!.contains(item.chapter))
+                itemView.chapterTitle.text = item.title
+            else
+                itemView.chapterTitle.text = "${item.chapter}: ${item.title}"
+        }
+
+        itemView.chapterCheckBox.isChecked = (activity as? ChaptersPagerActivity)?.dataSet?.contains(item) ?: false
+        itemView.chapterCheckBox.tag = item
+        itemView.chapterCheckBox.setOnCheckedChangeListener(this@ChaptersFragment)
+
+
+        itemView.setOnLongClickListener {
+            itemView.chapterCheckBox.isChecked = true
+            true
+        }
+    }
+
+    override fun onCheckedChanged(buttonView: View?, isChecked: Boolean) {
+        val webPage = (buttonView?.tag as WebPage?) ?: return
+        val chaptersPagerActivity = (activity as? ChaptersPagerActivity) ?: return
+
+        // If Novel is not in Library
+        if (novel.id == -1L) {
+            if (isChecked)
+                chaptersPagerActivity.confirmDialog(getString(R.string.add_to_library_dialog_content, novel.name), MaterialDialog.SingleButtonCallback { dialog, _ ->
+                    chaptersPagerActivity.addNovelToLibrary()
+                    chaptersPagerActivity.invalidateOptionsMenu()
+                    chaptersPagerActivity.addToDataSet(webPage)
+                    dialog.dismiss()
+                }, MaterialDialog.SingleButtonCallback { dialog, _ ->
+                    chaptersPagerActivity.removeFromDataSet(webPage)
+                    adapter.notifyDataSetChanged()
+                    dialog.dismiss()
+                })
+
+        }
+
+        //If Novel is already in library
+        else {
+            if (isChecked)
+                chaptersPagerActivity.addToDataSet(webPage)
+            else
+                chaptersPagerActivity.removeFromDataSet(webPage)
+        }
+    }
+
+    //endregion
+
+    //region Event Bus
+
+    override fun onResume() {
+        super.onResume()
+        EventBus.getDefault().register(this)
+    }
+
+    override fun onPause() {
+        EventBus.getDefault().unregister(this)
+        super.onPause()
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onDownloadEvent(webPageEvent: DownloadWebPageEvent) {
+        if (webPageEvent.download.novelName == novel.name) {
+            adapter.items.firstOrNull { it.id == webPageEvent.webPageId }?.let { adapter.updateItem(it) }
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onChapterActionModeEvent(chapterActionModeEvent: ChapterActionModeEvent) {
+        if (chapterActionModeEvent.eventType == EventType.COMPLETE || (chapterActionModeEvent.eventType == EventType.UPDATE && chapterActionModeEvent.sourceId == sourceId)) {
+            setData()
+        }
+    }
+
+    //endregion
+
+    //region Options Menu
+
+    override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.menu_fragment_chapters, menu)
+        super.onCreateOptionsMenu(menu, menuInflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.action_sort -> {
+                isSortedAsc = !isSortedAsc
+                setData()
+                checkData()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun checkData() {
+        counter++
+        if (counter >= 20 && dataCenter.lockRoyalRoad) {
+            dataCenter.lockRoyalRoad = false
+            Toast.makeText(activity, "You have unlocked a new source in search!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    //endregion
+
+    override fun onDestroy() {
+        super.onDestroy()
+        async.cancelAll()
+    }
+
+
+}
