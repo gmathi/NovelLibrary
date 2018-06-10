@@ -29,6 +29,7 @@ data class WebPage(var url: String, var chapter: String) : Serializable {
             title = if (other.title != null) other.title else title
             filePath = if (other.filePath != null) other.filePath else filePath
             isRead = if (other.isRead != 0) other.isRead else isRead
+            sourceId = if (other.sourceId != -1L) other.sourceId else sourceId
 
             other.metaData.keys.forEach {
                 metaData[it] = other.metaData[it]

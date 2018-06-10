@@ -15,7 +15,7 @@ import java.net.URI
 fun NovelApi.getChapterUrls(novel: Novel): ArrayList<WebPage>? {
     val host = URI(novel.url).host
     when {
-        host.contains(HostNames.NOVEL_UPDATES) -> return getNUChapterUrlsWithSources(novel)
+        host.contains(HostNames.NOVEL_UPDATES) -> return getNUALLChapterUrlsWithSources(novel)
         host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterUrls(novel.url)
         host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterUrls(novel.url)
     }
@@ -72,16 +72,58 @@ fun getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
             .userAgent(USER_AGENT)
             .post()
 
-    doc?.getElementsByAttribute("data-id")?.mapTo(chapters) {
-        WebPage("https:" + it?.attr("href")!!, it.getElementsByAttribute("title").attr("title"))
+    var orderId = 0L
+    doc?.getElementsByAttribute("data-id")?.reversed()?.forEach {
+
+        val webPageUrl = "https:" + it?.attr("href")
+        val webPage = WebPage(webPageUrl, it.getElementsByAttribute("title").attr("title"))
+        webPage.orderId = orderId++
+        webPage.novelId = novel.id
+        chapters.add(webPage)
     }
 
     return chapters
 }
 
-fun getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, sourceName: String? = null): ArrayList<WebPage> {
-    val dbSourceId = dbHelper.getSource(sourceName!!)?.first ?: -1L
+fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
     val chapters = ArrayList<WebPage>()
+    if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
+
+    //val sourceMapList = ArrayList<HashMap<String, Long>>()
+    val sourceMapList = getNUChapterUrlsWithSources(novel)
+
+    val novelUpdatesNovelId = novel.metaData["PostId"]
+    val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
+
+    val doc = Jsoup.connect(url)
+            .data("action", "nd_getchapters")
+            .cookies(NovelApi.cookiesMap)
+            .data("mypostid", novelUpdatesNovelId)
+            .userAgent(USER_AGENT)
+            .post()
+
+    var orderId = 0L
+    doc?.getElementsByAttribute("data-id")?.reversed()?.forEach {
+
+        val webPageUrl = "https:" + it?.attr("href")
+        val webPage = WebPage(webPageUrl, it.getElementsByAttribute("title").attr("title"))
+        webPage.orderId = orderId++
+        webPage.novelId = novel.id
+        for (sourceMap in sourceMapList) {
+            webPage.sourceId = sourceMap[webPageUrl] ?: continue
+            break
+        }
+        chapters.add(webPage)
+    }
+
+    return chapters
+}
+
+private fun getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, sourceName: String? = null): HashMap<String, Long> {
+
+    val sourceMap = HashMap<String, Long>()
+
+    val dbSourceId = dbHelper.getSource(sourceName!!)?.first ?: -1L
     if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 
     val novelUpdatesNovelId = novel.metaData["PostId"]
@@ -97,21 +139,17 @@ fun getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, sourceName
 
     val doc = connection.post()
 
-    var orderId = 0L
-    doc?.select("a[href][data-id]")?.reversed()?.forEach {
-        val webPage = WebPage("https:" + it.attr("href"), it.selectFirst("span[title]").text())
-        webPage.sourceId = dbSourceId
-        webPage.orderId = orderId++
-        webPage.novelId = novel.id
-        chapters.add(webPage)
+    //var orderId = 0L
+    doc?.select("a[href][data-id]")?.forEach {
+        sourceMap["https:" + it.attr("href")] = dbSourceId
     }
 
-    return chapters
+    return sourceMap
 }
 
-fun getNUChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
+private fun getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String, Long>> {
 
-    val chapters = ArrayList<WebPage>()
+    val sourceMap = ArrayList<HashMap<String, Long>>()
     if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 
     val novelUpdatesNovelId = novel.metaData["PostId"]
@@ -126,12 +164,12 @@ fun getNUChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
 
     doc?.select("div.checkbox")?.forEach {
         dbHelper.createSource(it.text())
-        val webPages = getNUALLChapterUrlsForSource(novel,
+        val tempSourceMap = getNUALLChapterUrlsForSource(novel,
                 it.selectFirst("input.grp-filter-attr[value]").attr("value").toInt(),
                 it.text()
         )
-        chapters.addAll(webPages)
+        sourceMap.add(tempSourceMap)
     }
 
-    return chapters
+    return sourceMap
 }

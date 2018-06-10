@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.os.FileObserver.CREATE
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.model.Novel
@@ -37,7 +38,8 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         db.execSQL(DBKeys.CREATE_TABLE_SOURCE)
         db.execSQL(DBKeys.CREATE_TABLE_NOVEL_SECTION)
         db.execSQL(DBKeys.CREATE_TABLE_LARGE_PREFERENCE)
-        db.execSQL("INSERT INTO " + DBKeys.TABLE_SOURCE + " (" + DBKeys.KEY_ID + ", " + DBKeys.KEY_NAME + ") VALUES (-1, 'All')")
+        db.execSQL("INSERT INTO ${DBKeys.TABLE_SOURCE} (${DBKeys.KEY_ID}, ${DBKeys.KEY_NAME}) VALUES (-1, 'All')")
+        db.execSQL("CREATE INDEX web_pages_url_id_index ON ${DBKeys.TABLE_WEB_PAGE}(${DBKeys.KEY_ID}, ${DBKeys.KEY_URL})")
 
     }
 
@@ -46,46 +48,46 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         var version = oldVersion
 
         if (version == DBKeys.INITIAL_VERSION) {
-            db.execSQL("ALTER TABLE " + DBKeys.TABLE_NOVEL + " ADD COLUMN " + DBKeys.KEY_ORDER_ID + " INTEGER")
-            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_ORDER_ID + "=" + DBKeys.KEY_ID)
+            db.execSQL("ALTER TABLE ${DBKeys.TABLE_NOVEL} ADD COLUMN ${DBKeys.KEY_ORDER_ID} INTEGER")
+            db.execSQL("UPDATE ${DBKeys.TABLE_NOVEL} SET ${DBKeys.KEY_ORDER_ID}=${DBKeys.KEY_ID}")
             version = DBKeys.VER_NOVEL_ORDER_ID
         }
 
         if (version == DBKeys.VER_NOVEL_ORDER_ID) {
-            db.execSQL("ALTER TABLE " + DBKeys.TABLE_NOVEL + " ADD COLUMN " + DBKeys.KEY_NEW_RELEASES_COUNT + " INTEGER")
-            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_NEW_RELEASES_COUNT + "=0")
-            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_CURRENT_WEB_PAGE_ID + "=-1")
-            db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_WEB_PAGE)
+            db.execSQL("ALTER TABLE ${DBKeys.TABLE_NOVEL} ADD COLUMN ${DBKeys.KEY_NEW_RELEASES_COUNT} INTEGER")
+            db.execSQL("UPDATE ${DBKeys.TABLE_NOVEL} SET ${DBKeys.KEY_NEW_RELEASES_COUNT}=0")
+            db.execSQL("UPDATE ${DBKeys.TABLE_NOVEL} SET ${DBKeys.KEY_CURRENT_WEB_PAGE_ID}=-1")
+            db.execSQL("DROP TABLE IF EXISTS ${DBKeys.TABLE_WEB_PAGE}")
             db.execSQL(DBKeys.CREATE_TABLE_WEB_PAGE)
             version = DBKeys.VER_WEB_PAGE_ORDER_ID
         }
 
         if (version == DBKeys.VER_WEB_PAGE_ORDER_ID) {
-            db.execSQL("ALTER TABLE " + DBKeys.TABLE_NOVEL + " ADD COLUMN " + DBKeys.KEY_CHAPTERS_COUNT + " INTEGER")
-            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_CHAPTERS_COUNT + "=" + DBKeys.KEY_NEW_RELEASES_COUNT)
+            db.execSQL("ALTER TABLE ${DBKeys.TABLE_NOVEL} ADD COLUMN ${DBKeys.KEY_CHAPTERS_COUNT} INTEGER")
+            db.execSQL("UPDATE ${DBKeys.TABLE_NOVEL} SET ${DBKeys.KEY_CHAPTERS_COUNT}=${DBKeys.KEY_NEW_RELEASES_COUNT}")
             version = DBKeys.VER_NOVEL_SYNC
         }
 
         if (version == DBKeys.VER_NOVEL_SYNC) {
-            db.execSQL("ALTER TABLE " + DBKeys.TABLE_WEB_PAGE + " ADD COLUMN " + DBKeys.KEY_SOURCE_ID + " INTEGER")
-            db.execSQL("UPDATE " + DBKeys.TABLE_WEB_PAGE + " SET " + DBKeys.KEY_SOURCE_ID + "= -1")
+            db.execSQL("ALTER TABLE ${DBKeys.TABLE_WEB_PAGE} ADD COLUMN ${DBKeys.KEY_SOURCE_ID} INTEGER")
+            db.execSQL("UPDATE ${DBKeys.TABLE_WEB_PAGE} SET ${DBKeys.KEY_SOURCE_ID}= -1")
             db.execSQL(DBKeys.CREATE_TABLE_SOURCE)
-            db.execSQL("INSERT INTO " + DBKeys.TABLE_SOURCE + " (" + DBKeys.KEY_ID + ", " + DBKeys.KEY_NAME + ") VALUES (-1, 'All')")
+            db.execSQL("INSERT INTO ${DBKeys.TABLE_SOURCE} (${DBKeys.KEY_ID}, ${DBKeys.KEY_NAME}) VALUES (-1, 'All')")
             version = DBKeys.VER_CHAPTER_SOURCE
         }
 
         if (version == DBKeys.VER_CHAPTER_SOURCE) {
-            db.execSQL("DROP TABLE IF EXISTS " + DBKeys.TABLE_DOWNLOAD_QUEUE)
+            db.execSQL("DROP TABLE IF EXISTS ${DBKeys.TABLE_DOWNLOAD_QUEUE}")
             db.execSQL(DBKeys.CREATE_TABLE_DOWNLOAD)
             version = DBKeys.VER_DOWNLOADS
         }
 
         if (version == DBKeys.VER_DOWNLOADS) {
-            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_CHAPTERS_COUNT + "=" + DBKeys.KEY_NEW_RELEASES_COUNT)
-            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_NEW_RELEASES_COUNT + "= 0")
+            db.execSQL("UPDATE ${DBKeys.TABLE_NOVEL} SET ${DBKeys.KEY_CHAPTERS_COUNT}=${DBKeys.KEY_NEW_RELEASES_COUNT}")
+            db.execSQL("UPDATE ${DBKeys.TABLE_NOVEL} SET ${DBKeys.KEY_NEW_RELEASES_COUNT}= 0")
             db.execSQL(DBKeys.CREATE_TABLE_NOVEL_SECTION)
-            db.execSQL("ALTER TABLE " + DBKeys.TABLE_NOVEL + " ADD COLUMN " + DBKeys.KEY_NOVEL_SECTION_ID + " INTEGER")
-            db.execSQL("UPDATE " + DBKeys.TABLE_NOVEL + " SET " + DBKeys.KEY_NOVEL_SECTION_ID + "= -1")
+            db.execSQL("ALTER TABLE ${DBKeys.TABLE_NOVEL} ADD COLUMN ${DBKeys.KEY_NOVEL_SECTION_ID} INTEGER")
+            db.execSQL("UPDATE ${DBKeys.TABLE_NOVEL} SET ${DBKeys.KEY_NOVEL_SECTION_ID}= -1")
             version = DBKeys.VER_NEW_RELEASES
         }
 
@@ -99,6 +101,8 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
             values.put(DBKeys.KEY_VALUE, Gson().toJson(history))
             db.insert(DBKeys.TABLE_LARGE_PREFERENCE, null, values)
             dataCenter.removeNovelHistory()
+
+            db.execSQL("CREATE INDEX web_pages_url_id_index ON ${DBKeys.TABLE_WEB_PAGE}(${DBKeys.KEY_ID}, ${DBKeys.KEY_URL})")
 
             version = DBKeys.VER_LARGE_PREFERENCE
         }

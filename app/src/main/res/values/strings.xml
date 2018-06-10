@@ -454,5 +454,6 @@
     <string name="no_novel_sections_error">No Novel Sections Found!</string>
     <string name="last_read_n_updated">Last Read: %1$s\nLast Updated: %2$s</string>
     <string name="default_novel_section_name">Currently Reading</string>
+    <string name="content_description_sources_or_all">Sources/All</string>
 
 </resources>

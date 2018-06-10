@@ -6,30 +6,59 @@
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    <com.ogaclejapan.smarttablayout.SmartTabLayout
-        android:id="@+id/tabStrip"
+    <LinearLayout
+        android:id="@+id/topPanel"
         android:layout_width="match_parent"
         android:layout_height="?actionBarSize"
         android:layout_alignParentTop="true"
-        android:layout_gravity="center"
-        android:clipToPadding="false"
-        android:paddingBottom="4dp"
-        android:paddingLeft="4dp"
-        android:paddingRight="4dp"
-        app:stl_defaultTabTextColor="@color/white"
-        app:stl_defaultTabTextHorizontalPadding="24dp"
-        app:stl_indicatorColor="@color/colorAccent"
-        app:stl_indicatorCornerRadius="1.5dp"
-        app:stl_indicatorInterpolation="smart"
-        app:stl_indicatorThickness="3dp"
-        app:stl_underlineColor="@android:color/transparent" />
+        android:orientation="horizontal"
+        android:baselineAligned="false">
 
+
+        <com.ogaclejapan.smarttablayout.SmartTabLayout
+            android:id="@+id/tabStrip"
+            android:layout_width="0dp"
+            android:layout_height="?actionBarSize"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingBottom="4dp"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
+            app:stl_defaultTabTextColor="@color/white"
+            app:stl_defaultTabTextHorizontalPadding="24dp"
+            app:stl_indicatorColor="@color/colorAccent"
+            app:stl_indicatorCornerRadius="1.5dp"
+            app:stl_indicatorInterpolation="smart"
+            app:stl_indicatorThickness="3dp"
+            app:stl_underlineColor="@android:color/transparent" />
+
+        <LinearLayout
+            android:baselineAligned="false"
+            android:layout_width="wrap_content"
+            android:layout_height="?actionBarSize"
+            android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <ImageButton
+                android:id="@+id/sourcesToggle"
+                android:layout_width="?actionBarSize"
+                android:layout_height="match_parent"
+                android:background="@color/DarkSlateGray"
+                app:srcCompat="@drawable/ic_swap_horiz_vector"
+                android:contentDescription="@string/content_description_sources_or_all" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 
     <android.support.v4.view.ViewPager
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/tabStrip"
+        android:layout_below="@id/topPanel"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
 

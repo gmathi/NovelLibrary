@@ -93,7 +93,7 @@ class ChaptersFragment : BaseFragment(),
     private fun setData() {
         val chaptersPagerActivity = activity as? ChaptersPagerActivity
         if (chaptersPagerActivity != null) {
-            val chapters = chaptersPagerActivity.chapters.filter { it.sourceId == sourceId }
+            val chapters = if (sourceId == -1L) chaptersPagerActivity.chapters else chaptersPagerActivity.chapters.filter { it.sourceId == sourceId }
             if (!chapters.isEmpty()) {
                 adapter.updateData(if (isSortedAsc) ArrayList(chapters) else ArrayList(chapters.reversed()))
                 progressLayout.showContent()
@@ -223,7 +223,7 @@ class ChaptersFragment : BaseFragment(),
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onChapterActionModeEvent(chapterActionModeEvent: ChapterActionModeEvent) {
-        if (chapterActionModeEvent.eventType == EventType.COMPLETE || (chapterActionModeEvent.eventType == EventType.UPDATE && chapterActionModeEvent.sourceId == sourceId)) {
+        if (chapterActionModeEvent.eventType == EventType.COMPLETE || (chapterActionModeEvent.eventType == EventType.UPDATE && (chapterActionModeEvent.sourceId == sourceId || sourceId == -1L))) {
             setData()
         }
     }

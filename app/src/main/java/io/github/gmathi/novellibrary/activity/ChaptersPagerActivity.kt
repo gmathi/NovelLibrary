@@ -16,7 +16,6 @@ import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.*
-import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.util.Constants
@@ -25,7 +24,7 @@ import kotlinx.android.synthetic.main.activity_chapters_pager.*
 import kotlinx.android.synthetic.main.content_chapters_pager.*
 import org.greenrobot.eventbus.EventBus
 import java.io.File
-import java.net.URI
+import java.util.*
 
 
 class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
@@ -38,15 +37,25 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     private val sources: ArrayList<Pair<Long, String>> = ArrayList()
     private var actionMode: ActionMode? = null
     private var confirmDialog: MaterialDialog? = null
+    private var showSources = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chapters_pager)
         setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         novel = intent.getSerializableExtra("novel") as Novel
+        showSources = novel.metaData[Constants.MetaDataKeys.SHOW_SOURCES]?.toBoolean() ?: false
         dbHelper.updateNewReleasesCount(novel.id, 0L)
+
+        sourcesToggle.setOnClickListener {
+            showSources = !showSources
+            novel.metaData[Constants.MetaDataKeys.SHOW_SOURCES] = showSources.toString()
+            dbHelper.updateNovelMetaData(novel)
+            setViewPager()
+        }
 
         progressLayout.showLoading()
         if (novel.id != -1L)
@@ -61,8 +70,13 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 supportFragmentManager.popBackStack()
 
             sources.clear()
-            val sourceIds = chapters.distinctBy { it.sourceId }.map { it.sourceId }
-            sourceIds.forEach { dbHelper.getSource(it)?.let { sources.add(it) } }
+
+            if (showSources) {
+                val sourceIds = chapters.distinctBy { it.sourceId }.map { it.sourceId }
+                sourceIds.forEach { dbHelper.getSource(it)?.let { sources.add(it) } }
+            } else {
+                dbHelper.getSource(-1L)?.let { sources.add(it) }
+            }
 
             val titles = Array(sources.size, init = {
                 sources[it].second
@@ -93,6 +107,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     //region Data
     private fun getChaptersFromDB() {
         async {
+            Utils.error("CPA", "chpaDBStart, " + Calendar.getInstance().timeInMillis.toString())
             chapters = await { ArrayList(dbHelper.getAllWebPages(novel.id)) }
             if (chapters.isEmpty() || chapters.size < novel.chaptersCount.toInt()) {
                 novel.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
@@ -102,10 +117,12 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 progressLayout.showContent()
                 setViewPager()
             }
+            Utils.error("CPA", "chpaDBEnd, " + Calendar.getInstance().timeInMillis.toString())
         }
     }
 
     private fun getChapters() {
+        Utils.error("CPA", "chpaNetwork, " + Calendar.getInstance().timeInMillis.toString())
         async chapters@{
             progressLayout.showLoading()
             if (!Utils.isConnectedToNetwork(this@ChaptersPagerActivity)) {
@@ -119,12 +136,17 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
             //Download latest chapters from network
             try {
+                Utils.error("CPA", "callStart, " + Calendar.getInstance().timeInMillis.toString())
                 chapters = await { NovelApi.getChapterUrls(novel) } ?: ArrayList()
+                Utils.error("CPA", "callEnd, " + Calendar.getInstance().timeInMillis.toString())
 
                 //Save to DB if the novel is in Library
-                if (novel.id != -1L)
+                if (novel.id != -1L) {
+                    Utils.error("CPA", "dbStart, " + Calendar.getInstance().timeInMillis.toString())
                     await { addChaptersToDB() }
-
+                    Utils.error("CPA", "dbEnd, " + Calendar.getInstance().timeInMillis.toString())
+                }
+                actionMode?.finish()
                 progressLayout.showContent()
                 setViewPager()
 
@@ -147,7 +169,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 chapters[i].id = dbHelper.createWebPage(chapters[i])
             } else {
                 chapters[i].copyFrom(webPage)
-                if (webPage.sourceId == -1L && URI(novel.url).host.contains(HostNames.NOVEL_UPDATES)) {
+                if (webPage.sourceId == -1L && chapters[i].sourceId != -1L) {
                     dbHelper.updateWebPage(chapters[i])
                 }
             }
