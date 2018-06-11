@@ -93,7 +93,8 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     private fun scrollToBookmark() {
         if (novel.currentWebPageId != -1L) {
             val currentBookmarkWebPage = dbHelper.getWebPage(novel.currentWebPageId) ?: return
-            val currentSource = sources.firstOrNull { it.first == currentBookmarkWebPage.sourceId } ?: return
+            val currentSource = sources.firstOrNull { it.first == currentBookmarkWebPage.sourceId }
+                    ?: return
             val index = sources.indexOf(currentSource)
             if (index != -1)
                 viewPager.currentItem = index
@@ -294,17 +295,43 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                     }
                 })
             }
+            R.id.action_select_interval -> {
+                progressLayout.showLoading()
+                val sourceId = sources[viewPager.currentItem].first
+                if (sourceId == -1L) {
+                    val chaptersForSource = chapters.sortedBy { it.orderId }
+                    val selectedChaptersForSource = dataSet.sortedBy { it.orderId }
+                    if (selectedChaptersForSource.size > 1) {
+                        val firstIndex = chaptersForSource.indexOf(selectedChaptersForSource.first())
+                        val lastIndex = chaptersForSource.indexOf(selectedChaptersForSource.last())
+                        val subList = chaptersForSource.subList(firstIndex, lastIndex)
+                        addToDataSet(subList)
+                        EventBus.getDefault().post(ChapterActionModeEvent(sourceId, EventType.UPDATE))
+                    }
+                } else {
+                    val chaptersForSource = chapters.filter { it.sourceId == sourceId }.sortedBy { it.orderId }
+                    val selectedChaptersForSource = dataSet.filter { it.sourceId == sourceId }.sortedBy { it.orderId }
+                    if (selectedChaptersForSource.size > 1) {
+                        val firstIndex = chaptersForSource.indexOf(selectedChaptersForSource.first())
+                        val lastIndex = chaptersForSource.indexOf(selectedChaptersForSource.last())
+                        val subList = chaptersForSource.subList(firstIndex, lastIndex)
+                        addToDataSet(subList)
+                        EventBus.getDefault().post(ChapterActionModeEvent(sourceId, EventType.UPDATE))
+                    }
+                }
+                progressLayout.showContent()
+            }
             R.id.action_select_all -> {
                 progressLayout.showLoading()
                 val sourceId = sources[viewPager.currentItem].first
-                addToDataSet(webPages = dbHelper.getAllWebPages(novel.id, sourceId))
+                addToDataSet(webPages = chapters.filter { it.sourceId == sourceId })
                 EventBus.getDefault().post(ChapterActionModeEvent(sourceId, EventType.UPDATE))
                 progressLayout.showContent()
             }
             R.id.action_clear_selection -> {
                 progressLayout.showLoading()
                 val sourceId = sources[viewPager.currentItem].first
-                removeFromDataSet(webPages = dbHelper.getAllWebPages(novel.id, sourceId))
+                removeFromDataSet(webPages = chapters.filter { it.sourceId == sourceId })
                 EventBus.getDefault().post(ChapterActionModeEvent(sourceId, EventType.UPDATE))
                 progressLayout.showContent()
             }

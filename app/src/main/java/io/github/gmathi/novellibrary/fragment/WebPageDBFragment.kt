@@ -188,6 +188,12 @@ class WebPageDBFragment : BaseFragment() {
                     NovelApi.cookiesMap = map
                 }
 
+                webPage?.let {
+                    if (it.metaData.containsKey("scrollY")) {
+                        readerWebView.scrollTo(0, (it.metaData["scrollY"] ?: "0").toInt())
+                    }
+                }
+
             }
         }
         //readerWebView.setOnScrollChangeListener { webView, i, i, i, i ->  }
@@ -254,9 +260,9 @@ class WebPageDBFragment : BaseFragment() {
                 doc?.outerHtml(),
                 "text/html", "UTF-8", null
             )
-            if (it.metaData.containsKey("scrollY")) {
-                readerWebView.scrollTo(0, it.metaData["scrollY"]!!.toInt())
-            }
+//            if (it.metaData.containsKey("scrollY")) {
+//                readerWebView.scrollTo(0, (it.metaData["scrollY"] ?: "0").toInt())
+//            }
         }
     }
 

@@ -153,7 +153,7 @@
     <string name="donations_description_new">I am happy that you want to donate! For now, please spread the word and share the app with fellow novel lovers!</string>
     <string name="language">Language</string>
     <string name="languages_supported">Languages Supported</string>
-    <string name="download_chapters">Download Chapters</string>
+    <string name="download_chapters">Download Selected</string>
     <string name="mark_read">Mark Read</string>
     <string name="mark_unread">Mark Unread</string>
     <string name="unread">Unread</string>

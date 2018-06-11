@@ -305,7 +305,7 @@
     <string name="donations_description_new">I am happy that you want to donate! For now, please spread the word and share the app with fellow novel lovers!</string>
     <string name="language">Language</string>
     <string name="languages_supported">Languages Supported</string>
-    <string name="download_chapters">Download Chapters</string>
+    <string name="download_chapters">Download Selected</string>
     <string name="mark_read">Mark Read</string>
     <string name="mark_unread">Mark Unread</string>
     <string name="unread">Unread</string>
@@ -378,7 +378,7 @@
     <string name="group_notification_text">Updated for the novels in your library</string>
     <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
     <string name="reader_mode_description">Reader mode will be on permanently</string>
-    <string name="delete_chapters">Delete Downloaded Chapters</string>
+    <string name="delete_chapters">Delete Downloads</string>
 
     <!-- v0.8 Strings -->
 
@@ -455,5 +455,6 @@
     <string name="last_read_n_updated">Last Read: %1$s\nLast Updated: %2$s</string>
     <string name="default_novel_section_name">Currently Reading</string>
     <string name="content_description_sources_or_all">Sources/All</string>
+    <string name="select_interval">Select Interval</string>
 
 </resources>

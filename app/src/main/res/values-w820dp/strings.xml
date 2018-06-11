@@ -6,7 +6,7 @@
     <string name="group_notification_text">Updated for the novels in your library</string>
     <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
     <string name="reader_mode_description">Reader mode will be on permanently</string>
-    <string name="delete_chapters">Delete Chapters</string>
+    <string name="delete_chapters">Delete Downloads</string>
     <string name="skip_cloud_flare_string">Please wait 5~10 secs while we bypass cloud flare</string>
     <string name="refresh_cloud_flare_cookies">Refresh CloudFlare Cookies</string>
 </resources>

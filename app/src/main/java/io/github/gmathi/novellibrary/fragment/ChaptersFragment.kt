@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.fragment
 import android.annotation.SuppressLint
 import android.graphics.Rect
 import android.os.Bundle
+import android.os.Parcelable
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
@@ -52,6 +53,7 @@ class ChaptersFragment : BaseFragment(),
     private var isSortedAsc: Boolean = true
 
     private var counter = 0
+    private var lastKnownRecyclerState: Parcelable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,6 +100,9 @@ class ChaptersFragment : BaseFragment(),
                 adapter.updateData(if (isSortedAsc) ArrayList(chapters) else ArrayList(chapters.reversed()))
                 progressLayout.showContent()
                 scrollToBookmark()
+                if (chaptersPagerActivity.dataSet.isNotEmpty()) {
+                    lastKnownRecyclerState?.let { recyclerView.layoutManager.onRestoreInstanceState(it) }
+                }
             } else
                 progressLayout.showEmpty(ContextCompat.getDrawable(chaptersPagerActivity, R.drawable.ic_warning_white_vector), "No Chapters Found!")
         }
@@ -224,6 +229,7 @@ class ChaptersFragment : BaseFragment(),
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onChapterActionModeEvent(chapterActionModeEvent: ChapterActionModeEvent) {
         if (chapterActionModeEvent.eventType == EventType.COMPLETE || (chapterActionModeEvent.eventType == EventType.UPDATE && (chapterActionModeEvent.sourceId == sourceId || sourceId == -1L))) {
+            lastKnownRecyclerState = recyclerView.layoutManager.onSaveInstanceState()
             setData()
         }
     }
