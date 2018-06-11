@@ -122,11 +122,11 @@ class ChaptersFragment : BaseFragment(),
         return adapter.items[position].chapter
     }
 
-    override fun onItemClick(item: WebPage) {
+    override fun onItemClick(item: WebPage, position: Int) {
         if (novel.id != -1L) {
             novel.currentWebPageId = item.id
             dbHelper.updateNovel(novel)
-            startReaderDBPagerActivity(novel)
+            startReaderDBPagerActivity(novel, position, sourceId)
         } else
             startWebViewActivity(item.url)
     }

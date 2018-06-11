@@ -57,11 +57,17 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             setViewPager()
         }
 
-        progressLayout.showLoading()
-        if (novel.id != -1L)
-            getChaptersFromDB()
-        else
+        if (novel.id == -1L)
             getChapters()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (novel.id != -1L) {
+            novel = dbHelper.getNovel(novel.id)!!
+            progressLayout.showLoading()
+            getChaptersFromDB()
+        }
     }
 
     private fun setViewPager() {
@@ -469,5 +475,6 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             progressLayout.showContent()
         }
     }
+
 
 }

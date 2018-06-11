@@ -60,10 +60,10 @@ class SearchResultsUnlockedListener(private val searchTerms: String) : GenericFr
 
 }
 
-class WebPageFragmentPageListener(val novel: Novel) : GenericFragmentStatePagerAdapter.Listener {
+class WebPageFragmentPageListener(val novel: Novel, val sourceId: Long) : GenericFragmentStatePagerAdapter.Listener {
 
     override fun getFragmentForItem(position: Int): Fragment? {
-        return WebPageDBFragment.newInstance(novel.id, position.toLong())
+        return WebPageDBFragment.newInstance(novel.id, sourceId, position)
     }
 }
 

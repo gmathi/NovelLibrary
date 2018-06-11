@@ -20,14 +20,14 @@ class GenericAdapterSelectTitleProvider<T>(val items: ArrayList<T>, val layoutRe
 
     class ViewHolder<T>(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(item: T, listener: Listener<T>, position: Int) {
-            with(itemView) { setOnClickListener { listener.onItemClick(item) } }
+            with(itemView) { setOnClickListener { listener.onItemClick(item, position) } }
             listener.bind(item = item, itemView = itemView, position = position)
         }
     }
 
     interface Listener<in T> {
         fun bind(item: T, itemView: View, position: Int)
-        fun onItemClick(item: T)
+        fun onItemClick(item: T, position: Int)
         fun getSectionTitle(position: Int): String
     }
 
