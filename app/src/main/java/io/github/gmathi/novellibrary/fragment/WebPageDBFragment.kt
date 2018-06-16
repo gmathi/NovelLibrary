@@ -92,7 +92,6 @@ class WebPageDBFragment : BaseFragment() {
             history = savedInstanceState.getSerializable("history") as ArrayList<WebPage>
         } else {
             val novelId = arguments!!.getLong(NOVEL_ID)
-            val novel = dbHelper.getNovel(novelId)
             val sourceId = arguments!!.getLong(SOURCE_ID)
             val offset = if (dataCenter.japSwipe) dbHelper.getWebPagesCount(novelId, sourceId) - arguments!!.getInt(OFFSET) - 1 else arguments!!.getInt(OFFSET)
 
@@ -227,7 +226,6 @@ class WebPageDBFragment : BaseFragment() {
 
         swipeRefreshLayout.apply {
             isRefreshing = false
-            isEnabled = false
         }
 
         val url = webPage!!.redirectedUrl ?: internalFilePath

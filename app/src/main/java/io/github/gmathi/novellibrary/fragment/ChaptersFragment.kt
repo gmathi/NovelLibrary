@@ -92,14 +92,15 @@ class ChaptersFragment : BaseFragment(),
         swipeRefreshLayout.isEnabled = false
     }
 
-    private fun setData() {
+    private fun setData(shouldScrollToBookmark: Boolean = true) {
         val chaptersPagerActivity = activity as? ChaptersPagerActivity
         if (chaptersPagerActivity != null) {
             val chapters = if (sourceId == -1L) chaptersPagerActivity.chapters else chaptersPagerActivity.chapters.filter { it.sourceId == sourceId }
             if (!chapters.isEmpty()) {
                 adapter.updateData(if (isSortedAsc) ArrayList(chapters) else ArrayList(chapters.reversed()))
                 progressLayout.showContent()
-                scrollToBookmark()
+                if (shouldScrollToBookmark)
+                    scrollToBookmark()
                 if (chaptersPagerActivity.dataSet.isNotEmpty()) {
                     lastKnownRecyclerState?.let { recyclerView.layoutManager.onRestoreInstanceState(it) }
                 }
@@ -247,7 +248,7 @@ class ChaptersFragment : BaseFragment(),
         when (item?.itemId) {
             R.id.action_sort -> {
                 isSortedAsc = !isSortedAsc
-                setData()
+                setData(shouldScrollToBookmark = false)
                 checkData()
                 return true
             }

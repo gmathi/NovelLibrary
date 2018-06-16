@@ -128,7 +128,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         }
     }
 
-    private fun getChapters() {
+    private fun getChapters(forceUpdate: Boolean = false) {
         Utils.error("CPA", "chpaNetwork, " + Calendar.getInstance().timeInMillis.toString())
         async chapters@{
             progressLayout.showLoading()
@@ -150,7 +150,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 //Save to DB if the novel is in Library
                 if (novel.id != -1L) {
                     Utils.error("CPA", "dbStart, " + Calendar.getInstance().timeInMillis.toString())
-                    await { addChaptersToDB() }
+                    await { addChaptersToDB(forceUpdate) }
                     Utils.error("CPA", "dbEnd, " + Calendar.getInstance().timeInMillis.toString())
                 }
                 actionMode?.finish()
@@ -168,15 +168,16 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         }
     }
 
-    private fun addChaptersToDB() {
+    private fun addChaptersToDB(forceUpdate: Boolean = false) {
         dbHelper.updateChaptersAndReleasesCount(novel.id, chapters.size.toLong(), 0L)
         for (i in 0 until chapters.size) {
             val webPage = dbHelper.getWebPage(novel.id, chapters[i].url)
             if (webPage == null) {
                 chapters[i].id = dbHelper.createWebPage(chapters[i])
             } else {
+                //val sourceId = chapters[i].sourceId
                 chapters[i].copyFrom(webPage)
-                if (webPage.sourceId == -1L && chapters[i].sourceId != -1L) {
+                if ((webPage.sourceId == -1L && chapters[i].sourceId != -1L) || forceUpdate) {
                     dbHelper.updateWebPage(chapters[i])
                 }
             }
@@ -203,7 +204,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         when {
             item?.itemId == android.R.id.home -> finish()
             item?.itemId == R.id.action_sync -> {
-                getChapters()
+                getChapters(forceUpdate = true)
                 return true
             }
             item?.itemId == R.id.action_download -> {
