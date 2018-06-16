@@ -65,7 +65,7 @@ fun <T> RecyclerView.setDefaults(adapter: GenericAdapter<T>): RecyclerView {
     return this
 }
 
-fun <T> RecyclerView.setDefaultsNoAnimation(adapter: GenericAdapter<T>): RecyclerView {
+fun RecyclerView.setDefaultsNoAnimation(adapter: RecyclerView.Adapter<*>): RecyclerView {
     this.setHasFixedSize(true)
     this.layoutManager = SnappingLinearLayoutManager(context)
     this.adapter = adapter
@@ -86,15 +86,6 @@ fun <T> RecyclerView.setDefaults(adapter: GenericAdapterWithDragListener<T>): Re
 
     return this
 }
-
-
-fun <T> RecyclerView.setDefaultsNoAnimation(adapter: GenericAdapterWithDragListener<T>): RecyclerView {
-    this.setHasFixedSize(true)
-    this.layoutManager = SnappingLinearLayoutManager(context)
-    this.adapter = adapter
-    return this
-}
-
 
 fun Uri.getFileName(): String {
     return (this.lastPathSegment + this.toString().substringAfter("?", "")).writableFileName()

@@ -44,7 +44,17 @@ fun Activity.snackBar(view: View, message: String) {
 }
 
 fun Activity.startChaptersActivity(novel: Novel, jumpToReader: Boolean = false) {
-    val intent = Intent(this, ChaptersActivity::class.java)
+    val intent = Intent(this, ChaptersPagerActivity::class.java)
+    val bundle = Bundle()
+    bundle.putSerializable("novel", novel)
+    if (jumpToReader)
+        bundle.putBoolean(Constants.JUMP, true)
+    intent.putExtras(bundle)
+    startActivityForResult(intent, Constants.CHAPTER_ACT_REQ_CODE)
+}
+
+fun Activity.startOldChaptersActivity(novel: Novel, jumpToReader: Boolean = false) {
+    val intent = Intent(this, OldChaptersActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
     if (jumpToReader)

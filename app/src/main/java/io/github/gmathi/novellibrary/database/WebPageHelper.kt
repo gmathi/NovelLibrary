@@ -2,13 +2,13 @@ package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
 import android.database.Cursor
+import android.database.DatabaseUtils
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
-import io.github.gmathi.novellibrary.util.Constants
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -216,9 +216,27 @@ fun DBHelper.getAllWebPages(novelId: Long): List<WebPage> {
     return list
 }
 
+fun DBHelper.getAllWebPages(novelId: Long, sourceId: Long): List<WebPage> {
+    val list = ArrayList<WebPage>()
+    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_WEB_PAGE} WHERE ${DBKeys.KEY_NOVEL_ID} = $novelId AND ${DBKeys.KEY_SOURCE_ID} = $sourceId ORDER BY ${DBKeys.KEY_ORDER_ID} ASC"
+    Log.d(LOG, selectQuery)
+    val db = this.readableDatabase
+    val cursor = db.rawQuery(selectQuery, null)
+
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(getWebPageFromCursor(cursor))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+    }
+    return list
+}
+
 fun DBHelper.getAllWebPagesToDownload(novelId: Long): List<WebPage> {
     val list = ArrayList<WebPage>()
-    val selectQuery = "SELECT * FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novelId + " AND file_path IS NULL ORDER BY " + DBKeys.KEY_ID + " ASC"
+    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_WEB_PAGE} WHERE ${DBKeys.KEY_NOVEL_ID} = $novelId AND file_path IS NULL ORDER BY ${DBKeys.KEY_ID} ASC"
     Log.d(LOG, selectQuery)
     val cursor = this.readableDatabase.rawQuery(selectQuery, null)
 
@@ -234,9 +252,9 @@ fun DBHelper.getAllWebPagesToDownload(novelId: Long): List<WebPage> {
 }
 
 
-fun DBHelper.getAllReadableWebPages(novelId: Long): List<WebPage> {
+fun DBHelper.getAllDownloadedWebPages(novelId: Long): List<WebPage> {
     val list = ArrayList<WebPage>()
-    val selectQuery = "SELECT * FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novelId + " AND file_path IS NOT NULL ORDER BY " + DBKeys.KEY_ID + " ASC"
+    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_WEB_PAGE} WHERE ${DBKeys.KEY_NOVEL_ID} = $novelId AND file_path IS NOT NULL ORDER BY ${DBKeys.KEY_ORDER_ID} ASC"
     Log.d(LOG, selectQuery)
     val cursor = this.readableDatabase.rawQuery(selectQuery, null)
 
@@ -251,19 +269,11 @@ fun DBHelper.getAllReadableWebPages(novelId: Long): List<WebPage> {
     return list
 }
 
-fun DBHelper.getAllReadableWebPagesCount(novelId: Long): Int {
-    var count = 0
-    val selectQuery = "SELECT COUNT(" + DBKeys.KEY_ID + ") FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novelId + " AND file_path IS NOT NULL"
+fun DBHelper.getDownloadedWebPagesCount(novelId: Long): Int {
+    val selectQuery = "SELECT COUNT(*) FROM ${DBKeys.TABLE_WEB_PAGE} WHERE ${DBKeys.KEY_NOVEL_ID} = $novelId AND file_path IS NOT NULL"
     Log.d(LOG, selectQuery)
-    val cursor = this.readableDatabase.rawQuery(selectQuery, null)
-
-    if (cursor != null) {
-        if (cursor.moveToFirst()) {
-            count = cursor.getInt(0)
-        }
-        cursor.close()
-    }
-    return count
+    val db = this.readableDatabase
+    return DatabaseUtils.longForQuery(db, selectQuery, null).toInt()
 }
 
 
@@ -298,25 +308,42 @@ private fun getWebPageFromCursor(cursor: Cursor): WebPage {
     webPage.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
     webPage.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
     webPage.isRead = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_IS_READ))
-    webPage.sourceId = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_SOURCE_ID))
+    webPage.sourceId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_SOURCE_ID))
     webPage.orderId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
     webPage.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
 
     return webPage
 }
 
-fun DBHelper.getDownloadedChapterCount(novelId: Long): Int {
-    val selectQuery = "SELECT count(novel_id) FROM " + DBKeys.TABLE_WEB_PAGE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novelId + " AND file_path IS NOT NULL"
+fun DBHelper.getWebPage(novelId: Long, sourceId: Long, offset: Int): WebPage? {
+    val selectQuery =
+            if (sourceId == -1L)
+                "SELECT * FROM ${DBKeys.TABLE_WEB_PAGE} WHERE ${DBKeys.KEY_NOVEL_ID} = $novelId ORDER BY ${DBKeys.KEY_ORDER_ID} ASC LIMIT $offset, 1"
+            else
+                "SELECT * FROM ${DBKeys.TABLE_WEB_PAGE} WHERE ${DBKeys.KEY_NOVEL_ID} = $novelId AND ${DBKeys.KEY_SOURCE_ID} = $sourceId ORDER BY ${DBKeys.KEY_ORDER_ID} ASC LIMIT $offset, 1"
     Log.d(LOG, selectQuery)
-    val cursor = this.readableDatabase.rawQuery(selectQuery, null)
-    var currentChapterCount = 0
+    val db = this.readableDatabase
+
+    var webPage: WebPage? = null
+    val cursor = db.rawQuery(selectQuery, null)
     if (cursor != null) {
         if (cursor.moveToFirst()) {
-            currentChapterCount = cursor.getInt(0)
+            webPage = getWebPageFromCursor(cursor)
         }
         cursor.close()
     }
-    return currentChapterCount
+    return webPage
+}
+
+fun DBHelper.getWebPagesCount(novelId: Long, sourceId: Long): Int {
+    val selectQuery =
+            if (sourceId == -1L)
+                "SELECT COUNT(*) FROM ${DBKeys.TABLE_WEB_PAGE} WHERE ${DBKeys.KEY_NOVEL_ID} = $novelId"
+            else
+                "SELECT COUNT(*) FROM ${DBKeys.TABLE_WEB_PAGE} WHERE ${DBKeys.KEY_NOVEL_ID} = $novelId AND ${DBKeys.KEY_SOURCE_ID} = $sourceId"
+    Log.d(LOG, selectQuery)
+    val db = this.readableDatabase
+    return DatabaseUtils.longForQuery(db, selectQuery, null).toInt()
 }
 
 

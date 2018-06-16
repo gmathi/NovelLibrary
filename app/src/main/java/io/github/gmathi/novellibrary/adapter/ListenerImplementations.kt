@@ -1,10 +1,7 @@
 package io.github.gmathi.novellibrary.adapter
 
 import android.support.v4.app.Fragment
-import io.github.gmathi.novellibrary.fragment.LibraryFragment
-import io.github.gmathi.novellibrary.fragment.SearchTermFragment
-import io.github.gmathi.novellibrary.fragment.SearchUrlFragment
-import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
+import io.github.gmathi.novellibrary.fragment.*
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelSection
 import io.github.gmathi.novellibrary.network.HostNames
@@ -41,7 +38,7 @@ class NavDetailsPageListener : GenericFragmentStatePagerAdapter.Listener {
     }
 }
 
-class SearchResultsListener(val searchTerms: String) : GenericFragmentStatePagerAdapter.Listener {
+class SearchResultsListener(private val searchTerms: String) : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment? {
         return when (position) {
             0 -> SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_UPDATES)
@@ -51,7 +48,7 @@ class SearchResultsListener(val searchTerms: String) : GenericFragmentStatePager
     }
 }
 
-class SearchResultsUnlockedListener(val searchTerms: String) : GenericFragmentStatePagerAdapter.Listener {
+class SearchResultsUnlockedListener(private val searchTerms: String) : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment? {
         return when (position) {
             0 -> SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_UPDATES)
@@ -63,19 +60,24 @@ class SearchResultsUnlockedListener(val searchTerms: String) : GenericFragmentSt
 
 }
 
-class WebPageFragmentPageListener(val novel: Novel) : GenericFragmentStatePagerAdapter.Listener {
+class WebPageFragmentPageListener(val novel: Novel, val sourceId: Long) : GenericFragmentStatePagerAdapter.Listener {
 
     override fun getFragmentForItem(position: Int): Fragment? {
-        return WebPageDBFragment.newInstance(novel.id, position.toLong())
+        return WebPageDBFragment.newInstance(novel.id, sourceId, position)
     }
 }
 
-class LibraryPageListener(val novelSections: ArrayList<NovelSection>) : GenericFragmentStatePagerAdapter.Listener {
+class LibraryPageListener(private val novelSections: ArrayList<NovelSection>) : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment? {
         return LibraryFragment.newInstance(novelSections[position].id)
     }
 }
 
+class ChaptersPageListener(private val novel: Novel, private val sources: ArrayList<Pair<Long, String>>) : GenericFragmentStatePagerAdapter.Listener {
+    override fun getFragmentForItem(position: Int): Fragment? {
+        return ChaptersFragment.newInstance(novel, sources[position].first)
+    }
+}
 //endregion
 
 

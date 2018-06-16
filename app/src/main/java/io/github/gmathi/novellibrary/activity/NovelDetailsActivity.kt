@@ -21,11 +21,10 @@ import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.Theme
 import com.bumptech.glide.Glide
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.getNovel
-import io.github.gmathi.novellibrary.database.insertNovel
-import io.github.gmathi.novellibrary.database.updateNovel
+import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi
@@ -33,6 +32,7 @@ import io.github.gmathi.novellibrary.network.getNovelDetails
 import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.activity_novel_details.*
 import kotlinx.android.synthetic.main.content_novel_details.*
+import java.util.*
 
 
 class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener {
@@ -290,10 +290,12 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun addNovelToHistory() {
-        val history = dataCenter.loadNovelHistory()
-        history.removeAll { novel.name == it.name }
-        history.add(novel)
-        dataCenter.saveNovelHistory(history)
+        var history = dbHelper.getLargePreference(Constants.LargePrefenceKeys.RVN_HISTORY) ?: "[]"
+        val historyList: ArrayList<Novel> = Gson().fromJson(history, object : TypeToken<ArrayList<Novel>>() {}.type)
+        historyList.removeAll { novel.name == it.name }
+        historyList.add(novel)
+        history = Gson().toJson(historyList)
+        dbHelper.createOrUpdateLargePreference(Constants.LargePrefenceKeys.RVN_HISTORY, history)
     }
 
     override fun onDestroy() {

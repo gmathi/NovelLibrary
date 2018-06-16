@@ -38,7 +38,6 @@ import kotlinx.android.synthetic.main.item_option.view.*
 import kotlinx.android.synthetic.main.menu_left_drawer.*
 import org.greenrobot.eventbus.EventBus
 import java.io.File
-import java.text.SimpleDateFormat
 import java.util.*
 
 
@@ -66,40 +65,55 @@ class ReaderDBPagerActivity :
         private const val VOLUME_SCROLL_STEP = 50
     }
 
-    private var screenTitles: Array<String>? = null
     private lateinit var screenIcons: Array<Drawable?>
+    lateinit var novel: Novel
 
-    var novel: Novel? = null
-    private var webPage: WebPage? = null
-
+    private var screenTitles: Array<String>? = null
     private var adapter: GenericFragmentStatePagerAdapter? = null
+    private var webPage: WebPage? = null
+    private var position: Int = 0
+    private var sourceId: Long = -1L
+    private var totalSize: Int = 0
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader_pager)
-        novel = intent.getSerializableExtra("novel") as Novel?
-        if (novel == null || novel?.chaptersCount?.toInt() == 0) finish()
+
+        val tempNovel = intent.getSerializableExtra("novel") as Novel?
+        if (tempNovel == null || tempNovel.chaptersCount.toInt() == 0)
+            finish()
+        else
+            novel = tempNovel
+
+        dbHelper.updateNewReleasesCount(novel.id, 0L)
 
         if (dataCenter.keepScreenOn)
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        dbHelper.updateNewReleasesCount(novel!!.id, 0L)
-        adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, novel!!.chaptersCount.toInt(), WebPageFragmentPageListener(novel!!))
+        webPage = if (novel.currentWebPageId != -1L)
+            dbHelper.getWebPage(novel.currentWebPageId)
+        else
+            dbHelper.getWebPage(novel.id, 0)
+
+        webPage?.let {
+            position = intent.getIntExtra("position", it.orderId.toInt())
+            sourceId = intent.getLongExtra("sourceId", -1L)
+        }
+
+        totalSize = dbHelper.getWebPagesCount(novel.id, sourceId)
+
+        adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, totalSize, WebPageFragmentPageListener(novel, sourceId))
         viewPager.addOnPageChangeListener(this)
         viewPager.adapter = adapter
-
-        webPage = if (novel!!.currentWebPageId != -1L)
-            dbHelper.getWebPage(novel!!.currentWebPageId)
-        else
-            dbHelper.getWebPage(novel!!.id, 0)
 
         if (webPage != null) {
             updateBookmark(webPage!!)
             viewPager.currentItem =
                     if (dataCenter.japSwipe)
-                        novel!!.chaptersCount.toInt() - webPage!!.orderId.toInt() - 1
+                        totalSize - position - 1
                     else
-                        webPage!!.orderId.toInt()
+                        position
         }
 
         slideMenuSetup(savedInstanceState)
@@ -143,12 +157,12 @@ class ReaderDBPagerActivity :
             }
 
             window.decorView.systemUiVisibility = immersiveModeOptions
-        }
+        } 
     }
 
     override fun onPageSelected(position: Int) {
-        val orderId = if (dataCenter.japSwipe) novel!!.chaptersCount.toInt() - position - 1 else position
-        val webPage = dbHelper.getWebPage(novel!!.id, orderId.toLong())
+        val offset = if (dataCenter.japSwipe) totalSize - position - 1 else position
+        val webPage = dbHelper.getWebPage(novel.id, sourceId, offset)
         if (webPage != null) updateBookmark(webPage)
         //fabClean.visibility = View.VISIBLE
     }
@@ -252,7 +266,7 @@ class ReaderDBPagerActivity :
     }
 
     fun checkUrl(url: String): Boolean {
-        val webPage = dbHelper.getWebPageByRedirectedUrl(novel!!.id, url) ?: return false
+        val webPage = dbHelper.getWebPageByRedirectedUrl(novel.id, url) ?: return false
 
         viewPager.currentItem = webPage.orderId.toInt()
         updateBookmark(webPage)
@@ -438,7 +452,7 @@ class ReaderDBPagerActivity :
 
     override fun onResume() {
         super.onResume()
-        novel!!.metaData[Constants.MetaDataKeys.LAST_READ_DATE] = Utils.getCurrentFormattedDate()
-        dbHelper.updateNovelMetaData(novel!!)
+        novel.metaData[Constants.MetaDataKeys.LAST_READ_DATE] = Utils.getCurrentFormattedDate()
+        dbHelper.updateNovelMetaData(novel)
     }
 }

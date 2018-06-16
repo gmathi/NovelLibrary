@@ -26,6 +26,8 @@ class SyncEvent(val novel: Novel, val newChapCount: Int)
 
 class NovelSectionEvent(val novelSectionId: Long)
 
+class ChapterActionModeEvent(val sourceId: Long = -1L, val eventType: EventType)
+
 class ReaderSettingsEvent(val setting: String) {
     companion object {
         const val NIGHT_MODE = "nightMode"

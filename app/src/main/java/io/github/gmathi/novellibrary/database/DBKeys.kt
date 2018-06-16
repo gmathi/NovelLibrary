@@ -10,9 +10,10 @@ object DBKeys {
     internal const val VER_CHAPTER_SOURCE = 5
     internal const val VER_DOWNLOADS = 6
     internal const val VER_NEW_RELEASES = 7
+    internal const val VER_LARGE_PREFERENCE = 8
 
 
-    internal const val DATABASE_VERSION = VER_NEW_RELEASES
+    internal const val DATABASE_VERSION = VER_LARGE_PREFERENCE
 
 
     internal const val DATABASE_NAME = "bnr_db"
@@ -26,6 +27,7 @@ object DBKeys {
     internal const val TABLE_DOWNLOAD = "download"
     internal const val TABLE_SOURCE = "source"
     internal const val TABLE_NOVEL_SECTION = "novel_section"
+    internal const val TABLE_LARGE_PREFERENCE = "large_preference"
 
     // Common column names
     internal const val KEY_ID = "id"
@@ -45,6 +47,7 @@ object DBKeys {
     internal const val KEY_NEW_RELEASES_COUNT = "chapter_count"
     internal const val KEY_CHAPTERS_COUNT = "new_chapter_count"
     internal const val KEY_NOVEL_SECTION_ID = "novel_section_id"
+    internal const val KEY_VALUE = "value"
 
 
 
@@ -158,6 +161,13 @@ object DBKeys {
                     + KEY_ID + " INTEGER PRIMARY KEY, "
                     + KEY_NAME + " TEXT, "
                     + KEY_ORDER_ID + " INTEGER"
+                    + ")")
+
+    // novel_section table create statement
+    internal const val CREATE_TABLE_LARGE_PREFERENCE = (
+            "CREATE TABLE " + TABLE_LARGE_PREFERENCE + " ("
+                    + KEY_NAME + " TEXT PRIMARY KEY, "
+                    + KEY_VALUE + " TEXT"
                     + ")")
 
     //    // sync table create statement

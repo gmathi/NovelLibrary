@@ -15,7 +15,7 @@
         android:layout_marginLeft="@dimen/default_card_view_margin"
         android:layout_marginStart="@dimen/default_card_view_margin"
         android:padding="15dp"
-        app:animDuration="200"
+        app:animDuration="50"
         app:checkedColor="#00f"
         app:lineColor="#fff"
         app:lineWidth="1.2dp"

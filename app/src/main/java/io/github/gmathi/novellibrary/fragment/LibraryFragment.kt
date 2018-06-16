@@ -7,7 +7,6 @@ import android.os.Handler
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.PopupMenu
 import android.support.v7.widget.helper.ItemTouchHelper
-import android.util.Log
 import android.view.*
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
@@ -422,18 +421,28 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     private fun showNovelSectionsList(position: Int) {
-        val novelSections = dbHelper.getAllNovelSections()
+        val novelSections = ArrayList(dbHelper.getAllNovelSections())
         if (novelSections.isEmpty()) {
             MaterialDialog.Builder(activity!!).content(getString(R.string.no_novel_sections_error)).show()
             return
         }
+        novelSections.firstOrNull { it.id == novelSectionId }?.let { novelSections.remove(it) }
+        val novelSectionsNames = ArrayList(novelSections.map { it.name })
+        if (novelSectionId != -1L)
+            novelSectionsNames.add(0, getString(R.string.default_novel_section_name))
 
         MaterialDialog.Builder(activity!!)
                 .title("Choose A Novel Section")
-                .items(novelSections.map { it.name })
+                .items(novelSectionsNames)
                 .itemsCallback({ _, _, which, _ ->
-                    dbHelper.updateNovelSectionId(adapter.items[position].id, novelSections[which].id)
-                    EventBus.getDefault().post(NovelSectionEvent(novelSections[which].id))
+                    var id = -1L
+                    if (novelSectionId == -1L)
+                        id = novelSections[which].id
+                    else if (which != 0)
+                        id = novelSections[which + 1].id
+
+                    dbHelper.updateNovelSectionId(adapter.items[position].id, id)
+                    EventBus.getDefault().post(NovelSectionEvent(id))
                     setData()
                 })
                 .show()

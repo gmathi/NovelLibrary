@@ -97,26 +97,32 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
         when (item) {
             getString(R.string.internal_full_backup_data) -> {
                 Mayi.withActivity(this@BackupSettingsActivity)
-                    .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    .onResult {
-                        if (it.isGranted)
-                            backupData()
-                        else
-                            showDialog(content = "Enable \"Write External Storage\" permission for Novel Library " +
-                                "from your device Settings -> Applications -> Novel Library -> Permissions")
-                    }.check()
+                        .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        .onRationale { _, token ->
+                            token.continuePermissionRequest()
+                        }
+                        .onResult {
+                            if (it.isGranted)
+                                backupData()
+                            else
+                                showDialog(content = "Enable \"Write External Storage\" permission for Novel Library " +
+                                        "from your device Settings -> Applications -> Novel Library -> Permissions")
+                        }.check()
             }
 
             getString(R.string.internal_full_restore_data) -> {
                 Mayi.withActivity(this@BackupSettingsActivity)
-                    .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    .onResult {
-                        if (it.isGranted)
-                            restoreData()
-                        else
-                            showDialog(content = "Enable \"Read External Storage\" permission for Novel Library " +
-                                "from your device Settings -> Applications -> Novel Library -> Permissions")
-                    }.check()
+                        .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        .onRationale { _, token ->
+                            token.continuePermissionRequest()
+                        }
+                        .onResult {
+                            if (it.isGranted)
+                                restoreData()
+                            else
+                                showDialog(content = "Enable \"Read External Storage\" permission for Novel Library " +
+                                        "from your device Settings -> Applications -> Novel Library -> Permissions")
+                        }.check()
 
             }
 
@@ -126,26 +132,32 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
 
             getString(R.string.backup_data) -> {
                 Mayi.withActivity(this@BackupSettingsActivity)
-                    .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    .onResult {
-                        if (it.isGranted)
-                            showFolderChooserDialog(getString(R.string.backup))
-                        else
-                            showDialog(content = "Enable \"Write External Storage\" permission for Novel Library " +
-                                "from your device Settings -> Applications -> Novel Library -> Permissions")
-                    }.check()
+                        .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        .onRationale { _, token ->
+                            token.continuePermissionRequest()
+                        }
+                        .onResult {
+                            if (it.isGranted)
+                                showFolderChooserDialog(getString(R.string.backup))
+                            else
+                                showDialog(content = "Enable \"Write External Storage\" permission for Novel Library " +
+                                        "from your device Settings -> Applications -> Novel Library -> Permissions")
+                        }.check()
             }
 
             getString(R.string.restore_data) -> {
                 Mayi.withActivity(this@BackupSettingsActivity)
-                    .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    .onResult {
-                        if (it.isGranted)
-                            showFolderChooserDialog(getString(R.string.restore))
-                        else
-                            showDialog(content = "Enable \"Read External Storage\" permission for Novel Library " +
-                                "from your device Settings -> Applications -> Novel Library -> Permissions")
-                    }.check()
+                        .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        .onRationale { _, token ->
+                            token.continuePermissionRequest()
+                        }
+                        .onResult {
+                            if (it.isGranted)
+                                showFolderChooserDialog(getString(R.string.restore))
+                            else
+                                showDialog(content = "Enable \"Read External Storage\" permission for Novel Library " +
+                                        "from your device Settings -> Applications -> Novel Library -> Permissions")
+                        }.check()
 
             }
 
@@ -178,7 +190,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
             confirmDialogBuilder.content(content)
 
         confirmDialogBuilder
-            .iconRes(iconRes)
+                .iconRes(iconRes)
 
         if (!isProgress)
             confirmDialogBuilder.positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
@@ -189,11 +201,11 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
 
     private fun showFolderChooserDialog(tag: String) {
         FolderChooserDialog.Builder(this)
-            .chooseButton(R.string.okay)  // changes label of the choose button
-            .initialPath(Environment.getExternalStorageDirectory().path)  // changes initial path, defaults to external storage directory
-            .tag(tag)
-            .goUpLabel("...") // custom go up label, default label is "..."
-            .show(this)
+                .chooseButton(R.string.okay)  // changes label of the choose button
+                .initialPath(Environment.getExternalStorageDirectory().path)  // changes initial path, defaults to external storage directory
+                .tag(tag)
+                .goUpLabel("...") // custom go up label, default label is "..."
+                .show(this)
     }
 
     override fun onDestroy() {
@@ -388,23 +400,23 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
     //region Clear Cache & Data
     private fun deleteFilesDialog() {
         MaterialDialog.Builder(this)
-            .title(getString(R.string.clear_data))
-            .content(getString(R.string.clear_data_description))
-            .positiveText(R.string.clear)
-            .negativeText(R.string.cancel)
-            .onPositive { dialog, _ ->
-                val progressDialog = MaterialDialog.Builder(this)
-                    .title(getString(R.string.clearing_data))
-                    .content(getString(R.string.please_wait))
-                    .progress(true, 0)
-                    .cancelable(false)
-                    .canceledOnTouchOutside(false)
-                    .show()
-                deleteFiles(progressDialog)
-                dialog.dismiss()
-            }
-            .onNegative { dialog, _ -> dialog.dismiss() }
-            .show()
+                .title(getString(R.string.clear_data))
+                .content(getString(R.string.clear_data_description))
+                .positiveText(R.string.clear)
+                .negativeText(R.string.cancel)
+                .onPositive { dialog, _ ->
+                    val progressDialog = MaterialDialog.Builder(this)
+                            .title(getString(R.string.clearing_data))
+                            .content(getString(R.string.please_wait))
+                            .progress(true, 0)
+                            .cancelable(false)
+                            .canceledOnTouchOutside(false)
+                            .show()
+                    deleteFiles(progressDialog)
+                    dialog.dismiss()
+                }
+                .onNegative { dialog, _ -> dialog.dismiss() }
+                .show()
     }
 
     private fun deleteFiles(dialog: MaterialDialog) {
@@ -755,30 +767,30 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
 
         // dialog.dismiss()
         MaterialDialog.Builder(this)
-            .title(title)
-            .items(R.array.backup_and_restore_options)
-            .itemsCallbackMultiChoice(arrayOf(0, 1, 2), { _, which, _ ->
-                if (which.isNotEmpty())
-                    when (tag) {
-                        getString(R.string.backup) -> {
-                            if (folder.canWrite()) {
-                                val backupDir = File(folder, BACKUP_DIR)
-                                backupData(backupDir, which.contains(0), which.contains(1), which.contains(2))
-                            } else
-                                showDialog(content = "Cannot write to SD card. Please check your SD card permissions")
-                        }
+                .title(title)
+                .items(R.array.backup_and_restore_options)
+                .itemsCallbackMultiChoice(arrayOf(0, 1, 2), { _, which, _ ->
+                    if (which.isNotEmpty())
+                        when (tag) {
+                            getString(R.string.backup) -> {
+                                if (folder.canWrite()) {
+                                    val backupDir = File(folder, BACKUP_DIR)
+                                    backupData(backupDir, which.contains(0), which.contains(1), which.contains(2))
+                                } else
+                                    showDialog(content = "Cannot write to SD card. Please check your SD card permissions")
+                            }
 
-                        getString(R.string.restore) -> {
-                            if (folder.canRead() && folder.canWrite()) {
-                                restoreData(folder, which.contains(0), which.contains(1), which.contains(2))
-                            } else
-                                showDialog(content = "Cannot read or write to SD card. Please check your SD card permissions")
+                            getString(R.string.restore) -> {
+                                if (folder.canRead() && folder.canWrite()) {
+                                    restoreData(folder, which.contains(0), which.contains(1), which.contains(2))
+                                } else
+                                    showDialog(content = "Cannot read or write to SD card. Please check your SD card permissions")
+                            }
                         }
-                    }
-                true
-            })
-            .positiveText(R.string.okay)
-            .show()
+                    true
+                })
+                .positiveText(R.string.okay)
+                .show()
 
     }
 

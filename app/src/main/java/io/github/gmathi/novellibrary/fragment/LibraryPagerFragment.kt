@@ -50,7 +50,7 @@ class LibraryPagerFragment : BaseFragment() {
 
         //We Manually add this because we want it to be static and the name to be change in different languages
         novelSections.clear()
-        novelSections.add(NovelSection(-1L, "Currently Reading"))
+        novelSections.add(NovelSection(-1L, getString(R.string.default_novel_section_name)))
         novelSections.addAll(dbHelper.getAllNovelSections())
 
         val titles = Array(novelSections.size, init = {

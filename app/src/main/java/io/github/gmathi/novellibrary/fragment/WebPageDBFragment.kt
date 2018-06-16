@@ -23,6 +23,7 @@ import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.getWebPage
+import io.github.gmathi.novellibrary.database.getWebPagesCount
 import io.github.gmathi.novellibrary.database.updateWebPage
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.ReaderSettingsEvent
@@ -53,20 +54,22 @@ class WebPageDBFragment : BaseFragment() {
 
     companion object {
         private const val NOVEL_ID = "novelId"
-        private const val ORDER_ID = "orderId"
+        private const val SOURCE_ID = "sourceId"
+        private const val OFFSET = "offset"
 
-        fun newInstance(novelId: Long, orderId: Long): WebPageDBFragment {
+        fun newInstance(novelId: Long, sourceId: Long, offset: Int): WebPageDBFragment {
             val fragment = WebPageDBFragment()
             val args = Bundle()
             args.putLong(NOVEL_ID, novelId)
-            args.putLong(ORDER_ID, orderId)
+            args.putLong(SOURCE_ID, sourceId)
+            args.putInt(OFFSET, offset)
             fragment.arguments = args
             return fragment
         }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-        inflater.inflate(R.layout.fragment_reader, container, false)
+            inflater.inflate(R.layout.fragment_reader, container, false)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -89,16 +92,13 @@ class WebPageDBFragment : BaseFragment() {
             history = savedInstanceState.getSerializable("history") as ArrayList<WebPage>
         } else {
             val novelId = arguments!!.getLong(NOVEL_ID)
-            val novel = dbHelper.getNovel(novelId)
-            val orderId = if (dataCenter.japSwipe) novel!!.chaptersCount - arguments!!.getLong(ORDER_ID) - 1 else arguments!!.getLong(ORDER_ID)
+            val sourceId = arguments!!.getLong(SOURCE_ID)
+            val offset = if (dataCenter.japSwipe) dbHelper.getWebPagesCount(novelId, sourceId) - arguments!!.getInt(OFFSET) - 1 else arguments!!.getInt(OFFSET)
 
-            dbHelper.getWebPage(novelId, orderId)
-
-            val intentWebPage = dbHelper.getWebPage(novelId, orderId)
+            val intentWebPage = dbHelper.getWebPage(novelId, sourceId, offset)
             if (intentWebPage == null) activity.finish()
             else webPage = intentWebPage
         }
-
 
         // Load data from webPage into webView
         loadData()
@@ -122,10 +122,10 @@ class WebPageDBFragment : BaseFragment() {
                 override fun onFailure() {
                     if (activity != null)
                         MaterialDialog.Builder(activity!!)
-                            .content("Cloud Flare ByPass Failed")
-                            .positiveText("Try Again")
-                            .onPositive { dialog, _ -> dialog.dismiss(); checkForCloudFlare() }
-                            .show()
+                                .content("Cloud Flare ByPass Failed")
+                                .positiveText("Try Again")
+                                .onPositive { dialog, _ -> dialog.dismiss(); checkForCloudFlare() }
+                                .show()
                 }
             }
 
@@ -175,7 +175,7 @@ class WebPageDBFragment : BaseFragment() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 val cookies = CookieManager.getInstance().getCookie(url)
-                Log.e("WebViewDBFragment", "All the cookiesMap in a string:" + cookies)
+                Log.e("WebViewDBFragment", "All the cookiesMap in a string: $cookies")
 
                 if (cookies != null && cookies.contains("cfduid") && cookies.contains("cf_clearance")) {
                     val map: HashMap<String, String> = HashMap()
@@ -186,6 +186,12 @@ class WebPageDBFragment : BaseFragment() {
                     }
                     NovelApi.cookies = cookies
                     NovelApi.cookiesMap = map
+                }
+
+                webPage?.let {
+                    if (it.metaData.containsKey("scrollY")) {
+                        view?.scrollTo(0, (it.metaData["scrollY"] ?: "0").toInt())
+                    }
                 }
 
             }
@@ -220,7 +226,6 @@ class WebPageDBFragment : BaseFragment() {
 
         swipeRefreshLayout.apply {
             isRefreshing = false
-            isEnabled = false
         }
 
         val url = webPage!!.redirectedUrl ?: internalFilePath
@@ -250,13 +255,13 @@ class WebPageDBFragment : BaseFragment() {
     private fun loadCreatedDocument() {
         webPage?.let {
             readerWebView.loadDataWithBaseURL(
-                if (it.filePath != null) "$FILE_PROTOCOL${it.filePath}" else doc?.location(),
-                doc?.outerHtml(),
-                "text/html", "UTF-8", null
+                    if (it.filePath != null) "$FILE_PROTOCOL${it.filePath}" else doc?.location(),
+                    doc?.outerHtml(),
+                    "text/html", "UTF-8", null
             )
-            if (it.metaData.containsKey("scrollY")) {
-                readerWebView.scrollTo(0, it.metaData["scrollY"]!!.toInt())
-            }
+//            if (it.metaData.containsKey("scrollY")) {
+//                readerWebView.scrollTo(0, (it.metaData["scrollY"] ?: "0").toInt())
+//            }
         }
     }
 
@@ -274,7 +279,7 @@ class WebPageDBFragment : BaseFragment() {
             return
         }
 
-        async download@ {
+        async download@{
             try {
 
                 doc = await { NovelApi.getDocumentWithUserAgent(url) }

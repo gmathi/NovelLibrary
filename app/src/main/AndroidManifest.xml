@@ -101,7 +101,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.ChaptersActivity"
+            android:name=".activity.OldChaptersActivity"
             android:label="@string/title_activity_chapters"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
@@ -195,6 +195,10 @@
         <activity
             android:name=".activity.NovelSectionsActivity"
             android:label="@string/title_activity_novel_sections"
+            android:theme="@style/DarkTheme_DarkSide" />
+        <activity
+            android:name=".activity.ChaptersPagerActivity"
+            android:label="@string/title_activity_chapters"
             android:theme="@style/DarkTheme_DarkSide" />
     </application>
 
