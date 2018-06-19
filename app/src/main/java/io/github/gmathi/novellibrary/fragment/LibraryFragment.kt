@@ -439,7 +439,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     if (novelSectionId == -1L)
                         id = novelSections[which].id
                     else if (which != 0)
-                        id = novelSections[which + 1].id
+                        id = novelSections[which - 1].id
 
                     dbHelper.updateNovelSectionId(adapter.items[position].id, id)
                     EventBus.getDefault().post(NovelSectionEvent(id))
