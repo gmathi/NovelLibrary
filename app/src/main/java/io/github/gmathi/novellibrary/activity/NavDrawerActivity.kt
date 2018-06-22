@@ -66,16 +66,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             currentNavId = savedInstanceState.getInt("currentNavId")
         }
 
-        if (intent.extras != null) {
-            if (intent.extras.containsKey("novelsChapMap")) {
-                @Suppress("UNCHECKED_CAST")
-                val novelsMap = intent.extras.getSerializable("novelsChapMap") as? HashMap<Novel, Int>
-                novelsMap?.keys?.forEach {
-                    dbHelper.updateTotalChapterCount(it.id, novelsMap[it]!!.toLong())
-                }
-            }
-        }
-
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
         if (dataCenter.enableCloudFlare && Utils.isConnectedToNetwork(this)) {

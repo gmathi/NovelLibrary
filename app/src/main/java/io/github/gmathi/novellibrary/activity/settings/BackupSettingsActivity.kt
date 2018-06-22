@@ -505,9 +505,9 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
 //        super.onActivityResult(requestCode, resultCode, data)
 //        when (requestCode) {
 //            REQUEST_CODE_SIGN_IN_BACKUP -> {
-//                Utils.info(TAG, "Sign in request code")
+//                Logs.info(TAG, "Sign in request code")
 //                if (resultCode != RESULT_OK) {
-//                    Utils.error(TAG, "Sign-in failed. Phase 1")
+//                    Logs.error(TAG, "Sign-in failed. Phase 1")
 //                    showDialog(content = "Backup Failed! (sign-on fail)")
 //                    return
 //                }
@@ -517,15 +517,15 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
 //                    initializeDriveClient(getAccountTask.result)
 //                    backupToGoogleDrive()
 //                } else {
-//                    Utils.error(TAG, "Sign-in failed. Phase 2");
+//                    Logs.error(TAG, "Sign-in failed. Phase 2");
 //                    showDialog(content = "Backup Failed! (sign-on2 fail)")
 //                }
 //            }
 //
 //            REQUEST_CODE_SIGN_IN_RESTORE -> {
-//                Utils.info(TAG, "Sign in request code")
+//                Logs.info(TAG, "Sign in request code")
 //                if (resultCode != RESULT_OK) {
-//                    Utils.error(TAG, "Sign-in failed. Phase 1")
+//                    Logs.error(TAG, "Sign-in failed. Phase 1")
 //                    showDialog(content = "Restore Failed! (sign-on fail)")
 //                    return
 //                }
@@ -535,7 +535,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
 //                    initializeDriveClient(getAccountTask.result)
 //                    restoreFromGoogleDrive()
 //                } else {
-//                    Utils.error(TAG, "Sign-in failed. Phase 2");
+//                    Logs.error(TAG, "Sign-in failed. Phase 2");
 //                    showDialog(content = "Restore Failed! (sign-on2 fail)")
 //                }
 //            }
@@ -616,7 +616,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
 //                            .build()
 //                        val createFileTask = mDriveResourceClient?.createFile(dbFolder, changeSet, driveContents) as Task<DriveFile>
 //                        val createFileTaskResult = await { Tasks.await(createFileTask) }
-//                        Utils.info(TAG, createFileTaskResult.toString())
+//                        Logs.info(TAG, createFileTaskResult.toString())
 //                    }
 //                }
 //
@@ -652,7 +652,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
 //                            .build()
 //                        val createFileTask = mDriveResourceClient?.createFile(sharedPrefFolder, changeSet, driveContents) as Task<DriveFile>
 //                        val createFileTaskResult = await { Tasks.await(createFileTask) }
-//                        Utils.info(TAG, createFileTaskResult.toString())
+//                        Logs.info(TAG, createFileTaskResult.toString())
 //                    }
 //                }
 //

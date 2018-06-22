@@ -79,6 +79,7 @@ class ReaderDBPagerActivity :
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader_pager)
+        sourceId = intent.getLongExtra("sourceId", -1L)
 
         val tempNovel = intent.getSerializableExtra("novel") as Novel?
         if (tempNovel == null || tempNovel.chaptersCount.toInt() == 0)
@@ -91,15 +92,10 @@ class ReaderDBPagerActivity :
         if (dataCenter.keepScreenOn)
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        webPage = if (novel.currentWebPageId != -1L)
-            dbHelper.getWebPage(novel.currentWebPageId)
+        webPage = if (novel.currentWebPageUrl != null)
+            dbHelper.getWebPage(novel.currentWebPageUrl!!)
         else
-            dbHelper.getWebPage(novel.id, 0)
-
-        webPage?.let {
-            position = intent.getIntExtra("position", it.orderId.toInt())
-            sourceId = intent.getLongExtra("sourceId", -1L)
-        }
+            dbHelper.getWebPage(novel.id, sourceId, 0)
 
         totalSize = dbHelper.getWebPagesCount(novel.id, sourceId)
 
@@ -130,11 +126,15 @@ class ReaderDBPagerActivity :
     }
 
     private fun updateBookmark(webPage: WebPage) {
-        if (webPage.novelId != -1L && webPage.id != -1L)
             dbHelper.updateBookmarkCurrentWebPageId(webPage.novelId, webPage.id)
-        if (webPage.id != -1L) {
-            webPage.isRead = 1
-            dbHelper.updateWebPageReadStatus(webPage)
+        if (novel.id != -1L) {
+            dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, webPage.url)
+            val webPageSettings = dbHelper.getWebPageSettings(webPage.url)
+            if (webPageSettings != null) {
+                webPageSettings.isRead = 1
+                dbHelper.updateWebPageSettingsReadStatus(webPageSettings)
+            }
+
         }
     }
 
@@ -157,7 +157,7 @@ class ReaderDBPagerActivity :
             }
 
             window.decorView.systemUiVisibility = immersiveModeOptions
-        } 
+        }
     }
 
     override fun onPageSelected(position: Int) {
@@ -266,11 +266,16 @@ class ReaderDBPagerActivity :
     }
 
     fun checkUrl(url: String): Boolean {
-        val webPage = dbHelper.getWebPageByRedirectedUrl(novel.id, url) ?: return false
-
-        viewPager.currentItem = webPage.orderId.toInt()
-        updateBookmark(webPage)
-        return true
+        val webPageSettings = dbHelper.getWebPageSettingsByRedirectedUrl(url) ?: return false
+        val webPage = dbHelper.getWebPage(webPageSettings.url) ?: return false
+        val index = dbHelper.getAllWebPages(novel.id, sourceId).indexOf(webPage)
+        return if (index == -1)
+            false
+        else {
+            viewPager.currentItem = index
+            updateBookmark(webPage)
+            true
+        }
     }
 
     private fun slideMenuSetup(savedInstanceState: Bundle?) {
@@ -340,6 +345,9 @@ class ReaderDBPagerActivity :
             FONTS -> {
                 Mayi.withActivity(this@ReaderDBPagerActivity)
                         .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        .onRationale { _, token ->
+                            token.continuePermissionRequest()
+                        }
                         .onResult {
                             if (it.isGranted)
                                 openFontChooserDialog()

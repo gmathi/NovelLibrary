@@ -61,6 +61,7 @@ object Constants {
     //region Meta Data Keys
 
     const val MD_OTHER_LINKED_WEB_PAGES = "otherWebPages"
+    const val MD_OTHER_LINKED_WEB_PAGES_SETTINGS = "otherWebPagesSettings"
 
 
     //endregion

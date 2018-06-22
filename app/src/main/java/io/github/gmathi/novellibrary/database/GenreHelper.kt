@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.database
 import android.content.ContentValues
 import android.util.Log
 import io.github.gmathi.novellibrary.model.Genre
+import io.github.gmathi.novellibrary.util.Logs
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -58,7 +59,7 @@ fun DBHelper.getGenres(novelId: Long): List<String>? {
 
 fun DBHelper.getGenreFromQuery(selectQuery: String): Genre? {
     val db = this.readableDatabase
-    Log.d(LOG, selectQuery)
+    Logs.debug(LOG, selectQuery)
     val cursor = db.rawQuery(selectQuery, null)
     var genre: Genre? = null
     if (cursor != null) {
@@ -75,7 +76,7 @@ fun DBHelper.getGenreFromQuery(selectQuery: String): Genre? {
 fun DBHelper.getAllGenre(): List<Genre> {
     val list = ArrayList<Genre>()
     val selectQuery = "SELECT  * FROM " + DBKeys.TABLE_GENRE
-    Log.d(LOG, selectQuery)
+    Logs.debug(LOG, selectQuery)
     val db = this.readableDatabase
     val c = db.rawQuery(selectQuery, null)
     if (c != null) {

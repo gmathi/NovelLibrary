@@ -12,10 +12,10 @@ import java.io.IOException
 import java.net.URI
 
 
-fun NovelApi.getChapterUrls(novel: Novel): ArrayList<WebPage>? {
+fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayList<WebPage>? {
     val host = URI(novel.url).host
     when {
-        host.contains(HostNames.NOVEL_UPDATES) -> return getNUALLChapterUrlsWithSources(novel)
+        host.contains(HostNames.NOVEL_UPDATES) -> return if (withSources) getNUALLChapterUrlsWithSources(novel) else getNUALLChapterUrls(novel)
         host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterUrls(novel.url)
         host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterUrls(novel.url)
     }
@@ -23,7 +23,7 @@ fun NovelApi.getChapterUrls(novel: Novel): ArrayList<WebPage>? {
 }
 
 //Get RoyalRoad Chapter URLs
-fun getRRChapterUrls(url: String): ArrayList<WebPage>? {
+fun NovelApi.getRRChapterUrls(url: String): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
         val document = Jsoup.connect(url).get()
@@ -36,7 +36,7 @@ fun getRRChapterUrls(url: String): ArrayList<WebPage>? {
     return chapters
 }
 
-fun getWLNUChapterUrls(url: String): ArrayList<WebPage>? {
+fun NovelApi.getWLNUChapterUrls(url: String): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
         val document = Jsoup.connect(url).get()
@@ -49,16 +49,8 @@ fun getWLNUChapterUrls(url: String): ArrayList<WebPage>? {
     return chapters
 }
 
-fun getNUChapterUrlsFromDoc(doc: Document): ArrayList<WebPage> {
-    val chapters = ArrayList<WebPage>()
-    val tableElement = doc.body().getElementsByAttributeValueMatching("id", "myTable").firstOrNull { it.tagName() == "table" }
-    val elements = tableElement?.getElementsByClass("chp-release")?.filter { it.tagName() == "a" }
-    if (elements != null)
-        (0..elements.size).filter { it % 2 == 1 }.mapTo(chapters) { WebPage(url = elements[it].attr("href"), chapter = elements[it].text()) }
-    return chapters
-}
 
-fun getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
+fun NovelApi.getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
     val chapters = ArrayList<WebPage>()
     if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 

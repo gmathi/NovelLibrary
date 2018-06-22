@@ -19,6 +19,7 @@ import android.webkit.WebViewClient
 import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import com.loopj.android.http.SyncHttpClient
+import io.github.gmathi.novellibrary.util.Logs
 
 class CloudFlare(val context: Context, val listener: Listener) {
 
@@ -58,11 +59,11 @@ class CloudFlare(val context: Context, val listener: Listener) {
             for (cookie in parts) {
                 if (cookie.contains(DataCenter.CF_COOKIES_DUID)) {
                     dataCenter.cfDuid = getCookieValue(cookie)
-                    Utils.error(TAG, dataCenter.cfDuid)
+                    Logs.error(TAG, dataCenter.cfDuid)
                 }
                 if (cookie.contains(DataCenter.CF_COOKIES_CLEARANCE)) {
                     dataCenter.cfClearance = getCookieValue(cookie)
-                    Utils.error(TAG, dataCenter.cfClearance)
+                    Logs.error(TAG, dataCenter.cfClearance)
                 }
             }
             dataCenter.cfCookiesString = cookies
@@ -85,7 +86,7 @@ class CloudFlare(val context: Context, val listener: Listener) {
 
 
     fun check() {
-        Utils.warning(TAG, "Checking for CloudFlare")
+        Logs.warning(TAG, "Checking for CloudFlare")
         val client = SyncHttpClient()
 
         if (!dataCenter.cfClearance.isBlank() && !dataCenter.cfDuid.isBlank()) {
@@ -118,7 +119,7 @@ class CloudFlare(val context: Context, val listener: Listener) {
             @SuppressLint("SetJavaScriptEnabled")
             override fun onFailure(statusCode: Int, headers: Array<out Header>?, responseString: String?, throwable: Throwable?) {
                 if (statusCode != 0) {
-                    Utils.error(TAG, "Failed with code: " + statusCode)
+                    Logs.error(TAG, "Failed with code: " + statusCode)
 
                     //(context as AppCompatActivity).runOnUiThread {
                     Handler(Looper.getMainLooper()).post {
@@ -151,18 +152,18 @@ class CloudFlare(val context: Context, val listener: Listener) {
 
             fun handleUri(uri: Uri?): Boolean {
                 val url = uri.toString()
-                Utils.info(TAG, "Redirect to url:$url")
+                Logs.info(TAG, "Redirect to url:$url")
 
                 if (url.contains(NovelUpdatesHost) && !url.contains("cdn-cgi")) {
-                    Utils.info(TAG, "Extracting Cookies")
+                    Logs.info(TAG, "Extracting Cookies")
                     val cookies = CookieManager.getInstance().getCookie(url)
-                    Utils.info(TAG, "Cookies: " + cookies?.toString())
+                    Logs.info(TAG, "Cookies: " + cookies?.toString())
                     if (cookies != null && (cookies.contains(DataCenter.CF_COOKIES_DUID) || cookies.contains(DataCenter.CF_COOKIES_CLEARANCE))) {
                         dataCenter.userAgent = webView.settings.userAgentString
                         saveCookie(cookies)
                         listener.onSuccess()
                     } else {
-                        Utils.error(TAG, "CloudFlare ByPass Failed!!")
+                        Logs.error(TAG, "CloudFlare ByPass Failed!!")
                         listener.onFailure()
                     }
                     return true
@@ -175,9 +176,9 @@ class CloudFlare(val context: Context, val listener: Listener) {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 val cookies = CookieManager.getInstance().getCookie(url)
-                Utils.error(TAG, "OnPageFinished: Cookies: $cookies")
+                Logs.error(TAG, "OnPageFinished: Cookies: $cookies")
                 if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                    Utils.error(TAG, "Inside: if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR2) ")
+                    Logs.error(TAG, "Inside: if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR2) ")
                 }
 
                 val uri = Uri.parse(url)

@@ -74,45 +74,6 @@ object Utils {
 
     //endregion
 
-    //region UtilLogs
-    fun debug(tag: String, message: String) {
-        if (BuildConfig.DEBUG) {
-            Log.d(tag, message)
-        }
-    }
-
-    fun info(tag: String, message: String) {
-        if (BuildConfig.DEBUG) {
-            Log.i(tag, message)
-        }
-    }
-
-    fun warning(tag: String, message: String) {
-        if (BuildConfig.DEBUG) {
-            Log.w(tag, message)
-        }
-    }
-
-    fun warning(tag: String, message: String, throwable: Throwable) {
-        if (BuildConfig.DEBUG) {
-            Log.w(tag, message, throwable)
-        }
-    }
-
-    fun error(tag: String, message: String) {
-        if (BuildConfig.DEBUG) {
-            Log.e(tag, message)
-        }
-    }
-
-    fun error(tag: String, message: String, throwable: Throwable) {
-        if (BuildConfig.DEBUG) {
-            Log.e(tag, message, throwable)
-        }
-    }
-
-
-    //endregion
 
     fun getHostDir(context: Context, url: String): File {
         val uri = Uri.parse(url)

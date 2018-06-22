@@ -93,9 +93,9 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         val novel = dbHelper.getNovel(item)
         if (novel?.imageUrl != null) {
             Glide.with(this)
-                .load(novel.imageUrl?.getGlideUrl())
-                .apply(RequestOptions.circleCropTransform())
-                .into(itemView.novelImageView)
+                    .load(novel.imageUrl?.getGlideUrl())
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(itemView.novelImageView)
         }
         itemView.novelTitleTextView.text = item
         //val downloadedPages = dbHelper.getDownloadedChapterCount(novel!!.id)
@@ -119,7 +119,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 itemView.playPauseImage.tag == Download.STATUS_PAUSED -> {
                     itemView.playPauseImage.setImageResource(R.drawable.ic_pause_white_vector)
                     itemView.playPauseImage.tag = Download.STATUS_IN_QUEUE
-                    dbHelper.updateDownloadStatus(Download.STATUS_IN_QUEUE, item)
+                    dbHelper.updateDownloadStatusNovelName(Download.STATUS_IN_QUEUE, item)
                     if (!Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME))
                         startDownloadNovelService(item)
                     else {
@@ -130,7 +130,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 itemView.playPauseImage.tag == Download.STATUS_IN_QUEUE -> {
                     itemView.playPauseImage.setImageResource(R.drawable.ic_play_arrow_white_vector)
                     itemView.playPauseImage.tag = Download.STATUS_PAUSED
-                    dbHelper.updateDownloadStatus(Download.STATUS_PAUSED, item)
+                    dbHelper.updateDownloadStatusNovelName(Download.STATUS_PAUSED, item)
                     itemView.novelProgressText.text = getString(R.string.download_paused)
                     EventBus.getDefault().post(DownloadActionEvent(item, DownloadNovelService.ACTION_PAUSE))
                 }
@@ -185,23 +185,23 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     private fun confirmDeleteDialog(novelName: String) {
         MaterialDialog.Builder(this)
-            .title(getString(R.string.confirm_remove))
-            .content(getString(R.string.confirm_remove_download_description))
-            .positiveText(R.string.remove)
-            .negativeText(R.string.cancel)
-            .onPositive { dialog, _ ->
-                run {
-                    dbHelper.deleteDownloads(novelName)
-                    adapter.removeItem(novelName)
-                    dialog.dismiss()
+                .title(getString(R.string.confirm_remove))
+                .content(getString(R.string.confirm_remove_download_description))
+                .positiveText(R.string.remove)
+                .negativeText(R.string.cancel)
+                .onPositive { dialog, _ ->
+                    run {
+                        dbHelper.deleteDownloads(novelName)
+                        adapter.removeItem(novelName)
+                        dialog.dismiss()
+                    }
                 }
-            }
-            .onNegative { dialog, _ ->
-                run {
-                    dialog.dismiss()
+                .onNegative { dialog, _ ->
+                    run {
+                        dialog.dismiss()
+                    }
                 }
-            }
-            .show()
+                .show()
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {

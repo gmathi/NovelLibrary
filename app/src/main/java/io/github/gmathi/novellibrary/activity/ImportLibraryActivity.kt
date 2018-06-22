@@ -16,10 +16,10 @@ import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.database.addWebPages
-import io.github.gmathi.novellibrary.database.addWebPagesFromImportList
+import io.github.gmathi.novellibrary.database.createWebPage
 import io.github.gmathi.novellibrary.database.getNovelByUrl
 import io.github.gmathi.novellibrary.database.insertNovel
+import io.github.gmathi.novellibrary.database.updateBookmarkCurrentWebPageUrl
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.ImportListItem
 import io.github.gmathi.novellibrary.network.HostNames
@@ -33,8 +33,7 @@ import kotlinx.android.synthetic.main.content_import_library.*
 import kotlinx.android.synthetic.main.listitem_import_list.view.*
 
 
-class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<ImportListItem>,
-    ActionMode.Callback {
+class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<ImportListItem>, ActionMode.Callback {
 
     lateinit var adapter: GenericAdapter<ImportListItem>
 
@@ -256,20 +255,20 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
 
     private fun startImport() {
         val dialog = MaterialDialog.Builder(this)
-            .title("Importing…")
-            .content(R.string.please_wait)
-            .progress(false, updateSet.size, true)
-            .negativeText(R.string.cancel)
-            .cancelable(false)
-            .autoDismiss(false)
-            .onNegative { dialog, _ ->
-                run {
-                    async.cancelAll()
-                    actionMode?.finish()
-                    dialog.dismiss()
+                .title("Importing…")
+                .content(R.string.please_wait)
+                .progress(false, updateSet.size, true)
+                .negativeText(R.string.cancel)
+                .cancelable(false)
+                .autoDismiss(false)
+                .onNegative { dialog, _ ->
+                    run {
+                        async.cancelAll()
+                        actionMode?.finish()
+                        dialog.dismiss()
+                    }
                 }
-            }
-            .show()
+                .show()
         async {
             updateSet.asSequence().forEach {
                 dialog.setContent("Importing: ${it.novelName}")
@@ -284,12 +283,13 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
     private fun importNovelToLibrary(importListItem: ImportListItem) {
         val novel = NovelApi.getNUNovelDetails(importListItem.novelUrl!!) ?: return
         novel.id = dbHelper.insertNovel(novel)
-        val webPages = NovelApi.getChapterUrls(novel)?.asReversed() ?: return
-        val index = webPages.indexOfFirst { it.chapter == importListItem.currentlyReadingChapterName }
-        if (index != -1) {
-            dbHelper.addWebPagesFromImportList(webPages, novel, index)
-        } else {
-            dbHelper.addWebPages(webPages, novel)
+        val webPages = NovelApi.getChapterUrls(novel)
+        webPages?.forEach {
+            dbHelper.createWebPage(it)
+        }
+        val currentReaderWebPage = webPages?.firstOrNull { it.chapter == importListItem.currentlyReadingChapterName }
+        currentReaderWebPage?.let {
+            dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, it.url)
         }
     }
 

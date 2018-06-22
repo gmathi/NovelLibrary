@@ -53,15 +53,15 @@ fun Activity.startChaptersActivity(novel: Novel, jumpToReader: Boolean = false) 
     startActivityForResult(intent, Constants.CHAPTER_ACT_REQ_CODE)
 }
 
-fun Activity.startOldChaptersActivity(novel: Novel, jumpToReader: Boolean = false) {
-    val intent = Intent(this, OldChaptersActivity::class.java)
-    val bundle = Bundle()
-    bundle.putSerializable("novel", novel)
-    if (jumpToReader)
-        bundle.putBoolean(Constants.JUMP, true)
-    intent.putExtras(bundle)
-    startActivityForResult(intent, Constants.CHAPTER_ACT_REQ_CODE)
-}
+//fun Activity.startOldChaptersActivity(novel: Novel, jumpToReader: Boolean = false) {
+//    val intent = Intent(this, OldChaptersActivity::class.java)
+//    val bundle = Bundle()
+//    bundle.putSerializable("novel", novel)
+//    if (jumpToReader)
+//        bundle.putBoolean(Constants.JUMP, true)
+//    intent.putExtras(bundle)
+//    startActivityForResult(intent, Constants.CHAPTER_ACT_REQ_CODE)
+//}
 
 fun Activity.startMetadataActivity(novel: Novel) {
     val intent = Intent(this, MetaDataActivity::class.java)

@@ -17,6 +17,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.model.WebPageSettings
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterCount
 import io.github.gmathi.novellibrary.network.getChapterUrls
@@ -29,16 +30,6 @@ class BackgroundNovelSyncTask : GcmTaskService() {
     override fun onRunTask(taskParams: TaskParams): Int {
         val context = this@BackgroundNovelSyncTask
         val dbHelper = DBHelper.getInstance(context)
-//
-//        //TODO: DELETE Test Code
-//        val novellist = dbHelper.getAllNovels();
-//        if (novellist != null) {
-//            novellist.forEach({
-//                it?.newReleasesCount = 400
-//                it?.chaptersCount = 400
-//                dbHelper.updateNovel(it!!)
-//            })
-//        }
 
         try {
             if (Utils.isConnectedToNetwork(context))
@@ -79,17 +70,21 @@ class BackgroundNovelSyncTask : GcmTaskService() {
             updateChapters(novel, dbHelper)
         }
 
+        val novelsList: ArrayList<Novel> = ArrayList()
+        totalCountMap.forEach {
+            val novel = dbHelper.getNovel(it.key.id)!!
+            novelsList.add(novel)
+        }
+
         val novelDetailsIntent = Intent(this, NavDrawerActivity::class.java)
         novelDetailsIntent.action = Constants.Action.MAIN_ACTION
         novelDetailsIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val novelDetailsBundle = Bundle()
         novelDetailsBundle.putInt("currentNavId", R.id.nav_library)
-        novelDetailsBundle.putSerializable("novelsChapMap", totalCountMap)
         novelDetailsIntent.putExtras(novelDetailsBundle)
         val contentIntent = PendingIntent.getActivity(this.applicationContext, 0, novelDetailsIntent, PendingIntent.FLAG_CANCEL_CURRENT)
 
-
-        showBundledNotifications(this, totalCountMap, contentIntent)
+        showBundledNotifications(this, novelsList, contentIntent)
 
     }
 
@@ -99,25 +94,23 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
         //Download latest chapters from network
         try {
-            val chapterList = NovelApi.getChapterUrls(novel)?.reversed()
-            chapterList?.let {
+            val chapters = NovelApi.getChapterUrls(novel) ?: ArrayList()
 
-                //We start the insertion from the last since that is faster, instead of checking the 1st 1000 chaps.
-                for (i in it.size - 1 downTo 0) {
-                    val webPage = dbHelper.getWebPage(novel.id, i.toLong())
-                    if (webPage == null) {
-                        it[i].orderId = i.toLong()
-                        it[i].novelId = novel.id
-                        dbHelper.createWebPage(it[i])
-                    } else
-                        return@let
+            //Save to DB if the novel is in Library
+            if (novel.id != -1L) {
+                dbHelper.updateChaptersAndReleasesCount(novel.id, chapters.size.toLong(), 0L)
+                for (i in 0 until chapters.size) {
+                    dbHelper.createWebPage(chapters[i])
+                    dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
                 }
             }
+
         } catch (e: Exception) {
             Crashlytics.log("Novel: $novel")
             Crashlytics.logException(e)
         }
     }
+
 
 //region Helper Methods
 
@@ -166,19 +159,19 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
     }
 
-    private fun showBundledNotifications(context: Context, novelMap: HashMap<Novel, Int>, contentIntent: PendingIntent) {
+    private fun showBundledNotifications(context: Context, novelsList: ArrayList<Novel>, contentIntent: PendingIntent) {
         val first = createNotificationBuilder(
                 context, getString(R.string.app_name), getString(R.string.group_notification_text), contentIntent)
         first.setGroupSummary(true).setGroup(KEY_NOTIFICATION_GROUP)
 
         val notificationList = ArrayList<Notification>()
 
-        novelMap.forEach { singleNovelMap ->
+        novelsList.forEach { novel ->
             val notificationBuilder = createNotificationBuilder(
                     context,
-                    singleNovelMap.key.name,
-                    getString(R.string.new_chapters_notification_content_single, singleNovelMap.key.newReleasesCount.toInt()),
-                    createNovelDetailsPendingIntent(novelMap, singleNovelMap.key))
+                    novel.name,
+                    getString(R.string.new_chapters_notification_content_single, novel.newReleasesCount.toInt()),
+                    createNovelDetailsPendingIntent(novel))
             notificationBuilder.setGroup(KEY_NOTIFICATION_GROUP)
             notificationList.add(notificationBuilder.build())
         }
@@ -213,13 +206,12 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         mNotificationManager.notify(id, notification)
     }
 
-    private fun createNovelDetailsPendingIntent(novelsMap: HashMap<Novel, Int>, novel: Novel): PendingIntent {
+    private fun createNovelDetailsPendingIntent(novel: Novel): PendingIntent {
         val novelDetailsIntent = Intent(this, NavDrawerActivity::class.java)
         novelDetailsIntent.action = Constants.Action.MAIN_ACTION
         novelDetailsIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val novelDetailsBundle = Bundle()
         novelDetailsBundle.putInt("currentNavId", R.id.nav_library)
-        novelDetailsBundle.putSerializable("novelsChapMap", novelsMap)
         novelDetailsBundle.putSerializable("novel", novel)
         novelDetailsIntent.putExtras(novelDetailsBundle)
         return PendingIntent.getActivity(this.applicationContext, novel.hashCode(), novelDetailsIntent, PendingIntent.FLAG_UPDATE_CURRENT)

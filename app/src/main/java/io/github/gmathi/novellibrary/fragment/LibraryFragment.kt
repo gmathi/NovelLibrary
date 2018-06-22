@@ -25,6 +25,7 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.model.NovelSectionEvent
+import io.github.gmathi.novellibrary.model.WebPageSettings
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterCount
 import io.github.gmathi.novellibrary.network.getChapterUrls
@@ -178,8 +179,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             itemView.newChapterCount.visibility = View.GONE
         }
 
-        if (item.currentWebPageId != -1L) {
-            val orderId = dbHelper.getWebPage(item.currentWebPageId)?.orderId
+        if (item.currentWebPageUrl != null) {
+            val orderId = dbHelper.getWebPage(item.currentWebPageUrl!!)?.orderId
             if (orderId != null) {
                 val progress = "${orderId + 1} / ${item.chaptersCount}"
                 itemView.novelProgressText.text = progress
@@ -187,7 +188,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         } else {
             itemView.novelProgressText.text = getString(R.string.no_bookmark)
         }
-
     }
 
     //endregion
@@ -287,20 +287,17 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
                 //Download latest chapters from network
                 try {
-                    val chapterList = await { NovelApi.getChapterUrls(novel) }?.reversed()
-                    chapterList?.let {
+                    val chapters = NovelApi.getChapterUrls(novel) ?: ArrayList()
 
-                        //We start the insertion from the last since that is faster, instead of checking the 1st 1000 chaps.
-                        for (i in it.size - 1 downTo 0) {
-                            val webPage = dbHelper.getWebPage(novel.id, i.toLong())
-                            if (webPage == null) {
-                                it[i].orderId = i.toLong()
-                                it[i].novelId = novel.id
-                                dbHelper.createWebPage(it[i])
-                            } else
-                                return@let
+                    //Save to DB if the novel is in Library
+                    if (novel.id != -1L) {
+                        dbHelper.updateChaptersAndReleasesCount(novel.id, chapters.size.toLong(), 0L)
+                        for (i in 0 until chapters.size) {
+                            dbHelper.createWebPage(chapters[i])
+                            dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
                         }
                     }
+
                 } catch (e: Exception) {
                     Crashlytics.log("Novel: $novel")
                     Crashlytics.logException(e)
@@ -343,7 +340,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     private fun startReader(novel: Novel) {
-        if (novel.currentWebPageId != -1L) {
+        if (novel.currentWebPageUrl != null) {
             activity?.startReaderDBPagerActivity(novel)
         } else {
             val confirmDialog = activity?.let {

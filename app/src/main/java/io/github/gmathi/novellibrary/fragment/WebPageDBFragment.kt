@@ -21,13 +21,14 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ReaderDBPagerActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.getWebPage
+import io.github.gmathi.novellibrary.database.getWebPageSettings
 import io.github.gmathi.novellibrary.database.getWebPagesCount
-import io.github.gmathi.novellibrary.database.updateWebPage
+import io.github.gmathi.novellibrary.database.updateWebPageSettings
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.model.WebPageSettings
 import io.github.gmathi.novellibrary.network.CloudFlare
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
@@ -47,9 +48,10 @@ import java.io.File
 class WebPageDBFragment : BaseFragment() {
 
     private var webPage: WebPage? = null
+    private var webPageSettings: WebPageSettings? = null
 
     var doc: Document? = null
-    var history: ArrayList<WebPage> = ArrayList()
+    var history: ArrayList<WebPageSettings> = ArrayList()
 
 
     companion object {
@@ -89,7 +91,8 @@ class WebPageDBFragment : BaseFragment() {
         @Suppress("UNCHECKED_CAST")
         if (savedInstanceState != null && savedInstanceState.containsKey("webPage")) {
             webPage = savedInstanceState.getSerializable("webPage") as WebPage
-            history = savedInstanceState.getSerializable("history") as ArrayList<WebPage>
+            webPageSettings = savedInstanceState.getSerializable("webPageSettings") as WebPageSettings
+            history = savedInstanceState.getSerializable("history") as ArrayList<WebPageSettings>
         } else {
             val novelId = arguments!!.getLong(NOVEL_ID)
             val sourceId = arguments!!.getLong(SOURCE_ID)
@@ -98,6 +101,8 @@ class WebPageDBFragment : BaseFragment() {
             val intentWebPage = dbHelper.getWebPage(novelId, sourceId, offset)
             if (intentWebPage == null) activity.finish()
             else webPage = intentWebPage
+
+            webPageSettings = dbHelper.getWebPageSettings(webPage!!.url)
         }
 
         // Load data from webPage into webView
@@ -188,7 +193,7 @@ class WebPageDBFragment : BaseFragment() {
                     NovelApi.cookiesMap = map
                 }
 
-                webPage?.let {
+                webPageSettings?.let {
                     if (it.metaData.containsKey("scrollY")) {
                         view?.scrollTo(0, (it.metaData["scrollY"] ?: "0").toInt())
                     }
@@ -208,7 +213,7 @@ class WebPageDBFragment : BaseFragment() {
             loadUrl("about:blank")
         }
 
-        if (webPage?.filePath != null && !liveFromWeb) {
+        if (webPageSettings?.filePath != null && !liveFromWeb) {
             loadFromFile()
         } else {
             loadFromWeb()
@@ -217,7 +222,7 @@ class WebPageDBFragment : BaseFragment() {
 
     private fun loadFromFile() {
 
-        val internalFilePath = "$FILE_PROTOCOL${webPage?.filePath}"
+        val internalFilePath = "$FILE_PROTOCOL${webPageSettings?.filePath}"
         val input = File(internalFilePath.substring(FILE_PROTOCOL.length))
         if (!input.exists()) {
             loadFromWeb()
@@ -228,7 +233,7 @@ class WebPageDBFragment : BaseFragment() {
             isRefreshing = false
         }
 
-        val url = webPage!!.redirectedUrl ?: internalFilePath
+        val url = webPageSettings!!.redirectedUrl ?: internalFilePath
 
         doc = Jsoup.parse(input, "UTF-8", url)
         doc?.let { doc ->
@@ -253,7 +258,7 @@ class WebPageDBFragment : BaseFragment() {
     }
 
     private fun loadCreatedDocument() {
-        webPage?.let {
+        webPageSettings?.let {
             readerWebView.loadDataWithBaseURL(
                     if (it.filePath != null) "$FILE_PROTOCOL${it.filePath}" else doc?.location(),
                     doc?.outerHtml(),
@@ -366,8 +371,8 @@ class WebPageDBFragment : BaseFragment() {
     }
 
     fun goBack() {
-        webPage = history.last()
-        history.remove(webPage!!)
+        webPageSettings = history.last()
+        history.remove(webPageSettings!!)
         loadData()
     }
 
@@ -382,13 +387,14 @@ class WebPageDBFragment : BaseFragment() {
 
             if (dataCenter.enableClusterPages) {
                 // Add the content of the links to the doc
-                if (webPage!!.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
-                    val links: ArrayList<WebPage> = Gson().fromJson(webPage!!.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+                if (webPageSettings!!.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
+                    val links: ArrayList<String> = Gson().fromJson(webPageSettings!!.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES_SETTINGS], object : TypeToken<java.util.ArrayList<String>>() {}.type)
                     links.forEach {
-                        val internalFilePath = "$FILE_PROTOCOL${it.filePath}"
+                        val tempWebPageSettings = dbHelper.getWebPageSettings(it)!!
+                        val internalFilePath = "$FILE_PROTOCOL${tempWebPageSettings.filePath}"
                         val input = File(internalFilePath.substring(7))
 
-                        var url = it.redirectedUrl
+                        var url = tempWebPageSettings.redirectedUrl
                         if (url == null) url = internalFilePath
                         val otherDoc = Jsoup.parse(input, "UTF-8", url)
                         if (otherDoc != null) {
@@ -418,12 +424,13 @@ class WebPageDBFragment : BaseFragment() {
     fun checkUrl(url: String?): Boolean {
         if (url == null) return false
 
-        if (webPage!!.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
-            val links: ArrayList<WebPage> = Gson().fromJson(webPage!!.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+        if (webPageSettings!!.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
+            val links: ArrayList<String> = Gson().fromJson(webPageSettings!!.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<String>>() {}.type)
             links.forEach {
-                if (it.url == url || (it.redirectedUrl != null && it.redirectedUrl == url)) {
-                    history.add(webPage!!)
-                    webPage = it
+                val tempWebPageSettings = dbHelper.getWebPageSettings(it)!!
+                if (it == url || (tempWebPageSettings.redirectedUrl != null && tempWebPageSettings.redirectedUrl == url)) {
+                    history.add(tempWebPageSettings)
+                    webPageSettings = tempWebPageSettings
                     loadData()
                     return@checkUrl true
                 }
@@ -460,11 +467,9 @@ class WebPageDBFragment : BaseFragment() {
 
     override fun onPause() {
         super.onPause()
-        webPage?.let {
+        webPageSettings?.let {
             it.metaData["scrollY"] = readerWebView.scrollY.toString()
-            if (it.id > -1L) {
-                dbHelper.updateWebPage(it)
-            }
+            dbHelper.updateWebPageSettings(it)
         }
     }
 
@@ -487,6 +492,7 @@ class WebPageDBFragment : BaseFragment() {
         super.onSaveInstanceState(outState)
         if (webPage != null) {
             outState.putSerializable("webPage", webPage)
+            outState.putSerializable("webPageSettings", webPageSettings)
         }
         outState.putSerializable("history", history)
     }

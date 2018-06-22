@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.database
 import android.content.ContentValues
 import android.util.Log
 import io.github.gmathi.novellibrary.model.NovelSection
+import io.github.gmathi.novellibrary.util.Logs
 
 
 private const val LOG = "NovelSectionHelper"
@@ -28,7 +29,7 @@ fun DBHelper.getNovelSection(novelSectionId: Long): NovelSection? {
 
 fun DBHelper.getNovelSectionFromQuery(selectQuery: String): NovelSection? {
     val db = this.readableDatabase
-    Log.d(LOG, selectQuery)
+    Logs.debug(LOG, selectQuery)
     val cursor = db.rawQuery(selectQuery, null)
     var novelSection: NovelSection? = null
     if (cursor != null) {
@@ -46,7 +47,7 @@ fun DBHelper.getNovelSectionFromQuery(selectQuery: String): NovelSection? {
 fun DBHelper.getAllNovelSections(): List<NovelSection> {
     val list = ArrayList<NovelSection>()
     val selectQuery = "SELECT  * FROM ${DBKeys.TABLE_NOVEL_SECTION} ORDER BY ${DBKeys.KEY_ORDER_ID} ASC"
-    Log.d(LOG, selectQuery)
+    Logs.debug(LOG, selectQuery)
     val db = this.readableDatabase
     val cursor = db.rawQuery(selectQuery, null)
     if (cursor != null) {

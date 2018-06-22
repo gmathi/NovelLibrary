@@ -6,6 +6,7 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.getFileName
 import io.github.gmathi.novellibrary.util.writableFileName
@@ -118,7 +119,7 @@ open class HtmlHelper protected constructor() {
             file = File(dir, fileName)
             doc = NovelApi.getDocumentWithUserAgentIgnoreContentType(uri.toString())
         } catch (e: Exception) {
-            Utils.warning(TAG, "Uri: $uri", e)
+            Logs.warning(TAG, "Uri: $uri", e)
             return null
         }
         return convertDocToFile(doc, file)
@@ -131,7 +132,7 @@ open class HtmlHelper protected constructor() {
             val content = doc.toString()
             stream.use { it.write(content.toByteArray()) }
         } catch (e: Exception) {
-            Utils.warning(TAG, "convertDocToFile: ${file.name}", e)
+            Logs.warning(TAG, "convertDocToFile: ${file.name}", e)
             return null
         }
         return file
@@ -161,7 +162,7 @@ open class HtmlHelper protected constructor() {
             val os = FileOutputStream(file)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os)
         } catch (e: Exception) {
-            Utils.debug(TAG, "Exception Downloading Image: $uri")
+            Logs.debug(TAG, "Exception Downloading Image: $uri")
             return null
         }
         return file

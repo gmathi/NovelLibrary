@@ -10,7 +10,8 @@ class Novel(var name: String, var url: String) : Serializable {
     var longDescription: String? = null
     var imageFilePath: String? = null
     var genres: List<String>? = null
-    var currentWebPageId: Long = -1
+//    var currentWebPageId: Long = -1
+    var currentWebPageUrl: String? = null
     var orderId: Long = -1
     var newReleasesCount = 0L
     var chaptersCount = 0L
@@ -29,7 +30,8 @@ class Novel(var name: String, var url: String) : Serializable {
             imageFilePath = if (otherNovel.imageFilePath != null) otherNovel.imageFilePath else imageFilePath
             longDescription = if (otherNovel.longDescription != null) otherNovel.longDescription else longDescription
             shortDescription = if (otherNovel.shortDescription != null) otherNovel.shortDescription else shortDescription
-            currentWebPageId = if (otherNovel.currentWebPageId != -1L) otherNovel.currentWebPageId else currentWebPageId
+//            currentWebPageId = if (otherNovel.currentWebPageId != -1L) otherNovel.currentWebPageId else currentWebPageId
+            currentWebPageUrl = if (otherNovel.currentWebPageUrl != null) otherNovel.currentWebPageUrl else currentWebPageUrl
             newReleasesCount = if (otherNovel.newReleasesCount != 0L) otherNovel.newReleasesCount else newReleasesCount
             chaptersCount = if (otherNovel.chaptersCount != 0L) otherNovel.chaptersCount else chaptersCount
             orderId = if (otherNovel.orderId != -1L) otherNovel.orderId else orderId
@@ -60,8 +62,6 @@ class Novel(var name: String, var url: String) : Serializable {
     }
 
     override fun toString(): String {
-        return "Novel(name='$name', url='$url', id=$id, imageUrl=$imageUrl, rating=$rating, shortDescription=$shortDescription, longDescription=$longDescription, imageFilePath=$imageFilePath, genres=$genres, currentWebPageId=$currentWebPageId, orderId=$orderId, newReleasesCount=$newReleasesCount, chaptersCount=$chaptersCount, metaData=$metaData, novelSectionId=$novelSectionId)"
+        return "Novel(name='$name', url='$url', id=$id, imageUrl=$imageUrl, rating=$rating, shortDescription=$shortDescription, longDescription=$longDescription, imageFilePath=$imageFilePath, genres=$genres, currentWebPageUrl=$currentWebPageUrl, orderId=$orderId, newReleasesCount=$newReleasesCount, chaptersCount=$chaptersCount, metaData=$metaData, novelSectionId=$novelSectionId)"
     }
-
-
 }
