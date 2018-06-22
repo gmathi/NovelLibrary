@@ -126,7 +126,6 @@ class ReaderDBPagerActivity :
     }
 
     private fun updateBookmark(webPage: WebPage) {
-            dbHelper.updateBookmarkCurrentWebPageId(webPage.novelId, webPage.id)
         if (novel.id != -1L) {
             dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, webPage.url)
             val webPageSettings = dbHelper.getWebPageSettings(webPage.url)
