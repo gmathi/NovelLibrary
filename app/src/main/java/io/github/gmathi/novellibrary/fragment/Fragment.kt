@@ -28,11 +28,10 @@ fun Fragment.startReaderDBPagerActivity(novel: Novel) {
     startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
 }
 
-fun Fragment.startReaderDBPagerActivity(novel: Novel, position: Int, sourceId: Long) {
+fun Fragment.startReaderDBPagerActivity(novel: Novel, sourceId: Long) {
     val intent = Intent(context, ReaderDBPagerActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
-    bundle.putInt("position", position)
     bundle.putLong("sourceId", sourceId)
     intent.putExtras(bundle)
     startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)

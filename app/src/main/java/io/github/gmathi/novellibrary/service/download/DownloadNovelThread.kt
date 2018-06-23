@@ -8,6 +8,7 @@ import io.github.gmathi.novellibrary.database.getRemainingDownloadsCountForNovel
 import io.github.gmathi.novellibrary.model.DownloadNovelEvent
 import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import org.greenrobot.eventbus.EventBus
 import java.util.concurrent.Executors
@@ -46,14 +47,14 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
                     EventBus.getDefault().post(DownloadNovelEvent(EventType.PAUSED, novelName))
 
             } catch (e: InterruptedException) {
-                Log.w(TAG, "Thread pool executor interrupted~")
+                Logs.warning(TAG, "Thread pool executor interrupted~")
             }
 
         } catch (e: InterruptedException) {
-            Log.w(TAG, "Interrupting the Thread: $novelName, ${e.localizedMessage}")
+            Logs.warning(TAG, "Interrupting the Thread: $novelName, ${e.localizedMessage}")
             threadPool?.shutdownNow()
         } catch (e: Exception) {
-            Log.e(TAG, "This is really bad!!", e)
+            Logs.error(TAG, "This is really bad!!", e)
             threadPool?.shutdownNow()
         }
     }

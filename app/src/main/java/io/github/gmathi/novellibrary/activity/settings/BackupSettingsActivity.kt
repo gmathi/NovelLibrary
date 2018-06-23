@@ -21,6 +21,7 @@ import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
@@ -289,7 +290,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                     val sharedPrefsDirSize = Utils.getFolderSize(currentSharedPrefsPath)
 
                     val formattedSize = Formatter.formatFileSize(this@BackupSettingsActivity, databasesDirSize + filesDirSize + sharedPrefsDirSize)
-                    Log.e("Size", formattedSize)
+                    Logs.debug("Size", formattedSize)
                     showDialog(content = "No space left on device! Please make enough space - $formattedSize and try again!")
                 } else
                     showDialog(content = "Backup Failed!")
@@ -373,7 +374,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                     val sharedPrefsDirSize = Utils.getFolderSize(currentSharedPrefsPath)
 
                     val formattedSize = Formatter.formatFileSize(this@BackupSettingsActivity, databasesDirSize + filesDirSize + sharedPrefsDirSize)
-                    Log.e("Size", formattedSize)
+                    Logs.debug("Size", formattedSize)
                     showDialog(content = "No space left on device! Please make enough space - $formattedSize and try again!")
                 }
                 showDialog(content = "Restore Failed!")
@@ -505,9 +506,9 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
 //        super.onActivityResult(requestCode, resultCode, data)
 //        when (requestCode) {
 //            REQUEST_CODE_SIGN_IN_BACKUP -> {
-//                Utils.info(TAG, "Sign in request code")
+//                Logs.info(TAG, "Sign in request code")
 //                if (resultCode != RESULT_OK) {
-//                    Utils.error(TAG, "Sign-in failed. Phase 1")
+//                    Logs.error(TAG, "Sign-in failed. Phase 1")
 //                    showDialog(content = "Backup Failed! (sign-on fail)")
 //                    return
 //                }
@@ -517,15 +518,15 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
 //                    initializeDriveClient(getAccountTask.result)
 //                    backupToGoogleDrive()
 //                } else {
-//                    Utils.error(TAG, "Sign-in failed. Phase 2");
+//                    Logs.error(TAG, "Sign-in failed. Phase 2");
 //                    showDialog(content = "Backup Failed! (sign-on2 fail)")
 //                }
 //            }
 //
 //            REQUEST_CODE_SIGN_IN_RESTORE -> {
-//                Utils.info(TAG, "Sign in request code")
+//                Logs.info(TAG, "Sign in request code")
 //                if (resultCode != RESULT_OK) {
-//                    Utils.error(TAG, "Sign-in failed. Phase 1")
+//                    Logs.error(TAG, "Sign-in failed. Phase 1")
 //                    showDialog(content = "Restore Failed! (sign-on fail)")
 //                    return
 //                }
@@ -535,7 +536,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
 //                    initializeDriveClient(getAccountTask.result)
 //                    restoreFromGoogleDrive()
 //                } else {
-//                    Utils.error(TAG, "Sign-in failed. Phase 2");
+//                    Logs.error(TAG, "Sign-in failed. Phase 2");
 //                    showDialog(content = "Restore Failed! (sign-on2 fail)")
 //                }
 //            }
@@ -616,7 +617,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
 //                            .build()
 //                        val createFileTask = mDriveResourceClient?.createFile(dbFolder, changeSet, driveContents) as Task<DriveFile>
 //                        val createFileTaskResult = await { Tasks.await(createFileTask) }
-//                        Utils.info(TAG, createFileTaskResult.toString())
+//                        Logs.info(TAG, createFileTaskResult.toString())
 //                    }
 //                }
 //
@@ -652,7 +653,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
 //                            .build()
 //                        val createFileTask = mDriveResourceClient?.createFile(sharedPrefFolder, changeSet, driveContents) as Task<DriveFile>
 //                        val createFileTaskResult = await { Tasks.await(createFileTask) }
-//                        Utils.info(TAG, createFileTaskResult.toString())
+//                        Logs.info(TAG, createFileTaskResult.toString())
 //                    }
 //                }
 //

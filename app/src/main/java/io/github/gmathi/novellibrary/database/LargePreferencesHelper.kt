@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
 import android.util.Log
+import io.github.gmathi.novellibrary.util.Logs
 
 private const val LOG = "LargePreferenceHelper"
 
@@ -25,7 +26,7 @@ fun DBHelper.getLargePreference(name: String): String? {
 
 fun DBHelper.getLargePreferenceFromQuery(selectQuery: String): String? {
     val db = this.readableDatabase
-    Log.d(LOG, selectQuery)
+    Logs.debug(LOG, selectQuery)
     val cursor = db.rawQuery(selectQuery, null)
     var value: String? = null
     if (cursor != null) {

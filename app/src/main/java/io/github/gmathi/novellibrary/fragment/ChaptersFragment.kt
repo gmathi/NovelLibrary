@@ -19,7 +19,6 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.*
-import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.content_source_chapters.*
 import kotlinx.android.synthetic.main.listitem_chapter.view.*
@@ -110,8 +109,8 @@ class ChaptersFragment : BaseFragment(),
     }
 
     private fun scrollToBookmark() {
-        if (novel.currentWebPageId != -1L) {
-            val index = adapter.items.indexOfFirst { it.id == novel.currentWebPageId }
+        if (novel.currentWebPageUrl != null) {
+            val index = adapter.items.indexOfFirst { it.url == novel.currentWebPageUrl }
             if (index != -1)
                 recyclerView.scrollToPosition(index)
         }
@@ -125,9 +124,9 @@ class ChaptersFragment : BaseFragment(),
 
     override fun onItemClick(item: WebPage, position: Int) {
         if (novel.id != -1L) {
-            novel.currentWebPageId = item.id
+            novel.currentWebPageUrl = item.url
             dbHelper.updateNovel(novel)
-            startReaderDBPagerActivity(novel, position, sourceId)
+            startReaderDBPagerActivity(novel, sourceId)
         } else
             startWebViewActivity(item.url)
     }
@@ -135,12 +134,14 @@ class ChaptersFragment : BaseFragment(),
     @SuppressLint("SetTextI18n")
     override fun bind(item: WebPage, itemView: View, position: Int) {
 
-        if (item.filePath != null) {
+        val webPageSettings = (activity as? ChaptersPagerActivity)?.chaptersSettings?.firstOrNull { it.url == item.url }
+
+        if (webPageSettings?.filePath != null) {
             itemView.greenView.visibility = View.VISIBLE
             itemView.greenView.setBackgroundColor(ContextCompat.getColor(context!!, R.color.DarkGreen))
             itemView.greenView.animation = null
         } else {
-            if (Download.STATUS_IN_QUEUE.toString() == item.metaData[Constants.DOWNLOADING]) {
+//            if (Download.STATUS_IN_QUEUE.toString() == webPageSettings?.metaData[Constants.DOWNLOADING]) {
 //                if (item.id != -1L && DownloadService.chapters.contains(item)) {
 //                    itemView.greenView.visibility = View.VISIBLE
 //                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@OldChaptersActivity, R.color.white))
@@ -150,20 +151,20 @@ class ChaptersFragment : BaseFragment(),
 //                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@OldChaptersActivity, R.color.Red))
 //                    itemView.greenView.animation = null
 //                }
-            } else
-                itemView.greenView.visibility = View.GONE
+//            } else
+            itemView.greenView.visibility = View.GONE
         }
 
-        itemView.isReadView.visibility = if (item.isRead == 1) View.VISIBLE else View.GONE
-        itemView.bookmarkView.visibility = if (item.id != -1L && item.id == novel.currentWebPageId) View.VISIBLE else View.INVISIBLE
+        itemView.isReadView.visibility = if (webPageSettings?.isRead == 1) View.VISIBLE else View.GONE
+        itemView.bookmarkView.visibility = if (item.url == novel.currentWebPageUrl) View.VISIBLE else View.INVISIBLE
 
         itemView.chapterTitle.text = item.chapter
 
-        if (item.title != null) {
-            if (item.title!!.contains(item.chapter))
-                itemView.chapterTitle.text = item.title
+        webPageSettings?.title?.let {
+            if (it.contains(item.chapter))
+                itemView.chapterTitle.text = it
             else
-                itemView.chapterTitle.text = "${item.chapter}: ${item.title}"
+                itemView.chapterTitle.text = "${item.chapter}: $it"
         }
 
         itemView.chapterCheckBox.isChecked = (activity as? ChaptersPagerActivity)?.dataSet?.contains(item) ?: false
@@ -223,7 +224,7 @@ class ChaptersFragment : BaseFragment(),
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onDownloadEvent(webPageEvent: DownloadWebPageEvent) {
         if (webPageEvent.download.novelName == novel.name) {
-            adapter.items.firstOrNull { it.id == webPageEvent.webPageId }?.let { adapter.updateItem(it) }
+            adapter.items.firstOrNull { it.url == webPageEvent.webPageUrl }?.let { adapter.updateItem(it) }
         }
     }
 

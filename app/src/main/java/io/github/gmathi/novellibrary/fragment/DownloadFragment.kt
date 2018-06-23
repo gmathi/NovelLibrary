@@ -16,6 +16,7 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.deleteDownload
 import io.github.gmathi.novellibrary.database.getAllDownloads
 import io.github.gmathi.novellibrary.database.updateDownloadStatus
+import io.github.gmathi.novellibrary.database.updateDownloadStatusWebPageUrl
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Download
 import io.github.gmathi.novellibrary.model.DownloadWebPageEvent
@@ -115,7 +116,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<Download> {
                 item.status == Download.STATUS_IN_QUEUE -> {
                     itemView.downloadPauseButton.setImageResource(R.drawable.ic_play_arrow_white_vector)
                     item.status = Download.STATUS_PAUSED
-                    dbHelper.updateDownloadStatus(Download.STATUS_PAUSED, item.webPageId)
+                    dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_PAUSED, item.webPageUrl)
                 }
                 item.status == Download.STATUS_PAUSED -> {
                     itemView.downloadPauseButton.setImageResource(R.drawable.ic_pause_white_vector)
@@ -130,7 +131,7 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<Download> {
         }
 
         itemView.downloadDeleteButton.setOnClickListener {
-            dbHelper.deleteDownload(item.webPageId)
+            dbHelper.deleteDownload(item.webPageUrl)
             adapter.removeItem(item)
             //confirmDeleteAlert(item)
         }
@@ -168,8 +169,8 @@ class DownloadFragment : BaseFragment(), GenericAdapter.Listener<Download> {
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onDownloadEvent(webPageEvent: DownloadWebPageEvent) {
         if (webPageEvent.type == EventType.RUNNING) {
-            adapter.items.firstOrNull { it.webPageId == webPageEvent.webPageId }?.status = Download.STATUS_RUNNING
-            adapter.items.firstOrNull { it.webPageId == webPageEvent.webPageId }?.let {
+            adapter.items.firstOrNull { it.webPageUrl == webPageEvent.webPageUrl }?.status = Download.STATUS_RUNNING
+            adapter.items.firstOrNull { it.webPageUrl == webPageEvent.webPageUrl }?.let {
                 it.status = Download.STATUS_RUNNING
                 adapter.updateItem(it)
             }

@@ -19,19 +19,26 @@ import io.github.gmathi.novellibrary.model.*
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_chapters_pager.*
 import kotlinx.android.synthetic.main.content_chapters_pager.*
 import org.greenrobot.eventbus.EventBus
 import java.io.File
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
+    companion object {
+        private const val TAG = "ChaptersPagerActivity"
+    }
+
     lateinit var novel: Novel
 
     var chapters: ArrayList<WebPage> = ArrayList()
+    var chaptersSettings: ArrayList<WebPageSettings> = ArrayList()
     var dataSet: HashSet<WebPage> = HashSet()
 
     private val sources: ArrayList<Pair<Long, String>> = ArrayList()
@@ -51,10 +58,16 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         dbHelper.updateNewReleasesCount(novel.id, 0L)
 
         sourcesToggle.setOnClickListener {
-            showSources = !showSources
-            novel.metaData[Constants.MetaDataKeys.SHOW_SOURCES] = showSources.toString()
-            dbHelper.updateNovelMetaData(novel)
-            setViewPager()
+            if (Utils.isConnectedToNetwork(this)) {
+                showSources = !showSources
+                novel.metaData[Constants.MetaDataKeys.SHOW_SOURCES] = showSources.toString()
+                dbHelper.updateNovelMetaData(novel)
+                getChapters(forceUpdate = true)
+            } else {
+                confirmDialog("You need to have internet connection to do this!", MaterialDialog.SingleButtonCallback { dialog, _ ->
+                    dialog.dismiss()
+                })
+            }
         }
 
         if (novel.id == -1L)
@@ -97,8 +110,8 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     }
 
     private fun scrollToBookmark() {
-        if (novel.currentWebPageId != -1L) {
-            val currentBookmarkWebPage = dbHelper.getWebPage(novel.currentWebPageId) ?: return
+        novel.currentWebPageUrl?.let { currentWebPageUrl ->
+            val currentBookmarkWebPage = dbHelper.getWebPage(currentWebPageUrl) ?: return
             val currentSource = sources.firstOrNull { it.first == currentBookmarkWebPage.sourceId }
                     ?: return
             val index = sources.indexOf(currentSource)
@@ -114,8 +127,8 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     //region Data
     private fun getChaptersFromDB() {
         async {
-            Utils.error("CPA", "chpaDBStart, " + Calendar.getInstance().timeInMillis.toString())
             chapters = await { ArrayList(dbHelper.getAllWebPages(novel.id)) }
+            chaptersSettings = await { ArrayList(dbHelper.getAllWebPageSettings(novel.id)) }
             if (chapters.isEmpty() || chapters.size < novel.chaptersCount.toInt()) {
                 novel.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
                 dbHelper.updateNovelMetaData(novel)
@@ -124,12 +137,10 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 progressLayout.showContent()
                 setViewPager()
             }
-            Utils.error("CPA", "chpaDBEnd, " + Calendar.getInstance().timeInMillis.toString())
         }
     }
 
     private fun getChapters(forceUpdate: Boolean = false) {
-        Utils.error("CPA", "chpaNetwork, " + Calendar.getInstance().timeInMillis.toString())
         async chapters@{
             progressLayout.showLoading()
             if (!Utils.isConnectedToNetwork(this@ChaptersPagerActivity)) {
@@ -143,15 +154,11 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
             //Download latest chapters from network
             try {
-                Utils.error("CPA", "callStart, " + Calendar.getInstance().timeInMillis.toString())
-                chapters = await { NovelApi.getChapterUrls(novel) } ?: ArrayList()
-                Utils.error("CPA", "callEnd, " + Calendar.getInstance().timeInMillis.toString())
+                chapters = await { NovelApi.getChapterUrls(novel, showSources) } ?: ArrayList()
 
                 //Save to DB if the novel is in Library
                 if (novel.id != -1L) {
-                    Utils.error("CPA", "dbStart, " + Calendar.getInstance().timeInMillis.toString())
                     await { addChaptersToDB(forceUpdate) }
-                    Utils.error("CPA", "dbEnd, " + Calendar.getInstance().timeInMillis.toString())
                 }
                 actionMode?.finish()
                 progressLayout.showContent()
@@ -169,20 +176,35 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     }
 
     private fun addChaptersToDB(forceUpdate: Boolean = false) {
+        if (forceUpdate) {
+            dbHelper.deleteWebPages(novel.id)
+        }
         dbHelper.updateChaptersAndReleasesCount(novel.id, chapters.size.toLong(), 0L)
         for (i in 0 until chapters.size) {
-            val webPage = dbHelper.getWebPage(novel.id, chapters[i].url)
-            if (webPage == null) {
-                chapters[i].id = dbHelper.createWebPage(chapters[i])
-            } else {
-                //val sourceId = chapters[i].sourceId
-                chapters[i].copyFrom(webPage)
-                if ((webPage.sourceId == -1L && chapters[i].sourceId != -1L) || forceUpdate) {
-                    dbHelper.updateWebPage(chapters[i])
-                }
+            if (forceUpdate)
+                dbHelper.createWebPage(chapters[i])
+            else {
+                if (dbHelper.getWebPage(chapters[i].url) == null)
+                    dbHelper.createWebPage(chapters[i])
+            }
+            if (dbHelper.getWebPageSettings(chapters[i].url) == null)
+                dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
+        }
+
+
+        chaptersSettings = ArrayList(dbHelper.getAllWebPageSettings(novel.id))
+
+        var s = ""
+        var s1 = ""
+        chapters.forEach { webPage ->
+            val index = chaptersSettings.indexOfFirst { it.url == webPage.url }
+            if (index == -1) {
+                s = s + "\n" + webPage.chapter
+                s1 = s1 + "----" + webPage.url
             }
         }
 
+        Logs.info(TAG, s)
     }
 
     //endregion
@@ -230,8 +252,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
 
     internal fun addToDataSet(webPage: WebPage) {
-        if (webPage.id != -1L)
-            dataSet.add(webPage)
+        dataSet.add(webPage)
         if (dataSet.isNotEmpty() && actionMode == null) {
             actionMode = startSupportActionMode(this)
         }
@@ -248,8 +269,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     }
 
     private fun addToDataSet(webPages: List<WebPage>) {
-        val filteredSet = webPages.filter { it.id != -1L }
-        dataSet.addAll(filteredSet)
+        dataSet.addAll(webPages)
         if (dataSet.isNotEmpty() && actionMode == null) {
             actionMode = startSupportActionMode(this)
         }
@@ -269,9 +289,10 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         when (item?.itemId) {
             R.id.action_unread -> {
                 confirmDialog(getString(R.string.mark_chapters_unread_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
-                    dataSet.forEach {
-                        it.isRead = 0
-                        dbHelper.updateWebPageReadStatus(it)
+                    dataSet.forEach { webPage ->
+                        val webPageSettings = chaptersSettings.first { it.url == webPage.url }
+                        webPageSettings.isRead = 0
+                        dbHelper.updateWebPageSettingsReadStatus(webPageSettings)
                     }
                     dialog.dismiss()
                     mode?.finish()
@@ -279,9 +300,10 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             }
             R.id.action_read -> {
                 confirmDialog(getString(R.string.mark_chapters_read_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
-                    dataSet.forEach {
-                        it.isRead = 1
-                        dbHelper.updateWebPageReadStatus(it)
+                    dataSet.forEach { webPage ->
+                        val webPageSettings = chaptersSettings.first { it.url == webPage.url }
+                        webPageSettings.isRead = 1
+                        dbHelper.updateWebPageSettingsReadStatus(webPageSettings)
                     }
                     dialog.dismiss()
                     mode?.finish()
@@ -331,24 +353,28 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             R.id.action_select_all -> {
                 progressLayout.showLoading()
                 val sourceId = sources[viewPager.currentItem].first
-                addToDataSet(webPages = chapters.filter { it.sourceId == sourceId })
+                if (sourceId == -1L) {
+                    addToDataSet(webPages = chapters)
+                } else {
+                    addToDataSet(webPages = chapters.filter { it.sourceId == sourceId })
+                }
                 EventBus.getDefault().post(ChapterActionModeEvent(sourceId, EventType.UPDATE))
                 progressLayout.showContent()
             }
             R.id.action_clear_selection -> {
                 progressLayout.showLoading()
                 val sourceId = sources[viewPager.currentItem].first
+                if (sourceId == -1L) {
+                    removeFromDataSet(webPages = chapters)
+                } else {
+                    removeFromDataSet(webPages = chapters.filter { it.sourceId == sourceId })
+                }
                 removeFromDataSet(webPages = chapters.filter { it.sourceId == sourceId })
                 EventBus.getDefault().post(ChapterActionModeEvent(sourceId, EventType.UPDATE))
                 progressLayout.showContent()
             }
             R.id.action_share_chapter -> {
-                val urls = dataSet.joinToString(separator = ", ") {
-                    if (it.redirectedUrl != null)
-                        it.redirectedUrl!!
-                    else
-                        it.url
-                }
+                val urls = dataSet.joinToString(separator = ", ") { it.url }
                 shareUrl(urls)
             }
             R.id.action_delete -> {
@@ -435,7 +461,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         async {
             progressLayout.showLoading()
             webPages.forEach {
-                val download = Download(it.id, novel.name, it.chapter)
+                val download = Download(it.url, novel.name, it.chapter)
                 download.orderId = it.orderId.toInt()
                 await { dbHelper.createDownload(download) }
             }
@@ -445,26 +471,29 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     }
 
     private fun deleteWebPage(webPage: WebPage) {
-        if (webPage.filePath != null)
+        val webPageSettings = chaptersSettings.firstOrNull { it.url == webPage.url }
+        webPageSettings?.filePath?.let { filePath ->
             try {
-                val file = File(webPage.filePath)
+                val file = File(filePath)
                 file.delete()
-                webPage.filePath = null
-                if (webPage.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
-                    val linkedPages: ArrayList<WebPage> = Gson().fromJson(webPage.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+                webPageSettings.filePath = null
+                if (webPageSettings.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
+                    val linkedPages: ArrayList<String> = Gson().fromJson(webPageSettings.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES_SETTINGS], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
                     linkedPages.forEach {
-                        if (it.filePath != null) {
-                            val linkedFile = File(it.filePath)
+                        val linkedWebPageSettings = chaptersSettings.firstOrNull { it.url == webPage.url }
+                        if (linkedWebPageSettings?.filePath != null) {
+                            val linkedFile = File(linkedWebPageSettings.filePath)
                             linkedFile.delete()
+                            dbHelper.deleteWebPageSettings(linkedWebPageSettings.url)
                         }
-                        it.filePath = null
                     }
-                    webPage.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES] = Gson().toJson(linkedPages)
+                    webPageSettings.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES] = "[]"
                 }
-                dbHelper.updateWebPage(webPage)
+                dbHelper.updateWebPageSettings(webPageSettings)
             } catch (e: Exception) {
-                Utils.error("OldChaptersActivity", e.localizedMessage)
+                Logs.error(TAG, e.localizedMessage)
             }
+        }
     }
 
     internal fun addNovelToLibrary() {
@@ -472,7 +501,9 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             if (novel.id != -1L) return@async
             progressLayout.showLoading()
             novel.id = await { dbHelper.insertNovel(novel) }
-            await { addChaptersToDB() }
+            invalidateOptionsMenu()
+            chapters.forEach { it.novelId = novel.id }
+            await { addChaptersToDB(true) }
             progressLayout.showContent()
         }
     }

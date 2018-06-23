@@ -1,7 +1,7 @@
 package io.github.gmathi.novellibrary.model
 
 
-data class Download(val webPageId: Long, var novelName: String, var chapter: String) {
+data class Download(val webPageUrl: String, var novelName: String, var chapter: String) {
 
     companion object {
         const val STATUS_IN_QUEUE = 0
@@ -13,5 +13,6 @@ data class Download(val webPageId: Long, var novelName: String, var chapter: Str
     var metaData: HashMap<String, String>? = null
     var orderId: Int = 0
 
-    fun equals(other: Download): Boolean = this.webPageId == other.webPageId
+    fun equals(other: Download): Boolean = (this.webPageUrl == other.webPageUrl)
+
 }

@@ -9,6 +9,7 @@ import io.github.gmathi.novellibrary.database.getDownloadItemInQueue
 import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.model.ServiceEvent
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import org.greenrobot.eventbus.EventBus
 import java.util.concurrent.Executors
@@ -63,7 +64,7 @@ class DownloadService : IntentService(TAG) {
             threadPool.shutdown()
             threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)
         } catch (e: Exception) {
-            Log.w(TAG, "Thread pool executor interrupted~")
+            Logs.warning(TAG, "Thread pool executor interrupted~")
         }
     }
 

@@ -15,6 +15,7 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.*
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.getGlideUrl
 import io.github.gmathi.novellibrary.util.setDefaults
@@ -149,7 +150,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
                 itemView.novelRatingBar.rating = rating
                 ratingText = "(" + String.format("%.1f", rating) + ")"
             } catch (e: Exception) {
-                Log.w("Library Activity", "Rating: " + item.rating, e)
+                Logs.warning("Library Activity", "Rating: " + item.rating, e)
             }
             itemView.novelRatingText.text = ratingText
         }

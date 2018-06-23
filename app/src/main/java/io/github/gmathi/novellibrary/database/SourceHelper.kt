@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
 import android.util.Log
+import io.github.gmathi.novellibrary.util.Logs
 
 
 private const val LOG = "SourceHelper"
@@ -27,7 +28,7 @@ fun DBHelper.getSource(sourceId: Long): Pair<Long, String>? {
 
 fun DBHelper.getSourceFromQuery(selectQuery: String): Pair<Long, String>? {
     val db = this.readableDatabase
-    Log.d(LOG, selectQuery)
+    Logs.debug(LOG, selectQuery)
     val cursor = db.rawQuery(selectQuery, null)
     var source: Pair<Long, String>? = null
     if (cursor != null) {
@@ -46,7 +47,7 @@ fun DBHelper.getSourcesForNovel(novelId: Long): ArrayList<Pair<Long, String>> {
             "WHERE n.${DBKeys.KEY_ID} == $novelId AND n.${DBKeys.KEY_ID} == w.${DBKeys.KEY_NOVEL_ID} AND s.${DBKeys.KEY_ID} == w.${DBKeys.KEY_SOURCE_ID} " +
             "ORDER BY name ASC"
     val db = this.readableDatabase
-    Log.d(LOG, selectQuery)
+    Logs.debug(LOG, selectQuery)
     val cursor = db.rawQuery(selectQuery, null)
     if (cursor != null) {
         if (cursor.moveToFirst()) {

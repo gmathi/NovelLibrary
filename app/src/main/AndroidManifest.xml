@@ -100,10 +100,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
+        <!-- activity
             android:name=".activity.OldChaptersActivity"
             android:label="@string/title_activity_chapters"
-            android:theme="@style/DarkTheme_DarkSide" />
+            android:theme="@style/DarkTheme_DarkSide" /-->
         <activity
             android:name=".activity.MetaDataActivity"
             android:label="@string/title_activity_meta_data"

@@ -315,7 +315,7 @@
     <string name="confirm_action">Confirm Action</string>
     <string name="mark_chapters_unread_dialog_content">Mark chapters unread?</string>
     <string name="mark_chapters_read_dialog_content">Mark chapters read?</string>
-    <string name="download_chapters_dialog_content">Download chapters? \n Note: Chapter downloads cannot be paused/stopped.</string>
+    <string name="download_chapters_dialog_content">Download chapters?\nNote: Downloads need to be started manually.</string>
     <string name="alert">Alert</string>
     <string name="novel_not_in_library_dialog_content">Novel needs to be added to library, before chapters can be downloaded individually!</string>
     <string name="download_all_chapters_dialog_content">Manage novel downloads using download manager. Download all chapters?</string>

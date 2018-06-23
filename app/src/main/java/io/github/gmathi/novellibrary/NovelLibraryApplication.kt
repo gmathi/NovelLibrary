@@ -17,6 +17,7 @@ import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import java.io.File
 import java.security.KeyManagementException
@@ -57,7 +58,7 @@ class NovelLibraryApplication : MultiDexApplication() {
                 HostNames.addHost(it)
             }
         } catch (e: Exception) {
-            Utils.error(TAG, "Set the HostNames.hostNamesList from dataCenter", e)
+            Logs.error(TAG, "Set the HostNames.hostNamesList from dataCenter", e)
         }
 
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
@@ -74,7 +75,7 @@ class NovelLibraryApplication : MultiDexApplication() {
         try {
             enableSSLSocket()
         } catch (e: Exception) {
-            Log.e(TAG, "enableSSLSocket(): ${e.localizedMessage}", e)
+            Logs.error(TAG, "enableSSLSocket(): ${e.localizedMessage}", e)
         }
 
         //BugFix for <5.0 devices
@@ -119,9 +120,9 @@ class NovelLibraryApplication : MultiDexApplication() {
         try {
             ProviderInstaller.installIfNeeded(this)
         } catch (e: GooglePlayServicesNotAvailableException) {
-            Utils.error("SecurityException", "Google Play Services not available.")
+            Logs.error("SecurityException", "Google Play Services not available.")
         } catch (e: Exception) {
-            Utils.error("Exception", "Other Exception: ${e.localizedMessage}", e)
+            Logs.error("Exception", "Other Exception: ${e.localizedMessage}", e)
         }
     }
 
