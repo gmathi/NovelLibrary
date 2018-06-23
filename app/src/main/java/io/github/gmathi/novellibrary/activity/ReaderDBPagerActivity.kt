@@ -71,7 +71,6 @@ class ReaderDBPagerActivity :
     private var screenTitles: Array<String>? = null
     private var adapter: GenericFragmentStatePagerAdapter? = null
     private var webPage: WebPage? = null
-    private var position: Int = 0
     private var sourceId: Long = -1L
     private var totalSize: Int = 0
 
@@ -103,13 +102,15 @@ class ReaderDBPagerActivity :
         viewPager.addOnPageChangeListener(this)
         viewPager.adapter = adapter
 
+        val index = dbHelper.getAllWebPages(novel.id, sourceId).indexOfFirst { it.url == webPage!!.url }
+
         if (webPage != null) {
             updateBookmark(webPage!!)
             viewPager.currentItem =
                     if (dataCenter.japSwipe)
-                        totalSize - position - 1
+                        totalSize - index - 1
                     else
-                        position
+                        index
         }
 
         slideMenuSetup(savedInstanceState)

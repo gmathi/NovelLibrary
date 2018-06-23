@@ -33,6 +33,7 @@ import io.github.gmathi.novellibrary.network.CloudFlare
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.fragment_reader.*
@@ -180,7 +181,7 @@ class WebPageDBFragment : BaseFragment() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 val cookies = CookieManager.getInstance().getCookie(url)
-                Log.e("WebViewDBFragment", "All the cookiesMap in a string: $cookies")
+                Logs.debug("WebViewDBFragment", "All the cookiesMap in a string: $cookies")
 
                 if (cookies != null && cookies.contains("cfduid") && cookies.contains("cf_clearance")) {
                     val map: HashMap<String, String> = HashMap()

@@ -75,7 +75,7 @@ class NovelLibraryApplication : MultiDexApplication() {
         try {
             enableSSLSocket()
         } catch (e: Exception) {
-            Log.e(TAG, "enableSSLSocket(): ${e.localizedMessage}", e)
+            Logs.error(TAG, "enableSSLSocket(): ${e.localizedMessage}", e)
         }
 
         //BugFix for <5.0 devices

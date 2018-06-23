@@ -10,7 +10,6 @@ import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
-import android.util.Log
 import com.crashlytics.android.Crashlytics
 import com.google.android.gms.gcm.*
 import io.github.gmathi.novellibrary.R
@@ -22,6 +21,7 @@ import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterCount
 import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 
 
@@ -41,7 +41,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
     }
 
     private fun startNovelsSync(dbHelper: DBHelper) {
-        Log.e(TAG, "start novel sync")
+        Logs.debug(TAG, "start novel sync")
 
         val totalCountMap: HashMap<Novel, Int> = HashMap()
 
@@ -100,8 +100,10 @@ class BackgroundNovelSyncTask : GcmTaskService() {
             if (novel.id != -1L) {
                 dbHelper.updateChaptersAndReleasesCount(novel.id, chapters.size.toLong(), 0L)
                 for (i in 0 until chapters.size) {
-                    dbHelper.createWebPage(chapters[i])
-                    dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
+                    if (dbHelper.getWebPage(chapters[i].url) == null)
+                        dbHelper.createWebPage(chapters[i])
+                    if (dbHelper.getWebPageSettings(chapters[i].url) == null)
+                        dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
                 }
             }
 
@@ -143,10 +145,9 @@ class BackgroundNovelSyncTask : GcmTaskService() {
                         .setRequiresCharging(false)
                         .build()
                 GcmNetworkManager.getInstance(context).schedule(periodic)
-                Log.v(TAG, "repeating task scheduled")
+                Logs.debug(TAG, "repeating task scheduled")
             } catch (e: Exception) {
-                Log.e(TAG, "scheduling failed")
-                e.printStackTrace()
+                Logs.error(TAG, "scheduling failed", e)
             }
 
         }

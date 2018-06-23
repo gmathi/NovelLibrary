@@ -19,6 +19,7 @@ import io.github.gmathi.novellibrary.database.getLargePreference
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_recently_viewed_novels.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
@@ -59,7 +60,7 @@ class RecentlyViewedNovelsActivity : AppCompatActivity(), GenericAdapter.Listene
                 itemView.novelRatingBar.rating = rating
                 ratingText = "(" + String.format("%.1f", rating) + ")"
             } catch (e: Exception) {
-                Log.w("Library Activity", "Rating: " + item.rating, e)
+                Logs.warning("Library Activity", "Rating: " + item.rating, e)
             }
             itemView.novelRatingText.text = ratingText
         }

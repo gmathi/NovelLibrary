@@ -77,12 +77,12 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                    .title("📢 Announcement!")
-                    .content("✨ Chapters filtered by Translators!\n" +
-                            "✨ You can now select chapters using select interval\n" +
-                            "✨ Chapters can be force refreshed\n" +
-                            "⚠️ Downloads will be fixed in next update\n" +
-                            "\uD83D\uDEE0️ Bug Fix for 0 Chapters Notification!\n" +
+                    .title("📢 What's New!")
+                    .content("\uD83D\uDEE0 Fixed Sync Update Bugs!\n" +
+                            "\uD83D\uDEE0 Fixed Novel Notifications showing 0 Chapters\n" +
+                            //"✨ Improved performance/decrease load time on the chapters screen\n" +
+                            "\uD83D\uDEE0 Improved performance/decrease load time on the chapters screen\n" +
+                            "⚠️ Downloads will be fixed in next update (as always I guess :( )\n" +
                             "\uD83D\uDEE0️ Bug Fixes for reported & unreported crashes!")
                     .positiveText("Ok")
                     .onPositive { dialog, _ -> dialog.dismiss() }

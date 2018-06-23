@@ -17,6 +17,7 @@ fun DBHelper.createWebPageSettings(webPageSettings: WebPageSettings): Long {
     val db = this.writableDatabase
     val values = ContentValues()
     values.put(DBKeys.KEY_URL, webPageSettings.url)
+    values.put(DBKeys.KEY_NOVEL_ID, webPageSettings.novelId)
     values.put(DBKeys.KEY_REDIRECT_URL, webPageSettings.redirectedUrl)
     values.put(DBKeys.KEY_TITLE, webPageSettings.title)
     values.put(DBKeys.KEY_FILE_PATH, webPageSettings.filePath)
@@ -28,7 +29,7 @@ fun DBHelper.createWebPageSettings(webPageSettings: WebPageSettings): Long {
 
 fun DBHelper.getWebPageSettings(url: String): WebPageSettings? {
     val db = this.readableDatabase
-    val selectQuery = "SELECT  * FROM ${DBKeys.TABLE_WEB_PAGE_SETTINGS} WHERE ${DBKeys.KEY_URL} = $url"
+    val selectQuery = "SELECT  * FROM ${DBKeys.TABLE_WEB_PAGE_SETTINGS} WHERE ${DBKeys.KEY_URL} = \"$url\""
     Logs.debug(LOG, selectQuery)
     var webPageSettings: WebPageSettings? = null
     val cursor = db.rawQuery(selectQuery, null)

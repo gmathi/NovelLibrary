@@ -154,7 +154,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
             //Download latest chapters from network
             try {
-                chapters = await { NovelApi.getChapterUrls(novel) } ?: ArrayList()
+                chapters = await { NovelApi.getChapterUrls(novel, showSources) } ?: ArrayList()
 
                 //Save to DB if the novel is in Library
                 if (novel.id != -1L) {
@@ -181,10 +181,30 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         }
         dbHelper.updateChaptersAndReleasesCount(novel.id, chapters.size.toLong(), 0L)
         for (i in 0 until chapters.size) {
-            dbHelper.createWebPage(chapters[i])
-            dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
+            if (forceUpdate)
+                dbHelper.createWebPage(chapters[i])
+            else {
+                if (dbHelper.getWebPage(chapters[i].url) == null)
+                    dbHelper.createWebPage(chapters[i])
+            }
+            if (dbHelper.getWebPageSettings(chapters[i].url) == null)
+                dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
         }
+
+
         chaptersSettings = ArrayList(dbHelper.getAllWebPageSettings(novel.id))
+
+        var s = ""
+        var s1 = ""
+        chapters.forEach { webPage ->
+            val index = chaptersSettings.indexOfFirst { it.url == webPage.url }
+            if (index == -1) {
+                s = s + "\n" + webPage.chapter
+                s1 = s1 + "----" + webPage.url
+            }
+        }
+
+        Logs.info(TAG, s)
     }
 
     //endregion
@@ -481,6 +501,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             if (novel.id != -1L) return@async
             progressLayout.showLoading()
             novel.id = await { dbHelper.insertNovel(novel) }
+            invalidateOptionsMenu()
             chapters.forEach { it.novelId = novel.id }
             await { addChaptersToDB(true) }
             progressLayout.showContent()

@@ -15,6 +15,7 @@ import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.activity.openInBrowser
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.model.Library
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_libraries_used.*
@@ -52,9 +53,8 @@ class ContributionsActivity : BaseActivity(), GenericAdapter.Listener<Library> {
                 mLine = reader.readLine()
             }
             return Gson().fromJson(stringBuilder.toString(), object : TypeToken<ArrayList<Library>>() {}.type)
-        } catch (ex: IOException) {
-            Log.e("Deserialize", ex.message)
-            ex.printStackTrace()
+        } catch (e: IOException) {
+            Logs.error("ContributionsActivity", e.localizedMessage, e)
         }
         return null
     }

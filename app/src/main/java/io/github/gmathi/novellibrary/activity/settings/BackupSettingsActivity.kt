@@ -21,6 +21,7 @@ import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
@@ -289,7 +290,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                     val sharedPrefsDirSize = Utils.getFolderSize(currentSharedPrefsPath)
 
                     val formattedSize = Formatter.formatFileSize(this@BackupSettingsActivity, databasesDirSize + filesDirSize + sharedPrefsDirSize)
-                    Log.e("Size", formattedSize)
+                    Logs.debug("Size", formattedSize)
                     showDialog(content = "No space left on device! Please make enough space - $formattedSize and try again!")
                 } else
                     showDialog(content = "Backup Failed!")
@@ -373,7 +374,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                     val sharedPrefsDirSize = Utils.getFolderSize(currentSharedPrefsPath)
 
                     val formattedSize = Formatter.formatFileSize(this@BackupSettingsActivity, databasesDirSize + filesDirSize + sharedPrefsDirSize)
-                    Log.e("Size", formattedSize)
+                    Logs.debug("Size", formattedSize)
                     showDialog(content = "No space left on device! Please make enough space - $formattedSize and try again!")
                 }
                 showDialog(content = "Restore Failed!")

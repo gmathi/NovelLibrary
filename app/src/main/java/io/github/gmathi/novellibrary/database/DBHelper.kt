@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.Constants
 
@@ -31,6 +32,7 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         // creating required tables
         db.execSQL(DBKeys.CREATE_TABLE_NOVEL)
         db.execSQL(DBKeys.CREATE_TABLE_WEB_PAGE)
+        db.execSQL(DBKeys.CREATE_TABLE_WEB_PAGE_SETTINGS)
         db.execSQL(DBKeys.CREATE_TABLE_GENRE)
         db.execSQL(DBKeys.CREATE_TABLE_NOVEL_GENRE)
         db.execSQL(DBKeys.CREATE_TABLE_DOWNLOAD)
@@ -116,9 +118,13 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         if (version == DBKeys.VER_LARGE_PREFERENCE) {
             db.execSQL("DROP INDEX web_pages_url_id_index")
 
-            //Update the bookmark to be a web_page.url instead of web_page.id
+            //Update the bookmark to be a web_page.url instead of web_page.id & showSources to false
             db.execSQL("ALTER TABLE ${DBKeys.TABLE_NOVEL} ADD COLUMN ${DBKeys.KEY_CURRENT_WEB_PAGE_URL} TEXT")
-            db.execSQL("UPDATE ${DBKeys.TABLE_NOVEL} SET ${DBKeys.TABLE_NOVEL}.${DBKeys.KEY_CURRENT_WEB_PAGE_URL} = ${DBKeys.TABLE_WEB_PAGE}.${DBKeys.KEY_URL} WHERE ${DBKeys.TABLE_NOVEL}.${DBKeys.KEY_CURRENT_WEB_PAGE_ID} = ${DBKeys.TABLE_WEB_PAGE}.${DBKeys.KEY_ID}")
+            db.execSQL("UPDATE ${DBKeys.TABLE_NOVEL} SET ${DBKeys.KEY_CURRENT_WEB_PAGE_URL} = (SELECT ${DBKeys.KEY_URL} FROM ${DBKeys.TABLE_WEB_PAGE} WHERE  ${DBKeys.TABLE_NOVEL}.${DBKeys.KEY_CURRENT_WEB_PAGE_ID} = ${DBKeys.TABLE_WEB_PAGE}.${DBKeys.KEY_ID})")
+            dbHelper.getAllNovels().forEach {
+                it.metaData[Constants.MetaDataKeys.SHOW_SOURCES] = false.toString()
+                updateNovelMetaData(it)
+            }
 
             //Modify Downloads Table to use WebPage_URL instead of WebPage_ID
             db.execSQL("ALTER TABLE ${DBKeys.TABLE_DOWNLOAD} RENAME TO ${DBKeys.TABLE_DOWNLOAD}_old")
@@ -184,13 +190,12 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
                     val webPageSettingsValues = ContentValues()
 
                     webPageValues.put(DBKeys.KEY_URL, cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL)))
-                    webPageSettingsValues.put(DBKeys.KEY_URL, cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL)))
-
                     webPageValues.put(DBKeys.KEY_CHAPTER, cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER)))
                     webPageValues.put(DBKeys.KEY_NOVEL_ID, cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID)))
                     webPageValues.put(DBKeys.KEY_ORDER_ID, cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID)))
                     webPageValues.put(DBKeys.KEY_SOURCE_ID, cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_SOURCE_ID)))
 
+                    webPageSettingsValues.put(DBKeys.KEY_URL, cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL)))
                     webPageSettingsValues.put(DBKeys.KEY_NOVEL_ID, cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID)))
                     webPageSettingsValues.put(DBKeys.KEY_REDIRECT_URL, cursor.getString(cursor.getColumnIndex(DBKeys.KEY_REDIRECT_URL)))
                     webPageSettingsValues.put(DBKeys.KEY_TITLE, cursor.getString(cursor.getColumnIndex(DBKeys.KEY_TITLE)))
@@ -234,9 +239,9 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
     fun cleanupNovelData(novel: Novel) {
         deleteNovel(novel.id)
         deleteWebPages(novel.id)
+        deleteWebPageSettings(novel.id)
         deleteNovelGenre(novel.id)
         deleteDownloads(novel.name)
-        deleteWebPageSettings(novel.id)
     }
 
 }

@@ -152,7 +152,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 novelDetailsRatingBar.rating = rating
                 ratingText = "(" + String.format("%.1f", rating) + ")"
             } catch (e: Exception) {
-                Log.w("Library Activity", "Rating: " + novel.rating, e)
+                Logs.warning("Library Activity", "Rating: " + novel.rating, e)
             }
             novelDetailsRatingText.text = ratingText
         }

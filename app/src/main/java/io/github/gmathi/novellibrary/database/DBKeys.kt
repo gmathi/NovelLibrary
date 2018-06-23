@@ -57,7 +57,6 @@ object DBKeys {
     internal const val KEY_VALUE = "value"
 
 
-
     // Table web_page columns
     internal const val KEY_TITLE = "title"
     internal const val KEY_CHAPTER = "chapter"
@@ -84,35 +83,36 @@ object DBKeys {
 
     // novel table create statement
     internal const val CREATE_TABLE_NOVEL = (
-        "CREATE TABLE " + TABLE_NOVEL + " ("
-            + KEY_ID + " INTEGER PRIMARY KEY, "
-            + KEY_NAME + " TEXT, "
-            + KEY_URL + " TEXT, "
-            + KEY_IMAGE_URL + " TEXT, "
-            + KEY_RATING + " TEXT, "
-            + KEY_SHORT_DESCRIPTION + " TEXT, "
-            + KEY_LONG_DESCRIPTION + " TEXT, "
-            + KEY_IMAGE_FILE_PATH + " TEXT, "
-            + KEY_METADATA + " TEXT, "
-            + KEY_CURRENT_WEB_PAGE_ID + " INTEGER, "
-            + KEY_ORDER_ID + " INTEGER, "
-            + KEY_NEW_RELEASES_COUNT + " INTEGER, "
-            + KEY_CHAPTERS_COUNT + " INTEGER, "
-            + KEY_NOVEL_SECTION_ID + " INTEGER, "
-            + "FOREIGN KEY (" + KEY_CURRENT_WEB_PAGE_ID + ") REFERENCES " + TABLE_WEB_PAGE + "(" + KEY_ID + ")"
-            + ")")
+            "CREATE TABLE " + TABLE_NOVEL + " ("
+                    + KEY_ID + " INTEGER PRIMARY KEY, "
+                    + KEY_NAME + " TEXT, "
+                    + KEY_URL + " TEXT, "
+                    + KEY_IMAGE_URL + " TEXT, "
+                    + KEY_RATING + " TEXT, "
+                    + KEY_SHORT_DESCRIPTION + " TEXT, "
+                    + KEY_LONG_DESCRIPTION + " TEXT, "
+                    + KEY_IMAGE_FILE_PATH + " TEXT, "
+                    + KEY_METADATA + " TEXT, "
+                    + KEY_CURRENT_WEB_PAGE_ID + " INTEGER, "
+                    + KEY_CURRENT_WEB_PAGE_URL + " TEXT, "
+                    + KEY_ORDER_ID + " INTEGER, "
+                    + KEY_NEW_RELEASES_COUNT + " INTEGER, "
+                    + KEY_CHAPTERS_COUNT + " INTEGER, "
+                    + KEY_NOVEL_SECTION_ID + " INTEGER, "
+                    + "FOREIGN KEY (" + KEY_CURRENT_WEB_PAGE_ID + ") REFERENCES " + TABLE_WEB_PAGE + "(" + KEY_ID + ")"
+                    + ")")
 
     // web_page table create statement
     internal const val CREATE_TABLE_WEB_PAGE = (
-        "CREATE TABLE " + TABLE_WEB_PAGE + " ("
-            + KEY_URL + " TEXT PRIMARY KEY, "
-            + KEY_CHAPTER + " TEXT, "
-            + KEY_NOVEL_ID + " INTEGER, "
-            + KEY_SOURCE_ID + " INTEGER, "
-            + KEY_ORDER_ID + " INTEGER, "
-            + "FOREIGN KEY (" + KEY_NOVEL_ID + ") REFERENCES " + TABLE_NOVEL + "(" + KEY_ID + ")"
-            + "FOREIGN KEY (" + KEY_SOURCE_ID + ") REFERENCES " + TABLE_SOURCE + "(" + KEY_ID + ")"
-            + ")")
+            "CREATE TABLE " + TABLE_WEB_PAGE + " ("
+                    + KEY_URL + " TEXT PRIMARY KEY, "
+                    + KEY_CHAPTER + " TEXT, "
+                    + KEY_NOVEL_ID + " INTEGER, "
+                    + KEY_SOURCE_ID + " INTEGER, "
+                    + KEY_ORDER_ID + " INTEGER, "
+                    + "FOREIGN KEY (" + KEY_NOVEL_ID + ") REFERENCES " + TABLE_NOVEL + "(" + KEY_ID + ")"
+                    + "FOREIGN KEY (" + KEY_SOURCE_ID + ") REFERENCES " + TABLE_SOURCE + "(" + KEY_ID + ")"
+                    + ")")
 
     // web_page_settings table create statement
     internal const val CREATE_TABLE_WEB_PAGE_SETTINGS = (
@@ -129,19 +129,19 @@ object DBKeys {
 
     // genre table create statement
     internal const val CREATE_TABLE_GENRE = (
-        "CREATE TABLE " + TABLE_GENRE + " ("
-            + KEY_ID + " INTEGER PRIMARY KEY, "
-            + KEY_NAME + " TEXT"
-            + ")")
+            "CREATE TABLE " + TABLE_GENRE + " ("
+                    + KEY_ID + " INTEGER PRIMARY KEY, "
+                    + KEY_NAME + " TEXT"
+                    + ")")
 
     // novel_genre table create statement
     internal const val CREATE_TABLE_NOVEL_GENRE = (
-        "CREATE TABLE " + TABLE_NOVEL_GENRE + " ("
-            + KEY_NOVEL_ID + " INTEGER, "
-            + KEY_GENRE_ID + " INTEGER, "
-            + "FOREIGN KEY (" + KEY_NOVEL_ID + ") REFERENCES " + TABLE_NOVEL + "(" + KEY_ID + "), "
-            + "FOREIGN KEY (" + KEY_GENRE_ID + ") REFERENCES " + TABLE_GENRE + "(" + KEY_ID + ")"
-            + ")")
+            "CREATE TABLE " + TABLE_NOVEL_GENRE + " ("
+                    + KEY_NOVEL_ID + " INTEGER, "
+                    + KEY_GENRE_ID + " INTEGER, "
+                    + "FOREIGN KEY (" + KEY_NOVEL_ID + ") REFERENCES " + TABLE_NOVEL + "(" + KEY_ID + "), "
+                    + "FOREIGN KEY (" + KEY_GENRE_ID + ") REFERENCES " + TABLE_GENRE + "(" + KEY_ID + ")"
+                    + ")")
 
     // download queue table create statement
 //    internal val CREATE_TABLE_DOWNLOAD_QUEUE = (
@@ -153,22 +153,22 @@ object DBKeys {
 
     // source table create statement
     internal const val CREATE_TABLE_SOURCE = (
-        "CREATE TABLE " + TABLE_SOURCE + " ("
-            + KEY_ID + " INTEGER PRIMARY KEY, "
-            + KEY_NAME + " TEXT"
-            + ")")
+            "CREATE TABLE " + TABLE_SOURCE + " ("
+                    + KEY_ID + " INTEGER PRIMARY KEY, "
+                    + KEY_NAME + " TEXT"
+                    + ")")
 
 
     // downloads table create statement
     internal const val CREATE_TABLE_DOWNLOAD = (
-        "CREATE TABLE " + TABLE_DOWNLOAD + " ("
-            + KEY_NAME + " TEXT, "
-            + KEY_WEB_PAGE_URL + " TEXT PRIMARY KEY, "
-            + KEY_CHAPTER + " TEXT, "
-            + KEY_STATUS + " INTEGER, "
-            + KEY_ORDER_ID + " INTEGER, "
-            + KEY_METADATA + " TEXT"
-            + ")")
+            "CREATE TABLE " + TABLE_DOWNLOAD + " ("
+                    + KEY_NAME + " TEXT, "
+                    + KEY_WEB_PAGE_URL + " TEXT PRIMARY KEY, "
+                    + KEY_CHAPTER + " TEXT, "
+                    + KEY_STATUS + " INTEGER, "
+                    + KEY_ORDER_ID + " INTEGER, "
+                    + KEY_METADATA + " TEXT"
+                    + ")")
 
     // novel_section table create statement
     internal const val CREATE_TABLE_NOVEL_SECTION = (

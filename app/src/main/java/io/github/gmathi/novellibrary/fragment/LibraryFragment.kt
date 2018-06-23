@@ -293,8 +293,10 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     if (novel.id != -1L) {
                         dbHelper.updateChaptersAndReleasesCount(novel.id, chapters.size.toLong(), 0L)
                         for (i in 0 until chapters.size) {
-                            dbHelper.createWebPage(chapters[i])
-                            dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
+                            if (dbHelper.getWebPage(chapters[i].url) == null)
+                                dbHelper.createWebPage(chapters[i])
+                            if (dbHelper.getWebPageSettings(chapters[i].url) == null)
+                                dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
                         }
                     }
 
