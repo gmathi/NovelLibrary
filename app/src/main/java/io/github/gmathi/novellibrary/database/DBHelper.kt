@@ -121,10 +121,6 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
             //Update the bookmark to be a web_page.url instead of web_page.id & showSources to false
             db.execSQL("ALTER TABLE ${DBKeys.TABLE_NOVEL} ADD COLUMN ${DBKeys.KEY_CURRENT_WEB_PAGE_URL} TEXT")
             db.execSQL("UPDATE ${DBKeys.TABLE_NOVEL} SET ${DBKeys.KEY_CURRENT_WEB_PAGE_URL} = (SELECT ${DBKeys.KEY_URL} FROM ${DBKeys.TABLE_WEB_PAGE} WHERE  ${DBKeys.TABLE_NOVEL}.${DBKeys.KEY_CURRENT_WEB_PAGE_ID} = ${DBKeys.TABLE_WEB_PAGE}.${DBKeys.KEY_ID})")
-            dbHelper.getAllNovels().forEach {
-                it.metaData[Constants.MetaDataKeys.SHOW_SOURCES] = false.toString()
-                updateNovelMetaData(it)
-            }
 
             //Modify Downloads Table to use WebPage_URL instead of WebPage_ID
             db.execSQL("ALTER TABLE ${DBKeys.TABLE_DOWNLOAD} RENAME TO ${DBKeys.TABLE_DOWNLOAD}_old")

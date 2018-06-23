@@ -23,7 +23,7 @@ object Logs {
         if (BuildConfig.DEBUG) {
             Log.w(tag, message)
         } else {
-            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", "Warning", tag, message))
+            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", Log.WARN, tag, message))
         }
     }
 
@@ -31,7 +31,7 @@ object Logs {
         if (BuildConfig.DEBUG) {
             Log.w(tag, message, throwable)
         } else {
-            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", "Warning", tag, message))
+            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", Log.WARN, tag, message))
             Crashlytics.logException(throwable)
         }
     }
@@ -40,7 +40,7 @@ object Logs {
         if (BuildConfig.DEBUG) {
             Log.e(tag, message)
         } else {
-            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", "Error", tag, message))
+            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", Log.ERROR, tag, message))
         }
     }
 
@@ -48,7 +48,7 @@ object Logs {
         if (BuildConfig.DEBUG) {
             Log.e(tag, message, throwable)
         } else {
-            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", "Error", tag, message))
+            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", Log.ERROR, tag, message))
             Crashlytics.logException(throwable)
         }
     }

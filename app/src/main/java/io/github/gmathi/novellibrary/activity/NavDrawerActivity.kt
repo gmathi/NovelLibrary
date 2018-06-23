@@ -17,8 +17,6 @@ import com.crashlytics.android.Crashlytics
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.updateTotalChapterCount
-import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.fragment.DownloadFragment
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
@@ -62,7 +60,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         if (intent.hasExtra("currentNavId"))
             currentNavId = intent.getIntExtra("currentNavId", currentNavId)
 
-        if (savedInstanceState != null) {
+        if (savedInstanceState != null && savedInstanceState.containsKey("currentNavId")) {
             currentNavId = savedInstanceState.getInt("currentNavId")
         }
 
@@ -89,13 +87,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                     .show()
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
-
-//        dbHelper.createNovelSection("Reading")
-//        dbHelper.createNovelSection("OnHold")
-//        dbHelper.createNovelSection("General")
-//        dbHelper.createNovelSection("Completed")
-//        dbHelper.createNovelSection("Hiatus")
-//        dbHelper.createNovelSection("#923 283")
 
     }
 
