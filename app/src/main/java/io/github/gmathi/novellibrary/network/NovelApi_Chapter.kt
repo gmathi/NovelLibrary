@@ -1,13 +1,12 @@
 package io.github.gmathi.novellibrary.network
 
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.createSource
 import io.github.gmathi.novellibrary.database.getSource
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
-import io.github.gmathi.novellibrary.network.HostNames.USER_AGENT
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
 import java.io.IOException
 import java.net.URI
 
@@ -59,9 +58,12 @@ fun NovelApi.getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
 
     val doc = Jsoup.connect(url)
             .data("action", "nd_getchapters")
-            .cookies(NovelApi.cookiesMap)
+            .referrer(url)
+            .cookies(cookiesMap)
+            .ignoreHttpErrors(true)
+            .timeout(30000)
+            .userAgent(dataCenter.userAgent)
             .data("mypostid", novelUpdatesNovelId)
-            .userAgent(USER_AGENT)
             .post()
 
     var orderId = 0L
@@ -77,7 +79,7 @@ fun NovelApi.getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
     return chapters
 }
 
-fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
+fun NovelApi.getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
     val chapters = ArrayList<WebPage>()
     if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 
@@ -89,9 +91,12 @@ fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
 
     val doc = Jsoup.connect(url)
             .data("action", "nd_getchapters")
-            .cookies(NovelApi.cookiesMap)
+            .referrer(url)
+            .cookies(cookiesMap)
+            .ignoreHttpErrors(true)
+            .timeout(30000)
+            .userAgent(dataCenter.userAgent)
             .data("mypostid", novelUpdatesNovelId)
-            .userAgent(USER_AGENT)
             .post()
 
     var orderId = 0L
@@ -111,7 +116,7 @@ fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
     return chapters
 }
 
-private fun getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, sourceName: String? = null): HashMap<String, Long> {
+private fun NovelApi.getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, sourceName: String? = null): HashMap<String, Long> {
 
     val sourceMap = HashMap<String, Long>()
 
@@ -123,9 +128,13 @@ private fun getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, so
 
     val connection = Jsoup.connect(url)
             .data("action", "nd_getchapters")
+            .referrer(url)
+            .cookies(cookiesMap)
+            .ignoreHttpErrors(true)
+            .timeout(30000)
+            .userAgent(dataCenter.userAgent)
             .data("mygrr", "0")
             .data("mypostid", novelUpdatesNovelId)
-            .userAgent(USER_AGENT)
 
     if (sourceId != null) connection.data("mygrpfilter", "$sourceId")
 
@@ -139,7 +148,7 @@ private fun getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, so
     return sourceMap
 }
 
-private fun getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String, Long>> {
+private fun NovelApi.getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String, Long>> {
 
     val sourceMap = ArrayList<HashMap<String, Long>>()
     if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
@@ -150,8 +159,12 @@ private fun getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String,
     val doc = Jsoup.connect(url)
             .data("action", "nd_getgroupnovel")
             .data("mygrr", "0")
+            .referrer(url)
+            .cookies(cookiesMap)
+            .ignoreHttpErrors(true)
+            .timeout(30000)
+            .userAgent(dataCenter.userAgent)
             .data("mypostid", novelUpdatesNovelId)
-            .userAgent(USER_AGENT)
             .post()
 
     doc?.select("div.checkbox")?.forEach {

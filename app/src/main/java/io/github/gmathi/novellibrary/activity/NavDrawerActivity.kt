@@ -76,7 +76,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
                     .title("📢 What's New!")
-                    .content("\uD83D\uDEE0 Fixed crashes due to CloudFlare!\n" +
+                    .content("\uD83D\uDEE0 Fixed chapters not loading due to CloudFlare!\n" +
 //                            "\uD83D\uDEE0 Fixed Novel Notifications showing 0 Chapters\n" +
 //                            //"✨ Improved performance/decrease load time on the chapters screen\n" +
 //                            "\uD83D\uDEE0 Improved performance/decrease load time on the chapters screen\n" +
