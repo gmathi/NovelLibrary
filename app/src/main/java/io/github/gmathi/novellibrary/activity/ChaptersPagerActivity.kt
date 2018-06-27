@@ -290,9 +290,9 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             R.id.action_unread -> {
                 confirmDialog(getString(R.string.mark_chapters_unread_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
                     dataSet.forEach { webPage ->
-                        val webPageSettings = chaptersSettings.first { it.url == webPage.url }
-                        webPageSettings.isRead = 0
-                        dbHelper.updateWebPageSettingsReadStatus(webPageSettings)
+                        val webPageSettings = chaptersSettings.firstOrNull { it.url == webPage.url }
+                        webPageSettings?.isRead = 0
+                        webPageSettings?.let { dbHelper.updateWebPageSettingsReadStatus(it) }
                     }
                     dialog.dismiss()
                     mode?.finish()
@@ -301,9 +301,9 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             R.id.action_read -> {
                 confirmDialog(getString(R.string.mark_chapters_read_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
                     dataSet.forEach { webPage ->
-                        val webPageSettings = chaptersSettings.first { it.url == webPage.url }
-                        webPageSettings.isRead = 1
-                        dbHelper.updateWebPageSettingsReadStatus(webPageSettings)
+                        val webPageSettings = chaptersSettings.firstOrNull { it.url == webPage.url }
+                        webPageSettings?.isRead = 1
+                        webPageSettings?.let { dbHelper.updateWebPageSettingsReadStatus(it) }
                     }
                     dialog.dismiss()
                     mode?.finish()

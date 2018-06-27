@@ -103,7 +103,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     private fun aboutUsDialog() {
         MaterialDialog.Builder(this)
-            .title("Version: ${BuildConfig.VERSION_NAME}")
+            .title("Version: ${BuildConfig.VERSION_NAME}_${BuildConfig.VERSION_CODE}")
             .content(getString(R.string.lock_hint))
             .show()
     }

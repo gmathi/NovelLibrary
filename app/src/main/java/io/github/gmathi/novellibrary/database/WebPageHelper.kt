@@ -3,16 +3,8 @@ package io.github.gmathi.novellibrary.database
 import android.content.ContentValues
 import android.database.Cursor
 import android.database.DatabaseUtils
-import android.database.sqlite.SQLiteDatabase
-import android.util.Log
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.Utils
-import java.util.*
-import kotlin.collections.ArrayList
 
 
 private const val LOG = "WebPageHelper"
@@ -94,7 +86,11 @@ fun DBHelper.getAllWebPages(novelId: Long): List<WebPage> {
 
 fun DBHelper.getAllWebPages(novelId: Long, sourceId: Long): List<WebPage> {
     val list = ArrayList<WebPage>()
-    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_WEB_PAGE} WHERE ${DBKeys.KEY_NOVEL_ID} = $novelId AND ${DBKeys.KEY_SOURCE_ID} = $sourceId ORDER BY ${DBKeys.KEY_ORDER_ID} ASC"
+    val selectQuery =
+            if (sourceId == -1L)
+                "SELECT * FROM ${DBKeys.TABLE_WEB_PAGE} WHERE ${DBKeys.KEY_NOVEL_ID} = $novelId ORDER BY ${DBKeys.KEY_ORDER_ID} ASC"
+            else
+                "SELECT * FROM ${DBKeys.TABLE_WEB_PAGE} WHERE ${DBKeys.KEY_NOVEL_ID} = $novelId AND ${DBKeys.KEY_SOURCE_ID} = $sourceId ORDER BY ${DBKeys.KEY_ORDER_ID} ASC"
     Logs.debug(LOG, selectQuery)
     val db = this.readableDatabase
     val cursor = db.rawQuery(selectQuery, null)

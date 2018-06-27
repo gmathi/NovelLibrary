@@ -74,7 +74,7 @@ class CloudFlare(val context: Context, val listener: Listener) {
         private fun clearCookies(domain: String) {
             val cookieManager = CookieManager.getInstance()
             val cookieString = cookieManager.getCookie(domain)
-            cookieString.split(";").forEach {
+            cookieString?.split(";")?.forEach {
                 cookieManager.setCookie(domain, it.split("=")[0].trim() + "=; Expires=Wed, 31 Dec 2025 23:59:59 GMT")
             }
         }

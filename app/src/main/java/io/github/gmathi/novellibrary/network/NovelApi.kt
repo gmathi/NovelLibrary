@@ -69,7 +69,7 @@ object NovelApi {
             }
             throw e
         } catch (e: IOException) {
-            if (e.localizedMessage.contains("was not verified")) {
+            if (e.localizedMessage != null && e.localizedMessage.contains("was not verified")) {
                 val hostName = Uri.parse(url)?.host!!
                 if (!HostNames.isVerifiedHost(hostName)) {
                     dataCenter.saveVerifiedHost(hostName)
