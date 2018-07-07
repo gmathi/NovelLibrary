@@ -31,6 +31,8 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         val context = this@BackgroundNovelSyncTask
         val dbHelper = DBHelper.getInstance(context)
 
+        //android.os.Debug.waitForDebugger()
+
         try {
             if (Utils.isConnectedToNetwork(context))
                 startNovelsSync(dbHelper)
@@ -98,7 +100,6 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
             //Save to DB if the novel is in Library
             if (novel.id != -1L) {
-                dbHelper.updateChaptersAndReleasesCount(novel.id, chapters.size.toLong(), 0L)
                 for (i in 0 until chapters.size) {
                     if (dbHelper.getWebPage(chapters[i].url) == null)
                         dbHelper.createWebPage(chapters[i])
@@ -130,7 +131,8 @@ class BackgroundNovelSyncTask : GcmTaskService() {
                         //specify target service - must extend GcmTaskService
                         .setService(thisClass)
                         //repeat every 60 seconds
-                        .setPeriod(60 * 60)
+                        .setPeriod(5)
+                        //.setPeriod(60 * 60)
                         //specify how much earlier the task can be executed (in seconds)
                         //.setFlex(60*60)
                         //tag that is unique to this task (can be used to cancel task)

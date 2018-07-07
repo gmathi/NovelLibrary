@@ -14,7 +14,10 @@ import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.security.ProviderInstaller
 import com.squareup.leakcanary.LeakCanary
 import io.github.gmathi.novellibrary.database.DBHelper
+import io.github.gmathi.novellibrary.database.deleteWebPage
+import io.github.gmathi.novellibrary.database.updateTotalChapterCount
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.network.HostNames.USER_AGENT
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
@@ -49,10 +52,10 @@ class NovelLibraryApplication : MultiDexApplication() {
     override fun onCreate() {
         dataCenter = DataCenter(applicationContext)
         dbHelper = DBHelper.getInstance(applicationContext)
-
         super.onCreate()
 
         try {
+            dataCenter?.userAgent = USER_AGENT
             HostNames.hostNamesList = dataCenter!!.getVerifiedHosts()
             HostNames.defaultHostNamesList.forEach {
                 HostNames.addHost(it)
