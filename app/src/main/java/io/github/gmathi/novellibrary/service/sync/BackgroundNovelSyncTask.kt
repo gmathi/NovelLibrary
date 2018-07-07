@@ -130,9 +130,9 @@ class BackgroundNovelSyncTask : GcmTaskService() {
                 val periodic = PeriodicTask.Builder()
                         //specify target service - must extend GcmTaskService
                         .setService(thisClass)
-                        //repeat every 60 seconds
-                        .setPeriod(5)
-                        //.setPeriod(60 * 60)
+                        //repeat every 60*60 seconds = 1hr
+                        // .setPeriod(5)
+                        .setPeriod(60 * 60)
                         //specify how much earlier the task can be executed (in seconds)
                         //.setFlex(60*60)
                         //tag that is unique to this task (can be used to cancel task)

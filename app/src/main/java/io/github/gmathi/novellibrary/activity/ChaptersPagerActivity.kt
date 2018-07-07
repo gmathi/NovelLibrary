@@ -145,10 +145,10 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             progressLayout.showLoading()
             if (!Utils.isConnectedToNetwork(this@ChaptersPagerActivity)) {
                 if (chapters.isEmpty())
-                    progressLayout.showError(ContextCompat.getDrawable(this@ChaptersPagerActivity, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+                    progressLayout.showError(ContextCompat.getDrawable(this@ChaptersPagerActivity, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
                         progressLayout.showLoading()
                         getChapters()
-                    })
+                    }
                 return@chapters
             }
 
@@ -167,10 +167,10 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             } catch (e: Exception) {
                 e.printStackTrace()
                 if (progressLayout.isLoading)
-                    progressLayout.showError(ContextCompat.getDrawable(this@ChaptersPagerActivity, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
+                    progressLayout.showError(ContextCompat.getDrawable(this@ChaptersPagerActivity, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again)) {
                         progressLayout.showLoading()
                         getChapters()
-                    })
+                    }
             }
         }
     }

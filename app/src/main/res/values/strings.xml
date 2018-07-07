@@ -141,6 +141,7 @@
     </array>
 
     <string-array name="backup_and_restore_options" translatable="false">
+        <item>@string/simple_text_backup</item>
         <item>@string/title_library</item>
         <item>@string/preferences</item>
         <item>@string/downloaded_files</item>
@@ -456,5 +457,6 @@
     <string name="default_novel_section_name">Currently Reading</string>
     <string name="content_description_sources_or_all">Sources/All</string>
     <string name="select_interval">Select Interval</string>
+    <string name="simple_text_backup">Simple Text - Novel &amp; Novel Sections Backup</string>
 
 </resources>

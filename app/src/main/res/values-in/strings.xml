@@ -280,5 +280,6 @@
     <string name="content_description_sources_or_all">Sources/All</string>
     <string name="select_interval">Select Interval</string>
     <string name="default_novel_section_name">Currently Reading</string>
+    <string name="simple_text_backup">Simple Text - Novel &amp; Novel Sections Backup</string>
 
 </resources>
