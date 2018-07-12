@@ -86,7 +86,8 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 //                            //"✨ Improved performance/decrease load time on the chapters screen\n" +
 //                            "\uD83D\uDEE0 Improved performance/decrease load time on the chapters screen\n" +
 //                            "⚠️ Downloads will be fixed in next update (as always I guess :( )\n" +
-                            "\uD83D\uDEE0️ Bug Fixes for reported & unreported crashes!")
+//                            "\uD83D\uDEE0️ Bug Fixes for reported & unreported crashes!"
+                            )
                     .positiveText("Ok")
                     .onPositive { dialog, _ -> dialog.dismiss() }
                     .show()
