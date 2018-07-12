@@ -2,7 +2,6 @@ package io.github.gmathi.novellibrary.activity
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -13,7 +12,6 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.createOrUpdateLargePreference
 import io.github.gmathi.novellibrary.database.getLargePreference
 import io.github.gmathi.novellibrary.dbHelper
@@ -83,7 +81,7 @@ class RecentlyViewedNovelsActivity : AppCompatActivity(), GenericAdapter.Listene
                     .content("Are you sure you want to clear all the recently viewed novels list?")
                     .positiveText("Yes")
                     .onPositive { dialog, _ ->
-                        dbHelper.createOrUpdateLargePreference(Constants.LargePrefenceKeys.RVN_HISTORY, "[]")
+                        dbHelper.createOrUpdateLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY, "[]")
                         adapter.updateData(ArrayList())
                         dialog.dismiss()
                     }
@@ -96,7 +94,7 @@ class RecentlyViewedNovelsActivity : AppCompatActivity(), GenericAdapter.Listene
 
     override fun onResume() {
         super.onResume()
-        val history = dbHelper.getLargePreference(Constants.LargePrefenceKeys.RVN_HISTORY) ?: "[]"
+        val history = dbHelper.getLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY) ?: "[]"
         val historyList: java.util.ArrayList<Novel> = Gson().fromJson(history, object : TypeToken<java.util.ArrayList<Novel>>() {}.type)
         adapter.updateData(ArrayList(historyList.asReversed()))
     }

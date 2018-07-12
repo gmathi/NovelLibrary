@@ -116,7 +116,6 @@ fun DBHelper.updateWebPageSettingsReadStatus(webPageSettings: WebPageSettings) {
     this.writableDatabase.update(DBKeys.TABLE_WEB_PAGE_SETTINGS, values, DBKeys.KEY_URL + " = ? ", arrayOf(webPageSettings.url))
 }
 
-
 fun DBHelper.deleteWebPageSettings(novelId: Long) {
     this.writableDatabase.delete(DBKeys.TABLE_WEB_PAGE_SETTINGS, DBKeys.KEY_NOVEL_ID + " = ?", arrayOf(novelId.toString()))
 }

@@ -114,6 +114,9 @@ fun DBHelper.deleteWebPage(novelId: Long, orderId: Long) {
     this.writableDatabase.delete(DBKeys.TABLE_WEB_PAGE, "${DBKeys.KEY_NOVEL_ID} = ? AND ${DBKeys.KEY_ORDER_ID} = ?", arrayOf(novelId.toString(), orderId.toString()))
 }
 
+fun DBHelper.deleteWebPage(url: String) {
+    this.writableDatabase.delete(DBKeys.TABLE_WEB_PAGE, "${DBKeys.KEY_URL} = ?", arrayOf(url))
+}
 
 private fun getWebPageFromCursor(cursor: Cursor): WebPage {
     val webPage = WebPage(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL)), cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER)))

@@ -195,8 +195,8 @@ class WebPageDBFragment : BaseFragment() {
                 }
 
                 webPageSettings?.let {
-                    if (it.metaData.containsKey("scrollY")) {
-                        view?.scrollTo(0, (it.metaData["scrollY"] ?: "0").toInt())
+                    if (it.metaData.containsKey(Constants.MetaDataKeys.SCROLL_POSITION)) {
+                        view?.scrollTo(0, (it.metaData[Constants.MetaDataKeys.SCROLL_POSITION] ?: "0").toInt())
                     }
                 }
 
@@ -279,9 +279,9 @@ class WebPageDBFragment : BaseFragment() {
 
         //If no network
         if (!Utils.isConnectedToNetwork(activity)) {
-            progressLayout.showError(ContextCompat.getDrawable(activity!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+            progressLayout.showError(ContextCompat.getDrawable(activity!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
                 downloadWebPage(url)
-            })
+            }
             return
         }
 
@@ -293,9 +293,9 @@ class WebPageDBFragment : BaseFragment() {
                 //If document fails to load and the fragment is still alive
                 if (doc == null) {
                     if (isResumed && !isRemoving && !isDetached)
-                        progressLayout.showError(ContextCompat.getDrawable(activity!!, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
+                        progressLayout.showError(ContextCompat.getDrawable(activity!!, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again)) {
                             downloadWebPage(url)
-                        })
+                        }
                     return@download
                 }
 
@@ -353,9 +353,9 @@ class WebPageDBFragment : BaseFragment() {
             } catch (e: Exception) {
                 e.printStackTrace()
                 if (isResumed && !isRemoving && !isDetached)
-                    progressLayout.showError(ContextCompat.getDrawable(activity!!, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
+                    progressLayout.showError(ContextCompat.getDrawable(activity!!, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again)) {
                         downloadWebPage(url)
-                    })
+                    }
             }
         }
     }
@@ -388,8 +388,8 @@ class WebPageDBFragment : BaseFragment() {
 
             if (dataCenter.enableClusterPages) {
                 // Add the content of the links to the doc
-                if (webPageSettings!!.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
-                    val links: ArrayList<String> = Gson().fromJson(webPageSettings!!.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES_SETTINGS], object : TypeToken<java.util.ArrayList<String>>() {}.type)
+                if (webPageSettings!!.metaData.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
+                    val links: ArrayList<String> = Gson().fromJson(webPageSettings!!.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES_SETTINGS], object : TypeToken<java.util.ArrayList<String>>() {}.type)
                     links.forEach {
                         val tempWebPageSettings = dbHelper.getWebPageSettings(it)!!
                         val internalFilePath = "$FILE_PROTOCOL${tempWebPageSettings.filePath}"
@@ -425,8 +425,8 @@ class WebPageDBFragment : BaseFragment() {
     fun checkUrl(url: String?): Boolean {
         if (url == null) return false
 
-        if (webPageSettings!!.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
-            val links: ArrayList<String> = Gson().fromJson(webPageSettings!!.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<String>>() {}.type)
+        if (webPageSettings!!.metaData.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
+            val links: ArrayList<String> = Gson().fromJson(webPageSettings!!.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<String>>() {}.type)
             links.forEach {
                 val tempWebPageSettings = dbHelper.getWebPageSettings(it)!!
                 if (it == url || (tempWebPageSettings.redirectedUrl != null && tempWebPageSettings.redirectedUrl == url)) {
@@ -469,7 +469,7 @@ class WebPageDBFragment : BaseFragment() {
     override fun onPause() {
         super.onPause()
         webPageSettings?.let {
-            it.metaData["scrollY"] = readerWebView.scrollY.toString()
+            it.metaData[Constants.MetaDataKeys.SCROLL_POSITION] = readerWebView.scrollY.toString()
             dbHelper.updateWebPageSettings(it)
         }
     }

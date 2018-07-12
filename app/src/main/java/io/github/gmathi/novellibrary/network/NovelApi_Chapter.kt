@@ -15,33 +15,47 @@ fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayLi
     val host = URI(novel.url).host
     when {
         host.contains(HostNames.NOVEL_UPDATES) -> return if (withSources) getNUALLChapterUrlsWithSources(novel) else getNUALLChapterUrls(novel)
-        host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterUrls(novel.url)
-        host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterUrls(novel.url)
+        host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterUrls(novel)
+        host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterUrls(novel)
     }
     return null
 }
 
 //Get RoyalRoad Chapter URLs
-fun NovelApi.getRRChapterUrls(url: String): ArrayList<WebPage>? {
+fun NovelApi.getRRChapterUrls(novel: Novel): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
-        val document = Jsoup.connect(url).get()
+        val document = Jsoup.connect(novel.url).get()
         chapters = ArrayList()
         val tableElement = document.body().getElementById("chapters")
-        tableElement?.getElementsByTag("a")?.filter { it.attributes().hasKey("href") }?.asReversed()?.mapTo(chapters) { WebPage(url = it.absUrl("href"), chapter = it.text()) }
+
+        var orderId = 0L
+        tableElement?.getElementsByTag("a")?.filter { it.attributes().hasKey("href") }?.forEach {
+            val webPage = WebPage(url = it.absUrl("href"), chapter = it.text())
+            webPage.orderId = orderId++
+            webPage.novelId = novel.id
+            chapters.add(webPage)
+        }
     } catch (e: IOException) {
         e.printStackTrace()
     }
     return chapters
 }
 
-fun NovelApi.getWLNUChapterUrls(url: String): ArrayList<WebPage>? {
+fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
-        val document = Jsoup.connect(url).get()
+        val document = Jsoup.connect(novel.url).get()
         chapters = ArrayList()
         val trElements = document.body().getElementsByTag("tr")?.filter { it.id() == "release-entry" }
-        trElements?.mapTo(chapters) { WebPage(url = it.child(0).child(0).attr("href"), chapter = it.getElementsByClass("numeric").joinToString(separator = ".") { it.text() }) }
+
+        var orderId = 0L
+        trElements?.asReversed()?.asSequence()?.forEach {
+            val webPage = WebPage(url = it.child(0).child(0).attr("href"), chapter = it.getElementsByClass("numeric").joinToString(separator = ".") { it.text() })
+            webPage.orderId = orderId++
+            webPage.novelId = novel.id
+            chapters.add(webPage)
+        }
     } catch (e: IOException) {
         e.printStackTrace()
     }

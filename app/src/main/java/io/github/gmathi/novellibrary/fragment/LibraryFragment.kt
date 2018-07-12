@@ -231,9 +231,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         if (adapter.items.isNotEmpty()) {
             val items = adapter.items
             if (!isSorted)
-                adapter.updateData(ArrayList(items.sortedWith(compareBy({ it.name }))))
+                adapter.updateData(ArrayList(items.sortedWith(compareBy { it.name })))
             else
-                adapter.updateData(ArrayList(items.sortedWith(compareBy({ it.name })).reversed()))
+                adapter.updateData(ArrayList(items.sortedWith(compareBy { it.name }).reversed()))
             isSorted = !isSorted
             updateOrderIds()
         }
@@ -433,7 +433,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         MaterialDialog.Builder(activity!!)
                 .title("Choose A Novel Section")
                 .items(novelSectionsNames)
-                .itemsCallback({ _, _, which, _ ->
+                .itemsCallback { _, _, which, _ ->
                     var id = -1L
                     if (novelSectionId == -1L)
                         id = novelSections[which].id
@@ -443,7 +443,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     dbHelper.updateNovelSectionId(adapter.items[position].id, id)
                     EventBus.getDefault().post(NovelSectionEvent(id))
                     setData()
-                })
+                }
                 .show()
     }
 

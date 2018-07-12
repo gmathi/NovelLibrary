@@ -6,7 +6,6 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.Constants
 
@@ -105,7 +104,7 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
             //Move Novel History Preferences to database because it is a huge data
             val history = dataCenter.loadNovelHistory()
             val values = ContentValues()
-            values.put(DBKeys.KEY_NAME, Constants.LargePrefenceKeys.RVN_HISTORY)
+            values.put(DBKeys.KEY_NAME, Constants.LargePreferenceKeys.RVN_HISTORY)
             values.put(DBKeys.KEY_VALUE, Gson().toJson(history))
             db.insert(DBKeys.TABLE_LARGE_PREFERENCE, null, values)
             dataCenter.removeNovelHistory()

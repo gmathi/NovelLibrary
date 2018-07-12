@@ -190,21 +190,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             if (dbHelper.getWebPageSettings(chapters[i].url) == null)
                 dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
         }
-
-
         chaptersSettings = ArrayList(dbHelper.getAllWebPageSettings(novel.id))
-
-        var s = ""
-        var s1 = ""
-        chapters.forEach { webPage ->
-            val index = chaptersSettings.indexOfFirst { it.url == webPage.url }
-            if (index == -1) {
-                s = s + "\n" + webPage.chapter
-                s1 = s1 + "----" + webPage.url
-            }
-        }
-
-        Logs.info(TAG, s)
     }
 
     //endregion
@@ -291,8 +277,11 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 confirmDialog(getString(R.string.mark_chapters_unread_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
                     dataSet.forEach { webPage ->
                         val webPageSettings = chaptersSettings.firstOrNull { it.url == webPage.url }
-                        webPageSettings?.isRead = 0
-                        webPageSettings?.let { dbHelper.updateWebPageSettingsReadStatus(it) }
+                        webPageSettings?.let {
+                            it.metaData.remove(Constants.MetaDataKeys.SCROLL_POSITION)
+                            it.isRead = 0
+                            dbHelper.updateWebPageSettingsReadStatus(it)
+                        }
                     }
                     dialog.dismiss()
                     mode?.finish()
@@ -302,8 +291,10 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 confirmDialog(getString(R.string.mark_chapters_read_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
                     dataSet.forEach { webPage ->
                         val webPageSettings = chaptersSettings.firstOrNull { it.url == webPage.url }
-                        webPageSettings?.isRead = 1
-                        webPageSettings?.let { dbHelper.updateWebPageSettingsReadStatus(it) }
+                        webPageSettings?.let {
+                            it.isRead = 1
+                            dbHelper.updateWebPageSettingsReadStatus(it)
+                        }
                     }
                     dialog.dismiss()
                     mode?.finish()
@@ -477,8 +468,8 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 val file = File(filePath)
                 file.delete()
                 webPageSettings.filePath = null
-                if (webPageSettings.metaData.containsKey(Constants.MD_OTHER_LINKED_WEB_PAGES)) {
-                    val linkedPages: ArrayList<String> = Gson().fromJson(webPageSettings.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES_SETTINGS], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+                if (webPageSettings.metaData.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
+                    val linkedPages: ArrayList<String> = Gson().fromJson(webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES_SETTINGS], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
                     linkedPages.forEach {
                         val linkedWebPageSettings = chaptersSettings.firstOrNull { it.url == webPage.url }
                         if (linkedWebPageSettings?.filePath != null) {
@@ -487,7 +478,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                             dbHelper.deleteWebPageSettings(linkedWebPageSettings.url)
                         }
                     }
-                    webPageSettings.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES] = "[]"
+                    webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = "[]"
                 }
                 dbHelper.updateWebPageSettings(webPageSettings)
             } catch (e: Exception) {
