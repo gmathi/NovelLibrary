@@ -27,6 +27,9 @@ import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
+import io.fabric.sdk.android.Fabric
+
+
 
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -41,6 +44,8 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         setContentView(R.layout.activity_nav_drawer)
         navigationView.setNavigationItemSelectedListener(this)
 
+        //Initialize custom logging
+        Fabric.with(this, Crashlytics())
 
         try {
             currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
@@ -76,7 +81,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
                     .title("📢 What's New!")
-                    .content("\uD83D\uDEE0 Fixed chapters not working from WLN source!\n" +
+                    .content("\uD83D\uDEE0 Fixed chapters not showing up from WLN & other sources!\n" +
 //                            "\uD83D\uDEE0 Fixed Novel Notifications showing 0 Chapters\n" +
 //                            //"✨ Improved performance/decrease load time on the chapters screen\n" +
 //                            "\uD83D\uDEE0 Improved performance/decrease load time on the chapters screen\n" +

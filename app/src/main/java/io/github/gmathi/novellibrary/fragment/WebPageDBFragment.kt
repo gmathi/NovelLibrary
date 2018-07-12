@@ -5,7 +5,6 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -103,7 +102,10 @@ class WebPageDBFragment : BaseFragment() {
             if (intentWebPage == null) activity.finish()
             else webPage = intentWebPage
 
-            webPageSettings = dbHelper.getWebPageSettings(webPage!!.url)
+            if (webPage?.url != null)
+                webPageSettings = dbHelper.getWebPageSettings(webPage!!.url)
+            else
+                activity.finish()
         }
 
         // Load data from webPage into webView
@@ -196,7 +198,8 @@ class WebPageDBFragment : BaseFragment() {
 
                 webPageSettings?.let {
                     if (it.metaData.containsKey(Constants.MetaDataKeys.SCROLL_POSITION)) {
-                        view?.scrollTo(0, (it.metaData[Constants.MetaDataKeys.SCROLL_POSITION] ?: "0").toInt())
+                        view?.scrollTo(0, (it.metaData[Constants.MetaDataKeys.SCROLL_POSITION]
+                                ?: "0").toInt())
                     }
                 }
 

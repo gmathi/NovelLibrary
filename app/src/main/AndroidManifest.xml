@@ -9,6 +9,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
 
+
     <application
         android:name=".NovelLibraryApplication"
         android:allowBackup="true"
@@ -40,6 +41,10 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel"
             android:value="@string/default_notification_channel_id" />
+
+        <meta-data android:name="firebase_crashlytics_collection_enabled"
+            android:value="false" />
+
 
         <service android:name=".service.firebase.NLFirebaseInstanceIdService">
             <intent-filter>
