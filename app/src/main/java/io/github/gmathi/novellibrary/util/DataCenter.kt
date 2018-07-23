@@ -165,7 +165,7 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putBoolean(READER_MODE_BUTTON_VISIBILITY, value).apply()
 
     var enableCloudFlare: Boolean
-        get() = prefs.getBoolean(ENABLE_CLOUD_FLARE, false)
+        get() = prefs.getBoolean(ENABLE_CLOUD_FLARE, true)
         set(value) = prefs.edit().putBoolean(ENABLE_CLOUD_FLARE, value).apply()
 
     var enableNotifications: Boolean
