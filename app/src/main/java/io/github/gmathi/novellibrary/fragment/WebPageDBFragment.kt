@@ -250,27 +250,27 @@ class WebPageDBFragment : BaseFragment() {
 
     private fun loadFromWeb() {
         swipeRefreshLayout.isEnabled = true
+
+        //Check Reader Mode
         if (!dataCenter.readerMode) {
             swipeRefreshLayout.isRefreshing = false
             readerWebView.loadUrl(webPage?.url)
-            return
-        }
 
-        //Download the page and clean it to make it readable!
-        async.cancelAll()
-        downloadWebPage(webPage?.url)
+        } else {
+            //Download the page and clean it to make it readable!
+            async.cancelAll()
+            downloadWebPage(webPage?.url)
+        }
     }
 
     private fun loadCreatedDocument() {
+        doc?.body()?.append("<p><a href=\"#\">*** Go to top of page ***</a></p>")
         webPageSettings?.let {
             readerWebView.loadDataWithBaseURL(
                     if (it.filePath != null) "$FILE_PROTOCOL${it.filePath}" else doc?.location(),
                     doc?.outerHtml(),
                     "text/html", "UTF-8", null
             )
-//            if (it.metaData.containsKey("scrollY")) {
-//                readerWebView.scrollTo(0, (it.metaData["scrollY"] ?: "0").toInt())
-//            }
         }
     }
 
@@ -329,6 +329,9 @@ class WebPageDBFragment : BaseFragment() {
                         val hrefElements = doc.body().getElementsByTag("a")
                         hrefElements?.forEach {
                             if (it.hasAttr("href")) {
+                                if (it.hasAttr("title") && it.attr("title").contains("Click to share", true)) {
+                                    return@forEach
+                                }
                                 val linkedUrl = it.attr("href")
                                 try {
                                     // Check if URL is from chapter provider
@@ -339,6 +342,7 @@ class WebPageDBFragment : BaseFragment() {
                                         helper.removeJS(otherDoc)
                                         helper.additionalProcessing(otherDoc)
                                         doc.body().append(otherDoc.body().html())
+
                                     }
                                 } catch (e: Exception) {
                                     e.printStackTrace()

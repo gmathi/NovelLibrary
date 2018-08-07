@@ -12,7 +12,6 @@ import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
-import com.crashlytics.android.Crashlytics
 import com.tapadoo.alerter.Alerter
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
@@ -49,6 +48,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     companion object {
 
+        private const val TAG = "LibraryFragment"
         private const val NOVEL_SECTION_ID = "novelSectionId"
 
         fun newInstance(novelSectionId: Long): LibraryFragment {
@@ -259,6 +259,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             activity?.invalidateOptionsMenu()
 
             val totalCountMap: HashMap<Novel, Int> = HashMap()
+
             val novels = dbHelper.getAllNovels(novelSectionId)
             novels.forEach {
                 try {
@@ -267,8 +268,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                         totalCountMap[it] = totalChapters
                     }
                 } catch (e: Exception) {
-                    Crashlytics.log("Novel: $it")
-                    Crashlytics.logException(e)
+                    Logs.error(TAG, "Novel: $it", e)
                     return@forEach
                 }
             }
@@ -276,33 +276,22 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             //Update DB with new chapters
             totalCountMap.forEach {
                 val novel = it.key
-                dbHelper.updateChaptersAndReleasesCount(novel.id, it.value.toLong(), novel.newReleasesCount + (it.value - novel.chaptersCount))
-
                 novel.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
                 dbHelper.updateNovelMetaData(novel)
+                dbHelper.updateChaptersAndReleasesCount(novel.id, it.value.toLong(), novel.newReleasesCount + (it.value - novel.chaptersCount))
 
-                //updateChapters(novel, dbHelper)
-                if (!Utils.isConnectedToNetwork(activity) || novel.id == -1L)
-                    return@forEach
-
-                //Download latest chapters from network
                 try {
-                    val chapters = NovelApi.getChapterUrls(novel) ?: ArrayList()
-
-                    //Save to DB if the novel is in Library
-                    if (novel.id != -1L) {
-                        dbHelper.updateChaptersAndReleasesCount(novel.id, chapters.size.toLong(), 0L)
-                        for (i in 0 until chapters.size) {
-                            if (dbHelper.getWebPage(chapters[i].url) == null)
-                                dbHelper.createWebPage(chapters[i])
-                            if (dbHelper.getWebPageSettings(chapters[i].url) == null)
-                                dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
-                        }
+                    val chapters = await { NovelApi.getChapterUrls(novel) } ?: ArrayList()
+                    for (i in 0 until chapters.size) {
+                        if (dbHelper.getWebPage(chapters[i].url) == null)
+                            dbHelper.createWebPage(chapters[i])
+                        if (dbHelper.getWebPageSettings(chapters[i].url) == null)
+                            dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
                     }
 
                 } catch (e: Exception) {
-                    Crashlytics.log("Novel: $novel")
-                    Crashlytics.logException(e)
+                    Logs.error(TAG, "Novel: $it", e)
+                    return@forEach
                 }
             }
 

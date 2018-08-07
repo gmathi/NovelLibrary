@@ -10,7 +10,6 @@ import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
-import com.crashlytics.android.Crashlytics
 import com.google.android.gms.gcm.*
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
@@ -55,8 +54,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
                     totalCountMap[it] = totalChapters
                 }
             } catch (e: Exception) {
-                Crashlytics.log("Novel: $it")
-                Crashlytics.logException(e)
+                Logs.error(TAG, "Novel: $it", e)
                 return
             }
         }
@@ -90,27 +88,21 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
     }
 
+    /**
+     * Download latest chapters from network
+     */
     private fun updateChapters(novel: Novel, dbHelper: DBHelper) {
-        if (!Utils.isConnectedToNetwork(this@BackgroundNovelSyncTask) || novel.id == -1L)
-            return
-
-        //Download latest chapters from network
         try {
             val chapters = NovelApi.getChapterUrls(novel) ?: ArrayList()
-
-            //Save to DB if the novel is in Library
-            if (novel.id != -1L) {
-                for (i in 0 until chapters.size) {
-                    if (dbHelper.getWebPage(chapters[i].url) == null)
-                        dbHelper.createWebPage(chapters[i])
-                    if (dbHelper.getWebPageSettings(chapters[i].url) == null)
-                        dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
-                }
+            for (i in 0 until chapters.size) {
+                if (dbHelper.getWebPage(chapters[i].url) == null)
+                    dbHelper.createWebPage(chapters[i])
+                if (dbHelper.getWebPageSettings(chapters[i].url) == null)
+                    dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
             }
 
         } catch (e: Exception) {
-            Crashlytics.log("Novel: $novel")
-            Crashlytics.logException(e)
+            Logs.error(TAG, "Novel: $novel", e)
         }
     }
 

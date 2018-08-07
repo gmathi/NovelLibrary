@@ -63,8 +63,6 @@ class LibraryPagerFragment : BaseFragment() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        // super.onActivityResult(requestCode, resultCode, data)
-        //TODO: NOT WORKING!!!
         if (requestCode == Constants.NOVEL_SECTIONS_ACT_REQ_CODE) {
             setViewPager()
         } else {

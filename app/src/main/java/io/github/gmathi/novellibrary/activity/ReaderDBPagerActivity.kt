@@ -391,7 +391,7 @@ class ReaderDBPagerActivity :
             itemView.switchReaderMode.visibility = View.GONE
 
 
-        itemView.switchReaderMode.setOnCheckedChangeListener({ _: CompoundButton, isChecked: Boolean ->
+        itemView.switchReaderMode.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
             when (position) {
                 READER_MODE -> {
                     dataCenter.readerMode = isChecked
@@ -410,12 +410,12 @@ class ReaderDBPagerActivity :
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
                 }
             }
-        })
+        }
 
-        itemView.switchNightMode.setOnCheckedChangeListener({ _: CompoundButton, isChecked: Boolean ->
+        itemView.switchNightMode.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
             dataCenter.isDarkTheme = isChecked
             EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
-        })
+        }
 
     }
 
