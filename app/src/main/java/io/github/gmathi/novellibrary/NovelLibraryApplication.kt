@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary
 
 import android.annotation.SuppressLint
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -140,6 +141,7 @@ class NovelLibraryApplication : MultiDexApplication() {
                 "Default Channel",
                 NotificationManager.IMPORTANCE_DEFAULT)
         channel.description = "Default Channel Description"
+        channel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
         notificationManager.createNotificationChannel(channel)
     }
 

@@ -8,9 +8,11 @@ import android.support.design.widget.Snackbar
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import com.tapadoo.alerter.Alerter
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.settings.*
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.service.TTSService
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.service.download.DownloadService
 import io.github.gmathi.novellibrary.util.Constants
@@ -40,7 +42,7 @@ fun Activity.toast(message: String) {
 
 fun Activity.snackBar(view: View, message: String) {
     Snackbar.make(view, message, Snackbar.LENGTH_LONG)
-        .setAction("Action", null).show()
+            .setAction("Action", null).show()
 }
 
 fun Activity.startChaptersActivity(novel: Novel, jumpToReader: Boolean = false) {
@@ -180,8 +182,8 @@ fun Activity.openInBrowser(url: String) {
 
 fun Activity.sendEmail(email: String, subject: String, body: String) {
     val mailTo = "mailto:" + email +
-        "?&subject=" + Uri.encode(subject) +
-        "&body=" + Uri.encode(body + Utils.getDeviceInfo())
+            "?&subject=" + Uri.encode(subject) +
+            "&body=" + Uri.encode(body + Utils.getDeviceInfo())
     val emailIntent = Intent(Intent.ACTION_VIEW)
     emailIntent.data = Uri.parse(mailTo)
 
@@ -213,3 +215,23 @@ fun Activity.startDownloadNovelService(novelName: String) {
     startService(serviceIntent)
 }
 
+fun Activity.startTTSService(audioText: String, novelName: String, chapterName: String) {
+    val serviceIntent = Intent(this, TTSService::class.java)
+    val bundle = Bundle()
+    bundle.putString(TTSService.AUDIO_TEXT_KEY, audioText)
+    bundle.putString(TTSService.NOVEL_NAME_KEY, novelName)
+    bundle.putString(TTSService.CHAPTER_NAME_KEY, chapterName)
+    serviceIntent.putExtras(bundle)
+    startService(serviceIntent)
+}
+
+fun Activity.alertToast(title: String? = null, message: String? = null, color: Int = R.color.colorTextWarningRed, duration: Long = 2500, icon: Int = R.drawable.ic_warning_white_vector) {
+    if (title.isNullOrBlank() && message.isNullOrBlank()) return
+    val alerter = Alerter.create(this)
+    alerter.setBackgroundColorRes(color)
+    if (!title.isNullOrBlank()) alerter.setTitle(title)
+    if (!message.isNullOrBlank()) alerter.setText(message)
+    alerter.setDuration(duration)
+    alerter.setIcon(icon)
+    alerter.show()
+}

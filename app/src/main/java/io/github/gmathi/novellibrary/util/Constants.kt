@@ -51,6 +51,8 @@ object Constants {
     const val IWV_ACT_REQ_CODE = 16
     const val NOVEL_SECTIONS_ACT_REQ_CODE = 17
 
+    const val TTS_ACT_REQ_CODE = 1000
+
     const val SETTINGS_ACT_RES_CODE = 10
     const val LANG_ACT_RES_CODE = 12
     const val OPEN_DOWNLOADS_RES_CODE = 13

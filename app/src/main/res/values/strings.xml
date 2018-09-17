@@ -127,6 +127,7 @@
         <item>@string/title_report_page</item>
         <item>@string/title_open_in_browser</item>
         <item>@string/title_share_chapter</item>
+        <item>@string/title_read_aloud</item>
     </string-array>
 
     <array name="reader_mode_menu_icons_list" translatable="false">
@@ -138,6 +139,7 @@
         <item>@drawable/ic_bug_report_white_vector</item>
         <item>@drawable/ic_open_in_browser_white_vector</item>
         <item>@drawable/ic_share_white_vector</item>
+        <item>@drawable/ic_queue_music_white_vector</item>
     </array>
 
     <string-array name="backup_and_restore_options" translatable="false">
@@ -458,5 +460,6 @@
     <string name="content_description_sources_or_all">Sources/All</string>
     <string name="select_interval">Select Interval</string>
     <string name="simple_text_backup">Simple Text - Novel &amp; Novel Sections Backup</string>
+    <string name="title_read_aloud">Read Aloud</string>
 
 </resources>

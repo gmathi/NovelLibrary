@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/colorDarkKnight">
+
+    <ImageView
+        android:id="@+id/cover"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:padding="8dp"
+        android:src="@mipmap/ic_launcher" />
+
+    <LinearLayout
+        android:id="@+id/containerActions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/close"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:src="@drawable/ic_close_white" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/containerNames"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@id/cover"
+        android:layout_toLeftOf="@id/containerActions"
+        android:layout_toRightOf="@id/cover"
+        android:layout_toStartOf="@id/containerActions"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/novelName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:textColor="@android:color/white"
+            tools:text="American Idiot" />
+
+        <TextView
+            android:id="@+id/chapterName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:fontFamily="sans-serif-thin"
+            android:textColor="@android:color/white"
+            tools:text="Green Day" />
+    </LinearLayout>
+
+
+</RelativeLayout>

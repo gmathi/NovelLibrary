@@ -204,6 +204,7 @@ open class HtmlHelper protected constructor() {
                     font-family: '$fontFamily';
                     line-height: 1.5;
                     padding: 20px;
+                    text-align: left;
                 }
                 a {
                     color: rgba(${if (isDark) "135, 206, 250" else "0, 0, 238"}, .$nightModeTextBrightness);
@@ -216,6 +217,9 @@ open class HtmlHelper protected constructor() {
                     box-shadow: 1px 1px 1px rgba(0, 0, 0, .75);
                     border-collapse: separate;
                     border-spacing: 2px;
+                }
+                p  {
+                    text-align: left;
                 }
             </style>
             """.trimIndent())

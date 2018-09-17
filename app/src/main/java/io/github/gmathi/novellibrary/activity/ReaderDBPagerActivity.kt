@@ -5,6 +5,7 @@ import android.Manifest
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.os.*
+import android.speech.tts.TextToSpeech
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.ViewPager
 import android.support.v7.widget.LinearLayoutManager
@@ -61,6 +62,7 @@ class ReaderDBPagerActivity :
         private const val REPORT_PAGE = 5
         private const val OPEN_IN_BROWSER = 6
         private const val SHARE_CHAPTER = 7
+        private const val READ_ALOUD = 8
 
         private const val VOLUME_SCROLL_STEP = 50
     }
@@ -73,7 +75,6 @@ class ReaderDBPagerActivity :
     private var webPage: WebPage? = null
     private var sourceId: Long = -1L
     private var totalSize: Int = 0
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -124,6 +125,7 @@ class ReaderDBPagerActivity :
 
         if (!dataCenter.isReaderModeButtonVisible)
             menuNav.visibility = View.INVISIBLE
+
     }
 
     private fun updateBookmark(webPage: WebPage) {
@@ -164,6 +166,7 @@ class ReaderDBPagerActivity :
         val offset = if (dataCenter.japSwipe) totalSize - position - 1 else position
         val webPage = dbHelper.getWebPage(novel.id, sourceId, offset)
         if (webPage != null) updateBookmark(webPage)
+
         //fabClean.visibility = View.VISIBLE
     }
 
@@ -298,7 +301,8 @@ class ReaderDBPagerActivity :
                 createItemFor(MERGE_PAGES).setSwitchOn(true),
                 createItemFor(REPORT_PAGE),
                 createItemFor(OPEN_IN_BROWSER),
-                createItemFor(SHARE_CHAPTER)
+                createItemFor(SHARE_CHAPTER),
+                createItemFor(READ_ALOUD)
         ) as List<DrawerItem<DrawerAdapter.ViewHolder>>)
         adapter.setListener(this)
 
@@ -363,6 +367,16 @@ class ReaderDBPagerActivity :
             REPORT_PAGE -> reportPage()
             OPEN_IN_BROWSER -> inBrowser()
             SHARE_CHAPTER -> share()
+            READ_ALOUD -> {
+                if (dataCenter.readerMode) {
+                    val webPageDBFragment = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as? WebPageDBFragment)
+                    val audioText = webPageDBFragment?.doc?.text() ?: return
+                    val title = webPageDBFragment.doc?.title() ?: ""
+                    startTTSService(audioText, novel.name, title)
+                } else {
+                    alertToast(title = "Read Aloud", message = "Only supported in Reader Mode!")
+                }
+            }
         }
     }
 
@@ -463,4 +477,5 @@ class ReaderDBPagerActivity :
         novel.metaData[Constants.MetaDataKeys.LAST_READ_DATE] = Utils.getCurrentFormattedDate()
         dbHelper.updateNovelMetaData(novel)
     }
+
 }
