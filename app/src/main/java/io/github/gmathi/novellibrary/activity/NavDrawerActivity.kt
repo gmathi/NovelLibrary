@@ -81,8 +81,8 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
                     .title("📢 What's New!")
-                    .content("\uD83D\uDEE0 Fixed chapters not showing up from WLN & other sources!\n" +
-//                            "\uD83D\uDEE0 Fixed Novel Notifications showing 0 Chapters\n" +
+                    .content("✨ Added TTS - Read Aloud! (check in reader side menu)\n" +
+                            "✨ Added Text Alignment to Left\n" +
 //                            //"✨ Improved performance/decrease load time on the chapters screen\n" +
 //                            "\uD83D\uDEE0 Improved performance/decrease load time on the chapters screen\n" +
 //                            "⚠️ Downloads will be fixed in next update (as always I guess :( )\n" +

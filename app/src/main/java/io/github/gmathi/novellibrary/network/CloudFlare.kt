@@ -48,7 +48,7 @@ class CloudFlare(val context: Context, val listener: Listener) {
 
         @Suppress("unused")
         fun clearSavedCookies() {
-            dataCenter.userAgent = HostNames.USER_AGENT
+            //dataCenter.userAgent = HostNames.USER_AGENT
             dataCenter.cfDuid = ""
             dataCenter.cfClearance = ""
             dataCenter.cfCookiesString = ""
@@ -159,7 +159,7 @@ class CloudFlare(val context: Context, val listener: Listener) {
                     val cookies = CookieManager.getInstance().getCookie(url)
                     Logs.info(TAG, "Cookies: " + cookies?.toString())
                     if (cookies != null && (cookies.contains(DataCenter.CF_COOKIES_DUID) || cookies.contains(DataCenter.CF_COOKIES_CLEARANCE))) {
-                        dataCenter.userAgent = webView.settings.userAgentString
+                        //dataCenter.userAgent = webView.settings.userAgentString
                         saveCookie(cookies)
                         listener.onSuccess()
                     } else {
