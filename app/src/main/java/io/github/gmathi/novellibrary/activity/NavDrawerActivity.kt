@@ -80,9 +80,9 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                    .title("📢 What's New!")
-                    .content("✨ Added TTS - Read Aloud! (check in reader side menu)\n" +
-                            "✨ Added Text Alignment to Left\n" +
+                    .title("📢 What's New! 0.9.6.1.beta")
+                    .content("Immediate hotfix for the crash! Will investigate over the weekend.\n" +
+                                //"✨ Added Text Alignment to Left\n" +
 //                            //"✨ Improved performance/decrease load time on the chapters screen\n" +
 //                            "\uD83D\uDEE0 Improved performance/decrease load time on the chapters screen\n" +
 //                            "⚠️ Downloads will be fixed in next update (as always I guess :( )\n" +
