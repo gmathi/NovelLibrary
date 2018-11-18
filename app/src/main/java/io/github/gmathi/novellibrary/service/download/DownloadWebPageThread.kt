@@ -11,13 +11,12 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.writableFileName
-import org.greenrobot.eventbus.EventBus
 import org.jsoup.helper.StringUtil
 import org.jsoup.nodes.Document
 import java.io.File
 
 
-class DownloadWebPageThread(val context: Context, val download: Download, val dbHelper: DBHelper) : Thread() {
+class DownloadWebPageThread(val context: Context, val download: Download, val dbHelper: DBHelper, private val downloadListener: DownloadListener) : Thread(), DownloadListener {
 
     companion object {
         private const val TAG = "DownloadWebPageThread"
@@ -37,11 +36,11 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             novelDir = Utils.getNovelDir(hostDir, download.novelName)
 
             dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_RUNNING, download.webPageUrl)
-            EventBus.getDefault().post(DownloadWebPageEvent(EventType.RUNNING, webPageSettings.url, download))
+            downloadListener.handleEvent(DownloadWebPageEvent(EventType.RUNNING, webPageSettings.url, download))
 
             if (downloadChapter(webPageSettings, webPage)) {
                 dbHelper.deleteDownload(download.webPageUrl)
-                EventBus.getDefault().post(DownloadWebPageEvent(EventType.COMPLETE, webPageSettings.url, download))
+                downloadListener.handleEvent(DownloadWebPageEvent(EventType.COMPLETE, webPageSettings.url, download))
             }
 
         } catch (e: InterruptedException) {
@@ -58,7 +57,6 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             doc = NovelApi.getDocumentWithUserAgent(webPageSettings.url)
         } catch (e: Exception) {
             Logs.error(TAG, "Error getting WebPage: ${webPageSettings.url}")
-            e.printStackTrace()
             return false
         }
 
@@ -68,7 +66,8 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             val htmlHelper = HtmlHelper.getInstance(doc, uri.host)
             htmlHelper.clean(doc, hostDir, novelDir)
             webPageSettings.title = htmlHelper.getTitle(doc)
-            val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName())) ?: return false
+            val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName()))
+                    ?: return false
             webPageSettings.filePath = file.path
             webPageSettings.redirectedUrl = doc.location()
 
@@ -111,7 +110,8 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         webPageSettings.title = htmlHelper.getTitle(doc)
         if (webPageSettings.title != null && webPageSettings.title == "") webPageSettings.title = doc.location()
 
-        val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName())) ?: return null
+        val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName()))
+                ?: return null
         webPageSettings.filePath = file.path
         webPageSettings.redirectedUrl = doc.location()
         return webPageSettings
@@ -130,4 +130,11 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         return false
     }
 
+    override fun handleEvent(downloadWebPageEvent: DownloadWebPageEvent) {
+        downloadListener.handleEvent(downloadWebPageEvent)
+    }
+
+    override fun handleEvent(downloadNovelEvent: DownloadNovelEvent) {
+        downloadListener.handleEvent(downloadNovelEvent)
+    }
 }

@@ -17,7 +17,6 @@ import com.crashlytics.android.Crashlytics
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.fragment.DownloadFragment
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.Novel
@@ -28,8 +27,8 @@ import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
 import io.fabric.sdk.android.Fabric
-
-
+import io.github.gmathi.novellibrary.database.getAllNovels
+import io.github.gmathi.novellibrary.dbHelper
 
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -93,7 +92,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                     .show()
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
-
     }
 
     private fun checkForCloudFlare() {
@@ -143,11 +141,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                     (existingSearchFrag as SearchFragment).closeSearch()
                     return
                 }
-            }
-            val existingDownloadFrag = supportFragmentManager.findFragmentByTag(DownloadFragment::class.toString())
-            if (existingDownloadFrag != null) {
-                loadFragment(R.id.nav_library)
-                return
             }
 
             if (snackBar != null && snackBar!!.isShown)

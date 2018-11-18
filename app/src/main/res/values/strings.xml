@@ -60,6 +60,7 @@
         <item>@string/backup_and_restore</item>
         <item>@string/enable_cloud_flare</item>
         <item>@string/disable_notifications</item>
+        <item>@string/faster_downloads</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
@@ -67,6 +68,7 @@
         <item>@string/backup_and_restore_description</item>
         <item>@string/enable_cloud_flare_description</item>
         <item>@string/disable_notifications_description</item>
+        <item>@string/faster_downloads_description</item>
     </string-array>
 
     <string-array name="backup_and_restore_titles_list" translatable="false">

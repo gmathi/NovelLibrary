@@ -29,6 +29,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
+
 class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
     companion object {
@@ -216,10 +217,9 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 return true
             }
             item?.itemId == R.id.action_download -> {
-                confirmDialog(if (novel.id != -1L) getString(R.string.download_all_new_chapters_dialog_content) else getString(R.string.download_all_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
+                confirmDialog(getString(R.string.download_all_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
                     addWebPagesToDownload()
                     dialog.dismiss()
-                    manageDownloadsDialog()
                 })
                 return true
             }
@@ -450,14 +450,22 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
     private fun addWebPagesToDownload(webPages: List<WebPage> = chapters) {
         async {
-            progressLayout.showLoading()
+            val dialog = MaterialDialog.Builder(this@ChaptersPagerActivity)
+                    .content("Adding chapters to download queue…")
+                    .progress(false, webPages.size, true)
+                    .cancelable(false)
+                    .show()
+
             webPages.forEach {
                 val download = Download(it.url, novel.name, it.chapter)
                 download.orderId = it.orderId.toInt()
                 await { dbHelper.createDownload(download) }
+                dialog.incrementProgress(1)
             }
-            progressLayout.showContent()
+            dialog.setContent("Finished adding chapters…")
+            dialog.dismiss()
             startDownloadNovelService(novel.name)
+            manageDownloadsDialog()
         }
     }
 

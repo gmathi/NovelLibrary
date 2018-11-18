@@ -14,7 +14,6 @@ import io.github.gmathi.novellibrary.activity.settings.*
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.service.TTSService
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
-import io.github.gmathi.novellibrary.service.download.DownloadService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.TransitionHelper
 import io.github.gmathi.novellibrary.util.Utils
@@ -198,13 +197,6 @@ fun Activity.shareUrl(url: String) {
     i.putExtra(Intent.EXTRA_TEXT, url)
     if (i.resolveActivity(packageManager) != null)
         startActivity(Intent.createChooser(i, "Share URL(s)"))
-}
-
-fun Activity.startDownloadService() {
-    val serviceIntent = Intent(this, DownloadService::class.java)
-    val bundle = Bundle()
-    serviceIntent.putExtras(bundle)
-    startService(serviceIntent)
 }
 
 fun Activity.startDownloadNovelService(novelName: String) {

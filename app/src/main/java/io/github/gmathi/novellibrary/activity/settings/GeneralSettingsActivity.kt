@@ -29,6 +29,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         private const val POSITION_BACKUP_AND_RESTORE = 1
         private const val POSITION_ENABLE_CLOUD_FLARE = 2
         private const val POSITION_ENABLE_NOTIFICATIONS = 3
+        private const val POSITION_FASTER_DOWNLOADS = 4
 
     }
 
@@ -99,6 +100,12 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                     else
                         BackgroundNovelSyncTask.cancelAll(applicationContext)
                 }
+            }
+
+            POSITION_FASTER_DOWNLOADS -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.experimentalDownload
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.experimentalDownload = value }
             }
         }
 

@@ -267,7 +267,6 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
 
                 //Backup To TextFile
                 if (shouldSimpleTextBackup) {
-                    val jsonObject = JSONObject()
                     val novelsArray = dbHelper.getAllNovels()
                     val novelSectionsArray = dbHelper.getAllNovelSections()
                     val map = HashMap<String, Any>()
@@ -342,7 +341,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
         }
     }
 
-    private fun restoreData(backupDir: File, shouldSimpleTextBackup: Boolean = true, shouldRestoreDatabase: Boolean = true, shouldRestorePreferences: Boolean = true, shouldRestoreFiles: Boolean = true) {
+    private fun restoreData(backupDir: File, shouldSRestoreimpleText: Boolean = true, shouldRestoreDatabase: Boolean = true, shouldRestorePreferences: Boolean = true, shouldRestoreFiles: Boolean = true) {
         async {
             val data = Environment.getDataDirectory()
             val baseDir = File(data, "//data//io.github.gmathi.novellibrary")
@@ -365,7 +364,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
 
                 //Restore From Text File
                 val simpleTextFile = File(backupDir, SIMPLE_NOVEL_BACKUP_FILE_NAME)
-                if (simpleTextFile.exists() && simpleTextFile.canRead()) {
+                if (shouldSRestoreimpleText && simpleTextFile.exists() && simpleTextFile.canRead()) {
                     val reader = BufferedReader(InputStreamReader(FileInputStream(simpleTextFile)))
                     val jsonString = reader.readLine()
                     val jsonObject = JSONObject(jsonString)

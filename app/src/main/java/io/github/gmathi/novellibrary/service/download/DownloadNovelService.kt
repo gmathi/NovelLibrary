@@ -2,20 +2,21 @@ package io.github.gmathi.novellibrary.service.download
 
 import android.app.IntentService
 import android.content.Intent
+import android.os.Binder
+import android.os.IBinder
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.updateDownloadStatus
 import io.github.gmathi.novellibrary.model.Download
-import io.github.gmathi.novellibrary.model.DownloadActionEvent
 import io.github.gmathi.novellibrary.model.DownloadNovelEvent
+import io.github.gmathi.novellibrary.model.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.EventType
-import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
+import io.github.gmathi.novellibrary.util.Logs
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.ThreadPoolExecutor
 
 
-class DownloadNovelService : IntentService(TAG) {
+class DownloadNovelService : IntentService(TAG), DownloadListener {
 
     private var threadListMap = HashMap<String, DownloadNovelThread?>()
     private val futures = ArrayList<Future<Any>>()
@@ -34,25 +35,40 @@ class DownloadNovelService : IntentService(TAG) {
         const val ACTION_PAUSE = "action_pause"
     }
 
+    private val binder = DownloadNovelBinder()
+    @Volatile
+    var downloadListener: DownloadListener? = null
 
-    override fun onHandleIntent(workIntent: Intent) {
-        //android.os.Debug.waitForDebugger()
+    inner class DownloadNovelBinder : Binder() {
+        // Return this instance of LocalService so clients can call public methods
+        fun getService(): DownloadNovelService = this@DownloadNovelService
+    }
 
+    //region Lifecycle functions
 
+    override fun onCreate() {
+        super.onCreate()
+        Logs.debug(TAG, "onCreate")
         dbHelper = DBHelper.getInstance(this)
-        try {
-            EventBus.getDefault().register(this)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-
-        val novelName = workIntent.getStringExtra(NOVEL_NAME)
-
-        //Initialize Thread Pool
         threadPool = Executors.newFixedThreadPool(MAX_PARALLEL_DOWNLOADS) as ThreadPoolExecutor
+    }
 
-        val downloadNovelThread = DownloadNovelThread(this, novelName, dbHelper)
+    //Only called when an Activity is trying to connect to this service
+    override fun onBind(intent: Intent): IBinder {
+        Logs.debug(TAG, "onBind")
+        return binder
+    }
+
+    //Only called when the Service is called as Background Service
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        Logs.debug(TAG, "onStartCommand")
+        return super.onStartCommand(intent, flags, startId)
+    }
+
+    override fun onHandleIntent(intent: Intent) {
+        Logs.debug(TAG, "onHandleIntent")
+        val novelName = intent.getStringExtra(NOVEL_NAME)
+        val downloadNovelThread = DownloadNovelThread(this, novelName, dbHelper, this@DownloadNovelService)
         threadListMap[novelName] = downloadNovelThread
 
         futures.add(threadPool.submit(downloadNovelThread, null as Any?))
@@ -61,29 +77,28 @@ class DownloadNovelService : IntentService(TAG) {
             futures[0].get()
             futures.removeAt(0)
         }
-
         threadPool.shutdown()
     }
 
-    @Subscribe
-    fun onActionReceived(event: DownloadActionEvent) {
-        doAction(event.novelName, event.action)
-    }
 
-    private fun doAction(novelName: String, action: String) {
+    fun handleNovelDownload(novelName: String, action: String) {
+        Logs.debug(TAG, "handleNovelDownload")
+
+        //android.os.Debug.waitForDebugger()
         if (action == ACTION_START) {
             var downloadNovelThread = threadListMap[novelName]
             if (downloadNovelThread != null && downloadNovelThread.isAlive) {
                 return
             }
 
-            downloadNovelThread = DownloadNovelThread(this, novelName, dbHelper)
+            downloadNovelThread = DownloadNovelThread(this, novelName, dbHelper, this@DownloadNovelService)
             threadListMap[novelName] = downloadNovelThread
             futures.add(threadPool.submit(downloadNovelThread, null as Any?))
+
             if (futures.size > 5)
-                EventBus.getDefault().post(DownloadNovelEvent(EventType.INSERT, novelName))
+                downloadListener?.handleEvent(DownloadNovelEvent(EventType.INSERT, novelName))
             else
-                EventBus.getDefault().post(DownloadNovelEvent(EventType.RUNNING, novelName))
+                downloadListener?.handleEvent(DownloadNovelEvent(EventType.RUNNING, novelName))
 
         } else if (action == ACTION_PAUSE) {
             val downloadNovelThread = threadListMap[novelName]
@@ -95,11 +110,47 @@ class DownloadNovelService : IntentService(TAG) {
     }
 
 
+    //Only called when an Activity is trying to reconnect to this service
+    override fun onRebind(intent: Intent?) {
+        Logs.debug(TAG, "onRebind")
+        super.onRebind(intent)
+    }
+
+    //Only called when an Activity is trying to disconnect to this service
+    override fun onUnbind(intent: Intent?): Boolean {
+        Logs.debug(TAG, "onUnbind")
+        return true //true - so it calls rebind
+    }
+
+    //Called on bound (Activity) & background service
     override fun onDestroy() {
-        EventBus.getDefault().unregister(this)
+        Logs.debug(TAG, "onDestroy")
         dbHelper.updateDownloadStatus(Download.STATUS_PAUSED)
         super.onDestroy()
     }
 
+    //endregion
+
+    fun isNovelDownloading(novelName: String): Boolean {
+        return threadListMap.keys.contains(novelName)
+    }
+
+
+    fun checkCompletion() {
+
+    }
+
+
+    //region DownloadListener Implementation
+
+    override fun handleEvent(downloadNovelEvent: DownloadNovelEvent) {
+        downloadListener?.handleEvent(downloadNovelEvent)
+    }
+
+    override fun handleEvent(downloadWebPageEvent: DownloadWebPageEvent) {
+        downloadListener?.handleEvent(downloadWebPageEvent)
+    }
+
+    //endregion
 
 }
