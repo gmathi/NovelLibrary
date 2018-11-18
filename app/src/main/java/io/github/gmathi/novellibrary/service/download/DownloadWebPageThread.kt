@@ -40,7 +40,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
             if (downloadChapter(webPageSettings, webPage)) {
                 dbHelper.deleteDownload(download.webPageUrl)
-                downloadListener.handleEvent(DownloadWebPageEvent(EventType.COMPLETE, webPageSettings.url, download))
+                //downloadListener.handleEvent(DownloadWebPageEvent(EventType.COMPLETE, webPageSettings.url, download))
             }
 
         } catch (e: InterruptedException) {

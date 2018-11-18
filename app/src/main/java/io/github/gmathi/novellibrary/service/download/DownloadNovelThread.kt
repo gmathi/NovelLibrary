@@ -29,18 +29,18 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
         try {
             var download = dbHelper.getDownloadItemInQueue(novelName)
             threadPool = Executors.newFixedThreadPool(10) as ThreadPoolExecutor
-            val fasterDownloads = DataCenter(context).experimentalDownload
+//            val fasterDownloads = DataCenter(context).experimentalDownload
 
             while (download != null && !interrupted()) {
 
                 if (!Utils.isConnectedToNetwork(context)) throw InterruptedException(Constants.NO_NETWORK)
 
-                if (!fasterDownloads)
+//                if (!fasterDownloads)
                     // .get at the end makes it a synchronous task
                     threadPool?.submit(DownloadWebPageThread(context, download, dbHelper, this@DownloadNovelThread))?.get()
-                else
-                    // Put all in at the same time
-                    threadPool?.submit(DownloadWebPageThread(context, download, dbHelper, this@DownloadNovelThread))
+//                else
+                    // Put all in at the same time - TODO:// Problem with multitasking when adding 1000+ chapters at the same time. Need to streamline it for multitasking
+//                    threadPool?.submit(DownloadWebPageThread(context, download, dbHelper, this@DownloadNovelThread))
 
                 //Check if thread was shutdown
                 if (interrupted()) return
@@ -50,14 +50,14 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
 
             threadPool?.shutdown()
             try {
-                if (!fasterDownloads)
+//                if (!fasterDownloads)
                     threadPool?.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)
-                else {
-                    if (threadPool != null)
-                        while (!threadPool!!.awaitTermination(1, TimeUnit.MINUTES)) {
-                            Thread.sleep(60000)
-                        }
-                }
+//                else {
+//                    if (threadPool != null)
+//                        while (!threadPool!!.awaitTermination(1, TimeUnit.MINUTES) && !isInterrupted) {
+//                            Thread.sleep(60000)
+//                        }
+//                }
 
                 if (dbHelper.getRemainingDownloadsCountForNovel(novelName) == 0)
                     downloadListener.handleEvent(DownloadNovelEvent(EventType.DELETE, novelName))

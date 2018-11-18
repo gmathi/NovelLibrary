@@ -60,7 +60,7 @@
         <item>@string/backup_and_restore</item>
         <item>@string/enable_cloud_flare</item>
         <item>@string/disable_notifications</item>
-        <item>@string/faster_downloads</item>
+        <!--<item>@string/faster_downloads</item>-->
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
@@ -68,7 +68,7 @@
         <item>@string/backup_and_restore_description</item>
         <item>@string/enable_cloud_flare_description</item>
         <item>@string/disable_notifications_description</item>
-        <item>@string/faster_downloads_description</item>
+        <!--<item>@string/faster_downloads_description</item>-->
     </string-array>
 
     <string-array name="backup_and_restore_titles_list" translatable="false">
@@ -299,7 +299,7 @@
     <string name="app_exit">Press Back again to exit Novel Library</string>
     <string name="general">General</string>
     <string name="faster_downloads">Faster Downloads</string>
-    <string name="faster_downloads_description">Downloads really fast but your device may lag/freeze while downloading.</string>
+    <string name="faster_downloads_description">Experimental: Downloads really fast but your device may lag/freeze while downloading.</string>
     <string name="first_screen_library">Make “Library” main screen</string>
     <string name="first_screen_library_description">If turned off “Search” will be main screen instead.</string>
     <string name="clean_pages">Clean Chapters</string>
@@ -380,7 +380,8 @@
     <string name="no_bookmark">No Bookmark!</string>
     <string name="imported_list">Imported List</string>
     <string name="already_in_library">[ Already In Library ]</string>
-    <string name="group_notification_text">Updated for the novels in your library</string>
+    <string name="group_update_notification_text">Updated for the novels in your library</string>
+    <string name="group_download_notification_text">Downloads for the novels in your library</string>
     <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
     <string name="reader_mode_description">Reader mode will be on permanently</string>
     <string name="delete_chapters">Delete Downloads</string>

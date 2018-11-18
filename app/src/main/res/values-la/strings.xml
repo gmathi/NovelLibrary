@@ -214,7 +214,7 @@
     <string name="imported_list">Imported List</string>
 
     <string name="already_in_library">[ Already In Library ]</string>
-    <string name="group_notification_text">Updated for the novels in your library</string>
+    <string name="group_update_notification_text">Updated for the novels in your library</string>
     <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
     <string name="reader_mode_description">Reader mode will be on permanently</string>
     <string name="delete_chapters">Delete Chapters</string>
@@ -279,5 +279,6 @@
     <string name="default_novel_section_name">Currently Reading</string>
     <string name="simple_text_backup">Simple Text - Novel &amp; Novel Sections Backup</string>
     <string name="title_read_aloud">Read Aloud</string>
+    <string name="group_download_notification_text">Downloads for the novels in your library</string>
 
 </resources>

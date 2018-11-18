@@ -113,7 +113,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
         private val thisClass = BackgroundNovelSyncTask::class.java
         private const val TAG = "BackgroundNovelSyncTask"
-        private const val KEY_NOTIFICATION_GROUP = "KEY_NOTIFICATION_GROUP"
+        private const val UPDATE_NOTIFICATION_GROUP = "updateNotificationGroup"
 
         fun scheduleRepeat(context: Context) {
             cancelAll(context)
@@ -156,8 +156,8 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
     private fun showBundledNotifications(context: Context, novelsList: ArrayList<Novel>, contentIntent: PendingIntent) {
         val first = createNotificationBuilder(
-                context, getString(R.string.app_name), getString(R.string.group_notification_text), contentIntent)
-        first.setGroupSummary(true).setGroup(KEY_NOTIFICATION_GROUP)
+                context, getString(R.string.app_name), getString(R.string.group_update_notification_text), contentIntent)
+        first.setGroupSummary(true).setGroup(UPDATE_NOTIFICATION_GROUP)
         showNotification(this, first.build(), 0)
 
         val notificationList = ArrayList<Notification>()
@@ -167,7 +167,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
                     novel.name,
                     getString(R.string.new_chapters_notification_content_single, novel.newReleasesCount.toInt()),
                     createNovelDetailsPendingIntent(novel))
-            notificationBuilder.setGroup(KEY_NOTIFICATION_GROUP)
+            notificationBuilder.setGroup(UPDATE_NOTIFICATION_GROUP)
             notificationList.add(notificationBuilder.build())
         }
         var count = 0

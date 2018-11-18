@@ -1,15 +1,26 @@
 package io.github.gmathi.novellibrary.service.download
 
 import android.app.IntentService
+import android.app.Notification
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Binder
+import android.os.Build
+import android.os.Bundle
 import android.os.IBinder
+import android.support.v4.app.NotificationCompat
+import android.support.v4.content.ContextCompat
+import android.widget.RemoteViews
+import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.activity.NovelDownloadsActivity
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.updateDownloadStatus
-import io.github.gmathi.novellibrary.model.Download
-import io.github.gmathi.novellibrary.model.DownloadNovelEvent
-import io.github.gmathi.novellibrary.model.DownloadWebPageEvent
-import io.github.gmathi.novellibrary.model.EventType
+import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.service.TTSService
+import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
@@ -27,7 +38,9 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
     //static components
     companion object {
         const val TAG = "DownloadNovelService"
+        private const val DOWNLOAD_NOTIFICATION_GROUP = "downloadNotificationGroup"
         const val QUALIFIED_NAME = "io.github.gmathi.novellibrary.service.download.DownloadNovelService"
+
         const val MAX_PARALLEL_DOWNLOADS = 5
 
         const val NOVEL_NAME = "name"
@@ -130,16 +143,6 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
     }
 
     //endregion
-
-    fun isNovelDownloading(novelName: String): Boolean {
-        return threadListMap.keys.contains(novelName)
-    }
-
-
-    fun checkCompletion() {
-
-    }
-
 
     //region DownloadListener Implementation
 
