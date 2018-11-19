@@ -439,7 +439,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         MaterialDialog.Builder(this)
                 .iconRes(R.drawable.ic_info_white_vector)
                 .title(getString(R.string.manage_downloads))
-                .content("Novel downloads can be managed by navigating to \"Downloads\" through the navigation drawer menu.")
+                .content("Novel downloads can be managed by navigating to \"Downloads\" through the navigation drawer menu. Please start the download manually!!")
                 .positiveText(getString(R.string.take_me_there))
                 .negativeText(getString(R.string.okay))
                 .onPositive { dialog, _ -> dialog.dismiss(); setResult(Constants.OPEN_DOWNLOADS_RES_CODE); finish() }
@@ -464,7 +464,6 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             }
             dialog.setContent("Finished adding chapters…")
             dialog.dismiss()
-            startDownloadNovelService(novel.name)
             manageDownloadsDialog()
         }
     }

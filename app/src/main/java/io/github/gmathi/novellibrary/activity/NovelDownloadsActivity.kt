@@ -64,7 +64,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
         setContentView(R.layout.activity_novel_downloads)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
+        fab.hide()
         setRecyclerView()
     }
 
@@ -149,12 +149,18 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                     when (downloadEvent.type) {
                         EventType.PAUSED -> {
                             itemView.novelProgressText.text = getString(R.string.download_paused)
+                            itemView.playPauseImage.setImageResource(R.drawable.ic_play_arrow_white_vector)
+                            itemView.playPauseImage.tag = Download.STATUS_PAUSED
                         }
                         EventType.INSERT -> {
+                            itemView.playPauseImage.setImageResource(R.drawable.ic_pause_white_vector)
+                            itemView.playPauseImage.tag = Download.STATUS_IN_QUEUE
                             val remainingDownloadsCount = dbHelper.getRemainingDownloadsCountForNovel(item)
                             itemView.novelProgressText.text = "${getString(R.string.download_in_queue)} - Remaining: $remainingDownloadsCount"
                         }
                         EventType.RUNNING -> {
+                            itemView.playPauseImage.setImageResource(R.drawable.ic_pause_white_vector)
+                            itemView.playPauseImage.tag = Download.STATUS_IN_QUEUE
                             itemView.novelProgressText.text = "Collecting Novel Information…"
                         }
                     }
@@ -178,6 +184,8 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                     run {
                         dbHelper.deleteDownloads(novelName)
                         adapter.removeItem(novelName)
+                        if (isServiceConnected && Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME))
+                            downloadNovelService.handleNovelDownload(novelName, DownloadNovelService.ACTION_REMOVE)
                         dialog.dismiss()
                     }
                 }
@@ -215,6 +223,8 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                 }
                 EventType.DELETE -> {
                     adapter.removeItem(downloadNovelEvent.novelName)
+                    if (isServiceConnected && Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME))
+                        downloadNovelService.handleNovelDownload(downloadNovelEvent.novelName, DownloadNovelService.ACTION_REMOVE)
                 }
                 else -> {
                     //Do Nothing

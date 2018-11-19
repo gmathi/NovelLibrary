@@ -92,6 +92,11 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                     .show()
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
+
+        if (intent.hasExtra("showDownloads")) {
+            intent.removeExtra("showDownloads")
+            startNovelDownloadsActivity()
+        }
     }
 
     private fun checkForCloudFlare() {

@@ -15,6 +15,7 @@ import io.github.gmathi.novellibrary.util.Utils
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 
 class DownloadNovelThread(val context: Context, val novelName: String, val dbHelper: DBHelper, private val downloadListener: DownloadListener) : Thread(), DownloadListener {
@@ -43,7 +44,7 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
 //                    threadPool?.submit(DownloadWebPageThread(context, download, dbHelper, this@DownloadNovelThread))
 
                 //Check if thread was shutdown
-                if (interrupted()) return
+                if (interrupted()) { threadPool?.shutdownNow(); return }
 
                 download = dbHelper.getDownloadItemInQueue(novelName)
             }
