@@ -120,11 +120,12 @@ class WebPageDBFragment : BaseFragment() {
             val listener = object : CloudFlare.Companion.Listener {
                 override fun onSuccess() {
                     //  loadFragment(currentNavId)
-                    if (activity != null)
+                    if (activity != null) {
                         Toast.makeText(activity, "Cloud Flare Bypassed", Toast.LENGTH_SHORT).show()
-                    readerWebView.loadUrl("about:blank")
-                    readerWebView.clearHistory()
-                    loadData()
+                        readerWebView.loadUrl("about:blank")
+                        readerWebView.clearHistory()
+                        loadData()
+                    }
                 }
 
                 override fun onFailure() {

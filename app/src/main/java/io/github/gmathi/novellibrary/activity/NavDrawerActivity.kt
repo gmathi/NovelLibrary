@@ -14,6 +14,7 @@ import android.view.MenuItem
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.crashlytics.android.Crashlytics
+import io.fabric.sdk.android.Fabric
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
@@ -26,9 +27,6 @@ import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
-import io.fabric.sdk.android.Fabric
-import io.github.gmathi.novellibrary.database.getAllNovels
-import io.github.gmathi.novellibrary.dbHelper
 
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -79,12 +77,12 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                    .title("📢 What's New! 0.9.6.1.beta")
-                    .content("Immediate hotfix for the crash! Will investigate over the weekend.\n" +
-                                //"✨ Added Text Alignment to Left\n" +
+                    .title("📢 What's New! 0.9.7.beta")
+                    .content("*** Immediate hotfix for the CloudFlare! You can by-pass(by clicking back) the loading screen, so you can read from other sources. ***\n\n" +
+                            "✨ Downloads have been revamped. Please let me know the feedback\n" +
 //                            //"✨ Improved performance/decrease load time on the chapters screen\n" +
 //                            "\uD83D\uDEE0 Improved performance/decrease load time on the chapters screen\n" +
-//                            "⚠️ Downloads will be fixed in next update (as always I guess :( )\n" +
+                            "⚠️ Expect another update soon for - \"Unable to add new novel to library\" bug\n" +
 //                            "\uD83D\uDEE0️ Bug Fixes for reported & unreported crashes!" +
                             "")
                     .positiveText("Ok")
@@ -101,15 +99,17 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun checkForCloudFlare() {
 
-        cloudFlareLoadingDialog = Utils.dialogBuilder(this@NavDrawerActivity, content = getString(R.string.cloud_flare_bypass_description), isProgress = true).cancelable(false).build()
+        cloudFlareLoadingDialog = Utils.dialogBuilder(this@NavDrawerActivity, content = getString(R.string.cloud_flare_bypass_description), isProgress = true).cancelable(true).build()
 
         val listener = object : CloudFlare.Companion.Listener {
             override fun onSuccess() {
                 Handler(Looper.getMainLooper()).post {
-                    Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
-                    loadFragment(currentNavId)
-                    checkIntentForNotificationData()
-                    cloudFlareLoadingDialog?.dismiss()
+                    if (!isFinishing) {
+                        Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
+                        loadFragment(currentNavId)
+                        checkIntentForNotificationData()
+                        cloudFlareLoadingDialog?.dismiss()
+                    }
                 }
             }
 
@@ -127,7 +127,10 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 }
             }
         }
-
+        cloudFlareLoadingDialog?.setOnCancelListener {
+            loadFragment(currentNavId)
+            checkIntentForNotificationData()
+        }
         cloudFlareLoadingDialog?.show()
 
         async {
