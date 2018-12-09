@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.network
 
+import CloudFlareByPasser
 import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
 import org.jsoup.Jsoup
@@ -10,16 +11,13 @@ import javax.net.ssl.SSLPeerUnverifiedException
 
 
 object NovelApi {
-
-    var cookies: String? = ""
-    var cookiesMap: Map<String, String>? = HashMap()
-
+    
     fun getDocument(url: String): Document {
         try {
 
             return Jsoup
                     .connect(url)
-                    .cookies(cookiesMap)
+                    .cookies(CloudFlareByPasser.getCookieMap())
                     .referrer(url)
                     .ignoreHttpErrors(true)
                     .timeout(30000)
@@ -44,10 +42,10 @@ object NovelApi {
             val doc = Jsoup
                     .connect(url)
                     .referrer(url)
-                    .cookies(cookiesMap)
+                    .cookies(CloudFlareByPasser.getCookieMap())
                     .ignoreHttpErrors(true)
                     .timeout(30000)
-                    .userAgent(dataCenter.userAgent)
+                    .userAgent(HostNames.USER_AGENT)
                     .get()
 
             if (canLoop && doc != null && doc.location().contains("rssbook") && doc.location().contains(HostNames.QIDIAN)) {
@@ -87,8 +85,8 @@ object NovelApi {
                     .connect(url)
                     .referrer(url)
                     .timeout(30000)
-                    .cookies(cookiesMap)
-                    .userAgent(dataCenter.userAgent)
+                    .cookies(CloudFlareByPasser.getCookieMap())
+                    .userAgent(HostNames.USER_AGENT)
                     .ignoreContentType(true)
                     .get()
         } catch (e: SSLPeerUnverifiedException) {

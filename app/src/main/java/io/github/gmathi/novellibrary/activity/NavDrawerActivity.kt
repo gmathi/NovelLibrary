@@ -1,9 +1,8 @@
 package io.github.gmathi.novellibrary.activity
 
+import CloudFlareByPasser
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.support.design.widget.NavigationView
 import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
@@ -21,7 +20,6 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.network.CloudFlare
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
@@ -68,7 +66,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
-        if (dataCenter.enableCloudFlare && Utils.isConnectedToNetwork(this)) {
+        if (Utils.isConnectedToNetwork(this)) {
             checkForCloudFlare()
         } else {
             checkIntentForNotificationData()
@@ -77,12 +75,12 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                    .title("📢 What's New! 0.9.7.beta")
-                    .content("*** Immediate hotfix for the CloudFlare! You can by-pass(by clicking back) the loading screen, so you can read from other sources. ***\n\n" +
+                    .title("📢 What's New! 0.9.7.1.beta")
+                    .content("** Fixed Cloud Flare **\n\n" +
                             "✨ Downloads have been revamped. Please let me know the feedback\n" +
 //                            //"✨ Improved performance/decrease load time on the chapters screen\n" +
 //                            "\uD83D\uDEE0 Improved performance/decrease load time on the chapters screen\n" +
-                            "⚠️ Expect another update soon for - \"Unable to add new novel to library\" bug\n" +
+                            "⚠️ A lot of bug fixes!!\n" +
 //                            "\uD83D\uDEE0️ Bug Fixes for reported & unreported crashes!" +
                             "")
                     .positiveText("Ok")
@@ -99,42 +97,18 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun checkForCloudFlare() {
 
-        cloudFlareLoadingDialog = Utils.dialogBuilder(this@NavDrawerActivity, content = getString(R.string.cloud_flare_bypass_description), isProgress = true).cancelable(true).build()
-
-        val listener = object : CloudFlare.Companion.Listener {
-            override fun onSuccess() {
-                Handler(Looper.getMainLooper()).post {
-                    if (!isFinishing) {
-                        Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
-                        loadFragment(currentNavId)
-                        checkIntentForNotificationData()
-                        cloudFlareLoadingDialog?.dismiss()
-                    }
-                }
-            }
-
-            override fun onFailure() {
-                Handler(Looper.getMainLooper()).post {
-                    cloudFlareLoadingDialog?.hide()
-                    MaterialDialog.Builder(this@NavDrawerActivity)
-                            .content(getString(R.string.cloud_flare_bypass_success))
-                            .positiveText(getString(R.string.try_again))
-                            .onPositive { dialog, _ ->
-                                dialog.dismiss()
-                                checkForCloudFlare()
-                            }
-                            .show()
-                }
-            }
-        }
-        cloudFlareLoadingDialog?.setOnCancelListener {
-            loadFragment(currentNavId)
-            checkIntentForNotificationData()
-        }
+        cloudFlareLoadingDialog = Utils.dialogBuilder(this@NavDrawerActivity, content = getString(R.string.cloud_flare_bypass_description), isProgress = true).cancelable(false).build()
         cloudFlareLoadingDialog?.show()
 
-        async {
-            await { CloudFlare(this@NavDrawerActivity, listener).check() }
+        CloudFlareByPasser.check(this, "novelupdates.com") { state ->
+            if (!isFinishing) {
+                if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
+                    Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
+                    loadFragment(currentNavId)
+                    checkIntentForNotificationData()
+                    cloudFlareLoadingDialog?.dismiss()
+                }
+            }
         }
     }
 

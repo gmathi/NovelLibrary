@@ -1,6 +1,6 @@
 package io.github.gmathi.novellibrary.network
 
-import io.github.gmathi.novellibrary.dataCenter
+import CloudFlareByPasser
 import io.github.gmathi.novellibrary.database.createSource
 import io.github.gmathi.novellibrary.database.getSource
 import io.github.gmathi.novellibrary.dbHelper
@@ -73,10 +73,10 @@ fun NovelApi.getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
     val doc = Jsoup.connect(url)
             .data("action", "nd_getchapters")
             .referrer(url)
-            .cookies(cookiesMap)
+            .cookies(CloudFlareByPasser.getCookieMap())
             .ignoreHttpErrors(true)
             .timeout(30000)
-            .userAgent(dataCenter.userAgent)
+            .userAgent(HostNames.USER_AGENT)
             .data("mypostid", novelUpdatesNovelId)
             .post()
 
@@ -106,10 +106,10 @@ fun NovelApi.getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
     val doc = Jsoup.connect(url)
             .data("action", "nd_getchapters")
             .referrer(url)
-            .cookies(cookiesMap)
+            .cookies(CloudFlareByPasser.getCookieMap())
             .ignoreHttpErrors(true)
             .timeout(30000)
-            .userAgent(dataCenter.userAgent)
+            .userAgent(HostNames.USER_AGENT)
             .data("mypostid", novelUpdatesNovelId)
             .post()
 
@@ -143,10 +143,10 @@ private fun NovelApi.getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? =
     val connection = Jsoup.connect(url)
             .data("action", "nd_getchapters")
             .referrer(url)
-            .cookies(cookiesMap)
+            .cookies(CloudFlareByPasser.getCookieMap())
             .ignoreHttpErrors(true)
             .timeout(30000)
-            .userAgent(dataCenter.userAgent)
+            .userAgent(HostNames.USER_AGENT)
             .data("mygrr", "0")
             .data("mypostid", novelUpdatesNovelId)
 
@@ -174,10 +174,10 @@ private fun NovelApi.getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMa
             .data("action", "nd_getgroupnovel")
             .data("mygrr", "0")
             .referrer(url)
-            .cookies(cookiesMap)
+            .cookies(CloudFlareByPasser.getCookieMap())
             .ignoreHttpErrors(true)
             .timeout(30000)
-            .userAgent(dataCenter.userAgent)
+            .userAgent(HostNames.USER_AGENT)
             .data("mypostid", novelUpdatesNovelId)
             .post()
 

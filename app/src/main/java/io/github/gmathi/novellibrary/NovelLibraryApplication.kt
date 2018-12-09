@@ -58,7 +58,6 @@ class NovelLibraryApplication : MultiDexApplication() {
         dbHelper?.deleteWebPageSettings(-1L)
 
         try {
-            dataCenter?.userAgent = USER_AGENT
             HostNames.hostNamesList = dataCenter!!.getVerifiedHosts()
             HostNames.defaultHostNamesList.forEach {
                 HostNames.addHost(it)
@@ -88,7 +87,7 @@ class NovelLibraryApplication : MultiDexApplication() {
         //https://stackoverflow.com/questions/29916962/javax-net-ssl-sslhandshakeexception-javax-net-ssl-sslprotocolexception-ssl-han
         updateAndroidSecurityProvider()
 
-        if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        if (BuildConfig.DEBUG) {
             WebView.setWebContentsDebuggingEnabled(true)
         }
 

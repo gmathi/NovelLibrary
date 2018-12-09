@@ -8,7 +8,6 @@ import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.HostNames
 import java.util.*
-import javax.net.ssl.HostnameVerifier
 
 
 class DataCenter(context: Context) {
@@ -39,11 +38,11 @@ class DataCenter(context: Context) {
         private const val FONT_PATH = "fontPath"
         private const val GOOGLE_ACCOUNT_NAME = "googleAccountName"
         private const val ENABLE_CLUSTER_PAGES = "enableClusterPages"
-        private const val CF_COOKIES_USER_AGENT = "cfCookiesUserAgent"
+        //        private const val CF_COOKIES_USER_AGENT = "cfCookiesUserAgent"
         private const val CF_COOKIES_STRING = "cfCookiesString"
         private const val DIRECTIONAL_LINKS = "enableDirectionalLinks"
         private const val READER_MODE_BUTTON_VISIBILITY = "isReaderModeButtonVisible"
-        private const val ENABLE_CLOUD_FLARE = "enableCloudFlare"
+        //        private const val ENABLE_CLOUD_FLARE = "enableCloudFlare"
         private const val ENABLE_NOTIFICATIONS = "enableNotifications"
 
 
@@ -140,9 +139,9 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(ENABLE_CLUSTER_PAGES, false)
         set(value) = prefs.edit().putBoolean(ENABLE_CLUSTER_PAGES, value).apply()
 
-    var userAgent: String
-        get() = prefs.getString(CF_COOKIES_USER_AGENT, HostNames.USER_AGENT)
-        set(value) = prefs.edit().putString(CF_COOKIES_USER_AGENT, value).apply()
+//    var userAgent: String
+//        get() = prefs.getString(CF_COOKIES_USER_AGENT, HostNames.USER_AGENT)
+//        set(value) = prefs.edit().putString(CF_COOKIES_USER_AGENT, value).apply()
 
     var cfClearance: String
         get() = prefs.getString(CF_COOKIES_CLEARANCE, "")
@@ -164,9 +163,9 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(READER_MODE_BUTTON_VISIBILITY, true)
         set(value) = prefs.edit().putBoolean(READER_MODE_BUTTON_VISIBILITY, value).apply()
 
-    var enableCloudFlare: Boolean
-        get() = prefs.getBoolean(ENABLE_CLOUD_FLARE, true)
-        set(value) = prefs.edit().putBoolean(ENABLE_CLOUD_FLARE, value).apply()
+//    var enableCloudFlare: Boolean
+//        get() = prefs.getBoolean(ENABLE_CLOUD_FLARE, true)
+//        set(value) = prefs.edit().putBoolean(ENABLE_CLOUD_FLARE, value).apply()
 
     var enableNotifications: Boolean
         get() = prefs.getBoolean(ENABLE_NOTIFICATIONS, true)

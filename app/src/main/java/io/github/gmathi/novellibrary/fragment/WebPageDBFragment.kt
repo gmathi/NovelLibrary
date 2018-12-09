@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.fragment
 
+import CloudFlareByPasser
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Build
@@ -13,7 +14,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import co.metalab.asyncawait.async
-import com.afollestad.materialdialogs.MaterialDialog
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
@@ -28,7 +28,6 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.model.WebPageSettings
-import io.github.gmathi.novellibrary.network.CloudFlare
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
@@ -115,32 +114,17 @@ class WebPageDBFragment : BaseFragment() {
     }
 
     private fun checkForCloudFlare() {
-        async {
-
-            val listener = object : CloudFlare.Companion.Listener {
-                override fun onSuccess() {
-                    //  loadFragment(currentNavId)
-                    if (activity != null) {
+        if (activity != null)
+            CloudFlareByPasser.check(activity!!, "novelupdates.com") { state ->
+                if (activity != null) {
+                    if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
                         Toast.makeText(activity, "Cloud Flare Bypassed", Toast.LENGTH_SHORT).show()
                         readerWebView.loadUrl("about:blank")
                         readerWebView.clearHistory()
                         loadData()
                     }
                 }
-
-                override fun onFailure() {
-                    if (activity != null)
-                        MaterialDialog.Builder(activity!!)
-                                .content("Cloud Flare ByPass Failed")
-                                .positiveText("Try Again")
-                                .onPositive { dialog, _ -> dialog.dismiss(); checkForCloudFlare() }
-                                .show()
-                }
             }
-
-            if (activity != null)
-                await { CloudFlare(activity!!, listener).check() }
-        }
     }
 
     @SuppressLint("JavascriptInterface", "AddJavascriptInterface")
@@ -193,8 +177,6 @@ class WebPageDBFragment : BaseFragment() {
                         val cookieSplit = cookie.split("=")
                         map[cookieSplit[0]] = cookieSplit[1]
                     }
-                    NovelApi.cookies = cookies
-                    NovelApi.cookiesMap = map
                 }
 
                 webPageSettings?.let {

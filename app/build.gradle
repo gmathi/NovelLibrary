@@ -17,11 +17,11 @@ android {
     buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "io.github.gmathi.novellibrary"
-        minSdkVersion 16
+        minSdkVersion 21
         targetSdkVersion 27
         multiDexEnabled true
-        versionCode 60
-        versionName "0.9.7.beta"
+        versionCode 61
+        versionName "0.9.7.1.beta"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }

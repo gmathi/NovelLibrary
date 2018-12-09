@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.webkit.WebViewClient
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.network.HostNames
 import kotlinx.android.synthetic.main.activity_web_view.*
 
 class WebViewActivity : AppCompatActivity() {
@@ -17,6 +18,7 @@ class WebViewActivity : AppCompatActivity() {
         previewWebView.apply {
             settings.apply {
                 javaScriptEnabled = true
+                userAgentString = HostNames.USER_AGENT
             }
             webViewClient = WebViewClient()
             loadUrl(intent.getStringExtra("url"))
