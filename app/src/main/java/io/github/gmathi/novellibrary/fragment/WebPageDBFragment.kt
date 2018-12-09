@@ -259,7 +259,7 @@ class WebPageDBFragment : BaseFragment() {
 
 
     private fun downloadWebPage(url: String?) {
-        if (url == null) return
+        if (url == null ) return
 
         progressLayout.showLoading()
 
@@ -415,7 +415,7 @@ class WebPageDBFragment : BaseFragment() {
     fun checkUrl(url: String?): Boolean {
         if (url == null) return false
 
-        if (webPageSettings!!.metaData.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
+        if (webPageSettings?.metaData?.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES) == true) {
             val links: ArrayList<String> = Gson().fromJson(webPageSettings!!.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<String>>() {}.type)
             links.forEach {
                 val tempWebPageSettings = dbHelper.getWebPageSettings(it)!!

@@ -82,8 +82,10 @@ class ReaderDBPagerActivity :
         sourceId = intent.getLongExtra("sourceId", -1L)
 
         val tempNovel = intent.getSerializableExtra("novel") as Novel?
-        if (tempNovel == null || tempNovel.chaptersCount.toInt() == 0)
+        if (tempNovel == null || tempNovel.chaptersCount.toInt() == 0) {
             finish()
+            return
+        }
         else
             novel = tempNovel
 

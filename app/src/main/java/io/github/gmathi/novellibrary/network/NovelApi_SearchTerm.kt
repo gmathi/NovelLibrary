@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.network
 
 import io.github.gmathi.novellibrary.model.Novel
 import java.io.IOException
+import java.lang.Exception
 
 
 fun NovelApi.searchRoyalRoad(searchTerms: String): ArrayList<Novel>? {
@@ -34,7 +35,7 @@ fun NovelApi.searchNovelUpdates(searchTerms: String): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent("http://www.novelupdates.com/?s=" + searchTerms)
+        val document = getDocumentWithUserAgent("http://www.novelupdates.com/?s=$searchTerms")
         val titleElements = document.body().getElementsByClass("w-blog-entry-title").filter { it.tagName() == "h2" }
         val dataElements = document.body().getElementsByClass("w-blog-entry").filter { it.tagName() == "div" }
 
@@ -52,7 +53,7 @@ fun NovelApi.searchNovelUpdates(searchTerms: String): ArrayList<Novel>? {
             i++
         }
 
-    } catch (e: IOException) {
+    } catch (e: Exception) {
         e.printStackTrace()
     }
     return searchResults
