@@ -7,7 +7,7 @@ import org.jsoup.nodes.Element
 import java.io.File
 
 
-class GeneralClassTagHelper(private val hostName: String, private val tagName: String, private val className: String) : HtmlHelper() {
+class GeneralClassTagHelper(private val hostName: String, private val tagName: String, private val className: String, private val appendTitle: Boolean = true) : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc)
@@ -15,7 +15,8 @@ class GeneralClassTagHelper(private val hostName: String, private val tagName: S
         doc.head()?.getElementsByTag("link")?.remove()
 
         var contentElement = doc.body().getElementsByTag(tagName).firstOrNull { it.hasClass(className) }
-        contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
+        if (appendTitle)
+            contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
 
         if (!dataCenter.enableDirectionalLinks)
             removeDirectionalLinks(contentElement)
@@ -67,15 +68,15 @@ class GeneralClassTagHelper(private val hostName: String, private val tagName: S
     private fun removeDirectionalLinks(contentElement: Element?) {
         contentElement?.getElementsByTag("a")?.filter {
             it.text().equals("Previous Chapter", ignoreCase = true)
-                || it.text().equals("Next Chapter", ignoreCase = true)
-                || it.text().equals("Project Page", ignoreCase = true)
-                || it.text().equals("Index", ignoreCase = true)
-                || it.text().equals("[Previous Chapter]", ignoreCase = true)
-                || it.text().equals("[Next Chapter]", ignoreCase = true)
-                || it.text().equals("[Table of Contents]", ignoreCase = true)
-                || it.text().equals("Next", ignoreCase = true)
-                || it.text().equals("TOC", ignoreCase = true)
-                || it.text().equals("Previous", ignoreCase = true)
+                    || it.text().equals("Next Chapter", ignoreCase = true)
+                    || it.text().equals("Project Page", ignoreCase = true)
+                    || it.text().equals("Index", ignoreCase = true)
+                    || it.text().equals("[Previous Chapter]", ignoreCase = true)
+                    || it.text().equals("[Next Chapter]", ignoreCase = true)
+                    || it.text().equals("[Table of Contents]", ignoreCase = true)
+                    || it.text().equals("Next", ignoreCase = true)
+                    || it.text().equals("TOC", ignoreCase = true)
+                    || it.text().equals("Previous", ignoreCase = true)
 
 
         }?.forEach { it?.remove() }

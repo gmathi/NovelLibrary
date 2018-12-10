@@ -3,7 +3,6 @@ package io.github.gmathi.novellibrary.service.firebase
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.iid.FirebaseInstanceIdService
 import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.Utils
 
 
 class NLFirebaseInstanceIdService : FirebaseInstanceIdService() {

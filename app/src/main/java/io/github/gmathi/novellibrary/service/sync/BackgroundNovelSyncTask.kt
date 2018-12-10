@@ -10,7 +10,6 @@ import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
-import com.crashlytics.android.Crashlytics
 import com.google.android.gms.gcm.*
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
@@ -30,6 +29,8 @@ class BackgroundNovelSyncTask : GcmTaskService() {
     override fun onRunTask(taskParams: TaskParams): Int {
         val context = this@BackgroundNovelSyncTask
         val dbHelper = DBHelper.getInstance(context)
+
+        //android.os.Debug.waitForDebugger()
 
         try {
             if (Utils.isConnectedToNetwork(context))
@@ -53,8 +54,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
                     totalCountMap[it] = totalChapters
                 }
             } catch (e: Exception) {
-                Crashlytics.log("Novel: $it")
-                Crashlytics.logException(e)
+                Logs.error(TAG, "Novel: $it", e)
                 return
             }
         }
@@ -88,28 +88,21 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
     }
 
+    /**
+     * Download latest chapters from network
+     */
     private fun updateChapters(novel: Novel, dbHelper: DBHelper) {
-        if (!Utils.isConnectedToNetwork(this@BackgroundNovelSyncTask) || novel.id == -1L)
-            return
-
-        //Download latest chapters from network
         try {
             val chapters = NovelApi.getChapterUrls(novel) ?: ArrayList()
-
-            //Save to DB if the novel is in Library
-            if (novel.id != -1L) {
-                dbHelper.updateChaptersAndReleasesCount(novel.id, chapters.size.toLong(), 0L)
-                for (i in 0 until chapters.size) {
-                    if (dbHelper.getWebPage(chapters[i].url) == null)
-                        dbHelper.createWebPage(chapters[i])
-                    if (dbHelper.getWebPageSettings(chapters[i].url) == null)
-                        dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
-                }
+            for (i in 0 until chapters.size) {
+                if (dbHelper.getWebPage(chapters[i].url) == null)
+                    dbHelper.createWebPage(chapters[i])
+                if (dbHelper.getWebPageSettings(chapters[i].url) == null)
+                    dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
             }
 
         } catch (e: Exception) {
-            Crashlytics.log("Novel: $novel")
-            Crashlytics.logException(e)
+            Logs.error(TAG, "Novel: $novel", e)
         }
     }
 
@@ -120,7 +113,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
         private val thisClass = BackgroundNovelSyncTask::class.java
         private const val TAG = "BackgroundNovelSyncTask"
-        private const val KEY_NOTIFICATION_GROUP = "KEY_NOTIFICATION_GROUP"
+        private const val UPDATE_NOTIFICATION_GROUP = "updateNotificationGroup"
 
         fun scheduleRepeat(context: Context) {
             cancelAll(context)
@@ -129,7 +122,8 @@ class BackgroundNovelSyncTask : GcmTaskService() {
                 val periodic = PeriodicTask.Builder()
                         //specify target service - must extend GcmTaskService
                         .setService(thisClass)
-                        //repeat every 60 seconds
+                        //repeat every 60*60 seconds = 1hr
+                        // .setPeriod(5)
                         .setPeriod(60 * 60)
                         //specify how much earlier the task can be executed (in seconds)
                         //.setFlex(60*60)
@@ -162,23 +156,20 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
     private fun showBundledNotifications(context: Context, novelsList: ArrayList<Novel>, contentIntent: PendingIntent) {
         val first = createNotificationBuilder(
-                context, getString(R.string.app_name), getString(R.string.group_notification_text), contentIntent)
-        first.setGroupSummary(true).setGroup(KEY_NOTIFICATION_GROUP)
+                context, getString(R.string.app_name), getString(R.string.group_update_notification_text), contentIntent)
+        first.setGroupSummary(true).setGroup(UPDATE_NOTIFICATION_GROUP)
+        showNotification(this, first.build(), 0)
 
         val notificationList = ArrayList<Notification>()
-
         novelsList.forEach { novel ->
             val notificationBuilder = createNotificationBuilder(
                     context,
                     novel.name,
                     getString(R.string.new_chapters_notification_content_single, novel.newReleasesCount.toInt()),
                     createNovelDetailsPendingIntent(novel))
-            notificationBuilder.setGroup(KEY_NOTIFICATION_GROUP)
+            notificationBuilder.setGroup(UPDATE_NOTIFICATION_GROUP)
             notificationList.add(notificationBuilder.build())
         }
-
-        showNotification(this, first.build(), 0)
-
         var count = 0
         notificationList.forEach { showNotification(this, it, ++count) }
     }

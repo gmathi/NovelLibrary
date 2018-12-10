@@ -65,6 +65,9 @@ open class HtmlHelper protected constructor() {
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.id() == "content" }
             if (contentElement != null) return GeneralIdTagHelper(host, "div", "content")
 
+            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("post-inner") }
+            if (contentElement != null) return GeneralClassTagHelper(host, "div", "post-inner", appendTitle = false)
+
             contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
             if (contentElement != null) return CloudFlareDDoSTagHelper()
 
@@ -201,6 +204,7 @@ open class HtmlHelper protected constructor() {
                     font-family: '$fontFamily';
                     line-height: 1.5;
                     padding: 20px;
+                    text-align: left;
                 }
                 a {
                     color: rgba(${if (isDark) "135, 206, 250" else "0, 0, 238"}, .$nightModeTextBrightness);
@@ -213,6 +217,9 @@ open class HtmlHelper protected constructor() {
                     box-shadow: 1px 1px 1px rgba(0, 0, 0, .75);
                     border-collapse: separate;
                     border-spacing: 2px;
+                }
+                p  {
+                    text-align: left;
                 }
             </style>
             """.trimIndent())

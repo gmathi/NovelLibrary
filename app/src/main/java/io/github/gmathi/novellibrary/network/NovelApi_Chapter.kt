@@ -1,13 +1,12 @@
 package io.github.gmathi.novellibrary.network
 
+import CloudFlareByPasser
 import io.github.gmathi.novellibrary.database.createSource
 import io.github.gmathi.novellibrary.database.getSource
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
-import io.github.gmathi.novellibrary.network.HostNames.USER_AGENT
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
 import java.io.IOException
 import java.net.URI
 
@@ -16,33 +15,47 @@ fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayLi
     val host = URI(novel.url).host
     when {
         host.contains(HostNames.NOVEL_UPDATES) -> return if (withSources) getNUALLChapterUrlsWithSources(novel) else getNUALLChapterUrls(novel)
-        host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterUrls(novel.url)
-        host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterUrls(novel.url)
+        host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterUrls(novel)
+        host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterUrls(novel)
     }
     return null
 }
 
 //Get RoyalRoad Chapter URLs
-fun NovelApi.getRRChapterUrls(url: String): ArrayList<WebPage>? {
+fun NovelApi.getRRChapterUrls(novel: Novel): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
-        val document = Jsoup.connect(url).get()
+        val document = Jsoup.connect(novel.url).get()
         chapters = ArrayList()
         val tableElement = document.body().getElementById("chapters")
-        tableElement?.getElementsByTag("a")?.filter { it.attributes().hasKey("href") }?.asReversed()?.mapTo(chapters) { WebPage(url = it.absUrl("href"), chapter = it.text()) }
+
+        var orderId = 0L
+        tableElement?.getElementsByTag("a")?.filter { it.attributes().hasKey("href") }?.forEach {
+            val webPage = WebPage(url = it.absUrl("href"), chapter = it.text())
+            webPage.orderId = orderId++
+            webPage.novelId = novel.id
+            chapters.add(webPage)
+        }
     } catch (e: IOException) {
         e.printStackTrace()
     }
     return chapters
 }
 
-fun NovelApi.getWLNUChapterUrls(url: String): ArrayList<WebPage>? {
+fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
-        val document = Jsoup.connect(url).get()
+        val document = Jsoup.connect(novel.url).get()
         chapters = ArrayList()
         val trElements = document.body().getElementsByTag("tr")?.filter { it.id() == "release-entry" }
-        trElements?.mapTo(chapters) { WebPage(url = it.child(0).child(0).attr("href"), chapter = it.getElementsByClass("numeric").joinToString(separator = ".") { it.text() }) }
+
+        var orderId = 0L
+        trElements?.asReversed()?.asSequence()?.forEach {
+            val webPage = WebPage(url = it.child(0).child(0).attr("href"), chapter = it.getElementsByClass("numeric").joinToString(separator = ".") { it.text() })
+            webPage.orderId = orderId++
+            webPage.novelId = novel.id
+            chapters.add(webPage)
+        }
     } catch (e: IOException) {
         e.printStackTrace()
     }
@@ -59,9 +72,12 @@ fun NovelApi.getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
 
     val doc = Jsoup.connect(url)
             .data("action", "nd_getchapters")
-            .cookies(NovelApi.cookiesMap)
+            .referrer(url)
+            .cookies(CloudFlareByPasser.getCookieMap())
+            .ignoreHttpErrors(true)
+            .timeout(30000)
+            .userAgent(HostNames.USER_AGENT)
             .data("mypostid", novelUpdatesNovelId)
-            .userAgent(USER_AGENT)
             .post()
 
     var orderId = 0L
@@ -77,7 +93,7 @@ fun NovelApi.getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
     return chapters
 }
 
-fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
+fun NovelApi.getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
     val chapters = ArrayList<WebPage>()
     if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 
@@ -89,9 +105,12 @@ fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
 
     val doc = Jsoup.connect(url)
             .data("action", "nd_getchapters")
-            .cookies(NovelApi.cookiesMap)
+            .referrer(url)
+            .cookies(CloudFlareByPasser.getCookieMap())
+            .ignoreHttpErrors(true)
+            .timeout(30000)
+            .userAgent(HostNames.USER_AGENT)
             .data("mypostid", novelUpdatesNovelId)
-            .userAgent(USER_AGENT)
             .post()
 
     var orderId = 0L
@@ -111,7 +130,7 @@ fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
     return chapters
 }
 
-private fun getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, sourceName: String? = null): HashMap<String, Long> {
+private fun NovelApi.getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, sourceName: String? = null): HashMap<String, Long> {
 
     val sourceMap = HashMap<String, Long>()
 
@@ -123,9 +142,13 @@ private fun getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, so
 
     val connection = Jsoup.connect(url)
             .data("action", "nd_getchapters")
+            .referrer(url)
+            .cookies(CloudFlareByPasser.getCookieMap())
+            .ignoreHttpErrors(true)
+            .timeout(30000)
+            .userAgent(HostNames.USER_AGENT)
             .data("mygrr", "0")
             .data("mypostid", novelUpdatesNovelId)
-            .userAgent(USER_AGENT)
 
     if (sourceId != null) connection.data("mygrpfilter", "$sourceId")
 
@@ -139,7 +162,7 @@ private fun getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, so
     return sourceMap
 }
 
-private fun getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String, Long>> {
+private fun NovelApi.getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String, Long>> {
 
     val sourceMap = ArrayList<HashMap<String, Long>>()
     if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
@@ -150,8 +173,12 @@ private fun getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String,
     val doc = Jsoup.connect(url)
             .data("action", "nd_getgroupnovel")
             .data("mygrr", "0")
+            .referrer(url)
+            .cookies(CloudFlareByPasser.getCookieMap())
+            .ignoreHttpErrors(true)
+            .timeout(30000)
+            .userAgent(HostNames.USER_AGENT)
             .data("mypostid", novelUpdatesNovelId)
-            .userAgent(USER_AGENT)
             .post()
 
     doc?.select("div.checkbox")?.forEach {

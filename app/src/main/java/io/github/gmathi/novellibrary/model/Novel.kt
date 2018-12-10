@@ -1,22 +1,24 @@
 package io.github.gmathi.novellibrary.model
 
+import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
-class Novel(var name: String, var url: String) : Serializable {
+class Novel(@SerializedName("name") var name: String, @SerializedName("url") var url: String) : Serializable {
     var id: Long = -1
-    var imageUrl: String? = null
+    @SerializedName("imageUrl") var imageUrl: String? = null
     var rating: String? = null
     var shortDescription: String? = null
     var longDescription: String? = null
     var imageFilePath: String? = null
     var genres: List<String>? = null
 //    var currentWebPageId: Long = -1
-    var currentWebPageUrl: String? = null
+
+    @SerializedName("currentlyReading") var currentWebPageUrl: String? = null
     var orderId: Long = -1
     var newReleasesCount = 0L
     var chaptersCount = 0L
-    var metaData: HashMap<String, String?> = HashMap()
-    var novelSectionId: Long = -1L
+    @SerializedName("metaData") var metaData: HashMap<String, String?> = HashMap()
+    @SerializedName("novelSectionId") var novelSectionId: Long = -1L
 
 
     fun copyFrom(otherNovel: Novel?) {

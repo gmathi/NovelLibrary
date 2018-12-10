@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.activity.NovelSectionsActivity
-import io.github.gmathi.novellibrary.activity.startNovelSectionsActivity
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.LibraryPageListener
 import io.github.gmathi.novellibrary.database.getAllNovelSections
@@ -64,8 +63,6 @@ class LibraryPagerFragment : BaseFragment() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-       // super.onActivityResult(requestCode, resultCode, data)
-        //TODO: NOT WORKING!!!
         if (requestCode == Constants.NOVEL_SECTIONS_ACT_REQ_CODE) {
             setViewPager()
         } else {

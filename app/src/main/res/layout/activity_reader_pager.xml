@@ -32,6 +32,7 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             app:srcCompat="@drawable/ic_chrome_reader_mode_white_vector"/>
+
     </RelativeLayout>
 
 

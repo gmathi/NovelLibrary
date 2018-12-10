@@ -8,19 +8,24 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
 import android.text.format.Formatter
-import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.folderselector.FolderChooserDialog
-import com.crashlytics.android.Crashlytics
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.thanosfisherman.mayi.Mayi
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.database.createNovel
+import io.github.gmathi.novellibrary.database.createNovelSection
+import io.github.gmathi.novellibrary.database.getAllNovelSections
+import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.applyFont
@@ -28,9 +33,10 @@ import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_settings.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_title_subtitle_widget.view.*
-import java.io.File
-import java.io.IOException
+import org.json.JSONObject
+import java.io.*
 import java.util.*
+import kotlin.collections.HashMap
 
 
 class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, FolderChooserDialog.FolderCallback {
@@ -38,6 +44,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
     companion object {
         private const val TAG = "BackupSettingsActivity"
 
+        private const val SIMPLE_NOVEL_BACKUP_FILE_NAME = "SimpleNovelBackup.txt"
         private const val BACKUP_DIR = "NovelLibraryApp-Backup"
         private const val DATABASES_DIR = "databases"
         private const val FILES_DIR = "files"
@@ -234,12 +241,12 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                 showDialog(content = "Cannot write to SD card. Please check your SD card permissions")
 
         } catch (e: Exception) {
-            Crashlytics.logException(e)
+            Logs.error(TAG, e.localizedMessage, e)
             showDialog(content = "Backup Failed!")
         }
     }
 
-    private fun backupData(backupDir: File, shouldBackupDatabase: Boolean = true, shouldBackupPreferences: Boolean = true, shouldBackupFiles: Boolean = true) {
+    private fun backupData(backupDir: File, shouldSimpleTextBackup: Boolean = true, shouldBackupDatabase: Boolean = true, shouldBackupPreferences: Boolean = true, shouldBackupFiles: Boolean = true) {
         async {
             val data = Environment.getDataDirectory()
             val baseDir = File(data, "//data//io.github.gmathi.novellibrary")
@@ -257,6 +264,19 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                 //create backup directory
                 if (!backupDir.exists())
                     backupDir.mkdir()
+
+                //Backup To TextFile
+                if (shouldSimpleTextBackup) {
+                    val novelsArray = dbHelper.getAllNovels()
+                    val novelSectionsArray = dbHelper.getAllNovelSections()
+                    val map = HashMap<String, Any>()
+                    map["novels"] = novelsArray
+                    map["novelSections"] = novelSectionsArray
+                    val jsonString = Gson().toJson(map)
+                    val simpleTextFile = File(backupDir, SIMPLE_NOVEL_BACKUP_FILE_NAME)
+                    val writer = BufferedWriter(OutputStreamWriter(FileOutputStream(simpleTextFile)))
+                    writer.use { writer.write(jsonString) }
+                }
 
                 //Backup Databases
                 if (shouldBackupDatabase && currentDBsPath.exists() && currentDBsPath.isDirectory) {
@@ -283,7 +303,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                 showDialog(iconRes = R.drawable.ic_info_white_vector, content = "Backup Successful")
 
             } catch (e: Exception) {
-                Crashlytics.logException(e)
+                Logs.error(TAG, e.localizedMessage, e)
                 if ("No space left on device" == e.localizedMessage) {
                     val databasesDirSize = Utils.getFolderSize(currentDBsPath)
                     val filesDirSize = Utils.getFolderSize(currentFilesDir)
@@ -316,12 +336,12 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                 showDialog(content = "Cannot read from SD card. Please check your SD card permissions")
 
         } catch (e: Exception) {
-            Crashlytics.logException(e)
+            Logs.error(TAG, e.localizedMessage, e)
             showDialog(content = "Restore Failed!")
         }
     }
 
-    private fun restoreData(backupDir: File, shouldRestoreDatabase: Boolean = true, shouldRestorePreferences: Boolean = true, shouldRestoreFiles: Boolean = true) {
+    private fun restoreData(backupDir: File, shouldSRestoreimpleText: Boolean = true, shouldRestoreDatabase: Boolean = true, shouldRestorePreferences: Boolean = true, shouldRestoreFiles: Boolean = true) {
         async {
             val data = Environment.getDataDirectory()
             val baseDir = File(data, "//data//io.github.gmathi.novellibrary")
@@ -341,6 +361,38 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                     showDialog(iconRes = R.drawable.ic_warning_white_vector, content = "No Backup Found!")
                     return@async
                 }
+
+                //Restore From Text File
+                val simpleTextFile = File(backupDir, SIMPLE_NOVEL_BACKUP_FILE_NAME)
+                if (shouldSRestoreimpleText && simpleTextFile.exists() && simpleTextFile.canRead()) {
+                    val reader = BufferedReader(InputStreamReader(FileInputStream(simpleTextFile)))
+                    val jsonString = reader.readLine()
+                    val jsonObject = JSONObject(jsonString)
+                    val novelsArray = jsonObject.getJSONArray("novels")
+                    val novelSectionsArray = jsonObject.getJSONArray("novelSections")
+                    val oldIdMap = HashMap<Long, String>()
+                    val newIdMap = HashMap<String, Long>()
+                    for (i in 0 until novelSectionsArray.length()) {
+                        val novelSection = novelSectionsArray.getJSONObject(i)
+                        val name = novelSection.getString("name")
+                        oldIdMap[novelSection.getLong("id")] = name
+                        newIdMap[name] = dbHelper.createNovelSection(novelSection.getString("name"))
+                    }
+                    for (i in 0 until novelsArray.length()) {
+                        val novelJson = novelsArray.getJSONObject(i)
+                        val novel = Novel(name = novelJson.getString("name"), url = novelJson.getString("url"))
+                        if (novelJson.has("imageUrl"))
+                            novel.imageUrl = novelJson.getString("imageUrl")
+                        if (novelJson.has("currentlyReading"))
+                            novel.currentWebPageUrl = novelJson.getString("currentlyReading")
+                        if (novelJson.has("metaData"))
+                            novel.metaData = Gson().fromJson(novelJson.getString("metaData"), object : TypeToken<HashMap<String, String>>() {}.type)
+
+                        novel.novelSectionId = newIdMap[oldIdMap[novelJson.getLong("novelSectionId")]] ?: -1L
+                        dbHelper.createNovel(novel)
+                    }
+                }
+
 
                 //Restore Databases
                 if (shouldRestoreDatabase && backupDBsPath.exists() && backupDBsPath.isDirectory) {
@@ -367,7 +419,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                 showDialog(iconRes = R.drawable.ic_info_white_vector, content = "Restore Successful!")
 
             } catch (e: Exception) {
-                Crashlytics.logException(e)
+                Logs.error(TAG, e.localizedMessage, e)
                 if ("No space left on device" == e.localizedMessage) {
                     val databasesDirSize = Utils.getFolderSize(currentDBsPath)
                     val filesDirSize = Utils.getFolderSize(currentFilesDir)
@@ -770,26 +822,26 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
         MaterialDialog.Builder(this)
                 .title(title)
                 .items(R.array.backup_and_restore_options)
-                .itemsCallbackMultiChoice(arrayOf(0, 1, 2), { _, which, _ ->
+                .itemsCallbackMultiChoice(arrayOf(0, 1, 2, 3)) { _, which, _ ->
                     if (which.isNotEmpty())
                         when (tag) {
                             getString(R.string.backup) -> {
                                 if (folder.canWrite()) {
                                     val backupDir = File(folder, BACKUP_DIR)
-                                    backupData(backupDir, which.contains(0), which.contains(1), which.contains(2))
+                                    backupData(backupDir, which.contains(0), which.contains(1), which.contains(2), which.contains(3))
                                 } else
                                     showDialog(content = "Cannot write to SD card. Please check your SD card permissions")
                             }
 
                             getString(R.string.restore) -> {
                                 if (folder.canRead() && folder.canWrite()) {
-                                    restoreData(folder, which.contains(0), which.contains(1), which.contains(2))
+                                    restoreData(folder, which.contains(0), which.contains(1), which.contains(2), which.contains(3))
                                 } else
                                     showDialog(content = "Cannot read or write to SD card. Please check your SD card permissions")
                             }
                         }
                     true
-                })
+                }
                 .positiveText(R.string.okay)
                 .show()
 

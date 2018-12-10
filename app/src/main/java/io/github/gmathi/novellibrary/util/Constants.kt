@@ -51,17 +51,14 @@ object Constants {
     const val IWV_ACT_REQ_CODE = 16
     const val NOVEL_SECTIONS_ACT_REQ_CODE = 17
 
+    const val TTS_ACT_REQ_CODE = 1000
+
     const val SETTINGS_ACT_RES_CODE = 10
     const val LANG_ACT_RES_CODE = 12
     const val OPEN_DOWNLOADS_RES_CODE = 13
 
 
     //endregion
-
-    //region Meta Data Keys
-
-    const val MD_OTHER_LINKED_WEB_PAGES = "otherWebPages"
-    const val MD_OTHER_LINKED_WEB_PAGES_SETTINGS = "otherWebPagesSettings"
 
 
     //endregion
@@ -88,9 +85,12 @@ object Constants {
         const val LAST_READ_DATE = "lastReadDate"
         const val LAST_UPDATED_DATE = "lastUpdatedDate"
         const val SHOW_SOURCES = "showSources"
+        const val SCROLL_POSITION = "scrollY"
+        const val OTHER_LINKED_WEB_PAGES = "otherWebPages"
+        const val OTHER_LINKED_WEB_PAGES_SETTINGS = "otherWebPagesSettings"
     }
 
-    object LargePrefenceKeys {
+    object LargePreferenceKeys {
         const val RVN_HISTORY = "recentlyViewNovelsHistory"
     }
 

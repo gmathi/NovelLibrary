@@ -76,7 +76,7 @@
                 android:id="@+id/novelTitleTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="4dp"
                 android:ellipsize="end"
                 android:gravity="center_vertical|start"
                 android:maxLines="1"
@@ -89,19 +89,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/novelRatingText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical|start"
-                    android:textIsSelectable="false"
-                    android:textSize="12sp"
-                    android:textColor="@color/White"
-                    tools:text="Download Progress: "/>
 
                 <TextView
                     android:id="@+id/novelProgressText"
@@ -114,7 +103,7 @@
                     android:textIsSelectable="false"
                     android:textSize="12sp"
                     android:textStyle="bold"
-                    tools:text="13/306"/>
+                    tools:text="13/306 Remaining"/>
 
             </LinearLayout>
 

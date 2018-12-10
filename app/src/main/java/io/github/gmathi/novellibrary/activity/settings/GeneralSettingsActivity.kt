@@ -27,8 +27,9 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
 
         private const val POSITION_LOAD_LIBRARY_SCREEN = 0
         private const val POSITION_BACKUP_AND_RESTORE = 1
-        private const val POSITION_ENABLE_CLOUD_FLARE = 2
-        private const val POSITION_ENABLE_NOTIFICATIONS = 3
+        //        private const val POSITION_ENABLE_CLOUD_FLARE = 2
+        private const val POSITION_ENABLE_NOTIFICATIONS = 2
+        //private const val POSITION_FASTER_DOWNLOADS = 4
 
     }
 
@@ -83,11 +84,11 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemView.widgetChevron.visibility = View.VISIBLE
             }
 
-            POSITION_ENABLE_CLOUD_FLARE -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.enableCloudFlare
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableCloudFlare = value }
-            }
+//            POSITION_ENABLE_CLOUD_FLARE -> {
+//                itemView.widgetSwitch.visibility = View.VISIBLE
+//                itemView.widgetSwitch.isChecked = dataCenter.enableCloudFlare
+//                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableCloudFlare = value }
+//            }
 
             POSITION_ENABLE_NOTIFICATIONS -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
@@ -100,6 +101,12 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                         BackgroundNovelSyncTask.cancelAll(applicationContext)
                 }
             }
+
+//            POSITION_FASTER_DOWNLOADS -> {
+//                itemView.widgetSwitch.visibility = View.VISIBLE
+//                itemView.widgetSwitch.isChecked = dataCenter.experimentalDownload
+//                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.experimentalDownload = value }
+//            }
         }
 
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)

@@ -11,7 +11,6 @@ import android.text.SpannableString
 import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -290,12 +289,12 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun addNovelToHistory() {
-        var history = dbHelper.getLargePreference(Constants.LargePrefenceKeys.RVN_HISTORY) ?: "[]"
+        var history = dbHelper.getLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY) ?: "[]"
         val historyList: ArrayList<Novel> = Gson().fromJson(history, object : TypeToken<ArrayList<Novel>>() {}.type)
         historyList.removeAll { novel.name == it.name }
         historyList.add(novel)
         history = Gson().toJson(historyList)
-        dbHelper.createOrUpdateLargePreference(Constants.LargePrefenceKeys.RVN_HISTORY, history)
+        dbHelper.createOrUpdateLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY, history)
     }
 
     override fun onDestroy() {

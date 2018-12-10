@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary
 
 import android.annotation.SuppressLint
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -13,8 +14,9 @@ import android.webkit.WebView
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.security.ProviderInstaller
 import com.squareup.leakcanary.LeakCanary
-import io.github.gmathi.novellibrary.database.DBHelper
+import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.network.HostNames.USER_AGENT
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
@@ -49,8 +51,11 @@ class NovelLibraryApplication : MultiDexApplication() {
     override fun onCreate() {
         dataCenter = DataCenter(applicationContext)
         dbHelper = DBHelper.getInstance(applicationContext)
-
         super.onCreate()
+
+        //Stray webPages to be deleted
+        dbHelper?.deleteWebPages(-1L)
+        dbHelper?.deleteWebPageSettings(-1L)
 
         try {
             HostNames.hostNamesList = dataCenter!!.getVerifiedHosts()
@@ -82,7 +87,7 @@ class NovelLibraryApplication : MultiDexApplication() {
         //https://stackoverflow.com/questions/29916962/javax-net-ssl-sslhandshakeexception-javax-net-ssl-sslprotocolexception-ssl-han
         updateAndroidSecurityProvider()
 
-        if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        if (BuildConfig.DEBUG) {
             WebView.setWebContentsDebuggingEnabled(true)
         }
 
@@ -135,6 +140,7 @@ class NovelLibraryApplication : MultiDexApplication() {
                 "Default Channel",
                 NotificationManager.IMPORTANCE_DEFAULT)
         channel.description = "Default Channel Description"
+        channel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
         notificationManager.createNotificationChannel(channel)
     }
 

@@ -7,48 +7,52 @@ import java.util.*
 
 object Logs {
 
-    fun debug(tag: String, message: String) {
+    fun debug(tag: String?, message: String?) {
         if (BuildConfig.DEBUG) {
-            Log.d(tag, message)
+            Log.d(tag ?: "", message ?: "")
         }
     }
 
-    fun info(tag: String, message: String) {
+    fun info(tag: String?, message: String?) {
         if (BuildConfig.DEBUG) {
-            Log.i(tag, message)
+            Log.i(tag ?: "", message ?: "")
         }
     }
 
-    fun warning(tag: String, message: String) {
+    fun warning(tag: String?, message: String?) {
         if (BuildConfig.DEBUG) {
-            Log.w(tag, message)
+            Log.w(tag ?: "", message ?: "")
         } else {
-            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", Log.WARN, tag, message))
+            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", Log.WARN, tag
+                    ?: "", message ?: ""))
         }
     }
 
-    fun warning(tag: String, message: String, throwable: Throwable) {
+    fun warning(tag: String?, message: String?, throwable: Throwable) {
         if (BuildConfig.DEBUG) {
             Log.w(tag, message, throwable)
         } else {
-            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", Log.WARN, tag, message))
+            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", Log.WARN, tag
+                    ?: "", message ?: ""))
             Crashlytics.logException(throwable)
         }
     }
 
-    fun error(tag: String, message: String) {
+    fun error(tag: String?, message: String?) {
         if (BuildConfig.DEBUG) {
             Log.e(tag, message)
         } else {
-            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", Log.ERROR, tag, message))
+            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", Log.ERROR, tag
+                    ?: "", message ?: ""))
         }
     }
 
-    fun error(tag: String, message: String, throwable: Throwable) {
+    fun error(tag: String?, message: String?, throwable: Throwable) {
         if (BuildConfig.DEBUG) {
             Log.e(tag, message, throwable)
         } else {
-            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", Log.ERROR, tag, message))
+            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", Log.ERROR, tag
+                    ?: "", message ?: ""))
             Crashlytics.logException(throwable)
         }
     }

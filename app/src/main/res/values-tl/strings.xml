@@ -228,7 +228,7 @@
     <string name="imported_list">Imported List</string>
 
     <string name="already_in_library">[ Already In Library ]</string>
-    <string name="group_notification_text">Updated for the novels in your library</string>
+    <string name="group_update_notification_text">Updated for the novels in your library</string>
     <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
     <string name="reader_mode_description">Reader mode will be on permanently</string>
     <string name="delete_chapters">Delete Chapters</string>
@@ -255,7 +255,7 @@
     <string name="directional_links_description">Next Chapter &amp; Previous Chapter Links will be shown on the reader mode screen</string>
     <string name="reader_mode_button_visibility">Reader Mode Button Visibility</string>
     <string name="reader_mode_button_visibility_description">The reader mode menu icon will be hidden, if this is enabled. You can also open reader mode menu by swiping from the far right edge of the screen</string>
-    <string name="cloud_flare_bypass_description">Please wait while the Cloudflare browser check is being bypassed</string>
+    <string name="cloud_flare_bypass_description">Please wait 5~15 secs while we check for CloudFlare…</string>
     <string name="cloud_flare_bypass_failure_title">Cloudflare Bypass Failed</string>
     <string name="cloud_flare_bypass_success">Cloudflare bypassed successfully</string>
     <string name="backup_and_restore">Backup &amp; Restore</string>
@@ -291,5 +291,8 @@
     <string name="content_description_sources_or_all">Sources/All</string>
     <string name="select_interval">Select Interval</string>
     <string name="default_novel_section_name">Currently Reading</string>
+    <string name="simple_text_backup">Simple Text - Novel &amp; Novel Sections Backup</string>
+    <string name="title_read_aloud">Read Aloud</string>
+    <string name="group_download_notification_text">Downloads for the novels in your library</string>
 
 </resources>
