@@ -1,5 +1,7 @@
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
+import android.support.annotation.RequiresApi
 import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
@@ -29,13 +31,24 @@ object CloudFlareByPasser {
                 val webView = WebView(context).apply {
                     settings?.javaScriptEnabled = true
                     webViewClient = object : WebViewClient() {
+
+                        @Suppress("OverridingDeprecatedMember")
+                        override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                            Log.e(TAG, "Override $url")
+                            if (url.toString() == "https://www.$hostName/") {
+                                Log.e(TAG, "Cookies: " + CookieManager.getInstance().getCookie("https://www.$hostName/"))
+                                if (saveCookies(hostName)) {
+                                    callback.invoke(State.CREATED)
+                                }
+                            }
+                            return false
+                        }
+
+                        @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
                         override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                             Log.e(TAG, "Override ${request?.url}")
                             if (request?.url.toString() == "https://www.$hostName/") {
-                                Log.e(
-                                        TAG,
-                                        "Cookies: " + CookieManager.getInstance().getCookie("https://www.$hostName/")
-                                )
+                                Log.e(TAG, "Cookies: " + CookieManager.getInstance().getCookie("https://www.$hostName/"))
                                 if (saveCookies(hostName)) {
                                     callback.invoke(State.CREATED)
                                 }

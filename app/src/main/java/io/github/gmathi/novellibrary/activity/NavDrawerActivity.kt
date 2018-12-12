@@ -71,12 +71,20 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         } else {
             checkIntentForNotificationData()
             loadFragment(currentNavId)
+            showWhatsNewDialog()
         }
 
+        if (intent.hasExtra("showDownloads")) {
+            intent.removeExtra("showDownloads")
+            startNovelDownloadsActivity()
+        }
+    }
+
+    private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                    .title("📢 What's New! 0.9.7.1.beta")
-                    .content("** Fixed Cloud Flare **\n\n" +
+                    .title("📢 What's New! 0.9.7.2.beta")
+                    .content("** Fixed Cloud Flare for 6.0.1**\n\n" +
                             "✨ Downloads have been revamped. Please let me know the feedback\n" +
 //                            //"✨ Improved performance/decrease load time on the chapters screen\n" +
 //                            "\uD83D\uDEE0 Improved performance/decrease load time on the chapters screen\n" +
@@ -88,25 +96,35 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                     .show()
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
-
-        if (intent.hasExtra("showDownloads")) {
-            intent.removeExtra("showDownloads")
-            startNovelDownloadsActivity()
-        }
     }
 
     private fun checkForCloudFlare() {
 
-        cloudFlareLoadingDialog = Utils.dialogBuilder(this@NavDrawerActivity, content = getString(R.string.cloud_flare_bypass_description), isProgress = true).cancelable(false).build()
+        cloudFlareLoadingDialog = Utils
+                .dialogBuilder(this@NavDrawerActivity, content = getString(R.string.cloud_flare_bypass_description), isProgress = true)
+                .cancelable(false)
+                .negativeText("Skip")
+                .onNegative { dialog, _ ->
+                    Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
+                    loadFragment(currentNavId)
+                    showWhatsNewDialog()
+                    checkIntentForNotificationData()
+                    dialog.dismiss()
+                }
+                .build()
+
         cloudFlareLoadingDialog?.show()
 
         CloudFlareByPasser.check(this, "novelupdates.com") { state ->
             if (!isFinishing) {
                 if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
-                    Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
-                    loadFragment(currentNavId)
-                    checkIntentForNotificationData()
-                    cloudFlareLoadingDialog?.dismiss()
+                    if (cloudFlareLoadingDialog?.isShowing == true) {
+                        Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
+                        loadFragment(currentNavId)
+                        showWhatsNewDialog()
+                        checkIntentForNotificationData()
+                        cloudFlareLoadingDialog?.dismiss()
+                    }
                 }
             }
         }
