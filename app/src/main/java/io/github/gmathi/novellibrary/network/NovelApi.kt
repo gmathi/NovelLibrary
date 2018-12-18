@@ -6,6 +6,7 @@ import io.github.gmathi.novellibrary.dataCenter
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.IOException
+import java.net.URL
 import java.util.regex.Pattern
 import javax.net.ssl.SSLPeerUnverifiedException
 
@@ -17,7 +18,7 @@ object NovelApi {
 
             return Jsoup
                     .connect(url)
-                    .cookies(CloudFlareByPasser.getCookieMap())
+                    .cookies(CloudFlareByPasser.getCookieMap(URL(url)))
                     .referrer(url)
                     .ignoreHttpErrors(true)
                     .timeout(30000)
@@ -42,7 +43,7 @@ object NovelApi {
             val doc = Jsoup
                     .connect(url)
                     .referrer(url)
-                    .cookies(CloudFlareByPasser.getCookieMap())
+                    .cookies(CloudFlareByPasser.getCookieMap(URL(url)))
                     .ignoreHttpErrors(true)
                     .timeout(30000)
                     .userAgent(HostNames.USER_AGENT)
@@ -85,7 +86,7 @@ object NovelApi {
                     .connect(url)
                     .referrer(url)
                     .timeout(30000)
-                    .cookies(CloudFlareByPasser.getCookieMap())
+                    .cookies(CloudFlareByPasser.getCookieMap(URL(url)))
                     .userAgent(HostNames.USER_AGENT)
                     .ignoreContentType(true)
                     .get()

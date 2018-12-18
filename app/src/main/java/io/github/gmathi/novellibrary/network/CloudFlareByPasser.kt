@@ -15,13 +15,14 @@ import io.github.gmathi.novellibrary.util.Logs
 import org.jsoup.HttpStatusException
 import org.jsoup.Jsoup
 import java.io.IOException
+import java.net.URL
 
 object CloudFlareByPasser {
 
     const val TAG = "CloudFlareByPasser"
 
     @SuppressLint("SetJavaScriptEnabled")
-    fun check(context: Context, hostName: String = "novelupdates.com", callback: (state: State) -> Unit) {
+    fun check(context: Context, hostName: String = HostNames.NOVEL_UPDATES, callback: (state: State) -> Unit) {
         async {
             if (await { isNeeded(hostName) }) {
                 callback.invoke(State.CREATING)
@@ -112,6 +113,15 @@ object CloudFlareByPasser {
         map[DataCenter.CF_COOKIES_CLEARANCE] = dataCenter.getCFClearance(hostName)
         return map
     }
+
+    fun getCookieMap(url: URL?): Map<String, String> {
+        val map = HashMap<String, String>()
+        val hostName = url?.host?.replace("www.", "")?.replace("m.", "")?.trim() ?: return map
+        map[DataCenter.CF_COOKIES_DUID] = dataCenter.getCFDuid(hostName)
+        map[DataCenter.CF_COOKIES_CLEARANCE] = dataCenter.getCFClearance(hostName)
+        return map
+    }
+
 
     enum class State {
         CREATING, CREATED, UNNEEDED

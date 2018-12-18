@@ -19,6 +19,7 @@ import io.github.gmathi.novellibrary.dataCenter
 import jp.wasabeef.recyclerview.animators.SlideInRightAnimator
 import com.bumptech.glide.load.model.LazyHeaders
 import io.github.gmathi.novellibrary.network.HostNames
+import java.net.URL
 
 
 fun ViewGroup.inflate(layoutRes: Int): View {
@@ -41,9 +42,11 @@ fun String.writableFileName(): String {
 }
 
 fun String.getGlideUrl(): GlideUrl {
+    val url = URL(this)
+    val hostName = url.host.replace("www.", "").replace("m.", "").trim()
     val builder = LazyHeaders.Builder()
             .addHeader("User-Agent", HostNames.USER_AGENT)
-            .addHeader("Cookie", dataCenter.cfCookiesString)
+            .addHeader("Cookie", dataCenter.getCFCookiesString(hostName))
 
     return GlideUrl(this, builder.build())
 }
