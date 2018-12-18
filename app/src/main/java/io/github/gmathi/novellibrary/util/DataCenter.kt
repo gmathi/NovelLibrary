@@ -143,17 +143,17 @@ class DataCenter(context: Context) {
 //        get() = prefs.getString(CF_COOKIES_USER_AGENT, HostNames.USER_AGENT)
 //        set(value) = prefs.edit().putString(CF_COOKIES_USER_AGENT, value).apply()
 
-    var cfClearance: String
-        get() = prefs.getString(CF_COOKIES_CLEARANCE, "")
-        set(value) = prefs.edit().putString(CF_COOKIES_CLEARANCE, value).apply()
-
-    var cfDuid: String
-        get() = prefs.getString(CF_COOKIES_DUID, "")
-        set(value) = prefs.edit().putString(CF_COOKIES_DUID, value).apply()
-
-    var cfCookiesString: String
-        get() = prefs.getString(CF_COOKIES_STRING, "")
-        set(value) = prefs.edit().putString(CF_COOKIES_STRING, value).apply()
+//    var cfClearance: String
+//        get() = prefs.getString(CF_COOKIES_CLEARANCE, "")
+//        set(value) = prefs.edit().putString(CF_COOKIES_CLEARANCE, value).apply()
+//
+//    var cfDuid: String
+//        get() = prefs.getString(CF_COOKIES_DUID, "")
+//        set(value) = prefs.edit().putString(CF_COOKIES_DUID, value).apply()
+//
+//    var cfCookiesString: String
+//        get() = prefs.getString(CF_COOKIES_STRING, "")
+//        set(value) = prefs.edit().putString(CF_COOKIES_STRING, value).apply()
 
     var enableDirectionalLinks: Boolean
         get() = prefs.getBoolean(DIRECTIONAL_LINKS, false)
@@ -180,4 +180,32 @@ class DataCenter(context: Context) {
         prefs.edit().putString(VERIFIED_HOSTS, Gson().toJson(hostNames)).apply()
         HostNames.hostNamesList = hostNames
     }
+
+    //CloudFlare
+
+    fun getCFClearance(hostName: String): String {
+        return prefs.getString(CF_COOKIES_CLEARANCE + hostName, "")
+    }
+
+    fun setCFClearance(hostName: String, value: String) {
+        prefs.edit().putString(CF_COOKIES_CLEARANCE + hostName, value).apply()
+    }
+
+    fun getCFDuid(hostName: String): String {
+        return prefs.getString(CF_COOKIES_DUID + hostName, "")
+    }
+
+    fun setCFDuid(hostName: String, value: String) {
+        prefs.edit().putString(CF_COOKIES_DUID + hostName, value).apply()
+    }
+
+    fun getCFCookiesString(hostName: String): String {
+        return prefs.getString(CF_COOKIES_STRING + hostName, "")
+    }
+
+    fun setCFCookiesString(hostName: String, value: String) {
+        prefs.edit().putString(CF_COOKIES_STRING + hostName, value).apply()
+    }
+
+
 }

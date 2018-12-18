@@ -68,8 +68,8 @@ object CloudFlareByPasser {
 
     private fun isNeeded(hostName: String): Boolean {
         return try {
-            val response = Jsoup.connect("https://www.$hostName").cookies(getCookieMap()).userAgent(HostNames.USER_AGENT).execute()
-            response.statusCode() == 503
+            val response = Jsoup.connect("https://www.$hostName").cookies(getCookieMap(hostName)).userAgent(HostNames.USER_AGENT).execute()
+            response.statusCode() == 503 && response.hasHeader("cf-ray")
         } catch (e: HttpStatusException) {
             e.statusCode == 503
         } catch (e: IOException) {
@@ -84,11 +84,11 @@ object CloudFlareByPasser {
             val parts = cookies.split(";".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
             for (cookie in parts) {
                 if (cookie.contains(DataCenter.CF_COOKIES_DUID))
-                    dataCenter.cfDuid = cookie.trim().substring(cookie.trim().indexOf("=") + 1)
+                    dataCenter.setCFDuid(hostName, cookie.trim().substring(cookie.trim().indexOf("=") + 1))
                 if (cookie.contains(DataCenter.CF_COOKIES_CLEARANCE))
-                    dataCenter.cfClearance = cookie.trim().substring(cookie.trim().indexOf("=") + 1)
+                    dataCenter.setCFClearance(hostName, cookie.trim().substring(cookie.trim().indexOf("=") + 1))
             }
-            dataCenter.cfCookiesString = cookies
+            dataCenter.setCFCookiesString(hostName, cookies)
             return true
         }
         return false
@@ -106,10 +106,10 @@ object CloudFlareByPasser {
         }
     }
 
-    fun getCookieMap(): Map<String, String> {
+    fun getCookieMap(hostName: String): Map<String, String> {
         val map = HashMap<String, String>()
-        map[DataCenter.CF_COOKIES_DUID] = dataCenter.cfDuid
-        map[DataCenter.CF_COOKIES_CLEARANCE] = dataCenter.cfClearance
+        map[DataCenter.CF_COOKIES_DUID] = dataCenter.getCFDuid(hostName)
+        map[DataCenter.CF_COOKIES_CLEARANCE] = dataCenter.getCFClearance(hostName)
         return map
     }
 
