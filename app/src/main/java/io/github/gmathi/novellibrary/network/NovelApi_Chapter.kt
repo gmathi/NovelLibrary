@@ -9,6 +9,8 @@ import io.github.gmathi.novellibrary.model.WebPage
 import org.jsoup.Jsoup
 import java.io.IOException
 import java.net.URI
+import java.util.concurrent.*
+import kotlin.concurrent.thread
 
 
 fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayList<WebPage>? {
@@ -17,6 +19,7 @@ fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayLi
         host.contains(HostNames.NOVEL_UPDATES) -> return if (withSources) getNUALLChapterUrlsWithSources(novel) else getNUALLChapterUrls(novel)
         host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterUrls(novel)
         host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterUrls(novel)
+        host.contains(HostNames.NOVEL_FULL) -> return getNovelFullChapterUrls(novel)
     }
     return null
 }
@@ -192,3 +195,38 @@ private fun NovelApi.getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMa
 
     return sourceMap
 }
+
+fun NovelApi.getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage>? {
+    var chapters: ArrayList<WebPage>? = null
+    try {
+        val document = Jsoup.connect(novel.url).get()
+        chapters = ArrayList()
+
+        val pageCount = document.body().select("li.last > a").first().attr("data-page").toInt() + 1
+        chapters.addAll(getNovelFullChapterUrlsFromDoc(document))
+
+        val futureTasks = ArrayList<FutureTask<ArrayList<WebPage>>>()
+        val threadPool = Executors.newFixedThreadPool(10) as ThreadPoolExecutor
+
+        (2..pageCount).forEach { pageNumber ->
+            val future = FutureTask<ArrayList<WebPage>> {
+                val doc = Jsoup.connect(novel.url+"?page=$pageNumber&per-page=50").get()
+                getNovelFullChapterUrlsFromDoc(doc)
+            }
+            futureTasks.add(future)
+            threadPool.submit(future)
+        }
+
+        threadPool.shutdown()
+        threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)
+
+        (2..pageCount).forEach {
+            chapters.addAll(futureTasks[it - 2].get())
+        }
+
+    } catch (e: IOException) {
+        e.printStackTrace()
+    }
+    return chapters
+}
+

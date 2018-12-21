@@ -77,10 +77,10 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         async search@ {
 
             if (!Utils.isConnectedToNetwork(activity)) {
-                progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+                progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
                     progressLayout.showLoading()
                     searchNovels()
-                })
+                }
                 return@search
             }
 
@@ -92,10 +92,10 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
                 }
             } else {
                 if (isFragmentActive() && progressLayout != null)
-                    progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+                    progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
                         progressLayout.showLoading()
                         searchNovels()
-                    })
+                    }
             }
         }
     }
@@ -104,10 +104,10 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
         adapter.updateData(results)
         if (adapter.items.isEmpty()) {
             if (isFragmentActive() && progressLayout != null)
-                progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_youtube_searched_for_white_vector), "No Novels Found!", "Try Again", {
+                progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_youtube_searched_for_white_vector), "No Novels Found!", "Try Again") {
                     progressLayout.showLoading()
                     searchNovels()
-                })
+                }
         } else {
             if (isFragmentActive() && progressLayout != null)
                 progressLayout.showContent()

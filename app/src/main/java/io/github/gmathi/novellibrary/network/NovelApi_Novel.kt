@@ -13,6 +13,7 @@ fun NovelApi.getNovelDetails(url: String): Novel? {
         host.contains(HostNames.NOVEL_UPDATES) -> novel = getNUNovelDetails(url)
         host.contains(HostNames.ROYAL_ROAD) -> novel = getRRNovelDetails(url)
         host.contains(HostNames.WLN_UPDATES) -> novel = getWlnNovelDetails(url)
+        host.contains(HostNames.NOVEL_FULL) -> novel = getNovelFullNovelDetails(url)
     }
     return novel
 }
@@ -141,6 +142,37 @@ fun NovelApi.getWlnNovelDetails(url: String): Novel? {
 
 
     } catch (e: IOException) {
+        e.printStackTrace()
+    }
+    return novel
+}
+
+fun NovelApi.getNovelFullNovelDetails(url: String): Novel? {
+    var novel: Novel? = null
+    try {
+        val document = getDocumentWithUserAgent(url)
+
+        val booksElement = document.body().select("div.books")
+        val infoElements = document.body().select("div.info").first().children()
+
+        novel = Novel(booksElement.select("div.desc > h3").text() ?: "NameUnableToFetch", url)
+        novel.imageUrl = booksElement.select("div.book > img").attr("abs:src")
+        novel.genres = infoElements[1].select("a").map { it.text() }
+        novel.longDescription = document.body().select("div.desc-text > p").joinToString (separator = "\n") { it.text() }
+
+        novel.metaData["Author(s)"] = infoElements[0].select("a").joinToString(", ") { "<a href=\"${it.attr("abs:href")}\">${it.text()}</a>" }
+        novel.metaData["Genre(s)"] = infoElements[1].select("a").joinToString(", ") { "<a href=\"${it.attr("abs:href")}\">${it.text()}</a>" }
+        novel.metaData["Source"] = infoElements[2].text()
+        novel.metaData["Status"] = infoElements[3].text()
+
+        val p = Pattern.compile("Chapter\\s(.*?)\\s-", Pattern.DOTALL or Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE or Pattern.MULTILINE) // Regex for the value of the key
+        val m = p.matcher(document.body().select("ul.l-chapters").first().child(0).text())
+        if (m.find()) {
+            novel.chaptersCount = m.group(1).toLong()
+        }
+        novel.rating = (document.body().select("div.small > em > strong > span").first().text().toDouble() / 2).toString()
+
+    } catch (e: Exception) {
         e.printStackTrace()
     }
     return novel

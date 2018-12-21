@@ -11,6 +11,7 @@ fun NovelApi.searchUrl(url: String): ArrayList<Novel>? {
             url.contains(HostNames.ROYAL_ROAD) -> return searchRoyalRoadUrl(url)
             url.contains(HostNames.NOVEL_UPDATES) -> return searchNovelUpdatesUrl(url)
             url.contains(HostNames.WLN_UPDATES) -> return searchWlnUpdatesUrl(url)
+            url.contains(HostNames.NOVEL_FULL) -> return searchNovelFullUrl(url)
         }
     } catch (e: Exception) {
         //if url is malformed
@@ -71,3 +72,23 @@ fun NovelApi.searchWlnUpdatesUrl(url: String): ArrayList<Novel>? {
     }
     return searchResults
 }
+
+fun NovelApi.searchNovelFullUrl(url: String): ArrayList<Novel>? {
+    var searchResults: ArrayList<Novel>? = null
+    try {
+        searchResults = ArrayList()
+        val document = getDocument(url)
+        val listElement = document.body().select("div.list.list-truyen")[0]
+        val novelElements = listElement.select("div.row")
+        novelElements.forEach {
+            val novel = Novel(it.select("h3.truyen-title").text(), it.select("h3.truyen-title").select("a[href]").attr("abs:href"))
+            novel.imageUrl = it.select("img.cover").attr("abs:src")
+            searchResults.add(novel)
+        }
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return searchResults
+}
+

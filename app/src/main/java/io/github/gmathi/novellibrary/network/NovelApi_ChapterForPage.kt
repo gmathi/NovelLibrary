@@ -1,14 +1,12 @@
-import io.github.gmathi.novellibrary.model.WebPage
-import org.jsoup.nodes.Document
+package io.github.gmathi.novellibrary.network
 
-//package io.github.gmathi.novellibrary.network
-//
-//import io.github.gmathi.novellibrary.model.WebPage
-//import io.github.gmathi.novellibrary.util.Constants
-//import org.jsoup.Jsoup
-//import org.jsoup.nodes.Document
-//import java.io.IOException
-//import java.net.URI
+
+import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.util.Constants
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import java.io.IOException
+import java.net.URI
 //
 //
 //fun NovelApi.getChapterUrlsForPage(url: String, pageNum: Int): ArrayList<WebPage>? {
@@ -102,4 +100,16 @@ import org.jsoup.nodes.Document
 //        (0..elements.size).filter { it % 2 == 1 }.mapTo(chapters) { WebPage(url = elements[it].attr("href"), chapter = elements[it].text()) }
 //    return chapters
 //}
+
+fun NovelApi.getNovelFullChapterUrlsFromDoc(doc: Document) : ArrayList<WebPage> {
+    val chapters = ArrayList<WebPage>()
+    val liElements = doc.body().select("ul.list-chapter > li")
+    if (liElements.isNotEmpty())
+        liElements.mapTo(chapters) {
+            val a =  it.select("a[href]")
+            WebPage(url = a.attr("abs:href"), chapter = a.attr("title"))
+        }
+    return chapters
+}
+
 

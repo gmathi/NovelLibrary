@@ -71,6 +71,9 @@ open class HtmlHelper protected constructor() {
             contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
             if (contentElement != null) return CloudFlareDDoSTagHelper()
 
+            contentElement = doc.body().select("div#chapter-content").firstOrNull()
+            if (contentElement != null) return GeneralIdTagHelper(host, "div", "chapter-content")
+
             return HtmlHelper()
         }
 

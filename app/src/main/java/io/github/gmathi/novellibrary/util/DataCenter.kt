@@ -44,6 +44,7 @@ class DataCenter(context: Context) {
         private const val READER_MODE_BUTTON_VISIBILITY = "isReaderModeButtonVisible"
         //        private const val ENABLE_CLOUD_FLARE = "enableCloudFlare"
         private const val ENABLE_NOTIFICATIONS = "enableNotifications"
+        private const val DEVELOPER = "developer"
 
 
         const val CF_COOKIES_CLEARANCE = "cf_clearance"
@@ -62,6 +63,10 @@ class DataCenter(context: Context) {
     var isDarkTheme: Boolean
         get() = prefs.getBoolean(IS_DARK_THEME, true)
         set(value) = prefs.edit().putBoolean(IS_DARK_THEME, value).apply()
+
+    var isDeveloper: Boolean
+        get() = prefs.getBoolean(DEVELOPER, false)
+        set(value) = prefs.edit().putBoolean(DEVELOPER, value).apply()
 
     var downloadLatestFirst: Boolean
         get() = prefs.getBoolean(DOWNLOAD_LATEST_FIRST, false)

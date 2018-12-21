@@ -57,8 +57,20 @@ class SearchResultsUnlockedListener(private val searchTerms: String) : GenericFr
             else -> null
         }
     }
-
 }
+
+class SearchResultsDevOnlyListener(private val searchTerms: String) : GenericFragmentStatePagerAdapter.Listener {
+    override fun getFragmentForItem(position: Int): Fragment? {
+        return when (position) {
+            0 -> SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_UPDATES)
+            1 -> SearchTermFragment.newInstance(searchTerms, HostNames.ROYAL_ROAD)
+            2 -> SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_FULL)
+            3 -> SearchTermFragment.newInstance(searchTerms, HostNames.WLN_UPDATES)
+            else -> null
+        }
+    }
+}
+
 
 class WebPageFragmentPageListener(val novel: Novel, val sourceId: Long) : GenericFragmentStatePagerAdapter.Listener {
 

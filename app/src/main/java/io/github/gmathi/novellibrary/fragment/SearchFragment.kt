@@ -138,7 +138,12 @@ class SearchFragment : BaseFragment() {
 
         val titles: Array<out String>
         val searchPageAdapter: GenericFragmentStatePagerAdapter
-        if (dataCenter.lockRoyalRoad) {
+
+        @Suppress("CascadeIf")
+        if (dataCenter.isDeveloper) {
+            titles = resources.getStringArray(R.array.search_results_tab_titles_developer_only)
+            searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, SearchResultsDevOnlyListener(searchTerm))
+        } else if (dataCenter.lockRoyalRoad) {
             titles = resources.getStringArray(R.array.search_results_tab_titles)
             searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, SearchResultsListener(searchTerm))
         } else {

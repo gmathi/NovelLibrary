@@ -63,7 +63,7 @@ fun NovelApi.searchWlnUpdates(searchTerms: String): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocument("https://www.wlnupdates.com/search?title=" + searchTerms)
+        val document = getDocument("https://www.wlnupdates.com/search?title=$searchTerms")
         val elements = document.body().getElementsByTag("td")
         elements.mapTo(searchResults) { Novel(it.getElementsByTag("a").firstOrNull()?.text()!!, it.getElementsByTag("a").firstOrNull()?.absUrl("href")!!) }
 
@@ -72,3 +72,24 @@ fun NovelApi.searchWlnUpdates(searchTerms: String): ArrayList<Novel>? {
     }
     return searchResults
 }
+
+
+fun NovelApi.searchNovelFull(searchTerms: String): ArrayList<Novel>? {
+    var searchResults: ArrayList<Novel>? = null
+    try {
+        searchResults = ArrayList()
+        val document = getDocument("http://novelfull.com/search?keyword=$searchTerms")
+        val listElement = document.body().select("div.list.list-truyen")[0]
+        val novelElements = listElement.select("div.row")
+        novelElements.forEach {
+            val novel = Novel(it.select("h3.truyen-title").text(), it.select("h3.truyen-title").select("a[href]").attr("abs:href"))
+            novel.imageUrl = it.select("img.cover").attr("abs:src")
+            searchResults.add(novel)
+        }
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return searchResults
+}
+
