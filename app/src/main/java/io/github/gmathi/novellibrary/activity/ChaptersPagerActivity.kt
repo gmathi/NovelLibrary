@@ -314,7 +314,6 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                             addWebPagesToDownload(listToDownload)
                         }
                         dialog.dismiss()
-                        manageDownloadsDialog()
                         mode?.finish()
                     }
                 })

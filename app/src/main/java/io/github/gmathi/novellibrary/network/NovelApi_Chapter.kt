@@ -39,7 +39,7 @@ fun NovelApi.getRRChapterUrls(novel: Novel): ArrayList<WebPage>? {
             webPage.novelId = novel.id
             chapters.add(webPage)
         }
-    } catch (e: IOException) {
+    } catch (e: Exception) {
         e.printStackTrace()
     }
     return chapters
@@ -59,7 +59,7 @@ fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage>? {
             webPage.novelId = novel.id
             chapters.add(webPage)
         }
-    } catch (e: IOException) {
+    } catch (e: Exception) {
         e.printStackTrace()
     }
     return chapters
@@ -68,29 +68,33 @@ fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage>? {
 
 fun NovelApi.getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
     val chapters = ArrayList<WebPage>()
-    if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
+    try {
+        if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 
-    val novelUpdatesNovelId = novel.metaData["PostId"]
-    val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
+        val novelUpdatesNovelId = novel.metaData["PostId"]
+        val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
 
-    val doc = Jsoup.connect(url)
-            .data("action", "nd_getchapters")
-            .referrer(url)
-            .cookies(CloudFlareByPasser.getCookieMap(HostNames.NOVEL_UPDATES))
-            .ignoreHttpErrors(true)
-            .timeout(30000)
-            .userAgent(HostNames.USER_AGENT)
-            .data("mypostid", novelUpdatesNovelId)
-            .post()
+        val doc = Jsoup.connect(url)
+                .data("action", "nd_getchapters")
+                .referrer(url)
+                .cookies(CloudFlareByPasser.getCookieMap(HostNames.NOVEL_UPDATES))
+                .ignoreHttpErrors(true)
+                .timeout(30000)
+                .userAgent(HostNames.USER_AGENT)
+                .data("mypostid", novelUpdatesNovelId)
+                .post()
 
-    var orderId = 0L
-    doc?.getElementsByAttribute("data-id")?.reversed()?.forEach {
+        var orderId = 0L
+        doc?.getElementsByAttribute("data-id")?.reversed()?.forEach {
 
-        val webPageUrl = "https:" + it?.attr("href")
-        val webPage = WebPage(webPageUrl, it.getElementsByAttribute("title").attr("title"))
-        webPage.orderId = orderId++
-        webPage.novelId = novel.id
-        chapters.add(webPage)
+            val webPageUrl = "https:" + it?.attr("href")
+            val webPage = WebPage(webPageUrl, it.getElementsByAttribute("title").attr("title"))
+            webPage.orderId = orderId++
+            webPage.novelId = novel.id
+            chapters.add(webPage)
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
 
     return chapters
@@ -98,36 +102,40 @@ fun NovelApi.getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
 
 fun NovelApi.getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
     val chapters = ArrayList<WebPage>()
-    if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
+    try {
+        if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 
-    //val sourceMapList = ArrayList<HashMap<String, Long>>()
-    val sourceMapList = getNUChapterUrlsWithSources(novel)
+        //val sourceMapList = ArrayList<HashMap<String, Long>>()
+        val sourceMapList = getNUChapterUrlsWithSources(novel)
 
-    val novelUpdatesNovelId = novel.metaData["PostId"]
-    val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
+        val novelUpdatesNovelId = novel.metaData["PostId"]
+        val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
 
-    val doc = Jsoup.connect(url)
-            .data("action", "nd_getchapters")
-            .referrer(url)
-            .cookies(CloudFlareByPasser.getCookieMap(HostNames.NOVEL_UPDATES))
-            .ignoreHttpErrors(true)
-            .timeout(30000)
-            .userAgent(HostNames.USER_AGENT)
-            .data("mypostid", novelUpdatesNovelId)
-            .post()
+        val doc = Jsoup.connect(url)
+                .data("action", "nd_getchapters")
+                .referrer(url)
+                .cookies(CloudFlareByPasser.getCookieMap(HostNames.NOVEL_UPDATES))
+                .ignoreHttpErrors(true)
+                .timeout(30000)
+                .userAgent(HostNames.USER_AGENT)
+                .data("mypostid", novelUpdatesNovelId)
+                .post()
 
-    var orderId = 0L
-    doc?.getElementsByAttribute("data-id")?.reversed()?.forEach {
+        var orderId = 0L
+        doc?.getElementsByAttribute("data-id")?.reversed()?.forEach {
 
-        val webPageUrl = "https:" + it?.attr("href")
-        val webPage = WebPage(webPageUrl, it.getElementsByAttribute("title").attr("title"))
-        webPage.orderId = orderId++
-        webPage.novelId = novel.id
-        for (sourceMap in sourceMapList) {
-            webPage.sourceId = sourceMap[webPageUrl] ?: continue
-            break
+            val webPageUrl = "https:" + it?.attr("href")
+            val webPage = WebPage(webPageUrl, it.getElementsByAttribute("title").attr("title"))
+            webPage.orderId = orderId++
+            webPage.novelId = novel.id
+            for (sourceMap in sourceMapList) {
+                webPage.sourceId = sourceMap[webPageUrl] ?: continue
+                break
+            }
+            chapters.add(webPage)
         }
-        chapters.add(webPage)
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
 
     return chapters
@@ -137,29 +145,33 @@ private fun NovelApi.getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? =
 
     val sourceMap = HashMap<String, Long>()
 
-    val dbSourceId = dbHelper.getSource(sourceName!!)?.first ?: -1L
-    if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
+    try {
+        val dbSourceId = dbHelper.getSource(sourceName!!)?.first ?: -1L
+        if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 
-    val novelUpdatesNovelId = novel.metaData["PostId"]
-    val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
+        val novelUpdatesNovelId = novel.metaData["PostId"]
+        val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
 
-    val connection = Jsoup.connect(url)
-            .data("action", "nd_getchapters")
-            .referrer(url)
-            .cookies(CloudFlareByPasser.getCookieMap(HostNames.NOVEL_UPDATES))
-            .ignoreHttpErrors(true)
-            .timeout(30000)
-            .userAgent(HostNames.USER_AGENT)
-            .data("mygrr", "0")
-            .data("mypostid", novelUpdatesNovelId)
+        val connection = Jsoup.connect(url)
+                .data("action", "nd_getchapters")
+                .referrer(url)
+                .cookies(CloudFlareByPasser.getCookieMap(HostNames.NOVEL_UPDATES))
+                .ignoreHttpErrors(true)
+                .timeout(30000)
+                .userAgent(HostNames.USER_AGENT)
+                .data("mygrr", "0")
+                .data("mypostid", novelUpdatesNovelId)
 
-    if (sourceId != null) connection.data("mygrpfilter", "$sourceId")
+        if (sourceId != null) connection.data("mygrpfilter", "$sourceId")
 
-    val doc = connection.post()
+        val doc = connection.post()
 
-    //var orderId = 0L
-    doc?.select("a[href][data-id]")?.forEach {
-        sourceMap["https:" + it.attr("href")] = dbSourceId
+        //var orderId = 0L
+        doc?.select("a[href][data-id]")?.forEach {
+            sourceMap["https:" + it.attr("href")] = dbSourceId
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
 
     return sourceMap
@@ -168,29 +180,33 @@ private fun NovelApi.getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? =
 private fun NovelApi.getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String, Long>> {
 
     val sourceMap = ArrayList<HashMap<String, Long>>()
-    if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
+    try {
+        if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 
-    val novelUpdatesNovelId = novel.metaData["PostId"]
-    val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
+        val novelUpdatesNovelId = novel.metaData["PostId"]
+        val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
 
-    val doc = Jsoup.connect(url)
-            .data("action", "nd_getgroupnovel")
-            .data("mygrr", "0")
-            .referrer(url)
-            .cookies(CloudFlareByPasser.getCookieMap(HostNames.NOVEL_UPDATES))
-            .ignoreHttpErrors(true)
-            .timeout(30000)
-            .userAgent(HostNames.USER_AGENT)
-            .data("mypostid", novelUpdatesNovelId)
-            .post()
+        val doc = Jsoup.connect(url)
+                .data("action", "nd_getgroupnovel")
+                .data("mygrr", "0")
+                .referrer(url)
+                .cookies(CloudFlareByPasser.getCookieMap(HostNames.NOVEL_UPDATES))
+                .ignoreHttpErrors(true)
+                .timeout(30000)
+                .userAgent(HostNames.USER_AGENT)
+                .data("mypostid", novelUpdatesNovelId)
+                .post()
 
-    doc?.select("div.checkbox")?.forEach {
-        dbHelper.createSource(it.text())
-        val tempSourceMap = getNUALLChapterUrlsForSource(novel,
-                it.selectFirst("input.grp-filter-attr[value]").attr("value").toInt(),
-                it.text()
-        )
-        sourceMap.add(tempSourceMap)
+        doc?.select("div.checkbox")?.forEach {
+            dbHelper.createSource(it.text())
+            val tempSourceMap = getNUALLChapterUrlsForSource(novel,
+                    it.selectFirst("input.grp-filter-attr[value]").attr("value").toInt(),
+                    it.text()
+            )
+            sourceMap.add(tempSourceMap)
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
 
     return sourceMap
@@ -224,7 +240,7 @@ fun NovelApi.getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage>? {
             chapters.addAll(futureTasks[it - 2].get())
         }
 
-    } catch (e: IOException) {
+    } catch (e: Exception) {
         e.printStackTrace()
     }
     return chapters

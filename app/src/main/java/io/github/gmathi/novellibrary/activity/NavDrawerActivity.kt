@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.activity
 
 import CloudFlareByPasser
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.design.widget.Snackbar
@@ -83,14 +84,14 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                    .title("📢 What's New! 0.9.7.2.beta")
-                    .content("** Fixed Cloud Flare for 6.0.1**\n\n" +
-                            "✨ Downloads have been revamped. Please let me know the feedback\n" +
+                    .title("📢 What's New! 0.9.7.3.beta")
+                    .content(//"** Fixed Cloud Flare for 6.0.1**\n\n" +
+                            //"✨ Downloads have been revamped. Please let me know the feedback\n" +
 //                            //"✨ Improved performance/decrease load time on the chapters screen\n" +
 //                            "\uD83D\uDEE0 Improved performance/decrease load time on the chapters screen\n" +
-                            "⚠️ A lot of bug fixes!!\n" +
+                            "⚠️ Minor Bug fixes!\n" +
 //                            "\uD83D\uDEE0️ Bug Fixes for reported & unreported crashes!" +
-                            "")
+                                    "")
                     .positiveText("Ok")
                     .onPositive { dialog, _ -> dialog.dismiss() }
                     .show()
@@ -104,19 +105,20 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 .dialogBuilder(this@NavDrawerActivity, content = getString(R.string.cloud_flare_bypass_description), isProgress = true)
                 .cancelable(false)
                 .negativeText("Skip")
-                .onNegative { dialog, _ ->
+                .onNegative { _, _ ->
                     Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
                     loadFragment(currentNavId)
                     showWhatsNewDialog()
                     checkIntentForNotificationData()
-                    dialog.dismiss()
                 }
                 .build()
 
         cloudFlareLoadingDialog?.show()
 
         CloudFlareByPasser.check(this, "novelupdates.com") { state ->
-            if (!isFinishing) {
+
+            val isActivityRunning = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) !isDestroyed else !isFinishing
+            if (isActivityRunning) {
                 if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
                     if (cloudFlareLoadingDialog?.isShowing == true) {
                         Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
