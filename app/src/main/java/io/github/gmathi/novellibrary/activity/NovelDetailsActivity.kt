@@ -74,10 +74,10 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         if (!Utils.isConnectedToNetwork(this)) {
             if (novel.id == -1L) {
                 swipeRefreshLayout.isRefreshing = false
-                progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+                progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
                     progressLayout.showLoading()
                     getNovelInfo()
-                })
+                }
             }
             return
         }
@@ -94,10 +94,10 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             } catch (e: Exception) {
                 e.printStackTrace()
                 if (novel.id == -1L)
-                    progressLayout.showError(ContextCompat.getDrawable(this@NovelDetailsActivity, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
+                    progressLayout.showError(ContextCompat.getDrawable(this@NovelDetailsActivity, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again)) {
                         progressLayout.showLoading()
                         getNovelInfo()
-                    })
+                    }
             }
         }
     }

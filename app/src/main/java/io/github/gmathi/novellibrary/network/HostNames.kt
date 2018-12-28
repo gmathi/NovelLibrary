@@ -6,7 +6,8 @@ import java.util.*
 object HostNames {
 
     const val NOVEL_UPDATES = "novelupdates.com"
-    const val ROYAL_ROAD = "royalroadl.com"
+    const val ROYAL_ROAD_OLD = "royalroadl.com"
+    const val ROYAL_ROAD = "royalroad.com"
     const val KOBATOCHAN = "kobatochan.com"
     const val GRAVITY_TALES = "gravitytales.com"
     const val WUXIA_WORLD = "wuxiaworld.com"

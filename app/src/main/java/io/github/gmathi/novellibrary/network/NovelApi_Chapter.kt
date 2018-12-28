@@ -7,17 +7,15 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import org.jsoup.Jsoup
-import java.io.IOException
+import org.jsoup.nodes.Document
 import java.net.URI
-import java.util.concurrent.*
-import kotlin.concurrent.thread
 
 
 fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayList<WebPage>? {
     val host = URI(novel.url).host
     when {
         host.contains(HostNames.NOVEL_UPDATES) -> return if (withSources) getNUALLChapterUrlsWithSources(novel) else getNUALLChapterUrls(novel)
-        host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterUrls(novel)
+        host.contains(HostNames.ROYAL_ROAD_OLD) || host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterUrls(novel)
         host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterUrls(novel)
         host.contains(HostNames.NOVEL_FULL) -> return getNovelFullChapterUrls(novel)
     }
@@ -28,13 +26,13 @@ fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayLi
 fun NovelApi.getRRChapterUrls(novel: Novel): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
-        val document = Jsoup.connect(novel.url).get()
+        val document = getDocumentWithUserAgent(novel.url)
         chapters = ArrayList()
-        val tableElement = document.body().getElementById("chapters")
+        val tableElement = document.body().select("#chapters") ?: return chapters
 
         var orderId = 0L
-        tableElement?.getElementsByTag("a")?.filter { it.attributes().hasKey("href") }?.forEach {
-            val webPage = WebPage(url = it.absUrl("href"), chapter = it.text())
+        tableElement.select("a[href]")?.forEach {
+            val webPage = WebPage(url = it.attr("abs:href"), chapter = it.text())
             webPage.orderId = orderId++
             webPage.novelId = novel.id
             chapters.add(webPage)
@@ -48,13 +46,13 @@ fun NovelApi.getRRChapterUrls(novel: Novel): ArrayList<WebPage>? {
 fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
-        val document = Jsoup.connect(novel.url).get()
+        val document = getDocumentWithUserAgent(novel.url)
         chapters = ArrayList()
-        val trElements = document.body().getElementsByTag("tr")?.filter { it.id() == "release-entry" }
+        val trElements = document.body().select("tr#release-entry")
 
         var orderId = 0L
         trElements?.asReversed()?.asSequence()?.forEach {
-            val webPage = WebPage(url = it.child(0).child(0).attr("href"), chapter = it.getElementsByClass("numeric").joinToString(separator = ".") { it.text() })
+            val webPage = WebPage(url = it.child(0).child(0).attr("abs:href"), chapter = it.getElementsByClass("numeric").joinToString(separator = ".") { element -> element.text() })
             webPage.orderId = orderId++
             webPage.novelId = novel.id
             chapters.add(webPage)
@@ -66,7 +64,7 @@ fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage>? {
 }
 
 
-fun NovelApi.getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
+fun getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
     val chapters = ArrayList<WebPage>()
     try {
         if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
@@ -100,7 +98,7 @@ fun NovelApi.getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
     return chapters
 }
 
-fun NovelApi.getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
+fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
     val chapters = ArrayList<WebPage>()
     try {
         if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
@@ -141,7 +139,7 @@ fun NovelApi.getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
     return chapters
 }
 
-private fun NovelApi.getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, sourceName: String? = null): HashMap<String, Long> {
+private fun getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, sourceName: String? = null): HashMap<String, Long> {
 
     val sourceMap = HashMap<String, Long>()
 
@@ -177,7 +175,7 @@ private fun NovelApi.getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? =
     return sourceMap
 }
 
-private fun NovelApi.getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String, Long>> {
+private fun getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String, Long>> {
 
     val sourceMap = ArrayList<HashMap<String, Long>>()
     try {
@@ -212,7 +210,7 @@ private fun NovelApi.getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMa
     return sourceMap
 }
 
-fun NovelApi.getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage>? {
+fun getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
         val document = Jsoup.connect(novel.url).get()
@@ -221,28 +219,31 @@ fun NovelApi.getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage>? {
         val pageCount = document.body().select("li.last > a").first().attr("data-page").toInt() + 1
         chapters.addAll(getNovelFullChapterUrlsFromDoc(document))
 
-        val futureTasks = ArrayList<FutureTask<ArrayList<WebPage>>>()
-        val threadPool = Executors.newFixedThreadPool(10) as ThreadPoolExecutor
-
         (2..pageCount).forEach { pageNumber ->
-            val future = FutureTask<ArrayList<WebPage>> {
-                val doc = Jsoup.connect(novel.url+"?page=$pageNumber&per-page=50").get()
-                getNovelFullChapterUrlsFromDoc(doc)
-            }
-            futureTasks.add(future)
-            threadPool.submit(future)
+            val doc = Jsoup.connect(novel.url+"?page=$pageNumber&per-page=50").get()
+            chapters.addAll(getNovelFullChapterUrlsFromDoc(doc))
         }
 
-        threadPool.shutdown()
-        threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)
-
-        (2..pageCount).forEach {
-            chapters.addAll(futureTasks[it - 2].get())
+        var orderId = 0L
+        chapters.asSequence().forEach { webPage ->
+            webPage.orderId = orderId++
+            webPage.novelId = novel.id
         }
 
     } catch (e: Exception) {
         e.printStackTrace()
     }
+    return chapters
+}
+
+fun getNovelFullChapterUrlsFromDoc(doc: Document) : ArrayList<WebPage> {
+    val chapters = ArrayList<WebPage>()
+    val liElements = doc.body().select("ul.list-chapter > li")
+    if (liElements.isNotEmpty())
+        liElements.mapTo(chapters) {
+            val a =  it.select("a[href]")
+            WebPage(url = a.attr("abs:href"), chapter = a.attr("title"))
+        }
     return chapters
 }
 

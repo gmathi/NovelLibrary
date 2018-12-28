@@ -12,10 +12,10 @@ fun NovelApi.getRecentlyUpdatedNovels(): ArrayList<RecenlytUpdatedItem>? {
         if (elements != null)
             for (element in elements) {
                 val item = RecenlytUpdatedItem()
-                item.novelUrl = element.getElementsByTag("a")?.firstOrNull()?.attr("href")
-                item.novelName = element.getElementsByTag("a")?.firstOrNull()?.attr("title")
-                item.chapterName = element.getElementsByTag("a")?.firstOrNull { it.className() == "chp-release" }?.text()
-                item.publisherName = element.getElementsByTag("span")?.firstOrNull { it.className() == "mob_group" }?.getElementsByTag("a")?.firstOrNull()?.attr("title")
+                item.novelUrl = element.selectFirst("a[href]")?.attr("abs:href")
+                item.novelName = element.selectFirst("a[title]")?.attr("title")
+                item.chapterName = element.selectFirst("a.chp-release")?.text()
+                item.publisherName = element.selectFirst("span.mob_group > a")?.attr("title")
 
                 searchResults.add(item)
             }
