@@ -57,9 +57,9 @@ class NovelLibraryApplication : MultiDexApplication() {
         dbHelper?.deleteWebPages(-1L)
         dbHelper?.deleteWebPageSettings(-1L)
 
-        dataCenter?.isDeveloper = true
-        dataCenter?.lockRoyalRoad = false
-
+//        dataCenter?.isDeveloper = true
+//        dataCenter?.lockRoyalRoad = false
+//
         try {
             HostNames.hostNamesList = dataCenter!!.getVerifiedHosts()
             HostNames.defaultHostNamesList.forEach {

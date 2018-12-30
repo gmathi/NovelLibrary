@@ -87,10 +87,10 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
                 return@search
             }
 
-            if (resultType == HostNames.ROYAL_ROAD && !dataCenter.isDeveloper) {
-                progressLayout.showEmpty(ContextCompat.getDrawable(context!!, R.drawable.ic_phonelink_lock_white_vector), "Only Dev Access!!")
-                return@search
-            }
+//            if (resultType == HostNames.ROYAL_ROAD && !dataCenter.isDeveloper) {
+//                progressLayout.showEmpty(ContextCompat.getDrawable(context!!, R.drawable.ic_phonelink_lock_white_vector), "Only Dev Access!!")
+//                return@search
+//            }
 
             if (!Utils.isConnectedToNetwork(activity)) {
                 progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
