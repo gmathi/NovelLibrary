@@ -29,10 +29,10 @@ class KobatochanHelper : HtmlHelper() {
         doc.head().children().remove()
     }
 
-    override fun downloadImage(element: Element, dir: File): File? {
+    override fun downloadImage(element: Element, file: File): File? {
         val uri = Uri.parse(element.attr("src"))
         if (uri.toString().contains("uploads/avatars")) return null
-        else return super.downloadImage(element, dir)
+        else return super.downloadImage(element, file)
     }
 
     override fun removeJS(doc: Document) {

@@ -95,7 +95,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         try {
             doc = NovelApi.getDocumentWithUserAgent(otherChapterLink)
         } catch (e: Exception) {
-            Logs.error(TAG, "Error getting WebPage: $otherChapterLink")
+            Logs.error(TAG, "Error getting internal links: $otherChapterLink")
             e.printStackTrace()
             return null
         }
