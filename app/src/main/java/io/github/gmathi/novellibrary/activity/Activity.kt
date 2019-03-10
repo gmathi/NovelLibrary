@@ -1,6 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
-import android.app.Activity
+import android.support.v7.app.AppCompatActivity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -18,33 +18,33 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.TransitionHelper
 import io.github.gmathi.novellibrary.util.Utils
 
-fun Activity.startNavDrawerActivity() {
+fun AppCompatActivity.startNavDrawerActivity() {
     val intent = Intent(this, NavDrawerActivity::class.java)
     startActivity(intent)
 }
 
-fun Activity.startImagePreviewActivity(url: String?, filePath: String?, view: View) {
+fun AppCompatActivity.startImagePreviewActivity(url: String?, filePath: String?, view: View) {
     val intent = Intent(this, ImagePreviewActivity::class.java)
     intent.putExtra("url", url)
     intent.putExtra("filePath", filePath)
     TransitionHelper.startSharedImageTransition(this, view, getString(R.string.transition_image_preview), intent)
 }
 
-fun Activity.hideSoftKeyboard() {
-    val inputMethodManager = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+fun AppCompatActivity.hideSoftKeyboard() {
+    val inputMethodManager = getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
     inputMethodManager.hideSoftInputFromWindow(window.decorView.windowToken, 0)
 }
 
-fun Activity.toast(message: String) {
+fun AppCompatActivity.toast(message: String) {
     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 }
 
-fun Activity.snackBar(view: View, message: String) {
+fun AppCompatActivity.snackBar(view: View, message: String) {
     Snackbar.make(view, message, Snackbar.LENGTH_LONG)
             .setAction("Action", null).show()
 }
 
-fun Activity.startChaptersActivity(novel: Novel, jumpToReader: Boolean = false) {
+fun AppCompatActivity.startChaptersActivity(novel: Novel, jumpToReader: Boolean = false) {
     val intent = Intent(this, ChaptersPagerActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
@@ -64,7 +64,7 @@ fun Activity.startChaptersActivity(novel: Novel, jumpToReader: Boolean = false) 
 //    startActivityForResult(intent, Constants.CHAPTER_ACT_REQ_CODE)
 //}
 
-fun Activity.startMetadataActivity(novel: Novel) {
+fun AppCompatActivity.startMetadataActivity(novel: Novel) {
     val intent = Intent(this, MetaDataActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
@@ -72,7 +72,7 @@ fun Activity.startMetadataActivity(novel: Novel) {
     startActivityForResult(intent, Constants.METADATA_ACT_REQ_CODE)
 }
 
-fun Activity.startWebViewActivity(url: String) {
+fun AppCompatActivity.startWebViewActivity(url: String) {
     val intent = Intent(this, WebViewActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("url", url)
@@ -80,7 +80,7 @@ fun Activity.startWebViewActivity(url: String) {
     startActivity(intent)
 }
 
-fun Activity.startReaderDBPagerActivity(novel: Novel) {
+fun AppCompatActivity.startReaderDBPagerActivity(novel: Novel) {
     val intent = Intent(this, ReaderDBPagerActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
@@ -89,7 +89,7 @@ fun Activity.startReaderDBPagerActivity(novel: Novel) {
 }
 
 
-fun Activity.startSearchResultsActivity(title: String, url: String) {
+fun AppCompatActivity.startSearchResultsActivity(title: String, url: String) {
     val intent = Intent(this, SearchUrlActivity::class.java)
     val bundle = Bundle()
     bundle.putString("title", title)
@@ -98,71 +98,71 @@ fun Activity.startSearchResultsActivity(title: String, url: String) {
     startActivityForResult(intent, Constants.SEARCH_RESULTS_ACT_REQ_CODE)
 }
 
-fun Activity.startRecentlyViewedNovelsActivity() {
+fun AppCompatActivity.startRecentlyViewedNovelsActivity() {
     startActivityForResult(Intent(this, RecentlyViewedNovelsActivity::class.java), Constants.RECENT_VIEWED_ACT_REQ_CODE)
 }
 
-fun Activity.startRecentlyUpdatedNovelsActivity() {
+fun AppCompatActivity.startRecentlyUpdatedNovelsActivity() {
     startActivityForResult(Intent(this, RecentlyUpdatedNovelsActivity::class.java), Constants.RECENT_UPDATED_ACT_REQ_CODE)
 }
 
-fun Activity.startSettingsActivity() {
+fun AppCompatActivity.startSettingsActivity() {
     startActivityForResult(Intent(this, SettingsActivity::class.java), Constants.SETTINGS_ACT_REQ_CODE)
 }
 
-fun Activity.startLanguagesActivity() {
+fun AppCompatActivity.startLanguagesActivity() {
     startActivityForResult(Intent(this, LanguageActivity::class.java), Constants.LANG_ACT_REQ_CODE)
 }
 
-fun Activity.startGeneralSettingsActivity() {
+fun AppCompatActivity.startGeneralSettingsActivity() {
     val intent = Intent(this, GeneralSettingsActivity::class.java)
     startActivity(intent)
 }
 
-fun Activity.startBackupSettingsActivity() {
+fun AppCompatActivity.startBackupSettingsActivity() {
     val intent = Intent(this, BackupSettingsActivity::class.java)
     startActivity(intent)
 }
 
-fun Activity.startReaderSettingsActivity() {
+fun AppCompatActivity.startReaderSettingsActivity() {
     val intent = Intent(this, ReaderSettingsActivity::class.java)
     startActivity(intent)
 }
 
 
-fun Activity.startMentionSettingsActivity() {
+fun AppCompatActivity.startMentionSettingsActivity() {
     val intent = Intent(this, MentionSettingsActivity::class.java)
     startActivity(intent)
 }
 
-fun Activity.startCopyrightActivity() {
+fun AppCompatActivity.startCopyrightActivity() {
     val intent = Intent(this, CopyrightActivity::class.java)
     startActivity(intent)
 }
 
-fun Activity.startLibrariesUsedActivity() {
+fun AppCompatActivity.startLibrariesUsedActivity() {
     val intent = Intent(this, LibrariesUsedActivity::class.java)
     startActivity(intent)
 }
 
-fun Activity.startContributionsActivity() {
+fun AppCompatActivity.startContributionsActivity() {
     val intent = Intent(this, ContributionsActivity::class.java)
     startActivity(intent)
 }
 
-fun Activity.startImportLibraryActivity() {
+fun AppCompatActivity.startImportLibraryActivity() {
     startActivityForResult(Intent(this, ImportLibraryActivity::class.java), Constants.IMPORT_LIBRARY_ACT_REQ_CODE)
 }
 
-fun Activity.startNovelSectionsActivity() {
+fun AppCompatActivity.startNovelSectionsActivity() {
     startActivityForResult(Intent(this, NovelSectionsActivity::class.java), Constants.NOVEL_SECTIONS_ACT_REQ_CODE)
 }
 
-fun Activity.startNovelDownloadsActivity() {
+fun AppCompatActivity.startNovelDownloadsActivity() {
     startActivityForResult(Intent(this, NovelDownloadsActivity::class.java), Constants.SETTINGS_ACT_REQ_CODE)
 }
 
-fun Activity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean = false) {
+fun AppCompatActivity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean = false) {
     val intent = Intent(this, NovelDetailsActivity::class.java)
     val bundle = Bundle()
     bundle.putSerializable("novel", novel)
@@ -173,13 +173,13 @@ fun Activity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean = fal
 }
 
 
-fun Activity.openInBrowser(url: String) {
+fun AppCompatActivity.openInBrowser(url: String) {
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
     if (intent.resolveActivity(packageManager) != null)
         startActivity(intent)
 }
 
-fun Activity.sendEmail(email: String, subject: String, body: String) {
+fun AppCompatActivity.sendEmail(email: String, subject: String, body: String) {
     val mailTo = "mailto:" + email +
             "?&subject=" + Uri.encode(subject) +
             "&body=" + Uri.encode(body + Utils.getDeviceInfo())
@@ -190,7 +190,7 @@ fun Activity.sendEmail(email: String, subject: String, body: String) {
         startActivity(emailIntent)
 }
 
-fun Activity.shareUrl(url: String) {
+fun AppCompatActivity.shareUrl(url: String) {
     val i = Intent(Intent.ACTION_SEND)
     i.type = "text/plain"
     i.putExtra(Intent.EXTRA_SUBJECT, "Sharing URL")
@@ -199,7 +199,7 @@ fun Activity.shareUrl(url: String) {
         startActivity(Intent.createChooser(i, "Share URL(s)"))
 }
 
-fun Activity.startDownloadNovelService(novelName: String) {
+fun AppCompatActivity.startDownloadNovelService(novelName: String) {
     val serviceIntent = Intent(this, DownloadNovelService::class.java)
     val bundle = Bundle()
     bundle.putString(DownloadNovelService.NOVEL_NAME, novelName)
@@ -207,7 +207,7 @@ fun Activity.startDownloadNovelService(novelName: String) {
     startService(serviceIntent)
 }
 
-fun Activity.startTTSService(audioText: String, novelName: String, chapterName: String) {
+fun AppCompatActivity.startTTSService(audioText: String, novelName: String, chapterName: String) {
     val serviceIntent = Intent(this, TTSService::class.java)
     val bundle = Bundle()
     bundle.putString(TTSService.AUDIO_TEXT_KEY, audioText)
@@ -217,7 +217,7 @@ fun Activity.startTTSService(audioText: String, novelName: String, chapterName: 
     startService(serviceIntent)
 }
 
-fun Activity.alertToast(title: String? = null, message: String? = null, color: Int = R.color.colorTextWarningRed, duration: Long = 2500, icon: Int = R.drawable.ic_warning_white_vector) {
+fun AppCompatActivity.alertToast(title: String? = null, message: String? = null, color: Int = R.color.colorTextWarningRed, duration: Long = 2500, icon: Int = R.drawable.ic_warning_white_vector) {
     if (title.isNullOrBlank() && message.isNullOrBlank()) return
     val alerter = Alerter.create(this)
     alerter.setBackgroundColorRes(color)

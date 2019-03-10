@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.fragment
 
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -133,7 +134,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     //region Adapter Listener Methods - onItemClick(), viewBinder()
 
     override fun onItemClick(item: Novel) {
-        activity?.startNovelDetailsActivity(item, false)
+        (activity as? AppCompatActivity)?.startNovelDetailsActivity(item, false)
         //addToDownloads(item)
     }
 

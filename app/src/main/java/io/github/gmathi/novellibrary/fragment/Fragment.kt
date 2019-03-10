@@ -1,6 +1,6 @@
 package io.github.gmathi.novellibrary.fragment
 
-import android.app.Activity
+import android.support.v7.app.AppCompatActivity
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -12,7 +12,7 @@ import io.github.gmathi.novellibrary.util.Constants
 
 
 fun Fragment.hideSoftKeyboard() {
-    val inputMethodManager = activity?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+    val inputMethodManager = activity?.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
     inputMethodManager.hideSoftInputFromWindow(activity?.window?.decorView?.windowToken, 0)
 }
 

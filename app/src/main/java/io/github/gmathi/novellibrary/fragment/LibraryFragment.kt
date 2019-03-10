@@ -5,6 +5,7 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.support.v4.content.ContextCompat
+import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.PopupMenu
 import android.support.v7.widget.helper.ItemTouchHelper
 import android.view.*
@@ -14,10 +15,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.tapadoo.alerter.Alerter
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
-import io.github.gmathi.novellibrary.activity.startChaptersActivity
-import io.github.gmathi.novellibrary.activity.startImportLibraryActivity
-import io.github.gmathi.novellibrary.activity.startReaderDBPagerActivity
+import io.github.gmathi.novellibrary.activity.*
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
@@ -102,7 +100,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun onItemClick(item: Novel) {
         if (lastDeletedId != item.id)
-            activity?.startChaptersActivity(item)
+            (activity as? AppCompatActivity)?.startChaptersActivity(item)
     }
 
     override fun bind(item: Novel, itemView: View, position: Int) {
@@ -221,7 +219,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 sortNovelsAlphabetically()
             }
             R.id.action_import_reading_list -> {
-                activity?.startImportLibraryActivity()
+                (activity as? AppCompatActivity)?.startImportLibraryActivity()
             }
         }
         return super.onOptionsItemSelected(item)
@@ -332,9 +330,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun startReader(novel: Novel) {
         if (novel.currentWebPageUrl != null) {
-            activity?.startReaderDBPagerActivity(novel)
+            (activity as? AppCompatActivity)?.startReaderDBPagerActivity(novel)
         } else {
-            val confirmDialog = activity?.let {
+            val confirmDialog = (activity as? AppCompatActivity)?.let {
                 MaterialDialog.Builder(it)
                         .title(getString(R.string.no_bookmark_found_dialog_title))
                         .content(getString(R.string.no_bookmark_found_dialog_description, novel.name))

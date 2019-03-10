@@ -221,13 +221,13 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(context, channelId)
-                    .setSmallIcon(R.drawable.ic_file_download_orange_vector)
+                    .setSmallIcon(R.drawable.ic_file_download_white)
                     .setCustomContentView(view)
                     .setContentIntent(pendingIntent)
                     .build()
         } else {
             Notification.Builder(context)
-                    .setSmallIcon(R.drawable.ic_file_download_orange_vector)
+                    .setSmallIcon(R.drawable.ic_file_download_white)
                     .setContent(view)
                     .setContentIntent(pendingIntent)
                     .build()
