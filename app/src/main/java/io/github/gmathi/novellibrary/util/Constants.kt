@@ -44,18 +44,20 @@ object Constants {
     const val CHAPTER_ACT_REQ_CODE = 7
     const val METADATA_ACT_REQ_CODE = 8
     const val SETTINGS_ACT_REQ_CODE = 9
+    const val SETTINGS_ACT_RES_CODE = 10
     const val LANG_ACT_REQ_CODE = 11
+    const val LANG_ACT_RES_CODE = 12
+    const val OPEN_DOWNLOADS_RES_CODE = 13
     const val IMPORT_LIBRARY_ACT_REQ_CODE = 14
     const val RECENT_UPDATED_ACT_REQ_CODE = 15
-    const val RECENT_VIEWED_ACT_REQ_CODE = 16
     const val IWV_ACT_REQ_CODE = 16
     const val NOVEL_SECTIONS_ACT_REQ_CODE = 17
+    const val OPEN_FIREBASE_AUTH_UI = 18
+    const val RECENT_VIEWED_ACT_REQ_CODE = 19
+
 
     const val TTS_ACT_REQ_CODE = 1000
 
-    const val SETTINGS_ACT_RES_CODE = 10
-    const val LANG_ACT_RES_CODE = 12
-    const val OPEN_DOWNLOADS_RES_CODE = 13
 
 
     //endregion

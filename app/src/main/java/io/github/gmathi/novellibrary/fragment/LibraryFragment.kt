@@ -19,6 +19,9 @@ import io.github.gmathi.novellibrary.activity.*
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.startChaptersActivity
+import io.github.gmathi.novellibrary.extensions.startImportLibraryActivity
+import io.github.gmathi.novellibrary.extensions.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.model.NovelSectionEvent

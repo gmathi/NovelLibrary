@@ -17,6 +17,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.startDownloadNovelService
 import io.github.gmathi.novellibrary.model.Download
 import io.github.gmathi.novellibrary.model.DownloadNovelEvent
 import io.github.gmathi.novellibrary.model.DownloadWebPageEvent

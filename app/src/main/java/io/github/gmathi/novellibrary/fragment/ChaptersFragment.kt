@@ -1,12 +1,10 @@
 package io.github.gmathi.novellibrary.fragment
 
 import android.annotation.SuppressLint
-import android.graphics.Rect
 import android.os.Bundle
 import android.os.Parcelable
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.RecyclerView
 import android.view.*
 import android.widget.Toast
 import co.metalab.asyncawait.async
@@ -18,7 +16,10 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapterSelectTitleProvider
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.startReaderDBPagerActivity
+import io.github.gmathi.novellibrary.extensions.startWebViewActivity
 import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.content_source_chapters.*
 import kotlinx.android.synthetic.main.listitem_chapter.view.*
@@ -76,17 +77,7 @@ class ChaptersFragment : BaseFragment(),
         adapter = GenericAdapterSelectTitleProvider(items = ArrayList(), layoutResId = R.layout.listitem_chapter, listener = this)
         recyclerView.isVerticalScrollBarEnabled = true
         recyclerView.setDefaultsNoAnimation(adapter)
-        recyclerView.addItemDecoration(object : DividerItemDecoration(context, VERTICAL) {
-
-            override fun getItemOffsets(outRect: Rect?, view: View?, parent: RecyclerView?, state: RecyclerView.State?) {
-                val position = parent?.getChildAdapterPosition(view)
-                if (position == parent?.adapter?.itemCount?.minus(1)) {
-                    outRect?.setEmpty()
-                } else {
-                    super.getItemOffsets(outRect, view, parent, state)
-                }
-            }
-        })
+        this.context?.let { recyclerView.addItemDecoration(CustomDividerItemDecoration(it, DividerItemDecoration.VERTICAL)) }
         fastScrollView.setRecyclerView(recyclerView)
         swipeRefreshLayout.isEnabled = false
     }
@@ -101,7 +92,7 @@ class ChaptersFragment : BaseFragment(),
                 if (shouldScrollToBookmark)
                     scrollToBookmark()
                 if (chaptersPagerActivity.dataSet.isNotEmpty()) {
-                    lastKnownRecyclerState?.let { recyclerView.layoutManager.onRestoreInstanceState(it) }
+                    lastKnownRecyclerState?.let { recyclerView.layoutManager?.onRestoreInstanceState(it) }
                 }
             } else
                 progressLayout.showEmpty(ContextCompat.getDrawable(chaptersPagerActivity, R.drawable.ic_warning_white_vector), "No Chapters Found!")
@@ -231,7 +222,7 @@ class ChaptersFragment : BaseFragment(),
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onChapterActionModeEvent(chapterActionModeEvent: ChapterActionModeEvent) {
         if (chapterActionModeEvent.eventType == EventType.COMPLETE || (chapterActionModeEvent.eventType == EventType.UPDATE && (chapterActionModeEvent.sourceId == sourceId || sourceId == -1L))) {
-            lastKnownRecyclerState = recyclerView.layoutManager.onSaveInstanceState()
+            lastKnownRecyclerState = recyclerView.layoutManager?.onSaveInstanceState()
             setData()
         }
     }

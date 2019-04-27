@@ -26,6 +26,7 @@ import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.network.getNUNovelDetails
+import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.activity_import_library.*
@@ -91,17 +92,7 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
     private fun setRecyclerView() {
         adapter = GenericAdapter(items = importList, layoutResId = R.layout.listitem_import_list, listener = this)
         recyclerView.setDefaultsNoAnimation(adapter)
-        recyclerView.addItemDecoration(object : DividerItemDecoration(this, DividerItemDecoration.VERTICAL) {
-
-            override fun getItemOffsets(outRect: Rect?, view: View?, parent: RecyclerView?, state: RecyclerView.State?) {
-                val position = parent?.getChildAdapterPosition(view)
-                if (position == parent?.adapter?.itemCount?.minus(1)) {
-                    outRect?.setEmpty()
-                } else {
-                    super.getItemOffsets(outRect, view, parent, state)
-                }
-            }
-        })
+        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
         progressLayout.showEmpty(ContextCompat.getDrawable(this@ImportLibraryActivity, R.drawable.ic_arrow_upward_white_vector), "Add a URL to see your reading list here")
     }
 

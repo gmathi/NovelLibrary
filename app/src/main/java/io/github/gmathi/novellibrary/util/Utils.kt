@@ -6,6 +6,7 @@ import android.content.Context.ACTIVITY_SERVICE
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Uri
@@ -24,6 +25,16 @@ import io.github.gmathi.novellibrary.model.Novel
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
+import android.opengl.ETC1.getHeight
+import android.opengl.ETC1.getWidth
+import android.graphics.drawable.VectorDrawable
+import android.support.graphics.drawable.VectorDrawableCompat
+import android.graphics.drawable.BitmapDrawable
+import android.support.v7.content.res.AppCompatResources
+import android.graphics.drawable.Drawable
+import android.support.annotation.DrawableRes
+
+
 
 
 object Utils {
@@ -221,5 +232,21 @@ object Utils {
 
     fun getCurrentFormattedDate() = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date())
 
+    fun getBitmapFromDrawable(context: Context, @DrawableRes drawableId: Int): Bitmap {
+        val drawable = AppCompatResources.getDrawable(context, drawableId)
+
+        if (drawable is BitmapDrawable) {
+            return drawable.bitmap
+        } else if (drawable is VectorDrawableCompat || drawable is VectorDrawable) {
+            val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight())
+            drawable.draw(canvas)
+
+            return bitmap
+        } else {
+            throw IllegalArgumentException("unsupported drawable type")
+        }
+    }
 
 }

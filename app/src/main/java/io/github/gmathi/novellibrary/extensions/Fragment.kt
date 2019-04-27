@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.fragment
+package io.github.gmathi.novellibrary.extensions
 
 import android.support.v7.app.AppCompatActivity
 import android.content.Intent

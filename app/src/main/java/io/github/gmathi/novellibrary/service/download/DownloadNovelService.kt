@@ -206,7 +206,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
         val view = RemoteViews(context.packageName, R.layout.notification_tts)
         view.setTextViewText(R.id.novelName, "Novel Library")
         view.setTextViewText(R.id.chapterName, status)
-        view.setViewVisibility(R.id.close, View.GONE)
+        view.setViewVisibility(R.id.containerActions, View.GONE)
 
         val novelDetailsIntent = Intent(this, NavDrawerActivity::class.java)
         novelDetailsIntent.action = Constants.Action.MAIN_ACTION

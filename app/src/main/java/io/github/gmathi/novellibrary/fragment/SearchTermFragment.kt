@@ -3,7 +3,6 @@ package io.github.gmathi.novellibrary.fragment
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,9 +10,10 @@ import co.metalab.asyncawait.async
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.startNovelDetailsActivity
+import io.github.gmathi.novellibrary.extensions.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.extensions.isFragmentActive
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.*
 import io.github.gmathi.novellibrary.util.Logs

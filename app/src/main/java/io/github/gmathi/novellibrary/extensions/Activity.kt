@@ -1,19 +1,20 @@
-package io.github.gmathi.novellibrary.activity
+package io.github.gmathi.novellibrary.extensions
 
-import android.support.v7.app.AppCompatActivity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.Snackbar
+import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import com.tapadoo.alerter.Alerter
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.activity.*
 import io.github.gmathi.novellibrary.activity.settings.*
 import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.service.TTSService
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
+import io.github.gmathi.novellibrary.service.tts.TTSService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.TransitionHelper
 import io.github.gmathi.novellibrary.util.Utils
@@ -207,12 +208,13 @@ fun AppCompatActivity.startDownloadNovelService(novelName: String) {
     startService(serviceIntent)
 }
 
-fun AppCompatActivity.startTTSService(audioText: String, novelName: String, chapterName: String) {
+fun AppCompatActivity.startTTSService(audioText: String, novelName: String, chapterName: String, imageUrl: String) {
     val serviceIntent = Intent(this, TTSService::class.java)
     val bundle = Bundle()
     bundle.putString(TTSService.AUDIO_TEXT_KEY, audioText)
     bundle.putString(TTSService.NOVEL_NAME_KEY, novelName)
     bundle.putString(TTSService.CHAPTER_NAME_KEY, chapterName)
+    bundle.putString(TTSService.IMAGE_URL_KEY, imageUrl)
     serviceIntent.putExtras(bundle)
     startService(serviceIntent)
 }

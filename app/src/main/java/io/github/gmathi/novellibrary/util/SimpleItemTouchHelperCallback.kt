@@ -42,7 +42,7 @@ class SimpleItemTouchHelperCallback(private val listener: SimpleItemTouchListene
         super.onSelectedChanged(viewHolder, actionState)
     }
 
-    override fun clearView(recyclerView: RecyclerView?,
+    override fun clearView(recyclerView: RecyclerView,
                            viewHolder: RecyclerView.ViewHolder) {
         super.clearView(recyclerView, viewHolder)
 
