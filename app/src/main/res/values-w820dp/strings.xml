@@ -9,4 +9,10 @@
     <string name="delete_chapters">Delete Downloads</string>
     <string name="skip_cloud_flare_string">Please wait 5~10 secs while we bypass cloud flare</string>
     <string name="refresh_cloud_flare_cookies">Refresh CloudFlare Cookies</string>
+    <string name="stop">Stop</string>
+    <string name="pause">Pause</string>
+    <string name="app_icon">AppIcon</string>
+    <string name="play">Play</string>
+    <string name="previous_chapter">Previous Chapter</string>
+    <string name="next_chapter">Next Chapter</string>
 </resources>

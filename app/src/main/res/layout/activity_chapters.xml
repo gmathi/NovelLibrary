@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:animateLayoutChanges="true"
     android:layout_height="match_parent"
-    tools:context=".activity.OldChaptersActivity">
+    tools:context=".activity.ChaptersPagerActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"

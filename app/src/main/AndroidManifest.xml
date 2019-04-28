@@ -62,10 +62,10 @@
                 <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY" />
             </intent-filter>
         </service>
-        <service
-            android:name=".service.download.DownloadService"
-            android:enabled="true"
-            android:exported="false" />
+        <!--<service-->
+            <!--android:name=".service.download.DownloadService"-->
+            <!--android:enabled="true"-->
+            <!--android:exported="false" />-->
         <service
             android:name=".service.download.DownloadNovelService"
             android:enabled="true"
@@ -207,7 +207,7 @@
             android:theme="@style/DarkTheme_DarkSide" />
 
         <service
-            android:name=".service.TTSService"
+            android:name=".service.tts.TTSService"
             android:enabled="true"
             android:exported="true" />
 

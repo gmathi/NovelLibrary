@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.activity
 
 import CloudFlareByPasser
+import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -11,9 +12,12 @@ import android.support.v4.app.FragmentTransaction
 import android.support.v4.view.GravityCompat
 import android.support.v7.widget.Toolbar
 import android.view.MenuItem
+import android.view.ViewTreeObserver
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.crashlytics.android.Crashlytics
+import com.firebase.ui.auth.AuthUI
+import com.firebase.ui.auth.IdpResponse
 import io.fabric.sdk.android.Fabric
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
@@ -25,7 +29,11 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
+import kotlinx.android.synthetic.main.nav_header_nav_drawer.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
+import com.google.firebase.auth.FirebaseAuth
+import io.github.gmathi.novellibrary.extensions.*
+import io.github.gmathi.novellibrary.util.Logs
 
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -34,10 +42,12 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private var currentNavId: Int = R.id.nav_search
 
     private var cloudFlareLoadingDialog: MaterialDialog? = null
+    private var mAuth: FirebaseAuth? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_nav_drawer)
+        mAuth = FirebaseAuth.getInstance()
         navigationView.setNavigationItemSelectedListener(this)
 
         //Initialize custom logging
@@ -79,6 +89,27 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             intent.removeExtra("showDownloads")
             startNovelDownloadsActivity()
         }
+
+        drawerLayout.viewTreeObserver.addOnGlobalLayoutListener (object : ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                drawerLayout.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                authSignInButton.setOnClickListener {
+                    val providers = arrayListOf(
+                            AuthUI.IdpConfig.EmailBuilder().build(),
+                            AuthUI.IdpConfig.PhoneBuilder().build(),
+                            AuthUI.IdpConfig.GoogleBuilder().build())
+
+                    // Create and launch sign-in intent
+                    startActivityForResult(
+                            AuthUI.getInstance()
+                                    .createSignInIntentBuilder()
+                                    .setAvailableProviders(providers)
+                                    .build(),
+                            Constants.OPEN_FIREBASE_AUTH_UI)
+                }
+            }
+        })
+
     }
 
     private fun showWhatsNewDialog() {
@@ -212,6 +243,20 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when {
+            requestCode == Constants.OPEN_FIREBASE_AUTH_UI -> {
+                val response = IdpResponse.fromResultIntent(data)
+                if (resultCode == Activity.RESULT_OK) {
+                    // Successfully signed in
+                    val user = FirebaseAuth.getInstance().currentUser
+                    Logs.error("NAV USER", user?.displayName);
+                    // ...
+                } else {
+                    // Sign in failed. If response is null the user canceled the
+                    // sign-in flow using the back button. Otherwise check
+                    // response.getError().getErrorCode() and handle the error.
+                    // ...
+                }
+            }
             resultCode == Constants.OPEN_DOWNLOADS_RES_CODE -> loadFragment(R.id.nav_downloads)
             requestCode == Constants.IWV_ACT_REQ_CODE -> checkIntentForNotificationData()
             else -> super.onActivityResult(requestCode, resultCode, data)
@@ -237,6 +282,9 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         async.cancelAll()
         super.onDestroy()
     }
+
+
+
 
 
 }

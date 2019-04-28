@@ -5,7 +5,6 @@ import android.Manifest
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.os.*
-import android.speech.tts.TextToSpeech
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.ViewPager
 import android.support.v7.widget.LinearLayoutManager
@@ -30,6 +29,10 @@ import io.github.gmathi.novellibrary.adapter.WebPageFragmentPageListener
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.alertToast
+import io.github.gmathi.novellibrary.extensions.openInBrowser
+import io.github.gmathi.novellibrary.extensions.shareUrl
+import io.github.gmathi.novellibrary.extensions.startTTSService
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.model.*
 import io.github.gmathi.novellibrary.util.Constants
@@ -85,8 +88,7 @@ class ReaderDBPagerActivity :
         if (tempNovel == null || tempNovel.chaptersCount.toInt() == 0) {
             finish()
             return
-        }
-        else
+        } else
             novel = tempNovel
 
         dbHelper.updateNewReleasesCount(novel.id, 0L)
@@ -265,7 +267,7 @@ class ReaderDBPagerActivity :
         val currentFrag = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment)
         when {
             currentFrag.history.isNotEmpty() -> currentFrag.goBack()
-        //currentFrag.readerWebView.canGoBack() -> currentFrag.readerWebView.goBack()
+            //currentFrag.readerWebView.canGoBack() -> currentFrag.readerWebView.goBack()
             else -> super.onBackPressed()
         }
     }
@@ -374,7 +376,7 @@ class ReaderDBPagerActivity :
                     val webPageDBFragment = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as? WebPageDBFragment)
                     val audioText = webPageDBFragment?.doc?.text() ?: return
                     val title = webPageDBFragment.doc?.title() ?: ""
-                    startTTSService(audioText, novel.name, title)
+                    startTTSService(audioText, title, novel.id)
                 } else {
                     alertToast(title = "Read Aloud", message = "Only supported in Reader Mode!")
                 }
