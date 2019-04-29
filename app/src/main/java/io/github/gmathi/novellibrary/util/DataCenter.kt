@@ -14,6 +14,10 @@ class DataCenter(context: Context) {
 
     companion object {
 
+        private const val LOCK_ROYAL_ROAD = "lockRoyalRoad"
+        private const val LOCK_NOVEL_FULL = "lockNovelFull"
+        private const val LOCK_SCRIBBLE = "lockScribble"
+
         private const val SEARCH_HISTORY_LIST = "searchHistoryList"
         private const val NOVEL_HISTORY_LIST = "novelHistoryList"
 
@@ -21,7 +25,6 @@ class DataCenter(context: Context) {
         private const val DOWNLOAD_LATEST_FIRST = "downloadLatestFirst"
         private const val EXPERIMENTAL_DOWNLOAD = "experimentalDownload"
         private const val QUEUE_NOVEL_DOWNLOADS = "queueNovelDownloads"
-        private const val LOCK_ROYAL_ROAD = "lockRoyalRoad"
         private const val LOAD_LIBRARY_SCREEN = "loadLibraryScreen"
         private const val APP_VERSION_CODE = "appVersionCode"
         private const val TEXT_SIZE = "textSize"
@@ -60,6 +63,18 @@ class DataCenter(context: Context) {
     fun loadNovelHistory(): ArrayList<Novel> = Gson().fromJson(prefs.getString(NOVEL_HISTORY_LIST, "[]"), object : TypeToken<ArrayList<Novel>>() {}.type)
     fun removeNovelHistory() = prefs.edit().remove(NOVEL_HISTORY_LIST).apply()
 
+    var lockRoyalRoad: Boolean
+        get() = prefs.getBoolean(LOCK_ROYAL_ROAD, true)
+        set(value) = prefs.edit().putBoolean(LOCK_ROYAL_ROAD, value).apply()
+
+    var lockNovelFull: Boolean
+        get() = prefs.getBoolean(LOCK_NOVEL_FULL, true)
+        set(value) = prefs.edit().putBoolean(LOCK_NOVEL_FULL, value).apply()
+
+    var lockScribble: Boolean
+        get() = prefs.getBoolean(LOCK_SCRIBBLE, true)
+        set(value) = prefs.edit().putBoolean(LOCK_SCRIBBLE, value).apply()
+
     var isDarkTheme: Boolean
         get() = prefs.getBoolean(IS_DARK_THEME, true)
         set(value) = prefs.edit().putBoolean(IS_DARK_THEME, value).apply()
@@ -83,10 +98,6 @@ class DataCenter(context: Context) {
     var textSize: Int
         get() = prefs.getInt(TEXT_SIZE, 0)
         set(value) = prefs.edit().putInt(TEXT_SIZE, value).apply()
-
-    var lockRoyalRoad: Boolean
-        get() = prefs.getBoolean(LOCK_ROYAL_ROAD, true)
-        set(value) = prefs.edit().putBoolean(LOCK_ROYAL_ROAD, value).apply()
 
     var loadLibraryScreen: Boolean
         get() = prefs.getBoolean(LOAD_LIBRARY_SCREEN, false)

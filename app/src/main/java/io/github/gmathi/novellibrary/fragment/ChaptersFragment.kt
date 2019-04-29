@@ -241,20 +241,20 @@ class ChaptersFragment : BaseFragment(),
             R.id.action_sort -> {
                 isSortedAsc = !isSortedAsc
                 setData(shouldScrollToBookmark = false)
-                checkData()
+                //checkData()
                 return true
             }
         }
         return super.onOptionsItemSelected(item)
     }
 
-    private fun checkData() {
-        counter++
-        if (counter >= 20 && dataCenter.lockRoyalRoad) {
-            dataCenter.lockRoyalRoad = false
-            Toast.makeText(activity, "You have unlocked a new source in search!", Toast.LENGTH_SHORT).show()
-        }
-    }
+//    private fun checkData() {
+//        counter++
+//        if (counter >= 20 && dataCenter.lockRoyalRoad) {
+//            dataCenter.lockRoyalRoad = false
+//            Toast.makeText(activity, "You have unlocked a new source in search!", Toast.LENGTH_SHORT).show()
+//        }
+//    }
 
     //endregion
 

@@ -81,6 +81,19 @@
             android:textSize="15sp"
             tools:text="Realms of Firmament"/>
 
+        <TextView
+            android:id="@+id/currentValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:textColor="@color/Gold"
+            android:gravity="center_vertical|start"
+            android:maxLines="9"
+            android:visibility="gone"
+            android:textIsSelectable="false"
+            android:textSize="15sp"
+            tools:text="Realms of Firmament"/>
+
 
     </LinearLayout>
 

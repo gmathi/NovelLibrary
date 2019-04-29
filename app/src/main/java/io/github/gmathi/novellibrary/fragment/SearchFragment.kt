@@ -137,20 +137,16 @@ class SearchFragment : BaseFragment() {
         searchMode = true
         this.searchTerm = searchTerm
 
-        val titles: Array<out String>
-        val searchPageAdapter: GenericFragmentStatePagerAdapter
+        val titles = ArrayList<String>()
+        titles.add("Novel-Updates")
+        if (!dataCenter.lockRoyalRoad)
+            titles.add("RoyalRoad")
+        if (!dataCenter.lockNovelFull)
+            titles.add("NovelFull")
+        titles.add("WLN-Updates")
 
-        @Suppress("CascadeIf")
-        if (dataCenter.isDeveloper) {
-            titles = resources.getStringArray(R.array.search_results_tab_titles_developer_only)
-            searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, SearchResultsDevOnlyListener(searchTerm))
-        } else if (dataCenter.lockRoyalRoad) {
-            titles = resources.getStringArray(R.array.search_results_tab_titles)
-            searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, SearchResultsListener(searchTerm))
-        } else {
-            titles = resources.getStringArray(R.array.search_results_tab_titles_unlocked)
-            searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, SearchResultsUnlockedListener(searchTerm))
-        }
+        val searchPageAdapter: GenericFragmentStatePagerAdapter
+        searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles.toTypedArray(), titles.size, SearchResultsListener(searchTerm, titles))
 
         viewPager.offscreenPageLimit = 2
         viewPager.adapter = searchPageAdapter

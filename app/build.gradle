@@ -90,8 +90,6 @@ dependencies {
     implementation 'com.loopj.android:android-async-http:1.4.9'
     implementation 'com.futuremind.recyclerfastscroll:fastscroll:0.2.5'
 
-    //implementation 'com.mikepenz:fastadapter:3.2.5'
-
     implementation("com.firebaseui:firebase-ui-auth:4.3.1", {
         exclude group: 'com.google.firebase'
         exclude group: 'com.google.android.gms'
@@ -103,6 +101,7 @@ dependencies {
     implementation('com.afollestad.material-dialogs:core:0.9.4.5', {
         exclude group: 'com.android.support'
     })
+
     implementation('com.afollestad.material-dialogs:commons:0.9.6.0', {
         exclude group: 'com.android.support'
     })
@@ -110,10 +109,11 @@ dependencies {
     implementation "com.google.android.gms:play-services-gcm:16.1.0"
     implementation "com.google.android.gms:play-services-drive:16.1.0"
     implementation "com.google.android.gms:play-services-auth:16.0.1"
-    //implementation "com.google.android.exoplayer:exoplayer-ui:2.9.1"
     implementation "com.google.firebase:firebase-messaging:17.6.0"
     implementation "com.google.firebase:firebase-auth:16.2.1"
     implementation "com.google.firebase:firebase-core:16.0.8"
+    implementation 'com.google.firebase:firebase-config:16.5.0'
+
 
     implementation('com.crashlytics.sdk.android:crashlytics:2.9.0@aar') {
         transitive = true
