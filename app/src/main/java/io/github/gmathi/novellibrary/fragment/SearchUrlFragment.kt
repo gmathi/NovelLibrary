@@ -10,9 +10,9 @@ import co.metalab.asyncawait.async
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.extensions.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.extensions.isFragmentActive
+import io.github.gmathi.novellibrary.extensions.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.searchUrl
@@ -24,8 +24,9 @@ import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
 
 
-class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
+class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, GenericAdapter.LoadMoreListener {
 
+    override var currentPageNumber: Int = 1
     private lateinit var searchUrl: String
 
     companion object {
@@ -52,7 +53,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         //(activity as AppCompatActivity).setSupportActionBar(null)
-        searchUrl = arguments!!.getString("url")
+        searchUrl = arguments?.getString("url")!!
         setRecyclerView()
 
         if (savedInstanceState != null) {
@@ -68,24 +69,25 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     }
 
     private fun setRecyclerView() {
-        adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_novel, listener = this)
+        adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_novel, listener = this, loadMoreListener = this)
         recyclerView.setDefaults(adapter)
         swipeRefreshLayout.setOnRefreshListener { searchNovels() }
     }
 
     private fun searchNovels() {
 
-        async search@ {
+        async search@{
 
             if (!Utils.isConnectedToNetwork(activity)) {
                 progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
                     progressLayout.showLoading()
+                    currentPageNumber = 1
                     searchNovels()
                 }
                 return@search
             }
 
-            val results = await { NovelApi.searchUrl(searchUrl) }
+            val results = await { NovelApi.searchUrl("$searchUrl&pg=$currentPageNumber") }
             if (results != null) {
                 if (isVisible && (!isDetached || !isRemoving)) {
                     loadSearchResults(results)
@@ -93,8 +95,9 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
                 }
             } else {
                 if (isFragmentActive() && progressLayout != null)
-                    progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
+                    progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.connection_error), getString(R.string.try_again)) {
                         progressLayout.showLoading()
+                        currentPageNumber = 1
                         searchNovels()
                     }
             }
@@ -102,7 +105,18 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     }
 
     private fun loadSearchResults(results: ArrayList<Novel>) {
-        adapter.updateData(results)
+
+        if (results.isNotEmpty()) {
+            if (currentPageNumber == 1) {
+                adapter.updateData(results)
+            } else {
+                adapter.addItems(results)
+            }
+        } else {
+            adapter.loadMoreListener = null
+            adapter.notifyDataSetChanged()
+        }
+
         if (adapter.items.isEmpty()) {
             if (isFragmentActive() && progressLayout != null)
                 progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_youtube_searched_for_white_vector), "No Novels Found!", "Try Again") {
@@ -144,6 +158,11 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
             }
             itemView.novelRatingText.text = ratingText
         }
+    }
+
+    override fun loadMore() {
+        currentPageNumber++
+        searchNovels()
     }
 
 //endregion
