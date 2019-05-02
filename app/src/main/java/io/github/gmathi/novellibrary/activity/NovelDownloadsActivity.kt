@@ -78,9 +78,9 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
     @SuppressLint("SetTextI18n")
     override fun bind(item: String, itemView: View, position: Int) {
         val novel = dbHelper.getNovel(item)
-        if (novel?.imageUrl != null) {
+        if (!novel?.imageUrl.isNullOrBlank()) {
             Glide.with(this)
-                    .load(novel.imageUrl?.getGlideUrl())
+                    .load(novel!!.imageUrl!!.getGlideUrl())
                     .apply(RequestOptions.circleCropTransform())
                     .into(itemView.novelImageView)
         }

@@ -43,7 +43,7 @@ class RecentlyViewedNovelsActivity : AppCompatActivity(), GenericAdapter.Listene
 
     override fun bind(item: Novel, itemView: View, position: Int) {
         itemView.novelImageView.setImageResource(android.R.color.transparent)
-        if (item.imageUrl != null) {
+        if (!item.imageUrl.isNullOrBlank()) {
             Glide.with(this)
                     .load(item.imageUrl)
                     .apply(RequestOptions.circleCropTransform())

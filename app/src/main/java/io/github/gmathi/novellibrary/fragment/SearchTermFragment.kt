@@ -83,16 +83,6 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
         async search@ {
 
-            if (resultType == HostNames.ROYAL_ROAD && dataCenter.lockRoyalRoad) {
-                progressLayout.showEmpty(ContextCompat.getDrawable(context!!, R.drawable.ic_phonelink_lock_white_vector), getString(R.string.content_restricted))
-                return@search
-            }
-
-            if (resultType == HostNames.NOVEL_FULL && dataCenter.lockNovelFull) {
-                progressLayout.showEmpty(ContextCompat.getDrawable(context!!, R.drawable.ic_phonelink_lock_white_vector), getString(R.string.content_restricted))
-                return@search
-            }
-
             if (!Utils.isConnectedToNetwork(activity)) {
                 progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
                     progressLayout.showLoading()
@@ -141,7 +131,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
     override fun bind(item: Novel, itemView: View, position: Int) {
         itemView.novelImageView.setImageResource(android.R.color.transparent)
 
-        if (item.imageUrl != null) {
+        if (!item.imageUrl.isNullOrBlank()) {
             Glide.with(this)
                     .load(item.imageUrl?.getGlideUrl())
                     .apply(RequestOptions.circleCropTransform())

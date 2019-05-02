@@ -126,7 +126,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun setNovelImage() {
-        if (novel.imageUrl != null) {
+        if (!novel.imageUrl.isNullOrBlank()) {
             Glide.with(this)
                     .load(novel.imageUrl?.getGlideUrl())
                     .into(novelDetailsImage)
