@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.service.tts
 
-import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
@@ -60,7 +59,6 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
 
     private var audioText: String? = null
     private var title: String? = null
-    private var currentOrderId: Long = -1L
 
     private var lines: ArrayList<String> = ArrayList()
     private var lineNumber: Int = 0
@@ -223,6 +221,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun sendToTTS(text: String, queueMode: Int, utteranceId: String = "DO_NOTHING") {
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId) // Define if you need it
@@ -233,75 +232,10 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         }
     }
 
-
-    private fun stopForegroundService() {
-        tts.stop()
-        tts.shutdown()
-        // Stop foreground service and remove the notification.
-        stopForeground(true)
-        // Stop the foreground service.
-        stopSelf()
-    }
-
     private fun createPendingIntent(action: String): PendingIntent {
         val actionIntent = Intent(this, TTSService::class.java)
         actionIntent.action = action
         return PendingIntent.getService(this, 0, actionIntent, 0)
-    }
-
-    @SuppressLint("ServiceCast")
-    private fun showNotification(shouldUpdate: Boolean = false) {
-
-//        // Add Pause button intent in notification.
-//        val view = RemoteViews(this.packageName, R.layout.notification_tts)
-//        view.setTextViewText(R.id.novelName, novelName)
-//        view.setTextViewText(R.id.chapterName, chapterName)
-//        view.setImageViewResource(R.id.play, if (isPlaying) R.drawable.ic_circle_pause_white else R.drawable.ic_circle_play_white)
-//
-//        val stopActionIntent = Intent(this, TTSService::class.java)
-//        stopActionIntent.action = ACTION_STOP
-//        val pendingStopActionIntent = PendingIntent.getService(this, 0, stopActionIntent, 0)
-//        view.setOnClickPendingIntent(R.id.stop, pendingStopActionIntent)
-//
-//        val playActionIntent = Intent(this, TTSService::class.java)
-//        stopActionIntent.action = if (isPlaying) ACTION_PAUSE else ACTION_PLAY
-//        val pendingPlayActionIntent = PendingIntent.getService(this, 0, playActionIntent, 0)
-//        view.setOnClickPendingIntent(R.id.play, pendingPlayActionIntent)
-//
-        val pendingIntent = PendingIntent.getActivity(this, 0, Intent(), 0)
-//        val notificationCompat = notificationBuilder.setSmallIcon(R.drawable.ic_queue_music_white_vector)
-//                .setContent(view)
-//                //.setOngoing(true)
-//                .setContentIntent(pendingIntent)
-//                .build()
-
-//        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManagerCompat
-//        notificationManager?.notify(1, notificationCompat)
-
-//        startForeground(1, notificationCompat)
-
-//        val mediaStyle = android.support.v4.media.app.NotificationCompat.MediaStyle()
-//                .setCancelButtonIntent(stopPendingIntent)
-//                .setMediaSession(sessionToken)
-//                .setShowActionsInCompactView(playPauseIndex)
-//                .setShowCancelButton(true)
-//
-//        return builder.setContentIntent(controller.sessionActivity)
-//                .setContentText(description.subtitle)
-//                .setContentTitle(description.title)
-//                .setDeleteIntent(stopPendingIntent)
-//                .setLargeIcon(description.iconBitmap)
-//                .setOnlyAlertOnce(true)
-//                .setSmallIcon(R.drawable.ic_notification)
-//                .setStyle(mediaStyle)
-//                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-//                .build()
-        val notification = notificationBuilder.buildNotification(mediaSession.sessionToken)
-        if (!shouldUpdate) {
-            startForeground(NOW_PLAYING_NOTIFICATION, notification)
-        } else {
-            notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)
-        }
     }
 
     private inner class MediaControllerCallback : MediaControllerCompat.Callback() {

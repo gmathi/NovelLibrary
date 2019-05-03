@@ -121,6 +121,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
             if (isFragmentActive() && progressLayout != null)
                 progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_youtube_searched_for_white_vector), "No Novels Found!", "Try Again") {
                     progressLayout.showLoading()
+                    currentPageNumber = 1
                     searchNovels()
                 }
         } else {
@@ -166,11 +167,6 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
     }
 
 //endregion
-
-    override fun onDestroy() {
-        super.onDestroy()
-        async.cancelAll()
-    }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)

@@ -1,9 +1,9 @@
 package io.github.gmathi.novellibrary.extensions
 
-import android.support.v7.app.AppCompatActivity
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v7.app.AppCompatActivity
 import android.view.inputmethod.InputMethodManager
 import io.github.gmathi.novellibrary.activity.ReaderDBPagerActivity
 import io.github.gmathi.novellibrary.activity.WebViewActivity
@@ -18,14 +18,6 @@ fun Fragment.hideSoftKeyboard() {
 
 fun Fragment.isFragmentActive(): Boolean {
     return activity != null && isResumed && !isRemoving && !isDetached
-}
-
-fun Fragment.startReaderDBPagerActivity(novel: Novel) {
-    val intent = Intent(context, ReaderDBPagerActivity::class.java)
-    val bundle = Bundle()
-    bundle.putSerializable("novel", novel)
-    intent.putExtras(bundle)
-    startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
 }
 
 fun Fragment.startReaderDBPagerActivity(novel: Novel, sourceId: Long) {
@@ -44,14 +36,4 @@ fun Fragment.startWebViewActivity(url: String) {
     intent.putExtras(bundle)
     startActivity(intent)
 }
-
-fun Fragment.shareUrl(url: String) {
-    val i = Intent(Intent.ACTION_SEND)
-    i.type = "text/plain"
-    i.putExtra(Intent.EXTRA_SUBJECT, "Sharing URL")
-    i.putExtra(Intent.EXTRA_TEXT, url)
-    if (i.resolveActivity(activity?.packageManager) != null)
-        startActivity(Intent.createChooser(i, "Share URL(s)"))
-}
-
 

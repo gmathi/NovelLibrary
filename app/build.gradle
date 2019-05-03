@@ -67,28 +67,28 @@ dependencies {
 
     implementation 'com.android.support:multidex:1.0.3'
 
-    implementation 'com.google.code.gson:gson:2.8.5'
     implementation 'org.jsoup:jsoup:1.11.2'
     implementation 'org.cryse.widget:persistentsearchview:1.0.4@aar'
-    implementation 'com.github.bumptech.glide:glide:4.9.0'
-    implementation 'jp.wasabeef:recyclerview-animators:2.2.6'
     implementation 'org.greenrobot:eventbus:3.0.0'
-    implementation 'com.ogaclejapan.smarttablayout:library:1.6.1@aar'
+
+    implementation 'com.github.bumptech.glide:glide:4.9.0'
     implementation 'com.github.nguyenhoanglam:ProgressLayout:1.0.1'
     implementation 'com.github.rubensousa:floatingtoolbar:1.4.4'
     implementation 'com.github.chrisbanes:PhotoView:2.1.2'
     implementation 'com.github.medyo:fancybuttons:1.8.3'
-    implementation 'co.metalab.asyncawait:asyncawait:1.0.0'
     implementation 'com.github.johnpersano:supertoasts:2.0'
-    implementation 'nl.dionsegijn:konfetti:1.0.2'
+
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
     implementation 'com.hanks.animatecheckbox:library:0.1'
     implementation 'com.afollestad:drag-select-recyclerview:1.0.0'
     implementation 'com.thanosfisherman.mayi:mayi:1.4'
     implementation 'com.tapadoo.android:alerter:2.0.1'
     implementation 'com.yarolegovich:sliding-root-nav:1.1.0'
-    implementation 'com.loopj.android:android-async-http:1.4.9'
+    implementation 'com.ogaclejapan.smarttablayout:library:1.6.1@aar'
     implementation 'com.futuremind.recyclerfastscroll:fastscroll:0.2.5'
+    implementation 'jp.wasabeef:recyclerview-animators:2.2.6'
+    implementation 'nl.dionsegijn:konfetti:1.0.2'
+    implementation 'co.metalab.asyncawait:asyncawait:1.0.0'
 
     implementation("com.firebaseui:firebase-ui-auth:4.3.1", {
         exclude group: 'com.google.firebase'
@@ -113,6 +113,7 @@ dependencies {
     implementation "com.google.firebase:firebase-auth:16.2.1"
     implementation "com.google.firebase:firebase-core:16.0.8"
     implementation 'com.google.firebase:firebase-config:16.5.0'
+    implementation 'com.google.code.gson:gson:2.8.5'
 
 
     implementation('com.crashlytics.sdk.android:crashlytics:2.9.0@aar') {

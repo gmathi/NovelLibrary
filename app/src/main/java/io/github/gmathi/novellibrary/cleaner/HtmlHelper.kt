@@ -120,7 +120,7 @@ open class HtmlHelper protected constructor() {
         val file: File
         val doc: Document
         try {
-            if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: " + uri.toString())
+            if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: $uri")
             val fileName = uri.getFileName()
             file = File(dir, fileName)
             doc = NovelApi.getDocumentWithUserAgentIgnoreContentType(uri.toString())
@@ -161,8 +161,8 @@ open class HtmlHelper protected constructor() {
         val uri = Uri.parse(element.absUrl("src"))
         val file: File
         try {
-            if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: " + uri.toString())
-            val fileName = (uri.lastPathSegment + uri.query).writableFileName()
+            if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: $uri")
+            val fileName = (uri.lastPathSegment?: "" + uri.query).writableFileName()
             file = File(dir, fileName)
         } catch (e: Exception) {
             Logs.debug(TAG, "Exception Downloading Image: $uri")

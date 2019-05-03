@@ -3,11 +3,11 @@ package io.github.gmathi.novellibrary.network
 import io.github.gmathi.novellibrary.model.Novel
 
 
-fun NovelApi.searchRoyalRoad(searchTerms: String): ArrayList<Novel>? {
+fun NovelApi.searchRoyalRoad(searchTerms: String, pageNumber: Int = 1): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent("https://www.royalroad.com/fictions/search?keyword=${searchTerms.replace(" ", "+")}")
+        val document = getDocumentWithUserAgent("https://www.royalroad.com/fictions/search?keyword=${searchTerms.replace(" ", "+")}&page=$pageNumber")
         val elements = document.body().select("li.search-item") ?: return searchResults
         for (element in elements) {
             val urlElement = element.selectFirst("a[href]") ?: continue
@@ -26,11 +26,11 @@ fun NovelApi.searchRoyalRoad(searchTerms: String): ArrayList<Novel>? {
     return searchResults
 }
 
-fun NovelApi.searchNovelUpdates(searchTerms: String): ArrayList<Novel>? {
+fun NovelApi.searchNovelUpdates(searchTerms: String, pageNumber: Int = 1): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent("http://www.novelupdates.com/?s=${searchTerms.replace(" ", "+")}")
+        val document = getDocumentWithUserAgent("http://www.novelupdates.com/?s=${searchTerms.replace(" ", "+")}&pg=$pageNumber")
         val titleElements = document.body().select("h2.w-blog-entry-title") ?: return searchResults
         val dataElements = document.body().select("div.w-blog-entry") ?: return searchResults
 
@@ -72,11 +72,11 @@ fun NovelApi.searchWlnUpdates(searchTerms: String): ArrayList<Novel>? {
 }
 
 
-fun NovelApi.searchNovelFull(searchTerms: String): ArrayList<Novel>? {
+fun NovelApi.searchNovelFull(searchTerms: String, pageNumber: Int = 1): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent("http://novelfull.com/search?keyword=$searchTerms")
+        val document = getDocumentWithUserAgent("http://novelfull.com/search?keyword=$searchTerms&page=$pageNumber")
         val listElement = document.body().select("div.list.list-truyen")[0]
         val novelElements = listElement.select("div.row")
         novelElements.forEach {

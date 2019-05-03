@@ -116,7 +116,7 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putBoolean(JAVASCRIPT, value).apply()
 
     var language: String
-        get() = prefs.getString(LANGUAGE, Locale.getDefault().toString())
+        get() = prefs.getString(LANGUAGE, Locale.getDefault().toString())!!
         set(value) = prefs.edit().putString(LANGUAGE, value).apply()
 
     var japSwipe: Boolean
@@ -144,11 +144,11 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putBoolean(ENABLE_IMMERSIVE_MODE, value).apply()
 
     var fontPath: String
-        get() = prefs.getString(FONT_PATH, "")
+        get() = prefs.getString(FONT_PATH, "")!!
         set(value) = prefs.edit().putString(FONT_PATH, value).apply()
 
     var googleAccountName: String
-        get() = prefs.getString(GOOGLE_ACCOUNT_NAME, "")
+        get() = prefs.getString(GOOGLE_ACCOUNT_NAME, "")!!
         set(value) = prefs.edit().putString(GOOGLE_ACCOUNT_NAME, value).apply()
 
     var enableClusterPages: Boolean
@@ -200,7 +200,7 @@ class DataCenter(context: Context) {
     //CloudFlare
 
     fun getCFClearance(hostName: String): String {
-        return prefs.getString(CF_COOKIES_CLEARANCE + hostName, "")
+        return prefs.getString(CF_COOKIES_CLEARANCE + hostName, "")!!
     }
 
     fun setCFClearance(hostName: String, value: String) {
@@ -208,7 +208,7 @@ class DataCenter(context: Context) {
     }
 
     fun getCFDuid(hostName: String): String {
-        return prefs.getString(CF_COOKIES_DUID + hostName, "")
+        return prefs.getString(CF_COOKIES_DUID + hostName, "")!!
     }
 
     fun setCFDuid(hostName: String, value: String) {
@@ -216,7 +216,7 @@ class DataCenter(context: Context) {
     }
 
     fun getCFCookiesString(hostName: String): String {
-        return prefs.getString(CF_COOKIES_STRING + hostName, "")
+        return prefs.getString(CF_COOKIES_STRING + hostName, "")!!
     }
 
     fun setCFCookiesString(hostName: String, value: String) {

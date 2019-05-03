@@ -44,11 +44,6 @@
             android:name="firebase_crashlytics_collection_enabled"
             android:value="false" />
 
-        <service android:name=".service.firebase.NLFirebaseInstanceIdService">
-            <intent-filter>
-                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
-            </intent-filter>
-        </service>
         <service android:name=".service.firebase.NLFirebaseMessagingService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
@@ -209,7 +204,7 @@
         <service
             android:name=".service.tts.TTSService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="false" />
 
     </application>
 

@@ -248,7 +248,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 if (resultCode == Activity.RESULT_OK) {
                     // Successfully signed in
                     val user = FirebaseAuth.getInstance().currentUser
-                    Logs.error("NAV USER", user?.displayName);
+                    Logs.error("NAV USER", user?.displayName)
                     // ...
                 } else {
                     // Sign in failed. If response is null the user canceled the

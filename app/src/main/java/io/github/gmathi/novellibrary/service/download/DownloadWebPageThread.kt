@@ -63,7 +63,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         val uri = Uri.parse(doc.location())
         if (!StringUtil.isBlank(uri.host)) {
 
-            val htmlHelper = HtmlHelper.getInstance(doc, uri.host)
+            val htmlHelper = HtmlHelper.getInstance(doc, uri.host ?: doc.location())
             htmlHelper.clean(doc, hostDir, novelDir)
             webPageSettings.title = htmlHelper.getTitle(doc)
             val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName()))
@@ -104,7 +104,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         if (StringUtil.isBlank(uri.host)) return null
 
         val webPageSettings = WebPageSettings(otherChapterLink, novelId)
-        val htmlHelper = HtmlHelper.getInstance(doc, uri.host)
+        val htmlHelper = HtmlHelper.getInstance(doc, uri.host ?: doc.location())
         htmlHelper.clean(doc, hostDir, novelDir)
 
         webPageSettings.title = htmlHelper.getTitle(doc)

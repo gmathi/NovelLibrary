@@ -13,12 +13,12 @@ import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
 import android.widget.TextView
 import com.bumptech.glide.load.model.GlideUrl
+import com.bumptech.glide.load.model.LazyHeaders
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.adapter.GenericAdapterWithDragListener
 import io.github.gmathi.novellibrary.dataCenter
-import jp.wasabeef.recyclerview.animators.SlideInRightAnimator
-import com.bumptech.glide.load.model.LazyHeaders
 import io.github.gmathi.novellibrary.network.HostNames
+import jp.wasabeef.recyclerview.animators.SlideInRightAnimator
 import java.net.URL
 
 
@@ -92,7 +92,7 @@ fun <T> RecyclerView.setDefaults(adapter: GenericAdapterWithDragListener<T>): Re
 }
 
 fun Uri.getFileName(): String {
-    return (this.lastPathSegment + this.toString().substringAfter("?", "")).writableFileName()
+    return ((this.lastPathSegment ?: "") + this.toString().substringAfter("?", "")).writableFileName()
 }
 
 fun ContextWrapper.sendBroadcast(extras: Bundle, action: String) {
