@@ -19,7 +19,7 @@ fun NovelApi.getNovelDetails(url: String): Novel? {
 
 fun NovelApi.getNUNovelDetails(url: String): Novel? {
     var novel: Novel? = null
-    try {
+//    try {
         val document = getDocumentWithUserAgent(url)
         novel = Novel(document.selectFirst(".seriestitlenu")?.text() ?: "NameUnableToFetch", url)
         novel.imageUrl = document.selectFirst(".seriesimg > img[src]")?.attr("abs:src")
@@ -48,10 +48,9 @@ fun NovelApi.getNUNovelDetails(url: String): Novel? {
         novel.metaData["PostId"] = document.getElementById("mypostid").attr("value")
 
         novel.chaptersCount = getNUChapterCount(novel).toLong()
-
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
+//    } catch (e: Exception) {
+//        e.printStackTrace()
+//    }
     return novel
 }
 
