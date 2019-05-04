@@ -87,7 +87,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
                 return@search
             }
 
-            val results = await { NovelApi.searchUrl("$searchUrl&pg=$currentPageNumber") }
+            val results = await { NovelApi.searchUrl(searchUrl, pageNumber = currentPageNumber) }
             if (results != null) {
                 if (isVisible && (!isDetached || !isRemoving)) {
                     loadSearchResults(results)
@@ -106,7 +106,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
 
     private fun loadSearchResults(results: ArrayList<Novel>) {
 
-        if (results.isNotEmpty()) {
+        if (results.isNotEmpty() && !adapter.items.containsAll(results)) {
             if (currentPageNumber == 1) {
                 adapter.updateData(results)
             } else {

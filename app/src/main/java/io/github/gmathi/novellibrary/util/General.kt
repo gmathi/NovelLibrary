@@ -92,7 +92,8 @@ fun <T> RecyclerView.setDefaults(adapter: GenericAdapterWithDragListener<T>): Re
 }
 
 fun Uri.getFileName(): String {
-    return ((this.lastPathSegment ?: "") + this.toString().substringAfter("?", "")).writableFileName()
+    return ((this.lastPathSegment
+            ?: "") + this.toString().substringAfter("?", "")).writableFileName()
 }
 
 fun ContextWrapper.sendBroadcast(extras: Bundle, action: String) {
@@ -119,3 +120,14 @@ fun TextView.setTypeface(style: Int): TextView {
 private fun String?.contains(chapter: String?): Boolean {
     return (this != null) && (chapter != null) && this.contains(chapter)
 }
+
+fun String.addPageNumberToUrl(pageNumber: Int, pageNumberExtension: String): String {
+    val url = URL(this)
+    return if (!url.query.isNullOrBlank()) {
+        "$this&$pageNumberExtension=$pageNumber"
+    } else {
+        "$this?$pageNumberExtension=$pageNumber"
+    }
+
+}
+

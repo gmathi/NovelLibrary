@@ -1,13 +1,14 @@
 package io.github.gmathi.novellibrary.network
 
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.util.addPageNumberToUrl
 
-fun NovelApi.searchUrl(url: String): ArrayList<Novel>? {
+fun NovelApi.searchUrl(url: String, pageNumber: Int): ArrayList<Novel>? {
     try {
         //val host = URI(url).host
         when {
             url.contains(HostNames.ROYAL_ROAD_OLD) || url.contains(HostNames.ROYAL_ROAD) -> return searchRoyalRoadUrl(url)
-            url.contains(HostNames.NOVEL_UPDATES) -> return searchNovelUpdatesUrl(url)
+            url.contains(HostNames.NOVEL_UPDATES) -> return searchNovelUpdatesUrl(url, pageNumber)
             url.contains(HostNames.WLN_UPDATES) -> return searchWlnUpdatesUrl(url)
             url.contains(HostNames.NOVEL_FULL) -> return searchNovelFullUrl(url)
         }
@@ -37,11 +38,11 @@ fun NovelApi.searchRoyalRoadUrl(searchUrl: String): ArrayList<Novel>? {
     return searchResults
 }
 
-fun NovelApi.searchNovelUpdatesUrl(searchUrl: String): ArrayList<Novel>? {
+fun NovelApi.searchNovelUpdatesUrl(searchUrl: String, pageNumber: Int): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent(searchUrl)
+        val document = getDocumentWithUserAgent(searchUrl.addPageNumberToUrl(pageNumber, "pg"))
         val elements = document.body().select("tr.bdrank") ?: return searchResults
         for (element in elements) {
             val novelName = element.selectFirst("img[alt]")?.attr("alt") ?: continue

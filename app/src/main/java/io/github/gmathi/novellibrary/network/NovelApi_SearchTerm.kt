@@ -30,7 +30,7 @@ fun NovelApi.searchNovelUpdates(searchTerms: String, pageNumber: Int = 1): Array
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent("http://www.novelupdates.com/?s=${searchTerms.replace(" ", "+")}&pg=$pageNumber")
+        val document = getDocumentWithUserAgent("http://www.novelupdates.com/page/$pageNumber/?s=${searchTerms.replace(" ", "+")}")
         val titleElements = document.body().select("h2.w-blog-entry-title") ?: return searchResults
         val dataElements = document.body().select("div.w-blog-entry") ?: return searchResults
 
