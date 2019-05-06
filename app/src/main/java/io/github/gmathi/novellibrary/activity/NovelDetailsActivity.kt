@@ -35,10 +35,13 @@ import io.github.gmathi.novellibrary.network.getNovelDetails
 import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.activity_novel_details.*
 import kotlinx.android.synthetic.main.content_novel_details.*
-import java.util.*
 
 
 class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener {
+
+    companion object {
+        const val TAG = "NovelDetailsActivity"
+    }
 
     lateinit var novel: Novel
 
@@ -298,12 +301,22 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun addNovelToHistory() {
-        var history = dbHelper.getLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY) ?: "[]"
-        val historyList: ArrayList<Novel> = Gson().fromJson(history, object : TypeToken<ArrayList<Novel>>() {}.type)
-        historyList.removeAll { novel.name == it.name }
-        historyList.add(novel)
-        history = Gson().toJson(historyList)
-        dbHelper.createOrUpdateLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY, history)
+        try {
+            var history = dbHelper.getLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY)
+                    ?: "[]"
+            var historyList: ArrayList<Novel> = Gson().fromJson(history, object : TypeToken<ArrayList<Novel>>() {}.type)
+            Logs.error(TAG, "History Size: ${historyList.size
+            }")
+            historyList.removeAll { novel.name == it.name }
+            if (historyList.size > 99)
+                historyList = ArrayList(historyList.take(99))
+            historyList.add(novel)
+            history = Gson().toJson(historyList)
+            dbHelper.createOrUpdateLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY, history)
+        } catch (e: Exception) {
+            Logs.error(TAG, "Error adding novel to history. Resetting the history", e)
+            dbHelper.deleteLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY)
+        }
     }
 
     override fun onDestroy() {
