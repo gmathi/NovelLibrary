@@ -18,6 +18,7 @@ fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayLi
         host.contains(HostNames.ROYAL_ROAD_OLD) || host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterUrls(novel)
         host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterUrls(novel)
         host.contains(HostNames.NOVEL_FULL) -> return getNovelFullChapterUrls(novel)
+        host.contains(HostNames.SCRIBBLE_HUB) -> return getScribbleHubChapterUrls(novel)
     }
     return null
 }
@@ -220,7 +221,7 @@ fun getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage>? {
         chapters.addAll(getNovelFullChapterUrlsFromDoc(document))
 
         (2..pageCount).forEach { pageNumber ->
-            val doc = Jsoup.connect(novel.url+"?page=$pageNumber&per-page=50").get()
+            val doc = Jsoup.connect(novel.url + "?page=$pageNumber&per-page=50").get()
             chapters.addAll(getNovelFullChapterUrlsFromDoc(doc))
         }
 
@@ -236,14 +237,46 @@ fun getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage>? {
     return chapters
 }
 
-fun getNovelFullChapterUrlsFromDoc(doc: Document) : ArrayList<WebPage> {
+fun getNovelFullChapterUrlsFromDoc(doc: Document): ArrayList<WebPage> {
     val chapters = ArrayList<WebPage>()
     val liElements = doc.body().select("ul.list-chapter > li")
     if (liElements.isNotEmpty())
         liElements.mapTo(chapters) {
-            val a =  it.select("a[href]")
+            val a = it.select("a[href]")
             WebPage(url = a.attr("abs:href"), chapter = a.attr("title"))
         }
     return chapters
 }
 
+fun getScribbleHubChapterUrls(novel: Novel): ArrayList<WebPage> {
+    val chapters = ArrayList<WebPage>()
+    try {
+        if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
+
+        val url = "https://www.scribblehub.com/wp-admin/admin-ajax.php"
+
+        val doc = Jsoup.connect(url)
+                .referrer(novel.url)
+                .cookies(CloudFlareByPasser.getCookieMap(HostNames.NOVEL_UPDATES))
+                .ignoreHttpErrors(true)
+                .timeout(30000)
+                .userAgent(HostNames.USER_AGENT)
+                .data("action", "wi_gettocchp")
+                .data("strSID", novel.metaData["PostId"])
+                .data("strmypostid", "0")
+                .data("strFic", "yes")
+                .post()
+
+        var orderId = 0L
+        doc?.select("a[href]")?.reversed()?.forEach {
+            val webPage = WebPage(it.attr("abs:href"), it.attr("title"))
+            webPage.orderId = orderId++
+            webPage.novelId = novel.id
+            chapters.add(webPage)
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+
+    return chapters
+}

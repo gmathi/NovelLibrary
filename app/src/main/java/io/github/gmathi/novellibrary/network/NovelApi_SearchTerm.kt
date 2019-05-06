@@ -30,7 +30,7 @@ fun NovelApi.searchNovelUpdates(searchTerms: String, pageNumber: Int = 1): Array
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent("http://www.novelupdates.com/page/$pageNumber/?s=${searchTerms.replace(" ", "+")}")
+        val document = getDocumentWithUserAgent("https://www.novelupdates.com/page/$pageNumber/?s=${searchTerms.replace(" ", "+")}")
         val titleElements = document.body().select("h2.w-blog-entry-title") ?: return searchResults
         val dataElements = document.body().select("div.w-blog-entry") ?: return searchResults
 
@@ -76,7 +76,7 @@ fun NovelApi.searchNovelFull(searchTerms: String, pageNumber: Int = 1): ArrayLis
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent("http://novelfull.com/search?keyword=$searchTerms&page=$pageNumber")
+        val document = getDocumentWithUserAgent("http://novelfull.com/search?keyword=${searchTerms.replace(" ", "+")}&page=$pageNumber")
         val listElement = document.body().select("div.list.list-truyen")[0]
         val novelElements = listElement.select("div.row")
         novelElements.forEach {
@@ -91,3 +91,22 @@ fun NovelApi.searchNovelFull(searchTerms: String, pageNumber: Int = 1): ArrayLis
     return searchResults
 }
 
+fun NovelApi.searchScribbleHub(searchTerms: String, pageNumber: Int = 1): ArrayList<Novel>? {
+    var searchResults: ArrayList<Novel>? = null
+    try {
+        searchResults = ArrayList()
+        val document = getDocumentWithUserAgent("https://www.scribblehub.com/?s=${searchTerms.replace(" ", "+")}&post_type=fictionposts&paged=$pageNumber")
+        val novelElements = document.body().select("div.search_main_box")
+        novelElements.forEach {
+            val urlElement = it.select("div.search_title > a[href]")
+            val novel = Novel(urlElement.text(), urlElement.attr("abs:href"))
+            novel.imageUrl = it.select("div.search_img > img[src]").attr("abs:src")
+            novel.rating = it.select("div.search_img").select("span.search_ratings").text().replace("(", "").replace(")", "")
+            searchResults.add(novel)
+        }
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return searchResults
+}

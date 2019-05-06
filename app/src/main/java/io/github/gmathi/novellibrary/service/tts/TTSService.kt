@@ -55,8 +55,8 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     private lateinit var notificationBuilder: NotificationBuilder
     private lateinit var notificationManager: NotificationManagerCompat
     private lateinit var dbHelper: DBHelper
-    private lateinit var novel: Novel
 
+    private var novel: Novel ? = null
     private var audioText: String? = null
     private var title: String? = null
 
@@ -158,16 +158,14 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
             //Get values from intent
             audioText = intent?.extras?.getString(AUDIO_TEXT_KEY, null) ?: ""
             title = intent?.extras?.getString(TITLE, null) ?: ""
-            val novelId = intent?.extras?.getLong(NOVEL_ID, -1L)!!
-            novel = dbHelper.getNovel(novelId)!!
-//            val webPage = dbHelper.getWebPage(novelId, novel.currentWebPageUrl!!)!!
-//            currentOrderId = webPage.orderId
+            val novelId = intent?.extras?.getLong(NOVEL_ID, -1L) ?: -1L
+            novel = dbHelper.getNovel(novelId)
 
-            metadataCompat.displayTitle = novel.name
+            metadataCompat.displayTitle = novel?.name ?: "Novel Name Not Found"
             metadataCompat.displaySubtitle = title
 
-            if (novel.imageUrl != "" && Utils.isConnectedToNetwork(this)) {
-                Glide.with(this).asBitmap().load(novel.imageUrl!!.getGlideUrl()).into(object : CustomTarget<Bitmap>() {
+            if (!novel?.imageUrl.isNullOrBlank() && Utils.isConnectedToNetwork(this)) {
+                Glide.with(this).asBitmap().load(novel!!.imageUrl!!.getGlideUrl()).into(object : CustomTarget<Bitmap>() {
                     override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
                         metadataCompat.albumArt = resource
                         mediaSession.setMetadata(metadataCompat.build())

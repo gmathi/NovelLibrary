@@ -13,6 +13,7 @@ fun NovelApi.getNovelDetails(url: String): Novel? {
         host.contains(HostNames.ROYAL_ROAD_OLD) || host.contains(HostNames.ROYAL_ROAD) -> novel = getRRNovelDetails(url)
         host.contains(HostNames.WLN_UPDATES) -> novel = getWlnNovelDetails(url)
         host.contains(HostNames.NOVEL_FULL) -> novel = getNovelFullNovelDetails(url)
+        host.contains(HostNames.SCRIBBLE_HUB) -> novel = getScribbleHubNovelDetails(url)
     }
     return novel
 }
@@ -20,34 +21,34 @@ fun NovelApi.getNovelDetails(url: String): Novel? {
 fun NovelApi.getNUNovelDetails(url: String): Novel? {
     var novel: Novel? = null
 //    try {
-        val document = getDocumentWithUserAgent(url)
-        novel = Novel(document.selectFirst(".seriestitlenu")?.text() ?: "NameUnableToFetch", url)
-        novel.imageUrl = document.selectFirst(".seriesimg > img[src]")?.attr("abs:src")
-        novel.longDescription = document.body().selectFirst("#editdescription")?.text()
-        novel.rating = document.body().selectFirst("span.uvotes")?.text()?.substring(1, 4)
+    val document = getDocumentWithUserAgent(url)
+    novel = Novel(document.selectFirst(".seriestitlenu")?.text() ?: "NameUnableToFetch", url)
+    novel.imageUrl = document.selectFirst(".seriesimg > img[src]")?.attr("abs:src")
+    novel.longDescription = document.body().selectFirst("#editdescription")?.text()
+    novel.rating = document.body().selectFirst("span.uvotes")?.text()?.substring(1, 4)
 
-        novel.genres = document.body().selectFirst("#seriesgenre")?.children()?.map { it.text() }
+    novel.genres = document.body().selectFirst("#seriesgenre")?.children()?.map { it.text() }
 
-        document.select(".genre")?.let { genreClassElements ->
-            novel.metaData["Author(s)"] = genreClassElements.select("#authtag")?.joinToString(", ") { it.outerHtml() }
-            novel.metaData["Artist(s)"] = genreClassElements.select("#artiststag")?.joinToString(", ") { it.outerHtml() }
-            novel.metaData["Genre(s)"] =  genreClassElements.select("[gid]")?.joinToString(", ") { it.outerHtml() }
-            novel.metaData["Tags"] = genreClassElements.select("#etagme")?.joinToString(", ") { it.outerHtml() }
-            novel.metaData["Type"] = genreClassElements.select(".type").firstOrNull()?.outerHtml()
-            novel.metaData["Language"] = genreClassElements.select("a[lid].lang").firstOrNull()?.outerHtml()
-            novel.metaData["Original Publisher"] = genreClassElements.select("#myopub").joinToString(", ") { it.outerHtml() }
-            novel.metaData["English Publisher"] = genreClassElements.select("#myepub").joinToString(", ") { it.outerHtml() }
-        }
+    document.select(".genre")?.let { genreClassElements ->
+        novel.metaData["Author(s)"] = genreClassElements.select("#authtag")?.joinToString(", ") { it.outerHtml() }
+        novel.metaData["Artist(s)"] = genreClassElements.select("#artiststag")?.joinToString(", ") { it.outerHtml() }
+        novel.metaData["Genre(s)"] = genreClassElements.select("[gid]")?.joinToString(", ") { it.outerHtml() }
+        novel.metaData["Tags"] = genreClassElements.select("#etagme")?.joinToString(", ") { it.outerHtml() }
+        novel.metaData["Type"] = genreClassElements.select(".type").firstOrNull()?.outerHtml()
+        novel.metaData["Language"] = genreClassElements.select("a[lid].lang").firstOrNull()?.outerHtml()
+        novel.metaData["Original Publisher"] = genreClassElements.select("#myopub").joinToString(", ") { it.outerHtml() }
+        novel.metaData["English Publisher"] = genreClassElements.select("#myepub").joinToString(", ") { it.outerHtml() }
+    }
 
-        novel.metaData["Year"] = document.getElementById("edityear").text()
-        novel.metaData["Status in Country of Origin"] = document.getElementById("editstatus").text()
-        novel.metaData["Licensed (in English)"] = document.getElementById("showlicensed").text()
-        novel.metaData["Completely Translated"] = document.getElementById("showtranslated").outerHtml()
-        novel.metaData["Completely Translated"] = document.getElementById("showtranslated").text()
-        novel.metaData["Associated Names"] = document.getElementById("editassociated").text()
-        novel.metaData["PostId"] = document.getElementById("mypostid").attr("value")
+    novel.metaData["Year"] = document.getElementById("edityear").text()
+    novel.metaData["Status in Country of Origin"] = document.getElementById("editstatus").text()
+    novel.metaData["Licensed (in English)"] = document.getElementById("showlicensed").text()
+    novel.metaData["Completely Translated"] = document.getElementById("showtranslated").outerHtml()
+    novel.metaData["Completely Translated"] = document.getElementById("showtranslated").text()
+    novel.metaData["Associated Names"] = document.getElementById("editassociated").text()
+    novel.metaData["PostId"] = document.getElementById("mypostid").attr("value")
 
-        novel.chaptersCount = getNUChapterCount(novel).toLong()
+    novel.chaptersCount = getNUChapterCount(novel).toLong()
 //    } catch (e: Exception) {
 //        e.printStackTrace()
 //    }
@@ -159,7 +160,7 @@ fun NovelApi.getNovelFullNovelDetails(url: String): Novel? {
         novel = Novel(booksElement.select("div.desc > h3").text() ?: "NameUnableToFetch", url)
         novel.imageUrl = booksElement.select("div.book > img").attr("abs:src")
         novel.genres = infoElements[1].select("a").map { it.text() }
-        novel.longDescription = document.body().select("div.desc-text > p").joinToString (separator = "\n") { it.text() }
+        novel.longDescription = document.body().select("div.desc-text > p").joinToString(separator = "\n") { it.text() }
         novel.rating = (document.body().select("div.small > em > strong > span").first().text().toDouble() / 2).toString()
 
         novel.metaData["Author(s)"] = infoElements[0].select("a").joinToString(", ") { "<a href=\"${it.attr("abs:href")}\">${it.text()}</a>" }
@@ -175,3 +176,32 @@ fun NovelApi.getNovelFullNovelDetails(url: String): Novel? {
     return novel
 }
 
+fun NovelApi.getScribbleHubNovelDetails(url: String): Novel? {
+    var novel: Novel? = null
+    try {
+        val document = getDocumentWithUserAgent(url)
+
+        val pageElement = document.body().select("div#page")
+
+        novel = Novel(pageElement.select("div.fic_title").text() ?: "NameUnableToFetch", url)
+        novel.imageUrl = pageElement.select("div.fic_image > img").attr("abs:src")
+        novel.metaData["Author(s)"] = pageElement.select("span[property='author'] a").outerHtml()
+
+
+        val genresElements = pageElement.select("span.wi_fic_genre a.fic_genre")//.select("a.fic_genre")
+        novel.genres = genresElements.map { it.text() }
+        novel.metaData["Genre(s)"] = genresElements.joinToString(", ") { it.outerHtml() }
+
+        novel.longDescription = pageElement.select("div.wi_fic_desc").text()
+        novel.rating = pageElement.select("meta[property='ratingValue']").attr("content")
+
+        novel.metaData["Tags"] = pageElement.select("#etagme")?.joinToString(", ") { it.outerHtml() }
+        novel.metaData["PostId"] = document.getElementById("mypostid").attr("value")
+
+        novel.chaptersCount = document.getElementById("chpcounter").attr("value").toLong()
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return novel
+}

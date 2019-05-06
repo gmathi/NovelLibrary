@@ -115,13 +115,13 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                    .title("📢 What's New! 0.9.8.1.beta")
+                    .title("📢 What's New! 0.9.9.beta")
                     .content(//"** Fixed Cloud Flare for 6.0.1**\n\n" +
-                            //"✨ Downloads have been revamped. Please let me know the feedback\n" +
-//                            //"✨ Improved performance/decrease load time on the chapters screen\n" +
-//                            "\uD83D\uDEE0 Improved performance/decrease load time on the chapters screen\n" +
-                            "⚠️ Fixed Downloads crash in 4.4.4 (KitKat) devices!\n" +
-                            "Expect faster updates in the coming weeks!" +
+                            "✨ Updated TTS to pause and play\n" +
+                                    "✨ Updated search results to load infinitely instead of just the 1st page. \n" +
+                                    "\uD83D\uDEE0 Bug Fixes for crashes in Downloads\n" +
+                                    "⚠️ Added Error Logging so users can report crashes.\n" +
+                                    "✨ Added Hidden Buttons to unlock some hidden functionality!" +
 //                            "\uD83D\uDEE️ Bug Fixes for reported & unreported crashes!" +
                                     "")
                     .positiveText("Ok")

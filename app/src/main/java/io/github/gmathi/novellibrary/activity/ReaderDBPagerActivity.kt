@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.activity
 
 
 import android.Manifest
+import android.animation.ObjectAnimator
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.os.*
@@ -67,7 +68,7 @@ class ReaderDBPagerActivity :
         private const val SHARE_CHAPTER = 7
         private const val READ_ALOUD = 8
 
-        private const val VOLUME_SCROLL_STEP = 50
+        private const val VOLUME_SCROLL_STEP = 500
     }
 
     private lateinit var screenIcons: Array<Drawable?>
@@ -107,7 +108,7 @@ class ReaderDBPagerActivity :
         viewPager.addOnPageChangeListener(this)
         viewPager.adapter = adapter
 
-        val index = dbHelper.getAllWebPages(novel.id, sourceId).indexOfFirst { it.url == webPage!!.url }
+        val index = dbHelper.getAllWebPages(novel.id, sourceId).indexOfFirst { it.url == webPage?.url }
 
         if (webPage != null) {
             updateBookmark(webPage!!)
@@ -248,19 +249,24 @@ class ReaderDBPagerActivity :
         return when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
-                    webView?.scrollBy(0, -VOLUME_SCROLL_STEP)
+                    val anim = ObjectAnimator.ofInt(webView, "scrollY", webView?.scrollY ?: 0, (webView?.scrollY ?: 0) - VOLUME_SCROLL_STEP)
+                    anim.setDuration(500).start()
+                    //webView?.scrollBy(0, -VOLUME_SCROLL_STEP)
                 }
                 dataCenter.volumeScroll
             }
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
-                    webView?.scrollBy(0, VOLUME_SCROLL_STEP)
+                    val anim = ObjectAnimator.ofInt(webView, "scrollY", webView?.scrollY ?: 0, (webView?.scrollY ?: 0) + VOLUME_SCROLL_STEP)
+                    anim.setDuration(500).start()
+                    //webView?.scrollBy(0, VOLUME_SCROLL_STEP)
                 }
                 dataCenter.volumeScroll
             }
             else -> super.dispatchKeyEvent(event)
         }
     }
+
 
 
     override fun onBackPressed() {

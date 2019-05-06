@@ -143,6 +143,8 @@ class SearchFragment : BaseFragment() {
             titles.add("RoyalRoad")
         if (!dataCenter.lockNovelFull)
             titles.add("NovelFull")
+        if (!dataCenter.lockScribble)
+            titles.add("ScribbleHub")
         titles.add("WLN-Updates")
 
         val searchPageAdapter: GenericFragmentStatePagerAdapter

@@ -39,6 +39,7 @@ open class HtmlHelper protected constructor() {
                 host.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsHelper()
                 host.contains(HostNames.TUMBLR) -> return TumblrCleaner()
                 host.contains(HostNames.BAKA_TSUKI) -> return BakaTsukiCleaner()
+                host.contains(HostNames.SCRIBBLE_HUB) -> return ScribbleHubHelper()
             }
 
             var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("chapter-content") }
@@ -162,7 +163,7 @@ open class HtmlHelper protected constructor() {
         val file: File
         try {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: $uri")
-            val fileName = (uri.lastPathSegment?: "" + uri.query).writableFileName()
+            val fileName = (uri.lastPathSegment ?: "" + uri.query).writableFileName()
             file = File(dir, fileName)
         } catch (e: Exception) {
             Logs.debug(TAG, "Exception Downloading Image: $uri")
