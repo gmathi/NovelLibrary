@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="io.github.gmathi.novellibrary">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -19,7 +20,9 @@
         android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true"
+        tools:ignore="UnusedAttribute">
 
         <!-- [START fcm_default_icon] -->
         <!--
@@ -59,9 +62,9 @@
             </intent-filter>
         </service>
         <!--<service-->
-            <!--android:name=".service.download.DownloadService"-->
-            <!--android:enabled="true"-->
-            <!--android:exported="false" />-->
+        <!--android:name=".service.download.DownloadService"-->
+        <!--android:enabled="true"-->
+        <!--android:exported="false" />-->
         <service
             android:name=".service.download.DownloadNovelService"
             android:enabled="true"

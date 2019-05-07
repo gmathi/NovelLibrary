@@ -90,25 +90,25 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             startNovelDownloadsActivity()
         }
 
-        drawerLayout.viewTreeObserver.addOnGlobalLayoutListener (object : ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                drawerLayout.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                authSignInButton.setOnClickListener {
-                    val providers = arrayListOf(
-                            AuthUI.IdpConfig.EmailBuilder().build(),
-                            AuthUI.IdpConfig.PhoneBuilder().build(),
-                            AuthUI.IdpConfig.GoogleBuilder().build())
-
-                    // Create and launch sign-in intent
-                    startActivityForResult(
-                            AuthUI.getInstance()
-                                    .createSignInIntentBuilder()
-                                    .setAvailableProviders(providers)
-                                    .build(),
-                            Constants.OPEN_FIREBASE_AUTH_UI)
-                }
-            }
-        })
+//        drawerLayout.viewTreeObserver.addOnGlobalLayoutListener (object : ViewTreeObserver.OnGlobalLayoutListener {
+//            override fun onGlobalLayout() {
+//                drawerLayout.viewTreeObserver.removeOnGlobalLayoutListener(this)
+//                authSignInButton.setOnClickListener {
+//                    val providers = arrayListOf(
+//                            AuthUI.IdpConfig.EmailBuilder().build(),
+//                            AuthUI.IdpConfig.PhoneBuilder().build(),
+//                            AuthUI.IdpConfig.GoogleBuilder().build())
+//
+//                    // Create and launch sign-in intent
+//                    startActivityForResult(
+//                            AuthUI.getInstance()
+//                                    .createSignInIntentBuilder()
+//                                    .setAvailableProviders(providers)
+//                                    .build(),
+//                            Constants.OPEN_FIREBASE_AUTH_UI)
+//                }
+//            }
+//        })
 
     }
 
@@ -120,6 +120,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                             "✨ Updated TTS to pause and play\n" +
                                     "✨ Updated search results to load infinitely instead of just the 1st page. \n" +
                                     "\uD83D\uDEE0 Bug Fixes for crashes in Downloads\n" +
+                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
                                     "⚠️ Added Error Logging so users can report crashes.\n" +
 //                                    "✨ Added Hidden Buttons to unlock some hidden functionality!" +
 //                            "\uD83D\uDEE️ Bug Fixes for reported & unreported crashes!" +

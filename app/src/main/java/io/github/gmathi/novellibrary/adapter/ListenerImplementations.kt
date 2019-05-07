@@ -15,9 +15,9 @@ import io.github.gmathi.novellibrary.network.HostNames
 class NavPageListener : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment? {
         return when (position) {
-            0 -> SearchUrlFragment.newInstance("http://www.novelupdates.com/series-ranking/?rank=popmonth")
-            1 -> SearchUrlFragment.newInstance("http://www.novelupdates.com/series-ranking/?rank=popular")
-            2 -> SearchUrlFragment.newInstance("http://www.novelupdates.com/series-ranking/?rank=sixmonths")
+            0 -> SearchUrlFragment.newInstance("https://www.novelupdates.com/series-ranking/?rank=popmonth")
+            1 -> SearchUrlFragment.newInstance("https://www.novelupdates.com/series-ranking/?rank=popular")
+            2 -> SearchUrlFragment.newInstance("https://www.novelupdates.com/series-ranking/?rank=sixmonths")
             else -> null
         }
     }
