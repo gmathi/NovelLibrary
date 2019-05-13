@@ -52,7 +52,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     private lateinit var tts: TextToSpeech
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var mediaController: MediaControllerCompat
-    private lateinit var notificationBuilder: NotificationBuilder
+    private lateinit var TTSNotificationBuilder: TTSNotificationBuilder
     private lateinit var notificationManager: NotificationManagerCompat
     private lateinit var dbHelper: DBHelper
 
@@ -97,7 +97,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         pendingIntents[ACTION_NEXT] = createPendingIntent(ACTION_NEXT)
         pendingIntents[ACTION_PREVIOUS] = createPendingIntent(ACTION_PREVIOUS)
 
-        notificationBuilder = NotificationBuilder(this, pendingIntents)
+        TTSNotificationBuilder = TTSNotificationBuilder(this, pendingIntents)
         notificationManager = NotificationManagerCompat.from(this)
 
         dbHelper = DBHelper.getInstance(this)
@@ -255,7 +255,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
 
             // Skip building a notification when state is "none".
             val notification = if (updatedState != PlaybackStateCompat.STATE_NONE) {
-                notificationBuilder.buildNotification(mediaSession.sessionToken)
+                TTSNotificationBuilder.buildNotification(mediaSession.sessionToken)
             } else {
                 null
             }

@@ -40,7 +40,7 @@ const val NOW_PLAYING_NOTIFICATION: Int = 1
 /**
  * Helper class to encapsulate code for building notifications.
  */
-class NotificationBuilder(private val context: Context, private val pendingIntents: HashMap<String, PendingIntent>) {
+class TTSNotificationBuilder(private val context: Context, private val pendingIntents: HashMap<String, PendingIntent>) {
     private val platformNotificationManager: NotificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 

@@ -52,7 +52,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
             isServiceConnected = true
         }
 
-        override fun onServiceDisconnected(arg0: ComponentName) {
+        override fun onServiceDisconnected(className: ComponentName) {
             isServiceConnected = false
             downloadNovelService?.downloadListener = null
         }

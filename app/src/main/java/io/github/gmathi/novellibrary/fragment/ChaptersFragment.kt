@@ -128,9 +128,8 @@ class ChaptersFragment : BaseFragment(),
         val webPageSettings = (activity as? ChaptersPagerActivity)?.chaptersSettings?.firstOrNull { it.url == item.url }
 
         if (webPageSettings?.filePath != null) {
-            itemView.greenView.visibility = View.VISIBLE
-            itemView.greenView.setBackgroundColor(ContextCompat.getColor(context!!, R.color.DarkGreen))
-            itemView.greenView.animation = null
+            itemView.availableOfflineImageView.visibility = View.VISIBLE
+            itemView.availableOfflineImageView.animation = null
         } else {
 //            if (Download.STATUS_IN_QUEUE.toString() == webPageSettings?.metaData[Constants.DOWNLOADING]) {
 //                if (item.id != -1L && DownloadService.chapters.contains(item)) {
@@ -143,11 +142,11 @@ class ChaptersFragment : BaseFragment(),
 //                    itemView.greenView.animation = null
 //                }
 //            } else
-            itemView.greenView.visibility = View.GONE
+            itemView.availableOfflineImageView.visibility = View.INVISIBLE
         }
 
         itemView.isReadView.visibility = if (webPageSettings?.isRead == 1) View.VISIBLE else View.GONE
-        itemView.bookmarkView.visibility = if (item.url == novel.currentWebPageUrl) View.VISIBLE else View.INVISIBLE
+        itemView.bookmarkView.visibility = if (item.url == novel.currentWebPageUrl) View.VISIBLE else View.GONE
 
         itemView.chapterTitle.text = item.chapter
 
