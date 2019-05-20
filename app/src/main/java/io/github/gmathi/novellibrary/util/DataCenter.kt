@@ -14,6 +14,10 @@ class DataCenter(context: Context) {
 
     companion object {
 
+        private const val LOCK_ROYAL_ROAD = "lockRoyalRoad"
+        private const val LOCK_NOVEL_FULL = "lockNovelFull"
+        private const val LOCK_SCRIBBLE = "lockScribble"
+
         private const val SEARCH_HISTORY_LIST = "searchHistoryList"
         private const val NOVEL_HISTORY_LIST = "novelHistoryList"
 
@@ -21,7 +25,6 @@ class DataCenter(context: Context) {
         private const val DOWNLOAD_LATEST_FIRST = "downloadLatestFirst"
         private const val EXPERIMENTAL_DOWNLOAD = "experimentalDownload"
         private const val QUEUE_NOVEL_DOWNLOADS = "queueNovelDownloads"
-        private const val LOCK_ROYAL_ROAD = "lockRoyalRoad"
         private const val LOAD_LIBRARY_SCREEN = "loadLibraryScreen"
         private const val APP_VERSION_CODE = "appVersionCode"
         private const val TEXT_SIZE = "textSize"
@@ -44,6 +47,7 @@ class DataCenter(context: Context) {
         private const val READER_MODE_BUTTON_VISIBILITY = "isReaderModeButtonVisible"
         //        private const val ENABLE_CLOUD_FLARE = "enableCloudFlare"
         private const val ENABLE_NOTIFICATIONS = "enableNotifications"
+        private const val DEVELOPER = "developer"
 
 
         const val CF_COOKIES_CLEARANCE = "cf_clearance"
@@ -59,9 +63,25 @@ class DataCenter(context: Context) {
     fun loadNovelHistory(): ArrayList<Novel> = Gson().fromJson(prefs.getString(NOVEL_HISTORY_LIST, "[]"), object : TypeToken<ArrayList<Novel>>() {}.type)
     fun removeNovelHistory() = prefs.edit().remove(NOVEL_HISTORY_LIST).apply()
 
+    var lockRoyalRoad: Boolean
+        get() = prefs.getBoolean(LOCK_ROYAL_ROAD, true)
+        set(value) = prefs.edit().putBoolean(LOCK_ROYAL_ROAD, value).apply()
+
+    var lockNovelFull: Boolean
+        get() = prefs.getBoolean(LOCK_NOVEL_FULL, true)
+        set(value) = prefs.edit().putBoolean(LOCK_NOVEL_FULL, value).apply()
+
+    var lockScribble: Boolean
+        get() = prefs.getBoolean(LOCK_SCRIBBLE, true)
+        set(value) = prefs.edit().putBoolean(LOCK_SCRIBBLE, value).apply()
+
     var isDarkTheme: Boolean
         get() = prefs.getBoolean(IS_DARK_THEME, true)
         set(value) = prefs.edit().putBoolean(IS_DARK_THEME, value).apply()
+
+    var isDeveloper: Boolean
+        get() = prefs.getBoolean(DEVELOPER, false)
+        set(value) = prefs.edit().putBoolean(DEVELOPER, value).apply()
 
     var downloadLatestFirst: Boolean
         get() = prefs.getBoolean(DOWNLOAD_LATEST_FIRST, false)
@@ -78,10 +98,6 @@ class DataCenter(context: Context) {
     var textSize: Int
         get() = prefs.getInt(TEXT_SIZE, 0)
         set(value) = prefs.edit().putInt(TEXT_SIZE, value).apply()
-
-    var lockRoyalRoad: Boolean
-        get() = prefs.getBoolean(LOCK_ROYAL_ROAD, true)
-        set(value) = prefs.edit().putBoolean(LOCK_ROYAL_ROAD, value).apply()
 
     var loadLibraryScreen: Boolean
         get() = prefs.getBoolean(LOAD_LIBRARY_SCREEN, false)
@@ -100,7 +116,7 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putBoolean(JAVASCRIPT, value).apply()
 
     var language: String
-        get() = prefs.getString(LANGUAGE, Locale.getDefault().toString())
+        get() = prefs.getString(LANGUAGE, Locale.getDefault().toString())!!
         set(value) = prefs.edit().putString(LANGUAGE, value).apply()
 
     var japSwipe: Boolean
@@ -128,11 +144,11 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putBoolean(ENABLE_IMMERSIVE_MODE, value).apply()
 
     var fontPath: String
-        get() = prefs.getString(FONT_PATH, "")
+        get() = prefs.getString(FONT_PATH, "")!!
         set(value) = prefs.edit().putString(FONT_PATH, value).apply()
 
     var googleAccountName: String
-        get() = prefs.getString(GOOGLE_ACCOUNT_NAME, "")
+        get() = prefs.getString(GOOGLE_ACCOUNT_NAME, "")!!
         set(value) = prefs.edit().putString(GOOGLE_ACCOUNT_NAME, value).apply()
 
     var enableClusterPages: Boolean
@@ -143,17 +159,17 @@ class DataCenter(context: Context) {
 //        get() = prefs.getString(CF_COOKIES_USER_AGENT, HostNames.USER_AGENT)
 //        set(value) = prefs.edit().putString(CF_COOKIES_USER_AGENT, value).apply()
 
-    var cfClearance: String
-        get() = prefs.getString(CF_COOKIES_CLEARANCE, "")
-        set(value) = prefs.edit().putString(CF_COOKIES_CLEARANCE, value).apply()
-
-    var cfDuid: String
-        get() = prefs.getString(CF_COOKIES_DUID, "")
-        set(value) = prefs.edit().putString(CF_COOKIES_DUID, value).apply()
-
-    var cfCookiesString: String
-        get() = prefs.getString(CF_COOKIES_STRING, "")
-        set(value) = prefs.edit().putString(CF_COOKIES_STRING, value).apply()
+//    var cfClearance: String
+//        get() = prefs.getString(CF_COOKIES_CLEARANCE, "")
+//        set(value) = prefs.edit().putString(CF_COOKIES_CLEARANCE, value).apply()
+//
+//    var cfDuid: String
+//        get() = prefs.getString(CF_COOKIES_DUID, "")
+//        set(value) = prefs.edit().putString(CF_COOKIES_DUID, value).apply()
+//
+//    var cfCookiesString: String
+//        get() = prefs.getString(CF_COOKIES_STRING, "")
+//        set(value) = prefs.edit().putString(CF_COOKIES_STRING, value).apply()
 
     var enableDirectionalLinks: Boolean
         get() = prefs.getBoolean(DIRECTIONAL_LINKS, false)
@@ -180,4 +196,32 @@ class DataCenter(context: Context) {
         prefs.edit().putString(VERIFIED_HOSTS, Gson().toJson(hostNames)).apply()
         HostNames.hostNamesList = hostNames
     }
+
+    //CloudFlare
+
+    fun getCFClearance(hostName: String): String {
+        return prefs.getString(CF_COOKIES_CLEARANCE + hostName, "")!!
+    }
+
+    fun setCFClearance(hostName: String, value: String) {
+        prefs.edit().putString(CF_COOKIES_CLEARANCE + hostName, value).apply()
+    }
+
+    fun getCFDuid(hostName: String): String {
+        return prefs.getString(CF_COOKIES_DUID + hostName, "")!!
+    }
+
+    fun setCFDuid(hostName: String, value: String) {
+        prefs.edit().putString(CF_COOKIES_DUID + hostName, value).apply()
+    }
+
+    fun getCFCookiesString(hostName: String): String {
+        return prefs.getString(CF_COOKIES_STRING + hostName, "")!!
+    }
+
+    fun setCFCookiesString(hostName: String, value: String) {
+        prefs.edit().putString(CF_COOKIES_STRING + hostName, value).apply()
+    }
+
+
 }

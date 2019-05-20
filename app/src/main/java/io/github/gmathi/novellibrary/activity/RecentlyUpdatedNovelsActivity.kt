@@ -1,21 +1,21 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.annotation.SuppressLint
-import android.graphics.Rect
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.RecyclerView
 import android.view.MenuItem
 import android.view.View
 import co.metalab.asyncawait.async
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.extensions.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.RecenlytUpdatedItem
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getRecentlyUpdatedNovels
+import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
@@ -41,17 +41,7 @@ class RecentlyUpdatedNovelsActivity : AppCompatActivity(), GenericAdapter.Listen
     private fun setRecyclerView() {
         adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_title_subtitle, listener = this)
         recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(object : DividerItemDecoration(this, DividerItemDecoration.VERTICAL) {
-
-            override fun getItemOffsets(outRect: Rect?, view: View?, parent: RecyclerView?, state: RecyclerView.State?) {
-                val position = parent?.getChildAdapterPosition(view)
-                if (position == parent?.adapter?.itemCount?.minus(1)) {
-                    outRect?.setEmpty()
-                } else {
-                    super.getItemOffsets(outRect, view, parent, state)
-                }
-            }
-        })
+        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
         swipeRefreshLayout.setOnRefreshListener { getRecentlyUpdatedNovels() }
     }
 

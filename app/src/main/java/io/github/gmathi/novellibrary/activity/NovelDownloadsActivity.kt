@@ -17,6 +17,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.startDownloadNovelService
 import io.github.gmathi.novellibrary.model.Download
 import io.github.gmathi.novellibrary.model.DownloadNovelEvent
 import io.github.gmathi.novellibrary.model.DownloadWebPageEvent
@@ -37,7 +38,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
         private const val TAG = "NovelDownloadsActivity"
     }
 
-    private lateinit var downloadNovelService: DownloadNovelService
+    private var downloadNovelService: DownloadNovelService? = null
     private var isServiceConnected: Boolean = false
 
     /** Defines callbacks for service binding, passed to bindService()  */
@@ -47,13 +48,13 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             val binder = service as DownloadNovelService.DownloadNovelBinder
             downloadNovelService = binder.getService()
-            downloadNovelService.downloadListener = this@NovelDownloadsActivity
+            downloadNovelService?.downloadListener = this@NovelDownloadsActivity
             isServiceConnected = true
         }
 
-        override fun onServiceDisconnected(arg0: ComponentName) {
+        override fun onServiceDisconnected(className: ComponentName) {
             isServiceConnected = false
-            downloadNovelService.downloadListener = null
+            downloadNovelService?.downloadListener = null
         }
     }
 
@@ -77,9 +78,9 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
     @SuppressLint("SetTextI18n")
     override fun bind(item: String, itemView: View, position: Int) {
         val novel = dbHelper.getNovel(item)
-        if (novel?.imageUrl != null) {
+        if (!novel?.imageUrl.isNullOrBlank()) {
             Glide.with(this)
-                    .load(novel.imageUrl?.getGlideUrl())
+                    .load(novel!!.imageUrl!!.getGlideUrl())
                     .apply(RequestOptions.circleCropTransform())
                     .into(itemView.novelImageView)
         }
@@ -104,7 +105,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                     itemView.playPauseImage.tag = Download.STATUS_IN_QUEUE
                     dbHelper.updateDownloadStatusNovelName(Download.STATUS_IN_QUEUE, item)
                     if (Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME)) {
-                        downloadNovelService.handleNovelDownload(item, DownloadNovelService.ACTION_START)
+                        downloadNovelService?.handleNovelDownload(item, DownloadNovelService.ACTION_START)
                     } else {
                         startDownloadNovelService(item)
                         bindService()
@@ -117,7 +118,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                     dbHelper.updateDownloadStatusNovelName(Download.STATUS_PAUSED, item)
                     itemView.novelProgressText.text = getString(R.string.download_paused)
                     if (Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME))
-                        downloadNovelService.handleNovelDownload(item, DownloadNovelService.ACTION_PAUSE)
+                        downloadNovelService?.handleNovelDownload(item, DownloadNovelService.ACTION_PAUSE)
                 }
             }
             //adapter.notifyDataSetChanged()
@@ -185,7 +186,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                         dbHelper.deleteDownloads(novelName)
                         adapter.removeItem(novelName)
                         if (isServiceConnected && Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME))
-                            downloadNovelService.handleNovelDownload(novelName, DownloadNovelService.ACTION_REMOVE)
+                            downloadNovelService?.handleNovelDownload(novelName, DownloadNovelService.ACTION_REMOVE)
                         dialog.dismiss()
                     }
                 }
@@ -207,8 +208,8 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
     override fun handleEvent(downloadWebPageEvent: DownloadWebPageEvent) {
         recyclerView.post {
             //if (downloadWebPageEvent.type == EventType.COMPLETE) {
-                val index = adapter.items.indexOf(downloadWebPageEvent.download.novelName)
-                adapter.notifyItemRangeChanged(index, 1, downloadWebPageEvent)
+            val index = adapter.items.indexOf(downloadWebPageEvent.download.novelName)
+            adapter.notifyItemRangeChanged(index, 1, downloadWebPageEvent)
             //}
         }
     }
@@ -224,7 +225,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                 EventType.DELETE -> {
                     adapter.removeItem(downloadNovelEvent.novelName)
                     if (isServiceConnected && Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME))
-                        downloadNovelService.handleNovelDownload(downloadNovelEvent.novelName, DownloadNovelService.ACTION_REMOVE)
+                        downloadNovelService?.handleNovelDownload(downloadNovelEvent.novelName, DownloadNovelService.ACTION_REMOVE)
                 }
                 else -> {
                     //Do Nothing
@@ -247,7 +248,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
         if (isServiceConnected) {
             unbindService(mConnection)
             isServiceConnected = false
-            downloadNovelService.downloadListener = null
+            downloadNovelService?.downloadListener = null
         }
     }
 

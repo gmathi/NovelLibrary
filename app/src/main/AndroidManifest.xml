@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="io.github.gmathi.novellibrary">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -8,6 +9,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:name=".NovelLibraryApplication"
@@ -18,7 +20,9 @@
         android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true"
+        tools:ignore="UnusedAttribute">
 
         <!-- [START fcm_default_icon] -->
         <!--
@@ -44,11 +48,6 @@
             android:name="firebase_crashlytics_collection_enabled"
             android:value="false" />
 
-        <service android:name=".service.firebase.NLFirebaseInstanceIdService">
-            <intent-filter>
-                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
-            </intent-filter>
-        </service>
         <service android:name=".service.firebase.NLFirebaseMessagingService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
@@ -62,10 +61,10 @@
                 <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY" />
             </intent-filter>
         </service>
-        <service
-            android:name=".service.download.DownloadService"
-            android:enabled="true"
-            android:exported="false" />
+        <!--<service-->
+        <!--android:name=".service.download.DownloadService"-->
+        <!--android:enabled="true"-->
+        <!--android:exported="false" />-->
         <service
             android:name=".service.download.DownloadNovelService"
             android:enabled="true"
@@ -207,9 +206,9 @@
             android:theme="@style/DarkTheme_DarkSide" />
 
         <service
-            android:name=".service.TTSService"
+            android:name=".service.tts.TTSService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="false" />
 
     </application>
 

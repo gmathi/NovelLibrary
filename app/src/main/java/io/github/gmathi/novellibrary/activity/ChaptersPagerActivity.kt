@@ -13,8 +13,10 @@ import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.ChaptersPageListener
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.shareUrl
 import io.github.gmathi.novellibrary.model.*
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterUrls
@@ -208,12 +210,15 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         return super.onPrepareOptionsMenu(menu)
     }
 
+    private var devCounter: Int = 0
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
 
         when {
             item?.itemId == android.R.id.home -> finish()
             item?.itemId == R.id.action_sync -> {
                 getChapters(forceUpdate = true)
+                devCounter++
+                if (devCounter == 40) dataCenter.isDeveloper = true
                 return true
             }
             item?.itemId == R.id.action_download -> {
@@ -310,7 +315,6 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                             addWebPagesToDownload(listToDownload)
                         }
                         dialog.dismiss()
-                        manageDownloadsDialog()
                         mode?.finish()
                     }
                 })

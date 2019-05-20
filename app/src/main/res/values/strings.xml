@@ -40,6 +40,13 @@
         <item>WLN-Updates</item>
     </string-array>
 
+    <string-array name="search_results_tab_titles_developer_only" translatable="false">
+        <item>Novel-Updates</item>
+        <item>RoyalRoad</item>
+        <item>NovelFull</item>
+        <item>WLN-Updates</item>
+    </string-array>
+
     <string-array name="settings_list" translatable="false">
         <item>@string/general</item>
         <item>@string/reader</item>
@@ -320,7 +327,7 @@
     <string name="confirm_action">Confirm Action</string>
     <string name="mark_chapters_unread_dialog_content">Mark chapters unread?</string>
     <string name="mark_chapters_read_dialog_content">Mark chapters read?</string>
-    <string name="download_chapters_dialog_content">Download chapters?\nNote: Downloads need to be started manually.</string>
+    <string name="download_chapters_dialog_content">Download selected chapters?</string>
     <string name="alert">Alert</string>
     <string name="novel_not_in_library_dialog_content">Novel needs to be added to library, before chapters can be downloaded individually!</string>
     <string name="download_all_chapters_dialog_content">Manage novel downloads using download manager. Download all chapters?</string>
@@ -464,5 +471,12 @@
     <string name="select_interval">Select Interval</string>
     <string name="simple_text_backup">Simple Text - Novel &amp; Novel Sections Backup</string>
     <string name="title_read_aloud">Read Aloud</string>
+    <string name="stop">Stop</string>
+    <string name="pause">Pause</string>
+    <string name="app_icon">AppIcon</string>
+    <string name="play">Play</string>
+    <string name="previous_chapter">Previous Chapter</string>
+    <string name="next_chapter">Next Chapter</string>
+    <string name="connection_error">Connection Error!</string>
 
 </resources>

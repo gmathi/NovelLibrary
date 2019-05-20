@@ -10,19 +10,20 @@ fun NovelApi.getChapterCount(novel: Novel): Int {
     val host = URI(novel.url).host
     when {
         host.contains(HostNames.NOVEL_UPDATES) -> return getNUChapterCount(novel)
-        host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterCount(novel.url)
+        host.contains(HostNames.ROYAL_ROAD_OLD) || host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterCount(novel.url)
         host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterCount(novel.url)
+        host.contains(HostNames.NOVEL_FULL) -> return getNovelFullChapterCount(novel)
     }
     return 0
 }
 
-fun NovelApi.getNUChapterCount(novel: Novel): Int {
+fun getNUChapterCount(novel: Novel): Int {
     return getNUALLChapterUrls(novel).size
 }
 
 fun NovelApi.getRRChapterCount(url: String): Int {
     try {
-        val document = getDocument(url)
+        val document = getDocumentWithUserAgent(url)
         return getRRChapterCount(document)
     } catch (e: IOException) {
         e.printStackTrace()
@@ -33,7 +34,7 @@ fun NovelApi.getRRChapterCount(url: String): Int {
 fun getRRChapterCount(document: Document): Int {
     try {
         val tableElement = document.body().getElementById("chapters")
-        val chapters = tableElement?.getElementsByTag("a")?.filter { it.attributes().hasKey("href") }
+        val chapters = tableElement?.select("a[href]")
         if (chapters != null) return chapters.size
     } catch (e: IOException) {
         e.printStackTrace()
@@ -44,7 +45,7 @@ fun getRRChapterCount(document: Document): Int {
 
 fun NovelApi.getWLNUChapterCount(url: String): Int {
     try {
-        val document = getDocument(url)
+        val document = getDocumentWithUserAgent(url)
         return getWLNUChapterCount(document)
     } catch (e: IOException) {
         e.printStackTrace()
@@ -52,7 +53,7 @@ fun NovelApi.getWLNUChapterCount(url: String): Int {
     return 0
 }
 
-fun NovelApi.getWLNUChapterCount(document: Document): Int {
+fun getWLNUChapterCount(document: Document): Int {
     try {
         val trElements = document.body().getElementsByTag("tr")?.filter { it.id() == "release-entry" }
         if (trElements != null) return trElements.size
@@ -60,5 +61,9 @@ fun NovelApi.getWLNUChapterCount(document: Document): Int {
         e.printStackTrace()
     }
     return 0
+}
+
+fun getNovelFullChapterCount(novel: Novel): Int {
+    return getNovelFullChapterUrls(novel)?.size ?: 0
 }
 

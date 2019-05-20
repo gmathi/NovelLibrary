@@ -1,6 +1,6 @@
 package io.github.gmathi.novellibrary.util
 
-import android.app.Activity
+import android.support.v7.app.AppCompatActivity
 import android.content.Intent
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.ActivityOptionsCompat
@@ -20,7 +20,7 @@ object TransitionHelper {
      * *
      * @param data Intent with bundle and or activity to start
      */
-    fun startSharedTransitionActivity(base: Activity, target: View, data: Intent) {
+    fun startSharedTransitionActivity(base: AppCompatActivity, target: View, data: Intent) {
         val participants = Pair(target, ViewCompat.getTransitionName(target))
         val transitionActivityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(
             base, participants)
@@ -40,7 +40,7 @@ object TransitionHelper {
      * *
      * @param data Intent with bundle and or activity to start
      */
-    fun startSharedImageTransition(base: Activity, target: View, transitionName: String, data: Intent) {
+    fun startSharedImageTransition(base: AppCompatActivity, target: View, transitionName: String, data: Intent) {
         val transition = ActivityOptionsCompat.makeSceneTransitionAnimation(
             base, target, transitionName)
         base.startActivity(data, transition.toBundle())

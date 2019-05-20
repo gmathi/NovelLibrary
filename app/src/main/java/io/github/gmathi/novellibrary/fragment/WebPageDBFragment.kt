@@ -418,7 +418,7 @@ class WebPageDBFragment : BaseFragment() {
         if (webPageSettings?.metaData?.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES) == true) {
             val links: ArrayList<String> = Gson().fromJson(webPageSettings!!.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<String>>() {}.type)
             links.forEach {
-                val tempWebPageSettings = dbHelper.getWebPageSettings(it)!!
+                val tempWebPageSettings = dbHelper.getWebPageSettings(it) ?: return@forEach
                 if (it == url || (tempWebPageSettings.redirectedUrl != null && tempWebPageSettings.redirectedUrl == url)) {
                     history.add(tempWebPageSettings)
                     webPageSettings = tempWebPageSettings

@@ -1,7 +1,9 @@
 package io.github.gmathi.novellibrary.activity
 
 import CloudFlareByPasser
+import android.app.Activity
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.design.widget.Snackbar
@@ -10,9 +12,12 @@ import android.support.v4.app.FragmentTransaction
 import android.support.v4.view.GravityCompat
 import android.support.v7.widget.Toolbar
 import android.view.MenuItem
+import android.view.ViewTreeObserver
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.crashlytics.android.Crashlytics
+import com.firebase.ui.auth.AuthUI
+import com.firebase.ui.auth.IdpResponse
 import io.fabric.sdk.android.Fabric
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
@@ -24,7 +29,11 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
+import kotlinx.android.synthetic.main.nav_header_nav_drawer.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
+import com.google.firebase.auth.FirebaseAuth
+import io.github.gmathi.novellibrary.extensions.*
+import io.github.gmathi.novellibrary.util.Logs
 
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -33,10 +42,12 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private var currentNavId: Int = R.id.nav_search
 
     private var cloudFlareLoadingDialog: MaterialDialog? = null
+    private var mAuth: FirebaseAuth? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_nav_drawer)
+        mAuth = FirebaseAuth.getInstance()
         navigationView.setNavigationItemSelectedListener(this)
 
         //Initialize custom logging
@@ -71,42 +82,84 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         } else {
             checkIntentForNotificationData()
             loadFragment(currentNavId)
-        }
-
-        if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
-            MaterialDialog.Builder(this)
-                    .title("📢 What's New! 0.9.7.1.beta")
-                    .content("** Fixed Cloud Flare **\n\n" +
-                            "✨ Downloads have been revamped. Please let me know the feedback\n" +
-//                            //"✨ Improved performance/decrease load time on the chapters screen\n" +
-//                            "\uD83D\uDEE0 Improved performance/decrease load time on the chapters screen\n" +
-                            "⚠️ A lot of bug fixes!!\n" +
-//                            "\uD83D\uDEE0️ Bug Fixes for reported & unreported crashes!" +
-                            "")
-                    .positiveText("Ok")
-                    .onPositive { dialog, _ -> dialog.dismiss() }
-                    .show()
-            dataCenter.appVersionCode = BuildConfig.VERSION_CODE
+            showWhatsNewDialog()
         }
 
         if (intent.hasExtra("showDownloads")) {
             intent.removeExtra("showDownloads")
             startNovelDownloadsActivity()
         }
+
+//        drawerLayout.viewTreeObserver.addOnGlobalLayoutListener (object : ViewTreeObserver.OnGlobalLayoutListener {
+//            override fun onGlobalLayout() {
+//                drawerLayout.viewTreeObserver.removeOnGlobalLayoutListener(this)
+//                authSignInButton.setOnClickListener {
+//                    val providers = arrayListOf(
+//                            AuthUI.IdpConfig.EmailBuilder().build(),
+//                            AuthUI.IdpConfig.PhoneBuilder().build(),
+//                            AuthUI.IdpConfig.GoogleBuilder().build())
+//
+//                    // Create and launch sign-in intent
+//                    startActivityForResult(
+//                            AuthUI.getInstance()
+//                                    .createSignInIntentBuilder()
+//                                    .setAvailableProviders(providers)
+//                                    .build(),
+//                            Constants.OPEN_FIREBASE_AUTH_UI)
+//                }
+//            }
+//        })
+
+    }
+
+    private fun showWhatsNewDialog() {
+        if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
+            MaterialDialog.Builder(this)
+                    .title("📢 What's New! 0.9.9.1.beta")
+                    .content(//"** Fixed Cloud Flare for 6.0.1**\n\n" +
+                            "✨ Updated TTS to pause and play\n" +
+                                    "✨ Updated search results to load infinitely instead of just the 1st page. \n" +
+                                    "\uD83D\uDEE0 Bug Fixes for crashes in Downloads\n" +
+                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
+                                    "⚠️ Added Error Logging so users can report crashes.\n" +
+//                                    "✨ Added Hidden Buttons to unlock some hidden functionality!" +
+//                            "\uD83D\uDEE️ Bug Fixes for reported & unreported crashes!" +
+                                    "")
+                    .positiveText("Ok")
+                    .onPositive { dialog, _ -> dialog.dismiss() }
+                    .show()
+            dataCenter.appVersionCode = BuildConfig.VERSION_CODE
+        }
     }
 
     private fun checkForCloudFlare() {
 
-        cloudFlareLoadingDialog = Utils.dialogBuilder(this@NavDrawerActivity, content = getString(R.string.cloud_flare_bypass_description), isProgress = true).cancelable(false).build()
+        cloudFlareLoadingDialog = Utils
+                .dialogBuilder(this@NavDrawerActivity, content = getString(R.string.cloud_flare_bypass_description), isProgress = true)
+                .cancelable(false)
+                .negativeText("Skip")
+                .onNegative { _, _ ->
+                    Crashlytics.log(getString(R.string.cloud_flare_bypass_failure_title))
+                    loadFragment(currentNavId)
+                    showWhatsNewDialog()
+                    checkIntentForNotificationData()
+                }
+                .build()
+
         cloudFlareLoadingDialog?.show()
 
         CloudFlareByPasser.check(this, "novelupdates.com") { state ->
-            if (!isFinishing) {
+
+            val isActivityRunning = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) !isDestroyed else !isFinishing
+            if (isActivityRunning) {
                 if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
-                    Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
-                    loadFragment(currentNavId)
-                    checkIntentForNotificationData()
-                    cloudFlareLoadingDialog?.dismiss()
+                    if (cloudFlareLoadingDialog?.isShowing == true) {
+                        Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
+                        loadFragment(currentNavId)
+                        showWhatsNewDialog()
+                        checkIntentForNotificationData()
+                        cloudFlareLoadingDialog?.dismiss()
+                    }
                 }
             }
         }
@@ -191,6 +244,20 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when {
+            requestCode == Constants.OPEN_FIREBASE_AUTH_UI -> {
+                val response = IdpResponse.fromResultIntent(data)
+                if (resultCode == Activity.RESULT_OK) {
+                    // Successfully signed in
+                    val user = FirebaseAuth.getInstance().currentUser
+                    Logs.error("NAV USER", user?.displayName)
+                    // ...
+                } else {
+                    // Sign in failed. If response is null the user canceled the
+                    // sign-in flow using the back button. Otherwise check
+                    // response.getError().getErrorCode() and handle the error.
+                    // ...
+                }
+            }
             resultCode == Constants.OPEN_DOWNLOADS_RES_CODE -> loadFragment(R.id.nav_downloads)
             requestCode == Constants.IWV_ACT_REQ_CODE -> checkIntentForNotificationData()
             else -> super.onActivityResult(requestCode, resultCode, data)
@@ -216,6 +283,9 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         async.cancelAll()
         super.onDestroy()
     }
+
+
+
 
 
 }

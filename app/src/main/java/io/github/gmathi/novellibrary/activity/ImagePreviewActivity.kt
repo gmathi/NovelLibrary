@@ -1,6 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
-import android.app.Activity
+import android.support.v7.app.AppCompatActivity
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
@@ -13,7 +13,7 @@ import kotlinx.android.synthetic.main.activity_image_preview.*
 import java.io.File
 
 
-class ImagePreviewActivity : Activity() {
+class ImagePreviewActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

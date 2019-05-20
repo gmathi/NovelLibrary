@@ -15,50 +15,28 @@ import io.github.gmathi.novellibrary.network.HostNames
 class NavPageListener : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment? {
         return when (position) {
-            0 -> SearchUrlFragment.newInstance("http://www.novelupdates.com/series-ranking/?rank=popmonth")
-            1 -> SearchUrlFragment.newInstance("http://www.novelupdates.com/series-ranking/?rank=popular")
-            2 -> SearchUrlFragment.newInstance("http://www.novelupdates.com/series-ranking/?rank=sixmonths")
-            3 -> SearchUrlFragment.newInstance("https://royalroadl.com/fictions/complete")
-            4 -> SearchUrlFragment.newInstance("https://royalroadl.com/fictions/complete")
+            0 -> SearchUrlFragment.newInstance("https://www.novelupdates.com/series-ranking/?rank=popmonth")
+            1 -> SearchUrlFragment.newInstance("https://www.novelupdates.com/series-ranking/?rank=popular")
+            2 -> SearchUrlFragment.newInstance("https://www.novelupdates.com/series-ranking/?rank=sixmonths")
             else -> null
         }
     }
 }
 
-class NavDetailsPageListener : GenericFragmentStatePagerAdapter.Listener {
+class SearchResultsListener(private val searchTerms: String, private val tabNames: ArrayList<String>) : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment? {
-        return when (position) {
-            0 -> SearchUrlFragment.newInstance("https://royalroadl.com/fictions/active-popular")
-            1 -> SearchUrlFragment.newInstance("https://royalroadl.com/fictions/best-rated")
-            2 -> SearchUrlFragment.newInstance("https://royalroadl.com/fictions/complete")
-            3 -> SearchUrlFragment.newInstance("https://royalroadl.com/fictions/complete")
-            4 -> SearchUrlFragment.newInstance("https://royalroadl.com/fictions/complete")
+        if (position >= tabNames.size) return null
+        return when (tabNames[position]) {
+            "Novel-Updates" -> SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_UPDATES)
+            "RoyalRoad" -> SearchTermFragment.newInstance(searchTerms, HostNames.ROYAL_ROAD)
+            "NovelFull" -> SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_FULL)
+            "ScribbleHub" -> SearchTermFragment.newInstance(searchTerms, HostNames.SCRIBBLE_HUB)
+            "WLN-Updates" -> SearchTermFragment.newInstance(searchTerms, HostNames.WLN_UPDATES)
             else -> null
         }
     }
 }
 
-class SearchResultsListener(private val searchTerms: String) : GenericFragmentStatePagerAdapter.Listener {
-    override fun getFragmentForItem(position: Int): Fragment? {
-        return when (position) {
-            0 -> SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_UPDATES)
-            1 -> SearchTermFragment.newInstance(searchTerms, HostNames.WLN_UPDATES)
-            else -> null
-        }
-    }
-}
-
-class SearchResultsUnlockedListener(private val searchTerms: String) : GenericFragmentStatePagerAdapter.Listener {
-    override fun getFragmentForItem(position: Int): Fragment? {
-        return when (position) {
-            0 -> SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_UPDATES)
-            1 -> SearchTermFragment.newInstance(searchTerms, HostNames.ROYAL_ROAD)
-            2 -> SearchTermFragment.newInstance(searchTerms, HostNames.WLN_UPDATES)
-            else -> null
-        }
-    }
-
-}
 
 class WebPageFragmentPageListener(val novel: Novel, val sourceId: Long) : GenericFragmentStatePagerAdapter.Listener {
 

@@ -1,15 +1,18 @@
 package io.github.gmathi.novellibrary.activity.settings
 
-import android.graphics.Rect
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.RecyclerView
 import android.view.MenuItem
 import android.view.View
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.*
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.extensions.startContributionsActivity
+import io.github.gmathi.novellibrary.extensions.startCopyrightActivity
+import io.github.gmathi.novellibrary.extensions.startLanguagesActivity
+import io.github.gmathi.novellibrary.extensions.startLibrariesUsedActivity
+import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_settings.*
@@ -33,17 +36,7 @@ class MentionSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         mentionSettingsItems = ArrayList(resources.getStringArray(R.array.mention_settings_list).asList())
         adapter = GenericAdapter(items = mentionSettingsItems, layoutResId = R.layout.listitem_settings, listener = this)
         recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(object : DividerItemDecoration(this, VERTICAL) {
-
-            override fun getItemOffsets(outRect: Rect?, view: View?, parent: RecyclerView?, state: RecyclerView.State?) {
-                val position = parent?.getChildAdapterPosition(view)
-                if (position == parent?.adapter?.itemCount?.minus(1)) {
-                    outRect?.setEmpty()
-                } else {
-                    super.getItemOffsets(outRect, view, parent, state)
-                }
-            }
-        })
+        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
         swipeRefreshLayout.isEnabled = false
     }
 

@@ -1,10 +1,8 @@
 package io.github.gmathi.novellibrary.activity.settings
 
-import android.graphics.Rect
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.RecyclerView
 import android.view.MenuItem
 import android.view.View
 import com.afollestad.materialdialogs.MaterialDialog
@@ -13,6 +11,7 @@ import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_settings.*
@@ -32,9 +31,8 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         private const val POSITION_KEEP_SCREEN_ON = 6
         private const val POSITION_ENABLE_IMMERSIVE_MODE = 7
         private const val POSITION_ENABLE_CLUSTER_PAGES = 8
-        private const val POSITION_DIRECTONAL_LINKS = 9
+        private const val POSITION_DIRECTIONAL_LINKS = 9
         private const val POSITION_READER_MODE_BUTTON_VISIBILITY = 10
-
     }
 
     lateinit var adapter: GenericAdapter<String>
@@ -54,17 +52,7 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         settingsItemsDescription = ArrayList(resources.getStringArray(R.array.reader_subtitles_list).asList())
         adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
         recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(object : DividerItemDecoration(this, VERTICAL) {
-
-            override fun getItemOffsets(outRect: Rect?, view: View?, parent: RecyclerView?, state: RecyclerView.State?) {
-                val position = parent?.getChildAdapterPosition(view)
-                if (position == parent?.adapter?.itemCount?.minus(1)) {
-                    outRect?.setEmpty()
-                } else {
-                    super.getItemOffsets(outRect, view, parent, state)
-                }
-            }
-        })
+        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
         swipeRefreshLayout.isEnabled = false
     }
 
@@ -134,7 +122,7 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 itemView.widgetSwitch.isChecked = dataCenter.enableClusterPages
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableClusterPages = value }
             }
-            POSITION_DIRECTONAL_LINKS -> {
+            POSITION_DIRECTIONAL_LINKS -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.enableDirectionalLinks
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableDirectionalLinks = value }

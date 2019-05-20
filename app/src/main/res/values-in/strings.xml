@@ -283,5 +283,12 @@
     <string name="simple_text_backup">Simple Text - Novel &amp; Novel Sections Backup</string>
     <string name="title_read_aloud">Read Aloud</string>
     <string name="group_download_notification_text">Downloads for the novels in your library</string>
+    <string name="stop">Stop</string>
+    <string name="pause">Pause</string>
+    <string name="app_icon">AppIcon</string>
+    <string name="play">Play</string>
+    <string name="previous_chapter">Previous Chapter</string>
+    <string name="next_chapter">Next Chapter</string>
+    <string name="connection_error">Connection Error!</string>
 
 </resources>

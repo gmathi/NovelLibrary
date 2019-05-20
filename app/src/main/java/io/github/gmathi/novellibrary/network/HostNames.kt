@@ -6,7 +6,8 @@ import java.util.*
 object HostNames {
 
     const val NOVEL_UPDATES = "novelupdates.com"
-    const val ROYAL_ROAD = "royalroadl.com"
+    const val ROYAL_ROAD_OLD = "royalroadl.com"
+    const val ROYAL_ROAD = "royalroad.com"
     const val KOBATOCHAN = "kobatochan.com"
     const val GRAVITY_TALES = "gravitytales.com"
     const val WUXIA_WORLD = "wuxiaworld.com"
@@ -26,6 +27,8 @@ object HostNames {
     const val SOUSETSUKA = "sousetsuka.com"
     const val FANTASY_BOOKS = "fantasy-books.live"
     const val BAKA_TSUKI = "baka-tsuki.org"
+    const val NOVEL_FULL = "novelfull.com"
+    const val SCRIBBLE_HUB = "scribblehub.com"
 
 
     const val USER_AGENT = "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Mobile Safari/537.36"

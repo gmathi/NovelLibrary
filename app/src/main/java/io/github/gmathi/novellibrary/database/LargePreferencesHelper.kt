@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
+import android.database.DatabaseUtils
 import android.util.Log
 import io.github.gmathi.novellibrary.util.Logs
 

@@ -26,10 +26,10 @@ open class HtmlHelper protected constructor() {
         fun getInstance(doc: Document, hostName: String = doc.location()): HtmlHelper {
 
             val host =
-                if (hostName.startsWith("www."))
-                    hostName.replace("www.", "")
-                else
-                    hostName
+                    if (hostName.startsWith("www."))
+                        hostName.replace("www.", "")
+                    else
+                        hostName
 
             when {
                 host.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
@@ -39,6 +39,7 @@ open class HtmlHelper protected constructor() {
                 host.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsHelper()
                 host.contains(HostNames.TUMBLR) -> return TumblrCleaner()
                 host.contains(HostNames.BAKA_TSUKI) -> return BakaTsukiCleaner()
+                host.contains(HostNames.SCRIBBLE_HUB) -> return ScribbleHubHelper()
             }
 
             var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("chapter-content") }
@@ -70,6 +71,9 @@ open class HtmlHelper protected constructor() {
 
             contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
             if (contentElement != null) return CloudFlareDDoSTagHelper()
+
+            contentElement = doc.body().select("div#chapter-content").firstOrNull()
+            if (contentElement != null) return GeneralIdTagHelper(host, "div", "chapter-content")
 
             return HtmlHelper()
         }
@@ -117,7 +121,7 @@ open class HtmlHelper protected constructor() {
         val file: File
         val doc: Document
         try {
-            if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: " + uri.toString())
+            if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: $uri")
             val fileName = uri.getFileName()
             file = File(dir, fileName)
             doc = NovelApi.getDocumentWithUserAgentIgnoreContentType(uri.toString())
@@ -144,21 +148,33 @@ open class HtmlHelper protected constructor() {
     open fun downloadImages(doc: Document, novelDir: File) {
         val elements = doc.getElementsByTag("img").filter { element -> element.hasAttr("src") }
         for (element in elements) {
-            val imageFile = downloadImage(element, novelDir)
+            val imageFile = getImageFile(element, novelDir)
             if (imageFile != null) {
+                if (!imageFile.exists())
+                    downloadImage(element, imageFile)
                 element.removeAttr("src")
                 element.attr("src", "./${imageFile.name}")
             }
         }
     }
 
-    open fun downloadImage(element: Element, dir: File): File? {
+    open fun getImageFile(element: Element, dir: File): File? {
         val uri = Uri.parse(element.absUrl("src"))
         val file: File
         try {
-            if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: " + uri.toString())
-            val fileName = (uri.lastPathSegment + uri.query).writableFileName()
+            if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: $uri")
+            val fileName = (uri.lastPathSegment ?: "" + uri.query).writableFileName()
             file = File(dir, fileName)
+        } catch (e: Exception) {
+            Logs.debug(TAG, "Exception Downloading Image: $uri")
+            return null
+        }
+        return file
+    }
+
+    open fun downloadImage(element: Element, file: File): File? {
+        val uri = Uri.parse(element.absUrl("src"))
+        try {
             val response = Jsoup.connect(uri.toString()).userAgent(HostNames.USER_AGENT).ignoreContentType(true).execute()
             val bytes = response.bodyAsBytes()
             val bitmap = Utils.getImage(bytes)
@@ -178,7 +194,7 @@ open class HtmlHelper protected constructor() {
     fun toggleThemeDefault(isDark: Boolean, doc: Document): Document {
 
         var fontName = "source_sans_pro_regular.ttf"
-        var fontUrl =  "/android_asset/fonts/$fontName"
+        var fontUrl = "/android_asset/fonts/$fontName"
 
         val fontFile = File(dataCenter.fontPath)
         if (fontFile.exists()) {

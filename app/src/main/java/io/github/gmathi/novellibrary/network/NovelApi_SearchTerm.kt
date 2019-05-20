@@ -1,56 +1,53 @@
 package io.github.gmathi.novellibrary.network
 
 import io.github.gmathi.novellibrary.model.Novel
-import java.io.IOException
-import java.lang.Exception
 
 
-fun NovelApi.searchRoyalRoad(searchTerms: String): ArrayList<Novel>? {
+fun NovelApi.searchRoyalRoad(searchTerms: String, pageNumber: Int = 1): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocument("https://royalroadl.com/fictions/search?keyword=$searchTerms&name=&author=&minPages=0&maxPages=10000&minRating=0&maxRating=5&status=ALL&orderBy=popularity&dir=desc&type=ALL")
-        val elements = document.body().getElementsByClass("search-item").filter { it.tagName() == "li" }
+        val document = getDocumentWithUserAgent("https://www.royalroad.com/fictions/search?keyword=${searchTerms.replace(" ", "+")}&page=$pageNumber")
+        val elements = document.body().select("li.search-item") ?: return searchResults
         for (element in elements) {
-            val searchContentElement = element.getElementsByClass("search-content").firstOrNull()
-            if (searchContentElement != null) {
-                val urlElement = searchContentElement.getElementsByTag("a")?.firstOrNull()
-                val novel = Novel(urlElement?.text()!!, "https://www.royalroadl.com${urlElement.attr("href")}")
-                novel.imageUrl = element.getElementsByTag("img").firstOrNull()?.attr("src")
-                novel.metaData["Author(s)"] = searchContentElement.getElementsByClass("author")?.firstOrNull { it.tagName() == "span" }?.text()?.substring(3)
-                novel.rating = "N/A"
-                novel.longDescription = searchContentElement.getElementsByTag("div")?.firstOrNull { it.hasClass("fiction-description") }?.text()
-                novel.shortDescription = novel.longDescription?.split("\n")?.firstOrNull()
-                searchResults.add(novel)
-            }
+            val urlElement = element.selectFirst("a[href]") ?: continue
+            val novel = Novel(urlElement.text(), urlElement.attr("abs:href"))
+            novel.imageUrl = element.selectFirst("img[src]")?.attr("abs:src")
+            novel.metaData["Author(s)"] = element.selectFirst("span.author")?.text()?.substring(3)
+            novel.rating = "N/A"
+            novel.longDescription = element.selectFirst("div.fiction-description")?.text()
+            novel.shortDescription = novel.longDescription?.split("\n")?.firstOrNull()
+            searchResults.add(novel)
         }
 
-    } catch (e: IOException) {
+    } catch (e: Exception) {
         e.printStackTrace()
     }
     return searchResults
 }
 
-fun NovelApi.searchNovelUpdates(searchTerms: String): ArrayList<Novel>? {
+fun NovelApi.searchNovelUpdates(searchTerms: String, pageNumber: Int = 1): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent("http://www.novelupdates.com/?s=$searchTerms")
-        val titleElements = document.body().getElementsByClass("w-blog-entry-title").filter { it.tagName() == "h2" }
-        val dataElements = document.body().getElementsByClass("w-blog-entry").filter { it.tagName() == "div" }
+        val document = getDocumentWithUserAgent("https://www.novelupdates.com/page/$pageNumber/?s=${searchTerms.replace(" ", "+")}")
+        val titleElements = document.body().select("h2.w-blog-entry-title") ?: return searchResults
+        val dataElements = document.body().select("div.w-blog-entry") ?: return searchResults
 
-        var i = 0
-        while (i < dataElements.size) {
+        (0 until dataElements.size).forEach { i ->
 
-            val novel = Novel(titleElements[i].getElementsByTag("span").firstOrNull { it.hasClass("w-blog-entry-title-h") }?.text()!!, titleElements[i].getElementsByTag("a").firstOrNull()?.attr("href")!!)
-            novel.imageUrl = dataElements[i].getElementsByTag("img").firstOrNull()?.attr("src")
-            novel.rating = dataElements[i].getElementsByTag("span").firstOrNull { it.hasClass("userrate") }?.text()?.replace("Rating: ", "")?.trim()
-            novel.genres = dataElements[i].getElementsByTag("span").firstOrNull { it.className() == "s-genre" }?.children()?.map { it.text() }
-            novel.shortDescription = dataElements[i].getElementsByTag("div").firstOrNull { it.className() == "w-blog-entry-short" }?.textNodes()?.get(0)?.text()
-            novel.longDescription = dataElements[i].getElementsByTag("span").firstOrNull { it.attr("style") == "display:none" }?.textNodes()?.map { it.text() }?.joinToString(separator = "\n") { it }
+            val novelName = titleElements[i].selectFirst("span.w-blog-entry-title-h")?.text()
+                    ?: return@forEach
+            val novelUrl = titleElements[i].selectFirst("a[href]")?.attr("abs:href")
+                    ?: return@forEach
+            val novel = Novel(novelName, novelUrl)
+
+            novel.imageUrl = dataElements[i].selectFirst("img[src]")?.attr("abs:src")
+            novel.rating = dataElements[i].selectFirst("span.userrate")?.text()?.replace("Rating: ", "")?.trim()
+            novel.genres = dataElements[i].selectFirst("span.s-genre")?.children()?.map { it.text() }
+            novel.shortDescription = dataElements[i].selectFirst("div.w-blog-entry-short")?.textNodes()?.get(0)?.text()
+            novel.longDescription = dataElements[i].selectFirst("span[style=display:none]")?.textNodes()?.map { it.text() }?.joinToString(separator = "\n") { it }
             searchResults.add(novel)
-
-            i++
         }
 
     } catch (e: Exception) {
@@ -63,11 +60,52 @@ fun NovelApi.searchWlnUpdates(searchTerms: String): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocument("https://www.wlnupdates.com/search?title=" + searchTerms)
-        val elements = document.body().getElementsByTag("td")
-        elements.mapTo(searchResults) { Novel(it.getElementsByTag("a").firstOrNull()?.text()!!, it.getElementsByTag("a").firstOrNull()?.absUrl("href")!!) }
+        val document = getDocumentWithUserAgent("https://www.wlnupdates.com/search?title=${searchTerms.replace(" ", "+")}")
+        val elements = document.body().select("td") ?: return searchResults
+        elements.mapTo(searchResults) {
+            Novel(it.select("a[href]").text(), it.select("a[href]").attr("abs:href"))
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return searchResults
+}
 
-    } catch (e: IOException) {
+
+fun NovelApi.searchNovelFull(searchTerms: String, pageNumber: Int = 1): ArrayList<Novel>? {
+    var searchResults: ArrayList<Novel>? = null
+    try {
+        searchResults = ArrayList()
+        val document = getDocumentWithUserAgent("http://novelfull.com/search?keyword=${searchTerms.replace(" ", "+")}&page=$pageNumber")
+        val listElement = document.body().select("div.list.list-truyen")[0]
+        val novelElements = listElement.select("div.row")
+        novelElements.forEach {
+            val novel = Novel(it.select("h3.truyen-title").text(), it.select("h3.truyen-title").select("a[href]").attr("abs:href"))
+            novel.imageUrl = it.select("img.cover").attr("abs:src")
+            searchResults.add(novel)
+        }
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return searchResults
+}
+
+fun NovelApi.searchScribbleHub(searchTerms: String, pageNumber: Int = 1): ArrayList<Novel>? {
+    var searchResults: ArrayList<Novel>? = null
+    try {
+        searchResults = ArrayList()
+        val document = getDocumentWithUserAgent("https://www.scribblehub.com/?s=${searchTerms.replace(" ", "+")}&post_type=fictionposts&paged=$pageNumber")
+        val novelElements = document.body().select("div.search_main_box")
+        novelElements.forEach {
+            val urlElement = it.select("div.search_title > a[href]")
+            val novel = Novel(urlElement.text(), urlElement.attr("abs:href"))
+            novel.imageUrl = it.select("div.search_img > img[src]").attr("abs:src")
+            novel.rating = it.select("div.search_img").select("span.search_ratings").text().replace("(", "").replace(")", "")
+            searchResults.add(novel)
+        }
+
+    } catch (e: Exception) {
         e.printStackTrace()
     }
     return searchResults

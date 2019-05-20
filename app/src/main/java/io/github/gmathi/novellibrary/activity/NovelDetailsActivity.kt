@@ -1,6 +1,9 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -25,16 +28,20 @@ import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getNovelDetails
 import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.activity_novel_details.*
 import kotlinx.android.synthetic.main.content_novel_details.*
-import java.util.*
 
 
 class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener {
+
+    companion object {
+        const val TAG = "NovelDetailsActivity"
+    }
 
     lateinit var novel: Novel
 
@@ -74,10 +81,10 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         if (!Utils.isConnectedToNetwork(this)) {
             if (novel.id == -1L) {
                 swipeRefreshLayout.isRefreshing = false
-                progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again), {
+                progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
                     progressLayout.showLoading()
                     getNovelInfo()
-                })
+                }
             }
             return
         }
@@ -93,11 +100,16 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 swipeRefreshLayout.isRefreshing = false
             } catch (e: Exception) {
                 e.printStackTrace()
+                val errorMessage = e.localizedMessage + "\n" + e.stackTrace.joinToString(separator = "\n") { it.toString() }
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clip: ClipData = ClipData.newPlainText("Error Message", errorMessage)
+                clipboard.primaryClip = clip
+                MaterialDialog.Builder(this@NovelDetailsActivity).title("Error!").content("The error message has been copied to clipboard. Please paste it and send it the developer in discord or email.").show()
                 if (novel.id == -1L)
-                    progressLayout.showError(ContextCompat.getDrawable(this@NovelDetailsActivity, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again), {
+                    progressLayout.showError(ContextCompat.getDrawable(this@NovelDetailsActivity, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again)) {
                         progressLayout.showLoading()
                         getNovelInfo()
-                    })
+                    }
             }
         }
     }
@@ -125,7 +137,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun setNovelImage() {
-        if (novel.imageUrl != null) {
+        if (!novel.imageUrl.isNullOrBlank()) {
             Glide.with(this)
                     .load(novel.imageUrl?.getGlideUrl())
                     .into(novelDetailsImage)
@@ -289,12 +301,22 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun addNovelToHistory() {
-        var history = dbHelper.getLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY) ?: "[]"
-        val historyList: ArrayList<Novel> = Gson().fromJson(history, object : TypeToken<ArrayList<Novel>>() {}.type)
-        historyList.removeAll { novel.name == it.name }
-        historyList.add(novel)
-        history = Gson().toJson(historyList)
-        dbHelper.createOrUpdateLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY, history)
+        try {
+            var history = dbHelper.getLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY)
+                    ?: "[]"
+            var historyList: ArrayList<Novel> = Gson().fromJson(history, object : TypeToken<ArrayList<Novel>>() {}.type)
+            Logs.error(TAG, "History Size: ${historyList.size
+            }")
+            historyList.removeAll { novel.name == it.name }
+            if (historyList.size > 99)
+                historyList = ArrayList(historyList.take(99))
+            historyList.add(novel)
+            history = Gson().toJson(historyList)
+            dbHelper.createOrUpdateLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY, history)
+        } catch (e: Exception) {
+            Logs.error(TAG, "Error adding novel to history. Resetting the history", e)
+            dbHelper.deleteLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY)
+        }
     }
 
     override fun onDestroy() {

@@ -90,20 +90,21 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    override fun onHandleIntent(intent: Intent) {
+    override fun onHandleIntent(intent: Intent?) {
         Logs.debug(TAG, "onHandleIntent")
 
-        if (!intent.hasExtra(NOVEL_NAME)) return
+        val novelNamePresent = intent?.hasExtra(NOVEL_NAME) ?: false
+        if (!novelNamePresent) return
 
-        val novelName = intent.getStringExtra(NOVEL_NAME)
+        val novelName = intent!!.getStringExtra(NOVEL_NAME)
         val downloadNovelThread = DownloadNovelThread(this, novelName, dbHelper, this@DownloadNovelService)
         threadListMap[novelName] = downloadNovelThread
         startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "Downloading: $novelName"))
         if (threadPool.isTerminating || threadPool.isShutdown)
-            threadPool =  Executors.newFixedThreadPool(MAX_PARALLEL_DOWNLOADS) as ThreadPoolExecutor
+            threadPool = Executors.newFixedThreadPool(MAX_PARALLEL_DOWNLOADS) as ThreadPoolExecutor
         futures.add(threadPool.submit(downloadNovelThread, null as Any?))
 
-        while (!futures.isEmpty()) {
+        while (futures.isNotEmpty()) {
             futures[0].get()
             futures.removeAt(0)
         }
@@ -124,7 +125,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
             downloadNovelThread = DownloadNovelThread(this, novelName, dbHelper, this@DownloadNovelService)
             threadListMap[novelName] = downloadNovelThread
             if (threadPool.isTerminating || threadPool.isShutdown)
-                threadPool =  Executors.newFixedThreadPool(MAX_PARALLEL_DOWNLOADS) as ThreadPoolExecutor
+                threadPool = Executors.newFixedThreadPool(MAX_PARALLEL_DOWNLOADS) as ThreadPoolExecutor
             futures.add(threadPool.submit(downloadNovelThread, null as Any?))
 
             if (futures.size > 5)
@@ -196,6 +197,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
     //endregion
 
 
+    @Suppress("DEPRECATION")
     private fun getNotification(context: Context, status: String): Notification {
 
         // Add Pause button intent in notification.
@@ -206,7 +208,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
         val view = RemoteViews(context.packageName, R.layout.notification_tts)
         view.setTextViewText(R.id.novelName, "Novel Library")
         view.setTextViewText(R.id.chapterName, status)
-        view.setViewVisibility(R.id.close, View.GONE)
+        view.setViewVisibility(R.id.containerActions, View.GONE)
 
         val novelDetailsIntent = Intent(this, NavDrawerActivity::class.java)
         novelDetailsIntent.action = Constants.Action.MAIN_ACTION
@@ -221,13 +223,13 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(context, channelId)
-                    .setSmallIcon(R.drawable.ic_file_download_orange_vector)
+                    .setSmallIcon(R.drawable.ic_file_download_white)
                     .setCustomContentView(view)
                     .setContentIntent(pendingIntent)
                     .build()
         } else {
             Notification.Builder(context)
-                    .setSmallIcon(R.drawable.ic_file_download_orange_vector)
+                    .setSmallIcon(R.drawable.ic_file_download_white)
                     .setContent(view)
                     .setContentIntent(pendingIntent)
                     .build()

@@ -15,6 +15,7 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.createOrUpdateLargePreference
 import io.github.gmathi.novellibrary.database.getLargePreference
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
@@ -42,7 +43,7 @@ class RecentlyViewedNovelsActivity : AppCompatActivity(), GenericAdapter.Listene
 
     override fun bind(item: Novel, itemView: View, position: Int) {
         itemView.novelImageView.setImageResource(android.R.color.transparent)
-        if (item.imageUrl != null) {
+        if (!item.imageUrl.isNullOrBlank()) {
             Glide.with(this)
                     .load(item.imageUrl)
                     .apply(RequestOptions.circleCropTransform())

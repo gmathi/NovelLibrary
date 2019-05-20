@@ -13,15 +13,15 @@ if (keystorePropertiesFile.exists() && keystorePropertiesFile.canRead()) {
 }
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
     buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "io.github.gmathi.novellibrary"
-        minSdkVersion 21
-        targetSdkVersion 27
+        minSdkVersion 16
+        targetSdkVersion 28
         multiDexEnabled true
-        versionCode 61
-        versionName "0.9.7.1.beta"
+        versionCode 69
+        versionName "0.9.9.3.beta"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -50,7 +50,7 @@ android {
     }
 }
 
-def support_lib_version = "27.1.1"
+def support_lib_version = "28.0.0"
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -67,32 +67,30 @@ dependencies {
 
     implementation 'com.android.support:multidex:1.0.3'
 
-    implementation 'com.google.code.gson:gson:2.8.2'
     implementation 'org.jsoup:jsoup:1.11.2'
     implementation 'org.cryse.widget:persistentsearchview:1.0.4@aar'
-    implementation 'com.github.bumptech.glide:glide:4.3.1'
-    implementation 'jp.wasabeef:recyclerview-animators:2.2.6'
     implementation 'org.greenrobot:eventbus:3.0.0'
-    implementation 'com.ogaclejapan.smarttablayout:library:1.6.1@aar'
+
+    implementation 'com.github.bumptech.glide:glide:4.9.0'
     implementation 'com.github.nguyenhoanglam:ProgressLayout:1.0.1'
     implementation 'com.github.rubensousa:floatingtoolbar:1.4.4'
     implementation 'com.github.chrisbanes:PhotoView:2.1.2'
     implementation 'com.github.medyo:fancybuttons:1.8.3'
-    implementation 'co.metalab.asyncawait:asyncawait:1.0.0'
     implementation 'com.github.johnpersano:supertoasts:2.0'
-    implementation 'nl.dionsegijn:konfetti:1.0.2'
+
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
     implementation 'com.hanks.animatecheckbox:library:0.1'
     implementation 'com.afollestad:drag-select-recyclerview:1.0.0'
     implementation 'com.thanosfisherman.mayi:mayi:1.4'
     implementation 'com.tapadoo.android:alerter:2.0.1'
     implementation 'com.yarolegovich:sliding-root-nav:1.1.0'
-    implementation 'com.loopj.android:android-async-http:1.4.9'
+    implementation 'com.ogaclejapan.smarttablayout:library:1.6.1@aar'
     implementation 'com.futuremind.recyclerfastscroll:fastscroll:0.2.5'
+    implementation 'jp.wasabeef:recyclerview-animators:2.2.6'
+    implementation 'nl.dionsegijn:konfetti:1.0.2'
+    implementation 'co.metalab.asyncawait:asyncawait:1.0.0'
 
-    //implementation 'com.mikepenz:fastadapter:3.2.5'
-
-    implementation("com.firebaseui:firebase-ui-auth:3.1.0", {
+    implementation("com.firebaseui:firebase-ui-auth:4.3.1", {
         exclude group: 'com.google.firebase'
         exclude group: 'com.google.android.gms'
         exclude group: 'com.android.support'
@@ -103,16 +101,20 @@ dependencies {
     implementation('com.afollestad.material-dialogs:core:0.9.4.5', {
         exclude group: 'com.android.support'
     })
+
     implementation('com.afollestad.material-dialogs:commons:0.9.6.0', {
         exclude group: 'com.android.support'
     })
 
-    implementation "com.google.android.gms:play-services-gcm:16.0.0"
-    implementation "com.google.android.gms:play-services-drive:16.0.0"
+    implementation "com.google.android.gms:play-services-gcm:16.1.0"
+    implementation "com.google.android.gms:play-services-drive:16.1.0"
     implementation "com.google.android.gms:play-services-auth:16.0.1"
-    implementation "com.google.firebase:firebase-messaging:17.3.4"
-    implementation "com.google.firebase:firebase-auth:16.0.5"
-    implementation "com.google.firebase:firebase-core:16.0.6"
+    implementation "com.google.firebase:firebase-messaging:17.6.0"
+    implementation "com.google.firebase:firebase-auth:16.2.1"
+    implementation "com.google.firebase:firebase-core:16.0.8"
+    implementation 'com.google.firebase:firebase-config:16.5.0'
+    implementation 'com.google.code.gson:gson:2.8.5'
+
 
     implementation('com.crashlytics.sdk.android:crashlytics:2.9.0@aar') {
         transitive = true
@@ -135,16 +137,9 @@ dependencies {
     releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
     testImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
 
-    kapt 'com.github.bumptech.glide:compiler:4.3.1'
+    kapt 'com.github.bumptech.glide:compiler:4.8.0'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-}
-
-
-kotlin {
-    experimental {
-        coroutines "enable"
-    }
 }
 
 apply plugin: 'com.google.gms.google-services'

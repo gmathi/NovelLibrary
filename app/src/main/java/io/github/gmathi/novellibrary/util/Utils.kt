@@ -6,14 +6,19 @@ import android.content.Context.ACTIVITY_SERVICE
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.VectorDrawable
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.support.annotation.DrawableRes
+import android.support.graphics.drawable.VectorDrawableCompat
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
+import android.support.v7.content.res.AppCompatResources
 import android.util.TypedValue
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.BuildConfig
@@ -79,7 +84,7 @@ object Utils {
         val uri = Uri.parse(url)
         val path = context.filesDir
 
-        val dirName = uri.host.writableFileName()
+        val dirName = (uri.host ?: "NoHostNameFound").writableFileName()
         val hostDir = File(path, dirName)
         if (!hostDir.exists()) hostDir.mkdir()
 
@@ -221,5 +226,21 @@ object Utils {
 
     fun getCurrentFormattedDate() = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date())
 
+    fun getBitmapFromDrawable(context: Context, @DrawableRes drawableId: Int): Bitmap {
+        val drawable = AppCompatResources.getDrawable(context, drawableId)
+
+        if (drawable is BitmapDrawable) {
+            return drawable.bitmap
+        } else if (drawable is VectorDrawableCompat || drawable is VectorDrawable) {
+            val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            drawable.setBounds(0, 0, canvas.width, canvas.height)
+            drawable.draw(canvas)
+
+            return bitmap
+        } else {
+            throw IllegalArgumentException("unsupported drawable type")
+        }
+    }
 
 }

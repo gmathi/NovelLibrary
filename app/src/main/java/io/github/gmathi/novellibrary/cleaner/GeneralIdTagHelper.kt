@@ -16,6 +16,9 @@ class GeneralIdTagHelper(private val hostName: String, val tagName: String, val 
         var contentElement = doc.body().getElementsByTag(tagName).firstOrNull { it.id() == id }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
 
+        if (id == "chapter-content") //Not sure how it behaves on other Ids/tags i.e. websites
+            cleanClassAndIds(contentElement)
+
         if (!dataCenter.enableDirectionalLinks)
             removeDirectionalLinks(contentElement)
 
@@ -42,10 +45,10 @@ class GeneralIdTagHelper(private val hostName: String, val tagName: String, val 
 
     }
 
-    override fun downloadImage(element: Element, dir: File): File? {
+    override fun downloadImage(element: Element, file: File): File? {
         val uri = Uri.parse(element.attr("src"))
         return if (uri.toString().contains("uploads/avatars")) null
-        else super.downloadImage(element, dir)
+        else super.downloadImage(element, file)
     }
 
     override fun removeJS(doc: Document) {
