@@ -11,9 +11,11 @@ import android.support.multidex.MultiDexApplication
 import android.support.v7.app.AppCompatDelegate
 import android.util.Log
 import android.webkit.WebView
+import com.crashlytics.android.Crashlytics
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.security.ProviderInstaller
 import com.squareup.leakcanary.LeakCanary
+import io.fabric.sdk.android.Fabric
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.HostNames.USER_AGENT
@@ -57,6 +59,11 @@ class NovelLibraryApplication : MultiDexApplication() {
         dbHelper?.deleteWebPages(-1L)
         dbHelper?.deleteWebPageSettings(-1L)
 
+        try {
+            Fabric.with(this, Crashlytics())
+        } catch (e: Exception) {
+            //Do Nothing
+        }
 //        dataCenter?.isDeveloper = true
 //        dataCenter?.lockRoyalRoad = false
 //
