@@ -6,14 +6,12 @@ import android.os.Parcelable
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.view.*
-import android.widget.Toast
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.hanks.library.AnimateCheckBox
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ChaptersPagerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapterSelectTitleProvider
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.startReaderDBPagerActivity
@@ -21,7 +19,7 @@ import io.github.gmathi.novellibrary.extensions.startWebViewActivity
 import io.github.gmathi.novellibrary.model.*
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
-import kotlinx.android.synthetic.main.content_source_chapters.*
+import kotlinx.android.synthetic.main.fragment_source_chapters.*
 import kotlinx.android.synthetic.main.listitem_chapter.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -61,7 +59,7 @@ class ChaptersFragment : BaseFragment(),
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-            inflater.inflate(R.layout.content_source_chapters, container, false)
+            inflater.inflate(R.layout.fragment_source_chapters, container, false)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
