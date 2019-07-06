@@ -203,7 +203,7 @@ open class HtmlHelper protected constructor() {
         }
 
         val fontFamily = fontName.substring(0, fontName.lastIndexOf("."))
-        val nightModeTextBrightness = 1
+        val nightModeTextBrightness = 0
         doc.head().getElementById("darkTheme")?.remove()
         doc.head().append("""
             <style id="darkTheme">
@@ -216,7 +216,7 @@ open class HtmlHelper protected constructor() {
                 }
                 body {
                     ${if (isDark) "background-color" else "color"}: #3A3A3A;
-                    ${if (isDark) "color" else "background-color"}: rgba(200, 200, 200, .$nightModeTextBrightness);
+                    ${if (isDark) "color" else "background-color"}: rgba(200, 200, 200, 1.$nightModeTextBrightness);
                     font-family: '$fontFamily';
                     line-height: 1.3;
                     padding: 3px;
