@@ -33,6 +33,7 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         private const val POSITION_ENABLE_CLUSTER_PAGES = 8
         private const val POSITION_DIRECTIONAL_LINKS = 9
         private const val POSITION_READER_MODE_BUTTON_VISIBILITY = 10
+        private const val POSITION_ALT_DARK_THEME = 11
     }
 
     lateinit var adapter: GenericAdapter<String>
@@ -131,6 +132,11 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.isReaderModeButtonVisible
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.isReaderModeButtonVisible = value }
+            }
+            POSITION_ALT_DARK_THEME -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.isAltTheme
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.isAltTheme = value }
             }
         }
 

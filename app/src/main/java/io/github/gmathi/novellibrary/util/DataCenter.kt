@@ -22,6 +22,7 @@ class DataCenter(context: Context) {
         private const val NOVEL_HISTORY_LIST = "novelHistoryList"
 
         private const val IS_DARK_THEME = "isDarkTheme"
+        private const val IS_ALT_THEME = "isAltTheme"
         private const val DOWNLOAD_LATEST_FIRST = "downloadLatestFirst"
         private const val EXPERIMENTAL_DOWNLOAD = "experimentalDownload"
         private const val QUEUE_NOVEL_DOWNLOADS = "queueNovelDownloads"
@@ -78,6 +79,10 @@ class DataCenter(context: Context) {
     var isDarkTheme: Boolean
         get() = prefs.getBoolean(IS_DARK_THEME, true)
         set(value) = prefs.edit().putBoolean(IS_DARK_THEME, value).apply()
+
+    var isAltTheme: Boolean
+        get() = prefs.getBoolean(IS_ALT_THEME, false)
+        set(value) = prefs.edit().putBoolean(IS_ALT_THEME, value).apply()
 
     var isDeveloper: Boolean
         get() = prefs.getBoolean(DEVELOPER, false)

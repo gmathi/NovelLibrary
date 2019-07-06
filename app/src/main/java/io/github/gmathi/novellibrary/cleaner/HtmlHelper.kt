@@ -5,11 +5,8 @@ import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
-import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.getFileName
-import io.github.gmathi.novellibrary.util.writableFileName
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -203,7 +200,8 @@ open class HtmlHelper protected constructor() {
         }
 
         val fontFamily = fontName.substring(0, fontName.lastIndexOf("."))
-        val nightModeTextBrightness = 0
+        val isAltTheme = dataCenter.isAltTheme
+        val nightModeTextBrightness = if(isAltTheme) 1.0 else .87
         doc.head().getElementById("darkTheme")?.remove()
         doc.head().append("""
             <style id="darkTheme">
@@ -215,15 +213,15 @@ open class HtmlHelper protected constructor() {
                     scroll-behavior: smooth;
                 }
                 body {
-                    ${if (isDark) "background-color" else "color"}: #3A3A3A;
-                    ${if (isDark) "color" else "background-color"}: rgba(200, 200, 200, 1.$nightModeTextBrightness);
+                    ${if (isDark) "background-color" else "color"}:${if (isAltTheme) "#3A3A3A" else "#000"};
+                    ${if (isDark) "color" else "background-color"}:${if (isAltTheme) "rgba(200, 200, 200, $nightModeTextBrightness)" else "rgba(255, 255, 255, $nightModeTextBrightness)"};
                     font-family: '$fontFamily';
-                    line-height: 1.3;
-                    padding: 3px;
+                    line-height:${if (isAltTheme) "1.3" else "1.5"};
+                    padding:${if (isAltTheme) "3px" else "20px"};
                     text-align: left;
                 }
                 a {
-                    color: rgba(${if (isDark) "135, 206, 250" else "0, 0, 238"}, .$nightModeTextBrightness);
+                    color: rgba(${if (isDark) "135, 206, 250" else "0, 0, 238"}, $nightModeTextBrightness);
                 }
                 table {
                     background: #004b7a;

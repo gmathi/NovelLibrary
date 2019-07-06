@@ -111,6 +111,7 @@
         <item>@string/merge_pages</item>
         <item>@string/directional_links</item>
         <item>@string/reader_mode_button_visibility</item>
+        <item>@string/alt_dark_mode</item>
     </string-array>
 
     <string-array name="reader_subtitles_list" translatable="false">
@@ -125,6 +126,7 @@
         <item>@string/merge_pages_description</item>
         <item>@string/directional_links_description</item>
         <item>@string/reader_mode_button_visibility_description</item>
+        <item>@string/alt_dark_mode_description</item>
     </string-array>
 
     <string-array name="reader_mode_menu_titles_list" translatable="false">
@@ -478,5 +480,7 @@
     <string name="previous_chapter">Previous Chapter</string>
     <string name="next_chapter">Next Chapter</string>
     <string name="connection_error">Connection Error!</string>
+    <string name="alt_dark_mode_description">ALT Dark Mode(Only Works When Dark Mode is Enabled)</string>
+    <string name="alt_dark_mode">ALT Dark Mode</string>
 
 </resources>
