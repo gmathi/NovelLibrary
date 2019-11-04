@@ -2,8 +2,8 @@ package io.github.gmathi.novellibrary.activity
 
 import android.content.Intent
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
-import android.support.v7.view.ActionMode
+import androidx.core.content.ContextCompat
+import androidx.appcompat.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
 import co.metalab.asyncawait.async

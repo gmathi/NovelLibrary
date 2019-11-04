@@ -12,7 +12,7 @@
         android:background="@drawable/corner_radius_novel_item"
         android:padding="4dp">
 
-        <android.support.v7.widget.CardView
+        <androidx.cardview.widget.CardView
             android:id="@+id/novelImageViewLayout"
             android:layout_width="52dp"
             android:layout_height="52dp"
@@ -28,7 +28,7 @@
                 android:layout_margin="1dp"
                 android:scaleType="centerCrop"
                 />
-        </android.support.v7.widget.CardView>
+        </androidx.cardview.widget.CardView>
 
 
         <LinearLayout

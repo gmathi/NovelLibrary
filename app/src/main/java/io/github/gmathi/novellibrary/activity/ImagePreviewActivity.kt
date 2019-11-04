@@ -1,9 +1,9 @@
 package io.github.gmathi.novellibrary.activity
 
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Build
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
+import androidx.core.content.ContextCompat
 import android.view.View
 import com.bumptech.glide.Glide
 import io.github.gmathi.novellibrary.R

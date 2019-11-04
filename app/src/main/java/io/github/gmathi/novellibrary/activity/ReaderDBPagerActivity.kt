@@ -6,10 +6,10 @@ import android.animation.ObjectAnimator
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.os.*
-import android.support.v4.content.ContextCompat
-import android.support.v4.view.ViewPager
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
+import androidx.core.content.ContextCompat
+import androidx.viewpager.widget.ViewPager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager

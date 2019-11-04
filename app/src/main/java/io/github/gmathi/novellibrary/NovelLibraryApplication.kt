@@ -6,9 +6,9 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
-import android.support.multidex.MultiDex
-import android.support.multidex.MultiDexApplication
-import android.support.v7.app.AppCompatDelegate
+import androidx.multidex.MultiDex
+import androidx.multidex.MultiDexApplication
+import androidx.appcompat.app.AppCompatDelegate
 import android.util.Log
 import android.webkit.WebView
 import com.crashlytics.android.Crashlytics

@@ -3,9 +3,9 @@ package io.github.gmathi.novellibrary.activity.settings
 import android.annotation.SuppressLint
 import android.graphics.Rect
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.RecyclerView
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.RecyclerView
 import android.view.MenuItem
 import android.view.View
 import io.github.gmathi.novellibrary.R

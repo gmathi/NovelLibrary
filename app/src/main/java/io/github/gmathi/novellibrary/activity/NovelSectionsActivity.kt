@@ -2,12 +2,12 @@ package io.github.gmathi.novellibrary.activity
 
 import android.graphics.Rect
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
-import android.support.v4.view.MotionEventCompat
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.PopupMenu
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.helper.ItemTouchHelper
+import androidx.core.content.ContextCompat
+import androidx.core.view.MotionEventCompat
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.appcompat.widget.PopupMenu
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.ItemTouchHelper
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent

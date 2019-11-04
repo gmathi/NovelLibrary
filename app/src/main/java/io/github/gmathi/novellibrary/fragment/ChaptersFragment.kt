@@ -3,8 +3,8 @@ package io.github.gmathi.novellibrary.fragment
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Parcelable
-import android.support.v4.content.ContextCompat
-import android.support.v7.widget.DividerItemDecoration
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import android.view.*
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
@@ -233,8 +233,8 @@ class ChaptersFragment : BaseFragment(),
         super.onCreateOptionsMenu(menu, menuInflater)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
             R.id.action_sort -> {
                 isSortedAsc = !isSortedAsc
                 setData(shouldScrollToBookmark = false)

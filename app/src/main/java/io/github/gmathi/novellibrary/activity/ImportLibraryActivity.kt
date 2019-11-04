@@ -4,11 +4,11 @@ import android.content.Intent
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.view.ActionMode
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.RecyclerView
+import androidx.core.content.ContextCompat
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ActionMode
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.RecyclerView
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -131,8 +131,8 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
     private fun getUrl(): String? {
         val url = readingListUrlEditText?.text?.toString() ?: return null
         return try {
-            val uri = Uri.parse(url)
-            if (uri.scheme.startsWith("http") && uri.host.contains(HostNames.NOVEL_UPDATES) && uri.pathSegments.contains("readlist"))
+            val uri = Uri.parse(url) ?: return null
+            if (uri.scheme!!.startsWith("http") && uri.host!!.contains(HostNames.NOVEL_UPDATES) && uri.pathSegments.contains("readlist"))
                 url
             else
                 null
