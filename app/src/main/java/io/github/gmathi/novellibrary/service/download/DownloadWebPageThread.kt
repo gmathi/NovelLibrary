@@ -11,7 +11,6 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.writableFileName
-import org.jsoup.helper.StringUtil
 import org.jsoup.nodes.Document
 import java.io.File
 
@@ -61,7 +60,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         }
 
         val uri = Uri.parse(doc.location())
-        if (!StringUtil.isBlank(uri.host)) {
+        if (!uri.host.isNullOrBlank()) {
 
             val htmlHelper = HtmlHelper.getInstance(doc, uri.host ?: doc.location())
             htmlHelper.clean(doc, hostDir, novelDir)
@@ -74,7 +73,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             val otherLinks = htmlHelper.getLinkedChapters(doc)
             if (otherLinks.isNotEmpty()) {
                 val otherWebPages = ArrayList<WebPageSettings>()
-                otherLinks.mapNotNullTo(otherWebPages) { it -> downloadOtherChapterLinks(it, webPage.novelId, hostDir, novelDir) }
+                otherLinks.mapNotNullTo(otherWebPages) { downloadOtherChapterLinks(it, webPage.novelId, hostDir, novelDir) }
                 webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = Gson().toJson(otherLinks)
                 otherWebPages.forEach {
                     dbHelper.createWebPageSettings(it)
@@ -101,7 +100,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         }
 
         val uri = Uri.parse(doc.location())
-        if (StringUtil.isBlank(uri.host)) return null
+        if (uri.host.isNullOrBlank()) return null
 
         val webPageSettings = WebPageSettings(otherChapterLink, novelId)
         val htmlHelper = HtmlHelper.getInstance(doc, uri.host ?: doc.location())

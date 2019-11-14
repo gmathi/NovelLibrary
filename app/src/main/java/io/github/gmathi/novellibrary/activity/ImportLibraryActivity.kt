@@ -132,7 +132,7 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
         val url = readingListUrlEditText?.text?.toString() ?: return null
         return try {
             val uri = Uri.parse(url) ?: return null
-            if (uri.scheme!!.startsWith("http") && uri.host!!.contains(HostNames.NOVEL_UPDATES) && uri.pathSegments.contains("readlist"))
+            if (uri.scheme!!.startsWith("http") && uri.host!!.contains(HostNames.NOVEL_UPDATES))
                 url
             else
                 null

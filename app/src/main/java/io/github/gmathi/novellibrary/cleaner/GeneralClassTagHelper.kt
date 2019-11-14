@@ -14,7 +14,7 @@ class GeneralClassTagHelper(private val hostName: String, private val tagName: S
         doc.head()?.getElementsByTag("style")?.remove()
         doc.head()?.getElementsByTag("link")?.remove()
 
-        var contentElement = doc.body().getElementsByTag(tagName).firstOrNull { it.hasClass(className) }
+        val contentElement = doc.body().getElementsByTag(tagName).firstOrNull { it.hasClass(className) }
         if (appendTitle)
             contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
 
@@ -32,13 +32,18 @@ class GeneralClassTagHelper(private val hostName: String, private val tagName: S
             cleanCSSFromChildren(it)
         }
 
-        do {
-            contentElement?.siblingElements()?.remove()
-            contentElement = contentElement?.parent()
-            cleanClassAndIds(contentElement)
-        } while (contentElement != null && contentElement.tagName() != "body")
-        contentElement?.getElementsByClass("wpcnt")?.remove()
-        contentElement?.getElementById("jp-post-flair")?.remove()
+
+
+        doc.body().children().remove()
+        doc.body().classNames().forEach { doc.body().removeClass(it) }
+        doc.body().append(contentElement?.outerHtml())
+//        do {
+//            contentElement?.siblingElements()?.remove()
+//            contentElement = contentElement?.parent()
+//            cleanClassAndIds(contentElement)
+//        } while (contentElement != null && contentElement.tagName() != "body")
+//        contentElement?.getElementsByClass("wpcnt")?.remove()
+//        contentElement?.getElementById("jp-post-flair")?.remove()
 
         doc.getElementById("custom-background-css")?.remove()
 

@@ -84,7 +84,8 @@ fun getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
                 .post()
 
         var orderId = 0L
-        doc?.getElementsByAttribute("data-id")?.reversed()?.forEach {
+        val elements = doc?.getElementsByAttribute("data-id")
+        elements?.reversed()?.forEach {
 
             val webPageUrl = "https:" + it?.attr("href")
             val webPage = WebPage(webPageUrl, it.getElementsByAttribute("title").attr("title"))
@@ -110,6 +111,8 @@ fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
         val novelUpdatesNovelId = novel.metaData["PostId"]
         val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
 
+
+
         val doc = Jsoup.connect(url)
                 .data("action", "nd_getchapters")
                 .referrer(url)
@@ -121,7 +124,8 @@ fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
                 .post()
 
         var orderId = 0L
-        doc?.getElementsByAttribute("data-id")?.reversed()?.forEach {
+        val elements = doc?.getElementsByAttribute("data-id")
+        elements?.reversed()?.forEach {
 
             val webPageUrl = "https:" + it?.attr("href")
             val webPage = WebPage(webPageUrl, it.getElementsByAttribute("title").attr("title"))
