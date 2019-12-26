@@ -8,7 +8,7 @@ fun NovelApi.searchRoyalRoad(searchTerms: String, pageNumber: Int = 1): ArrayLis
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent("https://www.royalroad.com/fictions/search?keyword=${searchTerms.replace(" ", "+")}&page=$pageNumber")
+        val document = getDocumentWithUserAgent("https://www.royalroad.com/fictions/search?title=${searchTerms.replace(" ", "+")}&page=$pageNumber")
         val elements = document.body().select("li.search-item") ?: return searchResults
         for (element in elements) {
             val urlElement = element.selectFirst("a[href]") ?: continue
