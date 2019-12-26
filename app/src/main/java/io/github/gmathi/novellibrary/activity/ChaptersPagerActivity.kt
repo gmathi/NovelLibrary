@@ -123,10 +123,6 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-
-    }
-
     //region Data
     private fun getChaptersFromDB() {
         async {
