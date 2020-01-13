@@ -99,7 +99,7 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                android:layout_marginTop="-4dp"
+                android:layout_marginTop="-2dp"
                 android:gravity="center_vertical|start"
                 android:textIsSelectable="false"
                 android:textSize="12sp"
