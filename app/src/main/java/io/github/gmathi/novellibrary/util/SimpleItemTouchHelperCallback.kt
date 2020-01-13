@@ -3,20 +3,20 @@ package io.github.gmathi.novellibrary.util
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.ItemTouchHelper
 
-class SimpleItemTouchHelperCallback(private val listener: SimpleItemTouchListener) : ItemTouchHelper.Callback() {
+class SimpleItemTouchHelperCallback(private val listener: SimpleItemTouchListener, private val longPressDragEnabled: Boolean = true, private val itemViewSwipeEnabled: Boolean = true) : ItemTouchHelper.Callback() {
 
     override fun isLongPressDragEnabled(): Boolean {
-        return true
+        return longPressDragEnabled
     }
 
     override fun isItemViewSwipeEnabled(): Boolean {
-        return true
+        return itemViewSwipeEnabled
     }
 
     override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
         val dragFlags = ItemTouchHelper.UP or ItemTouchHelper.DOWN
         val swipeFlags = ItemTouchHelper.END
-        return ItemTouchHelper.Callback.makeMovementFlags(dragFlags, swipeFlags)
+        return makeMovementFlags(dragFlags, swipeFlags)
     }
 
     override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
