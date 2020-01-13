@@ -80,7 +80,7 @@ class ChaptersFragment : BaseFragment(),
         swipeRefreshLayout.isEnabled = false
     }
 
-    private fun setData(shouldScrollToBookmark: Boolean = true) {
+    private fun setData(shouldScrollToBookmark: Boolean = true, shouldScrollToFirstUnread: Boolean = true) {
         val chaptersPagerActivity = activity as? ChaptersPagerActivity
         if (chaptersPagerActivity != null) {
             val chapters = if (sourceId == -1L) chaptersPagerActivity.chapters else chaptersPagerActivity.chapters.filter { it.sourceId == sourceId }
@@ -89,6 +89,8 @@ class ChaptersFragment : BaseFragment(),
                 progressLayout.showContent()
                 if (shouldScrollToBookmark)
                     scrollToBookmark()
+                else if (shouldScrollToFirstUnread)
+                    scrollToFirstUnread(chaptersPagerActivity.chaptersSettings)
                 if (chaptersPagerActivity.dataSet.isNotEmpty()) {
                     lastKnownRecyclerState?.let { recyclerView.layoutManager?.onRestoreInstanceState(it) }
                 }
@@ -100,6 +102,18 @@ class ChaptersFragment : BaseFragment(),
     private fun scrollToBookmark() {
         if (novel.currentWebPageUrl != null) {
             val index = adapter.items.indexOfFirst { it.url == novel.currentWebPageUrl }
+            if (index != -1)
+                recyclerView.scrollToPosition(index)
+        }
+    }
+
+    private fun scrollToFirstUnread(chaptersSettings: ArrayList<WebPageSettings>) {
+        if (novel.currentWebPageUrl != null) {
+            val index =
+            if (isSortedAsc)
+                adapter.items.indexOfFirst { chapter -> chaptersSettings.firstOrNull { it.url == chapter.url && it.isRead == 0 } != null }
+            else
+                adapter.items.indexOfLast { chapter -> chaptersSettings.firstOrNull { it.url == chapter.url && it.isRead == 0 } != null }
             if (index != -1)
                 recyclerView.scrollToPosition(index)
         }
