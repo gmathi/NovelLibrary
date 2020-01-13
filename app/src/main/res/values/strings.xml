@@ -455,7 +455,7 @@
     <string name="title_novel_sections">Novel Sections</string>
     <string name="add_novel_section">Add Novel Section</string>
 
-    <string name="confirm_remove_description_novel_section">Novel Section will be removed and all the novels with be moved to currently reading</string>
+    <string name="confirm_remove_description_novel_section">Novel Section will be removed and all the novels will be moved to currently reading</string>
     <string name="rename">Rename</string>
     <string name="add_novel_section_title">Add Novel Section</string>
     <string name="add_novel_section_description">Enter the name for new Novel Section:</string>

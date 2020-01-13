@@ -80,7 +80,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun setRecyclerView() {
         adapter = GenericAdapter(ArrayList(), R.layout.listitem_library, this)
-        val callback = SimpleItemTouchHelperCallback(this)
+        val callback = SimpleItemTouchHelperCallback(this, longPressDragEnabled = true, itemViewSwipeEnabled = false)
         touchHelper = ItemTouchHelper(callback)
         touchHelper.attachToRecyclerView(recyclerView)
         recyclerView.setDefaults(adapter)
