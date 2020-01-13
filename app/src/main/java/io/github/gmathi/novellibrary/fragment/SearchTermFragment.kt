@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, GenericAdapter.LoadMoreListener {
 
     override var currentPageNumber: Int = 1
+    override val preloadCount:Int = 50
     override val isPageLoading: AtomicBoolean = AtomicBoolean(false)
     private lateinit var searchTerm: String
     private lateinit var resultType: String
@@ -76,7 +77,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
     }
 
     private fun setRecyclerView() {
-        adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_novel, listener = this, loadMoreListener = if (resultType != HostNames.WLN_UPDATES) this else null, preloadCount = 50)
+        adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_novel, listener = this, loadMoreListener = if (resultType != HostNames.WLN_UPDATES) this else null)
         recyclerView.setDefaults(adapter)
         swipeRefreshLayout.setOnRefreshListener { searchNovels() }
     }

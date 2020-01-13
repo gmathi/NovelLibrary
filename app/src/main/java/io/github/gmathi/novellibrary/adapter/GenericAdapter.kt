@@ -9,7 +9,7 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.collections.ArrayList
 
-class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val listener: Listener<T>, var loadMoreListener: LoadMoreListener? = null, val preloadCount: Int = 0) : RecyclerView.Adapter<GenericAdapter.ViewHolder<T>>() {
+class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val listener: Listener<T>, var loadMoreListener: LoadMoreListener? = null) : RecyclerView.Adapter<GenericAdapter.ViewHolder<T>>() {
 
     companion object {
         const val VIEW_TYPE_NORMAL = 0
@@ -21,7 +21,7 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
     override fun onBindViewHolder(holder: ViewHolder<T>, position: Int) = if (position == items.size) holder.loadMore(loadMoreListener) else holder.bind(item = items[position], listener = listener, position = position)
 
     override fun onBindViewHolder(holder: ViewHolder<T>, position: Int, payloads: MutableList<Any>) {
-        if (items.size <= position + preloadCount)
+        if (items.size <= position + (loadMoreListener?.preloadCount ?: 0))
             holder.loadMore(loadMoreListener)
         if (position != items.size)
             holder.bind(item = items[position], listener = listener, position = position, payloads = payloads)
@@ -62,6 +62,7 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
 
     interface LoadMoreListener {
         var currentPageNumber: Int
+        val preloadCount: Int
         val isPageLoading: AtomicBoolean
         fun loadMore()
     }
