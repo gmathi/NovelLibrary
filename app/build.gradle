@@ -20,8 +20,8 @@ android {
         minSdkVersion 21
         targetSdkVersion 29
         multiDexEnabled true
-        versionCode 71
-        versionName "0.9.9.5.beta"
+        versionCode 73
+        versionName "0.9.9.5.beta#patch1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -108,10 +108,10 @@ dependencies {
     implementation "com.google.android.gms:play-services-drive:17.0.0"
     implementation "com.google.android.gms:play-services-auth:17.0.0"
 
-    implementation "com.google.firebase:firebase-messaging:20.0.1"
-    implementation "com.google.firebase:firebase-auth:19.1.0"
+    implementation "com.google.firebase:firebase-messaging:20.1.0"
+    implementation "com.google.firebase:firebase-auth:19.2.0"
     implementation "com.google.firebase:firebase-core:17.2.1"
-    implementation 'com.google.firebase:firebase-config:19.0.3'
+    implementation 'com.google.firebase:firebase-config:19.1.0'
     implementation 'com.google.code.gson:gson:2.8.5'
 
 

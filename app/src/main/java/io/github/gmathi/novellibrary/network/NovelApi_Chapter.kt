@@ -112,41 +112,17 @@ fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
         val novelUpdatesNovelId = novel.metaData["PostId"]
         val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
 
-        val requestBody = MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("mypostid", novelUpdatesNovelId)
-                .addFormDataPart("action", "nd_getchapters")
-                .build()
+        val doc = Jsoup.connect(url)
+                .data("action", "nd_getchapters")
+                .referrer(url)
+                .cookies(CloudFlareByPasser.getCookieMap(HostNames.NOVEL_UPDATES))
+                .ignoreHttpErrors(true)
+                .timeout(30000)
+                .userAgent(HostNames.USER_AGENT)
+                .data("mypostid", novelUpdatesNovelId)
+                .post()
 
-        val request = Request.Builder()
-                .addHeader("Cookie", "yourcookie")
-                .url(url)
-                .post(requestBody)
-                .build()
-
-        val okHttpClient = OkHttpClient()
-        var html = ""
-        //okHttpClient.
-        try {
-            val response = okHttpClient.newCall(request).execute()
-            html = response.body()?.string() ?: ""
-            // Do something with the response.
-        } catch (e: java.lang.Exception) {
-            e.printStackTrace()
-        }
-
-
-//        val doc = Jsoup.connect(url)
-//                .data("action", "nd_getchapters")
-//                .referrer(url)
-//                .cookies(CloudFlareByPasser.getCookieMap(HostNames.NOVEL_UPDATES))
-//                .ignoreHttpErrors(true)
-//                .timeout(30000)
-//                .userAgent(HostNames.USER_AGENT)
-//                .data("mypostid", novelUpdatesNovelId)
-//                .post()
-
-        val doc = Jsoup.parse(html)
+       // val doc = Jsoup.parse(html)
         var orderId = 0L
         val elements = doc?.getElementsByAttribute("data-id")
         elements?.reversed()?.forEach {

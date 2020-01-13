@@ -117,11 +117,11 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             MaterialDialog.Builder(this)
                     .title("\uD83C\uDF89 Merry Christmas!!")
                     .content(//"** Fixed Cloud Flare for 6.0.1**\n\n" +
-                            "✨ Make life easier fixes\n" +
+                            //"✨ Make life easier fixes\n" +
 //                                    "✨ Updated search results to load. (NU Updated their website)\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for crashes in Downloads\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
-//                                    "⚠️ Added Error Logging so users can report crashes.\n" +
+                                    "⚠️ Fix to show sources for the novel chapters.\n" +
 //                                    "✨ Added Hidden Buttons to unlock some hidden functionality!" +
 //                            "\uD83D\uDEE️ Bug Fixes for reported & unreported crashes!" +
                                     "")
