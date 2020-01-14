@@ -68,6 +68,7 @@
         <!--<item>@string/enable_cloud_flare</item>-->
         <item>@string/disable_notifications</item>
         <!--<item>@string/faster_downloads</item>-->
+        <item>@string/change_language</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
@@ -76,6 +77,7 @@
         <!--<item>@string/enable_cloud_flare_description</item>-->
         <item>@string/disable_notifications_description</item>
         <!--<item>@string/faster_downloads_description</item>-->
+        <item>@string/system_default</item>
     </string-array>
 
     <string-array name="backup_and_restore_titles_list" translatable="false">
@@ -478,5 +480,10 @@
     <string name="previous_chapter">Previous Chapter</string>
     <string name="next_chapter">Next Chapter</string>
     <string name="connection_error">Connection Error!</string>
+
+    <!-- v0.9 Strings -->
+
+    <string name="change_language">Language</string>
+    <string name="system_default">System Default</string>
 
 </resources>
