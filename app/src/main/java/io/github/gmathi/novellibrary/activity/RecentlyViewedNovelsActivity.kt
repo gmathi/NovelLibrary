@@ -1,7 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -25,6 +24,8 @@ import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
 
 class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
+
+    override val titleRes: Int? = R.string.title_activity_recently_viewed_novels
 
     lateinit var adapter: GenericAdapter<Novel>
 

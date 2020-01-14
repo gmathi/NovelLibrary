@@ -43,6 +43,8 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         const val TAG = "NovelDetailsActivity"
     }
 
+    override val titleRes: Int? = R.string.title_activity_novel_details
+
     lateinit var novel: Novel
 
     override fun onCreate(savedInstanceState: Bundle?) {

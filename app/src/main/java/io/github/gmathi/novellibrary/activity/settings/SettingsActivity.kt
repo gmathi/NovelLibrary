@@ -2,12 +2,12 @@ package io.github.gmathi.novellibrary.activity.settings
 
 import android.graphics.Color
 import android.os.Bundle
-import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.DividerItemDecoration
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
@@ -40,6 +40,8 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         const val CODE_NAME_RRL = "code_unlock_rrl"
 
     }
+
+    override val titleRes: Int? = R.string.title_activity_settings
 
     lateinit var adapter: GenericAdapter<String>
     private lateinit var settingsItems: ArrayList<String>

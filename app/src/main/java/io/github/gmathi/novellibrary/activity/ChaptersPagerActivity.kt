@@ -1,11 +1,10 @@
 package io.github.gmathi.novellibrary.activity
 
-import android.content.Intent
 import android.os.Bundle
-import androidx.core.content.ContextCompat
-import androidx.appcompat.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
+import androidx.appcompat.view.ActionMode
+import androidx.core.content.ContextCompat
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.google.gson.Gson
@@ -37,6 +36,8 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     companion object {
         private const val TAG = "ChaptersPagerActivity"
     }
+
+    override val titleRes: Int? = R.string.title_activity_chapters
 
     lateinit var novel: Novel
 

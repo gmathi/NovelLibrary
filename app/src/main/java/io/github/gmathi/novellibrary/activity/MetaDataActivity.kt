@@ -19,6 +19,8 @@ import java.util.*
 
 class MetaDataActivity : BaseActivity(), GenericAdapter.Listener<Map.Entry<String, String?>>, TextViewLinkHandler.OnClickListener {
 
+    override val titleRes: Int? = R.string.title_activity_meta_data
+
     lateinit var novel: Novel
     lateinit var adapter: GenericAdapter<Map.Entry<String, String?>>
 
