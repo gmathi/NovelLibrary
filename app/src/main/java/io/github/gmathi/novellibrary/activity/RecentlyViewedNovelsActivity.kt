@@ -24,7 +24,7 @@ import kotlinx.android.synthetic.main.activity_recently_viewed_novels.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
 
-class RecentlyViewedNovelsActivity : AppCompatActivity(), GenericAdapter.Listener<Novel> {
+class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
     lateinit var adapter: GenericAdapter<Novel>
 

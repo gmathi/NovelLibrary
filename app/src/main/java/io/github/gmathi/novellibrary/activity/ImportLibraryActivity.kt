@@ -34,7 +34,7 @@ import kotlinx.android.synthetic.main.content_import_library.*
 import kotlinx.android.synthetic.main.listitem_import_list.view.*
 
 
-class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<ImportListItem>, ActionMode.Callback {
+class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportListItem>, ActionMode.Callback {
 
     lateinit var adapter: GenericAdapter<ImportListItem>
 

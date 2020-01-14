@@ -13,7 +13,7 @@ import kotlinx.android.synthetic.main.activity_image_preview.*
 import java.io.File
 
 
-class ImagePreviewActivity : AppCompatActivity() {
+class ImagePreviewActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

@@ -23,7 +23,7 @@ import kotlinx.android.synthetic.main.activity_recently_updated_novels.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_title_subtitle.view.*
 
-class RecentlyUpdatedNovelsActivity : AppCompatActivity(), GenericAdapter.Listener<RecenlytUpdatedItem> {
+class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<RecenlytUpdatedItem> {
 
     lateinit var adapter: GenericAdapter<RecenlytUpdatedItem>
 
