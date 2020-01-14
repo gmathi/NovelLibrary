@@ -1,15 +1,16 @@
 package io.github.gmathi.novellibrary.activity.settings
 
 import android.annotation.SuppressLint
-import android.graphics.Rect
+import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.os.Bundle
-import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.recyclerview.widget.RecyclerView
 import android.view.MenuItem
 import android.view.View
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
+import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
@@ -19,11 +20,37 @@ import kotlinx.android.synthetic.main.activity_language.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_image_title_subtitle.view.*
 import java.util.*
+import kotlin.system.exitProcess
 
 class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
-    private val languagesMap = HashMap<String, String>()
-    private val languagesImageResourceMap = HashMap<String, Int>()
+    companion object {
+        private val languagesMap = HashMap<String, String>()
+        private val languagesImageResourceMap = HashMap<String, Int>()
+
+        init {
+            languagesMap["English"] = "en_US"
+            languagesMap["German"] = "de_DE"
+            languagesMap["Indonesian"] = "id_ID"
+            languagesMap["Portuguese"] = "pt_BR"
+            languagesMap["Spanish"] = "es_CL"
+            languagesMap["Turkish"] = "tr_TR"
+            languagesMap["French"] = "fr_FR"
+            languagesMap["Tagalog"] = "tr_PH"
+
+            languagesImageResourceMap["System Default"] = android.R.color.transparent
+            languagesImageResourceMap["English"] = R.drawable.flag_us
+            languagesImageResourceMap["German"] = R.drawable.flag_de
+            languagesImageResourceMap["Indonesian"] = R.drawable.flag_id
+            languagesImageResourceMap["Portuguese"] = R.drawable.flag_br
+            languagesImageResourceMap["Spanish"] = R.drawable.flag_cl
+            languagesImageResourceMap["Turkish"] = R.drawable.flag_tr
+            languagesImageResourceMap["French"] = R.drawable.flag_fr
+            languagesImageResourceMap["Tagalog"] = R.drawable.flag_tl
+        }
+    }
+
+    private var changeLanguage: Boolean = false
 
     lateinit var adapter: GenericAdapter<String>
 
@@ -31,34 +58,25 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_language)
         setSupportActionBar(toolbar)
-        setLanguages()
+
+        if (intent.hasExtra("changeLanguage")) {
+            changeLanguage = intent.getBooleanExtra("changeLanguage", false)
+        }
+
+        if (savedInstanceState != null && savedInstanceState.containsKey("changeLanguage")) {
+            changeLanguage = savedInstanceState.getBoolean("changeLanguage")
+        }
+
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = resources.getString(R.string.languages_supported)
         setRecyclerView()
     }
 
-    private fun setLanguages() {
-        languagesMap["English"] = "en_US"
-        languagesMap["German"] = "de_DE"
-        languagesMap["Indonesian"] = "id_ID"
-        languagesMap["Portuguese"] = "pt_BR"
-        languagesMap["Spanish"] = "es_CL"
-        languagesMap["Turkish"] = "tr_TR"
-        languagesMap["French"] = "fr_FR"
-        languagesMap["Tagalog"] = "tr_PH"
-
-        languagesImageResourceMap["English"] = R.drawable.flag_us
-        languagesImageResourceMap["German"] = R.drawable.flag_de
-        languagesImageResourceMap["Indonesian"] = R.drawable.flag_id
-        languagesImageResourceMap["Portuguese"] = R.drawable.flag_br
-        languagesImageResourceMap["Spanish"] = R.drawable.flag_cl
-        languagesImageResourceMap["Turkish"] = R.drawable.flag_tr
-        languagesImageResourceMap["French"] = R.drawable.flag_fr
-        languagesImageResourceMap["Tagalog"] = R.drawable.flag_tl
-    }
-
     private fun setRecyclerView() {
-        adapter = GenericAdapter(items = ArrayList(languagesMap.keys.sorted()), layoutResId = R.layout.listitem_image_title_subtitle, listener = this)
+        val items = ArrayList(languagesMap.keys.sorted())
+        if (changeLanguage)
+            items.add(0, "System Default")
+        adapter = GenericAdapter(items = items, layoutResId = R.layout.listitem_image_title_subtitle, listener = this)
         recyclerView.setDefaults(adapter)
         recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
         swipeRefreshLayout.isEnabled = false
@@ -75,7 +93,17 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     @SuppressLint("NewApi")
     override fun onItemClick(item: String) {
-        dataCenter.language = languagesMap[item]!!
+        if (changeLanguage) {
+            val language = if (item == "System Default") "systemDefault_" else languagesMap[item]!!
+            if (dataCenter.language != language) {
+                dataCenter.language = language
+                val intent = Intent(applicationContext, NavDrawerActivity::class.java)
+                        .addFlags(FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+                finish()
+                exitProcess(0)
+            }
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
@@ -83,4 +111,8 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
         return super.onOptionsItemSelected(item)
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean("changeLanguage", changeLanguage)
+    }
 }
