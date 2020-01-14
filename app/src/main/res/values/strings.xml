@@ -479,4 +479,8 @@
     <string name="next_chapter">Next Chapter</string>
     <string name="connection_error">Connection Error!</string>
 
+    <!-- v0.9 Strings -->
+
+    <string name="change_language">Language</string>
+
 </resources>
