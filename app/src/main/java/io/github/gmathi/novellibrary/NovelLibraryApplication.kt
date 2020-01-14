@@ -5,11 +5,13 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Build
 import androidx.multidex.MultiDex
 import androidx.multidex.MultiDexApplication
 import androidx.appcompat.app.AppCompatDelegate
 import android.util.Log
+import android.view.Display
 import android.webkit.WebView
 import com.crashlytics.android.Crashlytics
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
@@ -20,6 +22,7 @@ import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.HostNames.USER_AGENT
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
+import io.github.gmathi.novellibrary.util.ContextLocaleWrapper
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
@@ -48,6 +51,34 @@ class NovelLibraryApplication : MultiDexApplication() {
         var dbHelper: DBHelper? = null
 
         private const val TAG = "NovelLibraryApplication"
+    }
+
+    /*override fun getApplicationContext(): Context {
+        return ContextLocaleWrapper.wrapContextWithLocale(super.getApplicationContext(), ContextLocaleWrapper.getLanguage())
+    }*/
+
+    override fun getBaseContext(): Context {
+        return ContextLocaleWrapper.wrapContextWithLocale(super.getBaseContext(), ContextLocaleWrapper.getLanguage())
+    }
+
+    override fun createConfigurationContext(overrideConfiguration: Configuration): Context {
+        return ContextLocaleWrapper.wrapContextWithLocale(super.createConfigurationContext(overrideConfiguration), ContextLocaleWrapper.getLanguage())
+    }
+
+    override fun createDeviceProtectedStorageContext(): Context {
+        return ContextLocaleWrapper.wrapContextWithLocale(super.createDeviceProtectedStorageContext(), ContextLocaleWrapper.getLanguage())
+    }
+
+    override fun createDisplayContext(display: Display): Context {
+        return ContextLocaleWrapper.wrapContextWithLocale(super.createDisplayContext(display), ContextLocaleWrapper.getLanguage())
+    }
+
+    override fun createPackageContext(packageName: String?, flags: Int): Context {
+        return ContextLocaleWrapper.wrapContextWithLocale(super.createPackageContext(packageName, flags), ContextLocaleWrapper.getLanguage())
+    }
+
+    override fun createContextForSplit(splitName: String?): Context {
+        return ContextLocaleWrapper.wrapContextWithLocale(super.createContextForSplit(splitName), ContextLocaleWrapper.getLanguage())
     }
 
     override fun onCreate() {
