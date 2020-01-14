@@ -15,13 +15,11 @@ class ContextLocaleWrapper(base: Context)
     companion object {
 
         fun getLanguage(): String {
-            val language: String = try {
+            return try {
                 dataCenter.language.split('_')[0]
             } catch (e: KotlinNullPointerException) {
-                "en"
+                "systemDefault"
             }
-            android.util.Log.i("LANGUAGE!", language)
-            return language
         }
 
         private fun isContextWithLocale(config: Configuration, language: String): Boolean {
@@ -52,7 +50,7 @@ class ContextLocaleWrapper(base: Context)
 
         fun wrapContextWithLocale(context: Context, language: String): ContextWrapper {
             val config: Configuration = context.resources.configuration
-            if (!isContextWithLocale(config, language)) {
+            if (language != "systemDefault" && !isContextWithLocale(config, language)) {
                 val locale = Locale(language)
                 Locale.setDefault(locale)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
