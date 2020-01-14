@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.util
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
@@ -116,8 +117,11 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putBoolean(JAVASCRIPT, value).apply()
 
     var language: String
-        get() = prefs.getString(LANGUAGE, Locale.getDefault().toString())!!
-        set(value) = prefs.edit().putString(LANGUAGE, value).apply()
+        get() = prefs.getString(LANGUAGE, "systemDefault_")!!
+        @SuppressLint("ApplySharedPref")
+        set(value) {
+            prefs.edit().putString(LANGUAGE, value).commit()
+        }
 
     var japSwipe: Boolean
         get() = prefs.getBoolean(JAP_SWIPE, true)
