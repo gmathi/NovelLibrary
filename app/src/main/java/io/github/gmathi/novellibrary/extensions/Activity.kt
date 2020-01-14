@@ -3,11 +3,10 @@ package io.github.gmathi.novellibrary.extensions
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.tapadoo.alerter.Alerter
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.*
@@ -111,8 +110,8 @@ fun AppCompatActivity.startSettingsActivity() {
     startActivityForResult(Intent(this, SettingsActivity::class.java), Constants.SETTINGS_ACT_REQ_CODE)
 }
 
-fun AppCompatActivity.startLanguagesActivity() {
-    startActivityForResult(Intent(this, LanguageActivity::class.java), Constants.LANG_ACT_REQ_CODE)
+fun AppCompatActivity.startLanguagesActivity(changeLanguage: Boolean = false) {
+    startActivityForResult(Intent(this, LanguageActivity::class.java).putExtra("changeLanguage", changeLanguage), Constants.LANG_ACT_REQ_CODE)
 }
 
 fun AppCompatActivity.startGeneralSettingsActivity() {
