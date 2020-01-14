@@ -1,13 +1,15 @@
 package io.github.gmathi.novellibrary.activity.settings
 
 import android.annotation.SuppressLint
-import android.graphics.Rect
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
-import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.recyclerview.widget.RecyclerView
 import android.view.MenuItem
 import android.view.View
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
@@ -19,6 +21,8 @@ import kotlinx.android.synthetic.main.activity_language.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_image_title_subtitle.view.*
 import java.util.*
+import kotlin.system.exitProcess
+
 
 class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
@@ -75,7 +79,16 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     @SuppressLint("NewApi")
     override fun onItemClick(item: String) {
-        dataCenter.language = languagesMap[item]!!
+        val language = languagesMap[item]!!
+        if (dataCenter.language != language) {
+            dataCenter.language = language
+            val mStartActivity = Intent(baseContext, LanguageActivity::class.java)
+            val mPendingIntentId = 123456
+            val mPendingIntent = PendingIntent.getActivity(baseContext, mPendingIntentId, mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT)
+            val mgr = baseContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            mgr[AlarmManager.RTC, System.currentTimeMillis() + 100] = mPendingIntent
+            exitProcess(0)
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
