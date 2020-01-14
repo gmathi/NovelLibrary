@@ -75,7 +75,7 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private fun setRecyclerView() {
         val items = ArrayList(languagesMap.keys.sorted())
         if (changeLanguage)
-            items.add(0, "System Default")
+            items.add(0, resources.getString(R.string.system_default))
         adapter = GenericAdapter(items = items, layoutResId = R.layout.listitem_image_title_subtitle, listener = this)
         recyclerView.setDefaults(adapter)
         recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
@@ -94,7 +94,8 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
     @SuppressLint("NewApi")
     override fun onItemClick(item: String) {
         if (changeLanguage) {
-            val language = if (item == "System Default") "systemDefault_" else languagesMap[item]!!
+            val systemDefault = resources.getString(R.string.system_default)
+            val language = if (item == systemDefault) "systemDefault_" else languagesMap[item]!!
             if (dataCenter.language != language) {
                 dataCenter.language = language
                 val intent = Intent(applicationContext, NavDrawerActivity::class.java)
