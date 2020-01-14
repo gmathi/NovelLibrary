@@ -57,10 +57,10 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
             } catch (e: KotlinNullPointerException) {
                 "systemDefault"
             }
-            if (language != "systemDefault") {
-                val locale = Locale(language)
-                items.set(items.indexOfFirst { it == systemDefault }, locale.displayLanguage)
-            }
+            items[items.indexOfFirst { it == systemDefault }] =
+                    if (language != "systemDefault")
+                        Locale(language).displayLanguage
+                    else systemDefault
         }
         settingsItemsDescription = items
 
