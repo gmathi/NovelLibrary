@@ -2,11 +2,10 @@ package io.github.gmathi.novellibrary.activity
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import androidx.core.content.ContextCompat
-import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.DividerItemDecoration
 import android.view.MenuItem
 import android.view.View
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import co.metalab.asyncawait.async
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
@@ -23,7 +22,7 @@ import kotlinx.android.synthetic.main.activity_recently_updated_novels.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_title_subtitle.view.*
 
-class RecentlyUpdatedNovelsActivity : AppCompatActivity(), GenericAdapter.Listener<RecenlytUpdatedItem> {
+class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<RecenlytUpdatedItem> {
 
     lateinit var adapter: GenericAdapter<RecenlytUpdatedItem>
 

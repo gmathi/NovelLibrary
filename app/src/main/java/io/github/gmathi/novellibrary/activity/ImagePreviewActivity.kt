@@ -1,10 +1,9 @@
 package io.github.gmathi.novellibrary.activity
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Build
 import android.os.Bundle
-import androidx.core.content.ContextCompat
 import android.view.View
+import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
@@ -13,7 +12,7 @@ import kotlinx.android.synthetic.main.activity_image_preview.*
 import java.io.File
 
 
-class ImagePreviewActivity : AppCompatActivity() {
+class ImagePreviewActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

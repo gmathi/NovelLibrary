@@ -1,7 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -24,7 +23,7 @@ import kotlinx.android.synthetic.main.activity_recently_viewed_novels.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
 
-class RecentlyViewedNovelsActivity : AppCompatActivity(), GenericAdapter.Listener<Novel> {
+class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
     lateinit var adapter: GenericAdapter<Novel>
 

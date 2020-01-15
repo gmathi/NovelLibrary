@@ -111,8 +111,8 @@ fun AppCompatActivity.startSettingsActivity() {
     startActivityForResult(Intent(this, SettingsActivity::class.java), Constants.SETTINGS_ACT_REQ_CODE)
 }
 
-fun AppCompatActivity.startLanguagesActivity() {
-    startActivityForResult(Intent(this, LanguageActivity::class.java), Constants.LANG_ACT_REQ_CODE)
+fun AppCompatActivity.startLanguagesActivity(changeLanguage: Boolean = false) {
+    startActivityForResult(Intent(this, LanguageActivity::class.java).putExtra("changeLanguage", changeLanguage), Constants.LANG_ACT_REQ_CODE)
 }
 
 fun AppCompatActivity.startGeneralSettingsActivity() {
