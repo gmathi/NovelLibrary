@@ -1,8 +1,6 @@
 package io.github.gmathi.novellibrary.activity.settings
 
 import android.annotation.SuppressLint
-import android.content.Intent
-import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
@@ -10,17 +8,15 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
-import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.util.LocaleManager.Companion.changeLocale
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_language.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_image_title_subtitle.view.*
 import java.util.*
-import kotlin.system.exitProcess
 
 class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
@@ -93,18 +89,8 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     @SuppressLint("NewApi")
     override fun onItemClick(item: String) {
-        if (changeLanguage) {
-            val systemDefault = resources.getString(R.string.system_default)
-            val language = if (item == systemDefault) "systemDefault_" else languagesMap[item]!!
-            if (dataCenter.language != language) {
-                dataCenter.language = language
-                val intent = Intent(applicationContext, NavDrawerActivity::class.java)
-                        .addFlags(FLAG_ACTIVITY_NEW_TASK)
-                startActivity(intent)
-                finish()
-                exitProcess(0)
-            }
-        }
+        if (changeLanguage)
+            changeLocale(this, if (item == resources.getString(R.string.system_default)) "systemDefault_" else languagesMap[item]!!)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {

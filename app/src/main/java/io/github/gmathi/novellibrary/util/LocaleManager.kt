@@ -2,12 +2,16 @@ package io.github.gmathi.novellibrary.util
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Build
 import android.os.Build.VERSION_CODES.JELLY_BEAN_MR1
+import androidx.appcompat.app.AppCompatActivity
+import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.dataCenter
 import java.util.*
+import kotlin.system.exitProcess
 
 class LocaleManager {
 
@@ -41,6 +45,18 @@ class LocaleManager {
                 }
                 res.updateConfiguration(config, res.displayMetrics)
                 context
+            }
+        }
+
+        fun changeLocale(context: Context, language: String) {
+            if (dataCenter.language != language) {
+                dataCenter.language = language
+                val intent = Intent(context, NavDrawerActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+                if (context is AppCompatActivity)
+                    context.finish()
+                exitProcess(0)
             }
         }
     }
