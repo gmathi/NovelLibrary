@@ -164,7 +164,7 @@ class NovelLibraryApplication : MultiDexApplication() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        attachBaseContext(this)
+        LocaleManager.updateContextLocale(this)
     }
 
 }
