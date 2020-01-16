@@ -26,10 +26,6 @@ import kotlinx.android.synthetic.main.listitem_novel.view.*
 
 class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, GenericAdapter.LoadMoreListener {
 
-    override var currentPageNumber: Int = 1
-    private lateinit var searchUrl: String
-    private lateinit var adapter: GenericAdapter<Novel>
-
     companion object {
         fun newInstance(url: String): SearchUrlFragment {
             val bundle = Bundle()
@@ -40,8 +36,28 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
         }
     }
 
+    override var currentPageNumber: Int = 1
+    private lateinit var searchUrl: String
+    private lateinit var adapter: GenericAdapter<Novel>
+    private val items = ArrayList<Novel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        searchUrl = arguments?.getString("url")!!
+
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey("url"))
+                searchUrl = savedInstanceState.getString("url", searchUrl)
+
+            if (savedInstanceState.containsKey("results") && savedInstanceState.containsKey("page")) {
+                items.clear()
+                @Suppress("UNCHECKED_CAST")
+                items.addAll(savedInstanceState.getSerializable("results") as java.util.ArrayList<Novel>)
+                currentPageNumber = savedInstanceState.getInt("page")
+            }
+        }
+
         setHasOptionsMenu(true)
     }
 
@@ -52,28 +68,17 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         //(activity as AppCompatActivity).setSupportActionBar(null)
-        searchUrl = arguments?.getString("url")!!
+
         setRecyclerView()
 
-        if (savedInstanceState != null) {
-            if (savedInstanceState.containsKey("url")) {
-                searchUrl = savedInstanceState.getString("url", searchUrl)
-            }
-            if (savedInstanceState.containsKey("results") && savedInstanceState.containsKey("page")) {
-                @Suppress("UNCHECKED_CAST")
-                adapter.updateData(savedInstanceState.getSerializable("results") as java.util.ArrayList<Novel>)
-                currentPageNumber = savedInstanceState.getInt("page")
-                progressLayout.showContent()
-                return
-            }
+        if (items.isEmpty()) {
+            progressLayout.showLoading()
+            searchNovels()
         }
-
-        progressLayout.showLoading()
-        searchNovels()
     }
 
     private fun setRecyclerView() {
-        adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_novel, listener = this, loadMoreListener = this)
+        adapter = GenericAdapter(items = this.items, layoutResId = R.layout.listitem_novel, listener = this, loadMoreListener = this)
         recyclerView.setDefaults(adapter)
         swipeRefreshLayout.setOnRefreshListener { searchNovels() }
     }
@@ -174,8 +179,8 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        if (adapter.items.isNotEmpty())
-            outState.putSerializable("results", adapter.items)
+        if (items.isNotEmpty())
+            outState.putSerializable("results", items)
         outState.putSerializable("page", currentPageNumber)
         outState.putString("url", searchUrl)
     }

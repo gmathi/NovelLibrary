@@ -28,6 +28,14 @@ class SearchFragment : BaseFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey("searchTerm"))
+                searchTerm = savedInstanceState.getString("searchTerm")
+            if (savedInstanceState.containsKey("searchMode"))
+                searchMode = savedInstanceState.getBoolean("searchMode")
+        }
+
         setHasOptionsMenu(true)
     }
 
@@ -38,13 +46,6 @@ class SearchFragment : BaseFragment() {
         super.onActivityCreated(savedInstanceState)
 
         setSearchView()
-
-        if (savedInstanceState != null) {
-            if (savedInstanceState.containsKey("searchTerm"))
-                searchTerm = savedInstanceState.getString("searchTerm")
-            if (savedInstanceState.containsKey("searchMode"))
-                searchMode = savedInstanceState.getBoolean("searchMode")
-        }
 
         if (searchMode && searchTerm != null)
             searchNovels(searchTerm!!)

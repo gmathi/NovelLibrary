@@ -41,9 +41,30 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
     private lateinit var searchTerm: String
     private lateinit var resultType: String
     private lateinit var adapter: GenericAdapter<Novel>
+    private val items = ArrayList<Novel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        searchTerm = arguments?.getString("searchTerm")!!
+        resultType = arguments?.getString("resultType")!!
+
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey("searchTerm"))
+                searchTerm = savedInstanceState.getString("searchTerm", searchTerm)
+
+            if (savedInstanceState.containsKey("resultType"))
+                resultType = savedInstanceState.getString("resultType", resultType)
+
+
+            if (savedInstanceState.containsKey("results") && savedInstanceState.containsKey("page")) {
+                items.clear()
+                @Suppress("UNCHECKED_CAST")
+                items.addAll(savedInstanceState.getSerializable("results") as java.util.ArrayList<Novel>)
+                currentPageNumber = savedInstanceState.getInt("page")
+            }
+        }
+
         setHasOptionsMenu(true)
     }
 
@@ -55,30 +76,16 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
         super.onActivityCreated(savedInstanceState)
         //(activity as AppCompatActivity).setSupportActionBar(null)
 
-        searchTerm = arguments?.getString("searchTerm")!!
-        if (savedInstanceState != null && savedInstanceState.containsKey("searchTerm"))
-            searchTerm = savedInstanceState.getString("searchTerm", searchTerm)
-
-        resultType = arguments?.getString("resultType")!!
-        if (savedInstanceState != null && savedInstanceState.containsKey("resultType"))
-            resultType = savedInstanceState.getString("resultType", resultType)
-
         setRecyclerView()
 
-        if (savedInstanceState != null && savedInstanceState.containsKey("results") && savedInstanceState.containsKey("page")) {
-            @Suppress("UNCHECKED_CAST")
-            adapter.updateData(savedInstanceState.getSerializable("results") as java.util.ArrayList<Novel>)
-            currentPageNumber = savedInstanceState.getInt("page")
-            android.util.Log.i("MyState3", "restoring ${adapter.items.count()}/${recyclerView.adapter?.itemCount} items, currentPageNumber=$currentPageNumber, visible=$isVisible")
-            return
+        if (items.isEmpty()) {
+            progressLayout.showLoading()
+            searchNovels()
         }
-
-        progressLayout.showLoading()
-        searchNovels()
     }
 
     private fun setRecyclerView() {
-        adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_novel, listener = this, loadMoreListener = if (resultType != HostNames.WLN_UPDATES) this else null)
+        adapter = GenericAdapter(items = this.items, layoutResId = R.layout.listitem_novel, listener = this, loadMoreListener = if (resultType != HostNames.WLN_UPDATES) this else null)
         recyclerView.setDefaults(adapter)
         swipeRefreshLayout.setOnRefreshListener { searchNovels() }
     }
@@ -189,8 +196,8 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        if (adapter.items.isNotEmpty())
-            outState.putSerializable("results", adapter.items)
+        if (items.isNotEmpty())
+            outState.putSerializable("results", items)
         outState.putInt("page", currentPageNumber)
         outState.putString("searchTerm", searchTerm)
         outState.putString("resultType", resultType)
