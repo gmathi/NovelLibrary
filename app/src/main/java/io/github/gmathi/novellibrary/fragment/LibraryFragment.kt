@@ -39,18 +39,21 @@ import org.greenrobot.eventbus.ThreadMode
 
 class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleItemTouchListener {
 
-    lateinit var adapter: GenericAdapter<Novel>
+    private lateinit var adapter: GenericAdapter<Novel>
+    private val novels: ArrayList<Novel> = ArrayList()
     private lateinit var touchHelper: ItemTouchHelper
 
     private var novelSectionId: Long = -1L
     private var lastDeletedId: Long = -1
-    private var isSorted = false
+    private var isSorted: Boolean? = null
     private var syncDialog: MaterialDialog? = null
 
     companion object {
 
         private const val TAG = "LibraryFragment"
         private const val NOVEL_SECTION_ID = "novelSectionId"
+        private const val NOVELS = "novels"
+        private const val NOVELS_SORTED = "isSorted"
 
         fun newInstance(novelSectionId: Long): LibraryFragment {
             val bundle = Bundle()
@@ -63,6 +66,22 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        novelSectionId = arguments!!.getLong(NOVEL_SECTION_ID)
+
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey(NOVEL_SECTION_ID))
+                novelSectionId = savedInstanceState.getLong(NOVEL_SECTION_ID)
+
+            if (savedInstanceState.containsKey(NOVELS_SORTED))
+                isSorted = savedInstanceState.getBoolean(NOVELS_SORTED)
+
+            if (savedInstanceState.containsKey(NOVELS)) {
+                novels.clear()
+                novels.addAll(savedInstanceState.getParcelableArrayList(NOVELS)!!)
+            }
+        }
+
         setHasOptionsMenu(true)
     }
 
@@ -71,15 +90,17 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        novelSectionId = arguments!!.getLong(NOVEL_SECTION_ID)
 
         setRecyclerView()
-        progressLayout.showLoading()
-        setData()
+
+        if (novels.isEmpty()) {
+            progressLayout.showLoading()
+            setData()
+        }
     }
 
     private fun setRecyclerView() {
-        adapter = GenericAdapter(ArrayList(), R.layout.listitem_library, this)
+        adapter = GenericAdapter(novels, R.layout.listitem_library, this)
         val callback = SimpleItemTouchHelperCallback(this, longPressDragEnabled = true, itemViewSwipeEnabled = false)
         touchHelper = ItemTouchHelper(callback)
         touchHelper.attachToRecyclerView(recyclerView)
@@ -90,6 +111,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     private fun setData() {
+        isSorted = null
         updateOrderIds()
         adapter.updateData(ArrayList(dbHelper.getAllNovels(novelSectionId)))
         if (swipeRefreshLayout != null && progressLayout != null) {
@@ -97,7 +119,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             progressLayout.showContent()
         }
     }
-
 
     //region Adapter Listener Methods - onItemClick(), viewBinder()
 
@@ -229,14 +250,14 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     private fun sortNovelsAlphabetically() {
-        if (adapter.items.isNotEmpty()) {
-            val items = adapter.items
-            if (!isSorted)
-                adapter.updateData(ArrayList(items.sortedWith(compareBy { it.name })))
+        if (novels.isNotEmpty()) {
+            if (isSorted == null)
+                isSorted = novels.asSequence().zipWithNext { a, b -> a.name <= b.name }.all { it }
+            if (!isSorted!!)
+                adapter.updateData(ArrayList(novels.sortedWith(compareBy { it.name })))
             else
-                adapter.updateData(ArrayList(items.sortedWith(compareBy { it.name }).reversed()))
-            isSorted = !isSorted
-            updateOrderIds()
+                adapter.updateData(ArrayList(novels.sortedWith(compareBy { it.name }).reversed()))
+            isSorted = !isSorted!!
         }
     }
 
@@ -261,6 +282,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             val totalCountMap: HashMap<Novel, Int> = HashMap()
 
+            updateOrderIds()
             val novels = dbHelper.getAllNovels(novelSectionId)
             novels.forEach {
                 try {
@@ -309,16 +331,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     override fun onStart() {
         super.onStart()
         EventBus.getDefault().register(this)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        adapter.updateData(ArrayList(dbHelper.getAllNovels(novelSectionId)))
-    }
-
-    override fun onPause() {
-        super.onPause()
-        updateOrderIds()
     }
 
     override fun onStop() {
@@ -399,7 +411,10 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     override fun onItemMove(source: Int, target: Int) {
-        adapter.onItemMove(source, target)
+        if (source != target) {
+            isSorted = null
+            adapter.onItemMove(source, target)
+        }
     }
 
     private fun updateOrderIds() {
@@ -410,6 +425,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     private fun showNovelSectionsList(position: Int) {
+        updateOrderIds()
         val novelSections = ArrayList(dbHelper.getAllNovelSections())
         if (novelSections.isEmpty()) {
             MaterialDialog.Builder(activity!!).content(getString(R.string.no_novel_sections_error)).show()
@@ -447,6 +463,15 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     override fun onDestroy() {
         super.onDestroy()
         async.cancelAll()
+        updateOrderIds()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putLong(NOVEL_SECTION_ID, novelSectionId)
+        outState.putParcelableArrayList(NOVELS, novels)
+        if (isSorted != null)
+            outState.putBoolean(NOVELS_SORTED, isSorted!!)
     }
 
 }
