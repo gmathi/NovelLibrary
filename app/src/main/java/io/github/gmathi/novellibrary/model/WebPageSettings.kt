@@ -1,8 +1,9 @@
 package io.github.gmathi.novellibrary.model
 
-import java.io.Serializable
+import android.os.Parcel
+import android.os.Parcelable
 
-data class WebPageSettings(var url: String, var novelId: Long) : Serializable {
+data class WebPageSettings(var url: String, var novelId: Long) : Parcelable {
 
     var title: String? = null
     var isRead: Int = 0
@@ -31,5 +32,40 @@ data class WebPageSettings(var url: String, var novelId: Long) : Serializable {
     override fun toString(): String {
         return "WebPageSettings(url='$url', novelId=$novelId, title=$title, isRead=$isRead, filePath=$filePath, redirectedUrl=$redirectedUrl, metaData=$metaData)"
     }
+
+    // region Parcelable
+    constructor(parcel: Parcel) : this(parcel.readString()!!, parcel.readLong()) {
+        title = parcel.readString()
+        isRead = parcel.readInt()
+        filePath = parcel.readString()
+        redirectedUrl = parcel.readString()
+        @Suppress("UNCHECKED_CAST")
+        metaData = parcel.readSerializable() as HashMap<String, String?>
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(url)
+        parcel.writeLong(novelId)
+        parcel.writeString(title)
+        parcel.writeInt(isRead)
+        parcel.writeString(filePath)
+        parcel.writeString(redirectedUrl)
+        parcel.writeSerializable(metaData)
+    }
+
+    override fun describeContents(): Int {
+        return hashCode()
+    }
+
+    companion object CREATOR : Parcelable.Creator<WebPageSettings> {
+        override fun createFromParcel(parcel: Parcel): WebPageSettings {
+            return WebPageSettings(parcel)
+        }
+
+        override fun newArray(size: Int): Array<WebPageSettings?> {
+            return arrayOfNulls(size)
+        }
+    }
+    // endregion
 
 }

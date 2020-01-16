@@ -60,7 +60,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
             if (savedInstanceState.containsKey("results") && savedInstanceState.containsKey("page")) {
                 items.clear()
                 @Suppress("UNCHECKED_CAST")
-                items.addAll(savedInstanceState.getSerializable("results") as java.util.ArrayList<Novel>)
+                items.addAll(savedInstanceState.getParcelableArrayList("results")!!)
                 currentPageNumber = savedInstanceState.getInt("page")
             }
         }

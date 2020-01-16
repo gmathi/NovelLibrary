@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import androidx.core.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +12,7 @@ import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import co.metalab.asyncawait.async
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -89,9 +89,9 @@ class WebPageDBFragment : BaseFragment() {
         // Get data from args or savedInstance in case of device rotation
         @Suppress("UNCHECKED_CAST")
         if (savedInstanceState != null && savedInstanceState.containsKey("webPage")) {
-            webPage = savedInstanceState.getSerializable("webPage") as WebPage
-            webPageSettings = savedInstanceState.getSerializable("webPageSettings") as WebPageSettings
-            history = savedInstanceState.getSerializable("history") as ArrayList<WebPageSettings>
+            webPage = savedInstanceState.getParcelable("webPage")
+            webPageSettings = savedInstanceState.getParcelable("webPageSettings")
+            history = savedInstanceState.getParcelableArrayList("history")!!
         } else {
             val novelId = arguments!!.getLong(NOVEL_ID)
             val sourceId = arguments!!.getLong(SOURCE_ID)
@@ -482,9 +482,9 @@ class WebPageDBFragment : BaseFragment() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         if (webPage != null) {
-            outState.putSerializable("webPage", webPage)
-            outState.putSerializable("webPageSettings", webPageSettings)
+            outState.putParcelable("webPage", webPage)
+            outState.putParcelable("webPageSettings", webPageSettings)
         }
-        outState.putSerializable("history", history)
+        outState.putParcelableArrayList("history", history)
     }
 }
