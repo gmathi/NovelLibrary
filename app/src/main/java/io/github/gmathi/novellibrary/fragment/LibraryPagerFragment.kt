@@ -24,6 +24,15 @@ class LibraryPagerFragment : BaseFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        novelSections.clear()
+
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey("novelSections")) {
+                novelSections.clear()
+                novelSections.addAll(savedInstanceState.getParcelableArrayList("novelSections")!!)
+            }
+        }
+
         setHasOptionsMenu(true)
     }
 
@@ -35,22 +44,21 @@ class LibraryPagerFragment : BaseFragment() {
         toolbar.title = getString(R.string.title_library)
         (activity as NavDrawerActivity).setToolbar(toolbar)
 
+        if (novelSections.isEmpty())
+            getNovelSections()
+
         setViewPager()
 
         novelSectionSettings.setOnClickListener {
             startActivityForResult(Intent(activity, NovelSectionsActivity::class.java), Constants.NOVEL_SECTIONS_ACT_REQ_CODE)
         }
 
+        android.util.Log.i("MyState4", "onActivityCreated with ${if (savedInstanceState == null) "null" else "non null"} state")
     }
 
     private fun setViewPager() {
         while (childFragmentManager.backStackEntryCount > 0)
             childFragmentManager.popBackStack()
-
-        //We Manually add this because we want it to be static and the name to be change in different languages
-        novelSections.clear()
-        novelSections.add(NovelSection(-1L, getString(R.string.default_novel_section_name)))
-        novelSections.addAll(dbHelper.getAllNovelSections())
 
         val titles = Array(novelSections.size, init = {
             novelSections[it].name!!
@@ -62,12 +70,25 @@ class LibraryPagerFragment : BaseFragment() {
         tabStrip.setViewPager(viewPager)
     }
 
+    private fun getNovelSections() {
+        novelSections.clear()
+        //We Manually add this because we want it to be static and the name to be change in different languages
+        novelSections.add(NovelSection(-1L, getString(R.string.default_novel_section_name)))
+        novelSections.addAll(dbHelper.getAllNovelSections())
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == Constants.NOVEL_SECTIONS_ACT_REQ_CODE) {
+            getNovelSections()
             setViewPager()
         } else {
             super.onActivityResult(requestCode, resultCode, data)
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putParcelableArrayList("novelSections", novelSections)
     }
 
 }
