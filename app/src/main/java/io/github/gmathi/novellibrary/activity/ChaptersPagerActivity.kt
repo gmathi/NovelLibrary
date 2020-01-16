@@ -1,11 +1,10 @@
 package io.github.gmathi.novellibrary.activity
 
-import android.content.Intent
 import android.os.Bundle
-import androidx.core.content.ContextCompat
-import androidx.appcompat.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
+import androidx.appcompat.view.ActionMode
+import androidx.core.content.ContextCompat
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.google.gson.Gson
@@ -29,7 +28,6 @@ import org.greenrobot.eventbus.EventBus
 import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
-
 
 
 class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
@@ -56,7 +54,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        novel = intent.getSerializableExtra("novel") as Novel
+        novel = intent.getParcelableExtra("novel")!!
         showSources = novel.metaData[Constants.MetaDataKeys.SHOW_SOURCES]?.toBoolean() ?: false
         dbHelper.updateNewReleasesCount(novel.id, 0L)
 

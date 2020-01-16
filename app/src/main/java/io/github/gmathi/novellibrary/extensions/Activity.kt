@@ -3,11 +3,10 @@ package io.github.gmathi.novellibrary.extensions
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.tapadoo.alerter.Alerter
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.*
@@ -48,7 +47,7 @@ fun AppCompatActivity.snackBar(view: View, message: String) {
 fun AppCompatActivity.startChaptersActivity(novel: Novel, jumpToReader: Boolean = false) {
     val intent = Intent(this, ChaptersPagerActivity::class.java)
     val bundle = Bundle()
-    bundle.putSerializable("novel", novel)
+    bundle.putParcelable("novel", novel)
     if (jumpToReader)
         bundle.putBoolean(Constants.JUMP, true)
     intent.putExtras(bundle)
@@ -58,7 +57,7 @@ fun AppCompatActivity.startChaptersActivity(novel: Novel, jumpToReader: Boolean 
 //fun Activity.startOldChaptersActivity(novel: Novel, jumpToReader: Boolean = false) {
 //    val intent = Intent(this, OldChaptersActivity::class.java)
 //    val bundle = Bundle()
-//    bundle.putSerializable("novel", novel)
+//    bundle.putParcelable("novel", novel)
 //    if (jumpToReader)
 //        bundle.putBoolean(Constants.JUMP, true)
 //    intent.putExtras(bundle)
@@ -68,7 +67,7 @@ fun AppCompatActivity.startChaptersActivity(novel: Novel, jumpToReader: Boolean 
 fun AppCompatActivity.startMetadataActivity(novel: Novel) {
     val intent = Intent(this, MetaDataActivity::class.java)
     val bundle = Bundle()
-    bundle.putSerializable("novel", novel)
+    bundle.putParcelable("novel", novel)
     intent.putExtras(bundle)
     startActivityForResult(intent, Constants.METADATA_ACT_REQ_CODE)
 }
@@ -76,7 +75,7 @@ fun AppCompatActivity.startMetadataActivity(novel: Novel) {
 fun AppCompatActivity.startWebViewActivity(url: String) {
     val intent = Intent(this, WebViewActivity::class.java)
     val bundle = Bundle()
-    bundle.putSerializable("url", url)
+    bundle.putString("url", url)
     intent.putExtras(bundle)
     startActivity(intent)
 }
@@ -84,7 +83,7 @@ fun AppCompatActivity.startWebViewActivity(url: String) {
 fun AppCompatActivity.startReaderDBPagerActivity(novel: Novel) {
     val intent = Intent(this, ReaderDBPagerActivity::class.java)
     val bundle = Bundle()
-    bundle.putSerializable("novel", novel)
+    bundle.putParcelable("novel", novel)
     intent.putExtras(bundle)
     startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
 }
@@ -166,7 +165,7 @@ fun AppCompatActivity.startNovelDownloadsActivity() {
 fun AppCompatActivity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean = false) {
     val intent = Intent(this, NovelDetailsActivity::class.java)
     val bundle = Bundle()
-    bundle.putSerializable("novel", novel)
+    bundle.putParcelable("novel", novel)
     if (jumpToReader)
         bundle.putBoolean(Constants.JUMP, true)
     intent.putExtras(bundle)

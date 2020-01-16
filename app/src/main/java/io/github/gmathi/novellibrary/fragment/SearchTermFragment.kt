@@ -197,7 +197,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         if (items.isNotEmpty())
-            outState.putSerializable("results", items)
+            outState.putParcelableArrayList("results", items)
         outState.putInt("page", currentPageNumber)
         outState.putString("searchTerm", searchTerm)
         outState.putString("resultType", resultType)

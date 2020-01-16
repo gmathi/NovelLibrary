@@ -2,9 +2,9 @@ package io.github.gmathi.novellibrary.extensions
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import androidx.appcompat.app.AppCompatActivity
 import android.view.inputmethod.InputMethodManager
+import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import io.github.gmathi.novellibrary.activity.ReaderDBPagerActivity
 import io.github.gmathi.novellibrary.activity.WebViewActivity
 import io.github.gmathi.novellibrary.model.Novel
@@ -23,7 +23,7 @@ fun Fragment.isFragmentActive(): Boolean {
 fun Fragment.startReaderDBPagerActivity(novel: Novel, sourceId: Long) {
     val intent = Intent(context, ReaderDBPagerActivity::class.java)
     val bundle = Bundle()
-    bundle.putSerializable("novel", novel)
+    bundle.putParcelable("novel", novel)
     bundle.putLong("sourceId", sourceId)
     intent.putExtras(bundle)
     startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
@@ -32,7 +32,7 @@ fun Fragment.startReaderDBPagerActivity(novel: Novel, sourceId: Long) {
 fun Fragment.startWebViewActivity(url: String) {
     val intent = Intent(context, WebViewActivity::class.java)
     val bundle = Bundle()
-    bundle.putSerializable("url", url)
+    bundle.putString("url", url)
     intent.putExtras(bundle)
     startActivity(intent)
 }

@@ -29,7 +29,7 @@ class MetaDataActivity : BaseActivity(), GenericAdapter.Listener<Map.Entry<Strin
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        novel = intent.getSerializableExtra("novel") as Novel
+        novel = intent.getParcelableExtra("novel")!!
         setRecyclerView()
 
 

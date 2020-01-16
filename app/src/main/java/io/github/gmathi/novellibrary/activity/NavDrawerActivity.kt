@@ -286,7 +286,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun checkIntentForNotificationData() {
         if (intent.extras != null && intent.extras!!.containsKey("novel")) {
-            val novel = intent.extras!!.getSerializable("novel") as? Novel
+            val novel = intent.extras!!.getParcelable<Novel>("novel")
             novel?.let {
                 intent.extras!!.remove("novel")
                 startChaptersActivity(novel)

@@ -86,7 +86,7 @@ class ReaderDBPagerActivity :
         setContentView(R.layout.activity_reader_pager)
         sourceId = intent.getLongExtra("sourceId", -1L)
 
-        val tempNovel = intent.getSerializableExtra("novel") as Novel?
+        val tempNovel = intent.getParcelableExtra<Novel?>("novel")
         if (tempNovel == null || tempNovel.chaptersCount.toInt() == 0) {
             finish()
             return

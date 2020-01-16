@@ -204,7 +204,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         novelDetailsIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val novelDetailsBundle = Bundle()
         novelDetailsBundle.putInt("currentNavId", R.id.nav_library)
-        novelDetailsBundle.putSerializable("novel", novel)
+        novelDetailsBundle.putParcelable("novel", novel)
         novelDetailsIntent.putExtras(novelDetailsBundle)
         return PendingIntent.getActivity(this.applicationContext, novel.hashCode(), novelDetailsIntent, PendingIntent.FLAG_UPDATE_CURRENT)
     }

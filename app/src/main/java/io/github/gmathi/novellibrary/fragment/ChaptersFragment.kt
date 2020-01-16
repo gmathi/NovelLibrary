@@ -3,9 +3,9 @@ package io.github.gmathi.novellibrary.fragment
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Parcelable
+import android.view.*
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
-import android.view.*
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.hanks.library.AnimateCheckBox
@@ -36,7 +36,7 @@ class ChaptersFragment : BaseFragment(),
 
         fun newInstance(novel: Novel, sourceId: Long): ChaptersFragment {
             val bundle = Bundle()
-            bundle.putSerializable(NOVEL, novel)
+            bundle.putParcelable(NOVEL, novel)
             bundle.putLong(SOURCE_ID, sourceId)
             val fragment = ChaptersFragment()
             fragment.arguments = bundle
@@ -63,7 +63,7 @@ class ChaptersFragment : BaseFragment(),
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        novel = arguments!!.getSerializable(NOVEL) as Novel
+        novel = arguments!!.getParcelable(NOVEL)!!
         sourceId = arguments!!.getLong(SOURCE_ID)
 
         progressLayout.showLoading()

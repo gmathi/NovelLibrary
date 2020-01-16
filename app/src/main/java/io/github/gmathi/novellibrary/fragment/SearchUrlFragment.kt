@@ -52,8 +52,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
 
             if (savedInstanceState.containsKey("results") && savedInstanceState.containsKey("page")) {
                 items.clear()
-                @Suppress("UNCHECKED_CAST")
-                items.addAll(savedInstanceState.getSerializable("results") as java.util.ArrayList<Novel>)
+                items.addAll(savedInstanceState.getParcelableArrayList("results")!!)
                 currentPageNumber = savedInstanceState.getInt("page")
             }
         }
@@ -180,8 +179,8 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         if (items.isNotEmpty())
-            outState.putSerializable("results", items)
-        outState.putSerializable("page", currentPageNumber)
+            outState.putParcelableArrayList("results", items)
+        outState.putInt("page", currentPageNumber)
         outState.putString("url", searchUrl)
     }
 

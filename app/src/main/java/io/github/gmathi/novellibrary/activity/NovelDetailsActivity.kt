@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import androidx.core.content.ContextCompat
 import android.text.Html
 import android.text.Spannable
 import android.text.SpannableString
@@ -19,6 +18,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.Theme
@@ -49,7 +49,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_novel_details)
 
-        novel = intent.getSerializableExtra("novel") as Novel
+        novel = intent.getParcelableExtra("novel")!!
         getNovelInfoDB()
         if (intent.hasExtra(Constants.JUMP))
             startChaptersActivity(novel, true)

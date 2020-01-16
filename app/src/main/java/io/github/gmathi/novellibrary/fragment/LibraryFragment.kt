@@ -4,18 +4,18 @@ import android.content.Intent
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
-import androidx.core.content.ContextCompat
+import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
-import android.view.*
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.tapadoo.alerter.Alerter
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.*
+import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
@@ -350,7 +350,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     private fun startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean) {
         val intent = Intent(activity, NovelDetailsActivity::class.java)
         val bundle = Bundle()
-        bundle.putSerializable("novel", novel)
+        bundle.putParcelable("novel", novel)
         if (jumpToReader)
             bundle.putBoolean(Constants.JUMP, true)
         intent.putExtras(bundle)
