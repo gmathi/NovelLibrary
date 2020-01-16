@@ -5,35 +5,33 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import com.google.android.material.navigation.NavigationView
-import com.google.android.material.snackbar.Snackbar
+import android.util.SparseArray
+import android.view.MenuItem
+import androidx.appcompat.widget.Toolbar
+import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
-import androidx.core.view.GravityCompat
-import androidx.appcompat.widget.Toolbar
-import android.view.MenuItem
-import android.view.ViewTreeObserver
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.crashlytics.android.Crashlytics
-import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
+import com.google.android.material.navigation.NavigationView
+import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
 import io.fabric.sdk.android.Fabric
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
-import kotlinx.android.synthetic.main.nav_header_nav_drawer.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
-import com.google.firebase.auth.FirebaseAuth
-import io.github.gmathi.novellibrary.extensions.*
-import io.github.gmathi.novellibrary.util.Logs
 
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -43,6 +41,8 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
     private var cloudFlareLoadingDialog: MaterialDialog? = null
     private var mAuth: FirebaseAuth? = null
+
+    private val fragments: SparseArray<Fragment> = SparseArray(2)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,10 +78,10 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
         if (Utils.isConnectedToNetwork(this)) {
-            checkForCloudFlare()
+            checkForCloudFlare(savedInstanceState)
         } else {
             checkIntentForNotificationData()
-            loadFragment(currentNavId)
+            loadFragment(currentNavId, savedInstanceState)
             showWhatsNewDialog()
         }
 
@@ -132,7 +132,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    private fun checkForCloudFlare() {
+    private fun checkForCloudFlare(savedInstanceState: Bundle? = null) {
 
         cloudFlareLoadingDialog = Utils
                 .dialogBuilder(this@NavDrawerActivity, content = getString(R.string.cloud_flare_bypass_description), isProgress = true)
@@ -140,7 +140,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 .negativeText("Skip")
                 .onNegative { _, _ ->
                     Crashlytics.log(getString(R.string.cloud_flare_bypass_failure_title))
-                    loadFragment(currentNavId)
+                    loadFragment(currentNavId, savedInstanceState)
                     showWhatsNewDialog()
                     checkIntentForNotificationData()
                 }
@@ -155,7 +155,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
                     if (cloudFlareLoadingDialog?.isShowing == true) {
                         Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
-                        loadFragment(currentNavId)
+                        loadFragment(currentNavId, savedInstanceState)
                         showWhatsNewDialog()
                         checkIntentForNotificationData()
                         cloudFlareLoadingDialog?.dismiss()
@@ -200,14 +200,26 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         return true
     }
 
-    private fun loadFragment(id: Int) {
+    private fun loadFragment(id: Int, savedInstanceState: Bundle? = null) {
         currentNavId = id
         when (id) {
             R.id.nav_library -> {
-                replaceFragment(LibraryPagerFragment(), LibraryPagerFragment::class.toString())
+                val fragment =
+                        when {
+                            fragments[id] != null -> fragments[id]
+                            savedInstanceState == null -> LibraryPagerFragment()
+                            else -> restoreFragment(id, savedInstanceState) ?: LibraryPagerFragment()
+                        }
+                replaceFragment(fragment, LibraryPagerFragment::class.toString(), id)
             }
             R.id.nav_search -> {
-                replaceFragment(SearchFragment(), SearchFragment::class.toString())
+                val fragment =
+                        when {
+                            fragments[id] != null -> fragments[id]
+                            savedInstanceState == null -> SearchFragment()
+                            else -> restoreFragment(id, savedInstanceState) ?: SearchFragment()
+                        }
+                replaceFragment(fragment, SearchFragment::class.toString(), id)
             }
             R.id.nav_downloads -> {
                 startNovelDownloadsActivity()
@@ -228,12 +240,20 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    private fun replaceFragment(fragment: Fragment, tag: String) {
+    private fun replaceFragment(fragment: Fragment, tag: String, id: Int) {
+        fragments.put(id, fragment)
         supportFragmentManager.beginTransaction()
                 .replace(R.id.navFragmentContainer, fragment, tag)
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                 .addToBackStack(tag)
                 .commitAllowingStateLoss()
+    }
+
+    private fun restoreFragment(id: Int, savedInstanceState: Bundle): Fragment? {
+        val fragment =  supportFragmentManager.getFragment(savedInstanceState, id.toString())
+        if (fragment != null)
+            fragments.put(id, fragment)
+        return fragment
     }
 
     fun setToolbar(toolbar: Toolbar?) {
@@ -277,15 +297,14 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt("currentNavId", currentNavId)
+        val fragment = fragments[currentNavId]
+        if (fragment != null)
+            supportFragmentManager.putFragment(outState, currentNavId.toString(), fragment)
     }
 
     override fun onDestroy() {
         async.cancelAll()
         super.onDestroy()
     }
-
-
-
-
 
 }
