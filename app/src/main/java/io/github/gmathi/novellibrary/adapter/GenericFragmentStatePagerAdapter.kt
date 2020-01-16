@@ -6,7 +6,7 @@ import androidx.fragment.app.FragmentStatePagerAdapter
 import java.util.*
 
 
-class GenericFragmentStatePagerAdapter(manager: FragmentManager, private val titles: Array<String>?, private val pagerCount: Int, val listener: Listener) : FragmentStatePagerAdapter(manager) {
+class GenericFragmentStatePagerAdapter(manager: FragmentManager, private val titles: Array<String>?, private val pagerCount: Int, val listener: Listener) : FragmentStatePagerAdapter(manager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
     override fun getItem(position: Int): Fragment = listener.getFragmentForItem(position)
 
