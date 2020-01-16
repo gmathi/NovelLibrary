@@ -1,11 +1,11 @@
 package io.github.gmathi.novellibrary.fragment
 
 import android.os.Bundle
-import androidx.core.content.ContextCompat
-import androidx.appcompat.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import co.metalab.asyncawait.async
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -28,6 +28,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
 
     override var currentPageNumber: Int = 1
     private lateinit var searchUrl: String
+    private lateinit var adapter: GenericAdapter<Novel>
 
     companion object {
         fun newInstance(url: String): SearchUrlFragment {
@@ -38,8 +39,6 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
             return fragment
         }
     }
-
-    lateinit var adapter: GenericAdapter<Novel>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,9 +56,14 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
         setRecyclerView()
 
         if (savedInstanceState != null) {
-            if (savedInstanceState.containsKey("results")) {
+            if (savedInstanceState.containsKey("url")) {
+                searchUrl = savedInstanceState.getString("url", searchUrl)
+            }
+            if (savedInstanceState.containsKey("results") && savedInstanceState.containsKey("page")) {
                 @Suppress("UNCHECKED_CAST")
                 adapter.updateData(savedInstanceState.getSerializable("results") as java.util.ArrayList<Novel>)
+                currentPageNumber = savedInstanceState.getInt("page")
+                progressLayout.showContent()
                 return
             }
         }
@@ -172,6 +176,8 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
         super.onSaveInstanceState(outState)
         if (adapter.items.isNotEmpty())
             outState.putSerializable("results", adapter.items)
+        outState.putSerializable("page", currentPageNumber)
+        outState.putString("url", searchUrl)
     }
 
 

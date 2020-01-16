@@ -1,11 +1,11 @@
 package io.github.gmathi.novellibrary.fragment
 
 import android.os.Bundle
-import androidx.core.content.ContextCompat
-import androidx.appcompat.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import co.metalab.asyncawait.async
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -26,10 +26,6 @@ import java.net.URLEncoder
 
 class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, GenericAdapter.LoadMoreListener {
 
-    override var currentPageNumber: Int = 1
-    private lateinit var searchTerm: String
-    private lateinit var resultType: String
-
     companion object {
         fun newInstance(searchTerms: String, resultType: String): SearchTermFragment {
             val bundle = Bundle()
@@ -41,7 +37,10 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
         }
     }
 
-    lateinit var adapter: GenericAdapter<Novel>
+    override var currentPageNumber: Int = 1
+    private lateinit var searchTerm: String
+    private lateinit var resultType: String
+    private lateinit var adapter: GenericAdapter<Novel>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,16 +56,21 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
         //(activity as AppCompatActivity).setSupportActionBar(null)
 
         searchTerm = arguments?.getString("searchTerm")!!
+        if (savedInstanceState != null && savedInstanceState.containsKey("searchTerm"))
+            searchTerm = savedInstanceState.getString("searchTerm", searchTerm)
+
         resultType = arguments?.getString("resultType")!!
+        if (savedInstanceState != null && savedInstanceState.containsKey("resultType"))
+            resultType = savedInstanceState.getString("resultType", resultType)
 
         setRecyclerView()
 
-        if (savedInstanceState != null) {
-            if (savedInstanceState.containsKey("results")) {
-                @Suppress("UNCHECKED_CAST")
-                adapter.updateData(savedInstanceState.getSerializable("results") as java.util.ArrayList<Novel>)
-                return
-            }
+        if (savedInstanceState != null && savedInstanceState.containsKey("results") && savedInstanceState.containsKey("page")) {
+            @Suppress("UNCHECKED_CAST")
+            adapter.updateData(savedInstanceState.getSerializable("results") as java.util.ArrayList<Novel>)
+            currentPageNumber = savedInstanceState.getInt("page")
+            android.util.Log.i("MyState3", "restoring ${adapter.items.count()}/${recyclerView.adapter?.itemCount} items, currentPageNumber=$currentPageNumber, visible=$isVisible")
+            return
         }
 
         progressLayout.showLoading()
@@ -187,6 +191,9 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
         super.onSaveInstanceState(outState)
         if (adapter.items.isNotEmpty())
             outState.putSerializable("results", adapter.items)
+        outState.putInt("page", currentPageNumber)
+        outState.putString("searchTerm", searchTerm)
+        outState.putString("resultType", resultType)
     }
 
 }
