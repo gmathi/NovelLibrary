@@ -23,14 +23,11 @@ import android.app.PendingIntent
 import android.content.Context
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build
-import android.support.annotation.RequiresApi
-import android.support.v4.app.NotificationCompat
-import android.support.v4.content.ContextCompat
-import android.support.v4.media.session.MediaButtonReceiver
+import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
-import android.support.v4.media.session.PlaybackStateCompat
-import android.support.v7.content.res.AppCompatResources
+import androidx.appcompat.content.res.AppCompatResources
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.extensions.isPlaying
 
@@ -96,7 +93,7 @@ class TTSNotificationBuilder(private val context: Context, private val pendingIn
         }
 
 
-        val mediaStyle = android.support.v4.media.app.NotificationCompat.MediaStyle()
+        val mediaStyle = androidx.media.app.NotificationCompat.MediaStyle()
                 .setCancelButtonIntent(stopPendingIntent)
                 .setMediaSession(sessionToken)
                 .setShowActionsInCompactView(1)

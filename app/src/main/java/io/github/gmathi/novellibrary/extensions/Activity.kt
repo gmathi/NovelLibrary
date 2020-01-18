@@ -3,8 +3,8 @@ package io.github.gmathi.novellibrary.extensions
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.support.design.widget.Snackbar
-import android.support.v7.app.AppCompatActivity
+import com.google.android.material.snackbar.Snackbar
+import androidx.appcompat.app.AppCompatActivity
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
@@ -41,7 +41,7 @@ fun AppCompatActivity.toast(message: String) {
 }
 
 fun AppCompatActivity.snackBar(view: View, message: String) {
-    Snackbar.make(view, message, Snackbar.LENGTH_LONG)
+    com.google.android.material.snackbar.Snackbar.make(view, message, com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
             .setAction("Action", null).show()
 }
 
@@ -111,8 +111,8 @@ fun AppCompatActivity.startSettingsActivity() {
     startActivityForResult(Intent(this, SettingsActivity::class.java), Constants.SETTINGS_ACT_REQ_CODE)
 }
 
-fun AppCompatActivity.startLanguagesActivity() {
-    startActivityForResult(Intent(this, LanguageActivity::class.java), Constants.LANG_ACT_REQ_CODE)
+fun AppCompatActivity.startLanguagesActivity(changeLanguage: Boolean = false) {
+    startActivityForResult(Intent(this, LanguageActivity::class.java).putExtra("changeLanguage", changeLanguage), Constants.LANG_ACT_REQ_CODE)
 }
 
 fun AppCompatActivity.startGeneralSettingsActivity() {

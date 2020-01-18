@@ -6,6 +6,7 @@ import io.github.gmathi.novellibrary.database.getSource
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
+import okhttp3.*
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.net.URI
@@ -84,7 +85,8 @@ fun getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
                 .post()
 
         var orderId = 0L
-        doc?.getElementsByAttribute("data-id")?.reversed()?.forEach {
+        val elements = doc?.getElementsByAttribute("data-id")
+        elements?.reversed()?.forEach {
 
             val webPageUrl = "https:" + it?.attr("href")
             val webPage = WebPage(webPageUrl, it.getElementsByAttribute("title").attr("title"))
@@ -120,8 +122,10 @@ fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
                 .data("mypostid", novelUpdatesNovelId)
                 .post()
 
+       // val doc = Jsoup.parse(html)
         var orderId = 0L
-        doc?.getElementsByAttribute("data-id")?.reversed()?.forEach {
+        val elements = doc?.getElementsByAttribute("data-id")
+        elements?.reversed()?.forEach {
 
             val webPageUrl = "https:" + it?.attr("href")
             val webPage = WebPage(webPageUrl, it.getElementsByAttribute("title").attr("title"))

@@ -1,16 +1,18 @@
 package io.github.gmathi.novellibrary.activity.settings
 
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
-import android.support.v7.widget.DividerItemDecoration
 import android.view.MenuItem
 import android.view.View
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
-import io.github.gmathi.novellibrary.extensions.startBackupSettingsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.extensions.startBackupSettingsActivity
+import io.github.gmathi.novellibrary.extensions.startLanguagesActivity
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
+import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
@@ -46,8 +48,23 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     }
 
     private fun setRecyclerView() {
-        settingsItems = ArrayList(resources.getStringArray(io.github.gmathi.novellibrary.R.array.general_titles_list).asList())
-        settingsItemsDescription = ArrayList(resources.getStringArray(io.github.gmathi.novellibrary.R.array.general_subtitles_list).asList())
+        settingsItems = ArrayList(resources.getStringArray(R.array.general_titles_list).asList())
+
+        val items = ArrayList(resources.getStringArray(R.array.general_subtitles_list).asList())
+        val systemDefault = resources.getString(R.string.system_default)
+        if (items.contains(systemDefault)) {
+            val language = try {
+                dataCenter.language
+            } catch (e: KotlinNullPointerException) {
+                SYSTEM_DEFAULT
+            }
+            items[items.indexOfFirst { it == systemDefault }] =
+                    if (language != SYSTEM_DEFAULT)
+                        Locale(language).displayLanguage
+                    else systemDefault
+        }
+        settingsItemsDescription = items
+
         adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
         recyclerView.setDefaults(adapter)
         recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
@@ -103,8 +120,9 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     }
 
     override fun onItemClick(item: String) {
-        if (item == getString(R.string.backup_and_restore)) {
-            startBackupSettingsActivity()
+        when (item) {
+            getString(R.string.backup_and_restore) -> startBackupSettingsActivity()
+            getString(R.string.change_language) -> startLanguagesActivity(true)
         }
     }
 

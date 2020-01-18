@@ -1,13 +1,14 @@
 package io.github.gmathi.novellibrary.network
 
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.util.addPageNumberToUrl
 
 
 fun NovelApi.searchRoyalRoad(searchTerms: String, pageNumber: Int = 1): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent("https://www.royalroad.com/fictions/search?keyword=${searchTerms.replace(" ", "+")}&page=$pageNumber")
+        val document = getDocumentWithUserAgent("https://www.royalroad.com/fictions/search?title=${searchTerms.replace(" ", "+")}&page=$pageNumber")
         val elements = document.body().select("li.search-item") ?: return searchResults
         for (element in elements) {
             val urlElement = element.selectFirst("a[href]") ?: continue
@@ -55,6 +56,31 @@ fun NovelApi.searchNovelUpdates(searchTerms: String, pageNumber: Int = 1): Array
     }
     return searchResults
 }
+
+fun NovelApi.searchNovelUpdates_New(searchTerms: String, pageNumber: Int = 1): ArrayList<Novel>? {
+    var searchResults: ArrayList<Novel>? = null
+    try {
+        searchResults = ArrayList()
+        val document = getDocumentWithUserAgent("https://www.novelupdates.com/page/$pageNumber/?s=${searchTerms.replace(" ", "+")}")
+        val elements = document.body().select("div.search_main_box_nu") ?: return searchResults
+        for (element in elements) {
+            val novelName = element.selectFirst("div.search_title > a")?.text() ?: continue
+            val novelUrl = element.selectFirst("div.search_title > a")?.attr("abs:href") ?: continue
+            val novel = Novel(novelName, novelUrl)
+            novel.imageUrl = element.selectFirst("div.search_img_nu > img[src]")?.attr("abs:src")
+
+//            val ratingsElement = element.selectFirst("div.search_ratings") ?: continue
+//            ratingsElement.children().remove()
+            novel.rating = element.select("span.search_ratings").text().trim().replace("(", "").replace(")", "")
+            searchResults.add(novel)
+        }
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return searchResults
+}
+
 
 fun NovelApi.searchWlnUpdates(searchTerms: String): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null

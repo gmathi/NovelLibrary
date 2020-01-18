@@ -5,12 +5,12 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.support.design.widget.NavigationView
-import android.support.design.widget.Snackbar
-import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentTransaction
-import android.support.v4.view.GravityCompat
-import android.support.v7.widget.Toolbar
+import com.google.android.material.navigation.NavigationView
+import com.google.android.material.snackbar.Snackbar
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
+import androidx.core.view.GravityCompat
+import androidx.appcompat.widget.Toolbar
 import android.view.MenuItem
 import android.view.ViewTreeObserver
 import co.metalab.asyncawait.async
@@ -115,13 +115,13 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                    .title("📢 What's New! 0.9.9.1.beta")
+                    .title("\uD83C\uDF89 Merry Christmas!!")
                     .content(//"** Fixed Cloud Flare for 6.0.1**\n\n" +
-                            "✨ Updated TTS to pause and play\n" +
-                                    "✨ Updated search results to load infinitely instead of just the 1st page. \n" +
-                                    "\uD83D\uDEE0 Bug Fixes for crashes in Downloads\n" +
-                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
-                                    "⚠️ Added Error Logging so users can report crashes.\n" +
+                            //"✨ Make life easier fixes\n" +
+//                                    "✨ Updated search results to load. (NU Updated their website)\n" +
+//                                    "\uD83D\uDEE0 Bug Fixes for crashes in Downloads\n" +
+//                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
+                                    "⚠️ Fix to show sources for the novel chapters.\n" +
 //                                    "✨ Added Hidden Buttons to unlock some hidden functionality!" +
 //                            "\uD83D\uDEE️ Bug Fixes for reported & unreported crashes!" +
                                     "")
@@ -265,18 +265,18 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun checkIntentForNotificationData() {
-        if (intent.extras != null && intent.extras.containsKey("novel")) {
-            val novel = intent.extras.getSerializable("novel") as? Novel
+        if (intent.extras != null && intent.extras!!.containsKey("novel")) {
+            val novel = intent.extras!!.getSerializable("novel") as? Novel
             novel?.let {
-                intent.extras.remove("novel")
+                intent.extras!!.remove("novel")
                 startChaptersActivity(novel)
             }
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
+    override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState?.putInt("currentNavId", currentNavId)
+        outState.putInt("currentNavId", currentNavId)
     }
 
     override fun onDestroy() {

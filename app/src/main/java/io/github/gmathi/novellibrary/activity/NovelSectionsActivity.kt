@@ -1,17 +1,15 @@
 package io.github.gmathi.novellibrary.activity
 
-import android.graphics.Rect
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
-import android.support.v4.view.MotionEventCompat
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.PopupMenu
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.helper.ItemTouchHelper
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
+import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.ContextCompat
+import androidx.core.view.MotionEventCompat
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.ItemTouchHelper
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
@@ -25,7 +23,6 @@ import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_novel_sections.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_novel_section.view.*
-import org.jsoup.helper.StringUtil
 
 class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSection>, SimpleItemTouchListener {
 
@@ -172,7 +169,7 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                 .title(getString(R.string.rename))
                 .input(getString(R.string.novel_section_name), novelSection.name) { dialog, input ->
                     val newName = input.trim().toString()
-                    if (!StringUtil.isBlank(newName) && dbHelper.getNovelSection(newName) == null) {
+                    if (newName.isNotBlank() && dbHelper.getNovelSection(newName) == null) {
                         dbHelper.updateNovelSectionName(novelSection.id, newName)
                         setData()
                     } else {
@@ -188,7 +185,7 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                 .content(getString(R.string.add_novel_section_description))
                 .input(getString(R.string.novel_section_name), "") { dialog, input ->
                     val name = input.trim().toString()
-                    if (!StringUtil.isBlank(name) && dbHelper.getNovelSection(name) == null) {
+                    if (name.isNotBlank() && dbHelper.getNovelSection(name) == null) {
                         dbHelper.createNovelSection(name)
                         setData()
                     } else {

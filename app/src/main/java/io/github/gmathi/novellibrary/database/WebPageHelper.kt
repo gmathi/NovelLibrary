@@ -24,7 +24,7 @@ fun DBHelper.createWebPage(webPage: WebPage): Long {
 fun DBHelper.getWebPage(url: String): WebPage? {
     val db = this.readableDatabase
     val selectQuery = "SELECT  * FROM ${DBKeys.TABLE_WEB_PAGE} WHERE ${DBKeys.KEY_URL} = \"$url\""
-    Logs.debug(LOG, selectQuery)
+    //Logs.debug(LOG, selectQuery)
     var webPage: WebPage? = null
     val cursor = db.rawQuery(selectQuery, null)
     if (cursor != null) {

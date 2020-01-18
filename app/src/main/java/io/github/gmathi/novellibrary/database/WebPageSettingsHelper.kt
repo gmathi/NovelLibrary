@@ -30,7 +30,7 @@ fun DBHelper.createWebPageSettings(webPageSettings: WebPageSettings): Long {
 fun DBHelper.getWebPageSettings(url: String): WebPageSettings? {
     val db = this.readableDatabase
     val selectQuery = "SELECT  * FROM ${DBKeys.TABLE_WEB_PAGE_SETTINGS} WHERE ${DBKeys.KEY_URL} = \"$url\""
-    Logs.debug(LOG, selectQuery)
+    //Logs.debug(LOG, selectQuery)
     var webPageSettings: WebPageSettings? = null
     val cursor = db.rawQuery(selectQuery, null)
     if (cursor != null) {

@@ -2,7 +2,7 @@ package io.github.gmathi.novellibrary.fragment
 
 import android.animation.Animator
 import android.os.Bundle
-import android.support.v4.view.GravityCompat
+import androidx.core.view.GravityCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup

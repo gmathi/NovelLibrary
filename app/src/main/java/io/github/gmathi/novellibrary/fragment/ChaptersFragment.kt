@@ -3,17 +3,15 @@ package io.github.gmathi.novellibrary.fragment
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Parcelable
-import android.support.v4.content.ContextCompat
-import android.support.v7.widget.DividerItemDecoration
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import android.view.*
-import android.widget.Toast
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.hanks.library.AnimateCheckBox
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ChaptersPagerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapterSelectTitleProvider
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.startReaderDBPagerActivity
@@ -21,7 +19,7 @@ import io.github.gmathi.novellibrary.extensions.startWebViewActivity
 import io.github.gmathi.novellibrary.model.*
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
-import kotlinx.android.synthetic.main.content_source_chapters.*
+import kotlinx.android.synthetic.main.fragment_source_chapters.*
 import kotlinx.android.synthetic.main.listitem_chapter.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -61,7 +59,7 @@ class ChaptersFragment : BaseFragment(),
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-            inflater.inflate(R.layout.content_source_chapters, container, false)
+            inflater.inflate(R.layout.fragment_source_chapters, container, false)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -82,7 +80,7 @@ class ChaptersFragment : BaseFragment(),
         swipeRefreshLayout.isEnabled = false
     }
 
-    private fun setData(shouldScrollToBookmark: Boolean = true) {
+    private fun setData(shouldScrollToBookmark: Boolean = true, shouldScrollToFirstUnread: Boolean = true) {
         val chaptersPagerActivity = activity as? ChaptersPagerActivity
         if (chaptersPagerActivity != null) {
             val chapters = if (sourceId == -1L) chaptersPagerActivity.chapters else chaptersPagerActivity.chapters.filter { it.sourceId == sourceId }
@@ -91,6 +89,8 @@ class ChaptersFragment : BaseFragment(),
                 progressLayout.showContent()
                 if (shouldScrollToBookmark)
                     scrollToBookmark()
+                else if (shouldScrollToFirstUnread)
+                    scrollToFirstUnread(chaptersPagerActivity.chaptersSettings)
                 if (chaptersPagerActivity.dataSet.isNotEmpty()) {
                     lastKnownRecyclerState?.let { recyclerView.layoutManager?.onRestoreInstanceState(it) }
                 }
@@ -102,6 +102,18 @@ class ChaptersFragment : BaseFragment(),
     private fun scrollToBookmark() {
         if (novel.currentWebPageUrl != null) {
             val index = adapter.items.indexOfFirst { it.url == novel.currentWebPageUrl }
+            if (index != -1)
+                recyclerView.scrollToPosition(index)
+        }
+    }
+
+    private fun scrollToFirstUnread(chaptersSettings: ArrayList<WebPageSettings>) {
+        if (novel.currentWebPageUrl != null) {
+            val index =
+            if (isSortedAsc)
+                adapter.items.indexOfFirst { chapter -> chaptersSettings.firstOrNull { it.url == chapter.url && it.isRead == 0 } != null }
+            else
+                adapter.items.indexOfLast { chapter -> chaptersSettings.firstOrNull { it.url == chapter.url && it.isRead == 0 } != null }
             if (index != -1)
                 recyclerView.scrollToPosition(index)
         }
@@ -235,8 +247,8 @@ class ChaptersFragment : BaseFragment(),
         super.onCreateOptionsMenu(menu, menuInflater)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
             R.id.action_sort -> {
                 isSortedAsc = !isSortedAsc
                 setData(shouldScrollToBookmark = false)

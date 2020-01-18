@@ -5,22 +5,24 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Build
-import android.support.multidex.MultiDex
-import android.support.multidex.MultiDexApplication
-import android.support.v7.app.AppCompatDelegate
-import android.util.Log
 import android.webkit.WebView
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.multidex.MultiDexApplication
+import com.crashlytics.android.Crashlytics
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.security.ProviderInstaller
 import com.squareup.leakcanary.LeakCanary
-import io.github.gmathi.novellibrary.database.*
+import io.fabric.sdk.android.Fabric
+import io.github.gmathi.novellibrary.database.DBHelper
+import io.github.gmathi.novellibrary.database.deleteWebPageSettings
+import io.github.gmathi.novellibrary.database.deleteWebPages
 import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.network.HostNames.USER_AGENT
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.util.LocaleManager
 import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.Utils
 import java.io.File
 import java.security.KeyManagementException
 import java.security.NoSuchAlgorithmException
@@ -57,6 +59,11 @@ class NovelLibraryApplication : MultiDexApplication() {
         dbHelper?.deleteWebPages(-1L)
         dbHelper?.deleteWebPageSettings(-1L)
 
+        try {
+            Fabric.with(this, Crashlytics())
+        } catch (e: Exception) {
+            //Do Nothing
+        }
 //        dataCenter?.isDeveloper = true
 //        dataCenter?.lockRoyalRoad = false
 //
@@ -152,9 +159,12 @@ class NovelLibraryApplication : MultiDexApplication() {
     }
 
     override fun attachBaseContext(base: Context) {
-        super.attachBaseContext(base)
-        MultiDex.install(this)
+        super.attachBaseContext(LocaleManager.updateContextLocale(base))
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        LocaleManager.updateContextLocale(this)
+    }
 
 }

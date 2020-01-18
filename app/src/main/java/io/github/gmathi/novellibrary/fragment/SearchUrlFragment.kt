@@ -1,11 +1,11 @@
 package io.github.gmathi.novellibrary.fragment
 
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import co.metalab.asyncawait.async
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -22,11 +22,14 @@ import io.github.gmathi.novellibrary.util.getGlideUrl
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, GenericAdapter.LoadMoreListener {
 
     override var currentPageNumber: Int = 1
+    override val preloadCount:Int = 50
+    override val isPageLoading: AtomicBoolean = AtomicBoolean(false)
     private lateinit var searchUrl: String
 
     companion object {
@@ -91,6 +94,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
             if (results != null) {
                 if (isVisible && (!isDetached || !isRemoving)) {
                     loadSearchResults(results)
+                    isPageLoading.lazySet(false)
                     swipeRefreshLayout.isRefreshing = false
                 }
             } else {
@@ -162,15 +166,17 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
     }
 
     override fun loadMore() {
-        currentPageNumber++
-        searchNovels()
+        if (isPageLoading.compareAndSet(false, true)) {
+            currentPageNumber++
+            searchNovels()
+        }
     }
 
 //endregion
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        if (adapter.items.isNotEmpty())
+        if (::adapter.isInitialized && adapter.items.isNotEmpty())
             outState.putSerializable("results", adapter.items)
     }
 

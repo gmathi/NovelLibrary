@@ -5,17 +5,19 @@ import android.Manifest
 import android.animation.ObjectAnimator
 import android.content.Intent
 import android.graphics.drawable.Drawable
-import android.os.*
-import android.support.v4.content.ContextCompat
-import android.support.v4.view.ViewPager
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import android.webkit.WebView
 import android.widget.CompoundButton
 import android.widget.SeekBar
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager.widget.ViewPager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.folderselector.FileChooserDialog
 import com.crashlytics.android.Crashlytics
@@ -43,7 +45,6 @@ import kotlinx.android.synthetic.main.item_option.view.*
 import kotlinx.android.synthetic.main.menu_left_drawer.*
 import org.greenrobot.eventbus.EventBus
 import java.io.File
-import java.util.*
 
 
 class ReaderDBPagerActivity :
@@ -92,35 +93,12 @@ class ReaderDBPagerActivity :
         } else
             novel = tempNovel
 
-        dbHelper.updateNewReleasesCount(novel.id, 0L)
-
         if (dataCenter.keepScreenOn)
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        webPage = if (novel.currentWebPageUrl != null)
-            dbHelper.getWebPage(novel.currentWebPageUrl!!)
-        else
-            dbHelper.getWebPage(novel.id, sourceId, 0)
-
-        totalSize = dbHelper.getWebPagesCount(novel.id, sourceId)
-
-        adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, totalSize, WebPageFragmentPageListener(novel, sourceId))
-        viewPager.addOnPageChangeListener(this)
-        viewPager.adapter = adapter
-
-        val index = dbHelper.getAllWebPages(novel.id, sourceId).indexOfFirst { it.url == webPage?.url }
-
-        if (webPage != null) {
-            updateBookmark(webPage!!)
-            viewPager.currentItem =
-                    if (dataCenter.japSwipe)
-                        totalSize - index - 1
-                    else
-                        index
-        }
+        calculateNovelVariables()
 
         slideMenuSetup(savedInstanceState)
-
         screenIcons = loadScreenIcons()
         screenTitles = loadScreenTitles()
         slideMenuAdapterSetup()
@@ -130,6 +108,29 @@ class ReaderDBPagerActivity :
 
         if (!dataCenter.isReaderModeButtonVisible)
             menuNav.visibility = View.INVISIBLE
+
+    }
+
+    private fun calculateNovelVariables() {
+        dbHelper.updateNewReleasesCount(novel.id, 0L)
+        webPage = if (novel.currentWebPageUrl != null)
+            dbHelper.getWebPage(novel.currentWebPageUrl!!)
+        else
+            dbHelper.getWebPage(novel.id, sourceId, 0)
+        totalSize = dbHelper.getWebPagesCount(novel.id, sourceId)
+        adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, totalSize, WebPageFragmentPageListener(novel, sourceId))
+        viewPager.addOnPageChangeListener(this)
+        viewPager.adapter = adapter
+        val index = dbHelper.getAllWebPages(novel.id, sourceId).indexOfFirst { it.url == webPage?.url }
+        if (webPage != null) {
+            updateBookmark(webPage!!)
+            viewPager.currentItem =
+                    if (dataCenter.japSwipe)
+                        totalSize - index - 1
+                    else
+                        index
+        }
+
 
     }
 
@@ -149,25 +150,22 @@ class ReaderDBPagerActivity :
         super.onWindowFocusChanged(hasFocus)
 
         if (hasFocus && dataCenter.enableImmersiveMode) {
-            val immersiveModeOptions: Int
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                main_content.fitsSystemWindows = false
-
-                immersiveModeOptions = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-            } else {
-                immersiveModeOptions = (View.SYSTEM_UI_FLAG_LOW_PROFILE)
-            }
-
+            main_content.fitsSystemWindows = false
+            val immersiveModeOptions: Int = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
             window.decorView.systemUiVisibility = immersiveModeOptions
         }
     }
 
     override fun onPageSelected(position: Int) {
+        val newTotalSize = dbHelper.getWebPagesCount(novel.id, sourceId)
+        if (newTotalSize != totalSize) {
+            calculateNovelVariables()
+        }
         val offset = if (dataCenter.japSwipe) totalSize - position - 1 else position
         val webPage = dbHelper.getWebPage(novel.id, sourceId, offset)
         if (webPage != null) updateBookmark(webPage)
@@ -239,7 +237,7 @@ class ReaderDBPagerActivity :
 
     override fun onStopTrackingTouch(p0: SeekBar?) {
     }
-    //endregion
+//endregion
 
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
@@ -249,7 +247,8 @@ class ReaderDBPagerActivity :
         return when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
-                    val anim = ObjectAnimator.ofInt(webView, "scrollY", webView?.scrollY ?: 0, (webView?.scrollY ?: 0) - VOLUME_SCROLL_STEP)
+                    val anim = ObjectAnimator.ofInt(webView, "scrollY", webView?.scrollY
+                            ?: 0, (webView?.scrollY ?: 0) - VOLUME_SCROLL_STEP)
                     anim.setDuration(500).start()
                     //webView?.scrollBy(0, -VOLUME_SCROLL_STEP)
                 }
@@ -257,7 +256,8 @@ class ReaderDBPagerActivity :
             }
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
-                    val anim = ObjectAnimator.ofInt(webView, "scrollY", webView?.scrollY ?: 0, (webView?.scrollY ?: 0) + VOLUME_SCROLL_STEP)
+                    val anim = ObjectAnimator.ofInt(webView, "scrollY", webView?.scrollY
+                            ?: 0, (webView?.scrollY ?: 0) + VOLUME_SCROLL_STEP)
                     anim.setDuration(500).start()
                     //webView?.scrollBy(0, VOLUME_SCROLL_STEP)
                 }
@@ -266,7 +266,6 @@ class ReaderDBPagerActivity :
             else -> super.dispatchKeyEvent(event)
         }
     }
-
 
 
     override fun onBackPressed() {
@@ -303,7 +302,7 @@ class ReaderDBPagerActivity :
 
     private fun slideMenuAdapterSetup() {
         @Suppress("UNCHECKED_CAST")
-        val adapter = DrawerAdapter(Arrays.asList(
+        val adapter = DrawerAdapter(listOf(
                 createItemFor(READER_MODE).setSwitchOn(true),
                 createItemFor(JAVA_SCRIPT).setSwitchOn(true),
                 createItemFor(FONTS),
@@ -445,7 +444,7 @@ class ReaderDBPagerActivity :
 
     private fun openFontChooserDialog() {
         try {
-            val externalDirectory = Environment.getExternalStorageDirectory()
+            val externalDirectory = getExternalFilesDir(null)
             if (externalDirectory != null && externalDirectory.exists())
                 FileChooserDialog.Builder(this)
                         .initialPath(externalDirectory.path)  // changes initial path, defaults to external storage directory

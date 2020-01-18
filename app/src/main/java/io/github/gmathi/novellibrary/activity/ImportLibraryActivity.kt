@@ -1,17 +1,14 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.content.Intent
-import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.view.ActionMode
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.RecyclerView
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import androidx.appcompat.view.ActionMode
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.R
@@ -34,7 +31,7 @@ import kotlinx.android.synthetic.main.content_import_library.*
 import kotlinx.android.synthetic.main.listitem_import_list.view.*
 
 
-class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<ImportListItem>, ActionMode.Callback {
+class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportListItem>, ActionMode.Callback {
 
     lateinit var adapter: GenericAdapter<ImportListItem>
 
@@ -131,8 +128,8 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
     private fun getUrl(): String? {
         val url = readingListUrlEditText?.text?.toString() ?: return null
         return try {
-            val uri = Uri.parse(url)
-            if (uri.scheme.startsWith("http") && uri.host.contains(HostNames.NOVEL_UPDATES) && uri.pathSegments.contains("readlist"))
+            val uri = Uri.parse(url) ?: return null
+            if (uri.scheme!!.startsWith("http") && uri.host!!.contains(HostNames.NOVEL_UPDATES))
                 url
             else
                 null

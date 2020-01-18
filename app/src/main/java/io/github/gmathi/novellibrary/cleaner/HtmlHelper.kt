@@ -48,6 +48,9 @@ open class HtmlHelper protected constructor() {
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
             if (contentElement != null) return GeneralClassTagHelper(host, "div", "entry-content")
 
+            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("elementor-widget-theme-post-content") }
+            if (contentElement != null) return GeneralClassTagHelper(host, "div", "elementor-widget-theme-post-content", appendTitle = false)
+
             contentElement = doc.body().getElementsByTag("article").firstOrNull { it.hasClass("hentry") }
             if (contentElement != null) return GeneralClassTagHelper(host, "article", "hentry")
 
@@ -69,11 +72,17 @@ open class HtmlHelper protected constructor() {
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("post-inner") }
             if (contentElement != null) return GeneralClassTagHelper(host, "div", "post-inner", appendTitle = false)
 
+            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("blog-content") }
+            if (contentElement != null) return GeneralClassTagHelper(host, "div", "blog-content")
+
             contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
             if (contentElement != null) return CloudFlareDDoSTagHelper()
 
             contentElement = doc.body().select("div#chapter-content").firstOrNull()
             if (contentElement != null) return GeneralIdTagHelper(host, "div", "chapter-content")
+
+            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("panel-body") }
+            if (contentElement != null) return GeneralClassTagHelper(host, "div", "panel-body", appendTitle = false)
 
             return HtmlHelper()
         }
