@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.LocaleManager.Companion.changeLocale
 import io.github.gmathi.novellibrary.util.applyFont
@@ -89,8 +90,9 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     @SuppressLint("NewApi")
     override fun onItemClick(item: String) {
+        val language = if (item == resources.getString(R.string.system_default)) SYSTEM_DEFAULT else languagesMap[item]!!.split("_")[0]
         if (changeLanguage)
-            changeLocale(this, if (item == resources.getString(R.string.system_default)) "systemDefault_" else languagesMap[item]!!)
+            changeLocale(this, language)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {

@@ -8,10 +8,11 @@ import android.content.res.Resources
 import android.os.Build
 import android.os.Build.VERSION_CODES.JELLY_BEAN_MR1
 import androidx.appcompat.app.AppCompatActivity
-import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import java.util.*
 import kotlin.system.exitProcess
+
 
 class LocaleManager {
 
@@ -19,21 +20,21 @@ class LocaleManager {
 
         private fun getLanguage(): String {
             return try {
-                dataCenter.language.split('_')[0]
+                dataCenter.language
             } catch (e: KotlinNullPointerException) {
-                "systemDefault"
+                SYSTEM_DEFAULT
             }
         }
 
         @SuppressLint("ObsoleteSdkInt")
         @Suppress("DEPRECATION")
         fun updateContextLocale(context: Context, language: String = getLanguage()): Context {
-            if (language == "systemDefault")
+            if (language == SYSTEM_DEFAULT)
                 return context
             val config = Configuration(context.resources.configuration)
             val locale = Locale(language)
             Locale.setDefault(locale)
-            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
                 config.setLocale(locale)
                 context.createConfigurationContext(config)
             } else {
@@ -51,7 +52,8 @@ class LocaleManager {
         fun changeLocale(context: Context, language: String) {
             if (dataCenter.language != language) {
                 dataCenter.language = language
-                val intent = Intent(context, NavDrawerActivity::class.java)
+                val intent = context.packageManager
+                        .getLaunchIntentForPackage(context.packageName)!!
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(intent)
                 if (context is AppCompatActivity)
