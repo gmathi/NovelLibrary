@@ -4,13 +4,16 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.LocaleManager.Companion.changeLocale
+import io.github.gmathi.novellibrary.util.LocaleManager.Companion.translated
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_language.*
@@ -89,8 +92,15 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     @SuppressLint("NewApi")
     override fun onItemClick(item: String) {
+        val language = if (item == resources.getString(R.string.system_default)) SYSTEM_DEFAULT else languagesMap[item]!!.split("_")[0]
         if (changeLanguage)
-            changeLocale(this, if (item == resources.getString(R.string.system_default)) "systemDefault_" else languagesMap[item]!!)
+            changeLocale(this, language)
+        else if (language != "en") {
+            val translated = translated(this, language)
+            val total = translated(this)
+            val percentage = String.format("%.2f", translated.toDouble() / total * 100)
+            Toast.makeText(this, resources.getString(R.string.translated, translated, total, percentage), Toast.LENGTH_LONG).show()
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {

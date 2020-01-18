@@ -12,6 +12,7 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.extensions.startBackupSettingsActivity
 import io.github.gmathi.novellibrary.extensions.startLanguagesActivity
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
+import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
@@ -53,12 +54,12 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         val systemDefault = resources.getString(R.string.system_default)
         if (items.contains(systemDefault)) {
             val language = try {
-                dataCenter.language.split('_')[0]
+                dataCenter.language
             } catch (e: KotlinNullPointerException) {
-                "systemDefault"
+                SYSTEM_DEFAULT
             }
             items[items.indexOfFirst { it == systemDefault }] =
-                    if (language != "systemDefault")
+                    if (language != SYSTEM_DEFAULT)
                         Locale(language).displayLanguage
                     else systemDefault
         }

@@ -485,5 +485,6 @@
 
     <string name="change_language">Language</string>
     <string name="system_default">System Default</string>
+    <string name="translated">Translated %1$d out of %2$d (≈%3$s%%)</string>
 
 </resources>
