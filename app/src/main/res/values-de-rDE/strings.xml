@@ -299,6 +299,8 @@
     <string name="previous_chapter">Previous Chapter</string>
     <string name="next_chapter">Next Chapter</string>
     <string name="connection_error">Connection Error!</string>
+    <string name="locale_system_default">Systemfehler</string>
+    <string name="locale_german">Deutch</string>
 
 
 </resources>

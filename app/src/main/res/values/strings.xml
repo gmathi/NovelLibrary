@@ -77,7 +77,7 @@
         <!--<item>@string/enable_cloud_flare_description</item>-->
         <item>@string/disable_notifications_description</item>
         <!--<item>@string/faster_downloads_description</item>-->
-        <item>@string/system_default</item>
+        <item>@string/locale_system_default</item>
     </string-array>
 
     <string-array name="backup_and_restore_titles_list" translatable="false">
@@ -485,9 +485,18 @@
 
     <!-- v0.9 Strings -->
 
+    <string name="locale_system_default">System Default</string>
+    <string name="locale_english">English</string>
+    <string name="locale_german">German</string>
+    <string name="locale_indonesian">Indonesian</string>
+    <string name="locale_portuguese">Portuguese</string>
+    <string name="locale_spanish">Spanish</string>
+    <string name="locale_turkish">Turkish</string>
+    <string name="locale_french">French</string>
+    <string name="locale_Tagalog">Tagalog</string>
+    <string name="locale_latin">Latin</string>
     <string name="reverse">Reverse</string>
     <string name="change_language">Language</string>
-    <string name="system_default">System Default</string>
     <string name="translated">Translated %1$d out of %2$d (≈%3$s%%)</string>
     <string name="volume_scroll_length">Scroll Distance</string>
     <string name="volume_scroll_length_description">Change the distance to scroll when using volume keys</string>

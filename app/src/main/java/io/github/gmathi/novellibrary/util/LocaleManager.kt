@@ -19,6 +19,7 @@ class LocaleManager {
 
     companion object {
 
+        private const val englishLanguage = "en"
         private const val untranslatable = 26
         private const val falsePositive = 67
 
@@ -29,7 +30,7 @@ class LocaleManager {
         private val translations: HashMap<String, Int> = HashMap()
 
         @Synchronized
-        fun translated(context: Context, language: String = "en"): Int {
+        fun translated(context: Context, language: String = englishLanguage): Int {
             if (language == SYSTEM_DEFAULT)
                 return -1
             if (!translations.containsKey(language)) {
@@ -45,8 +46,8 @@ class LocaleManager {
                     stringResourcesEnglish = stringResourceIds.map { resources.getString(it) }
                 }
 
-                if (language == "en")
-                    translations["en"] = stringResourcesEnglish.size - untranslatable - falsePositive
+                if (language == englishLanguage)
+                    translations[englishLanguage] = stringResourcesEnglish.size - untranslatable - falsePositive
                 else {
                     val resources = getResourcesLocale(context, language) ?: return -1
                     val stringResources = stringResourceIds.map { resources.getString(it) }
@@ -59,7 +60,7 @@ class LocaleManager {
 
         @SuppressLint("ObsoleteSdkInt")
         @Suppress("DEPRECATION")
-        private fun getResourcesLocale(context: Context, language: String = "en"): Resources? {
+        private fun getResourcesLocale(context: Context, language: String = englishLanguage): Resources? {
             if (language == SYSTEM_DEFAULT)
                 return null
             val locale = Locale(language)
