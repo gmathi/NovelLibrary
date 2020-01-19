@@ -180,36 +180,17 @@ class ReaderDBPagerActivity :
     }
 
     private fun changeTextSize() {
-        var value: Double = dataCenter.textSize.toDouble()
-        var timer: Handler? = null
-        val runnable: Runnable = Runnable {
-            dataCenter.textSize = value.toInt()
-            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
-            timer = null
-        }
-
         val dialog = MaterialDialog.Builder(this)
                 .title(R.string.text_size)
                 .customView(R.layout.dialog_slider, true)
-                .dismissListener {
-                    if (timer != null) {
-                        timer?.removeCallbacks(runnable)
-                        timer = null
-                    }
-                    dataCenter.textSize = value.toInt()
-                    EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
-                }
                 .build()
         dialog.show()
 
         dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setOnSeekBarChangedListener { _, progress ->
-            value = progress
-            if (timer == null) {
-                timer = Handler()
-                timer?.postDelayed(runnable, 3000)
-            }
+            dataCenter.textSize = progress.toInt()
+            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
         }
-        dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setProgress(value)
+        dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setProgress(dataCenter.textSize.toDouble())
     }
 
     private fun reportPage() {
