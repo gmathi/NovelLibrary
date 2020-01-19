@@ -37,6 +37,7 @@ class DataCenter(context: Context) {
         private const val SHOW_READER_SCROLL = "showReaderScroll"
         private const val SHOW_CHAPTER_COMMENTS = "showChapterComments"
         private const val VOLUME_SCROLL = "volumeScroll"
+        private const val SCROLL_LENGTH = "scrollLength"
         private const val KEEP_SCREEN_ON = "keepScreenOn"
         private const val ENABLE_IMMERSIVE_MODE = "enableImmersiveMode"
         private const val FONT_PATH = "fontPath"
@@ -138,6 +139,10 @@ class DataCenter(context: Context) {
     var volumeScroll: Boolean
         get() = prefs.getBoolean(VOLUME_SCROLL, true)
         set(value) = prefs.edit().putBoolean(VOLUME_SCROLL, value).apply()
+
+    var scrollLength: Int
+        get() = prefs.getInt(SCROLL_LENGTH, Constants.VOLUME_SCROLL_LENGTH_DEFAULT)
+        set(value) = prefs.edit().putInt(SCROLL_LENGTH, value).apply()
 
     var keepScreenOn: Boolean
         get() = prefs.getBoolean(KEEP_SCREEN_ON, true)

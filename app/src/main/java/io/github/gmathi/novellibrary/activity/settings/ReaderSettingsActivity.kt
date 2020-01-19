@@ -5,19 +5,24 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import android.view.MenuItem
 import android.view.View
+import android.widget.TextView
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MAX
+import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MIN
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.view.TwoWaySeekBar
 import kotlinx.android.synthetic.main.activity_settings.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_title_subtitle_widget.view.*
 import java.io.File
+import kotlin.math.abs
 
 class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
@@ -28,11 +33,12 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         private const val POSITION_SHOW_READER_SCROLL = 3
         private const val POSITION_SHOW_CHAPTER_COMMENTS = 4
         private const val POSITION_VOLUME_SCROLL = 5
-        private const val POSITION_KEEP_SCREEN_ON = 6
-        private const val POSITION_ENABLE_IMMERSIVE_MODE = 7
-        private const val POSITION_ENABLE_CLUSTER_PAGES = 8
-        private const val POSITION_DIRECTIONAL_LINKS = 9
-        private const val POSITION_READER_MODE_BUTTON_VISIBILITY = 10
+        private const val POSITION_VOLUME_SCROLL_LENGTH = 6
+        private const val POSITION_KEEP_SCREEN_ON = 7
+        private const val POSITION_ENABLE_IMMERSIVE_MODE = 8
+        private const val POSITION_ENABLE_CLUSTER_PAGES = 9
+        private const val POSITION_DIRECTIONAL_LINKS = 10
+        private const val POSITION_READER_MODE_BUTTON_VISIBILITY = 11
     }
 
     lateinit var adapter: GenericAdapter<String>
@@ -57,9 +63,13 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     override fun bind(item: String, itemView: View, position: Int) {
+        //(itemView as ViewGroup).enabled(true)
+        itemView.blackOverlay.visibility = View.INVISIBLE
+
         itemView.widgetChevron.visibility = View.INVISIBLE
         itemView.widgetSwitch.visibility = View.INVISIBLE
-        itemView.widgetButton.visibility = View.INVISIBLE
+        itemView.currentValue.visibility = View.INVISIBLE
+        itemView.currentValue.text = ""
 
         itemView.title.applyFont(assets).text = item
         itemView.subtitle.applyFont(assets).text = settingsItemsDescription[position]
@@ -105,7 +115,26 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             POSITION_VOLUME_SCROLL -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.volumeScroll
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.volumeScroll = value }
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
+                    dataCenter.volumeScroll = value
+                    adapter.notifyDataSetChanged()
+                }
+            }
+            POSITION_VOLUME_SCROLL_LENGTH -> {
+                val enable = dataCenter.volumeScroll
+                //itemView.enabled(enable)
+                itemView.blackOverlay.visibility =
+                        if (enable)
+                            View.INVISIBLE
+                        else
+                            View.VISIBLE
+                itemView.currentValue.visibility = View.VISIBLE
+                val value = dataCenter.scrollLength
+                itemView.currentValue.text = "${if (value < 0) resources.getString(R.string.reverse) else ""} ${abs(value)}"
+                if (enable)
+                    itemView.setOnClickListener {
+                        changeScrollDistance(itemView.currentValue)
+                    }
             }
             POSITION_KEEP_SCREEN_ON -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
@@ -186,19 +215,35 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     private fun deleteDir(dir: File?): Boolean {
-        if (dir != null && dir.isDirectory) {
+        return if (dir != null && dir.isDirectory) {
             val children = dir.list()
             for (i in children.indices) {
                 deleteDir(File(dir, children[i]))
             }
-            return dir.delete()
+            dir.delete()
         } else if (dir != null && dir.isFile) {
-            return dir.delete()
+            dir.delete()
         } else {
-            return false
+            false
         }
     }
     //endregion
 
+    private fun changeScrollDistance(textView: TextView) {
+        val dialog = MaterialDialog.Builder(this)
+                .title(R.string.volume_scroll_length)
+                .customView(R.layout.dialog_slider, true)
+                .build()
+        dialog.show()
+
+        val seekBar = dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)
+        seekBar?.setOnSeekBarChangedListener { _, progress ->
+            val value = progress.toInt()
+            dataCenter.scrollLength = value
+            textView.text = "${if (value < 0) resources.getString(R.string.reverse) else ""} ${abs(value)}"
+        }
+        seekBar?.setAbsoluteMinMaxValue(VOLUME_SCROLL_LENGTH_MIN.toDouble(), VOLUME_SCROLL_LENGTH_MAX.toDouble())
+        seekBar?.setProgress(dataCenter.scrollLength.toDouble())
+    }
 
 }

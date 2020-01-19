@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:custom="http://schemas.android.com/apk/res-auto"
              android:layout_width="match_parent"
              android:layout_height="wrap_content"
              android:padding="@dimen/default_padding_list_item">
 
-    <SeekBar
-        android:id="@+id/fontSeekBar"
+    <io.github.gmathi.novellibrary.view.TwoWaySeekBar
+        android:id="@+id/seekBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:max="100"
-        android:progress="0"/>
+        android:progress="0"
+        custom:minValue="0"
+        custom:maxValue="100"/>
+
 </FrameLayout>

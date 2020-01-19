@@ -76,7 +76,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
     override fun bind(item: String, itemView: View, position: Int) {
         itemView.widgetChevron.visibility = View.GONE
         itemView.widgetSwitch.visibility = View.GONE
-        itemView.widgetButton.visibility = View.GONE
+        itemView.currentValue.visibility = View.GONE
         itemView.widget.visibility = View.GONE
 
         itemView.title.applyFont(assets).text = item

@@ -74,7 +74,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     override fun bind(item: String, itemView: View, position: Int) {
         itemView.widgetChevron.visibility = View.INVISIBLE
         itemView.widgetSwitch.visibility = View.INVISIBLE
-        itemView.widgetButton.visibility = View.INVISIBLE
+        itemView.currentValue.visibility = View.INVISIBLE
 
         itemView.title.applyFont(assets).text = item
         itemView.subtitle.applyFont(assets).text = settingsItemsDescription[position]

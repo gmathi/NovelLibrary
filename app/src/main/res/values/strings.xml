@@ -108,6 +108,7 @@
         <item>@string/show_reader_scroll</item>
         <item>@string/show_comments_section</item>
         <item>@string/volume_scroll</item>
+        <item>@string/volume_scroll_length</item>
         <item>@string/keep_screen_on</item>
         <item>@string/immersive_mode</item>
         <item>@string/merge_pages</item>
@@ -122,6 +123,7 @@
         <item>@string/show_reader_scroll_description</item>
         <item>@string/show_comments_section_description</item>
         <item>@string/volume_scroll_description</item>
+        <item>@string/volume_scroll_length_description</item>
         <item>@string/keep_screen_on_description</item>
         <item>@string/immersive_mode_description</item>
         <item>@string/merge_pages_description</item>
@@ -483,8 +485,11 @@
 
     <!-- v0.9 Strings -->
 
+    <string name="reverse">Reverse</string>
     <string name="change_language">Language</string>
     <string name="system_default">System Default</string>
     <string name="translated">Translated %1$d out of %2$d (≈%3$s%%)</string>
+    <string name="volume_scroll_length">Scroll Distance</string>
+    <string name="volume_scroll_length_description">Change the distance to scroll when using volume keys</string>
 
 </resources>
