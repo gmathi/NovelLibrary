@@ -13,7 +13,6 @@ import android.view.View
 import android.view.WindowManager
 import android.webkit.WebView
 import android.widget.CompoundButton
-import android.widget.SeekBar
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -39,7 +38,9 @@ import io.github.gmathi.novellibrary.extensions.startTTSService
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.model.*
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.view.TwoWaySeekBar
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.item_option.view.*
 import kotlinx.android.synthetic.main.menu_left_drawer.*
@@ -52,7 +53,6 @@ class ReaderDBPagerActivity :
         ViewPager.OnPageChangeListener,
         DrawerAdapter.OnItemSelectedListener,
         SimpleItem.Listener<ReaderMenu>,
-        SeekBar.OnSeekBarChangeListener,
         FileChooserDialog.FileCallback {
 
     private var slidingRootNav: SlidingRootNav? = null
@@ -68,8 +68,6 @@ class ReaderDBPagerActivity :
         private const val OPEN_IN_BROWSER = 6
         private const val SHARE_CHAPTER = 7
         private const val READ_ALOUD = 8
-
-        private const val VOLUME_SCROLL_STEP = 500
     }
 
     private lateinit var screenIcons: Array<Drawable?>
@@ -184,11 +182,15 @@ class ReaderDBPagerActivity :
     private fun changeTextSize() {
         val dialog = MaterialDialog.Builder(this)
                 .title(R.string.text_size)
-                .customView(R.layout.dialog_text_slider, true)
+                .customView(R.layout.dialog_slider, true)
                 .build()
         dialog.show()
-        dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.setOnSeekBarChangeListener(this)
-        dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.progress = dataCenter.textSize
+
+        dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setOnSeekBarChangedListener { _, progress ->
+            dataCenter.textSize = progress.toInt()
+            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
+        }
+        dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setProgress(dataCenter.textSize.toDouble())
     }
 
     private fun reportPage() {
@@ -225,21 +227,6 @@ class ReaderDBPagerActivity :
         }
     }
 
-
-    //region SeekBar Progress Listener
-    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-        dataCenter.textSize = progress
-        EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
-    }
-
-    override fun onStartTrackingTouch(p0: SeekBar?) {
-    }
-
-    override fun onStopTrackingTouch(p0: SeekBar?) {
-    }
-//endregion
-
-
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val action = event.action
         val keyCode = event.keyCode
@@ -248,18 +235,16 @@ class ReaderDBPagerActivity :
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
                     val anim = ObjectAnimator.ofInt(webView, "scrollY", webView?.scrollY
-                            ?: 0, (webView?.scrollY ?: 0) - VOLUME_SCROLL_STEP)
+                            ?: 0, (webView?.scrollY ?: 0) - dataCenter.scrollLength * VOLUME_SCROLL_LENGTH_STEP)
                     anim.setDuration(500).start()
-                    //webView?.scrollBy(0, -VOLUME_SCROLL_STEP)
                 }
                 dataCenter.volumeScroll
             }
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
                     val anim = ObjectAnimator.ofInt(webView, "scrollY", webView?.scrollY
-                            ?: 0, (webView?.scrollY ?: 0) + VOLUME_SCROLL_STEP)
+                            ?: 0, (webView?.scrollY ?: 0) + dataCenter.scrollLength * VOLUME_SCROLL_LENGTH_STEP)
                     anim.setDuration(500).start()
-                    //webView?.scrollBy(0, VOLUME_SCROLL_STEP)
                 }
                 dataCenter.volumeScroll
             }

@@ -11,7 +11,8 @@ import androidx.appcompat.app.AppCompatActivity
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
-import java.util.*
+import java.util.Locale
+import kotlin.collections.HashMap
 import kotlin.system.exitProcess
 
 
@@ -19,8 +20,21 @@ class LocaleManager {
 
     companion object {
 
+        private const val englishLanguage = "en"
         private const val untranslatable = 26
-        private const val falsePositive = 67
+        private fun falsePositive(language: String): Int {
+            return when (language) {
+                "de" -> 46
+                "id" -> 80
+                "pt" -> 66
+                "es" -> 78
+                "tr" -> 78
+                "fr" -> 66
+                "tl" -> 78
+                "la" -> 175
+                else -> 78
+            }
+        }
 
         private lateinit var stringResourceIds: List<Int>
 
@@ -29,7 +43,7 @@ class LocaleManager {
         private val translations: HashMap<String, Int> = HashMap()
 
         @Synchronized
-        fun translated(context: Context, language: String = "en"): Int {
+        fun translated(context: Context, language: String = englishLanguage): Int {
             if (language == SYSTEM_DEFAULT)
                 return -1
             if (!translations.containsKey(language)) {
@@ -45,13 +59,13 @@ class LocaleManager {
                     stringResourcesEnglish = stringResourceIds.map { resources.getString(it) }
                 }
 
-                if (language == "en")
-                    translations["en"] = stringResourcesEnglish.size - untranslatable - falsePositive
+                if (language == englishLanguage)
+                    translations[englishLanguage] = stringResourcesEnglish.size - untranslatable
                 else {
                     val resources = getResourcesLocale(context, language) ?: return -1
                     val stringResources = stringResourceIds.map { resources.getString(it) }
                             .filter { !stringResourcesEnglish.contains(it) }
-                    translations[language] = stringResources.size
+                    translations[language] = stringResources.size + falsePositive(language)
                 }
             }
             return translations[language] ?: -1
@@ -59,7 +73,7 @@ class LocaleManager {
 
         @SuppressLint("ObsoleteSdkInt")
         @Suppress("DEPRECATION")
-        private fun getResourcesLocale(context: Context, language: String = "en"): Resources? {
+        private fun getResourcesLocale(context: Context, language: String = englishLanguage): Resources? {
             if (language == SYSTEM_DEFAULT)
                 return null
             val locale = Locale(language)

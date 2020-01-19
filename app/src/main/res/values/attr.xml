@@ -29,4 +29,14 @@
     <declare-styleable name="drawer_color">
         <attr name="drawer_color" format="reference|color"/>
     </declare-styleable>
+
+    <declare-styleable name="TwoWaySeekBar">
+        <attr name="minValue" format="float"/>
+        <attr name="maxValue" format="float"/>
+        <attr name="thumbDrawable" format="reference"/>
+        <attr name="thumbPressedDrawable" format="reference"/>
+        <attr name="defaultBackgroundColor" format="color"/>
+        <attr name="defaultBackgroundRangeColor" format="color"/>
+    </declare-styleable>
+
 </resources>

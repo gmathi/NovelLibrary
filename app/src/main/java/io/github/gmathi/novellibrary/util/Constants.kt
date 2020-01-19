@@ -9,8 +9,10 @@ object Constants {
     const val SCROLL_LENGTH = 30
     const val FILE_PROTOCOL = "file://"
     const val SYSTEM_DEFAULT = "systemDefault"
-
-    //region DownloadQueue Status Values
+    const val VOLUME_SCROLL_LENGTH_DEFAULT = 2
+    const val VOLUME_SCROLL_LENGTH_STEP = 250
+    const val VOLUME_SCROLL_LENGTH_MIN = -10
+    const val VOLUME_SCROLL_LENGTH_MAX = 10
 
 
     //endregion

@@ -51,17 +51,14 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         settingsItems = ArrayList(resources.getStringArray(R.array.general_titles_list).asList())
 
         val items = ArrayList(resources.getStringArray(R.array.general_subtitles_list).asList())
-        val systemDefault = resources.getString(R.string.system_default)
+        val systemDefault = resources.getString(R.string.locale_system_default)
         if (items.contains(systemDefault)) {
             val language = try {
                 dataCenter.language
             } catch (e: KotlinNullPointerException) {
                 SYSTEM_DEFAULT
             }
-            items[items.indexOfFirst { it == systemDefault }] =
-                    if (language != SYSTEM_DEFAULT)
-                        Locale(language).displayLanguage
-                    else systemDefault
+            items[items.indexOfFirst { it == systemDefault }] = LanguageActivity.getString(this, language)
         }
         settingsItemsDescription = items
 
@@ -74,7 +71,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     override fun bind(item: String, itemView: View, position: Int) {
         itemView.widgetChevron.visibility = View.INVISIBLE
         itemView.widgetSwitch.visibility = View.INVISIBLE
-        itemView.widgetButton.visibility = View.INVISIBLE
+        itemView.currentValue.visibility = View.INVISIBLE
 
         itemView.title.applyFont(assets).text = item
         itemView.subtitle.applyFont(assets).text = settingsItemsDescription[position]

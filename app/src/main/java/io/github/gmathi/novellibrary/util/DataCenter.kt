@@ -32,11 +32,13 @@ class DataCenter(context: Context) {
         private const val READER_MODE = "cleanPages"
         private const val JAVASCRIPT = "javascript"
         private const val LANGUAGE = "language"
+        private const val FOOLED = "wasFooled"
         private const val VERIFIED_HOSTS = "verifiedHosts"
         private const val JAP_SWIPE = "japSwipe"
         private const val SHOW_READER_SCROLL = "showReaderScroll"
         private const val SHOW_CHAPTER_COMMENTS = "showChapterComments"
         private const val VOLUME_SCROLL = "volumeScroll"
+        private const val SCROLL_LENGTH = "scrollLength"
         private const val KEEP_SCREEN_ON = "keepScreenOn"
         private const val ENABLE_IMMERSIVE_MODE = "enableImmersiveMode"
         private const val FONT_PATH = "fontPath"
@@ -123,6 +125,11 @@ class DataCenter(context: Context) {
             prefs.edit().putString(LANGUAGE, value).commit()
         }
 
+    var fooled: Boolean
+        get() = prefs.getBoolean(FOOLED, false)
+        set(value) = prefs.edit().putBoolean(FOOLED, value).apply()
+
+
     var japSwipe: Boolean
         get() = prefs.getBoolean(JAP_SWIPE, true)
         set(value) = prefs.edit().putBoolean(JAP_SWIPE, value).apply()
@@ -138,6 +145,11 @@ class DataCenter(context: Context) {
     var volumeScroll: Boolean
         get() = prefs.getBoolean(VOLUME_SCROLL, true)
         set(value) = prefs.edit().putBoolean(VOLUME_SCROLL, value).apply()
+
+    var scrollLength: Int
+        get() = prefs.getInt(SCROLL_LENGTH, Constants.VOLUME_SCROLL_LENGTH_DEFAULT)
+        set(value) = prefs.edit().putInt(SCROLL_LENGTH, value).apply()
+
 
     var keepScreenOn: Boolean
         get() = prefs.getBoolean(KEEP_SCREEN_ON, true)

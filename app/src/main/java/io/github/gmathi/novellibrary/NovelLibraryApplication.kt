@@ -29,6 +29,7 @@ import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
+import java.util.*
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
@@ -53,6 +54,14 @@ class NovelLibraryApplication : MultiDexApplication() {
     override fun onCreate() {
         dataCenter = DataCenter(applicationContext)
         dbHelper = DBHelper.getInstance(applicationContext)
+        val date = Calendar.getInstance()
+        if (date.get(Calendar.MONTH) == 4 && date.get(Calendar.DAY_OF_MONTH) == 1) {
+            if (!dataCenter?.fooled!!) {
+                dataCenter?.language = "pa"
+                dataCenter?.fooled = true
+            }
+        }
+        else dataCenter?.fooled = false
         super.onCreate()
 
         //Stray webPages to be deleted
