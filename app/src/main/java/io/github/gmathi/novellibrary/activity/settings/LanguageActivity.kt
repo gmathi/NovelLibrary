@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.activity.settings
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
@@ -20,33 +21,60 @@ import kotlinx.android.synthetic.main.activity_language.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_image_title_subtitle.view.*
 import java.util.*
+import kotlin.collections.ArrayList
 
 class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     companion object {
-        private val languagesMap = HashMap<String, String>()
-        private val languagesImageResourceMap = HashMap<String, Int>()
 
-        init {
-            languagesMap["English"] = "en_US"
-            languagesMap["German"] = "de_DE"
-            languagesMap["Indonesian"] = "id_ID"
-            languagesMap["Portuguese"] = "pt_BR"
-            languagesMap["Spanish"] = "es_CL"
-            languagesMap["Turkish"] = "tr_TR"
-            languagesMap["French"] = "fr_FR"
-            languagesMap["Tagalog"] = "tr_PH"
-
-            languagesImageResourceMap["System Default"] = android.R.color.transparent
-            languagesImageResourceMap["English"] = R.drawable.flag_us
-            languagesImageResourceMap["German"] = R.drawable.flag_de
-            languagesImageResourceMap["Indonesian"] = R.drawable.flag_id
-            languagesImageResourceMap["Portuguese"] = R.drawable.flag_br
-            languagesImageResourceMap["Spanish"] = R.drawable.flag_cl
-            languagesImageResourceMap["Turkish"] = R.drawable.flag_tr
-            languagesImageResourceMap["French"] = R.drawable.flag_fr
-            languagesImageResourceMap["Tagalog"] = R.drawable.flag_tl
+        fun getString(context: Context, language: String): String {
+            return when (language) {
+                "en" -> context.resources.getString(R.string.locale_english)
+                "de" -> context.resources.getString(R.string.locale_german)
+                "id" -> context.resources.getString(R.string.locale_indonesian)
+                "pt" -> context.resources.getString(R.string.locale_portuguese)
+                "es" -> context.resources.getString(R.string.locale_spanish)
+                "tr" -> context.resources.getString(R.string.locale_turkish)
+                "fr" -> context.resources.getString(R.string.locale_french)
+                "tl" -> context.resources.getString(R.string.locale_Tagalog)
+                "la" -> context.resources.getString(R.string.locale_latin)
+                else -> context.resources.getString(R.string.locale_system_default)
+            }
         }
+
+    }
+
+    private val languagesMap = HashMap<String, String>()
+    private val languagesImageResourceMap = HashMap<String, Int>()
+
+    private fun getList(): ArrayList<String> {
+        if (languagesMap.isEmpty()) {
+            languagesMap[resources.getString(R.string.locale_english)] = "en_US"
+            languagesMap[resources.getString(R.string.locale_german)] = "de_DE"
+            languagesMap[resources.getString(R.string.locale_indonesian)] = "id_ID"
+            languagesMap[resources.getString(R.string.locale_portuguese)] = "pt_BR"
+            languagesMap[resources.getString(R.string.locale_spanish)] = "es_CL"
+            languagesMap[resources.getString(R.string.locale_turkish)] = "tr_TR"
+            languagesMap[resources.getString(R.string.locale_french)] = "fr_FR"
+            languagesMap[resources.getString(R.string.locale_Tagalog)] = "tl_PH"
+            languagesMap[resources.getString(R.string.locale_latin)] = "la_"
+
+            languagesImageResourceMap[resources.getString(R.string.locale_system_default)] = android.R.color.transparent
+            languagesImageResourceMap[resources.getString(R.string.locale_english)] = R.drawable.flag_us
+            languagesImageResourceMap[resources.getString(R.string.locale_german)] = R.drawable.flag_de
+            languagesImageResourceMap[resources.getString(R.string.locale_indonesian)] = R.drawable.flag_id
+            languagesImageResourceMap[resources.getString(R.string.locale_portuguese)] = R.drawable.flag_br
+            languagesImageResourceMap[resources.getString(R.string.locale_spanish)] = R.drawable.flag_cl
+            languagesImageResourceMap[resources.getString(R.string.locale_turkish)] = R.drawable.flag_tr
+            languagesImageResourceMap[resources.getString(R.string.locale_french)] = R.drawable.flag_fr
+            languagesImageResourceMap[resources.getString(R.string.locale_Tagalog)] = R.drawable.flag_tl
+            languagesImageResourceMap[resources.getString(R.string.locale_latin)] = android.R.color.transparent
+        }
+
+        val list = ArrayList(languagesMap.keys.sorted())
+        if (changeLanguage)
+            list.add(0, resources.getString(R.string.locale_system_default))
+        return list
     }
 
     private var changeLanguage: Boolean = false
@@ -72,9 +100,7 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     private fun setRecyclerView() {
-        val items = ArrayList(languagesMap.keys.sorted())
-        if (changeLanguage)
-            items.add(0, resources.getString(R.string.system_default))
+        val items = getList()
         adapter = GenericAdapter(items = items, layoutResId = R.layout.listitem_image_title_subtitle, listener = this)
         recyclerView.setDefaults(adapter)
         recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
@@ -92,12 +118,14 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     @SuppressLint("NewApi")
     override fun onItemClick(item: String) {
-        val language = if (item == resources.getString(R.string.system_default)) SYSTEM_DEFAULT else languagesMap[item]!!.split("_")[0]
+        val language = if (item == resources.getString(R.string.locale_system_default)) SYSTEM_DEFAULT else languagesMap[item]!!.split('_')[0]
         if (changeLanguage)
             changeLocale(this, language)
         else if (language != "en") {
             val translated = translated(this, language)
             val total = translated(this)
+            if (translated == -1 && total == -1)
+                return
             val percentage = String.format("%.2f", translated.toDouble() / total * 100)
             Toast.makeText(this, resources.getString(R.string.translated, translated, total, percentage), Toast.LENGTH_LONG).show()
         }
