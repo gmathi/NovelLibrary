@@ -21,7 +21,7 @@ class LocaleManager {
 
         private const val englishLanguage = "en"
         private const val untranslatable = 26
-        private const val falsePositive = 67
+        private const val falsePositive = 151
 
         private lateinit var stringResourceIds: List<Int>
 
