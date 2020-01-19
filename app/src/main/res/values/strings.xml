@@ -495,6 +495,7 @@
     <string name="locale_french">French</string>
     <string name="locale_Tagalog">Tagalog</string>
     <string name="locale_latin">Latin</string>
+    <string name="locale_pirate">Pirate</string>
     <string name="reverse">Reverse</string>
     <string name="change_language">Language</string>
     <string name="translated">Translated %1$d out of %2$d (≈%3$s%%)</string>

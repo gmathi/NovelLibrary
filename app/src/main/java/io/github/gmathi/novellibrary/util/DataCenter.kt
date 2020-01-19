@@ -32,6 +32,7 @@ class DataCenter(context: Context) {
         private const val READER_MODE = "cleanPages"
         private const val JAVASCRIPT = "javascript"
         private const val LANGUAGE = "language"
+        private const val FOOLED = "wasFooled"
         private const val VERIFIED_HOSTS = "verifiedHosts"
         private const val JAP_SWIPE = "japSwipe"
         private const val SHOW_READER_SCROLL = "showReaderScroll"
@@ -123,6 +124,10 @@ class DataCenter(context: Context) {
         set(value) {
             prefs.edit().putString(LANGUAGE, value).commit()
         }
+
+    var fooled: Boolean
+        get() = prefs.getBoolean(FOOLED, false)
+        set(value) = prefs.edit().putBoolean(FOOLED, value).apply()
 
     var japSwipe: Boolean
         get() = prefs.getBoolean(JAP_SWIPE, true)
