@@ -230,16 +230,19 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     //endregion
 
     private fun changeScrollDistance(textView: TextView) {
+        var value = dataCenter.scrollLength
+
         val dialog = MaterialDialog.Builder(this)
                 .title(R.string.volume_scroll_length)
                 .customView(R.layout.dialog_slider, true)
+                .dismissListener { dataCenter.scrollLength = value }
                 .build()
         dialog.show()
 
         val seekBar = dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)
+        seekBar?.notifyWhileDragging = true
         seekBar?.setOnSeekBarChangedListener { _, progress ->
-            val value = progress.toInt()
-            dataCenter.scrollLength = value
+            value = progress.toInt()
             textView.text = "${if (value < 0) resources.getString(R.string.reverse) else ""} ${abs(value)}"
         }
         seekBar?.setAbsoluteMinMaxValue(VOLUME_SCROLL_LENGTH_MIN.toDouble(), VOLUME_SCROLL_LENGTH_MAX.toDouble())
