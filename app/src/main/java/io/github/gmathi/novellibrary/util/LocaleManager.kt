@@ -21,7 +21,19 @@ class LocaleManager {
 
         private const val englishLanguage = "en"
         private const val untranslatable = 26
-        private const val falsePositive = 151
+        private fun falsePositive(language: String): Int {
+            return when (language) {
+                "de" -> 46
+                "id" -> 80
+                "pt" -> 66
+                "es" -> 78
+                "tr" -> 78
+                "fr" -> 66
+                "tl" -> 78
+                "la" -> 175
+                else -> 78
+            }
+        }
 
         private lateinit var stringResourceIds: List<Int>
 
@@ -47,12 +59,12 @@ class LocaleManager {
                 }
 
                 if (language == englishLanguage)
-                    translations[englishLanguage] = stringResourcesEnglish.size - untranslatable - falsePositive
+                    translations[englishLanguage] = stringResourcesEnglish.size - untranslatable
                 else {
                     val resources = getResourcesLocale(context, language) ?: return -1
                     val stringResources = stringResourceIds.map { resources.getString(it) }
                             .filter { !stringResourcesEnglish.contains(it) }
-                    translations[language] = stringResources.size
+                    translations[language] = stringResources.size + falsePositive(language)
                 }
             }
             return translations[language] ?: -1
