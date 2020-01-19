@@ -497,6 +497,7 @@
     <string name="locale_french">French</string>
     <string name="locale_Tagalog">Tagalog</string>
     <string name="locale_latin">Latin</string>
+    <string name="locale_pirate">Pirate</string>
     <string name="volume_scroll_length">Scroll Distance</string>
     <string name="volume_scroll_length_description">Change the distance to scroll when using volume keys</string>
     <string name="reverse">Reverse</string>

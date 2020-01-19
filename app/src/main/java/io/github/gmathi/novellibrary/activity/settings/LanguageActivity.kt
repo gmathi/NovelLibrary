@@ -38,6 +38,7 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 "fr" -> context.resources.getString(R.string.locale_french)
                 "tl" -> context.resources.getString(R.string.locale_Tagalog)
                 "la" -> context.resources.getString(R.string.locale_latin)
+                "pa" -> context.resources.getString(R.string.locale_pirate)
                 else -> context.resources.getString(R.string.locale_system_default)
             }
         }
@@ -69,7 +70,12 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
             languagesImageResourceMap[resources.getString(R.string.locale_french)] = R.drawable.flag_fr
             languagesImageResourceMap[resources.getString(R.string.locale_Tagalog)] = R.drawable.flag_tl
             languagesImageResourceMap[resources.getString(R.string.locale_latin)] = android.R.color.transparent
+            languagesImageResourceMap[resources.getString(R.string.locale_pirate)] = R.drawable.flag_pa
         }
+
+        val date = Calendar.getInstance()
+        if (date.get(Calendar.MONTH) == 4 && date.get(Calendar.DAY_OF_MONTH) == 1)
+            languagesMap[resources.getString(R.string.locale_pirate)] = "pa_"
 
         val list = ArrayList(languagesMap.keys.sorted())
         if (changeLanguage)
@@ -121,7 +127,7 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
         val language = if (item == resources.getString(R.string.locale_system_default)) SYSTEM_DEFAULT else languagesMap[item]!!.split('_')[0]
         if (changeLanguage)
             changeLocale(this, language)
-        else if (language != "en") {
+        else if (language != "en" && language != "pa") {
             val translated = translated(this, language)
             val total = translated(this)
             if (translated == -1 && total == -1)
