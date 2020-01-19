@@ -30,6 +30,17 @@
         android:layout_gravity="start|bottom"
         android:background="@android:color/transparent"/>
 
+    <TextView
+        android:id="@+id/versionTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:textSize="15sp"
+        tools:text="Version: 0.9.9.6.beta"
+        android:textColor="@color/gray"
+        android:layout_gravity="center_horizontal|bottom"
+        android:background="@android:color/transparent"/>
+
     <View
         android:id="@+id/hiddenRightButton"
         android:layout_width="100dp"

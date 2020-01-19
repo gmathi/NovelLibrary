@@ -30,10 +30,10 @@ class ChapterActionModeEvent(val sourceId: Long = -1L, val eventType: EventType)
 
 class ReaderSettingsEvent(val setting: String) {
     companion object {
-        const val NIGHT_MODE = "nightMode"
-        const val TEXT_SIZE = "textSize"
         const val READER_MODE = "readerMode"
+        const val NIGHT_MODE = "nightMode"
         const val JAVA_SCRIPT = "javaScript"
         const val FONT = "font"
+        const val TEXT_SIZE = "textSize"
     }
 }

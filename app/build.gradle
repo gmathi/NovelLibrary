@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
-apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
@@ -20,8 +19,8 @@ android {
         minSdkVersion 21
         targetSdkVersion 29
         multiDexEnabled true
-        versionCode 73
-        versionName "0.9.9.5.beta#patch1"
+        versionCode 79
+        versionName "0.9.9.8.beta_patch2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -36,10 +35,9 @@ android {
     }
 
     buildTypes {
-
         debug {
-            //buildConfigField "boolean", "IS_DEBUG", "true"
             pseudoLocalesEnabled true
+            getIsDefault().set(true)
         }
 
         release {
@@ -48,42 +46,73 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    flavorDimensions "mode"
+    productFlavors {
+        mirror {
+            // Flavor adds a suffix to the package name, so the
+            // build can be installed alongside the main build.
+            dimension "mode"
+            applicationIdSuffix ".mirror"
+        }
+
+        canary {
+            // Flavor to enable leekCanary.
+            dimension "mode"
+        }
+
+        normal {
+            // Normal build.
+            dimension "mode"
+            getIsDefault().set(true)
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    testImplementation 'junit:junit:4.12'
+    implementation 'androidx.work:work-runtime-ktx:2.3.3'
+
+    testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.cardview:cardview:1.0.0'
-    implementation 'com.google.android.material:material:1.0.0'
+    implementation 'com.google.android.material:material:1.1.0'
     implementation 'androidx.vectordrawable:vectordrawable:1.1.0'
     implementation 'androidx.preference:preference-ktx:1.1.0'
 
     implementation 'androidx.multidex:multidex:2.0.1'
 
-    implementation 'org.jsoup:jsoup:1.12.1'
+    implementation 'org.jsoup:jsoup:1.13.1'
     implementation 'org.cryse.widget:persistentsearchview:1.0.4@aar'
-    implementation 'org.greenrobot:eventbus:3.0.0'
+    implementation 'org.greenrobot:eventbus:3.1.1'
 
-    implementation 'com.github.bumptech.glide:glide:4.9.0'
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
     implementation 'com.github.nguyenhoanglam:ProgressLayout:1.0.1'
     implementation 'com.github.rubensousa:floatingtoolbar:1.4.4'
     implementation 'com.github.chrisbanes:PhotoView:2.1.2'
     implementation 'com.github.medyo:fancybuttons:1.8.3'
     implementation 'com.github.johnpersano:supertoasts:2.0'
 
-    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.4.0'
     implementation 'com.hanks.animatecheckbox:library:0.1'
     implementation 'com.afollestad:drag-select-recyclerview:1.0.0'
-    implementation 'com.thanosfisherman.mayi:mayi:1.4'
     implementation 'com.tapadoo.android:alerter:2.0.1'
     implementation 'com.yarolegovich:sliding-root-nav:1.1.0'
-    implementation 'com.ogaclejapan.smarttablayout:library:1.6.1@aar'
+    implementation 'com.ogaclejapan.smarttablayout:library:2.0.0@aar'
     implementation 'com.futuremind.recyclerfastscroll:fastscroll:0.2.5'
     implementation 'jp.wasabeef:recyclerview-animators:2.2.6'
     implementation 'nl.dionsegijn:konfetti:1.0.2'
@@ -97,7 +126,7 @@ dependencies {
         exclude group: 'com.google.apis'
     })
 
-    implementation('com.afollestad.material-dialogs:core:0.9.4.5', {
+    implementation('com.afollestad.material-dialogs:core:0.9.6.0', {
         exclude group: 'com.android.support'
     })
 
@@ -109,37 +138,49 @@ dependencies {
     implementation "com.google.android.gms:play-services-drive:17.0.0"
     implementation "com.google.android.gms:play-services-auth:17.0.0"
 
-    implementation "com.google.firebase:firebase-messaging:20.1.0"
+    implementation "com.google.firebase:firebase-messaging:20.1.1"
     implementation "com.google.firebase:firebase-auth:19.2.0"
-    implementation "com.google.firebase:firebase-core:17.2.1"
-    implementation 'com.google.firebase:firebase-config:19.1.0'
-    implementation 'com.google.code.gson:gson:2.8.5'
+
+    implementation "com.google.firebase:firebase-core:17.2.3"
+    implementation "com.google.firebase:firebase-config:19.1.2"
+    implementation 'com.google.code.gson:gson:2.8.6'
 
 
-    implementation('com.crashlytics.sdk.android:crashlytics:2.9.0@aar') {
+    implementation('com.crashlytics.sdk.android:crashlytics:2.10.1@aar') {
         transitive = true
     }
 
-//    implementation('com.google.api-client:google-api-client-android:1.23.0') {
-//        exclude group: 'org.apache.httpcomponents'
-//        exclude group: 'com.google.code.findbugs'
-//        exclude group: 'com.google.android.gms'
-//        exclude group: 'com.firebaseui'
-//    }
-//    implementation('com.google.apis:google-api-services-drive:v2-rev294-1.23.0') {
-//        exclude group: 'org.apache.httpcomponents'
-//        exclude group: 'com.google.code.findbugs'
-//        exclude group: 'com.google.android.gms'
-//        exclude group: 'com.firebaseui'
-//    }
 
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.1'
-    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
-    testImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
+    canaryImplementation 'com.squareup.leakcanary:leakcanary-android:2.2'
 
-    kapt 'com.github.bumptech.glide:compiler:4.8.0'
+    kapt 'com.github.bumptech.glide:compiler:4.11.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4"
+}
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+task countTranslations {
+    File json = file('src\\main\\assets\\translations.json')
+
+    Set<File> resources = fileTree('src\\main\\res')
+            .files.findAll { (it.name == 'strings.xml') }
+    File englishResources = resources.find { it.parentFile.name == 'values' }
+    resources.remove(englishResources)
+
+    List<String> englishStrings = englishResources.text.readLines()
+            .findAll { it.trim().startsWith('<string name="') && !it.contains('translatable="false"') && it.endsWith('</string>') }
+            .collect { it.trim().split('">')[1].split('</')[0] }
+
+    json.text = '{\r\n  "en": "' + englishStrings.size() + '"'
+
+    resources.each { resource ->
+        List<String> strings = resource.text.readLines()
+                .findAll { it.trim().startsWith('<string name="') && !it.contains('translatable="false"') && it.endsWith('</string>') }
+                .collect { it.trim().split('">')[1].split('</')[0] }
+                .findAll { !englishStrings.contains(it) }
+        json.text += ',\r\n  "' + resource.parentFile.name.split('-')[1] + '": "' + strings.size() + '"'
+    }
+
+    json.text += '\r\n}'
 }
 
 apply plugin: 'com.google.gms.google-services'

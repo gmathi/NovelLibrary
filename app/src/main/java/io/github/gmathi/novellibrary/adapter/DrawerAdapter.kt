@@ -7,9 +7,9 @@ import android.view.ViewGroup
 import io.github.gmathi.novellibrary.model.DrawerItem
 
 
-class DrawerAdapter(private val items: List<DrawerItem<DrawerAdapter.ViewHolder>>) : RecyclerView.Adapter<DrawerAdapter.ViewHolder>() {
-    private var viewTypes: MutableMap<Class<out DrawerItem<DrawerAdapter.ViewHolder>>, Int> = HashMap()
-    private var holderFactories: SparseArray<DrawerItem<DrawerAdapter.ViewHolder>> = SparseArray()
+class DrawerAdapter(private val items: List<DrawerItem<ViewHolder>>) : RecyclerView.Adapter<DrawerAdapter.ViewHolder>() {
+    private var viewTypes: MutableMap<Class<out DrawerItem<ViewHolder>>, Int> = HashMap()
+    private var holderFactories: SparseArray<DrawerItem<ViewHolder>> = SparseArray()
 
     private var listener: OnItemSelectedListener? = null
 

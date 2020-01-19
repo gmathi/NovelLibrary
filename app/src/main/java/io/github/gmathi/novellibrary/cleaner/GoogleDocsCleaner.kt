@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.cleaner
 
 import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -32,38 +33,29 @@ class GoogleDocsCleaner : HtmlHelper() {
     }
 
     override fun toggleTheme(isDark: Boolean, doc: Document): Document {
-
-            var fontName = "source_sans_pro_regular.ttf"
-            var fontUrl =  "/android_asset/fonts/$fontName"
-
-            val fontFile = File(dataCenter.fontPath)
-            if (fontFile.exists()) {
-                fontName = fontFile.name
-                fontUrl = fontFile.path
+        val fontFile = File(dataCenter.fontPath)
+        val fontFamily = fontFile.name.substringBeforeLast(".")
+        val nightModeTextBrightness = 87
+        doc.head().getElementById("darkTheme")?.remove()
+        doc.head().append("""
+        <style id="darkTheme">
+            @font-face {
+                font-family: $fontFamily;
+                src: url("$FILE_PROTOCOL${fontFile.path}");
             }
+            body {
+                ${if (isDark) "background-color" else "color"}: #000;
+                ${if (isDark) "color" else "background-color"}: rgba(255, 255, 255, .$nightModeTextBrightness);
+                font-family: '$fontFamily';
+                line-height: 1.5;
+                padding: 20px;
+            }
+            a {
+                color: rgba(${if (isDark) "135, 206, 250" else "0, 0, 238"}, .$nightModeTextBrightness);
+            }
+        </style>
+        """.trimIndent())
 
-            val fontFamily = fontName.substring(0, fontName.lastIndexOf("."))
-            val nightModeTextBrightness = 87
-            doc.head().getElementById("darkTheme")?.remove()
-            doc.head().append("""
-            <style id="darkTheme">
-                @font-face {
-                    font-family: $fontFamily;
-                    src: url("$FILE_PROTOCOL$fontUrl");
-                }
-                body {
-                    ${if (isDark) "background-color" else "color"}: #000;
-                    ${if (isDark) "color" else "background-color"}: rgba(255, 255, 255, .$nightModeTextBrightness);
-                    font-family: '$fontFamily';
-                    line-height: 1.5;
-                    padding: 20px;
-                }
-                a {
-                    color: rgba(${if (isDark) "135, 206, 250" else "0, 0, 238"}, .$nightModeTextBrightness);
-                }
-            </style>
-            """.trimIndent())
-
-            return doc
+        return doc
     }
 }

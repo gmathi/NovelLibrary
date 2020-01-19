@@ -28,6 +28,7 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.model.WebPageSettings
+import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
@@ -40,6 +41,7 @@ import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import org.jsoup.Jsoup
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.nodes.Document
 import java.io.File
 
@@ -74,6 +76,9 @@ class WebPageDBFragment : BaseFragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
+        if (savedInstanceState == null)
+            EventBus.getDefault().register(this)
 
         val activity = activity as? ReaderDBPagerActivity ?: return
 
@@ -276,6 +281,16 @@ class WebPageDBFragment : BaseFragment() {
 
                 doc = await { NovelApi.getDocumentWithUserAgent(url) }
 
+                if (doc != null) {
+
+                    if (doc!!.location().contains("rssbook") && doc!!.location().contains(HostNames.QIDIAN)) {
+                        doc = await { NovelApi.getDocumentWithUserAgent(doc!!.location().replace("rssbook", "book")) }
+                    }
+//                    if (doc!!.location().contains("/nu/") && doc!!.location().contains(HostNames.FLYING_LINES)) {
+//                        doc = await { NovelApi.getDocumentWithUserAgent(doc!!.location().replace("/nu/", "/chapter/")) }
+//                    }
+                }
+
                 //If document fails to load and the fragment is still alive
                 if (doc == null) {
                     if (isResumed && !isRemoving && !isDetached)
@@ -284,6 +299,7 @@ class WebPageDBFragment : BaseFragment() {
                         }
                     return@download
                 }
+
 
                 //Update the relative urls with the absolute urls for the images and links
                 doc?.getElementsByTag("img")?.forEach {
@@ -358,7 +374,7 @@ class WebPageDBFragment : BaseFragment() {
     fun getUrl() = webPage?.url
 
     private fun getUrlDomain(url: String? = getUrl()): String? {
-        return url?.let { HttpUrl.parse(url)?.topPrivateDomain() }
+        return url?.let { url.toHttpUrlOrNull()?.topPrivateDomain() }
     }
 
     fun goBack() {
@@ -464,17 +480,8 @@ class WebPageDBFragment : BaseFragment() {
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        EventBus.getDefault().register(this)
-    }
-
-    override fun onStop() {
-        EventBus.getDefault().unregister(this)
-        super.onStop()
-    }
-
     override fun onDestroy() {
+        EventBus.getDefault().unregister(this)
         async.cancelAll()
         super.onDestroy()
     }

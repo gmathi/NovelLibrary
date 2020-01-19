@@ -6,10 +6,12 @@ import io.github.gmathi.novellibrary.database.getSource
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
-import okhttp3.*
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.net.URI
+import com.google.gson.Gson
+import com.google.gson.internal.LinkedTreeMap
+import com.google.gson.reflect.TypeToken
 
 
 fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayList<WebPage>? {
@@ -20,6 +22,7 @@ fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayLi
         host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterUrls(novel)
         host.contains(HostNames.NOVEL_FULL) -> return getNovelFullChapterUrls(novel)
         host.contains(HostNames.SCRIBBLE_HUB) -> return getScribbleHubChapterUrls(novel)
+        host.contains(HostNames.LNMTL) -> return getLNMTLChapterUrls(novel)
     }
     return null
 }
@@ -126,7 +129,6 @@ fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
         var orderId = 0L
         val elements = doc?.getElementsByAttribute("data-id")
         elements?.reversed()?.forEach {
-
             val webPageUrl = "https:" + it?.attr("href")
             val webPage = WebPage(webPageUrl, it.getElementsByAttribute("title").attr("title"))
             webPage.orderId = orderId++
@@ -282,5 +284,39 @@ fun getScribbleHubChapterUrls(novel: Novel): ArrayList<WebPage> {
         e.printStackTrace()
     }
 
+    return chapters
+}
+
+fun getLNMTLChapterUrls(novel: Novel): ArrayList<WebPage> {
+    val chapters = ArrayList<WebPage>()
+    try {
+        val doc = Jsoup.connect(novel.url).get()
+
+        val scripts = doc.select("script")
+        val script = scripts.find { it.html().contains("lnmtl.firstResponse =") } ?: return chapters
+        val text = script.html()
+
+        val json = text.substring(text.indexOf("lnmtl.firstResponse =") + 21)
+                .substringBefore(";lnmtl.volumes =")
+
+        val type = object : TypeToken<Map<String, Any>>() {}.type
+        val gson: LinkedTreeMap<String, Any> = Gson().fromJson(json, type) ?: return chapters
+
+        @Suppress("UNCHECKED_CAST")
+        val data = gson["data"] as List<LinkedTreeMap<String, Any>>
+
+        var orderId = 0L
+        for (chapter in data) {
+            val url = chapter["site_url"]
+            val title = chapter["title"]
+            if (url !is String || title !is String) continue
+            val webPage = WebPage(url, title)
+            webPage.orderId = orderId++
+            webPage.novelId = novel.id
+            chapters.add(webPage)
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
     return chapters
 }
