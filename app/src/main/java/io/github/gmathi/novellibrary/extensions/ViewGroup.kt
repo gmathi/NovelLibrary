@@ -5,7 +5,6 @@ import android.view.ViewGroup
 
 
 fun ViewGroup.enabled(enable: Boolean) {
-    android.util.Log.i("MyViews", id.toString())
     isEnabled = enable
     for (i in 0 until childCount) {
         val child: View = getChildAt(i)
