@@ -63,3 +63,6 @@ keystore.properties
 .idea/caches/build_file_checksums.ser
 .idea/assetWizardSettings.xml
 *.aab
+
+# Files created by gradle on build
+app/src/main/assets/translations.json
