@@ -96,12 +96,12 @@ class LocaleManager {
         @SuppressLint("ObsoleteSdkInt")
         @Suppress("DEPRECATION")
         fun updateContextLocale(context: Context, language: String = getLanguage()): Context {
-            if (language == SYSTEM_DEFAULT)
-                return context
+//            if (language == SYSTEM_DEFAULT)
+//                return context
             val config = Configuration(context.resources.configuration)
             val locale = Locale(language)
             try {
-                if (locale.isO3Language.isEmpty())
+                if (locale.isO3Language.isNullOrEmpty())
                     return context
             } catch (e: MissingResourceException) {
                 return context
