@@ -62,3 +62,4 @@ app/release/output.json
 keystore.properties
 .idea/caches/build_file_checksums.ser
 .idea/assetWizardSettings.xml
+*.aab
