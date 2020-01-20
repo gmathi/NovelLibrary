@@ -105,6 +105,8 @@ class LocaleManager {
                     return context
             } catch (e: MissingResourceException) {
                 return context
+            } catch (e: NullPointerException) {
+                return context
             }
             Locale.setDefault(locale)
             return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
