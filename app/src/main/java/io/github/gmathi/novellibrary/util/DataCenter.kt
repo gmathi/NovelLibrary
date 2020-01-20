@@ -8,6 +8,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import java.util.*
 
 
@@ -119,7 +120,7 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putBoolean(JAVASCRIPT, value).apply()
 
     var language: String
-        get() = prefs.getString(LANGUAGE, "systemDefault_")!!
+        get() = prefs.getString(LANGUAGE, SYSTEM_DEFAULT)!!
         @SuppressLint("ApplySharedPref")
         set(value) {
             prefs.edit().putString(LANGUAGE, value).commit()

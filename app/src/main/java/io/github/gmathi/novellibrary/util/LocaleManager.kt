@@ -12,6 +12,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import java.util.Locale
+import java.util.MissingResourceException
 import kotlin.collections.HashMap
 import kotlin.system.exitProcess
 
@@ -99,6 +100,14 @@ class LocaleManager {
                 return context
             val config = Configuration(context.resources.configuration)
             val locale = Locale(language)
+            try {
+                if (locale.isO3Language.isEmpty())
+                    return context
+            } catch (e: MissingResourceException) {
+                return context
+            } catch (e: NullPointerException) {
+                return context
+            }
             Locale.setDefault(locale)
             return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
                 config.setLocale(locale)
