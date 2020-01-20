@@ -13,7 +13,6 @@ import androidx.multidex.MultiDexApplication
 import com.crashlytics.android.Crashlytics
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.security.ProviderInstaller
-import com.squareup.leakcanary.LeakCanary
 import io.fabric.sdk.android.Fabric
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.deleteWebPageSettings
@@ -86,11 +85,6 @@ class NovelLibraryApplication : MultiDexApplication() {
         }
 
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
-
-        if (LeakCanary.isInAnalyzerProcess(this)) {
-            return
-        }
-        LeakCanary.install(this)
 
         val imagesDir = File(filesDir, "images")
         if (!imagesDir.exists())

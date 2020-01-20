@@ -54,6 +54,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         setContentView(R.layout.activity_settings)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        versionTextView.text = "Version: ${BuildConfig.VERSION_NAME}_${BuildConfig.VERSION_CODE}"
         setRemoteConfig()
         setRecyclerView()
         setEasterEgg()
@@ -122,8 +123,8 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     private fun aboutUsDialog() {
         MaterialDialog.Builder(this)
-                .title("Version: ${BuildConfig.VERSION_NAME}_${BuildConfig.VERSION_CODE}")
-                .content(getString(R.string.lock_hint))
+                .title("About Us")
+                .content("This project is an open-source project being developed with love for the novel reading community. If you would like to help out you can get in touch with us in discord!")//getString(R.string.lock_hint))
                 .show()
     }
 
@@ -142,7 +143,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     private fun showCodeDialog() {
         MaterialDialog.Builder(this)
-                .input("Opps no hints!!", "ilovenovelsalot", true) { dialog, input ->
+                .input("Oops no hints!!", "I love novels a lot is a true statement!!", true) { dialog, input ->
                     checkCode(input.toString())
                 }.title("Enter Unlock Code")
                 .canceledOnTouchOutside(false)
@@ -176,4 +177,6 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 .setPosition(-50f, viewKonfetti.width + 50f, -50f, -50f)
                 .stream(300, 5000L)
     }
+
+
 }

@@ -40,6 +40,7 @@ import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import org.jsoup.Jsoup
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.nodes.Document
 import java.io.File
 
@@ -358,7 +359,7 @@ class WebPageDBFragment : BaseFragment() {
     fun getUrl() = webPage?.url
 
     private fun getUrlDomain(url: String? = getUrl()): String? {
-        return url?.let { HttpUrl.parse(url)?.topPrivateDomain() }
+        return url?.let { url.toHttpUrlOrNull()?.topPrivateDomain() }
     }
 
     fun goBack() {

@@ -128,8 +128,6 @@ class ReaderDBPagerActivity :
                     else
                         index
         }
-
-
     }
 
     private fun updateBookmark(webPage: WebPage) {
@@ -403,14 +401,23 @@ class ReaderDBPagerActivity :
             when (position) {
                 READER_MODE -> {
                     dataCenter.readerMode = isChecked
-                    itemView.linNightMode.visibility = if (isChecked)
-                        View.VISIBLE
-                    else
-                        View.GONE
+                    if (isChecked) {
+                        itemView.linNightMode.visibility = View.VISIBLE
+                        if (!dataCenter.javascriptDisabled) {
+                            dataCenter.javascriptDisabled = true
+                            list.adapter?.notifyDataSetChanged()
+                        }
+                    } else {
+                        itemView.linNightMode.visibility = View.GONE
+                    }
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
                 }
                 JAVA_SCRIPT -> {
                     dataCenter.javascriptDisabled = !isChecked
+                    if (!dataCenter.javascriptDisabled && dataCenter.readerMode) {
+                        dataCenter.readerMode = false
+                        list.adapter?.notifyDataSetChanged()
+                    }
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCRIPT))
                 }
                 MERGE_PAGES -> {

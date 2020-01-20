@@ -78,6 +78,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
         itemView.widgetSwitch.visibility = View.GONE
         itemView.currentValue.visibility = View.GONE
         itemView.widget.visibility = View.GONE
+        itemView.blackOverlay.visibility = View.GONE
 
         itemView.title.applyFont(assets).text = item
         itemView.subtitle.applyFont(assets).text = settingsItemsDescription[position]

@@ -471,26 +471,27 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     private fun deleteWebPage(webPage: WebPage) {
         val webPageSettings = chaptersSettings.firstOrNull { it.url == webPage.url }
         webPageSettings?.filePath?.let { filePath ->
-            try {
                 val file = File(filePath)
                 file.delete()
                 webPageSettings.filePath = null
-                if (webPageSettings.metaData.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
-                    val linkedPages: ArrayList<String> = Gson().fromJson(webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES_SETTINGS], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+            try {
+                val otherLinkedPagesJsonString = webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES]
+                if (otherLinkedPagesJsonString != null) {
+                    val linkedPages: ArrayList<WebPage> = Gson().fromJson(otherLinkedPagesJsonString, object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
                     linkedPages.forEach {
-                        val linkedWebPageSettings = chaptersSettings.firstOrNull { it.url == webPage.url }
+                        val linkedWebPageSettings = dbHelper.getWebPageSettings(it.url)
                         if (linkedWebPageSettings?.filePath != null) {
-                            val linkedFile = File(linkedWebPageSettings.filePath)
+                            val linkedFile = File(linkedWebPageSettings.filePath!!)
                             linkedFile.delete()
                             dbHelper.deleteWebPageSettings(linkedWebPageSettings.url)
                         }
                     }
                     webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = "[]"
                 }
-                dbHelper.updateWebPageSettings(webPageSettings)
             } catch (e: Exception) {
                 Logs.error(TAG, e.localizedMessage)
             }
+            dbHelper.updateWebPageSettings(webPageSettings)
         }
     }
 
