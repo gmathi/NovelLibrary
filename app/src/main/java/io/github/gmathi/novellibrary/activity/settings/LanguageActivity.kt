@@ -27,7 +27,7 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     companion object {
 
-        fun getString(context: Context, language: String): String {
+        fun getLanguageName(context: Context, language: String): String {
             return when (language) {
                 "en" -> context.resources.getString(R.string.locale_english)
                 "de" -> context.resources.getString(R.string.locale_german)

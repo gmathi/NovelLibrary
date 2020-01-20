@@ -59,7 +59,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
             } catch (e: KotlinNullPointerException) {
                 SYSTEM_DEFAULT
             }
-            items[items.indexOfFirst { it == systemDefault }] = LanguageActivity.getString(this, language)
+            items[items.indexOfFirst { it == systemDefault }] = LanguageActivity.getLanguageName(this, language)
         }
         settingsItemsDescription = items
 
