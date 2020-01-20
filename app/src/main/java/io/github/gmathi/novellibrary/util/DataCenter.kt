@@ -119,7 +119,7 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putBoolean(JAVASCRIPT, value).apply()
 
     var language: String
-        get() = prefs.getString(LANGUAGE, "systemDefault_")!!
+        get() = prefs.getString(LANGUAGE, Constants.SYSTEM_DEFAULT)!!
         @SuppressLint("ApplySharedPref")
         set(value) {
             prefs.edit().putString(LANGUAGE, value).commit()
