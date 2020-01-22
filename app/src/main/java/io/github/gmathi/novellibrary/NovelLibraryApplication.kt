@@ -48,10 +48,17 @@ class NovelLibraryApplication : MultiDexApplication() {
         var dbHelper: DBHelper? = null
 
         private const val TAG = "NovelLibraryApplication"
+
+        @Synchronized fun getDataCenter(context: Context): DataCenter {
+            if (dataCenter == null)
+                dataCenter = DataCenter(context)
+            return dataCenter!!
+        }
     }
 
     override fun onCreate() {
-        dataCenter = DataCenter(applicationContext)
+        if (dataCenter == null)
+            dataCenter = getDataCenter(applicationContext)
         dbHelper = DBHelper.getInstance(applicationContext)
         val date = Calendar.getInstance()
         if (date.get(Calendar.MONTH) == 4 && date.get(Calendar.DAY_OF_MONTH) == 1) {
