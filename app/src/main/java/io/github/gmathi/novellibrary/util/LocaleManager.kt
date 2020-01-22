@@ -8,8 +8,13 @@ import android.content.res.Resources
 import android.os.Build
 import android.os.Build.VERSION_CODES.JELLY_BEAN_MR1
 import androidx.appcompat.app.AppCompatActivity
-import io.github.gmathi.novellibrary.R
+import com.google.gson.Gson
+import com.google.gson.internal.LinkedTreeMap
+import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
 import java.util.Locale
 import java.util.MissingResourceException
 import kotlin.collections.HashMap
@@ -20,55 +25,42 @@ class LocaleManager {
 
     companion object {
 
-        private const val englishLanguage = "en"
-        private const val untranslatable = 26
-        private fun falsePositive(language: String): Int {
+        private fun toResourceLocale(language: String): String {
             return when (language) {
-                "de" -> 46
-                "id" -> 80
-                "pt" -> 66
-                "es" -> 78
-                "tr" -> 78
-                "fr" -> 66
-                "tl" -> 78
-                "la" -> 175
-                else -> 78
+                "id" -> "in"
+                else -> language
             }
         }
 
-        private lateinit var stringResourceIds: List<Int>
+        private const val englishLanguage = "en"
 
-        private lateinit var stringResourcesEnglish: List<String>
-
-        private val translations: HashMap<String, Int> = HashMap()
+        private var translated: HashMap<String, Int> = HashMap()
 
         @Synchronized
         fun translated(context: Context, language: String = englishLanguage): Int {
             if (language == SYSTEM_DEFAULT)
                 return -1
-            if (!translations.containsKey(language)) {
-                if (!::stringResourceIds.isInitialized) {
-                    val strings = R.string()
-                    stringResourceIds = R.string::class.java.fields
-                            .filter { it.type.toString() == "int" }
-                            .map { it.getInt(strings) }
-                }
-
-                if (!::stringResourcesEnglish.isInitialized) {
-                    val resources = getResourcesLocale(context) ?: return -1
-                    stringResourcesEnglish = stringResourceIds.map { resources.getString(it) }
-                }
-
-                if (language == englishLanguage)
-                    translations[englishLanguage] = stringResourcesEnglish.size - untranslatable
-                else {
-                    val resources = getResourcesLocale(context, language) ?: return -1
-                    val stringResources = stringResourceIds.map { resources.getString(it) }
-                            .filter { !stringResourcesEnglish.contains(it) }
-                    translations[language] = stringResources.size + falsePositive(language)
+            if (translated.isEmpty()) {
+                val reader: BufferedReader
+                val stringBuilder = StringBuilder()
+                try {
+                    reader = BufferedReader(InputStreamReader(context.assets.open("translations.json")))
+                    var mLine = reader.readLine()
+                    while (mLine != null) {
+                        stringBuilder.append(mLine)
+                        mLine = reader.readLine()
+                    }
+                    val type = object : TypeToken<Map<String, String>>() {}.type
+                    val json: LinkedTreeMap<String, String> = Gson().fromJson(stringBuilder.toString(), type)
+                    for (pair in json) {
+                        translated[pair.key] = pair.value.toInt()
+                    }
+                } catch (e: IOException) {
+                    Logs.error("LocaleManager", e.localizedMessage, e)
+                    translated.clear()
                 }
             }
-            return translations[language] ?: -1
+            return translated[toResourceLocale(language)] ?: -1
         }
 
         @SuppressLint("ObsoleteSdkInt")
