@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.Build.VERSION_CODES.JELLY_BEAN_MR1
 import androidx.appcompat.app.AppCompatActivity
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import java.util.Locale
 import java.util.MissingResourceException
@@ -85,9 +84,9 @@ class LocaleManager {
             } else null
         }
 
-        private fun getLanguage(): String {
+        private fun getLanguage(context: Context): String {
             return try {
-                dataCenter.language
+                DataCenter(context).language
             } catch (e: KotlinNullPointerException) {
                 SYSTEM_DEFAULT
             }
@@ -95,7 +94,7 @@ class LocaleManager {
 
         @SuppressLint("ObsoleteSdkInt")
         @Suppress("DEPRECATION")
-        fun updateContextLocale(context: Context, language: String = getLanguage()): Context {
+        fun updateContextLocale(context: Context, language: String = getLanguage(context)): Context {
             if (language == SYSTEM_DEFAULT)
                 return context
             val config = Configuration(context.resources.configuration)
@@ -125,6 +124,7 @@ class LocaleManager {
         }
 
         fun changeLocale(context: Context, language: String) {
+            val dataCenter = DataCenter(context)
             if (dataCenter.language != language) {
                 dataCenter.language = language
                 val intent = context.packageManager
