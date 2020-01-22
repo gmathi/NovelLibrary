@@ -130,7 +130,7 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
         else if (language != "en" && language != "pa") {
             val translated = translated(this, language)
             val total = translated(this)
-            if (translated == -1 && total == -1)
+            if (translated == -1 || total == -1)
                 return
             val percentage = String.format("%.2f", translated.toDouble() / total * 100)
             Toast.makeText(this, resources.getString(R.string.translated, translated, total, percentage), Toast.LENGTH_LONG).show()

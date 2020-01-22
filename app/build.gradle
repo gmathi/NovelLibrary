@@ -140,4 +140,30 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
+task countTranslations {
+    File json = file('src\\main\\assets\\translations.json')
+
+    Set<File> resources = fileTree('src\\main\\res')
+            .files.findAll { (it.name == 'strings.xml') }
+    File englishResources = resources.find { it.parentFile.name == 'values' }
+    resources.remove(englishResources)
+
+    List<String> englishStrings = englishResources.text.readLines()
+            .findAll { it.trim().startsWith('<string name="') && !it.contains('translatable="false"') && it.endsWith('</string>') }
+            .collect { it.trim().split('">')[1].split('</')[0] }
+
+    json.text =
+            '{\r\n  "en": "' + englishStrings.size() + '"'
+
+    resources.each { resource ->
+        List<String> strings = resource.text.readLines()
+                .findAll { it.trim().startsWith('<string name="') && !it.contains('translatable="false"') && it.endsWith('</string>') }
+                .collect { it.trim().split('">')[1].split('</')[0] }
+                .findAll { !englishStrings.contains(it) }
+        json.text += ',\r\n  "' + resource.parentFile.name.split('-')[1] + '": "' + strings.size() + '"'
+    }
+
+    json.text += '\r\n}'
+}
+
 apply plugin: 'com.google.gms.google-services'
