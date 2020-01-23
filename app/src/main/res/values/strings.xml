@@ -133,6 +133,7 @@
 
     <string-array name="reader_mode_menu_titles_list" translatable="false">
         <item>@string/title_reader</item>
+        <item>@string/title_night</item>
         <item>@string/title_java_script</item>
         <item>@string/title_fonts</item>
         <item>@string/title_fonts_size</item>
@@ -145,6 +146,7 @@
 
     <array name="reader_mode_menu_icons_list" translatable="false">
         <item>@drawable/ic_book_white_vector</item>
+        <item>@drawable/ic_wb_incandescent_white_vector</item>
         <item>@drawable/ic_code_white_vector</item>
         <item>@drawable/ic_fonts_vector</item>
         <item>@drawable/ic_text_fields_white_vector</item>

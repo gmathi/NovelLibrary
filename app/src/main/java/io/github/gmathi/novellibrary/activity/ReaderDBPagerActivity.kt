@@ -10,12 +10,15 @@ import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
 import android.view.View
+import android.view.View.*
 import android.view.WindowManager
 import android.webkit.WebView
 import android.widget.CompoundButton
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.LayoutParams.MATCH_PARENT
+import androidx.recyclerview.widget.RecyclerView.LayoutParams.WRAP_CONTENT
 import androidx.viewpager.widget.ViewPager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.folderselector.FileChooserDialog
@@ -60,14 +63,15 @@ class ReaderDBPagerActivity :
 
     companion object {
         private const val READER_MODE = 0
-        private const val JAVA_SCRIPT = 1
-        private const val FONTS = 2
-        private const val FONT_SIZE = 3
-        private const val MERGE_PAGES = 4
-        private const val REPORT_PAGE = 5
-        private const val OPEN_IN_BROWSER = 6
-        private const val SHARE_CHAPTER = 7
-        private const val READ_ALOUD = 8
+        private const val NIGHT_MODE = 1
+        private const val JAVA_SCRIPT = 2
+        private const val FONTS = 3
+        private const val FONT_SIZE = 4
+        private const val MERGE_PAGES = 5
+        private const val REPORT_PAGE = 6
+        private const val OPEN_IN_BROWSER = 7
+        private const val SHARE_CHAPTER = 8
+        private const val READ_ALOUD = 9
     }
 
     private lateinit var screenIcons: Array<Drawable?>
@@ -105,7 +109,7 @@ class ReaderDBPagerActivity :
         }
 
         if (!dataCenter.isReaderModeButtonVisible)
-            menuNav.visibility = View.INVISIBLE
+            menuNav.visibility = INVISIBLE
 
     }
 
@@ -147,12 +151,12 @@ class ReaderDBPagerActivity :
 
         if (hasFocus && dataCenter.enableImmersiveMode) {
             main_content.fitsSystemWindows = false
-            val immersiveModeOptions: Int = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+            val immersiveModeOptions: Int = (SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    or SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    or SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    or SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    or SYSTEM_UI_FLAG_FULLSCREEN
+                    or SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
             window.decorView.systemUiVisibility = immersiveModeOptions
         }
     }
@@ -287,6 +291,7 @@ class ReaderDBPagerActivity :
         @Suppress("UNCHECKED_CAST")
         val adapter = DrawerAdapter(listOf(
                 createItemFor(READER_MODE).setSwitchOn(true),
+                createItemFor(NIGHT_MODE).setSwitchOn(true),
                 createItemFor(JAVA_SCRIPT).setSwitchOn(true),
                 createItemFor(FONTS),
                 createItemFor(FONT_SIZE),
@@ -376,48 +381,57 @@ class ReaderDBPagerActivity :
      *     For Reader Mode & Night Mode toggle
      */
     override fun bind(item: ReaderMenu, itemView: View, position: Int, simpleItem: SimpleItem) {
+        if (itemView.visibility == GONE) {
+            itemView.visibility = VISIBLE
+            itemView.layoutParams = RecyclerView.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+        }
 
         itemView.title.text = item.title
         itemView.icon.setImageDrawable(item.icon)
-        itemView.switchReaderMode.setOnCheckedChangeListener(null)
+        itemView.itemSwitch.setOnCheckedChangeListener(null)
+
         if (simpleItem.isSwitchOn() && position == READER_MODE) {
-            itemView.titleNightMode.text = getString(R.string.title_night)
-            itemView.switchReaderMode.visibility = View.VISIBLE
-            itemView.switchReaderMode.isChecked = dataCenter.readerMode
-            itemView.switchNightMode.isChecked = dataCenter.isDarkTheme
-            if (itemView.switchReaderMode.isChecked)
-                itemView.linNightMode.visibility = View.VISIBLE
-        } else if (simpleItem.isSwitchOn() && position == JAVA_SCRIPT) {
-            itemView.switchReaderMode.visibility = View.VISIBLE
-            itemView.switchReaderMode.isChecked = !dataCenter.javascriptDisabled
+            itemView.itemSwitch.visibility = VISIBLE
+            itemView.itemSwitch.isChecked = dataCenter.readerMode
+        } else if (simpleItem.isSwitchOn() && position == NIGHT_MODE) {
+            if (!dataCenter.readerMode) {
+                itemView.visibility = GONE
+                itemView.layoutParams = RecyclerView.LayoutParams(0, 0)
+            } else {
+                itemView.itemSwitch.visibility = VISIBLE
+                itemView.itemSwitch.isChecked = dataCenter.isDarkTheme
+            }
+        }else if (simpleItem.isSwitchOn() && position == JAVA_SCRIPT) {
+            if (dataCenter.readerMode) {
+                itemView.visibility = GONE
+                itemView.layoutParams = RecyclerView.LayoutParams(0, 0)
+            } else {
+                itemView.itemSwitch.visibility = VISIBLE
+                itemView.itemSwitch.isChecked = !dataCenter.javascriptDisabled
+            }
         } else if (simpleItem.isSwitchOn() && position == MERGE_PAGES) {
-            itemView.switchReaderMode.visibility = View.VISIBLE
-            itemView.switchReaderMode.isChecked = dataCenter.enableClusterPages
+            itemView.itemSwitch.visibility = VISIBLE
+            itemView.itemSwitch.isChecked = dataCenter.enableClusterPages
         } else
-            itemView.switchReaderMode.visibility = View.GONE
+            itemView.itemSwitch.visibility = GONE
 
-
-        itemView.switchReaderMode.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
+        itemView.itemSwitch.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
             when (position) {
                 READER_MODE -> {
                     dataCenter.readerMode = isChecked
-                    if (isChecked) {
-                        itemView.linNightMode.visibility = View.VISIBLE
-                        if (!dataCenter.javascriptDisabled) {
-                            dataCenter.javascriptDisabled = true
-                            list.adapter?.notifyDataSetChanged()
-                        }
-                    } else {
-                        itemView.linNightMode.visibility = View.GONE
-                    }
+                    if (isChecked && !dataCenter.javascriptDisabled)
+                        dataCenter.javascriptDisabled = true
+                    list.adapter?.notifyItemRangeChanged(NIGHT_MODE, 2)
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+                }
+                NIGHT_MODE -> {
+                    dataCenter.isDarkTheme = isChecked
+                    EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
                 }
                 JAVA_SCRIPT -> {
                     dataCenter.javascriptDisabled = !isChecked
-                    if (!dataCenter.javascriptDisabled && dataCenter.readerMode) {
+                    if (!dataCenter.javascriptDisabled && dataCenter.readerMode)
                         dataCenter.readerMode = false
-                        list.adapter?.notifyDataSetChanged()
-                    }
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCRIPT))
                 }
                 MERGE_PAGES -> {
@@ -426,12 +440,6 @@ class ReaderDBPagerActivity :
                 }
             }
         }
-
-        itemView.switchNightMode.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
-            dataCenter.isDarkTheme = isChecked
-            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
-        }
-
     }
 
     private fun openFontChooserDialog() {
