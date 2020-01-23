@@ -251,5 +251,8 @@
     <string name="translated">Translated %1$d Out O\' %2$d (≈%3$s%%)</string>
     <string name="volume_scroll_length">Scroll Distance</string>
     <string name="volume_scroll_length_description">Change The Distance To Scroll When Usin\' Volume Keys</string>
+    <string name="about_us_content">Arr, this here project be an open-source project bein\' developed with love fer the novel readin\' crew. If ye would like to \'elp out ye can get in touch with us in discord!</string>
+    <string name="bug_report_content">Fool! Use discord to report a bug.%1$s</string>
+    <string name="copy_to_clipboard">Copy to clipboard</string>
 
 </resources>

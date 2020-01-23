@@ -1,13 +1,20 @@
 package io.github.gmathi.novellibrary.activity.settings
 
+import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
-import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.DividerItemDecoration
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
@@ -54,6 +61,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         setContentView(R.layout.activity_settings)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        @SuppressLint("SetTextI18n")
         versionTextView.text = "Version: ${BuildConfig.VERSION_NAME}_${BuildConfig.VERSION_CODE}"
         setRemoteConfig()
         setRecyclerView()
@@ -71,7 +79,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     private fun setRecyclerView() {
-        settingsItems = ArrayList(resources.getStringArray(io.github.gmathi.novellibrary.R.array.settings_list).asList())
+        settingsItems = ArrayList(resources.getStringArray(R.array.settings_list).asList())
         adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_settings, listener = this)
         recyclerView.setDefaults(adapter)
         recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
@@ -103,13 +111,22 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         if (item?.itemId == android.R.id.home) finish()
-        if (item?.itemId == R.id.action_report_page)
+        if (item?.itemId == R.id.action_report_page) {
+            val systemInfo = systemInfo()
             MaterialDialog.Builder(this)
-                    .content("Please use discord to report a bug.")
-                    .positiveText("Ok")
+                    .content(getString(R.string.bug_report_content, "\n\n" + systemInfo))
+                    .positiveText(getString(R.string.okay))
+                    .neutralText(getString(R.string.copy_to_clipboard))
                     .onPositive { dialog, _ -> dialog.dismiss() }
+                    .onNeutral { _, _ ->
+                        val clipboard: ClipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = ClipData.newPlainText("Debug-info", systemInfo)
+                        clipboard.setPrimaryClip(clip)
+                        Toast.makeText(this, "Debug-info copied to clipboard!", Toast.LENGTH_SHORT).show()
+                    }
+                    .autoDismiss(false)
                     .show()
-        //            sendEmail("gmathi.developer@gmail.com", "[BUG REPORT]", "Bug Report: \n //Add Your Bug Details Below \n")
+        }
         return super.onOptionsItemSelected(item)
     }
     //endregion
@@ -123,8 +140,8 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     private fun aboutUsDialog() {
         MaterialDialog.Builder(this)
-                .title("About Us")
-                .content("This project is an open-source project being developed with love for the novel reading community. If you would like to help out you can get in touch with us in discord!")//getString(R.string.lock_hint))
+                .title(getString(R.string.about_us))
+                .content(getString(R.string.about_us_content))
                 .show()
     }
 
@@ -143,7 +160,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     private fun showCodeDialog() {
         MaterialDialog.Builder(this)
-                .input("Oops no hints!!", "I love novels a lot is a true statement!!", true) { dialog, input ->
+                .input("Oops no hints!!", "I love novels a lot is a true statement!!", true) { _, input ->
                     checkCode(input.toString())
                 }.title("Enter Unlock Code")
                 .canceledOnTouchOutside(false)
@@ -178,5 +195,18 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 .stream(300, 5000L)
     }
 
+    private fun systemInfo(): String {
+        val displayMetrics = DisplayMetrics()
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+        val builder = StringBuilder("Debug-info:")
+                .append("\n\tApp Version: ").append(BuildConfig.VERSION_NAME).append('_').append(BuildConfig.VERSION_CODE)
+                .append("\n\tOS Version: ").append(System.getProperty("os.version")).append('(').append(Build.VERSION.INCREMENTAL).append(')')
+                .append("\n\tOS API Level: ").append(Build.VERSION.SDK_INT).append('(').append(Build.VERSION.CODENAME).append(')')
+                .append("\n\tManufacturer: ").append(Build.MANUFACTURER)
+                .append("\n\tDevice: ").append(Build.DEVICE)
+                .append("\n\tModel (and Product): ").append(Build.MODEL).append(" (").append(Build.PRODUCT).append(')')
+                .append("\n\tDisplay: ").append(displayMetrics.widthPixels).append('x').append(displayMetrics.heightPixels)
+        return builder.toString()
+    }
 
 }
