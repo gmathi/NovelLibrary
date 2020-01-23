@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
@@ -28,41 +27,10 @@
             android:layout_marginRight="@dimen/side_menu_text_margin" />
 
         <Switch
-            android:id="@+id/switchReaderMode"
+            android:id="@+id/itemSwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/linNightMode"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/side_menu_height"
-        android:orientation="horizontal"
-        android:visibility="gone">
-
-        <ImageView
-            android:id="@+id/iconNightMode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/title_night"
-            app:srcCompat="@drawable/ic_wb_incandescent_white_vector" />
-
-        <Space
-            android:layout_width="10dp"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/titleNightMode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/side_menu_text_margin"
-            android:layout_marginRight="@dimen/side_menu_text_margin" />
-
-        <Switch
-            android:id="@+id/switchNightMode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
     </LinearLayout>
 
 </LinearLayout>
