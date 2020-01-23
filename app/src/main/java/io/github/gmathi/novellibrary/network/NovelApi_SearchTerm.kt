@@ -1,7 +1,6 @@
 package io.github.gmathi.novellibrary.network
 
 import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.util.addPageNumberToUrl
 
 
 fun NovelApi.searchRoyalRoad(searchTerms: String, pageNumber: Int = 1): ArrayList<Novel>? {
@@ -9,18 +8,18 @@ fun NovelApi.searchRoyalRoad(searchTerms: String, pageNumber: Int = 1): ArrayLis
     try {
         searchResults = ArrayList()
         val document = getDocumentWithUserAgent("https://www.royalroad.com/fictions/search?title=${searchTerms.replace(" ", "+")}&page=$pageNumber")
-        val elements = document.body().select("li.search-item") ?: return searchResults
+        val elements = document.body().select("div.fiction-list-item") ?: return searchResults
         for (element in elements) {
             val urlElement = element.selectFirst("a[href]") ?: continue
             val novel = Novel(urlElement.text(), urlElement.attr("abs:href"))
             novel.imageUrl = element.selectFirst("img[src]")?.attr("abs:src")
-            novel.metaData["Author(s)"] = element.selectFirst("span.author")?.text()?.substring(3)
-            novel.rating = "N/A"
-            novel.longDescription = element.selectFirst("div.fiction-description")?.text()
-            novel.shortDescription = novel.longDescription?.split("\n")?.firstOrNull()
+            if (novel.imageUrl?.startsWith("https://www.royalroadcdn.com/") == true)
+                novel.metaData["Author(s)"] = novel.imageUrl?.substring(29, novel.imageUrl?.indexOf('/', 29) ?: 0)
+            novel.rating = element.selectFirst("span.star")?.attr("title")
+            //novel.longDescription = element.selectFirst("div.fiction-description")?.text()
+            //novel.shortDescription = novel.longDescription?.split("\n")?.firstOrNull()
             searchResults.add(novel)
         }
-
     } catch (e: Exception) {
         e.printStackTrace()
     }
