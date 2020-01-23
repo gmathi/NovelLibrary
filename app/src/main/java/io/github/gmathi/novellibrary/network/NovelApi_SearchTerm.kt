@@ -16,8 +16,8 @@ fun NovelApi.searchRoyalRoad(searchTerms: String, pageNumber: Int = 1): ArrayLis
             if (novel.imageUrl?.startsWith("https://www.royalroadcdn.com/") == true)
                 novel.metaData["Author(s)"] = novel.imageUrl?.substring(29, novel.imageUrl?.indexOf('/', 29) ?: 0)
             novel.rating = element.selectFirst("span.star")?.attr("title")
-            //novel.longDescription = element.selectFirst("div.fiction-description")?.text()
-            //novel.shortDescription = novel.longDescription?.split("\n")?.firstOrNull()
+            novel.longDescription = element.selectFirst("div.margin-top-10.col-xs-12")?.text()
+            novel.shortDescription = novel.longDescription?.split("\n")?.firstOrNull()
             searchResults.add(novel)
         }
     } catch (e: Exception) {
