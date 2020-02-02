@@ -23,66 +23,60 @@ open class HtmlHelper protected constructor() {
 
         private const val TAG = "HtmlHelper"
 
-        fun getInstance(doc: Document, hostName: String = doc.location()): HtmlHelper {
-
-            val host =
-                    if (hostName.startsWith("www."))
-                        hostName.replace("www.", "")
-                    else
-                        hostName
+        fun getInstance(doc: Document, url: String = doc.location()): HtmlHelper {
 
             when {
-                host.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
-                host.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
-                host.contains(HostNames.QIDIAN) -> return QidianHelper()
-                host.contains(HostNames.GOOGLE_DOCS) -> return GoogleDocsCleaner()
-                host.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsHelper()
-                host.contains(HostNames.TUMBLR) -> return TumblrCleaner()
-                host.contains(HostNames.BAKA_TSUKI) -> return BakaTsukiCleaner()
-                host.contains(HostNames.SCRIBBLE_HUB) -> return ScribbleHubHelper()
+                url.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
+                url.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
+                url.contains(HostNames.QIDIAN) -> return QidianHelper()
+                url.contains(HostNames.GOOGLE_DOCS) -> return GoogleDocsCleaner()
+                url.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsHelper()
+                url.contains(HostNames.TUMBLR) -> return TumblrCleaner()
+                url.contains(HostNames.BAKA_TSUKI) -> return BakaTsukiCleaner()
+                url.contains(HostNames.SCRIBBLE_HUB) -> return ScribbleHubHelper()
             }
 
             var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("chapter-content") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "div", "chapter-content")
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "chapter-content")
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "div", "entry-content")
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "entry-content")
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("elementor-widget-theme-post-content") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "div", "elementor-widget-theme-post-content", appendTitle = false)
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "elementor-widget-theme-post-content", appendTitle = false)
 
             contentElement = doc.body().getElementsByTag("article").firstOrNull { it.hasClass("hentry") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "article", "hentry")
+            if (contentElement != null) return GeneralClassTagHelper(url, "article", "hentry")
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("hentry") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "div", "hentry")
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "hentry")
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.id() == "chapter_body" }
-            if (contentElement != null) return GeneralIdTagHelper(host, "div", "chapter_body")
+            if (contentElement != null) return GeneralIdTagHelper(url, "div", "chapter_body")
 
             contentElement = doc.body().getElementsByTag("article").firstOrNull { it.id() == "releases" }
-            if (contentElement != null) return GeneralIdTagHelper(host, "article", "releases")
+            if (contentElement != null) return GeneralIdTagHelper(url, "article", "releases")
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("td-main-content") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "div", "td-main-content")
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "td-main-content")
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.id() == "content" }
-            if (contentElement != null) return GeneralIdTagHelper(host, "div", "content")
+            if (contentElement != null) return GeneralIdTagHelper(url, "div", "content")
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("post-inner") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "div", "post-inner", appendTitle = false)
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "post-inner", appendTitle = false)
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("blog-content") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "div", "blog-content")
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "blog-content")
 
             contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
             if (contentElement != null) return CloudFlareDDoSTagHelper()
 
             contentElement = doc.body().select("div#chapter-content").firstOrNull()
-            if (contentElement != null) return GeneralIdTagHelper(host, "div", "chapter-content")
+            if (contentElement != null) return GeneralIdTagHelper(url, "div", "chapter-content")
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("panel-body") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "div", "panel-body", appendTitle = false)
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "panel-body", appendTitle = false)
 
             return HtmlHelper()
         }

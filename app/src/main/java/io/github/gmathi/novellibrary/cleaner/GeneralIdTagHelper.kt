@@ -6,7 +6,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
 
-class GeneralIdTagHelper(private val hostName: String, val tagName: String, val id: String) : HtmlHelper() {
+class GeneralIdTagHelper(private val url: String, val tagName: String, val id: String) : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc)
@@ -59,7 +59,7 @@ class GeneralIdTagHelper(private val hostName: String, val tagName: String, val 
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
         val url = doc.location()
         val links = ArrayList<String>()
-        val otherLinks = doc.body().getElementsByTag(tagName).firstOrNull { it.id() == id }?.getElementsByAttributeValueContaining("href", hostName)?.filter { !it.attr("href").contains(url) }
+        val otherLinks = doc.body().getElementsByTag(tagName).firstOrNull { it.id() == id }?.getElementsByAttributeValueContaining("href", this.url)?.filter { !it.attr("href").contains(url) }
         if (otherLinks != null && otherLinks.isNotEmpty()) {
             otherLinks.mapTo(links) { it.attr("href") }
         }

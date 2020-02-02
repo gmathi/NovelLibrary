@@ -28,6 +28,7 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.model.WebPageSettings
+import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
@@ -277,6 +278,16 @@ class WebPageDBFragment : BaseFragment() {
 
                 doc = await { NovelApi.getDocumentWithUserAgent(url) }
 
+                if (doc != null) {
+
+                    if (doc!!.location().contains("rssbook") && doc!!.location().contains(HostNames.QIDIAN)) {
+                        doc = await { NovelApi.getDocumentWithUserAgent(doc!!.location().replace("rssbook", "book")) }
+                    }
+//                    if (doc!!.location().contains("/nu/") && doc!!.location().contains(HostNames.FLYING_LINES)) {
+//                        doc = await { NovelApi.getDocumentWithUserAgent(doc!!.location().replace("/nu/", "/chapter/")) }
+//                    }
+                }
+
                 //If document fails to load and the fragment is still alive
                 if (doc == null) {
                     if (isResumed && !isRemoving && !isDetached)
@@ -285,6 +296,7 @@ class WebPageDBFragment : BaseFragment() {
                         }
                     return@download
                 }
+
 
                 //Update the relative urls with the absolute urls for the images and links
                 doc?.getElementsByTag("img")?.forEach {
