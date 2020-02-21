@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.reflect.TypeToken
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import java.io.BufferedReader
 import java.io.IOException
@@ -78,9 +79,9 @@ class LocaleManager {
 
         private fun getLanguage(context: Context): String {
             return try {
-                DataCenter(context).language
+                dataCenter.language
             } catch (e: KotlinNullPointerException) {
-                SYSTEM_DEFAULT
+                DataCenter(context).language
             }
         }
 

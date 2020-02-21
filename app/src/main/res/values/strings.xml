@@ -503,5 +503,8 @@
     <string name="volume_scroll_length">Scroll Distance</string>
     <string name="volume_scroll_length_description">Change the distance to scroll when using volume keys</string>
     <string name="reverse">Reverse</string>
+    <string name="about_us_content">This project is an open-source project being developed with love for the novel reading community. If you would like to help out you can get in touch with us in discord!</string>
+    <string name="bug_report_content">Please use discord to report a bug.%1$s</string>
+    <string name="copy_to_clipboard">Copy to clipboard</string>
 
 </resources>
