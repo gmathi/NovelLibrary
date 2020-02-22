@@ -32,12 +32,14 @@
     <string-array name="search_results_tab_titles" translatable="false">
         <item>Novel-Updates</item>
         <item>WLN-Updates</item>
+        <item>LNMTL</item>
     </string-array>
 
     <string-array name="search_results_tab_titles_unlocked" translatable="false">
         <item>Novel-Updates</item>
         <item>RoyalRoad</item>
         <item>WLN-Updates</item>
+        <item>LNMTL</item>
     </string-array>
 
     <string-array name="search_results_tab_titles_developer_only" translatable="false">
@@ -45,6 +47,7 @@
         <item>RoyalRoad</item>
         <item>NovelFull</item>
         <item>WLN-Updates</item>
+        <item>LNMTL</item>
     </string-array>
 
     <string-array name="settings_list" translatable="false">

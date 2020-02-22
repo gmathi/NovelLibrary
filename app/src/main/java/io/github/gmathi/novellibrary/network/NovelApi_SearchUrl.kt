@@ -11,6 +11,7 @@ fun NovelApi.searchUrl(url: String, pageNumber: Int): ArrayList<Novel>? {
             url.contains(HostNames.NOVEL_UPDATES) -> return searchNovelUpdatesUrl_New(url, pageNumber)
             url.contains(HostNames.WLN_UPDATES) -> return searchWlnUpdatesUrl(url)
             url.contains(HostNames.NOVEL_FULL) -> return searchNovelFullUrl(url)
+            url.contains(HostNames.LNMTL) -> return searchLNMTLUrl(url, pageNumber)
         }
     } catch (e: Exception) {
         //if url is malformed
@@ -119,3 +120,32 @@ fun NovelApi.searchNovelFullUrl(url: String): ArrayList<Novel>? {
     return searchResults
 }
 
+fun NovelApi.searchLNMTLUrl(searchUrl: String, pageNumber: Int): ArrayList<Novel>? {
+    var searchResults: ArrayList<Novel>? = null
+    try {
+        searchResults = ArrayList()
+        val document = getDocumentWithUserAgent(searchUrl.addPageNumberToUrl(pageNumber, "page"))
+        val elements = document.body().select("div.media") ?: return searchResults
+        for (element in elements) {
+            val e = element.selectFirst(".media-title") ?: continue
+            val novelName = e.text() ?: continue
+            val novelUrl = e.selectFirst("a[href]").attr("abs:href") ?: continue
+            val novel = Novel(novelName, novelUrl)
+            novel.imageUrl = element.selectFirst("img[src]")?.attr("abs:src")
+            val re = element.selectFirst("div.progress")
+            if (re != null) {
+                val negative = re.selectFirst("div.progress-bar-danger")?.text()?.split(" ")?.get(0)?.toInt() ?: 0
+                val neutral = re.selectFirst("div.progress-bar-warning")?.text()?.split(" ")?.get(0)?.toInt() ?: 0
+                val positive = re.selectFirst("div.progress-bar-success")?.text()?.split(" ")?.get(0)?.toInt() ?: 0
+                val total = negative + neutral + positive
+                if (total != 0)
+                    novel.rating = (positive.toDouble() / total * 5).toFloat().toString()
+            }
+            searchResults.add(novel)
+        }
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return searchResults
+}

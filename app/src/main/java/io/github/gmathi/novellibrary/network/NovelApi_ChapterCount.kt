@@ -67,3 +67,7 @@ fun getNovelFullChapterCount(novel: Novel): Int {
     return getNovelFullChapterUrls(novel)?.size ?: 0
 }
 
+fun getLNMTLChapterCount(novel: Novel): Int {
+    return getLNMTLChapterUrls(novel)?.size ?: 0
+}
+

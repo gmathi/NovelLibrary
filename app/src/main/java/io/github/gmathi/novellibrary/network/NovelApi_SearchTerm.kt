@@ -1,6 +1,11 @@
 package io.github.gmathi.novellibrary.network
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.annotations.SerializedName
+import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.network.NovelApi.getDocumentWithUserAgent
 
 
 fun NovelApi.searchRoyalRoad(searchTerms: String, pageNumber: Int = 1): ArrayList<Novel>? {
@@ -135,3 +140,55 @@ fun NovelApi.searchScribbleHub(searchTerms: String, pageNumber: Int = 1): ArrayL
     }
     return searchResults
 }
+
+
+@Suppress("unused")
+private class LNMTLNovelJson(@SerializedName("id") val id: Int,
+                             @SerializedName("name") val name: String,
+                             @SerializedName("slug") val slug: String,
+                             @SerializedName("name_acronym") val name_acronym: String,
+                             @SerializedName("name_original") val name_original: String,
+                             @SerializedName("name_spelling") val name_spelling: String,
+                             @SerializedName("name_spelling_clean") val name_spelling_clean: String,
+                             @SerializedName("image") val image: String,
+                             @SerializedName("url") val url: String)
+
+private var novelsLNMTL: ArrayList<Novel>? = null
+
+@Synchronized
+private fun getNovelsLNMTL() {
+    if (novelsLNMTL != null)
+        return
+
+    val document = getDocumentWithUserAgent("https://lnmtl.com/")
+    val scripts = document.select("script[type]") ?: return
+    novelsLNMTL = ArrayList()
+    val script = scripts.last() ?: return
+    val text = script.html() ?: return
+
+    // script will be in a format:
+    // "{some javascript} local: [ {json} ] {some javascript}"
+    // we need to extract the pure json
+    // to do so, take the substring between "local: [" and "]"
+    val left = text.substringBefore("local:")
+    val json = text.substring(left.length + 7)
+            .substringBefore(']') + ']'
+
+    val novels: List<LNMTLNovelJson> = Gson().fromJson(json, Array<LNMTLNovelJson>::class.java).toList()
+    for (novelLNMTL in novels) {
+        val novel = Novel(novelLNMTL.name, novelLNMTL.url)
+        novel.imageUrl = novelLNMTL.image
+        novelsLNMTL?.add(novel)
+    }
+}
+
+fun NovelApi.searchLNMTL(searchTerms: String): ArrayList<Novel>? {
+    if (novelsLNMTL == null)
+        getNovelsLNMTL()
+
+    return if (novelsLNMTL != null)
+        ArrayList(novelsLNMTL!!.filter { it.name.contains(searchTerms, true) })
+    else
+        ArrayList()
+}
+

@@ -146,6 +146,7 @@ class SearchFragment : BaseFragment() {
         if (!dataCenter.lockScribble)
             titles.add("ScribbleHub")
         titles.add("WLN-Updates")
+        titles.add("LNMTL")
 
         val searchPageAdapter: GenericFragmentStatePagerAdapter
         searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles.toTypedArray(), titles.size, SearchResultsListener(searchTerm, titles))

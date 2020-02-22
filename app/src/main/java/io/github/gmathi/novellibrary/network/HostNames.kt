@@ -30,18 +30,19 @@ object HostNames {
     const val NOVEL_FULL = "novelfull.com"
     const val SCRIBBLE_HUB = "scribblehub.com"
     const val FLYING_LINES = "flying-lines.com"
+    const val LNMTL = "lnmtl.com"
 
 
 
     const val USER_AGENT = "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Mobile Safari/537.36"
 
-    private val DEFAULT_ALLOWED_HOST_NAMES_ARRAY = arrayOf(NOVEL_UPDATES, ROYAL_ROAD, KOBATOCHAN, GRAVITY_TALES, WUXIA_WORLD, WORD_PRESS, WLN_UPDATES, CIRCUS_TRANSLATIONS, QIDIAN,
+    private val DEFAULT_ALLOWED_HOST_NAMES_ARRAY = arrayOf(NOVEL_UPDATES, ROYAL_ROAD, KOBATOCHAN, GRAVITY_TALES, WUXIA_WORLD, WORD_PRESS, WLN_UPDATES, CIRCUS_TRANSLATIONS, QIDIAN, LNMTL,
         //PRINCE_REVOLUTION,
         "patreon.com", "royalroadlupload.blob.core.windows.net", "postimg.org", "lightnovelbastion.com", "fonts.googleapis.com", "ggpht.com", "gravatar.com", "imgur.com", "isohungrytls.com", "bootstrapcdn.com", "CloudFlare.com", "wp.com", "scatterdrift.com",
-        "discordapp.com", "chubbycheeksthoughts.com", "omatranslations.com", "www.googleapis.com", "*.googleusercontent.com", "cdn.novelupdates.com", "*.novelupdates.com", "www.novelupdates.com", "www.wuxiaworld.com", "reports.crashlytics.com")
+        "discordapp.com", "chubbycheeksthoughts.com", "omatranslations.com", "www.googleapis.com", "*.googleusercontent.com", "cdn.novelupdates.com", "*.novelupdates.com", "www.novelupdates.com", "www.wuxiaworld.com", "reports.crashlytics.com", "api.crashlytics.com")
 
     val defaultHostNamesList: ArrayList<String>
-        get() = ArrayList(Arrays.asList(*DEFAULT_ALLOWED_HOST_NAMES_ARRAY))
+        get() = ArrayList(listOf(*DEFAULT_ALLOWED_HOST_NAMES_ARRAY))
 
     var hostNamesList = ArrayList<String>()
         set(hostNames) {
@@ -56,7 +57,6 @@ object HostNames {
             false
         }
     }
-
 
     fun addHost(hostName: String): Boolean = hostNamesList.add(hostName)
 }
