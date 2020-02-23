@@ -9,6 +9,9 @@ import io.github.gmathi.novellibrary.model.WebPage
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.net.URI
+import com.google.gson.Gson
+import com.google.gson.internal.LinkedTreeMap
+import com.google.gson.reflect.TypeToken
 
 
 fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayList<WebPage>? {
@@ -284,17 +287,36 @@ fun getScribbleHubChapterUrls(novel: Novel): ArrayList<WebPage> {
     return chapters
 }
 
-fun getLNMTLChapterUrls(novel: Novel): ArrayList<WebPage>? {
+fun getLNMTLChapterUrls(novel: Novel): ArrayList<WebPage> {
     val chapters = ArrayList<WebPage>()
     try {
-        if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
-
         val doc = Jsoup.connect(novel.url).get()
 
-        // TODO!
+        val scripts = doc.select("script")
+        val script = scripts.find { it.html().contains("lnmtl.firstResponse =") } ?: return chapters
+        val text = script.html()
+
+        val json = text.substring(text.indexOf("lnmtl.firstResponse =") + 21)
+                .substringBefore(";lnmtl.volumes =")
+
+        val type = object : TypeToken<Map<String, Any>>() {}.type
+        val gson: LinkedTreeMap<String, Any> = Gson().fromJson(json, type) ?: return chapters
+
+        @Suppress("UNCHECKED_CAST")
+        val data = gson["data"] as List<LinkedTreeMap<String, Any>>
+
+        var orderId = 0L
+        for (chapter in data) {
+            val url = chapter["site_url"]
+            val title = chapter["title"]
+            if (url !is String || title !is String) continue
+            val webPage = WebPage(url, title)
+            webPage.orderId = orderId++
+            webPage.novelId = novel.id
+            chapters.add(webPage)
+        }
     } catch (e: Exception) {
         e.printStackTrace()
     }
-
     return chapters
 }
