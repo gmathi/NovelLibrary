@@ -1,6 +1,11 @@
 package io.github.gmathi.novellibrary.network
 
+import com.google.gson.Gson
+import com.google.gson.internal.LinkedTreeMap
+import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.model.WebPage
+import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.IOException
 import java.net.URI
@@ -68,6 +73,27 @@ fun getNovelFullChapterCount(novel: Novel): Int {
 }
 
 fun getLNMTLChapterCount(novel: Novel): Int {
-    return getLNMTLChapterUrls(novel)?.size ?: 0
+    try {
+        val doc = Jsoup.connect(novel.url).get()
+
+        val scripts = doc.select("script")
+        val script = scripts.find { it.html().contains("lnmtl.firstResponse =") } ?: return 0
+        val text = script.html()
+
+        val json = text.substring(text.indexOf("lnmtl.firstResponse =") + 21)
+                .substringBefore(";lnmtl.volumes =")
+
+        val type = object : TypeToken<Map<String, Any>>() {}.type
+        val data: LinkedTreeMap<String, Any> = Gson().fromJson(json, type) ?: return 0
+
+        when (val total = data["total"]) {
+            is Int -> return total
+            is Double -> return total.toInt()
+            is String -> return total.toInt()
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return 0
 }
 
