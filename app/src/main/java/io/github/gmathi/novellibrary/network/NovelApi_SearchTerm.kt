@@ -170,8 +170,7 @@ private fun getNovelsLNMTL() {
     // "{some javascript} local: [ {json} ] {some javascript}"
     // we need to extract the pure json
     // to do so, take the substring between "local: [" and "]"
-    val left = text.substringBefore("local:")
-    val json = text.substring(left.length + 7)
+    val json = text.substring(text.indexOf("local:") + 7)
             .substringBefore(']') + ']'
 
     val novels: List<LNMTLNovelJson> = Gson().fromJson(json, Array<LNMTLNovelJson>::class.java).toList()
