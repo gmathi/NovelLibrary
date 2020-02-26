@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.util
 
 import android.app.ActivityManager
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Context.ACTIVITY_SERVICE
 import android.content.Intent
@@ -15,23 +16,34 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
+import android.util.TypedValue
 import androidx.annotation.DrawableRes
-import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
-import android.util.TypedValue
+import androidx.documentfile.provider.DocumentFile
+import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.createIfNotExists
+import io.github.gmathi.novellibrary.extensions.getOrCreateDirectory
+import io.github.gmathi.novellibrary.extensions.getOrCreateFile
 import io.github.gmathi.novellibrary.model.Novel
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
 
 object Utils {
+
+    private const val TAG = "UTILS"
+    private const val BUFFER_SIZE = 16384
 
     //region color utils
     fun getThemeAccentColor(context: Context): Int {
@@ -133,28 +145,167 @@ object Utils {
     }
 
     @Throws(IOException::class)
-    fun copyFile(src: File, dst: File) {
-        val inChannel = FileInputStream(src).channel
-        val outChannel = FileOutputStream(dst).channel
-        try {
-            inChannel!!.transferTo(0, inChannel.size(), outChannel)
-        } finally {
-            inChannel?.close()
-            outChannel.close()
+    fun copyFile(inputStream: InputStream, dst: File) {
+        inputStream.use {
+            FileOutputStream(dst).use { outStream ->
+                val buffer = ByteArray(BUFFER_SIZE)
+                var bytesRead: Int = inputStream.read(buffer)
+                while (bytesRead != -1) {
+                    outStream.write(buffer, 0, bytesRead)
+                    bytesRead = inputStream.read(buffer)
+                }
+            }
         }
     }
 
     @Throws(IOException::class)
-    fun copyFile(src: InputStream, dst: File) {
-        val outStream = FileOutputStream(dst)
-        val buffer = ByteArray(8 * 1024)
-        var bytesRead: Int = src.read(buffer)
-        while (bytesRead != -1) {
-            outStream.write(buffer, 0, bytesRead)
-            bytesRead = src.read(buffer)
+    fun copyFile(src: File, dst: File) {
+        copyFile(src.inputStream(), dst)
+    }
+
+    @Throws(IOException::class)
+    fun copyFile(contentResolver: ContentResolver, src: File, dst: DocumentFile) {
+        FileInputStream(src).use { inStream ->
+            contentResolver.openOutputStream(dst.uri)?.use { outStream ->
+                val buffer = ByteArray(BUFFER_SIZE)
+                var bytesRead = inStream.read(buffer)
+                while (bytesRead != -1) {
+                    outStream.write(buffer, 0, bytesRead)
+                    bytesRead = inStream.read(buffer)
+                }
+            }
         }
-        src.close()
-        outStream.close()
+
+    }
+
+    @Throws(IOException::class)
+    fun copyFile(contentResolver: ContentResolver, src: DocumentFile, dst: File) {
+        contentResolver.openInputStream(src.uri)?.use { inStream ->
+            FileOutputStream(dst).use { outStream ->
+                val buffer = ByteArray(BUFFER_SIZE)
+                var bytesRead = inStream.read(buffer)
+                while (bytesRead != -1) {
+                    outStream.write(buffer, 0, bytesRead)
+                    bytesRead = inStream.read(buffer)
+                }
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    fun recursiveCopy(src: File, dst: File) {
+        src.listFiles()?.forEach { file ->
+            if (file.isDirectory) {
+                val destDir = File(dst, file.name)
+                if (!destDir.exists()) destDir.mkdir()
+                recursiveCopy(file, destDir)
+            } else {
+                copyFile(file, File(dst, file.name))
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    fun recursiveCopy(contentResolver: ContentResolver, src: File, dst: DocumentFile) {
+        src.listFiles()?.forEach { file ->
+            if (file.isDirectory) {
+                val destDir = dst.getOrCreateDirectory(file.name)!!
+                recursiveCopy(contentResolver, file, destDir)
+            } else {
+                copyFile(contentResolver, file, dst.getOrCreateFile(src.name)!!)
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    fun recursiveCopy(contentResolver: ContentResolver, src: DocumentFile, dst: File) {
+        src.listFiles().forEach { file ->
+            val name = file.name
+            if (name != null) {
+                if (file.isDirectory) {
+                    val destDir = File(dst, name)
+                    recursiveCopy(contentResolver, file, destDir)
+                } else {
+                    copyFile(contentResolver, file, File(dst, name))
+                }
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    fun zip(contentResolver: ContentResolver, file: File, zip: DocumentFile, log: Boolean = false) {
+        ZipOutputStream(BufferedOutputStream(contentResolver.openOutputStream(zip.uri)!!)).use {
+            zip(file, it, log)
+        }
+    }
+
+    @Throws(IOException::class)
+    fun zip(file: File, outStream: ZipOutputStream, log: Boolean = false) {
+        val basePathLength = (file.parent?.length  ?: file.path.lastIndexOf('/')) + 1
+        if (log) Log.i(TAG, "zip: file=${file.name}, basePathLength=$basePathLength")
+        if (file.isFile) {
+            zipFile(file, outStream, basePathLength, log)
+        } else {
+            zipDirectory(file, outStream, basePathLength, log)
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun zipFile(file: File, outStream: ZipOutputStream, basePathLength: Int, log: Boolean = false) {
+        BufferedInputStream(file.inputStream(), BUFFER_SIZE).use {
+            val entry = ZipEntry(file.path.substring(basePathLength))
+            if (log) Log.i(TAG, "zip: file=${file.name}, entry=${entry.name}")
+            entry.time = file.lastModified() // to keep modification time after unzipping
+            outStream.putNextEntry(entry)
+            val data = ByteArray(BUFFER_SIZE)
+            var count = it.read(data, 0, BUFFER_SIZE)
+            while (count != -1) {
+                outStream.write(data, 0, count)
+                count = it.read(data, 0, BUFFER_SIZE)
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun zipDirectory(dir: File, outStream: ZipOutputStream, basePathLength: Int, log: Boolean = false) {
+        dir.listFiles()?.forEach {
+            if (it.isFile) {
+                zipFile(it, outStream, basePathLength, log)
+            } else {
+                zipDirectory(it, outStream, basePathLength, log)
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    fun unzip(contentResolver: ContentResolver, zip: DocumentFile, dir: File) {
+        ZipInputStream(BufferedInputStream(contentResolver.openInputStream(zip.uri)!!)).use {
+            unzip(it, dir)
+        }
+    }
+
+    @Throws(IOException::class)
+    fun unzip(inputStream: ZipInputStream, dir: File) {
+        var entry = inputStream.nextEntry
+        while (entry != null) {
+            if (entry.isDirectory) {
+                val subDir = File(dir, entry.name)
+                if (!subDir.exists())
+                    subDir.mkdirs()
+            } else {
+                val file = File(dir, entry.name)
+                file.createIfNotExists()
+                file.outputStream().use {
+                    val data = ByteArray(BUFFER_SIZE)
+                    var count = inputStream.read(data, 0, BUFFER_SIZE)
+                    while (count != -1) {
+                        it.write(data, 0, count)
+                        count = inputStream.read(data, 0, BUFFER_SIZE)
+                    }
+                }
+            }
+            entry = inputStream.nextEntry
+        }
     }
 
     /**
