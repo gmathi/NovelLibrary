@@ -14,6 +14,7 @@ import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
@@ -50,10 +51,8 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
         private const val CREATE_BACKUP_REQUEST_CODE = 1121
         private const val RESTORE_BACKUP_REQUEST_CODE = 1122
-        private const val EXTRA_SIMPLE_TEXT = "simple.text.backup.restore"
-        private const val EXTRA_DATABASE = "database.backup.restore"
-        private const val EXTRA_PREFERENCES ="preferences.backup.restore"
-        private const val EXTRA_FILES = "files.backup.restore"
+
+        private const val DATA_SUBFOLDER = """/data/${BuildConfig.APPLICATION_ID}"""
     }
 
 
@@ -209,7 +208,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             val uri = data.data
             if (uri != null) {
                 val dataDir = Environment.getDataDirectory()
-                val baseDir = File(dataDir, """/data/io.github.gmathi.novellibrary""")
+                val baseDir = File(dataDir, DATA_SUBFOLDER)
 
                 val currentDBsDir = File(baseDir, DATABASES_DIR)
                 val currentSharedPrefsDir = File(baseDir, SHARED_PREFS_DIR)
