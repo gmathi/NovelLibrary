@@ -23,6 +23,9 @@ import androidx.recyclerview.widget.RecyclerView.LayoutParams.MATCH_PARENT
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.WRAP_CONTENT
 import androidx.viewpager.widget.ViewPager
 import com.afollestad.materialdialogs.MaterialDialog
+import com.github.johnpersano.supertoasts.library.Style
+import com.github.johnpersano.supertoasts.library.SuperActivityToast
+import com.github.johnpersano.supertoasts.library.utils.PaletteUtils
 import com.yarolegovich.slidingrootnav.SlideGravity
 import com.yarolegovich.slidingrootnav.SlidingRootNav
 import com.yarolegovich.slidingrootnav.SlidingRootNavBuilder
@@ -351,14 +354,21 @@ class ReaderDBPagerActivity :
         slidingRootNav!!.closeMenu()
         when (position) {
             FONTS -> {
-                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-                        .addCategory(Intent.CATEGORY_OPENABLE)
-                        .setType("*/*")
-                        .putExtra(Intent.EXTRA_MIME_TYPES, FONT_MIME_TYPES)
-                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-//                        .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-                startActivityForResult(intent, SELECT_FONT_REQUEST_CODE)
+                if (dataCenter.showFontHint) {
+                    SuperActivityToast.create(this, Style(), Style.TYPE_BUTTON)
+                            .setButtonText(getString(R.string.dont_show_again))
+                            .setOnButtonClickListener("hint", null
+                            ) { _, _ ->
+                                dataCenter.showFontHint = false
+                            }
+                            .setText(getString(R.string.font_hint))
+                            .setDuration(Style.DURATION_LONG)
+                            .setFrame(Style.FRAME_LOLLIPOP)
+                            .setColor(PaletteUtils.getSolidColor(PaletteUtils.MATERIAL_BLUE_GREY))
+                            .setAnimations(Style.ANIMATIONS_POP)
+                            .setOnDismissListener { _, _ -> changeFont() }
+                            .show()
+                } else changeFont()
             }
             FONT_SIZE -> changeTextSize()
             REPORT_PAGE -> reportPage()
@@ -440,6 +450,17 @@ class ReaderDBPagerActivity :
                 }
             }
         }
+    }
+
+    private fun changeFont() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("*/*")
+                .putExtra(Intent.EXTRA_MIME_TYPES, FONT_MIME_TYPES)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+//                        .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+        startActivityForResult(intent, SELECT_FONT_REQUEST_CODE)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
