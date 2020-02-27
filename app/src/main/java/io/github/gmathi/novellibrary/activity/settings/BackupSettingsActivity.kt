@@ -193,12 +193,12 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
         if (dataCenter.showBackupHint) {
             SuperActivityToast.create(this, Style(), Style.TYPE_BUTTON)
-                    .setButtonText("Don't show again")
+                    .setButtonText(getString(R.string.dont_show_again))
                     .setOnButtonClickListener("hint", null
                     ) { _, _ ->
                         dataCenter.showBackupHint = false
                     }
-                    .setText("Choose a convenient location to save the backup ZIP file in.")
+                    .setText(getString(R.string.backup_hint))
                     .setDuration(Style.DURATION_VERY_LONG)
                     .setFrame(Style.FRAME_LOLLIPOP)
                     .setColor(PaletteUtils.getSolidColor(PaletteUtils.MATERIAL_BLUE_GREY))
@@ -221,12 +221,12 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
         if (dataCenter.showRestoreHint) {
             SuperActivityToast.create(this, Style(), Style.TYPE_BUTTON)
-                    .setButtonText("Don't show again")
+                    .setButtonText(getString(R.string.dont_show_again))
                     .setOnButtonClickListener("hint", null
                     ) { _, _ ->
                         dataCenter.showRestoreHint = false
                     }
-                    .setText("Navigate to the location where your backup ZIP is and select it.")
+                    .setText(getString(R.string.restore_hint))
                     .setDuration(Style.DURATION_VERY_LONG)
                     .setFrame(Style.FRAME_LOLLIPOP)
                     .setColor(PaletteUtils.getSolidColor(PaletteUtils.MATERIAL_BLUE_GREY))
