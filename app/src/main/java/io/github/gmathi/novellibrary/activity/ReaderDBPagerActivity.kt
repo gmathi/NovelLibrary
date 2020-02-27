@@ -1,8 +1,8 @@
 package io.github.gmathi.novellibrary.activity
 
 
-import android.Manifest
 import android.animation.ObjectAnimator
+import android.app.Activity
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.os.Bundle
@@ -12,18 +12,17 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.View.*
 import android.view.WindowManager
+import android.webkit.MimeTypeMap
 import android.webkit.WebView
 import android.widget.CompoundButton
 import androidx.core.content.ContextCompat
+import androidx.documentfile.provider.DocumentFile
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.MATCH_PARENT
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.WRAP_CONTENT
 import androidx.viewpager.widget.ViewPager
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.folderselector.FileChooserDialog
-import com.crashlytics.android.Crashlytics
-import com.thanosfisherman.mayi.Mayi
 import com.yarolegovich.slidingrootnav.SlideGravity
 import com.yarolegovich.slidingrootnav.SlidingRootNav
 import com.yarolegovich.slidingrootnav.SlidingRootNavBuilder
@@ -55,8 +54,7 @@ class ReaderDBPagerActivity :
         BaseActivity(),
         ViewPager.OnPageChangeListener,
         DrawerAdapter.OnItemSelectedListener,
-        SimpleItem.Listener<ReaderMenu>,
-        FileChooserDialog.FileCallback {
+        SimpleItem.Listener<ReaderMenu> {
 
     private var slidingRootNav: SlidingRootNav? = null
     lateinit var recyclerView: RecyclerView
@@ -72,6 +70,8 @@ class ReaderDBPagerActivity :
         private const val OPEN_IN_BROWSER = 7
         private const val SHARE_CHAPTER = 8
         private const val READ_ALOUD = 9
+
+        private const val SELECT_FONT_REQUEST_CODE = 1101
     }
 
     private lateinit var screenIcons: Array<Drawable?>
@@ -344,21 +344,13 @@ class ReaderDBPagerActivity :
         slidingRootNav!!.closeMenu()
         when (position) {
             FONTS -> {
-                Mayi.withActivity(this@ReaderDBPagerActivity)
-                        .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        .onRationale { _, token ->
-                            token.continuePermissionRequest()
-                        }
-                        .onResult {
-                            if (it.isGranted)
-                                openFontChooserDialog()
-                            else
-                                MaterialDialog.Builder(this)
-                                        .content("Enable \"Write External Storage\" permission for Novel Library " +
-                                                "from your device Settings -> Applications -> Novel Library -> Permissions")
-                                        .positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
-                                        .show()
-                        }.check()
+                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+                        .addCategory(Intent.CATEGORY_OPENABLE)
+                        .setType(MimeTypeMap.getSingleton().getMimeTypeFromExtension("ttf"))
+                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+//                        .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                startActivityForResult(intent, SELECT_FONT_REQUEST_CODE)
             }
             FONT_SIZE -> changeTextSize()
             REPORT_PAGE -> reportPage()
@@ -442,41 +434,28 @@ class ReaderDBPagerActivity :
         }
     }
 
-    private fun openFontChooserDialog() {
-        try {
-            val externalDirectory = getExternalFilesDir(null)
-            if (externalDirectory != null && externalDirectory.exists())
-                FileChooserDialog.Builder(this)
-                        .initialPath(externalDirectory.path)  // changes initial path, defaults to external storage directory
-                        .extensionsFilter(".ttf") // Optional extension filter, will override mimeType()
-                        .tag("optional-identifier")
-                        .goUpLabel("Up") // custom go up label, default label is "..."
-                        .show(this) // an AppCompatActivity which implements FileCallback
-            else
-                MaterialDialog.Builder(this)
-                        .content("Cannot find the internal storage or sd card. Please check your storage settings.")
-                        .positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
-                        .show()
-        } catch (e: Exception) {
-            Crashlytics.logException(e)
-        }
-    }
-
-    override fun onFileSelection(dialog: FileChooserDialog, file: File) {
-        dialog.dismiss()
-        dataCenter.fontPath = file.path
-        EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
-    }
-
-    override fun onFileChooserDismissed(dialog: FileChooserDialog) {
-        //Do Nothing
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == Constants.IWV_ACT_REQ_CODE) {
-            Handler(Looper.getMainLooper()).post {
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+
+        when (requestCode) {
+            Constants.IWV_ACT_REQ_CODE -> {
+                Handler(Looper.getMainLooper()).post {
+                    EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+                }
+            }
+            SELECT_FONT_REQUEST_CODE -> {
+                var font = ""
+                if (resultCode == Activity.RESULT_OK) {
+                    val uri = data?.data
+                    if (uri != null) {
+                        val document = DocumentFile.fromSingleUri(baseContext, uri)!!
+                        val file = File(filesDir, document.name!!)
+                        Utils.copyFile(contentResolver, document, File(filesDir, document.name!!))
+                        font = file.path
+                    }
+                }
+                dataCenter.fontPath = font
+                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
             }
         }
     }
