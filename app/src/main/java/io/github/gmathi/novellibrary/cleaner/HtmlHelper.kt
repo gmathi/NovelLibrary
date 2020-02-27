@@ -205,7 +205,7 @@ open class HtmlHelper protected constructor() {
             fontUrl = fontFile.path
         }
 
-        val fontFamily = fontName.substring(0, fontName.lastIndexOf("."))
+        val fontFamily = fontName.substringBeforeLast(".")
         val nightModeTextBrightness = 87
         doc.head().getElementById("darkTheme")?.remove()
         doc.head().append("""

@@ -48,6 +48,26 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    flavorDimensions "mode"
+    productFlavors {
+        mirror {
+            // Flavor adds a suffix to the package name, so the
+            // build can be installed alongside the main build.
+            dimension "mode"
+            applicationIdSuffix ".mirror"
+        }
+
+        canary {
+            // Flavor to enable leekCanary.
+            dimension "mode"
+        }
+
+        normal {
+            // Normal build.
+            dimension "mode"
+        }
+    }
 }
 
 dependencies {
@@ -66,7 +86,7 @@ dependencies {
 
     implementation 'androidx.multidex:multidex:2.0.1'
 
-    implementation 'org.jsoup:jsoup:1.12.1'
+    implementation 'org.jsoup:jsoup:1.12.2'
     implementation 'org.cryse.widget:persistentsearchview:1.0.4@aar'
     implementation 'org.greenrobot:eventbus:3.1.1'
 
@@ -133,7 +153,7 @@ dependencies {
 //        exclude group: 'com.firebaseui'
 //    }
 
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.1'
+    canaryImplementation 'com.squareup.leakcanary:leakcanary-android:2.2'
 
     kapt 'com.github.bumptech.glide:compiler:4.11.0'
 

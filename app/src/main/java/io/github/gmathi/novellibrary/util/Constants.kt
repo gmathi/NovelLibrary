@@ -5,7 +5,6 @@ package io.github.gmathi.novellibrary.util
  */
 object Constants {
 
-    const val BACKUP_DIR = "NovelLibraryApp-Backup"
     const val SCROLL_LENGTH = 30
     const val FILE_PROTOCOL = "file://"
     const val SYSTEM_DEFAULT = "systemDefault"
