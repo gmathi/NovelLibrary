@@ -12,6 +12,10 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
+import com.github.johnpersano.supertoasts.library.Style
+import com.github.johnpersano.supertoasts.library.SuperActivityToast
+import com.github.johnpersano.supertoasts.library.SuperToast
+import com.github.johnpersano.supertoasts.library.utils.PaletteUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.BuildConfig
@@ -107,7 +111,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
             getString(R.string.backup_data) -> {
                 MaterialDialog.Builder(this)
-                        .title(title)
+                        .title(getString(R.string.backup_data))
                         .items(R.array.backup_and_restore_options)
                         .itemsCallbackMultiChoice(arrayOf(0, 1, 2, 3)) { _, which, _ ->
                             if (which.isNotEmpty())
@@ -120,7 +124,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
             getString(R.string.restore_data) -> {
                 MaterialDialog.Builder(this)
-                        .title(title)
+                        .title(getString(R.string.restore_data))
                         .items(R.array.backup_and_restore_options)
                         .itemsCallbackMultiChoice(arrayOf(0, 1, 2, 3)) { _, which, _ ->
                             if (which.isNotEmpty())
@@ -187,6 +191,25 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         database = shouldBackupDatabase
         preferences = shouldBackupPreferences
         files = shouldBackupFiles
+
+        if (dataCenter.showBackupHint) {
+            SuperActivityToast.create(this, Style(), Style.TYPE_BUTTON)
+                    .setButtonText("Don't show again")
+                    .setOnButtonClickListener("hint", null
+                    ) { _, _ ->
+                        dataCenter.showBackupHint = false
+                    }
+                    .setText("Choose a convenient location to save the backup ZIP file in.")
+                    .setDuration(Style.DURATION_VERY_LONG)
+                    .setFrame(Style.FRAME_LOLLIPOP)
+                    .setColor(PaletteUtils.getSolidColor(PaletteUtils.MATERIAL_BLUE_GREY))
+                    .setAnimations(Style.ANIMATIONS_POP)
+                    .setOnDismissListener { _, _ -> doBackup() }
+                    .show()
+        } else doBackup()
+    }
+
+    private fun doBackup() {
         val intent = zipIntent.setAction(Intent.ACTION_CREATE_DOCUMENT)
         startActivityForResult(intent, CREATE_BACKUP_REQUEST_CODE)
     }
@@ -196,6 +219,25 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         database = shouldRestoreDatabase
         preferences = shouldRestorePreferences
         files = shouldRestoreFiles
+
+        if (dataCenter.showRestoreHint) {
+            SuperActivityToast.create(this, Style(), Style.TYPE_BUTTON)
+                    .setButtonText("Don't show again")
+                    .setOnButtonClickListener("hint", null
+                    ) { _, _ ->
+                        dataCenter.showRestoreHint = false
+                    }
+                    .setText("Navigate to the location where your backup ZIP is and select it.")
+                    .setDuration(Style.DURATION_VERY_LONG)
+                    .setFrame(Style.FRAME_LOLLIPOP)
+                    .setColor(PaletteUtils.getSolidColor(PaletteUtils.MATERIAL_BLUE_GREY))
+                    .setAnimations(Style.ANIMATIONS_POP)
+                    .setOnDismissListener { _, _ -> doRestore() }
+                    .show()
+        } else doRestore()
+    }
+
+    private fun doRestore() {
         val intent = zipIntent.setAction(Intent.ACTION_OPEN_DOCUMENT)
         startActivityForResult(intent, RESTORE_BACKUP_REQUEST_CODE)
     }

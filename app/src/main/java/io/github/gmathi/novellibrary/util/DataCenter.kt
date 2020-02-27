@@ -23,10 +23,13 @@ class DataCenter(context: Context) {
         private const val SEARCH_HISTORY_LIST = "searchHistoryList"
         private const val NOVEL_HISTORY_LIST = "novelHistoryList"
 
+        private const val SHOW_BACKUP_HINT = "showBackupHint"
+        private const val SHOW_RESTORE_HINT = "showRestoreHint"
+
         private const val IS_DARK_THEME = "isDarkTheme"
-        private const val DOWNLOAD_LATEST_FIRST = "downloadLatestFirst"
-        private const val EXPERIMENTAL_DOWNLOAD = "experimentalDownload"
-        private const val QUEUE_NOVEL_DOWNLOADS = "queueNovelDownloads"
+        //        private const val DOWNLOAD_LATEST_FIRST = "downloadLatestFirst"
+        //        private const val EXPERIMENTAL_DOWNLOAD = "experimentalDownload"
+        //        private const val QUEUE_NOVEL_DOWNLOADS = "queueNovelDownloads"
         private const val LOAD_LIBRARY_SCREEN = "loadLibraryScreen"
         private const val APP_VERSION_CODE = "appVersionCode"
         private const val TEXT_SIZE = "textSize"
@@ -43,7 +46,7 @@ class DataCenter(context: Context) {
         private const val KEEP_SCREEN_ON = "keepScreenOn"
         private const val ENABLE_IMMERSIVE_MODE = "enableImmersiveMode"
         private const val FONT_PATH = "fontPath"
-        private const val GOOGLE_ACCOUNT_NAME = "googleAccountName"
+        //        private const val GOOGLE_ACCOUNT_NAME = "googleAccountName"
         private const val ENABLE_CLUSTER_PAGES = "enableClusterPages"
         //        private const val CF_COOKIES_USER_AGENT = "cfCookiesUserAgent"
         private const val CF_COOKIES_STRING = "cfCookiesString"
@@ -87,17 +90,25 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(DEVELOPER, false)
         set(value) = prefs.edit().putBoolean(DEVELOPER, value).apply()
 
-    var downloadLatestFirst: Boolean
-        get() = prefs.getBoolean(DOWNLOAD_LATEST_FIRST, false)
-        set(value) = prefs.edit().putBoolean(DOWNLOAD_LATEST_FIRST, value).apply()
+    var showBackupHint: Boolean
+        get() = prefs.getBoolean(SHOW_BACKUP_HINT, true)
+        set(value) = prefs.edit().putBoolean(SHOW_BACKUP_HINT, value).apply()
 
-    var experimentalDownload: Boolean
-        get() = prefs.getBoolean(EXPERIMENTAL_DOWNLOAD, false)
-        set(value) = prefs.edit().putBoolean(EXPERIMENTAL_DOWNLOAD, value).apply()
+    var showRestoreHint: Boolean
+        get() = prefs.getBoolean(SHOW_RESTORE_HINT, true)
+        set(value) = prefs.edit().putBoolean(SHOW_RESTORE_HINT, value).apply()
 
-    var queueNovelDownloads: Boolean
-        get() = prefs.getBoolean(QUEUE_NOVEL_DOWNLOADS, true)
-        set(value) = prefs.edit().putBoolean(QUEUE_NOVEL_DOWNLOADS, value).apply()
+//    var downloadLatestFirst: Boolean
+//        get() = prefs.getBoolean(DOWNLOAD_LATEST_FIRST, false)
+//        set(value) = prefs.edit().putBoolean(DOWNLOAD_LATEST_FIRST, value).apply()
+//
+//    var experimentalDownload: Boolean
+//        get() = prefs.getBoolean(EXPERIMENTAL_DOWNLOAD, false)
+//        set(value) = prefs.edit().putBoolean(EXPERIMENTAL_DOWNLOAD, value).apply()
+//
+//    var queueNovelDownloads: Boolean
+//        get() = prefs.getBoolean(QUEUE_NOVEL_DOWNLOADS, true)
+//        set(value) = prefs.edit().putBoolean(QUEUE_NOVEL_DOWNLOADS, value).apply()
 
     var textSize: Int
         get() = prefs.getInt(TEXT_SIZE, 0)
@@ -164,9 +175,9 @@ class DataCenter(context: Context) {
         get() = prefs.getString(FONT_PATH, "")!!
         set(value) = prefs.edit().putString(FONT_PATH, value).apply()
 
-    var googleAccountName: String
-        get() = prefs.getString(GOOGLE_ACCOUNT_NAME, "")!!
-        set(value) = prefs.edit().putString(GOOGLE_ACCOUNT_NAME, value).apply()
+//    var googleAccountName: String
+//        get() = prefs.getString(GOOGLE_ACCOUNT_NAME, "")!!
+//        set(value) = prefs.edit().putString(GOOGLE_ACCOUNT_NAME, value).apply()
 
     var enableClusterPages: Boolean
         get() = prefs.getBoolean(ENABLE_CLUSTER_PAGES, false)
