@@ -90,11 +90,6 @@
     "link": "https://github.com/afollestad/drag-select-recyclerview"
   },
   {
-    "name": "May I? - Android Runtime-Permission library v1.4",
-    "description": "Yet another runtime permission library for android.",
-    "link": "https://thanosfisherman.github.io/posts/mayi/"
-  },
-  {
     "name": "Alerter",
     "description": "An Android Alerting Library.",
     "link": "https://github.com/Tapadoo/Alerter"
