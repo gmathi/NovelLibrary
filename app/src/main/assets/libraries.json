@@ -5,7 +5,7 @@
     "link": "https://github.com/crysehillmes/PersistentSearchView"
   },
   {
-    "name": "Glide v4.0.0-RC1",
+    "name": "Glide v4.11.0",
     "description": "An image loading and caching library for Android focused on smooth scrolling",
     "link": "https://github.com/bumptech/glide"
   },
@@ -15,12 +15,12 @@
     "link": "https://github.com/wasabeef/recyclerview-animators"
   },
   {
-    "name": "EventBus v3.0.0",
+    "name": "EventBus v3.1.1",
     "description": "Android optimized event bus that simplifies communication between Activities, Fragments, Threads, Services, etc. Less code, better quality",
     "link": "https://github.com/greenrobot/EventBus"
   },
   {
-    "name": "SmartTabLayout v1.6.1",
+    "name": "SmartTabLayout v2.0.0",
     "description": "A custom ViewPager title strip which gives continuous feedback to the user when scrolling.",
     "link": "https://github.com/ogaclejapan/SmartTabLayout"
   },
@@ -40,7 +40,7 @@
     "link": "https://github.com/chrisbanes/PhotoView"
   },
   {
-    "name": "Material Dialogs: Core v0.9.4.5",
+    "name": "Material Dialogs: Core v0.9.6.0",
     "description": "A beautiful, fluid, and customizable dialogs API.",
     "link": "https://github.com/afollestad/material-dialogs"
   },
@@ -50,12 +50,12 @@
     "link": "https://github.com/sjwall/MaterialTapTargetPrompt"
   },
   {
-    "name": "google-gson v2.8.0",
+    "name": "google-gson v2.8.6",
     "description": "A Java serialization/deserialization library to convert Java Objects into JSON and back",
     "link": "https://github.com/google/gson"
   },
   {
-    "name": "jsoup: Java HTML Parser v1.10.3",
+    "name": "jsoup: Java HTML Parser v1.12.2",
     "description": "jsoup is a Java library for working with real-world HTML. It provides a very convenient API for extracting and manipulating data, using the best of DOM, CSS, and jquery-like methods.",
     "link": "https://jsoup.org/"
   },
@@ -75,7 +75,7 @@
     "link": "https://github.com/DanielMartinus/Konfetti"
   },
   {
-    "name": "OkHttp v3.8.1",
+    "name": "OkHttp v4.4.0",
     "description": "An HTTP+HTTP/2 client for Android and Java applications.",
     "link": "http://square.github.io/okhttp/"
   },
