@@ -207,11 +207,7 @@
     <string name="show_comments_section">Kommentare anzeigen</string>
     <string name="show_comments_section_description">Zeigt den Kommentar des Kapitels im Lesermodus an. (Begrenzte Webseiten unterstützt)</string>
     <string name="backup">Sicherung</string>
-    <string name="backup_data">Backup-Daten</string>
-    <string name="backup_data_description">Sicherung von Daten auf interne Speicher- / SD-Karte</string>
     <string name="restore">Wiederherstellen</string>
-    <string name="restore_data">Daten wiederherstellen</string>
-    <string name="restore_data_description">Wiederherstellen von Daten aus interner Speicher- / SD-Karte</string>
     <string name="import_reading_list">Leseliste importieren</string>
     <string name="nu_reading_list_url">NU Leseliste URL</string>
     <string name="volume_scroll">Scrollen Sie mit den Lautstärketasten</string>
@@ -242,10 +238,6 @@
     <string name="skip_cloud_flare_string">Please wait 5~10 secs while we bypass cloud flare</string>
     <string name="title_java_script">JavaScript</string>
     <string name="refresh_cloud_flare_cookies">Refresh CloudFlare Cookies</string>
-    <string name="google_backup">Google Drive Backup</string>
-    <string name="google_backup_description">Backup Data to your Google Drive. Note: Will not backup the downloaded files.</string>
-    <string name="google_restore">Google Drive Restore</string>
-    <string name="google_restore_description">Restore Data to your Google Drive</string>
     <string name="merge_pages">Merge All Links To Single Page</string>
     <string name="merge_pages_description">Merges all the web pages in to a single web page, so that the announcement posts are shown in the same screen</string>
     <string name="title_merge_pages">Merge Pages</string>
@@ -258,10 +250,6 @@
     <string name="cloud_flare_bypass_success">Cloudflare bypassed successfully</string>
     <string name="backup_and_restore">Backup &amp; Restore</string>
     <string name="backup_and_restore_description">Backup &amp; Restore data automatically or manually choose your own folder. Alternatively you can also use Google drive</string>
-    <string name="internal_full_backup_data">Auto Backup All Data</string>
-    <string name="internal_full_backup_data_description">Fully Backups Data to internal storage/sd card. (Backups to Auto-generated folders)</string>
-    <string name="internal_full_restore_data">Auto Restore All Data</string>
-    <string name="internal_full_restore_data_description">Fully Restores Data from internal storage/sd card (Restores from the Auto-generated folders)</string>
     <string name="internal_clear_data">Clear Cache &amp; Data</string>
     <string name="internal_clear_data_description">Clears the cache, files and database (including the Auto-generated folders)</string>
     <string name="enable_cloud_flare">Cloud Flare Cookies</string>

@@ -81,23 +81,15 @@
     </string-array>
 
     <string-array name="backup_and_restore_titles_list" translatable="false">
-        <item>@string/internal_full_backup_data</item>
-        <item>@string/internal_full_restore_data</item>
         <item>@string/internal_clear_data</item>
         <item>@string/backup_data</item>
         <item>@string/restore_data</item>
-        <item>@string/google_backup</item>
-        <item>@string/google_restore</item>
     </string-array>
 
     <string-array name="backup_and_restore_subtitles_list" translatable="false">
-        <item>@string/internal_full_backup_data_description</item>
-        <item>@string/internal_full_restore_data_description</item>
         <item>@string/internal_clear_data_description</item>
         <item>@string/backup_data_description</item>
         <item>@string/restore_data_description</item>
-        <item>@string/google_backup_description</item>
-        <item>@string/google_restore_description</item>
     </string-array>
 
 
@@ -415,12 +407,6 @@
     <string name="title_share_chapter">Share Chapter</string>
     <string name="refresh_cloud_flare_cookies">Refresh CloudFlare Cookies</string>
 
-    <string name="google_backup">Google Drive Backup</string>
-    <string name="google_backup_description">Backup Data to your Google Drive. Note: Will not backup the downloaded files.</string>
-
-    <string name="google_restore">Google Drive Restore</string>
-    <string name="google_restore_description">Restore Data to your Google Drive</string>
-
     <string name="merge_pages">Merge All Links To Single Page</string>
     <string name="merge_pages_description">Merges all the web pages in to a single web page, so that the announcement posts are shown in the same screen</string>
 
@@ -437,17 +423,13 @@
     <string name="backup_and_restore">Backup &amp; Restore</string>
     <string name="backup_and_restore_description">Backup &amp; Restore data automatically or manually choose your own folder. Alternatively you can also use Google drive</string>
 
-    <string name="internal_full_backup_data">Auto Backup All Data</string>
-    <string name="internal_full_backup_data_description">Fully Backups Data to internal storage/sd card. (Backups to Auto-generated folders)</string>
-    <string name="internal_full_restore_data">Auto Restore All Data</string>
-    <string name="internal_full_restore_data_description">Fully Restores Data from internal storage/sd card (Restores from the Auto-generated folders)</string>
     <string name="internal_clear_data">Clear Cache &amp; Data</string>
     <string name="internal_clear_data_description">Clears the cache, files and database (including the Auto-generated folders)</string>
 
-    <string name="backup_data">Manual Backup Data</string>
-    <string name="backup_data_description">Choose a folder to in internal storage/sd card for backup</string>
-    <string name="restore_data">Manual Restore Data</string>
-    <string name="restore_data_description">Choose a folder to in internal storage/sd card to restore</string>
+    <string name="backup_data">Backup Data</string>
+    <string name="backup_data_description">Backup the data into a ZIP archive</string>
+    <string name="restore_data">Restore Data</string>
+    <string name="restore_data_description">Restore data from a ZIP archive</string>
 
     <string name="enable_cloud_flare">Cloud Flare Cookies</string>
     <string name="enable_cloud_flare_description">You need to restart the app, after you toggle this!</string>

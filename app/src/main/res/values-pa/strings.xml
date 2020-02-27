@@ -180,10 +180,6 @@
     <string name="title_open_in_browser">Open In Browser</string>
     <string name="title_share_chapter">Share Chapter</string>
     <string name="refresh_cloud_flare_cookies">Refresh Cloudflare Cookies</string>
-    <string name="google_backup">Google Drive Backup</string>
-    <string name="google_backup_description">Backup Data To Yer Google Drive. Note: Will Not Backup The Downloaded Files.</string>
-    <string name="google_restore"> Google Drive Restore</string>
-    <string name="google_restore_description">Restore Data To Yer Google Drive</string>
     <string name="merge_pages">Merge All Links To Single Page</string>
     <string name="merge_pages_description">Merges All The Web Pages In To A Single Web Page, So That There The Announcement Posts Be Shown In The Same Screen</string>
     <string name="directional_links">Directional Links</string>
@@ -195,16 +191,8 @@
     <string name="cloud_flare_bypass_failure_title">Cloudflare Bypass Failed</string>
     <string name="backup_and_restore">Backup &amp; Restore</string>
     <string name="backup_and_restore_description">Backup &amp; Restore Data Automatically Or Manually Choose Yer Own Folder. Alternatively Ye Can Also Use Google Drive</string>
-    <string name="internal_full_backup_data">Auto Backup All Data</string>
-    <string name="internal_full_backup_data_description">Fully Backups Data To Internal Storage/sd Card. (backups To Auto-generated Folders)</string>
-    <string name="internal_full_restore_data">Auto Restore All Data</string>
-    <string name="internal_full_restore_data_description">Fully Restores Data From Internal Storage/sd Card (restores From The Auto-generated Folders)</string>
     <string name="internal_clear_data">Clearrr Cache &amp; Data</string>
     <string name="internal_clear_data_description">Clears The Cache, Files An\' Database (includin\' The Auto-generated Folders)</string>
-    <string name="backup_data">Manual Backup Data</string>
-    <string name="backup_data_description">Choose A Folder To In Internal Storage/sd Card Fer Backup</string>
-    <string name="restore_data">Manual Restore Data</string>
-    <string name="restore_data_description">Choose A Folder To In Internal Storage/sd Card To Restore</string>
     <string name="enable_cloud_flare">Cloud Flare Cookies</string>
     <string name="enable_cloud_flare_description">Ye Need To Restart The App, After Ye Toggle This Here!</string>
     <string name="preferences">Preferences (reader Settings, E.t.c.)</string>
