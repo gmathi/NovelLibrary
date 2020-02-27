@@ -72,6 +72,8 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private var preferences: Boolean = false
     private var files: Boolean = false
 
+    private var progressToast: SuperToast? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
@@ -147,6 +149,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     override fun onDestroy() {
         super.onDestroy()
+        progressToast?.dismiss()
         async.cancelAll()
     }
 
@@ -250,6 +253,14 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         if (requestCode == CREATE_BACKUP_REQUEST_CODE || requestCode == RESTORE_BACKUP_REQUEST_CODE) {
             val uri = data.data
             if (uri != null) {
+                if (progressToast == null)
+                    progressToast = SuperActivityToast.create(this, Style(), Style.TYPE_PROGRESS_BAR)
+                            .setIndeterminate(true)
+                            .setFrame(Style.FRAME_LOLLIPOP)
+                            .setColor(PaletteUtils.getSolidColor(PaletteUtils.MATERIAL_BLUE_GREY))
+                            .setAnimations(Style.ANIMATIONS_FADE)
+                progressToast?.show()
+
                 val dataDir = Environment.getDataDirectory()
                 val baseDir = File(dataDir, DATA_SUBFOLDER)
 
@@ -306,6 +317,8 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                                     showDialog(content = "No space left on device! Please make enough space - $formattedSize and try again!")
                                 } else
                                     showDialog(content = "Backup Failed!")
+                            } finally {
+                                progressToast?.dismiss()
                             }
                         }
                     }
@@ -388,6 +401,8 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                                     showDialog(content = "No space left on device! Please make enough space - $formattedSize and try again!")
                                 }
                                 showDialog(content = "Restore Failed!")
+                            } finally {
+                                progressToast?.dismiss()
                             }
                         }
                     }
