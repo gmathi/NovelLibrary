@@ -60,7 +60,6 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         private const val DATA_SUBFOLDER = """/data/${BuildConfig.APPLICATION_ID}"""
     }
 
-
     lateinit var adapter: GenericAdapter<String>
     private lateinit var settingsItems: ArrayList<String>
     private lateinit var settingsItemsDescription: ArrayList<String>
@@ -136,9 +135,6 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                         .positiveText(R.string.okay)
                         .show()
             }
-
-            getString(R.string.google_backup), getString(R.string.google_restore) ->
-                showDialog(content = "Still being developed!")
         }
     }
 
