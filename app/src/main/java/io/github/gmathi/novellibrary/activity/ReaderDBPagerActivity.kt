@@ -72,6 +72,7 @@ class ReaderDBPagerActivity :
         private const val READ_ALOUD = 9
 
         private const val SELECT_FONT_REQUEST_CODE = 1101
+        private val TTF_MIME_TYPE = MimeTypeMap.getSingleton().getMimeTypeFromExtension("ttf") ?: "application/x-font-ttf"
     }
 
     private lateinit var screenIcons: Array<Drawable?>
@@ -346,7 +347,7 @@ class ReaderDBPagerActivity :
             FONTS -> {
                 val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
                         .addCategory(Intent.CATEGORY_OPENABLE)
-                        .setType(MimeTypeMap.getSingleton().getMimeTypeFromExtension("ttf"))
+                        .setType(TTF_MIME_TYPE)
                         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
 //                        .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)

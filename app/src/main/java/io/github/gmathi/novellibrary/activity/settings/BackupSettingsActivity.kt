@@ -43,6 +43,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         private const val TAG = "BackupSettingsActivity"
 
         private const val BACKUP_FILE_NAME = "NovelLibrary.backup.zip"
+        private val ZIP_MIME_TYPE = MimeTypeMap.getSingleton().getMimeTypeFromExtension("zip") ?: "application/zip"
 
         private const val SIMPLE_NOVEL_BACKUP_FILE_NAME = "SimpleNovelBackup.txt"
         private const val DATABASES_DIR = "databases"
@@ -174,7 +175,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         get() {
             return Intent()
                     .addCategory(Intent.CATEGORY_OPENABLE)
-                    .setType(MimeTypeMap.getSingleton().getMimeTypeFromExtension("zip"))
+                    .setType(ZIP_MIME_TYPE)
                     .putExtra(Intent.EXTRA_TITLE, BACKUP_FILE_NAME)
                     .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
