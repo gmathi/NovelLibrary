@@ -72,7 +72,13 @@ class ReaderDBPagerActivity :
         private const val READ_ALOUD = 9
 
         private const val SELECT_FONT_REQUEST_CODE = 1101
-        private val TTF_MIME_TYPE = MimeTypeMap.getSingleton().getMimeTypeFromExtension("ttf") ?: "application/x-font-ttf"
+        private val FONT_MIME_TYPES = arrayOf(
+                MimeTypeMap.getSingleton().getMimeTypeFromExtension("ttf") ?: "application/x-font-ttf",
+                "fonts/ttf",
+                MimeTypeMap.getSingleton().getMimeTypeFromExtension("otf") ?: "application/x-font-opentype",
+                "fonts/otf",
+                "application/octet-stream"
+        )
     }
 
     private lateinit var screenIcons: Array<Drawable?>
@@ -347,7 +353,8 @@ class ReaderDBPagerActivity :
             FONTS -> {
                 val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
                         .addCategory(Intent.CATEGORY_OPENABLE)
-                        .setType(TTF_MIME_TYPE)
+                        .setType("*/*")
+                        .putExtra(Intent.EXTRA_MIME_TYPES, FONT_MIME_TYPES)
                         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
 //                        .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
@@ -449,10 +456,12 @@ class ReaderDBPagerActivity :
                 if (resultCode == Activity.RESULT_OK) {
                     val uri = data?.data
                     if (uri != null) {
-                        val document = DocumentFile.fromSingleUri(baseContext, uri)!!
-                        val file = File(filesDir, document.name!!)
-                        Utils.copyFile(contentResolver, document, File(filesDir, document.name!!))
-                        font = file.path
+                        val document = DocumentFile.fromSingleUri(baseContext, uri)
+                        if (document != null && document.isFile) {
+                            val file = File(filesDir, document.name!!)
+                            Utils.copyFile(contentResolver, document, File(filesDir, document.name!!))
+                            font = file.path
+                        }
                     }
                 }
                 dataCenter.fontPath = font
