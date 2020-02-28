@@ -1,9 +1,7 @@
 package io.github.gmathi.novellibrary.network
 
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
-import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi.getDocumentWithUserAgent
 
@@ -18,11 +16,12 @@ fun NovelApi.searchRoyalRoad(searchTerms: String, pageNumber: Int = 1): ArrayLis
             val urlElement = element.selectFirst("a[href]") ?: continue
             val novel = Novel(urlElement.text(), urlElement.attr("abs:href"))
             novel.imageUrl = element.selectFirst("img[src]")?.attr("abs:src")
-            if (novel.imageUrl?.startsWith("https://www.royalroadcdn.com/") == true)
-                novel.metaData["Author(s)"] = novel.imageUrl?.substring(29, novel.imageUrl?.indexOf('/', 29) ?: 0)
             novel.metaData["Author(s)"] = element.selectFirst("span.author")?.text()?.substring(3)
+            if (novel.metaData["Author(s)"] == null && novel.imageUrl?.startsWith("https://www.royalroadcdn.com/") == true)
+                novel.metaData["Author(s)"] = novel.imageUrl?.substring(29, novel.imageUrl?.indexOf('/', 29) ?: 0)
             novel.rating = element.selectFirst("span[title]").attr("title")
             novel.longDescription = element.selectFirst("div.fiction-description")?.text()
+                    ?: element.selectFirst("div.margin-top-10.col-xs-12")?.text()
             novel.shortDescription = novel.longDescription?.split("\n")?.firstOrNull()
             searchResults.add(novel)
         }
