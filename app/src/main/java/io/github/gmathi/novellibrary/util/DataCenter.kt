@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.util
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
+import android.net.Uri
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -25,6 +26,8 @@ class DataCenter(context: Context) {
 
         private const val SHOW_BACKUP_HINT = "showBackupHint"
         private const val SHOW_RESTORE_HINT = "showRestoreHint"
+        private const val BACKUP_URI = "backupUri"
+        private const val BACKUP_FREQUENCY = "backupFrequency"
 
         private const val IS_DARK_THEME = "isDarkTheme"
         //        private const val DOWNLOAD_LATEST_FIRST = "downloadLatestFirst"
@@ -97,6 +100,20 @@ class DataCenter(context: Context) {
     var showRestoreHint: Boolean
         get() = prefs.getBoolean(SHOW_RESTORE_HINT, true)
         set(value) = prefs.edit().putBoolean(SHOW_RESTORE_HINT, value).apply()
+
+    var backupUri: Uri?
+        get() {
+            val str = prefs.getString(BACKUP_URI, null)
+            return if (str.isNullOrEmpty())
+                null
+            else
+                Uri.parse(str)
+        }
+        set(value) = prefs.edit().putString(BACKUP_URI, value?.toString() ?: "").apply()
+
+    var backupFrequency: Int
+        get() = prefs.getInt(BACKUP_FREQUENCY, 0)
+        set(value) = prefs.edit().putInt(BACKUP_FREQUENCY, value).apply()
 
 //    var downloadLatestFirst: Boolean
 //        get() = prefs.getBoolean(DOWNLOAD_LATEST_FIRST, false)

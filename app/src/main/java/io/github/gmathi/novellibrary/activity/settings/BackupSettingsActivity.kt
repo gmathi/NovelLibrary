@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.Theme
 import com.github.johnpersano.supertoasts.library.Style
 import com.github.johnpersano.supertoasts.library.SuperActivityToast
 import com.github.johnpersano.supertoasts.library.SuperToast
@@ -112,7 +113,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
             getString(R.string.backup_data) -> {
                 MaterialDialog.Builder(this)
-                        .title(getString(R.string.backup_data))
+                        .title(item)
                         .items(R.array.backup_and_restore_options)
                         .itemsCallbackMultiChoice(arrayOf(0, 1, 2, 3)) { _, which, _ ->
                             if (which.isNotEmpty())
@@ -125,11 +126,24 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
             getString(R.string.restore_data) -> {
                 MaterialDialog.Builder(this)
-                        .title(getString(R.string.restore_data))
+                        .title(item)
                         .items(R.array.backup_and_restore_options)
                         .itemsCallbackMultiChoice(arrayOf(0, 1, 2, 3)) { _, which, _ ->
                             if (which.isNotEmpty())
                                 restoreData(which.contains(0), which.contains(1), which.contains(2), which.contains(3))
+                            true
+                        }
+                        .positiveText(R.string.okay)
+                        .show()
+            }
+
+            getString(R.string.backup_frequency) -> {
+                MaterialDialog.Builder(this)
+                        .theme(Theme.DARK)
+                        .title(item)
+                        .items(R.array.backup_and_restore_options)
+                        .itemsCallbackSingleChoice(dataCenter.backupFrequency) { _, _, which, _ ->
+                            dataCenter.backupFrequency = which
                             true
                         }
                         .positiveText(R.string.okay)
@@ -182,7 +196,6 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     .putExtra(Intent.EXTRA_TITLE, BACKUP_FILE_NAME)
                     .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-//                    .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
         }
 
     private fun backupData(shouldSimpleTextBackup: Boolean = true, shouldBackupDatabase: Boolean = true, shouldBackupPreferences: Boolean = true, shouldBackupFiles: Boolean = true) {
@@ -210,6 +223,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     private fun doBackup() {
         val intent = zipIntent.setAction(Intent.ACTION_CREATE_DOCUMENT)
+                .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
         startActivityForResult(intent, CREATE_BACKUP_REQUEST_CODE)
     }
 
@@ -268,6 +282,20 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     CREATE_BACKUP_REQUEST_CODE -> {
                         async {
                             try {
+                                val readWriteFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+
+                                val oldUri = dataCenter.backupUri
+                                if (uri != oldUri) {
+                                    // Release old permissions
+                                    if (oldUri != null)
+                                        contentResolver.releasePersistableUriPermission(oldUri, readWriteFlags)
+
+                                    // Request for the new permissions to persist
+                                    contentResolver.takePersistableUriPermission(uri, data.flags and readWriteFlags)
+
+                                    dataCenter.backupUri = uri
+                                }
+
                                 ZipOutputStream(BufferedOutputStream(contentResolver.openOutputStream(uri)!!)).use {
                                     // Backup To TextFile
                                     if (simpleText) {

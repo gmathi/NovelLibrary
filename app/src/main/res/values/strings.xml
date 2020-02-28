@@ -488,9 +488,19 @@
     <string name="about_us_content">This project is an open-source project being developed with love for the novel reading community. If you would like to help out you can get in touch with us in discord!</string>
     <string name="bug_report_content">Please use discord to report a bug.%1$s</string>
     <string name="copy_to_clipboard">Copy to clipboard</string>
+    <string name="add_font">Add Font</string>
     <string name="dont_show_again">Don\'t show again</string>
     <string name="backup_hint">Choose a convenient location to save the backup ZIP file in</string>
     <string name="restore_hint">Navigate to the location where your backup ZIP is and select it</string>
-    <string name="add_font">Add Font</string>
+    <string name="backup_frequency">Backup Frequency</string>
+    <string name="backup_frequency_manual">Manual</string>
+    <string name="backup_frequency_Daily">Daily</string>
+    <string name="backup_frequency_Weekly">Weekly</string>
+
+    <string-array name="backup_frequency_options">
+        <item>@string/backup_frequency_manual</item>
+        <item>@string/backup_frequency_Daily</item>
+        <item>@string/backup_frequency_Weekly</item>
+    </string-array>
 
 </resources>
