@@ -236,7 +236,7 @@ fun NovelApi.getLNMTLNovelDetails(url: String): Novel? {
         val tags = detailsElement?.selectFirst("div.panel-heading:contains(Tags)")?.nextElementSibling()?.select("ul li")
         novel.metaData["Tags"] = tags?.joinToString(", ") { it.html() }
 
-        novel.chaptersCount = getLNMTLChapterCount(novel).toLong()
+        novel.chaptersCount = getLNMTLChapterCount(url).toLong()
     } catch (e: java.lang.Exception) {
         e.printStackTrace()
     }
