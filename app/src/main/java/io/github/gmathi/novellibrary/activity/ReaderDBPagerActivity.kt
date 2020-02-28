@@ -23,9 +23,7 @@ import androidx.recyclerview.widget.RecyclerView.LayoutParams.MATCH_PARENT
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.WRAP_CONTENT
 import androidx.viewpager.widget.ViewPager
 import com.afollestad.materialdialogs.MaterialDialog
-import com.github.johnpersano.supertoasts.library.Style
-import com.github.johnpersano.supertoasts.library.SuperActivityToast
-import com.github.johnpersano.supertoasts.library.utils.PaletteUtils
+import com.afollestad.materialdialogs.Theme
 import com.yarolegovich.slidingrootnav.SlideGravity
 import com.yarolegovich.slidingrootnav.SlidingRootNav
 import com.yarolegovich.slidingrootnav.SlidingRootNavBuilder
@@ -74,7 +72,7 @@ class ReaderDBPagerActivity :
         private const val SHARE_CHAPTER = 8
         private const val READ_ALOUD = 9
 
-        private const val SELECT_FONT_REQUEST_CODE = 1101
+        private const val ADD_FONT_REQUEST_CODE = 1101
         private val FONT_MIME_TYPES = arrayOf(
                 MimeTypeMap.getSingleton().getMimeTypeFromExtension("ttf") ?: "application/x-font-ttf",
                 "fonts/ttf",
@@ -82,6 +80,8 @@ class ReaderDBPagerActivity :
                 "fonts/otf",
                 "application/octet-stream"
         )
+
+        private val AVAILABLE_FONTS = linkedMapOf<String, String>()
     }
 
     private lateinit var screenIcons: Array<Drawable?>
@@ -354,21 +354,30 @@ class ReaderDBPagerActivity :
         slidingRootNav!!.closeMenu()
         when (position) {
             FONTS -> {
-                if (dataCenter.showFontHint) {
-                    SuperActivityToast.create(this, Style(), Style.TYPE_BUTTON)
-                            .setButtonText(getString(R.string.dont_show_again))
-                            .setOnButtonClickListener("hint", null
-                            ) { _, _ ->
-                                dataCenter.showFontHint = false
+                if (AVAILABLE_FONTS.isEmpty())
+                    getAvailableFonts()
+
+                val selectedFont = if (dataCenter.fontPath.isNotEmpty())
+                    dataCenter.fontPath.substringAfterLast('/').substringBeforeLast('.')
+                else
+                    "source_sans_pro_regular"
+                val selected = AVAILABLE_FONTS.keys.indexOf(selectedFont)
+
+                MaterialDialog.Builder(this)
+                        .theme(Theme.DARK)
+                        .title(getString(R.string.title_fonts))
+                        .items(AVAILABLE_FONTS.keys)
+                        .itemsCallbackSingleChoice(selected) { _, _, which, font ->
+                            if (which == 0) {
+                                addFont()
+                            } else {
+                                dataCenter.fontPath = AVAILABLE_FONTS[font] ?: ""
+                                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
                             }
-                            .setText(getString(R.string.font_hint))
-                            .setDuration(Style.DURATION_LONG)
-                            .setFrame(Style.FRAME_LOLLIPOP)
-                            .setColor(PaletteUtils.getSolidColor(PaletteUtils.MATERIAL_BLUE_GREY))
-                            .setAnimations(Style.ANIMATIONS_POP)
-                            .setOnDismissListener { _, _ -> changeFont() }
-                            .show()
-                } else changeFont()
+                            true
+                        }
+                        .positiveText(R.string.okay)
+                        .show()
             }
             FONT_SIZE -> changeTextSize()
             REPORT_PAGE -> reportPage()
@@ -452,7 +461,26 @@ class ReaderDBPagerActivity :
         }
     }
 
-    private fun changeFont() {
+    @Synchronized
+    private fun getAvailableFonts() {
+        if (AVAILABLE_FONTS.isNotEmpty()) return
+
+        AVAILABLE_FONTS[getString(R.string.add_font)] = ""
+
+        assets.list("fonts")?.filter {
+            it.endsWith(".ttf")
+        }?.forEach {
+            AVAILABLE_FONTS[it.substringBeforeLast('.')] = "/android_asset/fonts/$it"
+        }
+
+        val appFontsDir = File(getExternalFilesDir(null) ?: filesDir, "Fonts")
+        if (!appFontsDir.exists()) appFontsDir.mkdir()
+        appFontsDir.listFiles()?.forEach {
+            AVAILABLE_FONTS[it.nameWithoutExtension] = it.path
+        }
+    }
+
+    private fun addFont() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE)
                 .setType("*/*")
@@ -460,7 +488,7 @@ class ReaderDBPagerActivity :
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
 //                        .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-        startActivityForResult(intent, SELECT_FONT_REQUEST_CODE)
+        startActivityForResult(intent, ADD_FONT_REQUEST_CODE)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -472,21 +500,22 @@ class ReaderDBPagerActivity :
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
                 }
             }
-            SELECT_FONT_REQUEST_CODE -> {
-                var font = ""
+            ADD_FONT_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK) {
                     val uri = data?.data
                     if (uri != null) {
                         val document = DocumentFile.fromSingleUri(baseContext, uri)
                         if (document != null && document.isFile) {
-                            val file = File(filesDir, document.name!!)
-                            Utils.copyFile(contentResolver, document, File(filesDir, document.name!!))
-                            font = file.path
+                            val fontsDir = File(getExternalFilesDir(null) ?: filesDir, "Fonts/")
+                            if (!fontsDir.exists()) fontsDir.mkdir()
+                            val file = File(fontsDir, document.name!!)
+                            Utils.copyFile(contentResolver, document, file)
+                            AVAILABLE_FONTS[file.nameWithoutExtension] = file.path
+                            dataCenter.fontPath = file.path
+                            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
                         }
                     }
                 }
-                dataCenter.fontPath = font
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
             }
         }
     }

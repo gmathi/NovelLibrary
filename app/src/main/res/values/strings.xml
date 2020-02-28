@@ -491,6 +491,6 @@
     <string name="dont_show_again">Don\'t show again</string>
     <string name="backup_hint">Choose a convenient location to save the backup ZIP file in</string>
     <string name="restore_hint">Navigate to the location where your backup ZIP is and select it</string>
-    <string name="font_hint">Cancel the Font selection to reset to default</string>
+    <string name="add_font">Add Font</string>
 
 </resources>

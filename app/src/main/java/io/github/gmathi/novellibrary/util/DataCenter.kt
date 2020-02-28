@@ -25,7 +25,6 @@ class DataCenter(context: Context) {
 
         private const val SHOW_BACKUP_HINT = "showBackupHint"
         private const val SHOW_RESTORE_HINT = "showRestoreHint"
-        private const val SHOW_FONT_HINT = "showFontHint"
 
         private const val IS_DARK_THEME = "isDarkTheme"
         //        private const val DOWNLOAD_LATEST_FIRST = "downloadLatestFirst"
@@ -171,10 +170,6 @@ class DataCenter(context: Context) {
     var enableImmersiveMode: Boolean
         get() = prefs.getBoolean(ENABLE_IMMERSIVE_MODE, true)
         set(value) = prefs.edit().putBoolean(ENABLE_IMMERSIVE_MODE, value).apply()
-
-    var showFontHint: Boolean
-        get() = prefs.getBoolean(SHOW_FONT_HINT, true)
-        set(value) = prefs.edit().putBoolean(SHOW_FONT_HINT, value).apply()
 
     var fontPath: String
         get() = prefs.getString(FONT_PATH, "")!!
