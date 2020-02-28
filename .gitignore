@@ -55,6 +55,7 @@ freeline.py
 freeline/
 freeline_project_description.json
 app/release/output.json
+app/mirror/release/output.json
 
 .idea/inspectionProfiles/Project_Default.xml
 .idea/misc.xml
