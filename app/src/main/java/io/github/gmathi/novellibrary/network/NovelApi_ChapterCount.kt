@@ -18,6 +18,7 @@ fun NovelApi.getChapterCount(novel: Novel): Int {
         host.contains(HostNames.ROYAL_ROAD_OLD) || host.contains(HostNames.ROYAL_ROAD) -> return getRRChapterCount(novel.url)
         host.contains(HostNames.WLN_UPDATES) -> return getWLNUChapterCount(novel.url)
         host.contains(HostNames.NOVEL_FULL) -> return getNovelFullChapterCount(novel)
+        host.contains(HostNames.LNMTL) -> return getLNMTLChapterCount(novel.url)
     }
     return 0
 }
@@ -72,9 +73,9 @@ fun getNovelFullChapterCount(novel: Novel): Int {
     return getNovelFullChapterUrls(novel)?.size ?: 0
 }
 
-fun getLNMTLChapterCount(novel: Novel): Int {
+fun getLNMTLChapterCount(url: String): Int {
     try {
-        val doc = Jsoup.connect(novel.url).get()
+        val doc = Jsoup.connect(url).get()
 
         val scripts = doc.select("script")
         val script = scripts.find { it.html().contains("lnmtl.firstResponse =") } ?: return 0
