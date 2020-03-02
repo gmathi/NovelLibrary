@@ -357,10 +357,9 @@ class ReaderDBPagerActivity :
                 if (AVAILABLE_FONTS.isEmpty())
                     getAvailableFonts()
 
-                val selectedFont = if (dataCenter.fontPath.isNotEmpty())
-                    dataCenter.fontPath.substringAfterLast('/').substringBeforeLast('.')
-                else
-                    "source_sans_pro_regular"
+                val selectedFont = dataCenter.fontPath.substringAfterLast('/')
+                        .substringBeforeLast('.')
+                        .replace('_', ' ')
                 val selected = AVAILABLE_FONTS.keys.indexOf(selectedFont)
 
                 MaterialDialog.Builder(this)
@@ -468,15 +467,15 @@ class ReaderDBPagerActivity :
         AVAILABLE_FONTS[getString(R.string.add_font)] = ""
 
         assets.list("fonts")?.filter {
-            it.endsWith(".ttf")
+            it.endsWith(".ttf") || it.endsWith(".otf")
         }?.forEach {
-            AVAILABLE_FONTS[it.substringBeforeLast('.')] = "/android_asset/fonts/$it"
+            AVAILABLE_FONTS[it.substringBeforeLast('.').replace('_', ' ')] = "/android_asset/fonts/$it"
         }
 
         val appFontsDir = File(getExternalFilesDir(null) ?: filesDir, "Fonts")
         if (!appFontsDir.exists()) appFontsDir.mkdir()
         appFontsDir.listFiles()?.forEach {
-            AVAILABLE_FONTS[it.nameWithoutExtension] = it.path
+            AVAILABLE_FONTS[it.nameWithoutExtension.replace('_', ' ')] = it.path
         }
     }
 
@@ -510,7 +509,7 @@ class ReaderDBPagerActivity :
                             if (!fontsDir.exists()) fontsDir.mkdir()
                             val file = File(fontsDir, document.name!!)
                             Utils.copyFile(contentResolver, document, file)
-                            AVAILABLE_FONTS[file.nameWithoutExtension] = file.path
+                            AVAILABLE_FONTS[file.nameWithoutExtension.replace('_', ' ')] = file.path
                             dataCenter.fontPath = file.path
                             EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
                         }

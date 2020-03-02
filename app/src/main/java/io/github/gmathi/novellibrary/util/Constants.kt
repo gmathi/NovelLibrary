@@ -13,8 +13,7 @@ object Constants {
     const val VOLUME_SCROLL_LENGTH_MIN = -10
     const val VOLUME_SCROLL_LENGTH_MAX = 10
 
-
-    //endregion
+    const val DEFAULT_FONT_PATH = "/android_asset/fonts/source_sans_pro_regular.ttf"
 
     //region Intent Keys
     const val NOVEL_ID = "novelId"

@@ -9,6 +9,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.util.Constants.DEFAULT_FONT_PATH
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import java.util.*
 
@@ -189,7 +190,7 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putBoolean(ENABLE_IMMERSIVE_MODE, value).apply()
 
     var fontPath: String
-        get() = prefs.getString(FONT_PATH, "")!!
+        get() = prefs.getString(FONT_PATH, DEFAULT_FONT_PATH)!!
         set(value) = prefs.edit().putString(FONT_PATH, value).apply()
 
 //    var googleAccountName: String
