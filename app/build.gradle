@@ -20,8 +20,8 @@ android {
         minSdkVersion 21
         targetSdkVersion 29
         multiDexEnabled true
-        versionCode 76
-        versionName "0.9.9.7.beta"
+        versionCode 77
+        versionName "0.9.9.8.beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -38,7 +38,6 @@ android {
     buildTypes {
 
         debug {
-            //buildConfigField "boolean", "IS_DEBUG", "true"
             pseudoLocalesEnabled true
         }
 
@@ -128,10 +127,11 @@ dependencies {
     implementation "com.google.android.gms:play-services-drive:17.0.0"
     implementation "com.google.android.gms:play-services-auth:17.0.0"
 
-    implementation "com.google.firebase:firebase-messaging:20.1.0"
+    implementation "com.google.firebase:firebase-messaging:20.1.1"
     implementation "com.google.firebase:firebase-auth:19.2.0"
-    implementation "com.google.firebase:firebase-core:17.2.2"
-    implementation "com.google.firebase:firebase-config:19.1.1"
+
+    implementation "com.google.firebase:firebase-core:17.2.3"
+    implementation "com.google.firebase:firebase-config:19.1.2"
     implementation 'com.google.code.gson:gson:2.8.6'
 
 
@@ -139,23 +139,11 @@ dependencies {
         transitive = true
     }
 
-//    implementation('com.google.api-client:google-api-client-android:1.23.0') {
-//        exclude group: 'org.apache.httpcomponents'
-//        exclude group: 'com.google.code.findbugs'
-//        exclude group: 'com.google.android.gms'
-//        exclude group: 'com.firebaseui'
-//    }
-//    implementation('com.google.apis:google-api-services-drive:v2-rev294-1.23.0') {
-//        exclude group: 'org.apache.httpcomponents'
-//        exclude group: 'com.google.code.findbugs'
-//        exclude group: 'com.google.android.gms'
-//        exclude group: 'com.firebaseui'
-//    }
 
     canaryImplementation 'com.squareup.leakcanary:leakcanary-android:2.2'
 
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.1'
     kapt 'com.github.bumptech.glide:compiler:4.11.0'
-
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 

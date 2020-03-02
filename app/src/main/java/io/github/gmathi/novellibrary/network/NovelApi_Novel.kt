@@ -14,6 +14,7 @@ fun NovelApi.getNovelDetails(url: String): Novel? {
         host.contains(HostNames.WLN_UPDATES) -> novel = getWlnNovelDetails(url)
         host.contains(HostNames.NOVEL_FULL) -> novel = getNovelFullNovelDetails(url)
         host.contains(HostNames.SCRIBBLE_HUB) -> novel = getScribbleHubNovelDetails(url)
+        host.contains(HostNames.LNMTL) -> novel = getLNMTLNovelDetails(url)
     }
     return novel
 }
@@ -201,6 +202,42 @@ fun NovelApi.getScribbleHubNovelDetails(url: String): Novel? {
         novel.chaptersCount = document.getElementById("chpcounter").attr("value").toLong()
 
     } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return novel
+}
+
+fun NovelApi.getLNMTLNovelDetails(url: String): Novel? {
+    var novel: Novel? = null
+    try {
+        val doc = getDocumentWithUserAgent(url)
+
+        val novelElement = doc.selectFirst(".novel .media")
+        novel = Novel(novelElement.selectFirst(".novel-name")?.text() ?: "NameUnableToFetch", url)
+        novel.imageUrl = novelElement.selectFirst("img[src]")?.attr("abs:src")
+        novel.longDescription = novelElement.selectFirst(".description")?.text()
+
+        val negative = novelElement.selectFirst("div.progress-bar-danger")?.text()?.split(" ")?.get(0)?.toInt() ?: 0
+        val neutral = novelElement.selectFirst("div.progress-bar-warning")?.text()?.split(" ")?.get(0)?.toInt() ?: 0
+        val positive = novelElement.selectFirst("div.progress-bar-success")?.text()?.split(" ")?.get(0)?.toInt() ?: 0
+        val total = (negative + neutral + positive).toFloat()
+        if (total != 0f)
+            novel.rating = (positive / total * 5).toString()
+
+        val detailsElement = doc.selectFirst("div.container .row > div:last-child")
+
+        val authors = detailsElement?.selectFirst("dt:contains(Authors)")?.nextElementSibling()?.select("span")
+        novel.metaData["Author(s)"] = authors?.joinToString(", ") { it.text() }
+
+        val genres = detailsElement?.selectFirst("div.panel-heading:contains(Genres)")?.nextElementSibling()?.select("ul li")
+        novel.genres = genres?.map { it.text() }
+        novel.metaData["Genre(s)"] = genres?.joinToString(", ") { it.html() }
+
+        val tags = detailsElement?.selectFirst("div.panel-heading:contains(Tags)")?.nextElementSibling()?.select("ul li")
+        novel.metaData["Tags"] = tags?.joinToString(", ") { it.html() }
+
+        novel.chaptersCount = getLNMTLChapterCount(url).toLong()
+    } catch (e: java.lang.Exception) {
         e.printStackTrace()
     }
     return novel
