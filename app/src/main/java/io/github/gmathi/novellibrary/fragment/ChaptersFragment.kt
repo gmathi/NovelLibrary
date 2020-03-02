@@ -48,7 +48,6 @@ class ChaptersFragment : BaseFragment(),
     lateinit var adapter: GenericAdapterSelectTitleProvider<WebPage>
 
     private var sourceId: Long = -1L
-    private var isSortedAsc: Boolean = true
 
     private var counter = 0
     private var lastKnownRecyclerState: Parcelable? = null
@@ -84,8 +83,8 @@ class ChaptersFragment : BaseFragment(),
         val chaptersPagerActivity = activity as? ChaptersPagerActivity
         if (chaptersPagerActivity != null) {
             val chapters = if (sourceId == -1L) chaptersPagerActivity.chapters else chaptersPagerActivity.chapters.filter { it.sourceId == sourceId }
-            if (!chapters.isEmpty()) {
-                adapter.updateData(if (isSortedAsc) ArrayList(chapters) else ArrayList(chapters.reversed()))
+            if (chapters.isNotEmpty()) {
+                adapter.updateData(if (novel.metaData["chapterOrder"] == "des") ArrayList(chapters.reversed()) else ArrayList(chapters))
                 progressLayout.showContent()
                 if (shouldScrollToBookmark)
                     scrollToBookmark()
@@ -109,11 +108,10 @@ class ChaptersFragment : BaseFragment(),
 
     private fun scrollToFirstUnread(chaptersSettings: ArrayList<WebPageSettings>) {
         if (novel.currentWebPageUrl != null) {
-            val index =
-            if (isSortedAsc)
-                adapter.items.indexOfFirst { chapter -> chaptersSettings.firstOrNull { it.url == chapter.url && it.isRead == 0 } != null }
-            else
+            val index = if (novel.metaData["chapterOrder"] == "des")
                 adapter.items.indexOfLast { chapter -> chaptersSettings.firstOrNull { it.url == chapter.url && it.isRead == 0 } != null }
+            else
+                adapter.items.indexOfFirst { chapter -> chaptersSettings.firstOrNull { it.url == chapter.url && it.isRead == 0 } != null }
             if (index != -1)
                 recyclerView.scrollToPosition(index)
         }
@@ -250,9 +248,12 @@ class ChaptersFragment : BaseFragment(),
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_sort -> {
-                isSortedAsc = !isSortedAsc
+                if (novel.metaData["chapterOrder"] == "des")
+                    novel.metaData["chapterOrder"] = "asc"
+                else
+                    novel.metaData["chapterOrder"] = "des"
                 setData(shouldScrollToBookmark = false)
-                //checkData()
+                dbHelper.updateNovel(novel)
                 return true
             }
         }

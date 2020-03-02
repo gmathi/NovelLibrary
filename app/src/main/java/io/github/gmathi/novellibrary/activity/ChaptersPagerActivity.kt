@@ -207,24 +207,23 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     }
 
     private var devCounter: Int = 0
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-
-        when {
-            item?.itemId == android.R.id.home -> finish()
-            item?.itemId == R.id.action_sync -> {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> finish()
+            R.id.action_sync -> {
                 getChapters(forceUpdate = true)
                 devCounter++
                 if (devCounter == 40) dataCenter.isDeveloper = true
                 return true
             }
-            item?.itemId == R.id.action_download -> {
+            R.id.action_download -> {
                 confirmDialog(getString(R.string.download_all_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
                     addWebPagesToDownload()
                     dialog.dismiss()
                 })
                 return true
             }
-            item?.itemId == R.id.action_add_to_library -> {
+            R.id.action_add_to_library -> {
                 addNovelToLibrary()
                 invalidateOptionsMenu()
                 return true
@@ -236,7 +235,6 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     //endregion
 
     //region ActionMode Callback
-
 
     internal fun addToDataSet(webPage: WebPage) {
         dataSet.add(webPage)
