@@ -56,8 +56,6 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
     private lateinit var result: Result
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        val uri: Uri = dataCenter.backupUri ?: return@withContext Result.failure(workDataOf(WORK_KEY_RESULT to getString(R.string.backup_fail)))
-
         ProgressNotificationManager(applicationContext).use { nm ->
             var message: String
 
@@ -69,6 +67,8 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
 
             setForeground(ForegroundInfo(nm.notificationId, nm.builder.build()))
             nm.newIndeterminateProgress()
+
+            val uri: Uri = dataCenter.backupUri!!
 
             val shouldSimpleTextBackup = inputData.getBoolean(KEY_SHOULD_BACKUP_SIMPLE_TEX, true)
             val shouldBackupDatabase = inputData.getBoolean(KEY_SHOULD_BACKUP_DATA_BASE, true)
