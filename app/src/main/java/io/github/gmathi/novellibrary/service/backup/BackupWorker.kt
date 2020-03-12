@@ -68,8 +68,6 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
             setForeground(ForegroundInfo(nm.notificationId, nm.builder.build()))
             nm.newIndeterminateProgress()
 
-            val uri: Uri = dataCenter.backupUri!!
-
             val shouldSimpleTextBackup = inputData.getBoolean(KEY_SHOULD_BACKUP_SIMPLE_TEX, true)
             val shouldBackupDatabase = inputData.getBoolean(KEY_SHOULD_BACKUP_DATA_BASE, true)
             val shouldBackupPreferences = inputData.getBoolean(KEY_SHOULD_BACKUP_PREFERENCES, true)
@@ -83,6 +81,8 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
             val currentFilesDir = File(baseDir, FILES_DIR)
 
             try {
+                val uri: Uri = dataCenter.backupUri!!
+
                 ZipOutputStream(BufferedOutputStream(contentResolver.openOutputStream(uri)!!)).use {
                     nm.newProgress(16) { setContentText(getString(R.string.simple_text_backup)) }
 
