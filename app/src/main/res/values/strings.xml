@@ -499,6 +499,11 @@
     <string name="backup_frequency_manual">Manual</string>
     <string name="backup_frequency_Daily">Daily</string>
     <string name="backup_frequency_Weekly">Weekly</string>
+    <string name="backup_success">Backup Successful</string>
+    <string name="backup_fail">Backup Failed!</string>
+    <string name="restore_success">Restore Successful!</string>
+    <string name="restore_fail">Restore Failed!</string>
+    <string name="need_more_space">Not enough space left on the device! Please make enough space - %1$s and try again!</string>
 
     <string-array name="backup_frequency_options">
         <item>@string/backup_frequency_manual</item>
