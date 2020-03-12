@@ -1,10 +1,12 @@
 package io.github.gmathi.novellibrary.util
 
+import io.github.gmathi.novellibrary.BuildConfig
+import java.util.concurrent.atomic.AtomicInteger
+
 /**
  * Constants used by multiple classes in this package
  */
 object Constants {
-
     const val SCROLL_LENGTH = 30
     const val FILE_PROTOCOL = "file://"
     const val SYSTEM_DEFAULT = "systemDefault"
@@ -20,15 +22,12 @@ object Constants {
     const val WEB_PAGE_ID = "webPageId"
     const val TOTAL_CHAPTERS_COUNT = "totalChaptersCount"
     const val CURRENT_CHAPTER_COUNT = "currentChapterCount"
-
     //endregion
 
     //region Broadcast Actions
     const val DOWNLOAD_QUEUE_NOVEL_UPDATE = "novelUpdate"
     const val DOWNLOAD_QUEUE_NOVEL_DOWNLOAD_COMPLETE = "novelDownloadComplete"
     const val NOVEL_DELETED = "novelDeleted"
-
-
     //endregion
 
     const val IMAGES_DIR_NAME = "images"
@@ -95,6 +94,24 @@ object Constants {
         const val RVN_HISTORY = "recentlyViewNovelsHistory"
     }
 
+    const val SIMPLE_NOVEL_BACKUP_FILE_NAME = "SimpleNovelBackup.txt"
+    const val DATABASES_DIR = "databases"
+    const val FILES_DIR = "files"
+    const val SHARED_PREFS_DIR = "shared_prefs"
+    const val DATA_SUBFOLDER = """/data/${BuildConfig.APPLICATION_ID}"""
 
+    const val WORK_KEY_RESULT = "result"
 
+    private class NotificationId {
+        companion object {
+            // First 1000 reserved for other notifications
+            private const val notificationIdStartFrom = 1000
+
+            @JvmStatic
+            internal val notificationIdCounter: AtomicInteger = AtomicInteger(notificationIdStartFrom)
+        }
+    }
+
+    val nextNotificationId: Int
+        get() = NotificationId.notificationIdCounter.getAndIncrement()
 }
