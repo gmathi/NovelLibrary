@@ -191,7 +191,7 @@ class DataCenter(context: Context) {
 
     var fontPath: String
         get() = prefs.getString(FONT_PATH, DEFAULT_FONT_PATH)!!
-        set(value) = prefs.edit().putString(FONT_PATH, value).apply()
+        set(value) = prefs.edit().putString(FONT_PATH, if (value.isBlank()) DEFAULT_FONT_PATH else value ).apply()
 
 //    var googleAccountName: String
 //        get() = prefs.getString(GOOGLE_ACCOUNT_NAME, "")!!
