@@ -4,18 +4,19 @@ import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.text.format.Formatter
+import android.webkit.MimeTypeMap
 import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
-import androidx.work.CoroutineWorker
-import androidx.work.ForegroundInfo
-import androidx.work.WorkerParameters
-import androidx.work.workDataOf
+import androidx.documentfile.provider.DocumentFile
+import androidx.work.*
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.getOrCreateFile
+import io.github.gmathi.novellibrary.extensions.notNullAndExists
 import io.github.gmathi.novellibrary.service.ProgressNotificationManager
 import io.github.gmathi.novellibrary.util.Constants.DATABASES_DIR
 import io.github.gmathi.novellibrary.util.Constants.DATA_SUBFOLDER
@@ -86,53 +87,60 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
 
             try {
                 val uri: Uri = dataCenter.backupUri!!
+                if (uri != null && DocumentFile.fromSingleUri(applicationContext, uri).notNullAndExists()) {
+                    ZipOutputStream(BufferedOutputStream(contentResolver.openOutputStream(uri)!!)).use {
+                        nm.newProgress(16) { setContentText(getString(R.string.simple_text_backup)) }
 
-                ZipOutputStream(BufferedOutputStream(contentResolver.openOutputStream(uri)!!)).use {
-                    nm.newProgress(16) { setContentText(getString(R.string.simple_text_backup)) }
+                        // Backup To TextFile
+                        if (shouldSimpleTextBackup) {
+                            val novelsArray = dbHelper.getAllNovels()
+                            val novelSectionsArray = dbHelper.getAllNovelSections()
+                            val map = HashMap<String, Any>()
+                            map["novels"] = novelsArray
+                            map["novelSections"] = novelSectionsArray
+                            nm.updateProgress(1)
+                            val jsonString = Gson().toJson(map)
+                            nm.updateProgress(2)
+                            val simpleTextFile = File(cacheDir, SIMPLE_NOVEL_BACKUP_FILE_NAME)
+                            val writer = BufferedWriter(OutputStreamWriter(FileOutputStream(simpleTextFile)))
+                            writer.use { writer.write(jsonString) }
+                            nm.updateProgress(3)
+                            Utils.zip(simpleTextFile, it)
+                        }
+                        nm.updateProgress(4)
 
-                    // Backup To TextFile
-                    if (shouldSimpleTextBackup) {
-                        val novelsArray = dbHelper.getAllNovels()
-                        val novelSectionsArray = dbHelper.getAllNovelSections()
-                        val map = HashMap<String, Any>()
-                        map["novels"] = novelsArray
-                        map["novelSections"] = novelSectionsArray
-                        nm.updateProgress(1)
-                        val jsonString = Gson().toJson(map)
-                        nm.updateProgress(2)
-                        val simpleTextFile = File(cacheDir, SIMPLE_NOVEL_BACKUP_FILE_NAME)
-                        val writer = BufferedWriter(OutputStreamWriter(FileOutputStream(simpleTextFile)))
-                        writer.use { writer.write(jsonString) }
-                        nm.updateProgress(3)
-                        Utils.zip(simpleTextFile, it)
+                        // Backup Databases
+                        if (shouldBackupDatabase && currentDBsDir.exists() && currentDBsDir.isDirectory) {
+                            nm.updateProgress(6) { setContentText(getString(R.string.title_library)) }
+                            Utils.zip(currentDBsDir, it)
+                        }
+                        nm.updateProgress(8)
+
+                        // Backup Shared Preferences
+                        if (shouldBackupPreferences && currentSharedPrefsDir.exists() && currentSharedPrefsDir.isDirectory) {
+                            nm.updateProgress(10) { setContentText(getString(R.string.preferences)) }
+                            Utils.zip(currentSharedPrefsDir, it)
+                        }
+                        nm.updateProgress(12)
+
+                        // Backup Files
+                        if (shouldBackupFiles && currentFilesDir.exists() && currentFilesDir.isDirectory) {
+                            nm.updateProgress(14) { setContentText(getString(R.string.downloaded_files)) }
+                            Utils.zip(currentFilesDir, it)
+                        }
+                        nm.updateProgress(16)
                     }
-                    nm.updateProgress(4)
 
-                    // Backup Databases
-                    if (shouldBackupDatabase && currentDBsDir.exists() && currentDBsDir.isDirectory) {
-                        nm.updateProgress(6) { setContentText(getString(R.string.title_library)) }
-                        Utils.zip(currentDBsDir, it)
-                    }
-                    nm.updateProgress(8)
-
-                    // Backup Shared Preferences
-                    if (shouldBackupPreferences && currentSharedPrefsDir.exists() && currentSharedPrefsDir.isDirectory) {
-                        nm.updateProgress(10) { setContentText(getString(R.string.preferences)) }
-                        Utils.zip(currentSharedPrefsDir, it)
-                    }
-                    nm.updateProgress(12)
-
-                    // Backup Files
-                    if (shouldBackupFiles && currentFilesDir.exists() && currentFilesDir.isDirectory) {
-                        nm.updateProgress(14) { setContentText(getString(R.string.downloaded_files)) }
-                        Utils.zip(currentFilesDir, it)
-                    }
-                    nm.updateProgress(16)
+                    message = getString(R.string.backup_success)
+                    nm.closeProgress { setContentText(message) }
+                    result = Result.success(workDataOf(WORK_KEY_RESULT to message))
+                } else {
+                    message = getString(R.string.backup_file_not_found)
+                    nm.closeProgress { setContentText(message) }
+                    result = Result.failure(workDataOf(WORK_KEY_RESULT to message))
+                    dataCenter.backupFrequency = 0
+                    WorkManager.getInstance(applicationContext).cancelUniqueWork(UNIQUE_WORK_NAME)
                 }
-
-                message = getString(R.string.backup_success)
-                nm.closeProgress { setContentText(message) }
-                result = Result.success(workDataOf(WORK_KEY_RESULT to message))
             } catch (e: Exception) {
                 message =
                     if ("No space left on device" == e.localizedMessage) {

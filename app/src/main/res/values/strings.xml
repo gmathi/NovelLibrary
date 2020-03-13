@@ -507,6 +507,7 @@
     <string name="restore_success">Restore Successful!</string>
     <string name="restore_fail">Restore Failed!</string>
     <string name="need_more_space">Not enough space left on the device! Please make enough space - %1$s and try again!</string>
+    <string name="backup_file_not_found">Couldn\'t find the backup file. Please choose a new destination</string>
     <string name="eztracting_zip">Extracting the ZIP archive</string>
     <string name="simple_text_restore">Simple Text - Novel &amp; Novel Sections Restore</string>
 
