@@ -48,6 +48,8 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
         private const val CREATE_BACKUP_REQUEST_CODE = 1121
         private const val RESTORE_BACKUP_REQUEST_CODE = 1122
+
+        private var BACKUP_FREQUENCY_LIST_INDEX = -1
     }
 
     lateinit var adapter: GenericAdapter<String>
@@ -71,9 +73,23 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         setRecyclerView()
     }
 
+    private fun setBackupFrequencyDescription() {
+        if (BACKUP_FREQUENCY_LIST_INDEX == -1)
+            BACKUP_FREQUENCY_LIST_INDEX = settingsItemsDescription.indexOf(getString(R.string.backup_frequency_description))
+        settingsItemsDescription[BACKUP_FREQUENCY_LIST_INDEX] =
+            getString(
+                when (dataCenter.backupFrequency) {
+                    24 -> R.string.backup_frequency_Daily
+                    24 * 7 -> R.string.backup_frequency_Weekly
+                    else -> R.string.backup_frequency_manual
+                }
+            )
+    }
+
     private fun setRecyclerView() {
         settingsItems = ArrayList(resources.getStringArray(R.array.backup_and_restore_titles_list).asList())
         settingsItemsDescription = ArrayList(resources.getStringArray(R.array.backup_and_restore_subtitles_list).asList())
+        setBackupFrequencyDescription()
         adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
         recyclerView.setDefaults(adapter)
         recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
@@ -146,6 +162,8 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                                 }
                             if (dataCenter.backupFrequency != backupFrequency) {
                                 dataCenter.backupFrequency = backupFrequency
+                                setBackupFrequencyDescription()
+                                adapter.notifyDataSetChanged()
 
                                 WorkManager.getInstance(applicationContext).apply {
                                     if (backupFrequency == 0) {
