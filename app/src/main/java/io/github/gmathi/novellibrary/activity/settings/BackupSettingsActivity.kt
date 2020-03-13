@@ -128,11 +128,17 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             }
 
             getString(R.string.backup_frequency) -> {
+                val selected =
+                    when (dataCenter.backupFrequency) {
+                        24 -> 1
+                        24 * 7 -> 2
+                        else -> 0
+                    }
                 MaterialDialog.Builder(this)
                         .theme(Theme.DARK)
                         .title(item)
                         .items(R.array.backup_frequency_options)
-                        .itemsCallbackSingleChoice(dataCenter.backupFrequency) { _, _, which, _ ->
+                        .itemsCallbackSingleChoice(selected) { _, _, which, _ ->
                             val backupFrequency =
                                 when (which) {
                                     1 -> 24
