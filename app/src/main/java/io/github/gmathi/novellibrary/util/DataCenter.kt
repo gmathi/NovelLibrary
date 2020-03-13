@@ -28,7 +28,8 @@ class DataCenter(context: Context) {
         private const val SHOW_BACKUP_HINT = "showBackupHint"
         private const val SHOW_RESTORE_HINT = "showRestoreHint"
         private const val BACKUP_URI = "backupUri"
-        private const val BACKUP_FREQUENCY = "backupFrequency"
+        private const val BACKUP_FREQUENCY_HOURS = "backupFrequencyHours"
+        private const val LAST_BACKUP_MILLISECONDS = "lastBackupMilliseconds"
 
         private const val IS_DARK_THEME = "isDarkTheme"
         //        private const val DOWNLOAD_LATEST_FIRST = "downloadLatestFirst"
@@ -113,8 +114,12 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putString(BACKUP_URI, value?.toString() ?: "").apply()
 
     var backupFrequency: Int
-        get() = prefs.getInt(BACKUP_FREQUENCY, 0)
-        set(value) = prefs.edit().putInt(BACKUP_FREQUENCY, value).apply()
+        get() = prefs.getInt(BACKUP_FREQUENCY_HOURS, 0)
+        set(value) = prefs.edit().putInt(BACKUP_FREQUENCY_HOURS, value).apply()
+
+    var lastBackup: Long
+        get() = prefs.getLong(LAST_BACKUP_MILLISECONDS, 0)
+        set(value) = prefs.edit().putLong(LAST_BACKUP_MILLISECONDS, value).apply()
 
 //    var downloadLatestFirst: Boolean
 //        get() = prefs.getBoolean(DOWNLOAD_LATEST_FIRST, false)
