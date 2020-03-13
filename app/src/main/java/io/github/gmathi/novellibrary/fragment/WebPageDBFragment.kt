@@ -77,6 +77,9 @@ class WebPageDBFragment : BaseFragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        if (savedInstanceState == null)
+            EventBus.getDefault().register(this)
+
         val activity = activity as? ReaderDBPagerActivity ?: return
 
         // Show the menu button on scroll
@@ -477,17 +480,8 @@ class WebPageDBFragment : BaseFragment() {
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        EventBus.getDefault().register(this)
-    }
-
-    override fun onStop() {
-        EventBus.getDefault().unregister(this)
-        super.onStop()
-    }
-
     override fun onDestroy() {
+        EventBus.getDefault().unregister(this)
         async.cancelAll()
         super.onDestroy()
     }
