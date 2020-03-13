@@ -277,11 +277,11 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode != Activity.RESULT_OK || data == null)
+        if (resultCode != Activity.RESULT_OK)
             return
 
         if (requestCode == CREATE_BACKUP_REQUEST_CODE || requestCode == RESTORE_BACKUP_REQUEST_CODE) {
-            val uri = data.data
+            val uri = data?.data
             if (uri != null) {
                 var workRequest: OneTimeWorkRequest? = null
 

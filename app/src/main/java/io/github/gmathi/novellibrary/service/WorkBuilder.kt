@@ -41,10 +41,11 @@ fun periodicBackupWorkRequest(): PeriodicWorkRequest {
     var delay = dataCenter.backupFrequency - TimeUnit.MILLISECONDS.toHours(System.currentTimeMillis() - dataCenter.lastBackup)
     if (delay < 0) delay = 0
 
-    return PeriodicWorkRequestBuilder<BackupWorker>(dataCenter.backupFrequency.toLong(), TimeUnit.HOURS)
+    return PeriodicWorkRequestBuilder<BackupWorker>(15, TimeUnit.MINUTES)//(dataCenter.backupFrequency.toLong(), TimeUnit.HOURS)
         .addTag(PERIODIC_BACKUP_WORK_TAG)
         .setInputData(data)
-        .setInitialDelay(delay, TimeUnit.HOURS)
+        //.setInitialDelay(delay, TimeUnit.HOURS)
+        .setInitialDelay(5, TimeUnit.SECONDS)
         .build()
 }
 
