@@ -87,12 +87,14 @@
         <item>@string/internal_clear_data</item>
         <item>@string/backup_data</item>
         <item>@string/restore_data</item>
+        <item>@string/backup_frequency</item>
     </string-array>
 
     <string-array name="backup_and_restore_subtitles_list" translatable="false">
         <item>@string/internal_clear_data_description</item>
         <item>@string/backup_data_description</item>
         <item>@string/restore_data_description</item>
+        <item>@string/backup_frequency_description</item>
     </string-array>
 
 
@@ -496,6 +498,7 @@
     <string name="backup_hint">Choose a convenient location to save the backup ZIP file in</string>
     <string name="restore_hint">Navigate to the location where your backup ZIP is and select it</string>
     <string name="backup_frequency">Backup Frequency</string>
+    <string name="backup_frequency_description">Automatic backup frequency</string>
     <string name="backup_frequency_manual">Manual</string>
     <string name="backup_frequency_Daily">Daily</string>
     <string name="backup_frequency_Weekly">Weekly</string>
