@@ -11,6 +11,7 @@ import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.Constants.DEFAULT_FONT_PATH
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
+import java.io.File
 import java.util.*
 
 
@@ -190,7 +191,14 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putBoolean(ENABLE_IMMERSIVE_MODE, value).apply()
 
     var fontPath: String
-        get() = prefs.getString(FONT_PATH, DEFAULT_FONT_PATH)!!
+        get() {
+            var path = prefs.getString(FONT_PATH, DEFAULT_FONT_PATH)!!
+            if (!path.startsWith("/android_asset/fonts/") && !File(path).exists()) {
+                fontPath = DEFAULT_FONT_PATH
+                path = DEFAULT_FONT_PATH
+            }
+            return path
+        }
         set(value) = prefs.edit().putString(FONT_PATH, if (value.isBlank()) DEFAULT_FONT_PATH else value ).apply()
 
 //    var googleAccountName: String

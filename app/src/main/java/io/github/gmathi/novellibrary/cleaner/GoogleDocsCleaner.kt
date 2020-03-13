@@ -33,32 +33,29 @@ class GoogleDocsCleaner : HtmlHelper() {
     }
 
     override fun toggleTheme(isDark: Boolean, doc: Document): Document {
-        var fontFile = File(dataCenter.fontPath)
-        if (!fontFile.path.startsWith("/android_asset/fonts/") && !fontFile.exists())
-            fontFile = File(Constants.DEFAULT_FONT_PATH)
-
+        val fontFile = File(dataCenter.fontPath)
         val fontFamily = fontFile.name.substringBeforeLast(".")
-            val nightModeTextBrightness = 87
-            doc.head().getElementById("darkTheme")?.remove()
-            doc.head().append("""
-            <style id="darkTheme">
-                @font-face {
-                    font-family: $fontFamily;
-                    src: url("$FILE_PROTOCOL${fontFile.path}");
-                }
-                body {
-                    ${if (isDark) "background-color" else "color"}: #000;
-                    ${if (isDark) "color" else "background-color"}: rgba(255, 255, 255, .$nightModeTextBrightness);
-                    font-family: '$fontFamily';
-                    line-height: 1.5;
-                    padding: 20px;
-                }
-                a {
-                    color: rgba(${if (isDark) "135, 206, 250" else "0, 0, 238"}, .$nightModeTextBrightness);
-                }
-            </style>
-            """.trimIndent())
+        val nightModeTextBrightness = 87
+        doc.head().getElementById("darkTheme")?.remove()
+        doc.head().append("""
+        <style id="darkTheme">
+            @font-face {
+                font-family: $fontFamily;
+                src: url("$FILE_PROTOCOL${fontFile.path}");
+            }
+            body {
+                ${if (isDark) "background-color" else "color"}: #000;
+                ${if (isDark) "color" else "background-color"}: rgba(255, 255, 255, .$nightModeTextBrightness);
+                font-family: '$fontFamily';
+                line-height: 1.5;
+                padding: 20px;
+            }
+            a {
+                color: rgba(${if (isDark) "135, 206, 250" else "0, 0, 238"}, .$nightModeTextBrightness);
+            }
+        </style>
+        """.trimIndent())
 
-            return doc
+        return doc
     }
 }
