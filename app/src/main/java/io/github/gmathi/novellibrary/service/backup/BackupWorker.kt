@@ -107,7 +107,6 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
                     // Backup Databases
                     if (shouldBackupDatabase && currentDBsDir.exists() && currentDBsDir.isDirectory) {
                         nm.updateProgress(6) { setContentText(getString(R.string.title_library)) }
-                        delay(1000)
                         Utils.zip(currentDBsDir, it)
                     }
                     nm.updateProgress(8)
@@ -115,7 +114,6 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
                     // Backup Shared Preferences
                     if (shouldBackupPreferences && currentSharedPrefsDir.exists() && currentSharedPrefsDir.isDirectory) {
                         nm.updateProgress(10) { setContentText(getString(R.string.preferences)) }
-                        delay(1000)
                         Utils.zip(currentSharedPrefsDir, it)
                     }
                     nm.updateProgress(12)
@@ -123,7 +121,6 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
                     // Backup Files
                     if (shouldBackupFiles && currentFilesDir.exists() && currentFilesDir.isDirectory) {
                         nm.updateProgress(14) { setContentText(getString(R.string.downloaded_files)) }
-                        delay(1000)
                         Utils.zip(currentFilesDir, it)
                     }
                     nm.updateProgress(16)
@@ -157,7 +154,7 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
 
             nm.waitForQueue()
 
-            // Keep notification alive for the user to see the result
+            // Keep notification alive a little longer for the user to see the result
             delay(10000)
 
             return@withContext result
