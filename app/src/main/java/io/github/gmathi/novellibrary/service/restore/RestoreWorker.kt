@@ -41,6 +41,8 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
         internal const val KEY_SHOULD_RESTORE_DATA_BASE = "shouldRestoreDatabase"
         internal const val KEY_SHOULD_RESTORE_PREFERENCES = "shouldRestorePreferences"
         internal const val KEY_SHOULD_RESTORE_FILES = "shouldRestoreFiles"
+
+        const val UNIQUE_WORK_NAME = "restore_work"
     }
 
     // region context wrapper (to improve readability)

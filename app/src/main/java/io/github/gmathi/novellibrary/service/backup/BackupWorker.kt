@@ -37,6 +37,8 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
         internal const val KEY_SHOULD_BACKUP_DATA_BASE = "shouldBackupDatabase"
         internal const val KEY_SHOULD_BACKUP_PREFERENCES = "shouldBackupPreferences"
         internal const val KEY_SHOULD_BACKUP_FILES = "shouldBackupFiles"
+
+        const val UNIQUE_WORK_NAME = "backup_work"
     }
 
     // region Context wrapper (to improve readability)
