@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.activity.settings
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
@@ -9,10 +10,8 @@ import android.webkit.MimeTypeMap
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.OneTimeWorkRequest
+import androidx.work.*
 import androidx.work.WorkInfo.State
-import androidx.work.WorkManager
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.Theme
@@ -152,11 +151,14 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                                     if (backupFrequency == 0) {
                                         cancelUniqueWork(BackupWorker.UNIQUE_WORK_NAME)
                                     } else {
-                                        enqueueUniquePeriodicWork(
-                                            BackupWorker.UNIQUE_WORK_NAME,
-                                            ExistingPeriodicWorkPolicy.REPLACE,
-                                            periodicBackupWorkRequest()
-                                        )
+                                        val workRequest = periodicBackupWorkRequest()
+                                        if (workRequest != null) {
+                                            enqueueUniquePeriodicWork(
+                                                BackupWorker.UNIQUE_WORK_NAME,
+                                                ExistingPeriodicWorkPolicy.REPLACE,
+                                                workRequest
+                                            )
+                                        }
                                     }
                                 }
 
@@ -289,7 +291,13 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     CREATE_BACKUP_REQUEST_CODE -> {
                         val readWriteFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 
-                        val oldUri = dataCenter.backupUri
+                        val array = dataCenter.backupData
+                        val oldUri =
+                            if (array != null)
+                                Uri.parse(Data.fromByteArray(array).getString(BackupWorker.KEY_URI))
+                            else
+                                null
+
                         if (uri != oldUri) {
                             // Release old permissions
                             if (oldUri != null)
@@ -297,14 +305,12 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
                             // Request for the new permissions to persist
                             contentResolver.takePersistableUriPermission(uri, data.flags and readWriteFlags)
-
-                            dataCenter.backupUri = uri
                         }
 
-                        workRequest = oneTimeBackupWorkRequest(simpleText, database, preferences, files)
+                        workRequest = oneTimeBackupWorkRequest(uri, simpleText, database, preferences, files)
                     }
                     RESTORE_BACKUP_REQUEST_CODE -> {
-                        workRequest = oneTimeRestoreWorkRequest(simpleText, database, preferences, files)
+                        workRequest = oneTimeRestoreWorkRequest(uri, simpleText, database, preferences, files)
                     }
                 }
 

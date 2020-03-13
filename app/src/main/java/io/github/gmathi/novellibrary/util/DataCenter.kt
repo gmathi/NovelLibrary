@@ -3,7 +3,6 @@ package io.github.gmathi.novellibrary.util
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
-import android.net.Uri
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -27,7 +26,7 @@ class DataCenter(context: Context) {
 
         private const val SHOW_BACKUP_HINT = "showBackupHint"
         private const val SHOW_RESTORE_HINT = "showRestoreHint"
-        private const val BACKUP_URI = "backupUri"
+        private const val BACKUP_DATA = "backupData"
         private const val BACKUP_FREQUENCY_HOURS = "backupFrequencyHours"
         private const val LAST_BACKUP_MILLISECONDS = "lastBackupMilliseconds"
 
@@ -103,15 +102,17 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(SHOW_RESTORE_HINT, true)
         set(value) = prefs.edit().putBoolean(SHOW_RESTORE_HINT, value).apply()
 
-    var backupUri: Uri?
+    var backupData: ByteArray?
         get() {
-            val str = prefs.getString(BACKUP_URI, null)
-            return if (str.isNullOrEmpty())
-                null
-            else
-                Uri.parse(str)
+            val str = prefs.getString(BACKUP_DATA, null) ?: return null
+            val split = str.substring(1, str.length - 1).split(", ")
+            val array = ByteArray(split.size)
+            for (i in split.indices) {
+                array[i] = split[i].toByte()
+            }
+            return array
         }
-        set(value) = prefs.edit().putString(BACKUP_URI, value?.toString() ?: "").apply()
+        set(value) = prefs.edit().putString(BACKUP_DATA, value?.contentToString()).apply()
 
     var backupFrequency: Int
         get() = prefs.getInt(BACKUP_FREQUENCY_HOURS, 0)

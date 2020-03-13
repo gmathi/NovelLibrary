@@ -15,3 +15,6 @@ fun DocumentFile.getOrCreateFile(mimeType: String, displayName: String): Documen
     return (findFile(displayName)
             ?: createFile(mimeType, displayName))
 }
+
+fun DocumentFile?.notNullAndExists(): Boolean =
+    this?.exists() ?: false

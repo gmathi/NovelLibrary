@@ -34,6 +34,8 @@ import java.util.zip.ZipOutputStream
 internal class BackupWorker(context: Context, workerParameters: WorkerParameters) : CoroutineWorker(context, workerParameters) {
 
     companion object {
+        internal const val KEY_URI = "restore_uri"
+
         internal const val KEY_SHOULD_BACKUP_SIMPLE_TEX = "shouldBackupSimpleText"
         internal const val KEY_SHOULD_BACKUP_DATA_BASE = "shouldBackupDatabase"
         internal const val KEY_SHOULD_BACKUP_PREFERENCES = "shouldBackupPreferences"
@@ -86,7 +88,7 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
             val currentFilesDir = File(baseDir, FILES_DIR)
 
             try {
-                val uri: Uri = dataCenter.backupUri!!
+                val uri: Uri? = Uri.parse(inputData.getString(KEY_URI))
                 if (uri != null && DocumentFile.fromSingleUri(applicationContext, uri).notNullAndExists()) {
                     ZipOutputStream(BufferedOutputStream(contentResolver.openOutputStream(uri)!!)).use {
                         nm.newProgress(16) { setContentText(getString(R.string.simple_text_backup)) }

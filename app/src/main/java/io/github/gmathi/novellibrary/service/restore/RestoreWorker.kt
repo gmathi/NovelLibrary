@@ -37,6 +37,8 @@ import java.util.zip.ZipInputStream
 internal class RestoreWorker(context: Context, workerParameters: WorkerParameters) : CoroutineWorker(context, workerParameters) {
 
     companion object {
+        internal const val KEY_URI = "restore_uri"
+
         internal const val KEY_SHOULD_RESTORE_SIMPLE_TEX = "shouldRestoreSimpleText"
         internal const val KEY_SHOULD_RESTORE_DATA_BASE = "shouldRestoreDatabase"
         internal const val KEY_SHOULD_RESTORE_PREFERENCES = "shouldRestorePreferences"
@@ -87,7 +89,7 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
             val currentFilesDir = File(baseDir, FILES_DIR)
 
             try {
-                val uri: Uri = dataCenter.backupUri!!
+                val uri: Uri = Uri.parse(inputData.getString(KEY_URI))
 
                 nm.newIndeterminateProgress { setContentText(getString(R.string.eztracting_zip)) }
                 ZipInputStream(BufferedInputStream(contentResolver.openInputStream(uri)!!)).use {
