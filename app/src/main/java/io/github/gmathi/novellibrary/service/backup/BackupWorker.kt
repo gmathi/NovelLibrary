@@ -58,6 +58,8 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
     private lateinit var result: Result
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+        dataCenter.lastBackup = System.currentTimeMillis()
+
         ProgressNotificationManager(applicationContext).use { nm ->
             var message: String
 

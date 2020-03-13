@@ -9,6 +9,7 @@ import android.webkit.MimeTypeMap
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
@@ -23,8 +24,10 @@ import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.service.backup.BackupWorker
 import io.github.gmathi.novellibrary.service.oneTimeBackupWorkRequest
 import io.github.gmathi.novellibrary.service.oneTimeRestoreWorkRequest
+import io.github.gmathi.novellibrary.service.periodicBackupWorkRequest
 import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
@@ -128,9 +131,30 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 MaterialDialog.Builder(this)
                         .theme(Theme.DARK)
                         .title(item)
-                        .items(R.array.backup_and_restore_options)
+                        .items(R.array.backup_frequency_options)
                         .itemsCallbackSingleChoice(dataCenter.backupFrequency) { _, _, which, _ ->
-                            dataCenter.backupFrequency = which
+                            val backupFrequency =
+                                when (which) {
+                                    1 -> 24
+                                    2 -> 24 * 7
+                                    else -> 0
+                                }
+                            if (dataCenter.backupFrequency != backupFrequency) {
+                                dataCenter.backupFrequency = backupFrequency
+
+                                WorkManager.getInstance(applicationContext).apply {
+                                    if (backupFrequency == 0) {
+                                        cancelUniqueWork(BackupWorker.UNIQUE_WORK_NAME)
+                                    } else {
+                                        enqueueUniquePeriodicWork(
+                                            BackupWorker.UNIQUE_WORK_NAME,
+                                            ExistingPeriodicWorkPolicy.REPLACE,
+                                            periodicBackupWorkRequest()
+                                        )
+                                    }
+                                }
+
+                            }
                             true
                         }
                         .positiveText(R.string.okay)
