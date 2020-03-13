@@ -195,8 +195,7 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
 
             nm.waitForQueue()
 
-            // Keep notification alive a little longer for the user to see the result
-            delay(10000)
+            delay(500)
 
             return@withContext result
         }

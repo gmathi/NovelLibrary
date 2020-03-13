@@ -168,8 +168,7 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
 
             nm.waitForQueue()
 
-            // Keep notification alive a little longer for the user to see the result
-            delay(10000)
+            delay(500)
 
             return@withContext result
         }
