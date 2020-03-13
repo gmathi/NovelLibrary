@@ -138,6 +138,7 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                 //Restore Databases
                 if (shouldRestoreDatabase && backupDBsDir.exists() && backupDBsDir.isDirectory) {
                     if (!currentDBsDir.exists()) currentDBsDir.mkdir()
+                    nm.updateProgress(6) { setContentText(getString(R.string.title_library)) }
                     backupDBsDir.listFiles()?.forEach {
                         Utils.copyFile(it, File(currentDBsDir, it.name))
                     }
@@ -147,6 +148,7 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                 //Restore Shared Preferences
                 if (shouldRestorePreferences && backupSharedPrefsDir.exists() && backupSharedPrefsDir.isDirectory) {
                     if (!currentSharedPrefsDir.exists()) currentSharedPrefsDir.mkdir()
+                    nm.updateProgress(10) { setContentText(getString(R.string.preferences)) }
                     backupSharedPrefsDir.listFiles()?.forEach {
                         Utils.copyFile(it, File(currentSharedPrefsDir, it.name))
                     }
@@ -156,6 +158,7 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                 //Restore Files
                 if (shouldRestoreFiles && backupFilesDir.exists() && backupFilesDir.isDirectory) {
                     if (!currentFilesDir.exists()) currentFilesDir.mkdir()
+                    nm.updateProgress(14) { setContentText(getString(R.string.downloaded_files)) }
                     recursiveCopy(backupFilesDir, currentFilesDir)
                 }
                 nm.updateProgress(16)
