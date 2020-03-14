@@ -73,12 +73,12 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         setRecyclerView()
     }
 
-    private fun setBackupFrequencyDescription() {
+    private fun setBackupFrequencyDescription(backupFrequency: Int = dataCenter.backupFrequency) {
         if (BACKUP_FREQUENCY_LIST_INDEX == -1)
             BACKUP_FREQUENCY_LIST_INDEX = settingsItemsDescription.indexOf(getString(R.string.backup_frequency_description))
         settingsItemsDescription[BACKUP_FREQUENCY_LIST_INDEX] =
             getString(
-                when (dataCenter.backupFrequency) {
+                when (backupFrequency) {
                     24 -> R.string.backup_frequency_Daily
                     24 * 7 -> R.string.backup_frequency_Weekly
                     else -> R.string.backup_frequency_manual
@@ -154,32 +154,29 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                         .title(item)
                         .items(R.array.backup_frequency_options)
                         .itemsCallbackSingleChoice(selected) { _, _, which, _ ->
-                            val backupFrequency =
+                            var backupFrequency =
                                 when (which) {
                                     1 -> 24
                                     2 -> 24 * 7
                                     else -> 0
                                 }
                             if (dataCenter.backupFrequency != backupFrequency) {
-                                dataCenter.backupFrequency = backupFrequency
-                                setBackupFrequencyDescription()
-                                adapter.notifyDataSetChanged()
-
+                                val workRequest = if (backupFrequency != 0) periodicBackupWorkRequest() else null
                                 WorkManager.getInstance(applicationContext).apply {
-                                    if (backupFrequency == 0) {
+                                    if (workRequest == null) {
+                                        backupFrequency = 0
                                         cancelUniqueWork(BackupWorker.UNIQUE_WORK_NAME)
                                     } else {
-                                        val workRequest = periodicBackupWorkRequest()
-                                        if (workRequest != null) {
-                                            enqueueUniquePeriodicWork(
-                                                BackupWorker.UNIQUE_WORK_NAME,
-                                                ExistingPeriodicWorkPolicy.REPLACE,
-                                                workRequest
-                                            )
-                                        }
+                                        enqueueUniquePeriodicWork(
+                                            BackupWorker.UNIQUE_WORK_NAME,
+                                            ExistingPeriodicWorkPolicy.REPLACE,
+                                            workRequest
+                                        )
                                     }
                                 }
-
+                                dataCenter.backupFrequency = backupFrequency
+                                setBackupFrequencyDescription(backupFrequency)
+                                adapter.notifyItemChanged(BACKUP_FREQUENCY_LIST_INDEX)
                             }
                             true
                         }
