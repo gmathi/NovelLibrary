@@ -38,6 +38,7 @@ android {
     buildTypes {
         debug {
             pseudoLocalesEnabled true
+            getIsDefault().set(true)
         }
 
         release {
@@ -64,6 +65,7 @@ android {
         normal {
             // Normal build.
             dimension "mode"
+            getIsDefault().set(true)
         }
     }
 
