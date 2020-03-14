@@ -4,6 +4,7 @@ package io.github.gmathi.novellibrary.activity
 import android.animation.ObjectAnimator
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
@@ -22,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.MATCH_PARENT
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.WRAP_CONTENT
 import androidx.viewpager.widget.ViewPager
+import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.Theme
 import com.yarolegovich.slidingrootnav.SlideGravity
@@ -347,6 +349,13 @@ class ReaderDBPagerActivity :
         return icons
     }
 
+    private fun createTypeface(path: String = dataCenter.fontPath): Typeface {
+        return if (path.startsWith("/android_asset"))
+            Typeface.createFromAsset(assets, path.substringAfter('/').substringAfter('/'))
+        else
+            Typeface.createFromFile(path)
+    }
+
     /**
      *     Handle Slide Menu Nav Options
      */
@@ -357,26 +366,43 @@ class ReaderDBPagerActivity :
                 if (AVAILABLE_FONTS.isEmpty())
                     getAvailableFonts()
 
-                val selectedFont = dataCenter.fontPath.substringAfterLast('/')
+                var selectedFont = dataCenter.fontPath.substringAfterLast('/')
                         .substringBeforeLast('.')
                         .replace('_', ' ')
-                val selected = AVAILABLE_FONTS.keys.indexOf(selectedFont)
 
-                MaterialDialog.Builder(this)
+                var typeFace = createTypeface()
+
+                val dialog = MaterialDialog.Builder(this)
                         .theme(Theme.DARK)
                         .title(getString(R.string.title_fonts))
                         .items(AVAILABLE_FONTS.keys)
-                        .itemsCallbackSingleChoice(selected) { _, _, which, font ->
+                        .alwaysCallSingleChoiceCallback()
+                        .itemsCallbackSingleChoice(AVAILABLE_FONTS.keys.indexOf(selectedFont)) { dialog, _, which, font ->
                             if (which == 0) {
                                 addFont()
+                                dialog.dismiss()
                             } else {
-                                dataCenter.fontPath = AVAILABLE_FONTS[font] ?: ""
-                                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+                                val fontPath = AVAILABLE_FONTS[font.toString()]
+                                if (fontPath != null) {
+                                    selectedFont = font.toString()
+                                    typeFace = createTypeface(fontPath)
+                                    dialog.setTypeface(dialog.titleView, typeFace)
+                                } else {
+                                    dialog.selectedIndex = AVAILABLE_FONTS.keys.indexOf(selectedFont)
+                                    dialog.notifyItemsChanged()
+                                }
                             }
                             true
                         }
+                        .onPositive { _, which ->
+                            if (which == DialogAction.POSITIVE) {
+                                dataCenter.fontPath = AVAILABLE_FONTS[selectedFont] ?: ""
+                                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+                            }
+                        }
                         .positiveText(R.string.okay)
                         .show()
+                dialog.setTypeface(dialog.titleView, typeFace)
             }
             FONT_SIZE -> changeTextSize()
             REPORT_PAGE -> reportPage()

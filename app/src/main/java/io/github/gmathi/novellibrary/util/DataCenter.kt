@@ -10,6 +10,7 @@ import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.Constants.DEFAULT_FONT_PATH
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
+import java.io.File
 import java.util.*
 
 
@@ -59,6 +60,7 @@ class DataCenter(context: Context) {
         //        private const val ENABLE_CLOUD_FLARE = "enableCloudFlare"
         private const val ENABLE_NOTIFICATIONS = "enableNotifications"
         private const val DEVELOPER = "developer"
+        private const val DISABLE_WUXIA_DOWNLOADS = "disableWuxiaDownloads"
 
 
         const val CF_COOKIES_CLEARANCE = "cf_clearance"
@@ -196,8 +198,15 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putBoolean(ENABLE_IMMERSIVE_MODE, value).apply()
 
     var fontPath: String
-        get() = prefs.getString(FONT_PATH, DEFAULT_FONT_PATH)!!
-        set(value) = prefs.edit().putString(FONT_PATH, value).apply()
+        get() {
+            var path = prefs.getString(FONT_PATH, DEFAULT_FONT_PATH)!!
+            if (!path.startsWith("/android_asset/fonts/") && !File(path).exists()) {
+                fontPath = DEFAULT_FONT_PATH
+                path = DEFAULT_FONT_PATH
+            }
+            return path
+        }
+        set(value) = prefs.edit().putString(FONT_PATH, if (value.isBlank()) DEFAULT_FONT_PATH else value ).apply()
 
 //    var googleAccountName: String
 //        get() = prefs.getString(GOOGLE_ACCOUNT_NAME, "")!!
@@ -230,6 +239,10 @@ class DataCenter(context: Context) {
     var isReaderModeButtonVisible: Boolean
         get() = prefs.getBoolean(READER_MODE_BUTTON_VISIBILITY, true)
         set(value) = prefs.edit().putBoolean(READER_MODE_BUTTON_VISIBILITY, value).apply()
+
+    var disableWuxiaDownloads: Boolean
+        get() = prefs.getBoolean(DISABLE_WUXIA_DOWNLOADS, true)
+        set(value) = prefs.edit().putBoolean(DISABLE_WUXIA_DOWNLOADS, value).apply()
 
 //    var enableCloudFlare: Boolean
 //        get() = prefs.getBoolean(ENABLE_CLOUD_FLARE, true)

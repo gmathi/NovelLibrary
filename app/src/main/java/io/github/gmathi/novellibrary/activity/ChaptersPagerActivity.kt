@@ -18,9 +18,11 @@ import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.shareUrl
 import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_chapters_pager.*
@@ -218,8 +220,15 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             }
             R.id.action_download -> {
                 confirmDialog(getString(R.string.download_all_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
-                    addWebPagesToDownload()
-                    dialog.dismiss()
+                    val publisher = novel.metaData["English Publisher"]
+                    val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true) ?: false
+                    if (dataCenter.disableWuxiaDownloads && isWuxiaChapterPresent) {
+                        dialog.dismiss()
+                        showWuxiaWorldDownloadDialog()
+                    } else {
+                        dialog.dismiss()
+                        addWebPagesToDownload()
+                    }
                 })
                 return true
             }
@@ -302,14 +311,23 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             R.id.action_download -> {
                 confirmDialog(getString(R.string.download_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
                     if (novel.id == -1L) {
-                        showNotInLibraryDialog()
-                    } else {
-                        val listToDownload = ArrayList(dataSet)
-                        if (listToDownload.isNotEmpty()) {
-                            addWebPagesToDownload(listToDownload)
-                        }
                         dialog.dismiss()
+                        showNotInLibraryDialog()
                         mode?.finish()
+                    } else {
+                        val publisher = novel.metaData["English Publisher"]
+                        val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true) ?: false
+                        if (dataCenter.disableWuxiaDownloads && isWuxiaChapterPresent) {
+                            dialog.dismiss()
+                            showWuxiaWorldDownloadDialog()
+                        } else {
+                            val listToDownload = ArrayList(dataSet)
+                            if (listToDownload.isNotEmpty()) {
+                                dialog.dismiss()
+                                addWebPagesToDownload(listToDownload)
+                                mode?.finish()
+                            }
+                        }
                     }
                 })
             }
@@ -428,6 +446,16 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 .iconRes(R.drawable.ic_warning_white_vector)
                 .title(getString(R.string.alert))
                 .content(getString(R.string.novel_not_in_library_dialog_content))
+                .positiveText(getString(R.string.okay))
+                .onPositive { dialog, _ -> dialog.dismiss() }
+                .show()
+    }
+
+    private fun showWuxiaWorldDownloadDialog() {
+        MaterialDialog.Builder(this)
+                .iconRes(R.drawable.ic_warning_white_vector)
+                .title(getString(R.string.alert))
+                .content("Downloads are not supported for WuxiaWorld content. Please use their app for downloads/offline reading WuxiaWorld novels.")
                 .positiveText(getString(R.string.okay))
                 .onPositive { dialog, _ -> dialog.dismiss() }
                 .show()

@@ -196,10 +196,7 @@ open class HtmlHelper protected constructor() {
     open fun toggleTheme(isDark: Boolean, doc: Document): Document = doc
 
     fun toggleThemeDefault(isDark: Boolean, doc: Document): Document {
-        var fontFile = File(dataCenter.fontPath)
-        if (!fontFile.path.startsWith("/android_asset/fonts/") && !fontFile.exists())
-            fontFile = File(DEFAULT_FONT_PATH)
-
+        val fontFile = File(dataCenter.fontPath)
         val fontFamily = fontFile.name.substringBeforeLast(".")
         val nightModeTextBrightness = 87
         doc.head().getElementById("darkTheme")?.remove()

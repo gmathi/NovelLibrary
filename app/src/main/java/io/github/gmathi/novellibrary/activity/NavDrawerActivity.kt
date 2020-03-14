@@ -114,12 +114,12 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                    .title("\uD83C\uDF89 0.9.9.7 Beta Version!")
+                    .title("\uD83C\uDF89 0.9.9.8_Patch1 Beta Version!")
                     .content(//"** Fixed Cloud Flare for 6.0.1**\n\n" +
 //                            "✨ New Developer Helping out! \n" +
 //                                    "✨ In app language is now customizable! \n" +
 //                                    "✨ Scroll using volume button is customizable through settings!\n" +
-                                    "\uD83D\uDEE0 Fixed issue with volarenovels not rendering reader mode\n" +
+                                    "\uD83D\uDEE0 Downloads/Offline reading is no longer supported for WuxiaWorld novels.\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
 //                                    "⚠️ Fix to show sources for the novel chapters.\n" +
 //                                    "✨ Added Hidden Buttons to unlock some hidden functionality!" +
