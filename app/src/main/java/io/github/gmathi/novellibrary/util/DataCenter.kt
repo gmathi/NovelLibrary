@@ -52,6 +52,7 @@ class DataCenter(context: Context) {
         //        private const val ENABLE_CLOUD_FLARE = "enableCloudFlare"
         private const val ENABLE_NOTIFICATIONS = "enableNotifications"
         private const val DEVELOPER = "developer"
+        private const val DISABLE_WUXIA_DOWNLOADS = "disableWuxiaDownloads"
 
 
         const val CF_COOKIES_CLEARANCE = "cf_clearance"
@@ -195,6 +196,10 @@ class DataCenter(context: Context) {
     var isReaderModeButtonVisible: Boolean
         get() = prefs.getBoolean(READER_MODE_BUTTON_VISIBILITY, true)
         set(value) = prefs.edit().putBoolean(READER_MODE_BUTTON_VISIBILITY, value).apply()
+
+    var disableWuxiaDownloads: Boolean
+        get() = prefs.getBoolean(DISABLE_WUXIA_DOWNLOADS, true)
+        set(value) = prefs.edit().putBoolean(DISABLE_WUXIA_DOWNLOADS, value).apply()
 
 //    var enableCloudFlare: Boolean
 //        get() = prefs.getBoolean(ENABLE_CLOUD_FLARE, true)
