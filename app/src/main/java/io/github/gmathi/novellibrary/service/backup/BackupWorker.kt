@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.text.format.Formatter
-import android.webkit.MimeTypeMap
 import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import androidx.documentfile.provider.DocumentFile
@@ -15,9 +14,8 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.getOrCreateFile
 import io.github.gmathi.novellibrary.extensions.notNullAndExists
-import io.github.gmathi.novellibrary.service.ProgressNotificationManager
+import io.github.gmathi.novellibrary.service.util.ProgressNotificationManager
 import io.github.gmathi.novellibrary.util.Constants.DATABASES_DIR
 import io.github.gmathi.novellibrary.util.Constants.DATA_SUBFOLDER
 import io.github.gmathi.novellibrary.util.Constants.FILES_DIR
@@ -63,7 +61,9 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         dataCenter.lastBackup = System.currentTimeMillis()
 
-        ProgressNotificationManager(applicationContext).use { nm ->
+        ProgressNotificationManager(
+            applicationContext
+        ).use { nm ->
             var message: String
 
             nm.builder

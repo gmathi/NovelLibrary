@@ -211,7 +211,7 @@
             android:exported="false" />
 
         <provider
-            android:name=".service.GenericFileProvider"
+            android:name=".service.util.GenericFileProvider"
             android:authorities="${applicationId}.provider"
             android:exported="false"
             android:grantUriPermissions="true">

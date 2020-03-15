@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.service
+package io.github.gmathi.novellibrary.service.util
 
 import android.net.Uri
 import androidx.work.*

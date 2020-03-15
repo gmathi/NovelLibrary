@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.service
+package io.github.gmathi.novellibrary.service.util
 
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
@@ -36,15 +36,22 @@ class ProgressNotificationManager(context: Context,
                                   private val channelId: String = DEFAULT_CHANNEL_ID,
                                   private val channelName: String = DEFAULT_CHANNEL_NAME,
                                   @Importance private val importance: Int = DEFAULT_CHANNEL_IMPORTANCE,
-                                  private val applyToChannel: NotificationChannel.() -> Unit = DEFAULT_APPLY_TO_CHANNEL) : Closeable {
+                                  private val applyToChannel: NotificationChannel.() -> Unit = DEFAULT_APPLY_TO_CHANNEL
+) : Closeable {
 
     private val notificationManager: NotificationManagerCompat = NotificationManagerCompat.from(context)
-    private val notificationQueue: NotificationQueue = NotificationQueue()
+    private val notificationQueue: NotificationQueue =
+        NotificationQueue()
 
     val notificationId: Int = Constants.nextNotificationId
-    val builder: Builder = Builder(context, channelId).DEFAULT_APPLY_TO_BUILDER() as Builder
+    val builder: Builder = Builder(
+        context,
+        channelId
+    )
+        .DEFAULT_APPLY_TO_BUILDER() as Builder
 
-    private val updateRate: Long = DEFAULT_UPDATE_RATE
+    private val updateRate: Long =
+        DEFAULT_UPDATE_RATE
 
     private var normalizationLength: Int
         get() = builder.max
@@ -141,12 +148,13 @@ class ProgressNotificationManager(context: Context,
         annotation class Importance
 
         class Builder(context: Context, channelId: String) : NotificationCompat.Builder(context, channelId) {
-            internal var max: Int = DEFAULT_NORMALIZATION_LENGTH
+            internal var max: Int =
+                DEFAULT_NORMALIZATION_LENGTH
 
             @Deprecated("Change progress through [ProgressNotificationManager] instead",
                 ReplaceWith(
                 "updateProgress",
-                "io.github.gmathi.novellibrary.service.ProgressNotificationManager"
+                "io.github.gmathi.novellibrary.service.util.ProgressNotificationManager"
                 )
             )
             override fun setProgress(max: Int, progress: Int, indeterminate: Boolean): Builder =
@@ -245,7 +253,8 @@ class ProgressNotificationManager(context: Context,
         @TargetApi(Build.VERSION_CODES.O)
         @JvmStatic
         private val DEFAULT_APPLY_TO_CHANNEL: NotificationChannel.() -> Unit =  {
-            description = DEFAULT_CHANNEL_DESCRIPTION
+            description =
+                DEFAULT_CHANNEL_DESCRIPTION
             setSound(null, null)
             enableVibration(false)
         }

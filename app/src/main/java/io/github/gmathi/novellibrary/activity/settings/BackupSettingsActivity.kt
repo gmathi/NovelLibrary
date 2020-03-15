@@ -24,9 +24,9 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.service.backup.BackupWorker
-import io.github.gmathi.novellibrary.service.oneTimeBackupWorkRequest
-import io.github.gmathi.novellibrary.service.oneTimeRestoreWorkRequest
-import io.github.gmathi.novellibrary.service.periodicBackupWorkRequest
+import io.github.gmathi.novellibrary.service.util.oneTimeBackupWorkRequest
+import io.github.gmathi.novellibrary.service.util.oneTimeRestoreWorkRequest
+import io.github.gmathi.novellibrary.service.util.periodicBackupWorkRequest
 import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
@@ -322,10 +322,24 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                             contentResolver.takePersistableUriPermission(uri, data.flags and readWriteFlags)
                         }
 
-                        workRequest = oneTimeBackupWorkRequest(uri, simpleText, database, preferences, files)
+                        workRequest =
+                            oneTimeBackupWorkRequest(
+                                uri,
+                                simpleText,
+                                database,
+                                preferences,
+                                files
+                            )
                     }
                     RESTORE_BACKUP_REQUEST_CODE -> {
-                        workRequest = oneTimeRestoreWorkRequest(uri, simpleText, database, preferences, files)
+                        workRequest =
+                            oneTimeRestoreWorkRequest(
+                                uri,
+                                simpleText,
+                                database,
+                                preferences,
+                                files
+                            )
                     }
                 }
 

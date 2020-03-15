@@ -13,12 +13,11 @@ import androidx.work.workDataOf
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.createNovel
 import io.github.gmathi.novellibrary.database.createNovelSection
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.service.ProgressNotificationManager
+import io.github.gmathi.novellibrary.service.util.ProgressNotificationManager
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.DATABASES_DIR
 import io.github.gmathi.novellibrary.util.Constants.FILES_DIR
@@ -64,7 +63,9 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
     private lateinit var result: Result
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        ProgressNotificationManager(applicationContext).use { nm ->
+        ProgressNotificationManager(
+            applicationContext
+        ).use { nm ->
             var message: String
 
             nm.builder
