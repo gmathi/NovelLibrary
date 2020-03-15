@@ -70,7 +70,8 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
                 .setLocalOnly(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setSmallIcon(R.drawable.ic_backup_white_24dp)
-                .setTicker("NovelLibrary Backup")
+                .setTicker("$${getString(R.string.app_name)} ${getString(R.string.backup)}")
+                .setContentTitle("$${getString(R.string.app_name)} ${getString(R.string.backup)}")
 
             setForeground(ForegroundInfo(nm.notificationId, nm.builder.build()))
             nm.newIndeterminateProgress()
