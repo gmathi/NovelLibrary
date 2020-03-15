@@ -150,18 +150,21 @@ class ProgressNotificationManager(context: Context,
                 "io.github.gmathi.novellibrary.service.ProgressNotificationManager"
                 )
             )
-            override fun setProgress(max: Int, progress: Int, indeterminate: Boolean): Builder = this
+            override fun setProgress(max: Int, progress: Int, indeterminate: Boolean): Builder =
+                this.also {
+                    android.util.Log.w(Builder::class.simpleName, "Change progress through [ProgressNotificationManager] instead!")
+                }
 
             internal fun buildIndeterminate(): Notification =
-                super.setOngoing(true)
+                super.setProgress(0, 0, true)
+                    .setOngoing(true)
                     .setAutoCancel(false)
-                    .setProgress(0, 0, true)
                     .build()
 
             internal fun buildProgress(progress: Int): Notification =
-                super.setOngoing(true)
+                super.setProgress(max, progress, false)
+                    .setOngoing(true)
                     .setAutoCancel(false)
-                    .setProgress(max, progress, false)
                     .build()
 
             internal fun buildUpdatedProgress(progress: Int): Notification =
@@ -169,9 +172,9 @@ class ProgressNotificationManager(context: Context,
                     .build()
 
             internal fun buildWithoutProgress(): Notification =
-                super.setOngoing(false)
+                super.setProgress(0, 0, false)
+                    .setOngoing(false)
                     .setAutoCancel(true)
-                    .setProgress(0, 0, false)
                     .build()
         }
 
@@ -193,9 +196,10 @@ class ProgressNotificationManager(context: Context,
             }
 
             suspend fun take(): Notification {
-                globalQueueSize.getAndDecrement()
-                if (isNotEmpty) queueSize--
-                return updateChannel.receive()
+                return updateChannel.receive().also {
+                    globalQueueSize.getAndDecrement()
+                    queueSize--
+                }
             }
 
             override fun close() {
