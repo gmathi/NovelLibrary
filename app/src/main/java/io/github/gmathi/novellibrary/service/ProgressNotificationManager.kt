@@ -117,8 +117,7 @@ class ProgressNotificationManager(context: Context,
     }
 
     suspend fun waitForQueue() {
-        while (notificationQueue.isNotEmpty)
-            delay(1000)
+        notificationQueue.waitUntilEmpty()
         delay(200)
     }
 
@@ -178,8 +177,9 @@ class ProgressNotificationManager(context: Context,
                     .build()
         }
 
-        private class NotificationQueue(val sizeLimit: Int = DEFAULT_UPDATE_QUEUE_SIZE_LIMIT) : Closeable {
+        private class NotificationQueue(private val sizeLimit: Int = DEFAULT_UPDATE_QUEUE_SIZE_LIMIT) : Closeable {
             private val updateChannel = Channel<Notification>(Channel.UNLIMITED)
+            private val emptyCallbackChannel = Channel<Boolean>(Channel.CONFLATED)
             private var queueSize: Int = 0
             val isEmpty: Boolean
                 get() = queueSize == 0
@@ -190,8 +190,11 @@ class ProgressNotificationManager(context: Context,
                 if (ignoreSizeLimit || globalQueueSize.get() < sizeLimit) {
                     globalQueueSize.getAndIncrement()
                     queueSize++
-                    // Channel.UNLIMITED means send never suspends (blocks)
-                    runBlocking { updateChannel.send(notification) }
+                    // Channel.UNLIMITED and Channel.CONFLATED means send never suspends (blocks)
+                    runBlocking {
+                        emptyCallbackChannel.send(false)
+                        updateChannel.send(notification)
+                    }
                 }
             }
 
@@ -199,7 +202,14 @@ class ProgressNotificationManager(context: Context,
                 return updateChannel.receive().also {
                     globalQueueSize.getAndDecrement()
                     queueSize--
+                    if (isEmpty)
+                        emptyCallbackChannel.send(true)
                 }
+            }
+
+            suspend fun waitUntilEmpty() {
+                while (!emptyCallbackChannel.receive()) { /* Wait until queue is emptied */ }
+                emptyCallbackChannel.send(true)
             }
 
             override fun close() {
