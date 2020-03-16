@@ -107,6 +107,7 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
 
             try {
                 val uri: Uri? = Uri.parse(inputData.getString(KEY_URI))
+                if (uri != null) contentResolver.notifyChange(uri, null)
                 if (uri != null && DocumentFile.fromSingleUri(applicationContext, uri)
                         .notNullAndExists()
                 ) {
