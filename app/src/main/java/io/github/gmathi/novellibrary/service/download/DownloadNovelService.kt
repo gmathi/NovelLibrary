@@ -41,7 +41,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
         const val QUALIFIED_NAME = "${BuildConfig.APPLICATION_ID}.service.download.DownloadNovelService"
 
         const val MAX_PARALLEL_DOWNLOADS = 5
-        const val DOWNLOAD_NOTIFICATION_ID = 3
+        const val DOWNLOAD_NOTIFICATION_ID = Constants.nextNotificationId
 
         const val NOVEL_NAME = "name"
         const val ACTION_START = "action_start"
