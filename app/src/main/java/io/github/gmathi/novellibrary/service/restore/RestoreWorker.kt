@@ -1,11 +1,14 @@
 package io.github.gmathi.novellibrary.service.restore
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.text.format.Formatter
 import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
@@ -17,6 +20,7 @@ import io.github.gmathi.novellibrary.database.createNovel
 import io.github.gmathi.novellibrary.database.createNovelSection
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.service.util.NotificationReceiver
 import io.github.gmathi.novellibrary.service.util.ProgressNotificationManager
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.DATABASES_DIR
@@ -27,13 +31,13 @@ import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.Utils.recursiveCopy
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.*
 import java.util.zip.ZipInputStream
 
-internal class RestoreWorker(context: Context, workerParameters: WorkerParameters) : CoroutineWorker(context, workerParameters) {
+internal class RestoreWorker(context: Context, workerParameters: WorkerParameters) :
+    CoroutineWorker(context, workerParameters) {
 
     companion object {
         internal const val KEY_URI = "restore_uri"
@@ -58,14 +62,27 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
 
     private val cacheDir
         get() = applicationContext.cacheDir
+
+    private fun sendBroadcast(intent: Intent) =
+        applicationContext.sendBroadcast(intent)
     // endregion
 
     private lateinit var result: Result
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         ProgressNotificationManager(
-            applicationContext
-        ).use { nm ->
+            applicationContext,
+            getString(R.string.backup_and_restore_notification_channel_id),
+            getString(R.string.backup_and_restore_notification_channel_name),
+            NotificationManagerCompat.IMPORTANCE_LOW
+        ) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                description =
+                    getString(R.string.backup_and_restore_notification_channel_description)
+                setSound(null, null)
+                enableVibration(false)
+            }
+        }.use { nm ->
             var message: String
 
             nm.builder
@@ -80,7 +97,8 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
 
             val shouldSimpleTextRestore = inputData.getBoolean(KEY_SHOULD_RESTORE_SIMPLE_TEX, true)
             val shouldRestoreDatabase = inputData.getBoolean(KEY_SHOULD_RESTORE_DATA_BASE, true)
-            val shouldRestorePreferences = inputData.getBoolean(KEY_SHOULD_RESTORE_PREFERENCES, true)
+            val shouldRestorePreferences =
+                inputData.getBoolean(KEY_SHOULD_RESTORE_PREFERENCES, true)
             val shouldRestoreFiles = inputData.getBoolean(KEY_SHOULD_RESTORE_FILES, true)
 
             val dataDir = Environment.getDataDirectory()
@@ -126,16 +144,23 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                     nm.updateProgress(3)
                     for (i in 0 until novelsArray.length()) {
                         val novelJson = novelsArray.getJSONObject(i)
-                        val novel = Novel(name = novelJson.getString("name"), url = novelJson.getString("url"))
+                        val novel = Novel(
+                            name = novelJson.getString("name"),
+                            url = novelJson.getString("url")
+                        )
                         if (novelJson.has("imageUrl"))
                             novel.imageUrl = novelJson.getString("imageUrl")
                         if (novelJson.has("currentlyReading"))
                             novel.currentWebPageUrl = novelJson.getString("currentlyReading")
                         if (novelJson.has("metaData"))
-                            novel.metaData = Gson().fromJson(novelJson.getString("metaData"), object : TypeToken<HashMap<String, String>>() {}.type)
+                            novel.metaData = Gson().fromJson(
+                                novelJson.getString("metaData"),
+                                object : TypeToken<HashMap<String, String>>() {}.type
+                            )
 
-                        novel.novelSectionId = newIdMap[oldIdMap[novelJson.getLong("novelSectionId")]]
-                            ?: -1L
+                        novel.novelSectionId =
+                            newIdMap[oldIdMap[novelJson.getLong("novelSectionId")]]
+                                ?: -1L
                         dbHelper.createNovel(novel)
                     }
                 }
@@ -179,7 +204,10 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                         val filesDirSize = Utils.getFolderSize(currentFilesDir)
                         val sharedPrefsDirSize = Utils.getFolderSize(currentSharedPrefsDir)
 
-                        val formattedSize = Formatter.formatFileSize(applicationContext, databasesDirSize + filesDirSize + sharedPrefsDirSize)
+                        val formattedSize = Formatter.formatFileSize(
+                            applicationContext,
+                            databasesDirSize + filesDirSize + sharedPrefsDirSize
+                        )
                         getString(R.string.need_more_space, formattedSize)
                     } else {
                         getString(R.string.restore_fail)

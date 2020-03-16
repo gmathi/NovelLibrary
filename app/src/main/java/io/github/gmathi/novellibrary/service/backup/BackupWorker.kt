@@ -1,11 +1,15 @@
 package io.github.gmathi.novellibrary.service.backup
 
+import android.app.NotificationChannel
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.text.format.Formatter
 import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.work.*
 import com.google.gson.Gson
@@ -15,6 +19,7 @@ import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.notNullAndExists
+import io.github.gmathi.novellibrary.service.util.NotificationReceiver
 import io.github.gmathi.novellibrary.service.util.ProgressNotificationManager
 import io.github.gmathi.novellibrary.util.Constants.DATABASES_DIR
 import io.github.gmathi.novellibrary.util.Constants.DATA_SUBFOLDER
@@ -24,12 +29,12 @@ import io.github.gmathi.novellibrary.util.Constants.SIMPLE_NOVEL_BACKUP_FILE_NAM
 import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.io.*
 import java.util.zip.ZipOutputStream
 
-internal class BackupWorker(context: Context, workerParameters: WorkerParameters) : CoroutineWorker(context, workerParameters) {
+internal class BackupWorker(context: Context, workerParameters: WorkerParameters) :
+    CoroutineWorker(context, workerParameters) {
 
     companion object {
         internal const val KEY_URI = "restore_uri"
@@ -44,16 +49,19 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
 
     // region Context wrapper (to improve readability)
     private fun getString(@StringRes resId: Int, vararg formatArgs: Any): String =
-            if (formatArgs.isEmpty())
-                applicationContext.getString(resId)
-            else
-                applicationContext.getString(resId, formatArgs)
+        if (formatArgs.isEmpty())
+            applicationContext.getString(resId)
+        else
+            applicationContext.getString(resId, formatArgs)
 
     private val contentResolver
         get() = applicationContext.contentResolver
 
     private val cacheDir
         get() = applicationContext.cacheDir
+
+    private fun sendBroadcast(intent: Intent) =
+        applicationContext.sendBroadcast(intent)
     // endregion
 
     private lateinit var result: Result
@@ -62,8 +70,17 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
         dataCenter.lastBackup = System.currentTimeMillis()
 
         ProgressNotificationManager(
-            applicationContext
-        ).use { nm ->
+            applicationContext,
+            getString(R.string.backup_and_restore_notification_channel_id),
+            getString(R.string.backup_and_restore_notification_channel_name),
+            NotificationManagerCompat.IMPORTANCE_LOW
+        ) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                description = getString(R.string.backup_and_restore_notification_channel_description)
+                setSound(null, null)
+                enableVibration(false)
+            }
+        }.use { nm ->
             var message: String
 
             nm.builder
@@ -90,7 +107,9 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
 
             try {
                 val uri: Uri? = Uri.parse(inputData.getString(KEY_URI))
-                if (uri != null && DocumentFile.fromSingleUri(applicationContext, uri).notNullAndExists()) {
+                if (uri != null && DocumentFile.fromSingleUri(applicationContext, uri)
+                        .notNullAndExists()
+                ) {
                     ZipOutputStream(BufferedOutputStream(contentResolver.openOutputStream(uri)!!)).use {
                         nm.newProgress(16) { setContentText(getString(R.string.simple_text_backup)) }
 
@@ -105,7 +124,8 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
                             val jsonString = Gson().toJson(map)
                             nm.updateProgress(2)
                             val simpleTextFile = File(cacheDir, SIMPLE_NOVEL_BACKUP_FILE_NAME)
-                            val writer = BufferedWriter(OutputStreamWriter(FileOutputStream(simpleTextFile)))
+                            val writer =
+                                BufferedWriter(OutputStreamWriter(FileOutputStream(simpleTextFile)))
                             writer.use { writer.write(jsonString) }
                             nm.updateProgress(3)
                             Utils.zip(simpleTextFile, it)
@@ -151,7 +171,10 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
                         val filesDirSize = Utils.getFolderSize(currentFilesDir)
                         val sharedPrefsDirSize = Utils.getFolderSize(currentSharedPrefsDir)
 
-                        val formattedSize = Formatter.formatFileSize(applicationContext, databasesDirSize + filesDirSize + sharedPrefsDirSize)
+                        val formattedSize = Formatter.formatFileSize(
+                            applicationContext,
+                            databasesDirSize + filesDirSize + sharedPrefsDirSize
+                        )
                         getString(R.string.need_more_space, formattedSize)
                     } else {
                         getString(R.string.backup_fail)

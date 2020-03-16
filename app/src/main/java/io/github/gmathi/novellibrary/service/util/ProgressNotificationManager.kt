@@ -10,6 +10,8 @@ import androidx.annotation.IntDef
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import io.github.gmathi.novellibrary.BuildConfig
+import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.util.Constants
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
@@ -33,10 +35,10 @@ import kotlin.math.roundToInt
  */
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 class ProgressNotificationManager(context: Context,
-                                  private val channelId: String = DEFAULT_CHANNEL_ID,
-                                  private val channelName: String = DEFAULT_CHANNEL_NAME,
+                                  private val channelId: String = context.getString(R.string.default_notification_channel_id),
+                                  private val channelName: String = context.getString(R.string.default_notification_channel_name),
                                   @Importance private val importance: Int = DEFAULT_CHANNEL_IMPORTANCE,
-                                  private val applyToChannel: NotificationChannel.() -> Unit = DEFAULT_APPLY_TO_CHANNEL
+                                  private val applyToChannel: NotificationChannel.() -> Unit = DEFAULT_APPLY_TO_CHANNEL(context)
 ) : Closeable {
 
     private val notificationManager: NotificationManagerCompat = NotificationManagerCompat.from(context)
@@ -47,13 +49,12 @@ class ProgressNotificationManager(context: Context,
     val builder: Builder = Builder(
         context,
         channelId
-    )
-        .DEFAULT_APPLY_TO_BUILDER() as Builder
+    ).DEFAULT_APPLY_TO_BUILDER() as Builder
 
     private val updateRate: Long =
         DEFAULT_UPDATE_RATE
 
-    private var normalizationLength: Int
+    private inline var normalizationLength: Int
         get() = builder.max
         set(value) { builder.max = value }
     private var max: Int = 100
@@ -154,7 +155,7 @@ class ProgressNotificationManager(context: Context,
             @Deprecated("Change progress through [ProgressNotificationManager] instead",
                 ReplaceWith(
                 "updateProgress",
-                "io.github.gmathi.novellibrary.service.util.ProgressNotificationManager"
+                "${BuildConfig.APPLICATION_ID}.service.util.ProgressNotificationManager"
                 )
             )
             override fun setProgress(max: Int, progress: Int, indeterminate: Boolean): Builder =
@@ -245,21 +246,18 @@ class ProgressNotificationManager(context: Context,
         // endregion
 
         // region Defaults
-        private const val DEFAULT_CHANNEL_ID = "default_channel"
-        private const val DEFAULT_CHANNEL_NAME = "Default"
-        private const val DEFAULT_CHANNEL_DESCRIPTION = "Default notifications"
         private const val DEFAULT_CHANNEL_IMPORTANCE = NotificationManagerCompat.IMPORTANCE_LOW
 
         @TargetApi(Build.VERSION_CODES.O)
         @JvmStatic
-        private val DEFAULT_APPLY_TO_CHANNEL: NotificationChannel.() -> Unit =  {
-            description =
-                DEFAULT_CHANNEL_DESCRIPTION
+        private fun DEFAULT_APPLY_TO_CHANNEL(context: Context): NotificationChannel.() -> Unit =  {
+            description = context.getString(R.string.default_notification_channel_description)
             setSound(null, null)
             enableVibration(false)
         }
         private val DEFAULT_APPLY_TO_BUILDER: Builder.() -> NotificationCompat.Builder = {
             setOnlyAlertOnce(true)
+            setCategory(NotificationCompat.CATEGORY_PROGRESS)
         }
 
         private const val DEFAULT_UPDATE_RATE = 50L

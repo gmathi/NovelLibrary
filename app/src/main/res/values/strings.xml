@@ -164,7 +164,14 @@
     <!--<item>Latest Updates</item>-->
     <!--<item>Active-Only Ranking</item>-->
     <string name="app_name" translatable="false">Novel Library</string>
+
     <string name="default_notification_channel_id" translatable="false">default</string>
+    <string name="default_notification_channel_name" translatable="false">Default</string>
+    <string name="default_notification_channel_description" translatable="false">Ungrouped notification go here by default</string>
+
+    <string name="backup_and_restore_notification_channel_id" translatable="false">backup_restore</string>
+    <string name="backup_and_restore_notification_channel_name" translatable="false">@string/backup_and_restore</string>
+    <string name="backup_and_restore_notification_channel_description" translatable="false">Shows the backup and restore progress</string>
 
     <string name="title_activity_nav_drawer" translatable="false">@string/app_name</string>
     <string name="title_activity_reader_pager" translatable="false">Reader Pager</string>
@@ -181,12 +188,9 @@
     <string name="title_activity_chapter_downloads" translatable="false">ChapterDownloadsActivity</string>
     <string name="title_activity_web_view" translatable="false">@string/app_name</string>
 
-
     <string name="title_activity_language" translatable="false">LanguageActivity</string>
     <string name="title_activity_novel_downloads" translatable="false">@string/title_downloads</string>
     <string name="title_activity_novel_sections" translatable="false">@string/title_novel_sections</string>
-
-
 
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
     <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
