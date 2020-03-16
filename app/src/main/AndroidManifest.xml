@@ -220,6 +220,8 @@
                 android:resource="@xml/provider_paths"/>
         </provider>
 
+        <receiver android:name=".service.util.NotificationReceiver" android:enabled="true" />
+
     </application>
 
 </manifest>

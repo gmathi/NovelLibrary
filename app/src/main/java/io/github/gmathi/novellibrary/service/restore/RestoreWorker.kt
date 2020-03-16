@@ -225,7 +225,11 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
 
             nm.waitForQueue()
 
-            delay(500)
+            sendBroadcast(
+                Intent(applicationContext, NotificationReceiver::class.java).setAction(
+                    NotificationReceiver.ACTION_SEND_NOTIFICATION
+                ).putExtra(NotificationReceiver.EXTRA_NOTIFICATION, nm.builder.build())
+            )
 
             return@withContext result
         }
