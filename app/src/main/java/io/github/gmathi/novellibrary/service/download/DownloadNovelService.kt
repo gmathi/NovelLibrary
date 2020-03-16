@@ -37,7 +37,6 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
     //static components
     companion object {
         const val TAG = "DownloadNovelService"
-        private const val DOWNLOAD_NOTIFICATION_GROUP = "downloadNotificationGroup"
         const val QUALIFIED_NAME = "${BuildConfig.APPLICATION_ID}.service.download.DownloadNovelService"
 
         const val MAX_PARALLEL_DOWNLOADS = 5
@@ -227,7 +226,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
                         getString(R.string.downloads_notification_channel_name),
                         NotificationManager.IMPORTANCE_LOW
                     ).apply {
-                        description = getString(R.string.backup_and_restore_notification_channel_description)
+                        description = getString(R.string.downloads_notification_channel_description)
                         setSound(null, null)
                         enableVibration(false)
                     }
