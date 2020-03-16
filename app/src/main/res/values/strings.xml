@@ -165,11 +165,23 @@
     <!--<item>Active-Only Ranking</item>-->
     <string name="app_name" translatable="false">Novel Library</string>
 
-    <string name="default_notification_channel_id" translatable="false">default</string>
+    <string name="default_notification_channel_id" translatable="false">io.github.gmathi.novellibrary.channel_id.DEFAULT</string>
     <string name="default_notification_channel_name" translatable="false">Default</string>
     <string name="default_notification_channel_description" translatable="false">Ungrouped notification go here by default</string>
 
-    <string name="backup_and_restore_notification_channel_id" translatable="false">backup_restore</string>
+    <string name="downloads_notification_channel_id" translatable="false">io.github.gmathi.novellibrary.channel_id.DOWNLOADS</string>
+    <string name="downloads_notification_channel_name" translatable="false">Downloads</string>
+    <string name="downloads_notification_channel_description" translatable="false">Shows the download progress</string>
+
+    <string name="new_chapters_notification_channel_id" translatable="false">io.github.gmathi.novellibrary.channel_id.NEW_CHAPTERS</string>
+    <string name="new_chapters_notification_channel_name" translatable="false">New Chapters</string>
+    <string name="new_chapters_notification_channel_description" translatable="false">Shows the new chapters</string>
+
+    <string name="tts_notification_channel_id" translatable="false">io.github.gmathi.novellibrary.channel_id.TTS</string>
+    <string name="tts_notification_channel_name" translatable="false">Now Playing</string>
+    <string name="tts_notification_channel_description" translatable="false">Shows the TTS for the current novel/chapter</string>
+
+    <string name="backup_and_restore_notification_channel_id" translatable="false">io.github.gmathi.novellibrary.channel_id.BACKUP_RESTORE</string>
     <string name="backup_and_restore_notification_channel_name" translatable="false">@string/backup_and_restore</string>
     <string name="backup_and_restore_notification_channel_description" translatable="false">Shows the backup and restore progress</string>
 

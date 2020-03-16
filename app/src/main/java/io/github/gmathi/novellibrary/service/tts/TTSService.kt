@@ -26,6 +26,7 @@ import io.github.gmathi.novellibrary.extensions.albumArt
 import io.github.gmathi.novellibrary.extensions.displaySubtitle
 import io.github.gmathi.novellibrary.extensions.displayTitle
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.service.tts.TTSNotificationBuilder.Companion.TTS_NOTIFICATION_ID
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.getGlideUrl
 import java.util.*
@@ -266,10 +267,10 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
 
                     if (!isForegroundService) {
                         //startService(Intent(applicationContext, this@TTSService.javaClass))
-                        startForeground(NOW_PLAYING_NOTIFICATION, notification)
+                        startForeground(TTS_NOTIFICATION_ID, notification)
                         isForegroundService = true
                     } else if (notification != null) {
-                        notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)
+                        notificationManager.notify(TTS_NOTIFICATION_ID, notification)
                     }
                 }
                 else -> {
@@ -284,7 +285,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
                         }
 
                         if (notification != null) {
-                            notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)
+                            notificationManager.notify(TTS_NOTIFICATION_ID, notification)
                         } else {
                             stopForeground(true)
                         }

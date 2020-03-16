@@ -104,8 +104,6 @@ class NovelLibraryApplication : MultiDexApplication() {
             WebView.setWebContentsDebuggingEnabled(true)
         }
 
-        initChannels(applicationContext)
-
         if (dataCenter!!.enableNotifications)
             startSyncService()
     }
@@ -142,19 +140,6 @@ class NovelLibraryApplication : MultiDexApplication() {
         } catch (e: Exception) {
             Logs.error("Exception", "Other Exception: ${e.localizedMessage}", e)
         }
-    }
-
-    private fun initChannels(context: Context) {
-        if (Build.VERSION.SDK_INT < 26) {
-            return
-        }
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channel = NotificationChannel(getString(R.string.default_notification_channel_id),
-                "Default Channel",
-                NotificationManager.IMPORTANCE_DEFAULT)
-        channel.description = "Default Channel Description"
-        channel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-        notificationManager.createNotificationChannel(channel)
     }
 
     private fun startSyncService() {
