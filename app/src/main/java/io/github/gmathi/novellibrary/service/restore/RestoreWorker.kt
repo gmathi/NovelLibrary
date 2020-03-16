@@ -89,8 +89,8 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                 .setLocalOnly(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setSmallIcon(R.drawable.ic_cloud_download_white_vector)
-                .setTicker("$${getString(R.string.app_name)} ${getString(R.string.restore)}")
-                .setContentTitle("$${getString(R.string.app_name)} ${getString(R.string.restore)}")
+                .setTicker("${getString(R.string.app_name)} ${getString(R.string.restore)}")
+                .setContentTitle("${getString(R.string.app_name)} ${getString(R.string.restore)}")
 
             setForeground(ForegroundInfo(nm.notificationId, nm.builder.build()))
             nm.newIndeterminateProgress()
