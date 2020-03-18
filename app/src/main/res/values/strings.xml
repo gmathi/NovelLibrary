@@ -161,8 +161,6 @@
         <item>@string/downloaded_files</item>
     </string-array>
 
-    <!--<item>Latest Updates</item>-->
-    <!--<item>Active-Only Ranking</item>-->
     <string name="app_name" translatable="false">Novel Library</string>
 
     <string name="default_notification_channel_id" translatable="false">io.github.gmathi.novellibrary.channel_id.DEFAULT</string>
