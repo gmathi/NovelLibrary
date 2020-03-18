@@ -1,11 +1,10 @@
 package io.github.gmathi.novellibrary.activity
 
-import android.content.Intent
 import android.os.Bundle
-import androidx.core.content.ContextCompat
-import androidx.appcompat.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
+import androidx.appcompat.view.ActionMode
+import androidx.core.content.ContextCompat
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.google.gson.Gson
@@ -18,11 +17,9 @@ import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.shareUrl
 import io.github.gmathi.novellibrary.model.*
-import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_chapters_pager.*
@@ -31,7 +28,6 @@ import org.greenrobot.eventbus.EventBus
 import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
-
 
 
 class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
