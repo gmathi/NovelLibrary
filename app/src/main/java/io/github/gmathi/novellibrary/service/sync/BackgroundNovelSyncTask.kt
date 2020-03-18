@@ -65,8 +65,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         //Update DB with new chapters
         totalCountMap.forEach {
             val novel = it.key
-            novel.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] =
-                Utils.getCurrentFormattedDate()
+            novel.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
             dbHelper.updateNovelMetaData(novel)
             dbHelper.updateChaptersAndReleasesCount(
                 novel.id,

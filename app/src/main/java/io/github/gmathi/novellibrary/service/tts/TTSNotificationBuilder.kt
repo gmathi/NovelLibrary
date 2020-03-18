@@ -37,10 +37,7 @@ import io.github.gmathi.novellibrary.util.Constants
 /**
  * Helper class to encapsulate code for building notifications.
  */
-class TTSNotificationBuilder(
-    private val context: Context,
-    private val pendingIntents: HashMap<String, PendingIntent>
-) {
+class TTSNotificationBuilder(private val context: Context, private val pendingIntents: HashMap<String, PendingIntent>) {
 
     companion object {
         const val TTS_CHANNEL_ID: String = "io.github.gmathi.novellibrary.tts"
