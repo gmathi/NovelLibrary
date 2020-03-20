@@ -1,8 +1,6 @@
 package io.github.gmathi.novellibrary.service.download
 
-import android.app.IntentService
-import android.app.Notification
-import android.app.PendingIntent
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.Binder
@@ -11,6 +9,8 @@ import android.os.Bundle
 import android.os.IBinder
 import android.view.View
 import android.widget.RemoteViews
+import androidx.core.app.NotificationManagerCompat
+import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.database.DBHelper
@@ -37,11 +37,11 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
     //static components
     companion object {
         const val TAG = "DownloadNovelService"
-        private const val DOWNLOAD_NOTIFICATION_GROUP = "downloadNotificationGroup"
-        const val QUALIFIED_NAME = "io.github.gmathi.novellibrary.service.download.DownloadNovelService"
+        const val QUALIFIED_NAME = "${BuildConfig.APPLICATION_ID}.service.download.DownloadNovelService"
 
         const val MAX_PARALLEL_DOWNLOADS = 5
-        const val DOWNLOAD_NOTIFICATION_ID = 3
+        @JvmStatic
+        val DOWNLOAD_NOTIFICATION_ID = Constants.nextNotificationId
 
         const val NOVEL_NAME = "name"
         const val ACTION_START = "action_start"
@@ -85,7 +85,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
             threadListMap.clear()
             stopForeground(true)
         } else {
-            startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "Downloading…"))
+            startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "${getString(R.string.downloading)}…"))
         }
         return super.onStartCommand(intent, flags, startId)
     }
@@ -99,7 +99,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
         val novelName = intent!!.getStringExtra(NOVEL_NAME)
         val downloadNovelThread = DownloadNovelThread(this, novelName, dbHelper, this@DownloadNovelService)
         threadListMap[novelName] = downloadNovelThread
-        startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "Downloading: $novelName"))
+        startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "${getString(R.string.downloading)}: $novelName"))
         if (threadPool.isTerminating || threadPool.isShutdown)
             threadPool = Executors.newFixedThreadPool(MAX_PARALLEL_DOWNLOADS) as ThreadPoolExecutor
         futures.add(threadPool.submit(downloadNovelThread, null as Any?))
@@ -133,7 +133,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
             else
                 downloadListener?.handleEvent(DownloadNovelEvent(EventType.RUNNING, novelName))
 
-            startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "Downloading: " + threadListMap.keys.joinToString(", ")))
+            startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "${getString(R.string.downloading)}: " + threadListMap.keys.joinToString(", ")))
 
         } else if (action == ACTION_PAUSE || action == ACTION_REMOVE) {
             val downloadNovelThread = threadListMap[novelName]
@@ -149,7 +149,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
                 stopForeground(true)
                 //stopSelf()
             } else {
-                startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "Downloading: " + threadListMap.keys.joinToString(", ")))
+                startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "${getString(R.string.downloading)}: " + threadListMap.keys.joinToString(", ")))
             }
         }
     }
@@ -183,7 +183,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
         if (downloadNovelEvent.type == EventType.COMPLETE || downloadNovelEvent.type == EventType.DELETE) {
             threadListMap.remove(downloadNovelEvent.novelName)
             if (threadListMap.isNotEmpty())
-                startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "Downloading: " + threadListMap.keys.joinToString(", ")))
+                startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "${getString(R.string.downloading)}: " + threadListMap.keys.joinToString(", ")))
             else
                 stopForeground(true)
         }
@@ -196,8 +196,6 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
 
     //endregion
 
-
-    @Suppress("DEPRECATION")
     private fun getNotification(context: Context, status: String): Notification {
 
         // Add Pause button intent in notification.
@@ -219,7 +217,21 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
         novelDetailsIntent.putExtras(novelDetailsBundle)
 
         val pendingIntent = PendingIntent.getActivity(context, DOWNLOAD_NOTIFICATION_ID, novelDetailsIntent, 0)
-        val channelId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) getString(R.string.default_notification_channel_id) else ""
+        val channelId = getString(R.string.downloads_notification_channel_id)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManagerCompat.from(applicationContext)
+                .createNotificationChannel(
+                    NotificationChannel(
+                        channelId,
+                        getString(R.string.downloads_notification_channel_name),
+                        NotificationManager.IMPORTANCE_LOW
+                    ).apply {
+                        description = getString(R.string.downloads_notification_channel_description)
+                        setSound(null, null)
+                        enableVibration(false)
+                    }
+                )
+        }
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(context, channelId)
@@ -228,6 +240,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
                     .setContentIntent(pendingIntent)
                     .build()
         } else {
+            @Suppress("DEPRECATION")
             Notification.Builder(context)
                     .setSmallIcon(R.drawable.ic_file_download_white)
                     .setContent(view)

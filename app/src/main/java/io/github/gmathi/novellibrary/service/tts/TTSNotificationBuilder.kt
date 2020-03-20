@@ -23,55 +23,65 @@ import android.app.PendingIntent
 import android.content.Context
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.core.app.NotificationCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
+import androidx.annotation.RequiresApi
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.extensions.isPlaying
+import io.github.gmathi.novellibrary.util.Constants
 
-const val NOW_PLAYING_CHANNEL: String = "io.github.gmathi.novellibrary.service.tts.NOW_PLAYING"
-const val NOW_PLAYING_NOTIFICATION: Int = 1
 
 /**
  * Helper class to encapsulate code for building notifications.
  */
 class TTSNotificationBuilder(private val context: Context, private val pendingIntents: HashMap<String, PendingIntent>) {
-    private val platformNotificationManager: NotificationManager =
-            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+    companion object {
+        const val TTS_CHANNEL_ID: String = "io.github.gmathi.novellibrary.tts"
+
+        @JvmStatic
+        val TTS_NOTIFICATION_ID: Int = Constants.nextNotificationId
+    }
+
+    private val notificationManager = NotificationManagerCompat.from(context)
 
     private val skipToPreviousAction = NotificationCompat.Action(
-            R.drawable.ic_skip_previous_white,
-            context.getString(R.string.previous_chapter),
-            pendingIntents[TTSService.ACTION_PREVIOUS])
+        R.drawable.ic_skip_previous_white,
+        context.getString(R.string.previous_chapter),
+        pendingIntents[TTSService.ACTION_PREVIOUS]
+    )
     private val playAction = NotificationCompat.Action(
-            R.drawable.ic_play_white,
-            context.getString(R.string.play),
-            pendingIntents[TTSService.ACTION_PLAY])
+        R.drawable.ic_play_white,
+        context.getString(R.string.play),
+        pendingIntents[TTSService.ACTION_PLAY]
+    )
     private val pauseAction = NotificationCompat.Action(
-            R.drawable.ic_pause_white,
-            context.getString(R.string.pause),
-            pendingIntents[TTSService.ACTION_PAUSE])
+        R.drawable.ic_pause_white,
+        context.getString(R.string.pause),
+        pendingIntents[TTSService.ACTION_PAUSE]
+    )
     private val skipToNextAction = NotificationCompat.Action(
-            R.drawable.ic_skip_next_white,
-            context.getString(R.string.next_chapter),
-            pendingIntents[TTSService.ACTION_NEXT])
+        R.drawable.ic_skip_next_white,
+        context.getString(R.string.next_chapter),
+        pendingIntents[TTSService.ACTION_NEXT]
+    )
     private val stopPendingIntent =
-            pendingIntents[TTSService.ACTION_STOP]
+        pendingIntents[TTSService.ACTION_STOP]
 
     fun buildNotification(sessionToken: MediaSessionCompat.Token): Notification {
         if (shouldCreateNowPlayingChannel()) {
-            createNowPlayingChannel()
+            createNowPlayingChannel(context)
         }
 
         val controller = MediaControllerCompat(context, sessionToken)
         val description = controller.metadata.description
         val playbackState = controller.playbackState
 
-        val builder = NotificationCompat.Builder(context, NOW_PLAYING_CHANNEL)
+        val builder = NotificationCompat.Builder(context, TTS_CHANNEL_ID)
 
-        // Only add actions for skip back, play/pause, skip forward, based on what's enabled.
         // Only add actions for skip back, play/pause, skip forward, based on what's enabled.
 //        var playPauseIndex = 0
 //        if (playbackState.isSkipToPreviousEnabled) {
@@ -94,42 +104,44 @@ class TTSNotificationBuilder(private val context: Context, private val pendingIn
 
 
         val mediaStyle = androidx.media.app.NotificationCompat.MediaStyle()
-                .setCancelButtonIntent(stopPendingIntent)
-                .setMediaSession(sessionToken)
-                .setShowActionsInCompactView(1)
-                .setShowCancelButton(true)
+            .setCancelButtonIntent(stopPendingIntent)
+            .setMediaSession(sessionToken)
+            .setShowActionsInCompactView(1)
+            .setShowCancelButton(true)
 
         return builder.setContentIntent(controller.sessionActivity)
-                .setContentText(description.subtitle)
-                .setContentTitle(description.title)
-                .setDeleteIntent(stopPendingIntent)
-                .setLargeIcon(description.iconBitmap)
-                .setOnlyAlertOnce(true)
-                .setSmallIcon(R.drawable.ic_queue_music_white_vector)
-                .setStyle(mediaStyle)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .build()
+            .setContentText(description.subtitle)
+            .setContentTitle(description.title)
+            .setDeleteIntent(stopPendingIntent)
+            .setLargeIcon(description.iconBitmap)
+            .setOnlyAlertOnce(true)
+            .setSmallIcon(R.drawable.ic_queue_music_white_vector)
+            .setStyle(mediaStyle)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .build()
 
 
     }
 
     private fun shouldCreateNowPlayingChannel() =
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !nowPlayingChannelExists()
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !nowPlayingChannelExists()
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun nowPlayingChannelExists() =
-            platformNotificationManager.getNotificationChannel(NOW_PLAYING_CHANNEL) != null
+        notificationManager.getNotificationChannel(TTS_CHANNEL_ID) != null
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun createNowPlayingChannel() {
-        val notificationChannel = NotificationChannel(NOW_PLAYING_CHANNEL,
-                "Now Playing",
-                NotificationManager.IMPORTANCE_LOW)
-                .apply {
-                    description = "Show the TTS for the current novel/chapter"
-                }
-
-        platformNotificationManager.createNotificationChannel(notificationChannel)
+    private fun createNowPlayingChannel(context: Context) {
+        notificationManager.createNotificationChannel(
+            NotificationChannel(
+                TTS_CHANNEL_ID,
+                context.getString(R.string.tts_notification_channel_name),
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = context.getString(R.string.tts_notification_channel_name)
+                setSound(null, null)
+                enableVibration(false)
+            })
     }
 }
 

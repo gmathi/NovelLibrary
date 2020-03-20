@@ -1,11 +1,10 @@
 package io.github.gmathi.novellibrary.activity
 
-import android.content.Intent
 import android.os.Bundle
-import androidx.core.content.ContextCompat
-import androidx.appcompat.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
+import androidx.appcompat.view.ActionMode
+import androidx.core.content.ContextCompat
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.google.gson.Gson
@@ -18,11 +17,9 @@ import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.shareUrl
 import io.github.gmathi.novellibrary.model.*
-import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_chapters_pager.*
@@ -31,7 +28,6 @@ import org.greenrobot.eventbus.EventBus
 import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
-
 
 
 class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
@@ -209,17 +205,16 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     }
 
     private var devCounter: Int = 0
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-
-        when {
-            item?.itemId == android.R.id.home -> finish()
-            item?.itemId == R.id.action_sync -> {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> finish()
+            R.id.action_sync -> {
                 getChapters(forceUpdate = true)
                 devCounter++
                 if (devCounter == 40) dataCenter.isDeveloper = true
                 return true
             }
-            item?.itemId == R.id.action_download -> {
+            R.id.action_download -> {
                 confirmDialog(getString(R.string.download_all_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
                     val publisher = novel.metaData["English Publisher"]
                     val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true) ?: false
@@ -233,7 +228,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 })
                 return true
             }
-            item?.itemId == R.id.action_add_to_library -> {
+            R.id.action_add_to_library -> {
                 addNovelToLibrary()
                 invalidateOptionsMenu()
                 return true
@@ -245,7 +240,6 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     //endregion
 
     //region ActionMode Callback
-
 
     internal fun addToDataSet(webPage: WebPage) {
         dataSet.add(webPage)

@@ -213,11 +213,7 @@
     <string name="show_comments_section">Yorumları Göster</string>
     <string name="show_comments_section_description">Okuyucu modundayken bölüm sayfasında yapılmış olan yorumları gösterir. (Tüm sitelerde desteklenmemektedir.)</string>
     <string name="backup">Yedekleme</string>
-    <string name="backup_data">Veri Yedekleme</string>
-    <string name="backup_data_description">Verileri Sabit belleğe/SD Card belleğine yedekle</string>
     <string name="restore">Geri Yükleme</string>
-    <string name="restore_data">Veri Geri Yükleme</string>
-    <string name="restore_data_description">Verileri Sabit bellekten/SD Card belleğinden geri yükle.</string>
     <string name="import_reading_list">Okuma Listesini İçe Aktar</string>
     <string name="nu_reading_list_url">Novel Updates Okuma Listesi URL’si</string>
     <string name="volume_scroll">Cilt sayısınını kullanarak gezinti yap.</string>
@@ -243,13 +239,9 @@
     <string name="title_report_page">Report Page</string>
     <string name="title_open_in_browser">Open in Browser</string>
     <string name="title_share_chapter">Share Chapter</string>
-    <string name="skip_cloud_flare_string">Please wait 5~10 secs while we bypass cloud flare</string>
+<!--    <string name="skip_cloud_flare_string">Please wait 5~10 secs while we bypass cloud flare</string>-->
     <string name="title_java_script">JavaScript</string>
     <string name="refresh_cloud_flare_cookies">Refresh CloudFlare Cookies</string>
-    <string name="google_backup">Google Drive Backup</string>
-    <string name="google_backup_description">Backup Data to your Google Drive. Note: Will not backup the downloaded files.</string>
-    <string name="google_restore">Google Drive Restore</string>
-    <string name="google_restore_description">Restore Data to your Google Drive</string>
     <string name="merge_pages">Merge All Links To Single Page</string>
     <string name="merge_pages_description">Merges all the web pages in to a single web page, so that the announcement posts are shown in the same screen</string>
     <string name="title_merge_pages">Merge Pages</string>
@@ -261,11 +253,6 @@
     <string name="cloud_flare_bypass_failure_title">Cloudflare Bypass Failed</string>
     <string name="cloud_flare_bypass_success">Cloudflare bypassed successfully</string>
     <string name="backup_and_restore">Backup &amp; Restore</string>
-    <string name="backup_and_restore_description">Backup &amp; Restore data automatically or manually choose your own folder. Alternatively you can also use Google drive</string>
-    <string name="internal_full_backup_data">Auto Backup All Data</string>
-    <string name="internal_full_backup_data_description">Fully Backups Data to internal storage/sd card. (Backups to Auto-generated folders)</string>
-    <string name="internal_full_restore_data">Auto Restore All Data</string>
-    <string name="internal_full_restore_data_description">Fully Restores Data from internal storage/sd card (Restores from the Auto-generated folders)</string>
     <string name="internal_clear_data">Clear Cache &amp; Data</string>
     <string name="internal_clear_data_description">Clears the cache, files and database (including the Auto-generated folders)</string>
     <string name="enable_cloud_flare">Cloud Flare Cookies</string>
@@ -303,5 +290,55 @@
     <string name="previous_chapter">Previous Chapter</string>
     <string name="next_chapter">Next Chapter</string>
     <string name="connection_error">Connection Error!</string>
+
+    <!-- v0.9 Strings -->
+
+    <string name="change_language">Language</string>
+    <string name="translated">Translated %1$d out of %2$d (≈%3$s%%)</string>
+    <string name="locale_system_default">System Default</string>
+    <string name="locale_english">English</string>
+    <string name="locale_german">German</string>
+    <string name="locale_indonesian">Indonesian</string>
+    <string name="locale_portuguese">Portuguese</string>
+    <string name="locale_spanish">Spanish</string>
+    <string name="locale_turkish">Turkish</string>
+    <string name="locale_french">French</string>
+    <string name="locale_Tagalog">Tagalog</string>
+    <string name="locale_latin">Latin</string>
+    <string name="locale_pirate">Pirate</string>
+    <string name="volume_scroll_length">Scroll Distance</string>
+    <string name="volume_scroll_length_description">Change the distance to scroll when using volume keys</string>
+    <string name="reverse">Reverse</string>
+    <string name="about_us_content">This project is an open-source project being developed with love for the novel reading community. If you would like to help out you can get in touch with us in discord!</string>
+    <string name="bug_report_content">Please use discord to report a bug.%1$s</string>
+    <string name="copy_to_clipboard">Copy to clipboard</string>
+    <string name="add_font">Add Font</string>
+    <string name="dont_show_again">Don\'t show again</string>
+    <string name="backup_hint">Choose a convenient location to save the backup ZIP file in</string>
+    <string name="restore_hint">Navigate to the location where your backup ZIP is and select it</string>
+    <string name="backup_frequency">Backup Frequency</string>
+    <string name="backup_frequency_description" translatable="false">Automatic backup frequency</string>
+    <string name="backup_frequency_manual">Manual</string>
+    <string name="backup_frequency_Daily">Daily</string>
+    <string name="backup_frequency_Weekly">Weekly</string>
+    <string name="backup_success">Backup Successful</string>
+    <string name="backup_fail">Backup Failed!</string>
+    <string name="restore_success">Restore Successful!</string>
+    <string name="restore_fail">Restore Failed!</string>
+    <string name="need_more_space">Not enough space left on the device! Please make enough space - %1$s and try again!</string>
+    <string name="backup_file_not_found">Couldn\'t find the backup file. Please choose a new destination</string>
+    <string name="eztracting_zip">Extracting the ZIP archive</string>
+    <string name="simple_text_restore">Simple Text - Novel &amp; Novel Sections Restore</string>
+    <string name="backup_and_restore_description">Backup &amp; Restore data to a ZIP archive</string>
+    <string name="backup_data">Backup Data</string>
+    <string name="backup_data_description">Backup the data into a ZIP archive</string>
+    <string name="restore_data">Restore Data</string>
+    <string name="restore_data_description">Restore data from a ZIP archive</string>
+
+    <string-array name="backup_frequency_options">
+        <item>@string/backup_frequency_manual</item>
+        <item>@string/backup_frequency_Daily</item>
+        <item>@string/backup_frequency_Weekly</item>
+    </string-array>
 
 </resources>

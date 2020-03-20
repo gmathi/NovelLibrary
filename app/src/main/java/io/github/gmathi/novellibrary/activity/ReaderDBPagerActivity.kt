@@ -1,9 +1,10 @@
 package io.github.gmathi.novellibrary.activity
 
 
-import android.Manifest
 import android.animation.ObjectAnimator
+import android.app.Activity
 import android.content.Intent
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
@@ -12,18 +13,19 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.View.*
 import android.view.WindowManager
+import android.webkit.MimeTypeMap
 import android.webkit.WebView
 import android.widget.CompoundButton
 import androidx.core.content.ContextCompat
+import androidx.documentfile.provider.DocumentFile
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.MATCH_PARENT
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.WRAP_CONTENT
 import androidx.viewpager.widget.ViewPager
+import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.folderselector.FileChooserDialog
-import com.crashlytics.android.Crashlytics
-import com.thanosfisherman.mayi.Mayi
+import com.afollestad.materialdialogs.Theme
 import com.yarolegovich.slidingrootnav.SlideGravity
 import com.yarolegovich.slidingrootnav.SlidingRootNav
 import com.yarolegovich.slidingrootnav.SlidingRootNavBuilder
@@ -55,8 +57,7 @@ class ReaderDBPagerActivity :
         BaseActivity(),
         ViewPager.OnPageChangeListener,
         DrawerAdapter.OnItemSelectedListener,
-        SimpleItem.Listener<ReaderMenu>,
-        FileChooserDialog.FileCallback {
+        SimpleItem.Listener<ReaderMenu> {
 
     private var slidingRootNav: SlidingRootNav? = null
     lateinit var recyclerView: RecyclerView
@@ -72,6 +73,17 @@ class ReaderDBPagerActivity :
         private const val OPEN_IN_BROWSER = 7
         private const val SHARE_CHAPTER = 8
         private const val READ_ALOUD = 9
+
+        private const val ADD_FONT_REQUEST_CODE = 1101
+        private val FONT_MIME_TYPES = arrayOf(
+                MimeTypeMap.getSingleton().getMimeTypeFromExtension("ttf") ?: "application/x-font-ttf",
+                "fonts/ttf",
+                MimeTypeMap.getSingleton().getMimeTypeFromExtension("otf") ?: "application/x-font-opentype",
+                "fonts/otf",
+                "application/octet-stream"
+        )
+
+        private val AVAILABLE_FONTS = linkedMapOf<String, String>()
     }
 
     private lateinit var screenIcons: Array<Drawable?>
@@ -337,6 +349,13 @@ class ReaderDBPagerActivity :
         return icons
     }
 
+    private fun createTypeface(path: String = dataCenter.fontPath): Typeface {
+        return if (path.startsWith("/android_asset"))
+            Typeface.createFromAsset(assets, path.substringAfter('/').substringAfter('/'))
+        else
+            Typeface.createFromFile(path)
+    }
+
     /**
      *     Handle Slide Menu Nav Options
      */
@@ -344,21 +363,46 @@ class ReaderDBPagerActivity :
         slidingRootNav!!.closeMenu()
         when (position) {
             FONTS -> {
-                Mayi.withActivity(this@ReaderDBPagerActivity)
-                        .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        .onRationale { _, token ->
-                            token.continuePermissionRequest()
+                if (AVAILABLE_FONTS.isEmpty())
+                    getAvailableFonts()
+
+                var selectedFont = dataCenter.fontPath.substringAfterLast('/')
+                        .substringBeforeLast('.')
+                        .replace('_', ' ')
+
+                var typeFace = createTypeface()
+
+                val dialog = MaterialDialog.Builder(this)
+                        .theme(Theme.DARK)
+                        .title(getString(R.string.title_fonts))
+                        .items(AVAILABLE_FONTS.keys)
+                        .alwaysCallSingleChoiceCallback()
+                        .itemsCallbackSingleChoice(AVAILABLE_FONTS.keys.indexOf(selectedFont)) { dialog, _, which, font ->
+                            if (which == 0) {
+                                addFont()
+                                dialog.dismiss()
+                            } else {
+                                val fontPath = AVAILABLE_FONTS[font.toString()]
+                                if (fontPath != null) {
+                                    selectedFont = font.toString()
+                                    typeFace = createTypeface(fontPath)
+                                    dialog.setTypeface(dialog.titleView, typeFace)
+                                } else {
+                                    dialog.selectedIndex = AVAILABLE_FONTS.keys.indexOf(selectedFont)
+                                    dialog.notifyItemsChanged()
+                                }
+                            }
+                            true
                         }
-                        .onResult {
-                            if (it.isGranted)
-                                openFontChooserDialog()
-                            else
-                                MaterialDialog.Builder(this)
-                                        .content("Enable \"Write External Storage\" permission for Novel Library " +
-                                                "from your device Settings -> Applications -> Novel Library -> Permissions")
-                                        .positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
-                                        .show()
-                        }.check()
+                        .onPositive { _, which ->
+                            if (which == DialogAction.POSITIVE) {
+                                dataCenter.fontPath = AVAILABLE_FONTS[selectedFont] ?: ""
+                                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+                            }
+                        }
+                        .positiveText(R.string.okay)
+                        .show()
+                dialog.setTypeface(dialog.titleView, typeFace)
             }
             FONT_SIZE -> changeTextSize()
             REPORT_PAGE -> reportPage()
@@ -442,41 +486,61 @@ class ReaderDBPagerActivity :
         }
     }
 
-    private fun openFontChooserDialog() {
-        try {
-            val externalDirectory = getExternalFilesDir(null)
-            if (externalDirectory != null && externalDirectory.exists())
-                FileChooserDialog.Builder(this)
-                        .initialPath(externalDirectory.path)  // changes initial path, defaults to external storage directory
-                        .extensionsFilter(".ttf") // Optional extension filter, will override mimeType()
-                        .tag("optional-identifier")
-                        .goUpLabel("Up") // custom go up label, default label is "..."
-                        .show(this) // an AppCompatActivity which implements FileCallback
-            else
-                MaterialDialog.Builder(this)
-                        .content("Cannot find the internal storage or sd card. Please check your storage settings.")
-                        .positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
-                        .show()
-        } catch (e: Exception) {
-            Crashlytics.logException(e)
+    @Synchronized
+    private fun getAvailableFonts() {
+        if (AVAILABLE_FONTS.isNotEmpty()) return
+
+        AVAILABLE_FONTS[getString(R.string.add_font)] = ""
+
+        assets.list("fonts")?.filter {
+            it.endsWith(".ttf") || it.endsWith(".otf")
+        }?.forEach {
+            AVAILABLE_FONTS[it.substringBeforeLast('.').replace('_', ' ')] = "/android_asset/fonts/$it"
+        }
+
+        val appFontsDir = File(getExternalFilesDir(null) ?: filesDir, "Fonts")
+        if (!appFontsDir.exists()) appFontsDir.mkdir()
+        appFontsDir.listFiles()?.forEach {
+            AVAILABLE_FONTS[it.nameWithoutExtension.replace('_', ' ')] = it.path
         }
     }
 
-    override fun onFileSelection(dialog: FileChooserDialog, file: File) {
-        dialog.dismiss()
-        dataCenter.fontPath = file.path
-        EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
-    }
-
-    override fun onFileChooserDismissed(dialog: FileChooserDialog) {
-        //Do Nothing
+    private fun addFont() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("*/*")
+                .putExtra(Intent.EXTRA_MIME_TYPES, FONT_MIME_TYPES)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+//                        .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+        startActivityForResult(intent, ADD_FONT_REQUEST_CODE)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == Constants.IWV_ACT_REQ_CODE) {
-            Handler(Looper.getMainLooper()).post {
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+
+        when (requestCode) {
+            Constants.IWV_ACT_REQ_CODE -> {
+                Handler(Looper.getMainLooper()).post {
+                    EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+                }
+            }
+            ADD_FONT_REQUEST_CODE -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    val uri = data?.data
+                    if (uri != null) {
+                        val document = DocumentFile.fromSingleUri(baseContext, uri)
+                        if (document != null && document.isFile) {
+                            val fontsDir = File(getExternalFilesDir(null) ?: filesDir, "Fonts/")
+                            if (!fontsDir.exists()) fontsDir.mkdir()
+                            val file = File(fontsDir, document.name!!)
+                            Utils.copyFile(contentResolver, document, file)
+                            AVAILABLE_FONTS[file.nameWithoutExtension.replace('_', ' ')] = file.path
+                            dataCenter.fontPath = file.path
+                            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+                        }
+                    }
+                }
             }
         }
     }

@@ -5,6 +5,7 @@ import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.util.Constants.DEFAULT_FONT_PATH
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
@@ -195,24 +196,15 @@ open class HtmlHelper protected constructor() {
     open fun toggleTheme(isDark: Boolean, doc: Document): Document = doc
 
     fun toggleThemeDefault(isDark: Boolean, doc: Document): Document {
-
-        var fontName = "source_sans_pro_regular.ttf"
-        var fontUrl = "/android_asset/fonts/$fontName"
-
         val fontFile = File(dataCenter.fontPath)
-        if (fontFile.exists()) {
-            fontName = fontFile.name
-            fontUrl = fontFile.path
-        }
-
-        val fontFamily = fontName.substring(0, fontName.lastIndexOf("."))
+        val fontFamily = fontFile.name.substringBeforeLast(".")
         val nightModeTextBrightness = 87
         doc.head().getElementById("darkTheme")?.remove()
         doc.head().append("""
             <style id="darkTheme">
                 @font-face {
                     font-family: $fontFamily;
-                    src: url("$FILE_PROTOCOL$fontUrl");
+                    src: url("$FILE_PROTOCOL${fontFile.path}");
                 }
                 html {
                     scroll-behavior: smooth;

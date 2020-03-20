@@ -84,23 +84,17 @@
     </string-array>
 
     <string-array name="backup_and_restore_titles_list" translatable="false">
-        <item>@string/internal_full_backup_data</item>
-        <item>@string/internal_full_restore_data</item>
         <item>@string/internal_clear_data</item>
         <item>@string/backup_data</item>
         <item>@string/restore_data</item>
-        <item>@string/google_backup</item>
-        <item>@string/google_restore</item>
+        <item>@string/backup_frequency</item>
     </string-array>
 
     <string-array name="backup_and_restore_subtitles_list" translatable="false">
-        <item>@string/internal_full_backup_data_description</item>
-        <item>@string/internal_full_restore_data_description</item>
         <item>@string/internal_clear_data_description</item>
         <item>@string/backup_data_description</item>
         <item>@string/restore_data_description</item>
-        <item>@string/google_backup_description</item>
-        <item>@string/google_restore_description</item>
+        <item>@string/backup_frequency_description</item>
     </string-array>
 
 
@@ -167,10 +161,27 @@
         <item>@string/downloaded_files</item>
     </string-array>
 
-    <!--<item>Latest Updates</item>-->
-    <!--<item>Active-Only Ranking</item>-->
     <string name="app_name" translatable="false">Novel Library</string>
-    <string name="default_notification_channel_id" translatable="false">default</string>
+
+    <string name="default_notification_channel_id" translatable="false">io.github.gmathi.novellibrary.channel_id.DEFAULT</string>
+    <string name="default_notification_channel_name" translatable="false">Default</string>
+    <string name="default_notification_channel_description" translatable="false">Ungrouped notification go here by default</string>
+
+    <string name="downloads_notification_channel_id" translatable="false">io.github.gmathi.novellibrary.channel_id.DOWNLOADS</string>
+    <string name="downloads_notification_channel_name" translatable="false">Downloads</string>
+    <string name="downloads_notification_channel_description" translatable="false">Shows the download progress</string>
+
+    <string name="new_chapters_notification_channel_id" translatable="false">io.github.gmathi.novellibrary.channel_id.NEW_CHAPTERS</string>
+    <string name="new_chapters_notification_channel_name" translatable="false">New Chapters</string>
+    <string name="new_chapters_notification_channel_description" translatable="false">Shows the new chapters</string>
+
+    <string name="tts_notification_channel_id" translatable="false">io.github.gmathi.novellibrary.channel_id.TTS</string>
+    <string name="tts_notification_channel_name" translatable="false">Now Playing</string>
+    <string name="tts_notification_channel_description" translatable="false">Shows the TTS for the current novel/chapter</string>
+
+    <string name="backup_and_restore_notification_channel_id" translatable="false">io.github.gmathi.novellibrary.channel_id.BACKUP_RESTORE</string>
+    <string name="backup_and_restore_notification_channel_name" translatable="false">@string/backup_and_restore</string>
+    <string name="backup_and_restore_notification_channel_description" translatable="false">Shows the backup and restore progress</string>
 
     <string name="title_activity_nav_drawer" translatable="false">@string/app_name</string>
     <string name="title_activity_reader_pager" translatable="false">Reader Pager</string>
@@ -187,12 +198,9 @@
     <string name="title_activity_chapter_downloads" translatable="false">ChapterDownloadsActivity</string>
     <string name="title_activity_web_view" translatable="false">@string/app_name</string>
 
-
     <string name="title_activity_language" translatable="false">LanguageActivity</string>
     <string name="title_activity_novel_downloads" translatable="false">@string/title_downloads</string>
     <string name="title_activity_novel_sections" translatable="false">@string/title_novel_sections</string>
-
-
 
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
     <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
@@ -418,12 +426,6 @@
     <string name="title_share_chapter">Share Chapter</string>
     <string name="refresh_cloud_flare_cookies">Refresh CloudFlare Cookies</string>
 
-    <string name="google_backup">Google Drive Backup</string>
-    <string name="google_backup_description">Backup Data to your Google Drive. Note: Will not backup the downloaded files.</string>
-
-    <string name="google_restore">Google Drive Restore</string>
-    <string name="google_restore_description">Restore Data to your Google Drive</string>
-
     <string name="merge_pages">Merge All Links To Single Page</string>
     <string name="merge_pages_description">Merges all the web pages in to a single web page, so that the announcement posts are shown in the same screen</string>
 
@@ -438,19 +440,15 @@
     <string name="cloud_flare_bypass_failure_title">CloudFlare Bypass Failed</string>
 
     <string name="backup_and_restore">Backup &amp; Restore</string>
-    <string name="backup_and_restore_description">Backup &amp; Restore data automatically or manually choose your own folder. Alternatively you can also use Google drive</string>
+    <string name="backup_and_restore_description">Backup &amp; Restore data to a ZIP archive</string>
 
-    <string name="internal_full_backup_data">Auto Backup All Data</string>
-    <string name="internal_full_backup_data_description">Fully Backups Data to internal storage/sd card. (Backups to Auto-generated folders)</string>
-    <string name="internal_full_restore_data">Auto Restore All Data</string>
-    <string name="internal_full_restore_data_description">Fully Restores Data from internal storage/sd card (Restores from the Auto-generated folders)</string>
     <string name="internal_clear_data">Clear Cache &amp; Data</string>
     <string name="internal_clear_data_description">Clears the cache, files and database (including the Auto-generated folders)</string>
 
-    <string name="backup_data">Manual Backup Data</string>
-    <string name="backup_data_description">Choose a folder to in internal storage/sd card for backup</string>
-    <string name="restore_data">Manual Restore Data</string>
-    <string name="restore_data_description">Choose a folder to in internal storage/sd card to restore</string>
+    <string name="backup_data">Backup Data</string>
+    <string name="backup_data_description">Backup the data into a ZIP archive</string>
+    <string name="restore_data">Restore Data</string>
+    <string name="restore_data_description">Restore data from a ZIP archive</string>
 
     <string name="enable_cloud_flare">Cloud Flare Cookies</string>
     <string name="enable_cloud_flare_description">You need to restart the app, after you toggle this!</string>
@@ -509,5 +507,28 @@
     <string name="about_us_content">This project is an open-source project being developed with love for the novel reading community. If you would like to help out you can get in touch with us in discord!</string>
     <string name="bug_report_content">Please use discord to report a bug.%1$s</string>
     <string name="copy_to_clipboard">Copy to clipboard</string>
+    <string name="add_font">Add Font</string>
+    <string name="dont_show_again">Don\'t show again</string>
+    <string name="backup_hint">Choose a convenient location to save the backup ZIP file in</string>
+    <string name="restore_hint">Navigate to the location where your backup ZIP is and select it</string>
+    <string name="backup_frequency">Backup Frequency</string>
+    <string name="backup_frequency_description" translatable="false">Automatic backup frequency</string>
+    <string name="backup_frequency_manual">Manual</string>
+    <string name="backup_frequency_Daily">Daily</string>
+    <string name="backup_frequency_Weekly">Weekly</string>
+    <string name="backup_success">Backup Successful</string>
+    <string name="backup_fail">Backup Failed!</string>
+    <string name="restore_success">Restore Successful!</string>
+    <string name="restore_fail">Restore Failed!</string>
+    <string name="need_more_space">Not enough space left on the device! Please make enough space - %1$s and try again!</string>
+    <string name="backup_file_not_found">Couldn\'t find the backup file. Please choose a new destination</string>
+    <string name="eztracting_zip">Extracting the ZIP archive</string>
+    <string name="simple_text_restore">Simple Text - Novel &amp; Novel Sections Restore</string>
+
+    <string-array name="backup_frequency_options">
+        <item>@string/backup_frequency_manual</item>
+        <item>@string/backup_frequency_Daily</item>
+        <item>@string/backup_frequency_Weekly</item>
+    </string-array>
 
 </resources>

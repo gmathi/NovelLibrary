@@ -1,14 +1,11 @@
 package io.github.gmathi.novellibrary
 
 import android.annotation.SuppressLint
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.content.res.Configuration
-import android.os.Build
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.app.NotificationManagerCompat
 import androidx.multidex.MultiDexApplication
 import com.crashlytics.android.Crashlytics
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
@@ -63,6 +60,8 @@ class NovelLibraryApplication : MultiDexApplication() {
         else dataCenter?.fooled = false
         super.onCreate()
 
+        deleteOldChannels()
+
         //Stray webPages to be deleted
         dbHelper?.deleteWebPages(-1L)
         dbHelper?.deleteWebPageSettings(-1L)
@@ -104,10 +103,15 @@ class NovelLibraryApplication : MultiDexApplication() {
             WebView.setWebContentsDebuggingEnabled(true)
         }
 
-        initChannels(applicationContext)
-
         if (dataCenter!!.enableNotifications)
             startSyncService()
+    }
+
+    @Deprecated("This method deletes old notification channels. Assuming that all users updated and run the app at least once, this method should be removed!")
+    private fun deleteOldChannels() {
+        val notificationManager = NotificationManagerCompat.from(applicationContext)
+        notificationManager.deleteNotificationChannel("default")
+        notificationManager.deleteNotificationChannel("io.github.gmathi.novellibrary.service.tts.NOW_PLAYING")
     }
 
     @Throws(KeyManagementException::class, NoSuchAlgorithmException::class)
@@ -142,19 +146,6 @@ class NovelLibraryApplication : MultiDexApplication() {
         } catch (e: Exception) {
             Logs.error("Exception", "Other Exception: ${e.localizedMessage}", e)
         }
-    }
-
-    private fun initChannels(context: Context) {
-        if (Build.VERSION.SDK_INT < 26) {
-            return
-        }
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channel = NotificationChannel(getString(R.string.default_notification_channel_id),
-                "Default Channel",
-                NotificationManager.IMPORTANCE_DEFAULT)
-        channel.description = "Default Channel Description"
-        channel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-        notificationManager.createNotificationChannel(channel)
     }
 
     private fun startSyncService() {
