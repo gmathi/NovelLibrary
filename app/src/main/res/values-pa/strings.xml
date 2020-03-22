@@ -245,7 +245,7 @@
     <string name="add_font">Add Font</string>
     <string name="dont_show_again">Don\'t show again</string>
     <string name="backup_hint">Choose A Convenient Location T\' Save The Backup ZIP File In</string>
-    <string name="restore_hint">Navigate T\' Th\' Location Where Yer Backup ZIP Be 'N Select It</string>
+    <string name="restore_hint">Navigate T\' Th\' Location Where Yer Backup ZIP Be \'N Select It</string>
     <string name="backup_frequency">Backup Frequency</string>
     <string name="backup_frequency_description" translatable="false">Automatic Backup Frequency</string>
     <string name="backup_frequency_manual">Manual</string>

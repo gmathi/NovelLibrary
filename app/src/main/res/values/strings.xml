@@ -161,6 +161,12 @@
         <item>@string/downloaded_files</item>
     </string-array>
 
+    <string-array name="backup_frequency_options" translatable="false">
+        <item>@string/backup_frequency_manual</item>
+        <item>@string/backup_frequency_Daily</item>
+        <item>@string/backup_frequency_Weekly</item>
+    </string-array>
+
     <string name="app_name" translatable="false">Novel Library</string>
 
     <string name="default_notification_channel_id" translatable="false">io.github.gmathi.novellibrary.channel_id.DEFAULT</string>
@@ -512,7 +518,7 @@
     <string name="backup_hint">Choose a convenient location to save the backup ZIP file in</string>
     <string name="restore_hint">Navigate to the location where your backup ZIP is and select it</string>
     <string name="backup_frequency">Backup Frequency</string>
-    <string name="backup_frequency_description" translatable="false">Automatic backup frequency</string>
+    <string name="backup_frequency_description">Automatic backup frequency</string>
     <string name="backup_frequency_manual">Manual</string>
     <string name="backup_frequency_Daily">Daily</string>
     <string name="backup_frequency_Weekly">Weekly</string>
@@ -525,10 +531,6 @@
     <string name="eztracting_zip">Extracting the ZIP archive</string>
     <string name="simple_text_restore">Simple Text - Novel &amp; Novel Sections Restore</string>
 
-    <string-array name="backup_frequency_options">
-        <item>@string/backup_frequency_manual</item>
-        <item>@string/backup_frequency_Daily</item>
-        <item>@string/backup_frequency_Weekly</item>
-    </string-array>
+
 
 </resources>

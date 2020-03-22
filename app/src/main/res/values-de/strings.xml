@@ -336,10 +336,4 @@
     <string name="restore_data">Restore Data</string>
     <string name="restore_data_description">Restore data from a ZIP archive</string>
 
-    <string-array name="backup_frequency_options">
-        <item>@string/backup_frequency_manual</item>
-        <item>@string/backup_frequency_Daily</item>
-        <item>@string/backup_frequency_Weekly</item>
-    </string-array>
-
 </resources>
