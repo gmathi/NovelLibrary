@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.service.backup
+package io.github.gmathi.novellibrary.worker
 
 import android.content.Context
 import android.content.Intent
@@ -32,8 +32,7 @@ import kotlinx.coroutines.withContext
 import java.io.*
 import java.util.zip.ZipOutputStream
 
-internal class BackupWorker(context: Context, workerParameters: WorkerParameters) :
-    CoroutineWorker(context, workerParameters) {
+internal class BackupWorker(context: Context, workerParameters: WorkerParameters) : CoroutineWorker(context, workerParameters) {
 
     companion object {
         internal const val KEY_URI = "restore_uri"

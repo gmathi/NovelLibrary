@@ -181,7 +181,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
                 })
 
         notificationManager.notify(
-            Constants.nextNotificationId,
+            Utils.getUniqueNotificationId(),
             createNotificationBuilder(
                 getString(R.string.app_name),
                 getString(R.string.group_update_notification_text),
@@ -190,7 +190,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         )
         novelsList.forEach { novel ->
             notificationManager.notify(
-                Constants.nextNotificationId,
+                Utils.getUniqueNotificationId(),
                 createNotificationBuilder(
                     novel.name,
                     getString(

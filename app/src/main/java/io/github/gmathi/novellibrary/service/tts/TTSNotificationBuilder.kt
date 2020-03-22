@@ -31,7 +31,6 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.extensions.isPlaying
-import io.github.gmathi.novellibrary.util.Constants
 
 
 /**
@@ -41,9 +40,8 @@ class TTSNotificationBuilder(private val context: Context, private val pendingIn
 
     companion object {
         const val TTS_CHANNEL_ID: String = "io.github.gmathi.novellibrary.tts"
-
         @JvmStatic
-        val TTS_NOTIFICATION_ID: Int = Constants.nextNotificationId
+        val TTS_NOTIFICATION_ID: Int = io.github.gmathi.novellibrary.util.Utils.getUniqueNotificationId()
     }
 
     private val notificationManager = NotificationManagerCompat.from(context)

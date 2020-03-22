@@ -35,6 +35,7 @@ import io.github.gmathi.novellibrary.model.Novel
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -393,5 +394,18 @@ object Utils {
             throw IllegalArgumentException("unsupported drawable type")
         }
     }
+
+    //Unique Notification IDs for notifications
+    private class NotificationId {
+        companion object {
+            // First 1000 reserved for other notifications
+            private const val notificationIdStartFrom = 1000
+
+            @JvmStatic
+            internal val notificationIdCounter: AtomicInteger = AtomicInteger(notificationIdStartFrom)
+        }
+    }
+
+    fun getUniqueNotificationId() = NotificationId.notificationIdCounter.getAndIncrement()
 
 }

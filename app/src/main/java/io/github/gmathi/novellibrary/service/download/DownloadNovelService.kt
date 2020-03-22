@@ -21,6 +21,7 @@ import io.github.gmathi.novellibrary.model.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.Utils
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.ThreadPoolExecutor
@@ -40,8 +41,9 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
         const val QUALIFIED_NAME = "${BuildConfig.APPLICATION_ID}.service.download.DownloadNovelService"
 
         const val MAX_PARALLEL_DOWNLOADS = 5
+
         @JvmStatic
-        val DOWNLOAD_NOTIFICATION_ID = Constants.nextNotificationId
+        val DOWNLOAD_NOTIFICATION_ID = Utils.getUniqueNotificationId()
 
         const val NOVEL_NAME = "name"
         const val ACTION_START = "action_start"
@@ -50,6 +52,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
     }
 
     private val binder = DownloadNovelBinder()
+
     @Volatile
     var downloadListener: DownloadListener? = null
 
@@ -235,17 +238,17 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(context, channelId)
-                    .setSmallIcon(R.drawable.ic_file_download_white)
-                    .setCustomContentView(view)
-                    .setContentIntent(pendingIntent)
-                    .build()
+                .setSmallIcon(R.drawable.ic_file_download_white)
+                .setCustomContentView(view)
+                .setContentIntent(pendingIntent)
+                .build()
         } else {
             @Suppress("DEPRECATION")
             Notification.Builder(context)
-                    .setSmallIcon(R.drawable.ic_file_download_white)
-                    .setContent(view)
-                    .setContentIntent(pendingIntent)
-                    .build()
+                .setSmallIcon(R.drawable.ic_file_download_white)
+                .setContent(view)
+                .setContentIntent(pendingIntent)
+                .build()
         }
 
     }

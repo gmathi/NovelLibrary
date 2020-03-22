@@ -12,7 +12,6 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.util.Constants
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -38,14 +37,14 @@ class ProgressNotificationManager(context: Context,
                                   private val channelId: String = context.getString(R.string.default_notification_channel_id),
                                   private val channelName: String = context.getString(R.string.default_notification_channel_name),
                                   @Importance private val importance: Int = DEFAULT_CHANNEL_IMPORTANCE,
-                                  private val applyToChannel: NotificationChannel.() -> Unit = DEFAULT_APPLY_TO_CHANNEL(context)
+                                  private val applyToChannel: NotificationChannel.() -> Unit = defaultChannelSettings(context)
 ) : Closeable {
 
     private val notificationManager: NotificationManagerCompat = NotificationManagerCompat.from(context)
     private val notificationQueue: NotificationQueue =
         NotificationQueue()
 
-    val notificationId: Int = Constants.nextNotificationId
+    val notificationId: Int = io.github.gmathi.novellibrary.util.Utils.getUniqueNotificationId()
     val builder: Builder = Builder(
         context,
         channelId
@@ -250,7 +249,7 @@ class ProgressNotificationManager(context: Context,
 
         @TargetApi(Build.VERSION_CODES.O)
         @JvmStatic
-        private fun DEFAULT_APPLY_TO_CHANNEL(context: Context): NotificationChannel.() -> Unit =  {
+        private fun defaultChannelSettings(context: Context): NotificationChannel.() -> Unit =  {
             description = context.getString(R.string.default_notification_channel_description)
             setSound(null, null)
             enableVibration(false)

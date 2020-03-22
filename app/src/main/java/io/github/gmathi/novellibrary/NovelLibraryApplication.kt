@@ -56,11 +56,12 @@ class NovelLibraryApplication : MultiDexApplication() {
                 dataCenter?.language = "pa"
                 dataCenter?.fooled = true
             }
-        }
-        else dataCenter?.fooled = false
+        } else dataCenter?.fooled = false
         super.onCreate()
 
-        deleteOldChannels()
+        if (dataCenter?.hasAlreadyDeletedOldChannels == false) {
+            deleteOldNotificationChannels()
+        }
 
         //Stray webPages to be deleted
         dbHelper?.deleteWebPages(-1L)
@@ -108,10 +109,11 @@ class NovelLibraryApplication : MultiDexApplication() {
     }
 
     @Deprecated("This method deletes old notification channels. Assuming that all users updated and run the app at least once, this method should be removed!")
-    private fun deleteOldChannels() {
+    private fun deleteOldNotificationChannels() {
         val notificationManager = NotificationManagerCompat.from(applicationContext)
         notificationManager.deleteNotificationChannel("default")
         notificationManager.deleteNotificationChannel("io.github.gmathi.novellibrary.service.tts.NOW_PLAYING")
+        dataCenter?.hasAlreadyDeletedOldChannels = true
     }
 
     @Throws(KeyManagementException::class, NoSuchAlgorithmException::class)

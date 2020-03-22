@@ -102,16 +102,5 @@ object Constants {
 
     const val WORK_KEY_RESULT = "result"
 
-    private class NotificationId {
-        companion object {
-            // First 1000 reserved for other notifications
-            private const val notificationIdStartFrom = 1000
 
-            @JvmStatic
-            internal val notificationIdCounter: AtomicInteger = AtomicInteger(notificationIdStartFrom)
-        }
-    }
-
-    val nextNotificationId: Int
-        get() = NotificationId.notificationIdCounter.getAndIncrement()
 }

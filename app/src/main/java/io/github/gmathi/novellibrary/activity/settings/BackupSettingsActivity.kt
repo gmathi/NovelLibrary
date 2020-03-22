@@ -10,8 +10,11 @@ import android.webkit.MimeTypeMap
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.work.*
+import androidx.work.Data
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo.State
+import androidx.work.WorkManager
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.Theme
@@ -23,7 +26,6 @@ import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.service.backup.BackupWorker
 import io.github.gmathi.novellibrary.service.util.oneTimeBackupWorkRequest
 import io.github.gmathi.novellibrary.service.util.oneTimeRestoreWorkRequest
 import io.github.gmathi.novellibrary.service.util.periodicBackupWorkRequest
@@ -31,6 +33,7 @@ import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.worker.BackupWorker
 import kotlinx.android.synthetic.main.activity_settings.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_title_subtitle_widget.view.*
@@ -107,8 +110,10 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         itemView.subtitle.applyFont(assets).text = settingsItemsDescription[position]
         itemView.widgetSwitch.setOnCheckedChangeListener(null)
 
-        itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
-        else ContextCompat.getColor(this, android.R.color.transparent))
+        itemView.setBackgroundColor(
+            if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
+            else ContextCompat.getColor(this, android.R.color.transparent)
+        )
     }
 
     override fun onItemClick(item: String) {
@@ -118,28 +123,28 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
             getString(R.string.backup_data) -> {
                 MaterialDialog.Builder(this)
-                        .title(item)
-                        .items(R.array.backup_and_restore_options)
-                        .itemsCallbackMultiChoice(arrayOf(0, 1, 2, 3)) { _, which, _ ->
-                            if (which.isNotEmpty())
-                                backupData(which.contains(0), which.contains(1), which.contains(2), which.contains(3))
-                            true
-                        }
-                        .positiveText(R.string.okay)
-                        .show()
+                    .title(item)
+                    .items(R.array.backup_and_restore_options)
+                    .itemsCallbackMultiChoice(arrayOf(0, 1, 2, 3)) { _, which, _ ->
+                        if (which.isNotEmpty())
+                            backupData(which.contains(0), which.contains(1), which.contains(2), which.contains(3))
+                        true
+                    }
+                    .positiveText(R.string.okay)
+                    .show()
             }
 
             getString(R.string.restore_data) -> {
                 MaterialDialog.Builder(this)
-                        .title(item)
-                        .items(R.array.backup_and_restore_options)
-                        .itemsCallbackMultiChoice(arrayOf(0, 1, 2, 3)) { _, which, _ ->
-                            if (which.isNotEmpty())
-                                restoreData(which.contains(0), which.contains(1), which.contains(2), which.contains(3))
-                            true
-                        }
-                        .positiveText(R.string.okay)
-                        .show()
+                    .title(item)
+                    .items(R.array.backup_and_restore_options)
+                    .itemsCallbackMultiChoice(arrayOf(0, 1, 2, 3)) { _, which, _ ->
+                        if (which.isNotEmpty())
+                            restoreData(which.contains(0), which.contains(1), which.contains(2), which.contains(3))
+                        true
+                    }
+                    .positiveText(R.string.okay)
+                    .show()
             }
 
             getString(R.string.backup_frequency) -> {
@@ -150,38 +155,38 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                         else -> 0
                     }
                 MaterialDialog.Builder(this)
-                        .theme(Theme.DARK)
-                        .title(item)
-                        .items(R.array.backup_frequency_options)
-                        .itemsCallbackSingleChoice(selected) { _, _, which, _ ->
-                            var backupFrequency =
-                                when (which) {
-                                    1 -> 24
-                                    2 -> 24 * 7
-                                    else -> 0
-                                }
-                            if (dataCenter.backupFrequency != backupFrequency) {
-                                val workRequest = if (backupFrequency != 0) periodicBackupWorkRequest() else null
-                                WorkManager.getInstance(applicationContext).apply {
-                                    if (workRequest == null) {
-                                        backupFrequency = 0
-                                        cancelUniqueWork(BackupWorker.UNIQUE_WORK_NAME)
-                                    } else {
-                                        enqueueUniquePeriodicWork(
-                                            BackupWorker.UNIQUE_WORK_NAME,
-                                            ExistingPeriodicWorkPolicy.REPLACE,
-                                            workRequest
-                                        )
-                                    }
-                                }
-                                dataCenter.backupFrequency = backupFrequency
-                                setBackupFrequencyDescription(backupFrequency)
-                                adapter.notifyItemChanged(BACKUP_FREQUENCY_LIST_INDEX)
+                    .theme(Theme.DARK)
+                    .title(item)
+                    .items(R.array.backup_frequency_options)
+                    .itemsCallbackSingleChoice(selected) { _, _, which, _ ->
+                        var backupFrequency =
+                            when (which) {
+                                1 -> 24
+                                2 -> 24 * 7
+                                else -> 0
                             }
-                            true
+                        if (dataCenter.backupFrequency != backupFrequency) {
+                            val workRequest = if (backupFrequency != 0) periodicBackupWorkRequest() else null
+                            WorkManager.getInstance(applicationContext).apply {
+                                if (workRequest == null) {
+                                    backupFrequency = 0
+                                    cancelUniqueWork(BackupWorker.UNIQUE_WORK_NAME)
+                                } else {
+                                    enqueueUniquePeriodicWork(
+                                        BackupWorker.UNIQUE_WORK_NAME,
+                                        ExistingPeriodicWorkPolicy.REPLACE,
+                                        workRequest
+                                    )
+                                }
+                            }
+                            dataCenter.backupFrequency = backupFrequency
+                            setBackupFrequencyDescription(backupFrequency)
+                            adapter.notifyItemChanged(BACKUP_FREQUENCY_LIST_INDEX)
                         }
-                        .positiveText(R.string.okay)
-                        .show()
+                        true
+                    }
+                    .positiveText(R.string.okay)
+                    .show()
             }
         }
     }
@@ -216,7 +221,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             confirmDialogBuilder.content(content)
 
         confirmDialogBuilder
-                .iconRes(iconRes)
+            .iconRes(iconRes)
 
         if (!isProgress)
             confirmDialogBuilder.positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
@@ -228,11 +233,11 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private val zipIntent: Intent
         get() {
             return Intent()
-                    .addCategory(Intent.CATEGORY_OPENABLE)
-                    .setType(ZIP_MIME_TYPE)
-                    .putExtra(Intent.EXTRA_TITLE, BACKUP_FILE_NAME)
-                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType(ZIP_MIME_TYPE)
+                .putExtra(Intent.EXTRA_TITLE, BACKUP_FILE_NAME)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
         }
 
     private fun backupData(shouldBackupSimpleText: Boolean = true, shouldBackupDatabase: Boolean = true, shouldBackupPreferences: Boolean = true, shouldBackupFiles: Boolean = true) {
@@ -243,24 +248,25 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
         if (dataCenter.showBackupHint) {
             SuperActivityToast.create(this, Style(), Style.TYPE_BUTTON)
-                    .setButtonText(getString(R.string.dont_show_again))
-                    .setOnButtonClickListener("hint", null
-                    ) { _, _ ->
-                        dataCenter.showBackupHint = false
-                    }
-                    .setText(getString(R.string.backup_hint))
-                    .setDuration(Style.DURATION_VERY_LONG)
-                    .setFrame(Style.FRAME_LOLLIPOP)
-                    .setColor(PaletteUtils.getSolidColor(PaletteUtils.MATERIAL_BLUE_GREY))
-                    .setAnimations(Style.ANIMATIONS_POP)
-                    .setOnDismissListener { _, _ -> doBackup() }
-                    .show()
+                .setButtonText(getString(R.string.dont_show_again))
+                .setOnButtonClickListener(
+                    "hint", null
+                ) { _, _ ->
+                    dataCenter.showBackupHint = false
+                }
+                .setText(getString(R.string.backup_hint))
+                .setDuration(Style.DURATION_VERY_LONG)
+                .setFrame(Style.FRAME_LOLLIPOP)
+                .setColor(PaletteUtils.getSolidColor(PaletteUtils.MATERIAL_BLUE_GREY))
+                .setAnimations(Style.ANIMATIONS_POP)
+                .setOnDismissListener { _, _ -> doBackup() }
+                .show()
         } else doBackup()
     }
 
     private fun doBackup() {
         val intent = zipIntent.setAction(Intent.ACTION_CREATE_DOCUMENT)
-                .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+            .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
         startActivityForResult(intent, CREATE_BACKUP_REQUEST_CODE)
     }
 
@@ -272,18 +278,19 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
         if (dataCenter.showRestoreHint) {
             SuperActivityToast.create(this, Style(), Style.TYPE_BUTTON)
-                    .setButtonText(getString(R.string.dont_show_again))
-                    .setOnButtonClickListener("hint", null
-                    ) { _, _ ->
-                        dataCenter.showRestoreHint = false
-                    }
-                    .setText(getString(R.string.restore_hint))
-                    .setDuration(Style.DURATION_VERY_LONG)
-                    .setFrame(Style.FRAME_LOLLIPOP)
-                    .setColor(PaletteUtils.getSolidColor(PaletteUtils.MATERIAL_BLUE_GREY))
-                    .setAnimations(Style.ANIMATIONS_POP)
-                    .setOnDismissListener { _, _ -> doRestore() }
-                    .show()
+                .setButtonText(getString(R.string.dont_show_again))
+                .setOnButtonClickListener(
+                    "hint", null
+                ) { _, _ ->
+                    dataCenter.showRestoreHint = false
+                }
+                .setText(getString(R.string.restore_hint))
+                .setDuration(Style.DURATION_VERY_LONG)
+                .setFrame(Style.FRAME_LOLLIPOP)
+                .setColor(PaletteUtils.getSolidColor(PaletteUtils.MATERIAL_BLUE_GREY))
+                .setAnimations(Style.ANIMATIONS_POP)
+                .setOnDismissListener { _, _ -> doRestore() }
+                .show()
         } else doRestore()
     }
 
@@ -364,23 +371,23 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     private fun deleteFilesDialog() {
         MaterialDialog.Builder(this)
-                .title(getString(R.string.clear_data))
-                .content(getString(R.string.clear_data_description))
-                .positiveText(R.string.clear)
-                .negativeText(R.string.cancel)
-                .onPositive { dialog, _ ->
-                    val progressDialog = MaterialDialog.Builder(this)
-                            .title(getString(R.string.clearing_data))
-                            .content(getString(R.string.please_wait))
-                            .progress(true, 0)
-                            .cancelable(false)
-                            .canceledOnTouchOutside(false)
-                            .show()
-                    deleteFiles(progressDialog)
-                    dialog.dismiss()
-                }
-                .onNegative { dialog, _ -> dialog.dismiss() }
-                .show()
+            .title(getString(R.string.clear_data))
+            .content(getString(R.string.clear_data_description))
+            .positiveText(R.string.clear)
+            .negativeText(R.string.cancel)
+            .onPositive { dialog, _ ->
+                val progressDialog = MaterialDialog.Builder(this)
+                    .title(getString(R.string.clearing_data))
+                    .content(getString(R.string.please_wait))
+                    .progress(true, 0)
+                    .cancelable(false)
+                    .canceledOnTouchOutside(false)
+                    .show()
+                deleteFiles(progressDialog)
+                dialog.dismiss()
+            }
+            .onNegative { dialog, _ -> dialog.dismiss() }
+            .show()
     }
 
     private fun deleteFiles(dialog: MaterialDialog) {

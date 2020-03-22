@@ -3,8 +3,8 @@ package io.github.gmathi.novellibrary.service.util
 import android.net.Uri
 import androidx.work.*
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.service.backup.BackupWorker
-import io.github.gmathi.novellibrary.service.restore.RestoreWorker
+import io.github.gmathi.novellibrary.worker.BackupWorker
+import io.github.gmathi.novellibrary.worker.RestoreWorker
 import java.util.concurrent.TimeUnit
 
 const val ONE_TIME_BACKUP_WORK_TAG = "backupOnce"
