@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.service.util
+package io.github.gmathi.novellibrary.util
 
 import androidx.core.content.FileProvider
 

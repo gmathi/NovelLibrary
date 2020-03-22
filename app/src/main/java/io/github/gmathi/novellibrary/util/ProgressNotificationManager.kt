@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.service.util
+package io.github.gmathi.novellibrary.util
 
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
@@ -12,11 +12,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
@@ -37,14 +34,16 @@ class ProgressNotificationManager(context: Context,
                                   private val channelId: String = context.getString(R.string.default_notification_channel_id),
                                   private val channelName: String = context.getString(R.string.default_notification_channel_name),
                                   @Importance private val importance: Int = DEFAULT_CHANNEL_IMPORTANCE,
-                                  private val applyToChannel: NotificationChannel.() -> Unit = defaultChannelSettings(context)
+                                  private val applyToChannel: NotificationChannel.() -> Unit = defaultChannelSettings(
+                                      context
+                                  )
 ) : Closeable {
 
     private val notificationManager: NotificationManagerCompat = NotificationManagerCompat.from(context)
     private val notificationQueue: NotificationQueue =
         NotificationQueue()
 
-    val notificationId: Int = io.github.gmathi.novellibrary.util.Utils.getUniqueNotificationId()
+    val notificationId: Int = Utils.getUniqueNotificationId()
     val builder: Builder = Builder(
         context,
         channelId
@@ -226,6 +225,7 @@ class ProgressNotificationManager(context: Context,
                 queueSize = 0
             }
 
+            @ExperimentalCoroutinesApi
             fun isClosed(): Boolean = updateChannel.isClosedForReceive
 
             init {
