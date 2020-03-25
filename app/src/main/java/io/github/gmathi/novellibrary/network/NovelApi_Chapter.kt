@@ -218,40 +218,16 @@ private fun getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String,
 }
 
 fun getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage>? {
-    var chapters: ArrayList<WebPage>? = null
-    try {
-        val document = Jsoup.connect(novel.url).get()
-        chapters = ArrayList()
-
-        val pageCount = document.body().select("li.last > a").first().attr("data-page").toInt() + 1
-        chapters.addAll(getNovelFullChapterUrlsFromDoc(document))
-
-        (2..pageCount).forEach { pageNumber ->
-            val doc = Jsoup.connect(novel.url + "?page=$pageNumber&per-page=50").get()
-            chapters.addAll(getNovelFullChapterUrlsFromDoc(doc))
-        }
-
-        var orderId = 0L
-        chapters.asSequence().forEach { webPage ->
-            webPage.orderId = orderId++
-            webPage.novelId = novel.id
-        }
-
+    return try {
+        val id = Jsoup.connect(novel.url).get().selectFirst("#rating").attr("data-novel-id")
+        val chaptersDoc = Jsoup.connect("https://${HostNames.NOVEL_FULL}/ajax-chapter-option?novelId=$id&currentChapterId=").get()
+        ArrayList(chaptersDoc.selectFirst("select.chapter_jump").children().mapIndexed { i, elem ->
+            WebPage(url = "https://${HostNames.NOVEL_FULL}${elem.attr("value")}",
+                    chapter = elem.text(), novelId = novel.id, orderId = i.toLong())
+        })
     } catch (e: Exception) {
-        e.printStackTrace()
+        e.printStackTrace(); null
     }
-    return chapters
-}
-
-fun getNovelFullChapterUrlsFromDoc(doc: Document): ArrayList<WebPage> {
-    val chapters = ArrayList<WebPage>()
-    val liElements = doc.body().select("ul.list-chapter > li")
-    if (liElements.isNotEmpty())
-        liElements.mapTo(chapters) {
-            val a = it.select("a[href]")
-            WebPage(url = a.attr("abs:href"), chapter = a.attr("title"))
-        }
-    return chapters
 }
 
 fun getScribbleHubChapterUrls(novel: Novel): ArrayList<WebPage> {

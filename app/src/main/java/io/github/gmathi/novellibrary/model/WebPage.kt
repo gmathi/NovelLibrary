@@ -2,11 +2,9 @@ package io.github.gmathi.novellibrary.model
 
 import java.io.Serializable
 
-data class WebPage(var url: String, var chapter: String) : Serializable {
-
-    var novelId: Long = -1L
-    var sourceId: Long = -1L
-    var orderId: Long = -1L
+data class WebPage(var url: String, var chapter: String,
+                   var novelId: Long = -1L, var orderId: Long = -1L,
+                   var sourceId: Long = -1L) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -27,6 +25,5 @@ data class WebPage(var url: String, var chapter: String) : Serializable {
     override fun toString(): String {
         return "WebPage(url='$url', chapter='$chapter', novelId=$novelId, sourceId=$sourceId, orderId=$orderId)"
     }
-
 
 }
