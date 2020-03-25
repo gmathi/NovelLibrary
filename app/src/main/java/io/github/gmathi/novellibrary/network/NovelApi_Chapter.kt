@@ -220,7 +220,7 @@ private fun getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String,
 fun getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage>? {
     return try {
         val id = Jsoup.connect(novel.url).get().selectFirst("#rating").attr("data-novel-id")
-        val chaptersDoc = Jsoup.connect("https://novelfull.com/ajax-chapter-option?novelId=$id&currentChapterId=").get()
+        val chaptersDoc = Jsoup.connect("https://${HostNames.NOVEL_FULL}/ajax-chapter-option?novelId=$id&currentChapterId=").get()
         ArrayList(chaptersDoc.selectFirst("select.chapter_jump").children().mapIndexed { i, elem ->
             WebPage(url = "https://${HostNames.NOVEL_FULL}${elem.attr("value")}",
                     chapter = elem.text(), novelId = novel.id, orderId = i.toLong())
