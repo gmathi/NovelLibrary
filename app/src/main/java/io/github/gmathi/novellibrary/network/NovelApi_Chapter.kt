@@ -222,7 +222,7 @@ fun getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage>? {
         val id = Jsoup.connect(novel.url).get().selectFirst("#rating").attr("data-novel-id")
         val chaptersDoc = Jsoup.connect("https://novelfull.com/ajax-chapter-option?novelId=$id&currentChapterId=").get()
         ArrayList(chaptersDoc.selectFirst("select.chapter_jump").children().mapIndexed { i, elem ->
-            WebPage(url = "https://novelfull.com${elem.attr("value")}",
+            WebPage(url = "https://${HostNames.NOVEL_FULL}${elem.attr("value")}",
                     chapter = elem.text(), novelId = novel.id, orderId = i.toLong())
         })
     } catch (e: Exception) {
