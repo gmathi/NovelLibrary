@@ -45,6 +45,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         const val CODE_NAME_SCRIB = "code_unlock_scrib"
         const val CODE_NAME_NF = "code_unlock_nf"
         const val CODE_NAME_RRL = "code_unlock_rrl"
+        const val CODE_NAME_WW = "code_unlock_ww"
 
     }
 
@@ -74,6 +75,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         defaults[CODE_NAME_SCRIB] = DEFAULT_CODE
         defaults[CODE_NAME_NF] = DEFAULT_CODE
         defaults[CODE_NAME_RRL] = DEFAULT_CODE
+        defaults[CODE_NAME_WW] = DEFAULT_CODE
         remoteConfig.setDefaults(defaults)
         remoteConfig.fetchAndActivate()
     }
@@ -177,6 +179,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     CODE_NAME_RRL -> dataCenter.lockRoyalRoad = false
                     CODE_NAME_NF -> dataCenter.lockNovelFull = false
                     CODE_NAME_SCRIB -> dataCenter.lockScribble = false
+                    CODE_NAME_WW -> dataCenter.disableWuxiaDownloads = false
                 }
             }
         }
