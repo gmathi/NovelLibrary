@@ -7,7 +7,6 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
 import java.net.URI
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
