@@ -1,11 +1,10 @@
 package io.github.gmathi.novellibrary.activity
 
-import android.content.Intent
 import android.os.Bundle
-import androidx.core.content.ContextCompat
-import androidx.appcompat.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
+import androidx.appcompat.view.ActionMode
+import androidx.core.content.ContextCompat
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.google.gson.Gson
@@ -29,7 +28,6 @@ import org.greenrobot.eventbus.EventBus
 import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
-
 
 
 class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
@@ -207,24 +205,30 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     }
 
     private var devCounter: Int = 0
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-
-        when {
-            item?.itemId == android.R.id.home -> finish()
-            item?.itemId == R.id.action_sync -> {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> finish()
+            R.id.action_sync -> {
                 getChapters(forceUpdate = true)
                 devCounter++
                 if (devCounter == 40) dataCenter.isDeveloper = true
                 return true
             }
-            item?.itemId == R.id.action_download -> {
+            R.id.action_download -> {
                 confirmDialog(getString(R.string.download_all_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
-                    addWebPagesToDownload()
-                    dialog.dismiss()
+                    val publisher = novel.metaData["English Publisher"]
+                    val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true) ?: false
+                    if (dataCenter.disableWuxiaDownloads && isWuxiaChapterPresent) {
+                        dialog.dismiss()
+                        showWuxiaWorldDownloadDialog()
+                    } else {
+                        dialog.dismiss()
+                        addWebPagesToDownload()
+                    }
                 })
                 return true
             }
-            item?.itemId == R.id.action_add_to_library -> {
+            R.id.action_add_to_library -> {
                 addNovelToLibrary()
                 invalidateOptionsMenu()
                 return true
@@ -236,7 +240,6 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     //endregion
 
     //region ActionMode Callback
-
 
     internal fun addToDataSet(webPage: WebPage) {
         dataSet.add(webPage)
@@ -304,14 +307,23 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             R.id.action_download -> {
                 confirmDialog(getString(R.string.download_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
                     if (novel.id == -1L) {
-                        showNotInLibraryDialog()
-                    } else {
-                        val listToDownload = ArrayList(dataSet)
-                        if (listToDownload.isNotEmpty()) {
-                            addWebPagesToDownload(listToDownload)
-                        }
                         dialog.dismiss()
+                        showNotInLibraryDialog()
                         mode?.finish()
+                    } else {
+                        val publisher = novel.metaData["English Publisher"]
+                        val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true) ?: false
+                        if (dataCenter.disableWuxiaDownloads && isWuxiaChapterPresent) {
+                            dialog.dismiss()
+                            showWuxiaWorldDownloadDialog()
+                        } else {
+                            val listToDownload = ArrayList(dataSet)
+                            if (listToDownload.isNotEmpty()) {
+                                dialog.dismiss()
+                                addWebPagesToDownload(listToDownload)
+                                mode?.finish()
+                            }
+                        }
                     }
                 })
             }
@@ -435,6 +447,16 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 .show()
     }
 
+    private fun showWuxiaWorldDownloadDialog() {
+        MaterialDialog.Builder(this)
+                .iconRes(R.drawable.ic_warning_white_vector)
+                .title(getString(R.string.alert))
+                .content("Downloads are not supported for WuxiaWorld content. Please use their app for downloads/offline reading WuxiaWorld novels.")
+                .positiveText(getString(R.string.okay))
+                .onPositive { dialog, _ -> dialog.dismiss() }
+                .show()
+    }
+
     private fun manageDownloadsDialog() {
         MaterialDialog.Builder(this)
                 .iconRes(R.drawable.ic_info_white_vector)
@@ -471,26 +493,27 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     private fun deleteWebPage(webPage: WebPage) {
         val webPageSettings = chaptersSettings.firstOrNull { it.url == webPage.url }
         webPageSettings?.filePath?.let { filePath ->
-            try {
                 val file = File(filePath)
                 file.delete()
                 webPageSettings.filePath = null
-                if (webPageSettings.metaData.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
-                    val linkedPages: ArrayList<String> = Gson().fromJson(webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES_SETTINGS], object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+            try {
+                val otherLinkedPagesJsonString = webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES]
+                if (otherLinkedPagesJsonString != null) {
+                    val linkedPages: ArrayList<WebPage> = Gson().fromJson(otherLinkedPagesJsonString, object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
                     linkedPages.forEach {
-                        val linkedWebPageSettings = chaptersSettings.firstOrNull { it.url == webPage.url }
+                        val linkedWebPageSettings = dbHelper.getWebPageSettings(it.url)
                         if (linkedWebPageSettings?.filePath != null) {
-                            val linkedFile = File(linkedWebPageSettings.filePath)
+                            val linkedFile = File(linkedWebPageSettings.filePath!!)
                             linkedFile.delete()
                             dbHelper.deleteWebPageSettings(linkedWebPageSettings.url)
                         }
                     }
                     webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = "[]"
                 }
-                dbHelper.updateWebPageSettings(webPageSettings)
             } catch (e: Exception) {
                 Logs.error(TAG, e.localizedMessage)
             }
+            dbHelper.updateWebPageSettings(webPageSettings)
         }
     }
 

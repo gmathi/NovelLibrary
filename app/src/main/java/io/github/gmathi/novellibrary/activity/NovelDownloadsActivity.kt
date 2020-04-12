@@ -99,8 +99,8 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
         }
 
         itemView.playPauseImage.setOnClickListener {
-            when {
-                itemView.playPauseImage.tag == Download.STATUS_PAUSED -> {
+            when (itemView.playPauseImage.tag) {
+                Download.STATUS_PAUSED -> {
                     itemView.playPauseImage.setImageResource(R.drawable.ic_pause_white_vector)
                     itemView.playPauseImage.tag = Download.STATUS_IN_QUEUE
                     dbHelper.updateDownloadStatusNovelName(Download.STATUS_IN_QUEUE, item)
@@ -111,8 +111,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                         bindService()
                     }
                 }
-
-                itemView.playPauseImage.tag == Download.STATUS_IN_QUEUE -> {
+                Download.STATUS_IN_QUEUE -> {
                     itemView.playPauseImage.setImageResource(R.drawable.ic_play_arrow_white_vector)
                     itemView.playPauseImage.tag = Download.STATUS_PAUSED
                     dbHelper.updateDownloadStatusNovelName(Download.STATUS_PAUSED, item)

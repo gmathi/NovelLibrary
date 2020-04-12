@@ -30,6 +30,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         private const val POSITION_BACKUP_AND_RESTORE = 1
         //        private const val POSITION_ENABLE_CLOUD_FLARE = 2
         private const val POSITION_ENABLE_NOTIFICATIONS = 2
+        private const val POSITION_LANGUAGES = 3
         //private const val POSITION_FASTER_DOWNLOADS = 4
 
     }
@@ -51,17 +52,14 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         settingsItems = ArrayList(resources.getStringArray(R.array.general_titles_list).asList())
 
         val items = ArrayList(resources.getStringArray(R.array.general_subtitles_list).asList())
-        val systemDefault = resources.getString(R.string.system_default)
+        val systemDefault = resources.getString(R.string.locale_system_default)
         if (items.contains(systemDefault)) {
             val language = try {
                 dataCenter.language
             } catch (e: KotlinNullPointerException) {
                 SYSTEM_DEFAULT
             }
-            items[items.indexOfFirst { it == systemDefault }] =
-                    if (language != SYSTEM_DEFAULT)
-                        Locale(language).displayLanguage
-                    else systemDefault
+            items[items.indexOfFirst { it == systemDefault }] = LanguageActivity.getLanguageName(this, language)
         }
         settingsItemsDescription = items
 
@@ -74,7 +72,8 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     override fun bind(item: String, itemView: View, position: Int) {
         itemView.widgetChevron.visibility = View.INVISIBLE
         itemView.widgetSwitch.visibility = View.INVISIBLE
-        itemView.widgetButton.visibility = View.INVISIBLE
+        itemView.currentValue.visibility = View.INVISIBLE
+        itemView.blackOverlay.visibility = View.INVISIBLE
 
         itemView.title.applyFont(assets).text = item
         itemView.subtitle.applyFont(assets).text = settingsItemsDescription[position]
@@ -86,7 +85,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.loadLibraryScreen = value }
             }
 
-            POSITION_BACKUP_AND_RESTORE -> {
+            POSITION_BACKUP_AND_RESTORE, POSITION_LANGUAGES -> {
                 itemView.widgetChevron.visibility = View.VISIBLE
             }
 
@@ -107,6 +106,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                         BackgroundNovelSyncTask.cancelAll(applicationContext)
                 }
             }
+
 
 //            POSITION_FASTER_DOWNLOADS -> {
 //                itemView.widgetSwitch.visibility = View.VISIBLE

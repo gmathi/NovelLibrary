@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
 class Novel(@SerializedName("name") var name: String, @SerializedName("url") var url: String) : Serializable {
-    var id: Long = -1
+    var id: Long = -1L
     @SerializedName("imageUrl") var imageUrl: String? = null
     var rating: String? = null
     var shortDescription: String? = null
@@ -14,7 +14,7 @@ class Novel(@SerializedName("name") var name: String, @SerializedName("url") var
 //    var currentWebPageId: Long = -1
 
     @SerializedName("currentlyReading") var currentWebPageUrl: String? = null
-    var orderId: Long = -1
+    var orderId: Long = -1L
     var newReleasesCount = 0L
     var chaptersCount = 0L
     @SerializedName("metaData") var metaData: HashMap<String, String?> = HashMap()

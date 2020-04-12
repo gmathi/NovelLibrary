@@ -1,19 +1,15 @@
 package io.github.gmathi.novellibrary
 
 import android.annotation.SuppressLint
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.content.res.Configuration
-import android.os.Build
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.app.NotificationManagerCompat
 import androidx.multidex.MultiDexApplication
 import com.crashlytics.android.Crashlytics
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.security.ProviderInstaller
-import com.squareup.leakcanary.LeakCanary
 import io.fabric.sdk.android.Fabric
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.deleteWebPageSettings
@@ -29,6 +25,7 @@ import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
+import java.util.*
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
@@ -53,7 +50,18 @@ class NovelLibraryApplication : MultiDexApplication() {
     override fun onCreate() {
         dataCenter = DataCenter(applicationContext)
         dbHelper = DBHelper.getInstance(applicationContext)
+        val date = Calendar.getInstance()
+        if (date.get(Calendar.MONTH) == 4 && date.get(Calendar.DAY_OF_MONTH) == 1) {
+            if (!dataCenter?.fooled!!) {
+                dataCenter?.language = "pa"
+                dataCenter?.fooled = true
+            }
+        } else dataCenter?.fooled = false
         super.onCreate()
+
+        if (dataCenter?.hasAlreadyDeletedOldChannels == false) {
+            deleteOldNotificationChannels()
+        }
 
         //Stray webPages to be deleted
         dbHelper?.deleteWebPages(-1L)
@@ -78,11 +86,6 @@ class NovelLibraryApplication : MultiDexApplication() {
 
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
 
-        if (LeakCanary.isInAnalyzerProcess(this)) {
-            return
-        }
-        LeakCanary.install(this)
-
         val imagesDir = File(filesDir, "images")
         if (!imagesDir.exists())
             imagesDir.mkdir()
@@ -101,10 +104,16 @@ class NovelLibraryApplication : MultiDexApplication() {
             WebView.setWebContentsDebuggingEnabled(true)
         }
 
-        initChannels(applicationContext)
-
         if (dataCenter!!.enableNotifications)
             startSyncService()
+    }
+
+    @Deprecated("This method deletes old notification channels. Assuming that all users updated and run the app at least once, this method should be removed!")
+    private fun deleteOldNotificationChannels() {
+        val notificationManager = NotificationManagerCompat.from(applicationContext)
+        notificationManager.deleteNotificationChannel("default")
+        notificationManager.deleteNotificationChannel("io.github.gmathi.novellibrary.service.tts.NOW_PLAYING")
+        dataCenter?.hasAlreadyDeletedOldChannels = true
     }
 
     @Throws(KeyManagementException::class, NoSuchAlgorithmException::class)
@@ -139,19 +148,6 @@ class NovelLibraryApplication : MultiDexApplication() {
         } catch (e: Exception) {
             Logs.error("Exception", "Other Exception: ${e.localizedMessage}", e)
         }
-    }
-
-    private fun initChannels(context: Context) {
-        if (Build.VERSION.SDK_INT < 26) {
-            return
-        }
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channel = NotificationChannel(getString(R.string.default_notification_channel_id),
-                "Default Channel",
-                NotificationManager.IMPORTANCE_DEFAULT)
-        channel.description = "Default Channel Description"
-        channel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-        notificationManager.createNotificationChannel(channel)
     }
 
     private fun startSyncService() {

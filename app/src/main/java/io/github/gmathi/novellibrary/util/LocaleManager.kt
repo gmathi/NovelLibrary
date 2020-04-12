@@ -8,10 +8,16 @@ import android.content.res.Resources
 import android.os.Build
 import android.os.Build.VERSION_CODES.JELLY_BEAN_MR1
 import androidx.appcompat.app.AppCompatActivity
-import io.github.gmathi.novellibrary.R
+import com.google.gson.Gson
+import com.google.gson.internal.LinkedTreeMap
+import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
 import java.util.*
+import kotlin.collections.HashMap
 import kotlin.system.exitProcess
 
 
@@ -19,47 +25,47 @@ class LocaleManager {
 
     companion object {
 
-        private const val untranslatable = 26
-        private const val falsePositive = 67
+        private fun toResourceLocale(language: String): String {
+            return when (language) {
+                "id" -> "in"
+                else -> language
+            }
+        }
 
-        private lateinit var stringResourceIds: List<Int>
+        private const val englishLanguage = "en"
 
-        private lateinit var stringResourcesEnglish: List<String>
-
-        private val translations: HashMap<String, Int> = HashMap()
+        private var translated: HashMap<String, Int> = HashMap()
 
         @Synchronized
-        fun translated(context: Context, language: String = "en"): Int {
+        fun translated(context: Context, language: String = englishLanguage): Int {
             if (language == SYSTEM_DEFAULT)
                 return -1
-            if (!translations.containsKey(language)) {
-                if (!::stringResourceIds.isInitialized) {
-                    val strings = R.string()
-                    stringResourceIds = R.string::class.java.fields
-                            .filter { it.type.toString() == "int" }
-                            .map { it.getInt(strings) }
-                }
-
-                if (!::stringResourcesEnglish.isInitialized) {
-                    val resources = getResourcesLocale(context) ?: return -1
-                    stringResourcesEnglish = stringResourceIds.map { resources.getString(it) }
-                }
-
-                if (language == "en")
-                    translations["en"] = stringResourcesEnglish.size - untranslatable - falsePositive
-                else {
-                    val resources = getResourcesLocale(context, language) ?: return -1
-                    val stringResources = stringResourceIds.map { resources.getString(it) }
-                            .filter { !stringResourcesEnglish.contains(it) }
-                    translations[language] = stringResources.size
+            if (translated.isEmpty()) {
+                val reader: BufferedReader
+                val stringBuilder = StringBuilder()
+                try {
+                    reader = BufferedReader(InputStreamReader(context.assets.open("translations.json")))
+                    var mLine = reader.readLine()
+                    while (mLine != null) {
+                        stringBuilder.append(mLine)
+                        mLine = reader.readLine()
+                    }
+                    val type = object : TypeToken<Map<String, String>>() {}.type
+                    val json: LinkedTreeMap<String, String> = Gson().fromJson(stringBuilder.toString(), type)
+                    for (pair in json) {
+                        translated[pair.key] = pair.value.toInt()
+                    }
+                } catch (e: IOException) {
+                    Logs.error("LocaleManager", e.localizedMessage, e)
+                    translated.clear()
                 }
             }
-            return translations[language] ?: -1
+            return translated[toResourceLocale(language)] ?: -1
         }
 
         @SuppressLint("ObsoleteSdkInt")
         @Suppress("DEPRECATION")
-        private fun getResourcesLocale(context: Context, language: String = "en"): Resources? {
+        private fun getResourcesLocale(context: Context, language: String = englishLanguage): Resources? {
             if (language == SYSTEM_DEFAULT)
                 return null
             val locale = Locale(language)
@@ -70,21 +76,29 @@ class LocaleManager {
             } else null
         }
 
-        private fun getLanguage(): String {
+        private fun getLanguage(context: Context): String {
             return try {
                 dataCenter.language
             } catch (e: KotlinNullPointerException) {
-                SYSTEM_DEFAULT
+                DataCenter(context).language
             }
         }
 
         @SuppressLint("ObsoleteSdkInt")
         @Suppress("DEPRECATION")
-        fun updateContextLocale(context: Context, language: String = getLanguage()): Context {
+        fun updateContextLocale(context: Context, language: String = getLanguage(context)): Context {
             if (language == SYSTEM_DEFAULT)
                 return context
             val config = Configuration(context.resources.configuration)
             val locale = Locale(language)
+            try {
+                if (locale.isO3Language.isEmpty())
+                    return context
+            } catch (e: MissingResourceException) {
+                return context
+            } catch (e: NullPointerException) {
+                return context
+            }
             Locale.setDefault(locale)
             return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
                 config.setLocale(locale)
@@ -102,6 +116,7 @@ class LocaleManager {
         }
 
         fun changeLocale(context: Context, language: String) {
+            val dataCenter = DataCenter(context)
             if (dataCenter.language != language) {
                 dataCenter.language = language
                 val intent = context.packageManager

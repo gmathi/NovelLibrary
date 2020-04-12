@@ -5,6 +5,7 @@ import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.util.Constants.DEFAULT_FONT_PATH
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
@@ -23,66 +24,60 @@ open class HtmlHelper protected constructor() {
 
         private const val TAG = "HtmlHelper"
 
-        fun getInstance(doc: Document, hostName: String = doc.location()): HtmlHelper {
-
-            val host =
-                    if (hostName.startsWith("www."))
-                        hostName.replace("www.", "")
-                    else
-                        hostName
+        fun getInstance(doc: Document, url: String = doc.location()): HtmlHelper {
 
             when {
-                host.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
-                host.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
-                host.contains(HostNames.QIDIAN) -> return QidianHelper()
-                host.contains(HostNames.GOOGLE_DOCS) -> return GoogleDocsCleaner()
-                host.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsHelper()
-                host.contains(HostNames.TUMBLR) -> return TumblrCleaner()
-                host.contains(HostNames.BAKA_TSUKI) -> return BakaTsukiCleaner()
-                host.contains(HostNames.SCRIBBLE_HUB) -> return ScribbleHubHelper()
+                url.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
+                url.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
+                url.contains(HostNames.QIDIAN) -> return QidianHelper()
+                url.contains(HostNames.GOOGLE_DOCS) -> return GoogleDocsCleaner()
+                url.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsHelper()
+                url.contains(HostNames.TUMBLR) -> return TumblrCleaner()
+                url.contains(HostNames.BAKA_TSUKI) -> return BakaTsukiCleaner()
+                url.contains(HostNames.SCRIBBLE_HUB) -> return ScribbleHubHelper()
             }
 
             var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("chapter-content") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "div", "chapter-content")
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "chapter-content")
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "div", "entry-content")
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "entry-content")
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("elementor-widget-theme-post-content") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "div", "elementor-widget-theme-post-content", appendTitle = false)
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "elementor-widget-theme-post-content", appendTitle = false)
 
             contentElement = doc.body().getElementsByTag("article").firstOrNull { it.hasClass("hentry") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "article", "hentry")
+            if (contentElement != null) return GeneralClassTagHelper(url, "article", "hentry")
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("hentry") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "div", "hentry")
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "hentry")
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.id() == "chapter_body" }
-            if (contentElement != null) return GeneralIdTagHelper(host, "div", "chapter_body")
+            if (contentElement != null) return GeneralIdTagHelper(url, "div", "chapter_body")
 
             contentElement = doc.body().getElementsByTag("article").firstOrNull { it.id() == "releases" }
-            if (contentElement != null) return GeneralIdTagHelper(host, "article", "releases")
+            if (contentElement != null) return GeneralIdTagHelper(url, "article", "releases")
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("td-main-content") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "div", "td-main-content")
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "td-main-content")
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.id() == "content" }
-            if (contentElement != null) return GeneralIdTagHelper(host, "div", "content")
+            if (contentElement != null) return GeneralIdTagHelper(url, "div", "content")
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("post-inner") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "div", "post-inner", appendTitle = false)
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "post-inner", appendTitle = false)
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("blog-content") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "div", "blog-content")
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "blog-content")
 
             contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
             if (contentElement != null) return CloudFlareDDoSTagHelper()
 
             contentElement = doc.body().select("div#chapter-content").firstOrNull()
-            if (contentElement != null) return GeneralIdTagHelper(host, "div", "chapter-content")
+            if (contentElement != null) return GeneralIdTagHelper(url, "div", "chapter-content")
 
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("panel-body") }
-            if (contentElement != null) return GeneralClassTagHelper(host, "div", "panel-body", appendTitle = false)
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "panel-body", appendTitle = false)
 
             return HtmlHelper()
         }
@@ -201,24 +196,15 @@ open class HtmlHelper protected constructor() {
     open fun toggleTheme(isDark: Boolean, doc: Document): Document = doc
 
     fun toggleThemeDefault(isDark: Boolean, doc: Document): Document {
-
-        var fontName = "source_sans_pro_regular.ttf"
-        var fontUrl = "/android_asset/fonts/$fontName"
-
         val fontFile = File(dataCenter.fontPath)
-        if (fontFile.exists()) {
-            fontName = fontFile.name
-            fontUrl = fontFile.path
-        }
-
-        val fontFamily = fontName.substring(0, fontName.lastIndexOf("."))
+        val fontFamily = fontFile.name.substringBeforeLast(".")
         val nightModeTextBrightness = 87
         doc.head().getElementById("darkTheme")?.remove()
         doc.head().append("""
             <style id="darkTheme">
                 @font-face {
                     font-family: $fontFamily;
-                    src: url("$FILE_PROTOCOL$fontUrl");
+                    src: url("$FILE_PROTOCOL${fontFile.path}");
                 }
                 html {
                     scroll-behavior: smooth;

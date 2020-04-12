@@ -39,6 +39,7 @@ captures/
 .idea/gradle.xml
 .idea/dictionaries
 .idea/libraries
+.idea/codeStyles
 
 # Keystore files
 *.jks
@@ -55,6 +56,7 @@ freeline.py
 freeline/
 freeline_project_description.json
 app/release/output.json
+app/mirror/release/output.json
 
 .idea/inspectionProfiles/Project_Default.xml
 .idea/misc.xml
@@ -62,3 +64,7 @@ app/release/output.json
 keystore.properties
 .idea/caches/build_file_checksums.ser
 .idea/assetWizardSettings.xml
+*.aab
+
+# Files created by gradle on build
+app/src/main/assets/translations.json
