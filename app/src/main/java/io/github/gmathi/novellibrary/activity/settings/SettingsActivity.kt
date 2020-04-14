@@ -69,6 +69,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         setEasterEgg()
     }
 
+    @Suppress("DEPRECATION")
     private fun setRemoteConfig() {
         remoteConfig.setConfigSettings(FirebaseRemoteConfigSettings.Builder().setDeveloperModeEnabled(BuildConfig.DEBUG).build())
         val defaults = HashMap<String, Any>()
@@ -129,7 +130,8 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     .autoDismiss(false)
                     .show()
         }
-        return super.onOptionsItemSelected(item)
+        return if (item == null) false
+        else super.onOptionsItemSelected(item)
     }
     //endregion
 
