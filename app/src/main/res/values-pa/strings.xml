@@ -259,5 +259,6 @@
     <string name="backup_file_not_found">Couldn\'t Find Th\' Backup File. Choose A New Place For Th\' Treasure!</string>
     <string name="eztracting_zip">Extractin\' Th\' ZIP Archive</string>
     <string name="simple_text_restore">Simple Text - Novel \'N Novel Sections Restore</string>
+    <string name="cloud_flare_check">CloudFlare Check</string>
 
 </resources>
