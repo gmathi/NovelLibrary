@@ -125,6 +125,10 @@
             android:label="@string/title_activity_copyright"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
+            android:name=".activity.settings.CloudFlareBypassActivity"
+            android:label="@string/cloud_flare_check"
+            android:theme="@style/DarkTheme_DarkSide" />
+        <activity
             android:name=".activity.SearchUrlActivity"
             android:label="@string/title_activity_search_results"
             android:theme="@style/DarkTheme_DarkSide" />

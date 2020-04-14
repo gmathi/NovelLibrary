@@ -151,6 +151,11 @@ fun AppCompatActivity.startContributionsActivity() {
     startActivity(intent)
 }
 
+fun AppCompatActivity.startCloudFlareBypassActivity() {
+    val intent = Intent(this, CloudFlareBypassActivity::class.java)
+    startActivity(intent)
+}
+
 fun AppCompatActivity.startImportLibraryActivity() {
     startActivityForResult(Intent(this, ImportLibraryActivity::class.java), Constants.IMPORT_LIBRARY_ACT_REQ_CODE)
 }
