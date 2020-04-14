@@ -48,19 +48,13 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         setRecyclerView()
 
         //From Browser or any other Application which is sending the url for reading list
-        if (Intent.ACTION_VIEW == intent.action) {
-            val url = intent.data!!.toString()
+        if (intent.action == Intent.ACTION_VIEW || intent.action == Intent.ACTION_SEND) {
+            val url = if (intent.action == Intent.ACTION_VIEW) intent.data!!.toString()
+                    else intent.getStringExtra(Intent.EXTRA_TEXT)
             readingListUrlEditText.setText(url)
             getNovelsFromUrl()
             adapter.notifyDataSetChanged()
-        } else
-
-            if (Intent.ACTION_SEND == intent.action) {
-                val url = intent.getStringExtra(Intent.EXTRA_TEXT)
-                readingListUrlEditText.setText(url)
-                getNovelsFromUrl()
-                adapter.notifyDataSetChanged()
-            }
+        }
 
 
 //        readingListUrlEditText.setText("http://www.novelupdates.com/readlist/?uname=swordman009")
@@ -83,7 +77,6 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
                 upButton.setImageDrawable(ContextCompat.getDrawable(this@ImportLibraryActivity, R.drawable.ic_arrow_drop_down_white_vector))
             }
         }
-
     }
 
     private fun setRecyclerView() {

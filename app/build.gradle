@@ -36,6 +36,7 @@ android {
 
     buildTypes {
         debug {
+            applicationIdSuffix ".debug"
             pseudoLocalesEnabled true
             getIsDefault().set(true)
         }

@@ -46,6 +46,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         const val CODE_NAME_SCRIB = "code_unlock_scrib"
         const val CODE_NAME_NF = "code_unlock_nf"
         const val CODE_NAME_RRL = "code_unlock_rrl"
+        const val CODE_NAME_WW = "code_unlock_ww"
 
     }
 
@@ -69,12 +70,14 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         setEasterEgg()
     }
 
+    @Suppress("DEPRECATION")
     private fun setRemoteConfig() {
         remoteConfig.setConfigSettings(FirebaseRemoteConfigSettings.Builder().setDeveloperModeEnabled(BuildConfig.DEBUG).build())
         val defaults = HashMap<String, Any>()
         defaults[CODE_NAME_SCRIB] = DEFAULT_CODE
         defaults[CODE_NAME_NF] = DEFAULT_CODE
         defaults[CODE_NAME_RRL] = DEFAULT_CODE
+        defaults[CODE_NAME_WW] = DEFAULT_CODE
         remoteConfig.setDefaults(defaults)
         remoteConfig.fetchAndActivate()
     }
@@ -129,7 +132,8 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     .autoDismiss(false)
                     .show()
         }
-        return super.onOptionsItemSelected(item)
+        return if (item == null) false
+        else super.onOptionsItemSelected(item)
     }
     //endregion
 
@@ -176,9 +180,10 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             if (value == code) {
                 showConfetti()
                 when (it.key) {
-                    CODE_NAME_RRL -> dataCenter.lockRoyalRoad = false
-                    CODE_NAME_NF -> dataCenter.lockNovelFull = false
-                    CODE_NAME_SCRIB -> dataCenter.lockScribble = false
+                    CODE_NAME_RRL -> dataCenter.lockRoyalRoad = !dataCenter.lockRoyalRoad
+                    CODE_NAME_NF -> dataCenter.lockNovelFull = !dataCenter.lockNovelFull
+                    CODE_NAME_SCRIB -> dataCenter.lockScribble = !dataCenter.lockScribble
+                    CODE_NAME_WW -> dataCenter.disableWuxiaDownloads = !dataCenter.disableWuxiaDownloads
                 }
             }
         }
