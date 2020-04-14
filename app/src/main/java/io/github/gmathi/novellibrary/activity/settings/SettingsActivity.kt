@@ -176,10 +176,10 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             if (value == code) {
                 showConfetti()
                 when (it.key) {
-                    CODE_NAME_RRL -> dataCenter.lockRoyalRoad = false
-                    CODE_NAME_NF -> dataCenter.lockNovelFull = false
-                    CODE_NAME_SCRIB -> dataCenter.lockScribble = false
-                    CODE_NAME_WW -> dataCenter.disableWuxiaDownloads = false
+                    CODE_NAME_RRL -> dataCenter.lockRoyalRoad = !dataCenter.lockRoyalRoad
+                    CODE_NAME_NF -> dataCenter.lockNovelFull = !dataCenter.lockNovelFull
+                    CODE_NAME_SCRIB -> dataCenter.lockScribble = !dataCenter.lockScribble
+                    CODE_NAME_WW -> dataCenter.disableWuxiaDownloads = !dataCenter.disableWuxiaDownloads
                 }
             }
         }
