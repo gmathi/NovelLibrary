@@ -76,6 +76,16 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         setRecyclerView()
     }
 
+    private fun setRecyclerView() {
+        settingsItems = ArrayList(resources.getStringArray(R.array.backup_and_restore_titles_list).asList())
+        settingsItemsDescription = ArrayList(resources.getStringArray(R.array.backup_and_restore_subtitles_list).asList())
+        setBackupFrequencyDescription()
+        adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
+        recyclerView.setDefaults(adapter)
+        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
+        swipeRefreshLayout.isEnabled = false
+    }
+
     private fun setBackupFrequencyDescription(backupFrequency: Int = dataCenter.backupFrequency) {
         if (BACKUP_FREQUENCY_LIST_INDEX == -1)
             BACKUP_FREQUENCY_LIST_INDEX = settingsItemsDescription.indexOf(getString(R.string.backup_frequency_description))
@@ -87,16 +97,6 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     else -> R.string.backup_frequency_manual
                 }
             )
-    }
-
-    private fun setRecyclerView() {
-        settingsItems = ArrayList(resources.getStringArray(R.array.backup_and_restore_titles_list).asList())
-        settingsItemsDescription = ArrayList(resources.getStringArray(R.array.backup_and_restore_subtitles_list).asList())
-        setBackupFrequencyDescription()
-        adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
-        recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
-        swipeRefreshLayout.isEnabled = false
     }
 
     override fun bind(item: String, itemView: View, position: Int) {
@@ -166,7 +166,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                                 else -> 0
                             }
                         if (dataCenter.backupFrequency != backupFrequency) {
-                            val workRequest = if (backupFrequency != 0) periodicBackupWorkRequest() else null
+                            val workRequest = if (backupFrequency != 0) periodicBackupWorkRequest(backupFrequency) else null
                             WorkManager.getInstance(applicationContext).apply {
                                 if (workRequest == null) {
                                     backupFrequency = 0

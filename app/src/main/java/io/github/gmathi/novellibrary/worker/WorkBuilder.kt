@@ -32,14 +32,14 @@ fun oneTimeBackupWorkRequest(uri: Uri,
             .build()
 }
 
-fun periodicBackupWorkRequest(): PeriodicWorkRequest? {
+fun periodicBackupWorkRequest(backupFrequency: Int): PeriodicWorkRequest? {
     val array = dataCenter.backupData ?: return null
     val data = Data.fromByteArray(array)
 
-    var delay = dataCenter.backupFrequency - TimeUnit.MILLISECONDS.toHours(System.currentTimeMillis() - dataCenter.lastBackup)
+    var delay = backupFrequency - TimeUnit.MILLISECONDS.toHours(System.currentTimeMillis() - dataCenter.lastBackup)
     if (delay < 0) delay = 0
 
-    return PeriodicWorkRequestBuilder<BackupWorker>(dataCenter.backupFrequency.toLong(), TimeUnit.HOURS)
+    return PeriodicWorkRequestBuilder<BackupWorker>(backupFrequency.toLong(), TimeUnit.HOURS)
         .addTag(PERIODIC_BACKUP_WORK_TAG)
         .setInputData(data)
         .setInitialDelay(delay, TimeUnit.HOURS)

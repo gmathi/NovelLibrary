@@ -31,13 +31,14 @@ object CloudFlareByPasser {
 
                 val webView = WebView(context).apply {
                     settings?.javaScriptEnabled = true
+                    settings?.userAgentString = HostNames.USER_AGENT
                     webViewClient = object : WebViewClient() {
 
                         @Suppress("OverridingDeprecatedMember")
                         override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                            Log.e(TAG, "Override $url")
+                            Log.d(TAG, "Override $url")
                             if (url.toString() == "https://www.$hostName/") {
-                                Log.e(TAG, "Cookies: " + CookieManager.getInstance().getCookie("https://www.$hostName/"))
+                                Log.d(TAG, "Cookies: " + CookieManager.getInstance().getCookie("https://www.$hostName/"))
                                 if (saveCookies(hostName)) {
                                     callback.invoke(State.CREATED)
                                 }
@@ -47,14 +48,23 @@ object CloudFlareByPasser {
 
                         @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
                         override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                            Log.e(TAG, "Override ${request?.url}")
+                            Log.d(TAG, "Override ${request?.url}")
                             if (request?.url.toString() == "https://www.$hostName/") {
-                                Log.e(TAG, "Cookies: " + CookieManager.getInstance().getCookie("https://www.$hostName/"))
+                                Log.d(TAG, "Cookies: " + CookieManager.getInstance().getCookie("https://www.$hostName/"))
                                 if (saveCookies(hostName)) {
                                     callback.invoke(State.CREATED)
                                 }
                             }
                             return false
+                        }
+
+                        override fun onPageFinished(view: WebView?, url: String?) {
+                            val cookies = CookieManager.getInstance().getCookie(url)
+                            if (cookies != null && cookies.contains("cf_clearance")) {
+                                if (saveCookies(hostName)) {
+                                    callback.invoke(State.CREATED)
+                                }
+                            }
                         }
                     }
                     settings?.userAgentString = HostNames.USER_AGENT
