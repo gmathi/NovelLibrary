@@ -25,6 +25,23 @@
         android:id="@+id/view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" >
+
+    </WebView>
+
+    <ProgressBar
+        android:id="@+id/checkState"
+        style="@android:style/Widget.DeviceDefault.ProgressBar.Large"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="true" />
+
+    <ImageView
+        android:id="@+id/checkDone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/cloud_flare_check_complete"
+        android:tint="@color/colorStateGreen"
+        app:srcCompat="@drawable/ic_check_circle_white_vector" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
