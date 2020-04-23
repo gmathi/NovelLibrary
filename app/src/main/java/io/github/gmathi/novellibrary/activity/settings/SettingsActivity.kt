@@ -104,7 +104,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             getString(R.string.mentions) -> startMentionSettingsActivity()
             getString(R.string.donate_developer) -> donateDeveloperDialog()
             getString(R.string.about_us) -> aboutUsDialog()
-            getString(R.string.cloud_flare_check) -> startCloudFlareBypassActivity()
+            getString(R.string.cloud_flare_check) -> startCloudFlareBypassActivity("novelupdates.com")
         }
     }
 

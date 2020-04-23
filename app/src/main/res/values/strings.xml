@@ -299,6 +299,7 @@
     <string name="donate_developer">Donate Developer</string>
     <string name="about_us">About Us</string>
     <string name="cloud_flare_check">CloudFlare Check</string>
+    <string name="cloud_flare_check_complete">Obtained CloudFlare clearance.</string>
     <string name="libraries_used">Libraries Used</string>
     <string name="contributions">Contributions</string>
     <string name="donate">Donate</string>

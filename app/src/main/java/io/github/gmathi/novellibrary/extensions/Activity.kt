@@ -151,8 +151,11 @@ fun AppCompatActivity.startContributionsActivity() {
     startActivity(intent)
 }
 
-fun AppCompatActivity.startCloudFlareBypassActivity() {
+fun AppCompatActivity.startCloudFlareBypassActivity(hostName: String) {
     val intent = Intent(this, CloudFlareBypassActivity::class.java)
+    val bundle = Bundle()
+    bundle.putString("host", hostName)
+    intent.putExtras(bundle)
     startActivity(intent)
 }
 
