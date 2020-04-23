@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.fragment
 import CloudFlareByPasser
 import android.annotation.SuppressLint
 import android.graphics.Color
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.core.content.ContextCompat
@@ -44,6 +45,7 @@ import org.jsoup.Jsoup
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.nodes.Document
 import java.io.File
+import java.net.URL
 
 
 class WebPageDBFragment : BaseFragment() {
@@ -136,6 +138,7 @@ class WebPageDBFragment : BaseFragment() {
     private fun setWebView() {
         readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
         readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled
+        readerWebView.settings.userAgentString = HostNames.USER_AGENT
         readerWebView.setBackgroundColor(Color.argb(1, 0, 0, 0))
         readerWebView.addJavascriptInterface(this, "HTMLOUT")
         readerWebView.webViewClient = object : WebViewClient() {
@@ -173,15 +176,10 @@ class WebPageDBFragment : BaseFragment() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 val cookies = CookieManager.getInstance().getCookie(url)
-                Logs.debug("WebViewDBFragment", "All the cookiesMap in a string: $cookies")
+                Logs.debug("WebViewDBFragment", "${Uri.parse(url).host}: All the cookiesMap in a string: $cookies")
 
-                if (cookies != null && cookies.contains("cfduid") && cookies.contains("cf_clearance")) {
-                    val map: HashMap<String, String> = HashMap()
-                    val cookiesArray = cookies.split("; ")
-                    cookiesArray.forEach { cookie ->
-                        val cookieSplit = cookie.split("=")
-                        map[cookieSplit[0]] = cookieSplit[1]
-                    }
+                if (url != "about:blank" && cookies != null && cookies.contains("cfduid") && cookies.contains("cf_clearance")) {
+                    CloudFlareByPasser.saveCookies(URL(url))
                 }
 
                 webPageSettings?.let {

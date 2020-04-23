@@ -89,6 +89,10 @@ object CloudFlareByPasser {
         }
     }
 
+    fun saveCookies(url: URL): Boolean {
+        return saveCookies(url.host.replace("www.", "").replace("m.", ""))
+    }
+
     fun saveCookies(hostName: String): Boolean {
         val cookies = CookieManager.getInstance().getCookie("https://www.$hostName/").trim()
         if (cookies.contains(DataCenter.CF_COOKIES_CLEARANCE)) {
