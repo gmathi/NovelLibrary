@@ -238,7 +238,7 @@ fun getScribbleHubChapterUrls(novel: Novel): ArrayList<WebPage> {
 
         val doc = Jsoup.connect(url)
                 .referrer(novel.url)
-                .cookies(CloudFlareByPasser.getCookieMap(HostNames.NOVEL_UPDATES))
+                .cookies(CloudFlareByPasser.getCookieMap(HostNames.SCRIBBLE_HUB))
                 .ignoreHttpErrors(true)
                 .timeout(30000)
                 .userAgent(HostNames.USER_AGENT)
