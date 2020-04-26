@@ -117,8 +117,8 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                     .title("\uD83C\uDF89 What's New!")
                     .content(//"** Fixed Cloud Flare for 6.0.1**\n\n" +
                             "✨ New Developers Helping out! Thanks @Yanrishatum, @TechnoJo4#1337, @Guiorgy#6962 \n" +
-                                    "✨ Reworked Backup & Restore! (Check it out)\n" +
-                                    "✨ Cloudflare issue is still being fixed, work around in settings!" +
+                                    "✨ Better CloudFlare Check. If you see DDOS/CloudFlare, toggle reader mode with Javascript enabled.\n" +
+//                                    "✨ Cloudflare issue is still being fixed, work around in settings!" +
 //                                    "\uD83D\uDEE0 Downloads/Offline reading is no longer supported for WuxiaWorld novels.\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
 //                                    "⚠️ Fix to show sources for the novel chapters.\n" +
