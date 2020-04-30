@@ -235,6 +235,7 @@ open class HtmlHelper protected constructor() {
                 p  {
                     text-align: left;
                 }
+                ${if (dataCenter.limitImageWidth) "img { max-width: 100%; }" else ""}
             </style>
             """.trimIndent())
 
@@ -343,7 +344,7 @@ open class HtmlHelper protected constructor() {
                                 // rgb/rgba/hsl/hsla functional notations
                                 val colorReg = Regex("(?:[,(]\\s*)([0-9\\-+.e]+%?)")
                                 var notationResult = colorReg.matchEntire(col)
-                                
+
                                 val compA = processColorComponent(notationResult!!.groupValues[1])
                                 notationResult = notationResult.next()
                                 val compB = processColorComponent(notationResult!!.groupValues[1])

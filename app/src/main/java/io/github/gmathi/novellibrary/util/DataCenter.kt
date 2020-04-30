@@ -49,6 +49,7 @@ class DataCenter(context: Context) {
         private const val ENABLE_IMMERSIVE_MODE = "enableImmersiveMode"
         private const val KEEP_TEXT_COLOR = "keepTextColor"
         private const val ALTERNATIVE_TEXT_COLORS = "alternativeTextColors"
+        private const val LIMIT_IMAGE_WIDTH = "limitImageWidth"
         private const val FONT_PATH = "fontPath"
         private const val ENABLE_CLUSTER_PAGES = "enableClusterPages"
         private const val CF_COOKIES_STRING = "cfCookiesString"
@@ -190,6 +191,10 @@ class DataCenter(context: Context) {
     var alternativeTextColors: Boolean
         get() = prefs.getBoolean(ALTERNATIVE_TEXT_COLORS, false)
         set(value) = prefs.edit().putBoolean(ALTERNATIVE_TEXT_COLORS, value).apply()
+
+    var limitImageWidth: Boolean
+        get() = prefs.getBoolean(LIMIT_IMAGE_WIDTH, false)
+        set(value) = prefs.edit().putBoolean(LIMIT_IMAGE_WIDTH, value).apply()
 
     var fontPath: String
         get() {
