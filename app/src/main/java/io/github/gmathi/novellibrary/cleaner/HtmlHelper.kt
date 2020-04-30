@@ -1,11 +1,11 @@
 package io.github.gmathi.novellibrary.cleaner
 
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
-import io.github.gmathi.novellibrary.util.Constants.DEFAULT_FONT_PATH
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
@@ -16,6 +16,9 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
 import java.io.FileOutputStream
+import java.lang.IllegalArgumentException
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 open class HtmlHelper protected constructor() {
@@ -240,11 +243,152 @@ open class HtmlHelper protected constructor() {
 
     open fun getLinkedChapters(doc: Document): ArrayList<String> = ArrayList()
 
+    /**
+     * Performs RGB->HSL conversion and returns CSS HSLA color string with inverted lightness.
+     * It could be done with Android capabilities, but it seems that Color utilities do not have HSL color space (only HSV).
+     */
+    private fun invertColor(red: Double, green: Double, blue: Double, alpha: Double): String {
+        val rf = red / 255.0
+        val gf = green / 255.0
+        val bf = blue / 255.0
+        val min = red.coerceAtMost(green).coerceAtMost(blue)
+        val max = red.coerceAtLeast(green).coerceAtLeast(blue)
+        val lightness = (min + max) / 2.0
+        val hue:Double
+        val saturation:Double
+        if (min == max) {
+            hue = 0.0
+            saturation = 0.0
+        } else {
+            val diff = max - min
+            saturation = if (lightness > 0.5) diff / (2.0 - max - min) else diff / (max + min)
+            hue = (when (max) {
+                red -> (green - blue) / diff + (if (green < blue) 6.0 else 0.0)
+                green -> (blue - red) / diff + 2.0
+                else -> (red - green) / diff + 4.0
+            }) / 6.0
+        }
+        return "hsla(${hue * 360.0}, ${saturation * 100.0}%, ${(1 - lightness) * 100.0}%, $alpha)"
+    }
+    private fun invertColor(red: Long, green: Long, blue: Long, alpha: Long): String {
+        return invertColor(red / 255.0, green / 255.0, blue / 255.0, alpha / 255.0)
+    }
+
+    private fun processColorComponent(comp: String): Double {
+        if (comp.endsWith("%")) return comp.substring(0, comp.length-1).toDouble() / 100.0
+        return comp.toDouble()
+    }
+
     fun cleanClassAndIds(contentElement: Element?) {
-        contentElement?.classNames()?.forEach { contentElement.removeClass(it) }
-        contentElement?.removeAttr("style")
-        if (contentElement != null && contentElement.hasAttr("id"))
-            contentElement.removeAttr("id")
+        if (contentElement != null) {
+            contentElement.classNames()?.forEach { contentElement.removeClass(it) }
+            if (dataCenter.keepTextColor && contentElement.hasAttr("style")) {
+                val testReg = Regex("(?:^|;)\\s*color\\s*:\\s*(.*?)(?:;|\$)", RegexOption.IGNORE_CASE)
+                val result = testReg.matchEntire(contentElement.attr("style"))
+                if (result != null) {
+                    var nodeColor: String? = null
+                    if (dataCenter.alternativeTextColors && dataCenter.isDarkTheme) {
+                        try {
+                            val col = result.groupValues[1]
+                            // Since #RGB and #RGBA are valid CSS colors, handle hex values manually.
+                            // They expand from #RGBA to #RRGGBBAA, duplicating the 4 bits of corresponding compressed color.
+                            // Color.parseColor is unable to parse those.
+                            if (col.startsWith("#")) {
+                                when (col.length) {
+                                    4 -> {
+                                        // #RGB
+                                        val tmp = col.substring(1).toLong(16)
+                                        nodeColor = invertColor(
+                                            tmp.and(0xf00).shr(4) + tmp.and(0xf00).shr(8),
+                                            tmp.and(0xf0) + tmp.and(0xf0).shr(4),
+                                            tmp.and(0xf) + tmp.and(0xf).shl(4), 0xff
+                                        )
+                                    }
+                                    5 -> {
+                                        // #RGBA
+                                        val tmp = col.substring(1).toLong(16)
+                                        nodeColor = invertColor(
+                                            tmp.and(0xf000).shr(8) + tmp.and(0xf000).shr(12),
+                                            tmp.and(0xf00).shr(4) + tmp.and(0xf00).shr(8),
+                                            tmp.and(0xf0) + tmp.and(0xf0).shr(4),
+                                            tmp.and(0xf) + tmp.and(0xf).shl(4)
+                                        )
+                                    }
+                                    7 -> {
+                                        // #RRGGBB
+                                        val tmp = col.substring(1).toLong(16)
+                                        nodeColor = invertColor(
+                                            tmp.and(0xff0000).shr(16),
+                                            tmp.and(0xff00).shr(8),
+                                            tmp.and(0xff),
+                                            0xff
+                                        )
+                                    }
+                                    9 -> {
+                                        // #RRGGBBAA
+                                        val tmp = col.substring(1).toLong(16)
+                                        nodeColor = invertColor(
+                                            tmp.and(0xff000000).shr(24),
+                                            tmp.and(0xff0000).shr(16),
+                                            tmp.and(0xff00).shr(8),
+                                            tmp.and(0xff)
+                                        )
+                                    }
+                                    else -> {
+                                        // Most likely invalid color
+                                        nodeColor = result.groupValues[1]
+                                    }
+                                }
+                            } else if (col.startsWith("rgb", true) || col.startsWith("hsl", true)) {
+                                // rgb/rgba/hsl/hsla functional notations
+                                val colorReg = Regex("(?:[,(]\\s*)([0-9\\-+.e]+%?)")
+                                var notationResult = colorReg.matchEntire(col)
+                                
+                                val compA = processColorComponent(notationResult!!.groupValues[1])
+                                notationResult = notationResult.next()
+                                val compB = processColorComponent(notationResult!!.groupValues[1])
+                                notationResult = notationResult.next()
+                                val compC = processColorComponent(notationResult!!.groupValues[1])
+                                notationResult = notationResult.next()
+                                val alpha = processColorComponent(notationResult?.groupValues?.get(1) ?: "1")
+                                nodeColor =
+                                    if (col.startsWith("rgb"))
+                                        invertColor(compA, compB, compC, alpha)
+                                    else
+                                        "hsla($compA, ${compB*100.0}%, ${(1.0 - compC)*100.0}%, $alpha)"
+                            } else {
+                                val tmp = Color.parseColor(col).toLong()
+                                nodeColor = invertColor(tmp.and(0xff0000).shr(16),
+                                    tmp.and(0xff00).shr(8),
+                                    tmp.and(0xff),
+                                    tmp.and(0xff000000).shr(24))
+                                // TODO: Use proper CSS-compliant color table, since Color utility is incomplete.
+                                // Ref: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
+                            }
+                        } catch (e:IllegalArgumentException) {
+                            // Do not modify color if Color.parseColor yield no result (valid CSS color, but Color can't parse it)
+                            nodeColor = result.groupValues[1]
+                        } catch (e:NullPointerException) {
+                            // Most likely caused by functional notation having math in it.
+                            // Or hsl notation using deg/rad/turn postfixes in hue value
+                            nodeColor = result.groupValues[1]
+                        }
+                    } else {
+                        nodeColor = result.groupValues[1]
+                    }
+                    if (nodeColor != null)
+                        contentElement.attr("style", "color: $nodeColor")
+                    else
+                        contentElement.removeAttr("style")
+                } else {
+                    contentElement.removeAttr("style")
+                }
+            } else {
+                contentElement.removeAttr("style")
+            }
+            if (contentElement.hasAttr("id"))
+                contentElement.removeAttr("id")
+        }
     }
 
     fun cleanCSSFromChildren(contentElement: Element?) {

@@ -47,6 +47,8 @@ class DataCenter(context: Context) {
         private const val SCROLL_LENGTH = "scrollLength"
         private const val KEEP_SCREEN_ON = "keepScreenOn"
         private const val ENABLE_IMMERSIVE_MODE = "enableImmersiveMode"
+        private const val KEEP_TEXT_COLOR = "keepTextColor"
+        private const val ALTERNATIVE_TEXT_COLORS = "alternativeTextColors"
         private const val FONT_PATH = "fontPath"
         private const val ENABLE_CLUSTER_PAGES = "enableClusterPages"
         private const val CF_COOKIES_STRING = "cfCookiesString"
@@ -180,6 +182,14 @@ class DataCenter(context: Context) {
     var enableImmersiveMode: Boolean
         get() = prefs.getBoolean(ENABLE_IMMERSIVE_MODE, true)
         set(value) = prefs.edit().putBoolean(ENABLE_IMMERSIVE_MODE, value).apply()
+
+    var keepTextColor: Boolean
+        get() = prefs.getBoolean(KEEP_TEXT_COLOR, false)
+        set(value) = prefs.edit().putBoolean(KEEP_TEXT_COLOR, value).apply()
+
+    var alternativeTextColors: Boolean
+        get() = prefs.getBoolean(ALTERNATIVE_TEXT_COLORS, false)
+        set(value) = prefs.edit().putBoolean(ALTERNATIVE_TEXT_COLORS, value).apply()
 
     var fontPath: String
         get() {
