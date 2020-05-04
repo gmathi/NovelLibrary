@@ -74,7 +74,7 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
         }
 
         val date = Calendar.getInstance()
-        if (date.get(Calendar.MONTH) == 4 && date.get(Calendar.DAY_OF_MONTH) == 1)
+        if (date.get(Calendar.MONTH) == 3 && date.get(Calendar.DAY_OF_MONTH) == 1)
             languagesMap[resources.getString(R.string.locale_pirate)] = "pa_"
 
         val list = ArrayList(languagesMap.keys.sorted())
