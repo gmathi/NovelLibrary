@@ -39,6 +39,9 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         private const val POSITION_ENABLE_CLUSTER_PAGES = 9
         private const val POSITION_DIRECTIONAL_LINKS = 10
         private const val POSITION_READER_MODE_BUTTON_VISIBILITY = 11
+        private const val POSITION_KEEP_TEXT_COLOR = 12
+        private const val POSITION_ALTERNATIVE_TEXT_COLORS = 13
+        private const val POSITION_LIMIT_IMAGE_WIDTH = 14
     }
 
     lateinit var adapter: GenericAdapter<String>
@@ -160,6 +163,21 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.isReaderModeButtonVisible
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.isReaderModeButtonVisible = value }
+            }
+            POSITION_KEEP_TEXT_COLOR -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.keepTextColor
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.keepTextColor = value }
+            }
+            POSITION_ALTERNATIVE_TEXT_COLORS -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.alternativeTextColors
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.alternativeTextColors = value }
+            }
+            POSITION_LIMIT_IMAGE_WIDTH -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.limitImageWidth
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.limitImageWidth = value }
             }
         }
 
