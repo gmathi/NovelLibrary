@@ -36,12 +36,13 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         private const val POSITION_VOLUME_SCROLL_LENGTH = 6
         private const val POSITION_KEEP_SCREEN_ON = 7
         private const val POSITION_ENABLE_IMMERSIVE_MODE = 8
-        private const val POSITION_ENABLE_CLUSTER_PAGES = 9
-        private const val POSITION_DIRECTIONAL_LINKS = 10
-        private const val POSITION_READER_MODE_BUTTON_VISIBILITY = 11
-        private const val POSITION_KEEP_TEXT_COLOR = 12
-        private const val POSITION_ALTERNATIVE_TEXT_COLORS = 13
-        private const val POSITION_LIMIT_IMAGE_WIDTH = 14
+        private const val POSITION_SHOW_NAVBAR_AT_CHAPTER_END = 9
+        private const val POSITION_ENABLE_CLUSTER_PAGES = 10
+        private const val POSITION_DIRECTIONAL_LINKS = 11
+        private const val POSITION_READER_MODE_BUTTON_VISIBILITY = 12
+        private const val POSITION_KEEP_TEXT_COLOR = 13
+        private const val POSITION_ALTERNATIVE_TEXT_COLORS = 14
+        private const val POSITION_LIMIT_IMAGE_WIDTH = 15
     }
 
     lateinit var adapter: GenericAdapter<String>
@@ -148,6 +149,11 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.enableImmersiveMode
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableImmersiveMode = value }
+            }
+            POSITION_SHOW_NAVBAR_AT_CHAPTER_END -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.showNavbarAtChapterEnd
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.showNavbarAtChapterEnd = value }
             }
             POSITION_ENABLE_CLUSTER_PAGES -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE

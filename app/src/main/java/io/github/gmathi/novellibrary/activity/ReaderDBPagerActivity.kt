@@ -163,13 +163,7 @@ class ReaderDBPagerActivity :
 
         if (hasFocus && dataCenter.enableImmersiveMode) {
             main_content.fitsSystemWindows = false
-            val immersiveModeOptions: Int = (SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    or SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or SYSTEM_UI_FLAG_FULLSCREEN
-                    or SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-            window.decorView.systemUiVisibility = immersiveModeOptions
+            window.decorView.systemUiVisibility = Constants.IMMERSIVE_MODE_FLAGS
         }
     }
 
