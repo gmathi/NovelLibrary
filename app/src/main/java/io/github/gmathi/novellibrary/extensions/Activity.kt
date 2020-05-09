@@ -127,9 +127,8 @@ fun AppCompatActivity.startBackupSettingsActivity() {
 
 fun AppCompatActivity.startReaderSettingsActivity() {
     val intent = Intent(this, ReaderSettingsActivity::class.java)
-    startActivity(intent)
+    startActivityForResult(intent, Constants.READER_SETTINGS_ACT_REQ_CODE)
 }
-
 
 fun AppCompatActivity.startMentionSettingsActivity() {
     val intent = Intent(this, MentionSettingsActivity::class.java)

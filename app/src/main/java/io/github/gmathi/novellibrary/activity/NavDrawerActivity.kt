@@ -58,14 +58,14 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         } catch (e: Exception) {
             Crashlytics.logException(e)
             MaterialDialog.Builder(this@NavDrawerActivity)
-                    .content("Error initiating the app. The developer has been notified about this!")
-                    .positiveText("Quit")
-                    .cancelable(false)
-                    .onPositive { dialog, _ ->
-                        dialog.dismiss()
-                        finish()
-                    }
-                    .show()
+                .content("Error initiating the app. The developer has been notified about this!")
+                .positiveText("Quit")
+                .cancelable(false)
+                .onPositive { dialog, _ ->
+                    dialog.dismiss()
+                    finish()
+                }
+                .show()
         }
 
         if (intent.hasExtra("currentNavId"))
@@ -89,26 +89,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             intent.removeExtra("showDownloads")
             startNovelDownloadsActivity()
         }
-
-//        drawerLayout.viewTreeObserver.addOnGlobalLayoutListener (object : ViewTreeObserver.OnGlobalLayoutListener {
-//            override fun onGlobalLayout() {
-//                drawerLayout.viewTreeObserver.removeOnGlobalLayoutListener(this)
-//                authSignInButton.setOnClickListener {
-//                    val providers = arrayListOf(
-//                            AuthUI.IdpConfig.EmailBuilder().build(),
-//                            AuthUI.IdpConfig.PhoneBuilder().build(),
-//                            AuthUI.IdpConfig.GoogleBuilder().build())
-//
-//                    // Create and launch sign-in intent
-//                    startActivityForResult(
-//                            AuthUI.getInstance()
-//                                    .createSignInIntentBuilder()
-//                                    .setAvailableProviders(providers)
-//                                    .build(),
-//                            Constants.OPEN_FIREBASE_AUTH_UI)
-//                }
-//            }
-//        })
     }
 
     private fun showWhatsNewDialog() {

@@ -336,5 +336,6 @@
     <string name="restore_data">Restore Data</string>
     <string name="restore_data_description">Restore data from a ZIP archive</string>
     <string name="cloud_flare_check">CloudFlare Check</string>
+    <string name="title_more_settings">More Settings</string>
 
 </resources>

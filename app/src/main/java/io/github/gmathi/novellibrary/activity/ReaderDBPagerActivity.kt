@@ -36,10 +36,7 @@ import io.github.gmathi.novellibrary.adapter.WebPageFragmentPageListener
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.alertToast
-import io.github.gmathi.novellibrary.extensions.openInBrowser
-import io.github.gmathi.novellibrary.extensions.shareUrl
-import io.github.gmathi.novellibrary.extensions.startTTSService
+import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.model.*
 import io.github.gmathi.novellibrary.util.Constants
@@ -68,13 +65,12 @@ class ReaderDBPagerActivity :
         private const val JAVA_SCRIPT = 2
         private const val FONTS = 3
         private const val FONT_SIZE = 4
-        private const val MERGE_PAGES = 5
-        private const val REPORT_PAGE = 6
-        private const val OPEN_IN_BROWSER = 7
-        private const val SHARE_CHAPTER = 8
-        private const val READ_ALOUD = 9
+        private const val REPORT_PAGE = 5
+        private const val OPEN_IN_BROWSER = 6
+        private const val SHARE_CHAPTER = 7
+        private const val READ_ALOUD = 8
+        private const val MORE_SETTINGS = 9
 
-        private const val ADD_FONT_REQUEST_CODE = 1101
         private val FONT_MIME_TYPES = arrayOf(
                 MimeTypeMap.getSingleton().getMimeTypeFromExtension("ttf") ?: "application/x-font-ttf",
                 "fonts/ttf",
@@ -175,8 +171,6 @@ class ReaderDBPagerActivity :
         val offset = if (dataCenter.japSwipe) totalSize - position - 1 else position
         val webPage = dbHelper.getWebPage(novel.id, sourceId, offset)
         if (webPage != null) updateBookmark(webPage)
-
-        //fabClean.visibility = View.VISIBLE
     }
 
     override fun onPageScrollStateChanged(position: Int) {
@@ -207,19 +201,6 @@ class ReaderDBPagerActivity :
                 .positiveText("Ok")
                 .onPositive { dialog, _ -> dialog.dismiss() }
                 .show()
-//        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
-//        val chapterName = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.webPage?.chapter
-//        if (url != null) {
-//            val email = getString(R.string.dev_email)
-//            val subject = "[IMPROVEMENT]"
-//            val body = StringBuilder()
-//            body.append("Please improve the viewing experience of this page.\n")
-//            body.append("Novel Name: ${novel?.name} \n")
-//            body.append("Novel Url: ${novel?.url} \n")
-//            body.append("Chapter Name: $chapterName \n ")
-//            body.append("Chapter Url: $url \n ")
-//            sendEmail(email, subject, body.toString())
-//        }
     }
 
     private fun inBrowser() {
@@ -301,11 +282,11 @@ class ReaderDBPagerActivity :
                 createItemFor(JAVA_SCRIPT).setSwitchOn(true),
                 createItemFor(FONTS),
                 createItemFor(FONT_SIZE),
-                createItemFor(MERGE_PAGES).setSwitchOn(true),
                 createItemFor(REPORT_PAGE),
                 createItemFor(OPEN_IN_BROWSER),
                 createItemFor(SHARE_CHAPTER),
-                createItemFor(READ_ALOUD)
+                createItemFor(READ_ALOUD),
+                createItemFor(MORE_SETTINGS)
         ) as List<DrawerItem<DrawerAdapter.ViewHolder>>)
         adapter.setListener(this)
 
@@ -412,6 +393,7 @@ class ReaderDBPagerActivity :
                     alertToast(title = "Read Aloud", message = "Only supported in Reader Mode!")
                 }
             }
+            MORE_SETTINGS -> startReaderSettingsActivity()
         }
     }
 
@@ -447,10 +429,7 @@ class ReaderDBPagerActivity :
                 itemView.itemSwitch.visibility = VISIBLE
                 itemView.itemSwitch.isChecked = !dataCenter.javascriptDisabled
             }
-        } else if (simpleItem.isSwitchOn() && position == MERGE_PAGES) {
-            itemView.itemSwitch.visibility = VISIBLE
-            itemView.itemSwitch.isChecked = dataCenter.enableClusterPages
-        } else
+        }  else
             itemView.itemSwitch.visibility = GONE
 
         itemView.itemSwitch.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
@@ -471,10 +450,6 @@ class ReaderDBPagerActivity :
                     if (!dataCenter.javascriptDisabled && dataCenter.readerMode)
                         dataCenter.readerMode = false
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCRIPT))
-                }
-                MERGE_PAGES -> {
-                    dataCenter.enableClusterPages = isChecked
-                    EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
                 }
             }
         }
@@ -507,7 +482,7 @@ class ReaderDBPagerActivity :
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
 //                        .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-        startActivityForResult(intent, ADD_FONT_REQUEST_CODE)
+        startActivityForResult(intent, Constants.ADD_FONT_REQUEST_CODE)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -519,7 +494,7 @@ class ReaderDBPagerActivity :
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
                 }
             }
-            ADD_FONT_REQUEST_CODE -> {
+            Constants.ADD_FONT_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK) {
                     val uri = data?.data
                     if (uri != null) {
@@ -535,6 +510,9 @@ class ReaderDBPagerActivity :
                         }
                     }
                 }
+            }
+            Constants.READER_SETTINGS_ACT_REQ_CODE -> {
+                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
             }
         }
     }
