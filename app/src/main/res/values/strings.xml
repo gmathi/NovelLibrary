@@ -109,6 +109,7 @@
         <item>@string/volume_scroll_length</item>
         <item>@string/keep_screen_on</item>
         <item>@string/immersive_mode</item>
+        <item>@string/show_navbar_at_chapter_end</item>
         <item>@string/merge_pages</item>
         <item>@string/directional_links</item>
         <item>@string/reader_mode_button_visibility</item>
@@ -127,6 +128,7 @@
         <item>@string/volume_scroll_length_description</item>
         <item>@string/keep_screen_on_description</item>
         <item>@string/immersive_mode_description</item>
+        <item>@string/show_navbar_at_chapter_end_description</item>
         <item>@string/merge_pages_description</item>
         <item>@string/directional_links_description</item>
         <item>@string/reader_mode_button_visibility_description</item>
@@ -429,6 +431,9 @@
 
     <string name="immersive_mode">Show Full Screen</string>
     <string name="immersive_mode_description">Hide the system bars when reading</string>
+
+    <string name="show_navbar_at_chapter_end">Show Navigation Bar At Chapter End</string>
+    <string name="show_navbar_at_chapter_end_description">Shows the navigation bar when reached the page end for phones without hardware navbar. Works only when Show Full Screen is on</string>
 
     <string name="title_reader">Reader Mode</string>
     <string name="title_night">Night Mode</string>

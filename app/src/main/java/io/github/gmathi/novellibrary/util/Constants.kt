@@ -1,7 +1,7 @@
 package io.github.gmathi.novellibrary.util
 
+import android.view.View.*
 import io.github.gmathi.novellibrary.BuildConfig
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Constants used by multiple classes in this package
@@ -14,6 +14,17 @@ object Constants {
     const val VOLUME_SCROLL_LENGTH_STEP = 250
     const val VOLUME_SCROLL_LENGTH_MIN = -10
     const val VOLUME_SCROLL_LENGTH_MAX = 10
+    const val IMMERSIVE_MODE_FLAGS = ( SYSTEM_UI_FLAG_LAYOUT_STABLE
+            or SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+            or SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            or SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            or SYSTEM_UI_FLAG_FULLSCREEN
+            or SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+    const val IMMERSIVE_MODE_W_NAVBAR_FLAGS = ( SYSTEM_UI_FLAG_LAYOUT_STABLE
+            or SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+            or SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            or SYSTEM_UI_FLAG_FULLSCREEN
+            or SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
 
     const val DEFAULT_FONT_PATH = "/android_asset/fonts/source_sans_pro_regular.ttf"
 
