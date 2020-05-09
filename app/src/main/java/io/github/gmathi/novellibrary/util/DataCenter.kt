@@ -47,6 +47,7 @@ class DataCenter(context: Context) {
         private const val SCROLL_LENGTH = "scrollLength"
         private const val KEEP_SCREEN_ON = "keepScreenOn"
         private const val ENABLE_IMMERSIVE_MODE = "enableImmersiveMode"
+        private const val SHOW_NAVBAR_AT_CHAPTER_END = "showNavbarAtChapterEnd"
         private const val KEEP_TEXT_COLOR = "keepTextColor"
         private const val ALTERNATIVE_TEXT_COLORS = "alternativeTextColors"
         private const val LIMIT_IMAGE_WIDTH = "limitImageWidth"
@@ -183,6 +184,10 @@ class DataCenter(context: Context) {
     var enableImmersiveMode: Boolean
         get() = prefs.getBoolean(ENABLE_IMMERSIVE_MODE, true)
         set(value) = prefs.edit().putBoolean(ENABLE_IMMERSIVE_MODE, value).apply()
+
+    var showNavbarAtChapterEnd: Boolean
+        get() = prefs.getBoolean(SHOW_NAVBAR_AT_CHAPTER_END, true)
+        set(value) = prefs.edit().putBoolean(SHOW_NAVBAR_AT_CHAPTER_END, value).apply()
 
     var keepTextColor: Boolean
         get() = prefs.getBoolean(KEEP_TEXT_COLOR, false)

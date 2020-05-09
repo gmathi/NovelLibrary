@@ -85,11 +85,22 @@ class WebPageDBFragment : BaseFragment() {
         val activity = activity as? ReaderDBPagerActivity ?: return
 
         // Show the menu button on scroll
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && dataCenter.isReaderModeButtonVisible)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             readerWebView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
-                if (scrollY > oldScrollY && scrollY > 0) activity.menuNav.visibility = View.GONE
-                if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) activity.menuNav.visibility = View.VISIBLE
+                if (dataCenter.isReaderModeButtonVisible) {
+                    if (scrollY > oldScrollY && scrollY > 0) activity.menuNav.visibility = View.GONE
+                    if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) activity.menuNav.visibility = View.VISIBLE
+                }
+                if (dataCenter.enableImmersiveMode && dataCenter.showNavbarAtChapterEnd) {
+                    // Using deprecated WebView.scale due to WebViewClient.onScaleChanged being completely unreliable.
+                    // New approach sometimes simply does not trigger, causing anything but online reader mode to break.
+                    @Suppress("DEPRECATION") val height = readerWebView.contentHeight * readerWebView.scale - readerWebView.height - 10
+                    activity.window.decorView.systemUiVisibility =
+                        if (height > 0 && scrollY > height) Constants.IMMERSIVE_MODE_W_NAVBAR_FLAGS
+                        else Constants.IMMERSIVE_MODE_FLAGS
+                }
             }
+        }
 
         setWebView()
 
