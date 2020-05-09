@@ -223,7 +223,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 startRecentlyUpdatedNovelsActivity()
             }
             R.id.nav_discord_link -> {
-                openInBrowser("https://discord.gg/g2cQswh")
+                openInBrowser("https://discord.gg/BFXf55v")
             }
         }
     }
