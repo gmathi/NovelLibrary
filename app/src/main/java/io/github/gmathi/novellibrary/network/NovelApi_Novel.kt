@@ -22,7 +22,7 @@ fun NovelApi.getNovelDetails(url: String): Novel? {
 fun NovelApi.getNUNovelDetails(url: String): Novel? {
     var novel: Novel? = null
 //    try {
-    val document = getDocumentWithUserAgent(url)
+    val document = getDocument(url)
     novel = Novel(document.selectFirst(".seriestitlenu")?.text() ?: "NameUnableToFetch", url)
     novel.imageUrl = document.selectFirst(".seriesimg > img[src]")?.attr("abs:src")
     novel.longDescription = document.body().selectFirst("#editdescription")?.text()
@@ -60,7 +60,7 @@ fun NovelApi.getNUNovelDetails(url: String): Novel? {
 fun NovelApi.getRRNovelDetails(url: String): Novel? {
     var novel: Novel? = null
     try {
-        val document = getDocumentWithUserAgent(url)
+        val document = getDocument(url)
         novel = Novel(document.selectFirst("h1[property=name]")?.text() ?: "NameUnableToFetch", url)
 
         //document.head().getElementsByTag("meta").firstOrNull { it.hasAttr("name") && it.attr("name") == "twitter:title" }?.attr("content")
@@ -81,7 +81,7 @@ fun NovelApi.getRRNovelDetails(url: String): Novel? {
 fun NovelApi.getWlnNovelDetails(url: String): Novel? {
     var novel: Novel? = null
     try {
-        val document = getDocumentWithUserAgent(url)
+        val document = getDocument(url)
         novel = Novel(document.body().selectFirst("h2")?.text() ?: "NameUnableToFetch", url)
         novel.imageUrl = document.body().selectFirst("img[src].coverimg")?.attr("abs:src")
 
@@ -153,7 +153,7 @@ fun NovelApi.getWlnNovelDetails(url: String): Novel? {
 fun NovelApi.getNovelFullNovelDetails(url: String): Novel? {
     var novel: Novel? = null
     try {
-        val document = getDocumentWithUserAgent(url)
+        val document = getDocument(url)
 
         val booksElement = document.body().select("div.books")
         val infoElements = document.body().select("div.info").first().children()
@@ -180,7 +180,7 @@ fun NovelApi.getNovelFullNovelDetails(url: String): Novel? {
 fun NovelApi.getScribbleHubNovelDetails(url: String): Novel? {
     var novel: Novel? = null
     try {
-        val document = getDocumentWithUserAgent(url)
+        val document = getDocument(url)
 
         val pageElement = document.body().select("div#page")
 
@@ -210,7 +210,7 @@ fun NovelApi.getScribbleHubNovelDetails(url: String): Novel? {
 fun NovelApi.getLNMTLNovelDetails(url: String): Novel? {
     var novel: Novel? = null
     try {
-        val doc = getDocumentWithUserAgent(url)
+        val doc = getDocument(url)
 
         val novelElement = doc.selectFirst(".novel .media")
         novel = Novel(novelElement.selectFirst(".novel-name")?.text() ?: "NameUnableToFetch", url)

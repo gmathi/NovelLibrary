@@ -260,5 +260,6 @@
     <string name="eztracting_zip">Extractin\' Th\' ZIP Archive</string>
     <string name="simple_text_restore">Simple Text - Novel \'N Novel Sections Restore</string>
     <string name="cloud_flare_check">CloudFlare Check</string>
+    <string name="title_more_settings">More Settings</string>
 
 </resources>

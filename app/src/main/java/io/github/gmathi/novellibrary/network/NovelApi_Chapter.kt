@@ -1,16 +1,17 @@
 package io.github.gmathi.novellibrary.network
 
 import CloudFlareByPasser
+import com.google.gson.Gson
+import com.google.gson.internal.LinkedTreeMap
+import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.database.createSource
 import io.github.gmathi.novellibrary.database.getSource
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.network.NovelApi.getDocumentWithFormData
 import org.jsoup.Jsoup
 import java.net.URI
-import com.google.gson.Gson
-import com.google.gson.internal.LinkedTreeMap
-import com.google.gson.reflect.TypeToken
 
 
 fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayList<WebPage>? {
@@ -30,7 +31,7 @@ fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayLi
 fun NovelApi.getRRChapterUrls(novel: Novel): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
-        val document = getDocumentWithUserAgent(novel.url)
+        val document = getDocument(novel.url)
         chapters = ArrayList()
         val tableElement = document.body().select("#chapters") ?: return chapters
 
@@ -50,7 +51,7 @@ fun NovelApi.getRRChapterUrls(novel: Novel): ArrayList<WebPage>? {
 fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
-        val document = getDocumentWithUserAgent(novel.url)
+        val document = getDocument(novel.url)
         chapters = ArrayList()
         val trElements = document.body().select("tr#release-entry")
 
@@ -73,21 +74,16 @@ fun getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
     try {
         if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 
-        val novelUpdatesNovelId = novel.metaData["PostId"]
+        val novelUpdatesNovelId = novel.metaData["PostId"] ?: ""
         val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
+        val formData: HashMap<String, String> = hashMapOf(
+            "action" to "nd_getchapters",
+            "mypostid" to novelUpdatesNovelId
+        )
 
-        val doc = Jsoup.connect(url)
-                .data("action", "nd_getchapters")
-                .referrer(url)
-                .cookies(CloudFlareByPasser.getCookieMap(HostNames.NOVEL_UPDATES))
-                .ignoreHttpErrors(true)
-                .timeout(30000)
-                .userAgent(HostNames.USER_AGENT)
-                .data("mypostid", novelUpdatesNovelId)
-                .post()
-
+        val doc = getDocumentWithFormData(url, formData)
         var orderId = 0L
-        val elements = doc?.getElementsByAttribute("data-id")
+        val elements = doc.getElementsByAttribute("data-id")
         elements?.reversed()?.forEach {
 
             val webPageUrl = "https:" + it?.attr("href")
@@ -111,22 +107,16 @@ fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
         //val sourceMapList = ArrayList<HashMap<String, Long>>()
         val sourceMapList = getNUChapterUrlsWithSources(novel)
 
-        val novelUpdatesNovelId = novel.metaData["PostId"]
+        val novelUpdatesNovelId = novel.metaData["PostId"] ?: ""
         val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
+        val formData: HashMap<String, String> = hashMapOf(
+            "action" to "nd_getchapters",
+            "mypostid" to novelUpdatesNovelId
+        )
 
-        val doc = Jsoup.connect(url)
-                .data("action", "nd_getchapters")
-                .referrer(url)
-                .cookies(CloudFlareByPasser.getCookieMap(HostNames.NOVEL_UPDATES))
-                .ignoreHttpErrors(true)
-                .timeout(30000)
-                .userAgent(HostNames.USER_AGENT)
-                .data("mypostid", novelUpdatesNovelId)
-                .post()
-
-       // val doc = Jsoup.parse(html)
+        val doc = getDocumentWithFormData(url, formData)
         var orderId = 0L
-        val elements = doc?.getElementsByAttribute("data-id")
+        val elements = doc.getElementsByAttribute("data-id")
         elements?.reversed()?.forEach {
             val webPageUrl = "https:" + it?.attr("href")
             val webPage = WebPage(webPageUrl, it.getElementsByAttribute("title").attr("title"))
@@ -153,25 +143,17 @@ private fun getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, so
         val dbSourceId = dbHelper.getSource(sourceName!!)?.first ?: -1L
         if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 
-        val novelUpdatesNovelId = novel.metaData["PostId"]
+        val novelUpdatesNovelId = novel.metaData["PostId"] ?: ""
         val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
+        val formData: HashMap<String, String> = hashMapOf(
+            "action" to "nd_getchapters",
+            "mypostid" to novelUpdatesNovelId,
+            "mygrr" to "0"
+        )
+        if (sourceId != null) formData["mygrpfilter"] = "$sourceId"
 
-        val connection = Jsoup.connect(url)
-                .data("action", "nd_getchapters")
-                .referrer(url)
-                .cookies(CloudFlareByPasser.getCookieMap(HostNames.NOVEL_UPDATES))
-                .ignoreHttpErrors(true)
-                .timeout(30000)
-                .userAgent(HostNames.USER_AGENT)
-                .data("mygrr", "0")
-                .data("mypostid", novelUpdatesNovelId)
-
-        if (sourceId != null) connection.data("mygrpfilter", "$sourceId")
-
-        val doc = connection.post()
-
-        //var orderId = 0L
-        doc?.select("a[href][data-id]")?.forEach {
+        val doc = getDocumentWithFormData(url, formData)
+        doc.select("a[href][data-id]")?.forEach {
             sourceMap["https:" + it.attr("href")] = dbSourceId
         }
     } catch (e: Exception) {
@@ -187,25 +169,21 @@ private fun getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String,
     try {
         if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 
-        val novelUpdatesNovelId = novel.metaData["PostId"]
+        val novelUpdatesNovelId = novel.metaData["PostId"] ?: ""
         val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
+        val formData: HashMap<String, String> = hashMapOf(
+            "action" to "nd_getgroupnovel",
+            "mypostid" to novelUpdatesNovelId,
+            "mygrr" to "0"
+        )
 
-        val doc = Jsoup.connect(url)
-                .data("action", "nd_getgroupnovel")
-                .data("mygrr", "0")
-                .referrer(url)
-                .cookies(CloudFlareByPasser.getCookieMap(HostNames.NOVEL_UPDATES))
-                .ignoreHttpErrors(true)
-                .timeout(30000)
-                .userAgent(HostNames.USER_AGENT)
-                .data("mypostid", novelUpdatesNovelId)
-                .post()
-
-        doc?.select("div.checkbox")?.forEach {
+        val doc = getDocumentWithFormData(url, formData)
+        doc.select("div.checkbox")?.forEach {
             dbHelper.createSource(it.text())
-            val tempSourceMap = getNUALLChapterUrlsForSource(novel,
-                    it.selectFirst("input.grp-filter-attr[value]").attr("value").toInt(),
-                    it.text()
+            val tempSourceMap = getNUALLChapterUrlsForSource(
+                novel,
+                it.selectFirst("input.grp-filter-attr[value]").attr("value").toInt(),
+                it.text()
             )
             sourceMap.add(tempSourceMap)
         }
@@ -221,8 +199,10 @@ fun getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage>? {
         val id = Jsoup.connect(novel.url).get().selectFirst("#rating").attr("data-novel-id")
         val chaptersDoc = Jsoup.connect("https://${HostNames.NOVEL_FULL}/ajax-chapter-option?novelId=$id&currentChapterId=").get()
         ArrayList(chaptersDoc.selectFirst("select.chapter_jump").children().mapIndexed { i, elem ->
-            WebPage(url = "https://${HostNames.NOVEL_FULL}${elem.attr("value")}",
-                    chapter = elem.text(), novelId = novel.id, orderId = i.toLong())
+            WebPage(
+                url = "https://${HostNames.NOVEL_FULL}${elem.attr("value")}",
+                chapter = elem.text(), novelId = novel.id, orderId = i.toLong()
+            )
         })
     } catch (e: Exception) {
         e.printStackTrace(); null
@@ -235,21 +215,16 @@ fun getScribbleHubChapterUrls(novel: Novel): ArrayList<WebPage> {
         if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 
         val url = "https://www.scribblehub.com/wp-admin/admin-ajax.php"
+        val formData: HashMap<String, String> = hashMapOf(
+            "action" to "wi_gettocchp",
+            "strSID" to novel.metaData["PostId"]!!,
+            "strmypostid" to "0",
+            "strFic" to "yes"
+        )
 
-        val doc = Jsoup.connect(url)
-                .referrer(novel.url)
-                .cookies(CloudFlareByPasser.getCookieMap(HostNames.NOVEL_UPDATES))
-                .ignoreHttpErrors(true)
-                .timeout(30000)
-                .userAgent(HostNames.USER_AGENT)
-                .data("action", "wi_gettocchp")
-                .data("strSID", novel.metaData["PostId"])
-                .data("strmypostid", "0")
-                .data("strFic", "yes")
-                .post()
-
+        val doc = getDocumentWithFormData(url, formData)
         var orderId = 0L
-        doc?.select("a[href]")?.reversed()?.forEach {
+        doc.select("a[href]")?.reversed()?.forEach {
             val webPage = WebPage(it.attr("abs:href"), it.attr("title"))
             webPage.orderId = orderId++
             webPage.novelId = novel.id
@@ -272,7 +247,7 @@ fun getLNMTLChapterUrls(novel: Novel): ArrayList<WebPage> {
         val text = script.html()
 
         val json = text.substring(text.indexOf("lnmtl.firstResponse =") + 21)
-                .substringBefore(";lnmtl.volumes =")
+            .substringBefore(";lnmtl.volumes =")
 
         val type = object : TypeToken<Map<String, Any>>() {}.type
         val gson: LinkedTreeMap<String, Any> = Gson().fromJson(json, type) ?: return chapters

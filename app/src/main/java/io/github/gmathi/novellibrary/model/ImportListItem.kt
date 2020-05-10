@@ -8,6 +8,7 @@ class ImportListItem {
     var novelImageUrl: String? = null
     var currentlyReading: String? = null
     var currentlyReadingChapterName: String? = null
+    var isAlreadyInLibrary: Boolean = false
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

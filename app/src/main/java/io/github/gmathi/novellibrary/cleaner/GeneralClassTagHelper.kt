@@ -37,19 +37,9 @@ class GeneralClassTagHelper(private val url: String, private val tagName: String
             doc.getElementsByClass("respond-container")?.remove()
         }
 
-
-
         doc.body().children().remove()
         doc.body().classNames().forEach { doc.body().removeClass(it) }
         doc.body().append(contentElement?.outerHtml())
-//        do {
-//            contentElement?.siblingElements()?.remove()
-//            contentElement = contentElement?.parent()
-//            cleanClassAndIds(contentElement)
-//        } while (contentElement != null && contentElement.tagName() != "body")
-//        contentElement?.getElementsByClass("wpcnt")?.remove()
-//        contentElement?.getElementById("jp-post-flair")?.remove()
-
         doc.getElementById("custom-background-css")?.remove()
 
     }

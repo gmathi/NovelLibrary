@@ -4,7 +4,6 @@ import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.WebPage
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.IOException
@@ -29,7 +28,7 @@ fun getNUChapterCount(novel: Novel): Int {
 
 fun NovelApi.getRRChapterCount(url: String): Int {
     try {
-        val document = getDocumentWithUserAgent(url)
+        val document = getDocument(url)
         return getRRChapterCount(document)
     } catch (e: IOException) {
         e.printStackTrace()
@@ -51,7 +50,7 @@ fun getRRChapterCount(document: Document): Int {
 
 fun NovelApi.getWLNUChapterCount(url: String): Int {
     try {
-        val document = getDocumentWithUserAgent(url)
+        val document = getDocument(url)
         return getWLNUChapterCount(document)
     } catch (e: IOException) {
         e.printStackTrace()

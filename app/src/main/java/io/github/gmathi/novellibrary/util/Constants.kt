@@ -63,9 +63,11 @@ object Constants {
     const val NOVEL_SECTIONS_ACT_REQ_CODE = 17
     const val OPEN_FIREBASE_AUTH_UI = 18
     const val RECENT_VIEWED_ACT_REQ_CODE = 19
-
+    const val READER_SETTINGS_ACT_REQ_CODE = 20
 
     const val TTS_ACT_REQ_CODE = 1000
+    const val ADD_FONT_REQUEST_CODE = 1101
+
 
 
 
