@@ -41,7 +41,9 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
 
         const val AUDIO_TEXT_KEY = "audioTextKey"
         const val TITLE = "title"
-        const val NOVEL_ID = "webPageId"
+        const val NOVEL_ID = "novelId"
+        const val WEB_PAGE_ID = "webPageId"
+
 
         const val ACTION_STOP = "actionStop"
         const val ACTION_PAUSE = "actionPause"

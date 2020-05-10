@@ -51,10 +51,10 @@ import java.io.File
 
 
 class ReaderDBPagerActivity :
-        BaseActivity(),
-        ViewPager.OnPageChangeListener,
-        DrawerAdapter.OnItemSelectedListener,
-        SimpleItem.Listener<ReaderMenu> {
+    BaseActivity(),
+    ViewPager.OnPageChangeListener,
+    DrawerAdapter.OnItemSelectedListener,
+    SimpleItem.Listener<ReaderMenu> {
 
     private var slidingRootNav: SlidingRootNav? = null
     lateinit var recyclerView: RecyclerView
@@ -72,11 +72,11 @@ class ReaderDBPagerActivity :
         private const val MORE_SETTINGS = 9
 
         private val FONT_MIME_TYPES = arrayOf(
-                MimeTypeMap.getSingleton().getMimeTypeFromExtension("ttf") ?: "application/x-font-ttf",
-                "fonts/ttf",
-                MimeTypeMap.getSingleton().getMimeTypeFromExtension("otf") ?: "application/x-font-opentype",
-                "fonts/otf",
-                "application/octet-stream"
+            MimeTypeMap.getSingleton().getMimeTypeFromExtension("ttf") ?: "application/x-font-ttf",
+            "fonts/ttf",
+            MimeTypeMap.getSingleton().getMimeTypeFromExtension("otf") ?: "application/x-font-opentype",
+            "fonts/otf",
+            "application/octet-stream"
         )
 
         private val AVAILABLE_FONTS = linkedMapOf<String, String>()
@@ -121,7 +121,7 @@ class ReaderDBPagerActivity :
 
     }
 
-    private fun calculateNovelVariables() {
+    private fun calculateNovelVariables(recalculate: Boolean = false) {
         dbHelper.updateNewReleasesCount(novel.id, 0L)
         webPage = if (novel.currentWebPageUrl != null)
             dbHelper.getWebPage(novel.currentWebPageUrl!!)
@@ -133,12 +133,17 @@ class ReaderDBPagerActivity :
         viewPager.adapter = adapter
         val index = dbHelper.getAllWebPages(novel.id, sourceId).indexOfFirst { it.url == webPage?.url }
         if (webPage != null) {
-            updateBookmark(webPage!!)
-            viewPager.currentItem =
-                    if (dataCenter.japSwipe)
-                        totalSize - index - 1
-                    else
-                        index
+            var currentItem = if (dataCenter.japSwipe)
+                totalSize - index - 1
+            else
+                index
+            if (recalculate) {
+                if (dataCenter.japSwipe)
+                    currentItem -= 1
+                else
+                    currentItem += 1
+            }
+            viewPager.currentItem = currentItem
         }
     }
 
@@ -166,11 +171,12 @@ class ReaderDBPagerActivity :
     override fun onPageSelected(position: Int) {
         val newTotalSize = dbHelper.getWebPagesCount(novel.id, sourceId)
         if (newTotalSize != totalSize) {
-            calculateNovelVariables()
+            calculateNovelVariables(recalculate = true)
+        } else {
+            val offset = if (dataCenter.japSwipe) totalSize - position - 1 else position
+            val webPage = dbHelper.getWebPage(novel.id, sourceId, offset)
+            if (webPage != null) updateBookmark(webPage)
         }
-        val offset = if (dataCenter.japSwipe) totalSize - position - 1 else position
-        val webPage = dbHelper.getWebPage(novel.id, sourceId, offset)
-        if (webPage != null) updateBookmark(webPage)
     }
 
     override fun onPageScrollStateChanged(position: Int) {
@@ -183,9 +189,9 @@ class ReaderDBPagerActivity :
 
     private fun changeTextSize() {
         val dialog = MaterialDialog.Builder(this)
-                .title(R.string.text_size)
-                .customView(R.layout.dialog_slider, true)
-                .build()
+            .title(R.string.text_size)
+            .customView(R.layout.dialog_slider, true)
+            .build()
         dialog.show()
 
         dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setOnSeekBarChangedListener { _, progress ->
@@ -197,10 +203,10 @@ class ReaderDBPagerActivity :
 
     private fun reportPage() {
         MaterialDialog.Builder(this)
-                .content("Please use discord to report a bug.")
-                .positiveText("Ok")
-                .onPositive { dialog, _ -> dialog.dismiss() }
-                .show()
+            .content("Please use discord to report a bug.")
+            .positiveText("Ok")
+            .onPositive { dialog, _ -> dialog.dismiss() }
+            .show()
     }
 
     private fun inBrowser() {
@@ -223,16 +229,20 @@ class ReaderDBPagerActivity :
         return when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
-                    val anim = ObjectAnimator.ofInt(webView, "scrollY", webView?.scrollY
-                            ?: 0, (webView?.scrollY ?: 0) - dataCenter.scrollLength * VOLUME_SCROLL_LENGTH_STEP)
+                    val anim = ObjectAnimator.ofInt(
+                        webView, "scrollY", webView?.scrollY
+                            ?: 0, (webView?.scrollY ?: 0) - dataCenter.scrollLength * VOLUME_SCROLL_LENGTH_STEP
+                    )
                     anim.setDuration(500).start()
                 }
                 dataCenter.volumeScroll
             }
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
-                    val anim = ObjectAnimator.ofInt(webView, "scrollY", webView?.scrollY
-                            ?: 0, (webView?.scrollY ?: 0) + dataCenter.scrollLength * VOLUME_SCROLL_LENGTH_STEP)
+                    val anim = ObjectAnimator.ofInt(
+                        webView, "scrollY", webView?.scrollY
+                            ?: 0, (webView?.scrollY ?: 0) + dataCenter.scrollLength * VOLUME_SCROLL_LENGTH_STEP
+                    )
                     anim.setDuration(500).start()
                 }
                 dataCenter.volumeScroll
@@ -266,17 +276,18 @@ class ReaderDBPagerActivity :
 
     private fun slideMenuSetup(savedInstanceState: Bundle?) {
         slidingRootNav = SlidingRootNavBuilder(this)
-                .withMenuOpened(false)
-                .withContentClickableWhenMenuOpened(true)
-                .withSavedState(savedInstanceState)
-                .withGravity(SlideGravity.RIGHT)
-                .withMenuLayout(R.layout.menu_left_drawer)
-                .inject()
+            .withMenuOpened(false)
+            .withContentClickableWhenMenuOpened(true)
+            .withSavedState(savedInstanceState)
+            .withGravity(SlideGravity.RIGHT)
+            .withMenuLayout(R.layout.menu_left_drawer)
+            .inject()
     }
 
     private fun slideMenuAdapterSetup() {
         @Suppress("UNCHECKED_CAST")
-        val adapter = DrawerAdapter(listOf(
+        val adapter = DrawerAdapter(
+            listOf(
                 createItemFor(READER_MODE).setSwitchOn(true),
                 createItemFor(NIGHT_MODE).setSwitchOn(true),
                 createItemFor(JAVA_SCRIPT).setSwitchOn(true),
@@ -287,7 +298,8 @@ class ReaderDBPagerActivity :
                 createItemFor(SHARE_CHAPTER),
                 createItemFor(READ_ALOUD),
                 createItemFor(MORE_SETTINGS)
-        ) as List<DrawerItem<DrawerAdapter.ViewHolder>>)
+            ) as List<DrawerItem<DrawerAdapter.ViewHolder>>
+        )
         adapter.setListener(this)
 
         list.isNestedScrollingEnabled = false
@@ -342,41 +354,41 @@ class ReaderDBPagerActivity :
                     getAvailableFonts()
 
                 var selectedFont = dataCenter.fontPath.substringAfterLast('/')
-                        .substringBeforeLast('.')
-                        .replace('_', ' ')
+                    .substringBeforeLast('.')
+                    .replace('_', ' ')
 
                 var typeFace = createTypeface()
 
                 val dialog = MaterialDialog.Builder(this)
-                        .theme(Theme.DARK)
-                        .title(getString(R.string.title_fonts))
-                        .items(AVAILABLE_FONTS.keys)
-                        .alwaysCallSingleChoiceCallback()
-                        .itemsCallbackSingleChoice(AVAILABLE_FONTS.keys.indexOf(selectedFont)) { dialog, _, which, font ->
-                            if (which == 0) {
-                                addFont()
-                                dialog.dismiss()
+                    .theme(Theme.DARK)
+                    .title(getString(R.string.title_fonts))
+                    .items(AVAILABLE_FONTS.keys)
+                    .alwaysCallSingleChoiceCallback()
+                    .itemsCallbackSingleChoice(AVAILABLE_FONTS.keys.indexOf(selectedFont)) { dialog, _, which, font ->
+                        if (which == 0) {
+                            addFont()
+                            dialog.dismiss()
+                        } else {
+                            val fontPath = AVAILABLE_FONTS[font.toString()]
+                            if (fontPath != null) {
+                                selectedFont = font.toString()
+                                typeFace = createTypeface(fontPath)
+                                dialog.setTypeface(dialog.titleView, typeFace)
                             } else {
-                                val fontPath = AVAILABLE_FONTS[font.toString()]
-                                if (fontPath != null) {
-                                    selectedFont = font.toString()
-                                    typeFace = createTypeface(fontPath)
-                                    dialog.setTypeface(dialog.titleView, typeFace)
-                                } else {
-                                    dialog.selectedIndex = AVAILABLE_FONTS.keys.indexOf(selectedFont)
-                                    dialog.notifyItemsChanged()
-                                }
-                            }
-                            true
-                        }
-                        .onPositive { _, which ->
-                            if (which == DialogAction.POSITIVE) {
-                                dataCenter.fontPath = AVAILABLE_FONTS[selectedFont] ?: ""
-                                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+                                dialog.selectedIndex = AVAILABLE_FONTS.keys.indexOf(selectedFont)
+                                dialog.notifyItemsChanged()
                             }
                         }
-                        .positiveText(R.string.okay)
-                        .show()
+                        true
+                    }
+                    .onPositive { _, which ->
+                        if (which == DialogAction.POSITIVE) {
+                            dataCenter.fontPath = AVAILABLE_FONTS[selectedFont] ?: ""
+                            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+                        }
+                    }
+                    .positiveText(R.string.okay)
+                    .show()
                 dialog.setTypeface(dialog.titleView, typeFace)
             }
             FONT_SIZE -> changeTextSize()
@@ -388,7 +400,7 @@ class ReaderDBPagerActivity :
                     val webPageDBFragment = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as? WebPageDBFragment)
                     val audioText = webPageDBFragment?.doc?.text() ?: return
                     val title = webPageDBFragment.doc?.title() ?: ""
-                    startTTSService(audioText, title, novel.id)
+                    startTTSService(audioText, title, novel.id, webPage?.orderId ?: 0L)
                 } else {
                     alertToast(title = "Read Aloud", message = "Only supported in Reader Mode!")
                 }
@@ -421,7 +433,7 @@ class ReaderDBPagerActivity :
                 itemView.itemSwitch.visibility = VISIBLE
                 itemView.itemSwitch.isChecked = dataCenter.isDarkTheme
             }
-        }else if (simpleItem.isSwitchOn() && position == JAVA_SCRIPT) {
+        } else if (simpleItem.isSwitchOn() && position == JAVA_SCRIPT) {
             if (dataCenter.readerMode) {
                 itemView.visibility = GONE
                 itemView.layoutParams = RecyclerView.LayoutParams(0, 0)
@@ -429,7 +441,7 @@ class ReaderDBPagerActivity :
                 itemView.itemSwitch.visibility = VISIBLE
                 itemView.itemSwitch.isChecked = !dataCenter.javascriptDisabled
             }
-        }  else
+        } else
             itemView.itemSwitch.visibility = GONE
 
         itemView.itemSwitch.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
@@ -476,11 +488,11 @@ class ReaderDBPagerActivity :
 
     private fun addFont() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-                .addCategory(Intent.CATEGORY_OPENABLE)
-                .setType("*/*")
-                .putExtra(Intent.EXTRA_MIME_TYPES, FONT_MIME_TYPES)
-                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            .addCategory(Intent.CATEGORY_OPENABLE)
+            .setType("*/*")
+            .putExtra(Intent.EXTRA_MIME_TYPES, FONT_MIME_TYPES)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
 //                        .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
         startActivityForResult(intent, Constants.ADD_FONT_REQUEST_CODE)
     }
