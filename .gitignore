@@ -68,3 +68,4 @@ keystore.properties
 
 # Files created by gradle on build
 app/src/main/assets/translations.json
+app/normal/release/*

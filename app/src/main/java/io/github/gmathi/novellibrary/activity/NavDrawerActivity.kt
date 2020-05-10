@@ -5,35 +5,32 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import com.google.android.material.navigation.NavigationView
-import com.google.android.material.snackbar.Snackbar
+import android.view.MenuItem
+import androidx.appcompat.widget.Toolbar
+import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
-import androidx.core.view.GravityCompat
-import androidx.appcompat.widget.Toolbar
-import android.view.MenuItem
-import android.view.ViewTreeObserver
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.crashlytics.android.Crashlytics
-import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
+import com.google.android.material.navigation.NavigationView
+import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
 import io.fabric.sdk.android.Fabric
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
-import kotlinx.android.synthetic.main.nav_header_nav_drawer.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
-import com.google.firebase.auth.FirebaseAuth
-import io.github.gmathi.novellibrary.extensions.*
-import io.github.gmathi.novellibrary.util.Logs
 
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -94,20 +91,22 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                    .title("\uD83C\uDF89 What's New!")
-                    .content(//"** Fixed Cloud Flare for 6.0.1**\n\n" +
-                            "✨ New Developers Helping out! Thanks @Yanrishatum, @TechnoJo4#1337, @Guiorgy#6962 \n" +
-                                    "✨ Better CloudFlare Check. If you see DDOS/CloudFlare, toggle reader mode with Javascript enabled.\n" +
-//                                    "✨ Cloudflare issue is still being fixed, work around in settings!" +
-//                                    "\uD83D\uDEE0 Downloads/Offline reading is no longer supported for WuxiaWorld novels.\n" +
+                .title("\uD83C\uDF89 What's New 0.12.beta!")
+                .content(//"** Fixed Cloud Flare for 6.0.1**\n\n" +
+                    "⚠️ Hopefully fixed the annoying chapter skip bug.\n" +
+                            "✨ Import Reading List is working again! \n" +
+                            "✨ More Reader Settings (Explore it!!)\n" +
+                            "✨ Easy access to all reader settings from reader mode.\n" +
+                            "\uD83D\uDEE0 Discord link updated.\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
 //                                    "⚠️ Fix to show sources for the novel chapters.\n" +
 //                                    "✨ Added Hidden Buttons to unlock some hidden functionality!" +
 //                            "\uD83D\uDEE️ Bug Fixes for reported & unreported crashes!" +
-                                    "")
-                    .positiveText("Ok")
-                    .onPositive { dialog, _ -> dialog.dismiss() }
-                    .show()
+                            ""
+                )
+                .positiveText("Ok")
+                .onPositive { dialog, _ -> dialog.dismiss() }
+                .show()
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
     }
@@ -115,16 +114,16 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun checkForCloudFlare() {
 
         cloudFlareLoadingDialog = Utils
-                .dialogBuilder(this@NavDrawerActivity, content = "If this is taking too long, You can skip and goto \"Settings\" -> \"CloudFlare Check\" to make the app work.", isProgress = true)
-                .cancelable(false)
-                .negativeText("Skip")
-                .onNegative { _, _ ->
-                    Crashlytics.log(getString(R.string.cloud_flare_bypass_failure_title))
-                    loadFragment(currentNavId)
-                    showWhatsNewDialog()
-                    checkIntentForNotificationData()
-                }
-                .build()
+            .dialogBuilder(this@NavDrawerActivity, content = "If this is taking too long, You can skip and goto \"Settings\" -> \"CloudFlare Check\" to make the app work.", isProgress = true)
+            .cancelable(false)
+            .negativeText("Skip")
+            .onNegative { _, _ ->
+                Crashlytics.log(getString(R.string.cloud_flare_bypass_failure_title))
+                loadFragment(currentNavId)
+                showWhatsNewDialog()
+                checkIntentForNotificationData()
+            }
+            .build()
 
         cloudFlareLoadingDialog?.show()
 
@@ -210,10 +209,10 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun replaceFragment(fragment: Fragment, tag: String) {
         supportFragmentManager.beginTransaction()
-                .replace(R.id.navFragmentContainer, fragment, tag)
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                .addToBackStack(tag)
-                .commitAllowingStateLoss()
+            .replace(R.id.navFragmentContainer, fragment, tag)
+            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+            .addToBackStack(tag)
+            .commitAllowingStateLoss()
     }
 
     fun setToolbar(toolbar: Toolbar?) {
@@ -263,9 +262,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         async.cancelAll()
         super.onDestroy()
     }
-
-
-
 
 
 }
