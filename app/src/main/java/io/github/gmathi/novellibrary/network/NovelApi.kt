@@ -14,23 +14,38 @@ import javax.net.ssl.SSLPeerUnverifiedException
 
 object NovelApi {
 
-    fun getDocumentWithUserAgent(url: String): Document {
-        return getDocumentWithUserAgentParams(url, ignoreHttpErrors = true, ignoreContentType = false)
+    fun getDocument(url: String, ignoreHttpErrors: Boolean = true): Document {
+        return getDocumentWithParams(url, ignoreHttpErrors = ignoreHttpErrors, ignoreContentType = false) as  Document
     }
 
-    fun getDocumentWithUserAgentIgnoreContentType(url: String): Document {
-        return getDocumentWithUserAgentParams(url, ignoreHttpErrors = false, ignoreContentType = true)
+    fun getString(url: String, ignoreHttpErrors: Boolean = true): String {
+        return getDocumentWithParams(url, ignoreHttpErrors = ignoreHttpErrors, ignoreContentType = true) as  String
     }
 
-    private fun getDocumentWithUserAgentParams(url: String, ignoreHttpErrors: Boolean, ignoreContentType: Boolean): Document {
+    fun getDocumentWithFormData(url: String, formData:HashMap<String, String>, ignoreHttpErrors:Boolean = true): Document {
+       return getDocumentWithParams(url, ignoreHttpErrors, ignoreContentType = false, isPost = true, formData = formData) as Document
+    }
+
+    fun getStringWithFormData(url: String, formData:HashMap<String, String>, ignoreHttpErrors:Boolean = true): String {
+        return getDocumentWithParams(url, ignoreHttpErrors, ignoreContentType = true, isPost = true, formData = formData) as String
+    }
+
+    private fun getDocumentWithParams(
+        url: String,
+        ignoreHttpErrors: Boolean,
+        ignoreContentType: Boolean,
+        isPost: Boolean = false,
+        formData: HashMap<String, String> = hashMapOf<String, String>()
+    ): Any {
+
         try {
             // Since JSoup can't load different cookies after redirect, disable them and perform redirects manually.
             // Redirect limit here just as a safeguard in case someone decides to do infinite redirect loop.
-            var doc : Connection.Response
+            var doc: Connection.Response
             var redirectUrl = url
             var redirectLimit = 5
             do {
-                doc = Jsoup
+                val connection = Jsoup
                     .connect(redirectUrl)
                     .referrer(redirectUrl)
                     .cookies(CloudFlareByPasser.getCookieMap(URL(redirectUrl)))
@@ -39,12 +54,21 @@ object NovelApi {
                     .timeout(30000)
                     .userAgent(HostNames.USER_AGENT)
                     .followRedirects(false)
-                    .execute()
+
+                connection.method(if (isPost) Connection.Method.POST else Connection.Method.GET)
+                if (isPost) {
+                    for (data in formData) {
+                        connection.data(data.key, data.value)
+                    }
+                }
+
+                doc = connection.execute()
+
                 if (!doc.hasHeader("location")) break
                 redirectUrl = doc.header("location")
-            } while(redirectLimit-- > 0)
+            } while (redirectLimit-- > 0)
 
-            return doc.parse()
+            return if (!ignoreContentType) doc.parse() else doc.body()
         } catch (e: SSLPeerUnverifiedException) {
             val p = Pattern.compile("Hostname\\s(.*?)\\snot", Pattern.DOTALL or Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE or Pattern.MULTILINE) // Regex for the value of the key
             val m = p.matcher(e.localizedMessage ?: "")
@@ -53,16 +77,17 @@ object NovelApi {
                 val hostNames = dataCenter.getVerifiedHosts()
                 if (!hostNames.contains(hostName ?: "")) {
                     dataCenter.saveVerifiedHost(hostName ?: "")
-                    return getDocumentWithUserAgentParams(url, ignoreHttpErrors, ignoreContentType)
+                    return getDocumentWithParams(url, ignoreHttpErrors, ignoreContentType)
                 }
             }
             throw e
         } catch (e: IOException) {
-            if (e.localizedMessage != null && e.localizedMessage.contains("was not verified")) {
+            val error = e.localizedMessage
+            if (error != null && error.contains("was not verified")) {
                 val hostName = Uri.parse(url)?.host!!
                 if (!HostNames.isVerifiedHost(hostName)) {
                     dataCenter.saveVerifiedHost(hostName)
-                    return getDocumentWithUserAgentParams(url, ignoreHttpErrors, ignoreContentType)
+                    return getDocumentWithParams(url, ignoreHttpErrors, ignoreContentType)
                 }
             }
             throw e

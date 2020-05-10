@@ -24,7 +24,7 @@ fun NovelApi.searchRoyalRoadUrl(searchUrl: String): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent(searchUrl)
+        val document = getDocument(searchUrl)
         val elements = document.body().select("div.fiction-list-item") ?: return searchResults
         for (element in elements) {
             val urlElement = element.selectFirst("a") ?: continue
@@ -43,7 +43,7 @@ fun NovelApi.searchNovelUpdatesUrl(searchUrl: String, pageNumber: Int): ArrayLis
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent(searchUrl.addPageNumberToUrl(pageNumber, "pg"))
+        val document = getDocument(searchUrl.addPageNumberToUrl(pageNumber, "pg"))
         val elements = document.body().select("tr.bdrank") ?: return searchResults
         for (element in elements) {
             val novelName = element.selectFirst("img[alt]")?.attr("alt") ?: continue
@@ -64,7 +64,7 @@ fun NovelApi.searchNovelUpdatesUrl_New(searchUrl: String, pageNumber: Int): Arra
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent(searchUrl.addPageNumberToUrl(pageNumber, "pg"))
+        val document = getDocument(searchUrl.addPageNumberToUrl(pageNumber, "pg"))
         val elements = document.body().select("div.search_main_box_nu") ?: return searchResults
         for (element in elements) {
             val novelName = element.selectFirst("div.search_title > a")?.text() ?: continue
@@ -89,7 +89,7 @@ fun NovelApi.searchWlnUpdatesUrl(url: String): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent(url)
+        val document = getDocument(url)
         val elements = document.body().select("td") ?: return searchResults
         elements.mapTo(searchResults) {
             Novel(it.select("a[href]").text(), it.selectFirst("a[href]").attr("abs:href"))
@@ -105,7 +105,7 @@ fun NovelApi.searchNovelFullUrl(url: String): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent(url)
+        val document = getDocument(url)
         val listElement = document.body().select("div.list.list-truyen")[0]
         val novelElements = listElement.select("div.row")
         novelElements.forEach {
@@ -124,7 +124,7 @@ fun NovelApi.searchLNMTLUrl(searchUrl: String, pageNumber: Int): ArrayList<Novel
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent(searchUrl.addPageNumberToUrl(pageNumber, "page"))
+        val document = getDocument(searchUrl.addPageNumberToUrl(pageNumber, "page"))
         val elements = document.body().select("div.media") ?: return searchResults
         for (element in elements) {
             val e = element.selectFirst(".media-title") ?: continue

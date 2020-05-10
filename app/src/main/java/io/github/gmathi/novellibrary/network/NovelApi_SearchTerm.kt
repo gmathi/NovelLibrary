@@ -3,14 +3,14 @@ package io.github.gmathi.novellibrary.network
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.network.NovelApi.getDocumentWithUserAgent
+import io.github.gmathi.novellibrary.network.NovelApi.getDocument
 
 
 fun NovelApi.searchRoyalRoad(searchTerms: String, pageNumber: Int = 1): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent("https://www.royalroad.com/fictions/search?title=${searchTerms.replace(" ", "+")}&page=$pageNumber")
+        val document = getDocument("https://www.royalroad.com/fictions/search?title=${searchTerms.replace(" ", "+")}&page=$pageNumber")
         val elements = document.body().select("div.fiction-list > div") ?: return searchResults
         for (element in elements) {
             val urlElement = element.selectFirst("a[href]") ?: continue
@@ -35,7 +35,7 @@ fun NovelApi.searchNovelUpdates(searchTerms: String, pageNumber: Int = 1): Array
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent("https://www.novelupdates.com/page/$pageNumber/?s=${searchTerms.replace(" ", "+")}")
+        val document = getDocument("https://www.novelupdates.com/page/$pageNumber/?s=${searchTerms.replace(" ", "+")}")
         val titleElements = document.body().select("h2.w-blog-entry-title") ?: return searchResults
         val dataElements = document.body().select("div.w-blog-entry") ?: return searchResults
 
@@ -65,7 +65,7 @@ fun NovelApi.searchNovelUpdates_New(searchTerms: String, pageNumber: Int = 1): A
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent("https://www.novelupdates.com/page/$pageNumber/?s=${searchTerms.replace(" ", "+")}")
+        val document = getDocument("https://www.novelupdates.com/page/$pageNumber/?s=${searchTerms.replace(" ", "+")}")
         val elements = document.body().select("div.search_main_box_nu") ?: return searchResults
         for (element in elements) {
             val novelName = element.selectFirst("div.search_title > a")?.text() ?: continue
@@ -90,7 +90,7 @@ fun NovelApi.searchWlnUpdates(searchTerms: String): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent("https://www.wlnupdates.com/search?title=${searchTerms.replace(" ", "+")}")
+        val document = getDocument("https://www.wlnupdates.com/search?title=${searchTerms.replace(" ", "+")}")
         val elements = document.body().select("td") ?: return searchResults
         elements.mapTo(searchResults) {
             Novel(it.select("a[href]").text(), it.select("a[href]").attr("abs:href"))
@@ -106,7 +106,7 @@ fun NovelApi.searchNovelFull(searchTerms: String, pageNumber: Int = 1): ArrayLis
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent("http://novelfull.com/search?keyword=${searchTerms.replace(" ", "+")}&page=$pageNumber")
+        val document = getDocument("http://novelfull.com/search?keyword=${searchTerms.replace(" ", "+")}&page=$pageNumber")
         val listElement = document.body().select("div.list.list-truyen")[0]
         val novelElements = listElement.select("div.row")
         novelElements.forEach {
@@ -125,7 +125,7 @@ fun NovelApi.searchScribbleHub(searchTerms: String, pageNumber: Int = 1): ArrayL
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent("https://www.scribblehub.com/?s=${searchTerms.replace(" ", "+")}&post_type=fictionposts&paged=$pageNumber")
+        val document = getDocument("https://www.scribblehub.com/?s=${searchTerms.replace(" ", "+")}&post_type=fictionposts&paged=$pageNumber")
         val novelElements = document.body().select("div.search_main_box")
         novelElements.forEach {
             val urlElement = it.select("div.search_title > a[href]")
@@ -160,7 +160,7 @@ private fun getNovelsLNMTL() {
     if (novelsLNMTL != null)
         return
 
-    val document = getDocumentWithUserAgent("https://lnmtl.com/")
+    val document = getDocument("https://lnmtl.com/")
     val scripts = document.select("script[type]") ?: return
     novelsLNMTL = ArrayList()
     val script = scripts.last() ?: return

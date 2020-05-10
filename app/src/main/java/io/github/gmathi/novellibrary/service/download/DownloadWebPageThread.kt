@@ -53,7 +53,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
     private fun downloadChapter(webPageSettings: WebPageSettings, webPage: WebPage): Boolean {
         val doc: Document
         try {
-            doc = NovelApi.getDocumentWithUserAgent(webPageSettings.url)
+            doc = NovelApi.getDocument(webPageSettings.url)
         } catch (e: Exception) {
             Logs.error(TAG, "Error getting WebPage: ${webPageSettings.url}")
             return false
@@ -92,7 +92,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
         val doc: Document
         try {
-            doc = NovelApi.getDocumentWithUserAgent(otherChapterLink)
+            doc = NovelApi.getDocument(otherChapterLink)
         } catch (e: Exception) {
             Logs.error(TAG, "Error getting internal links: $otherChapterLink")
             e.printStackTrace()

@@ -29,6 +29,11 @@ import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.activity_import_library.*
 import kotlinx.android.synthetic.main.content_import_library.*
 import kotlinx.android.synthetic.main.listitem_import_list.view.*
+import okhttp3.*
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import java.io.IOException
+import java.net.URL
 
 
 class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportListItem>, ActionMode.Callback {
@@ -47,10 +52,12 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setRecyclerView()
 
+        readingListUrlEditText.setText("https://www.novelupdates.com/user/87290/goa_naidu2010/?rl=1")
+
         //From Browser or any other Application which is sending the url for reading list
         if (intent.action == Intent.ACTION_VIEW || intent.action == Intent.ACTION_SEND) {
             val url = if (intent.action == Intent.ACTION_VIEW) intent.data!!.toString()
-                    else intent.getStringExtra(Intent.EXTRA_TEXT)
+            else intent.getStringExtra(Intent.EXTRA_TEXT)
             readingListUrlEditText.setText(url)
             getNovelsFromUrl()
             adapter.notifyDataSetChanged()
@@ -89,10 +96,26 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
     private fun getNovelsFromUrl() {
         async {
             try {
-                val url = getUrl() ?: return@async
                 progressLayout.showLoading()
-                val doc = await { NovelApi.getDocumentWithUserAgent(url) }
-                val novels = doc.body()?.getElementsByClass("mb-box-btn")?.filter { it.tagName() == "a" }
+                val url = getUrl() ?: return@async
+                val userId = getUserIdFromUrl(url)
+                //action=nu_prevew&pagenum=0&intUserID=87290&isMobile=yes
+                //Request URL: https://www.novelupdates.com/wp-admin/admin-ajax.php
+                val adminUrl = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
+                val formData: HashMap<String, String> = hashMapOf(
+                    "action" to "nu_prevew",
+                    "pagenum" to "0",
+                    "intUserID" to "87290",
+                    "isMobile" to "yes"
+                )
+                var body = await { NovelApi.getStringWithFormData(adminUrl, formData) }
+                body = body.replace("\\\"", "\"")
+                        .replace("\\n", "")
+                        .replace("\\t", "")
+                        .replace("\\/", "/")
+
+                val doc: Document = Jsoup.parse(body)
+                val novels = doc.body().select("a.mb-box-btn")
                 if (novels != null && novels.isNotEmpty()) {
                     importList.clear()
                     novels.mapTo(importList) {
@@ -110,12 +133,21 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
                     progressLayout.showContent()
                     headerLayout.visibility = View.VISIBLE
                 } else {
-                    progressLayout.showError(ContextCompat.getDrawable(this@ImportLibraryActivity, R.drawable.ic_warning_white_vector), "No Novels found!", getString(R.string.try_again)) { getNovelsFromUrl() }
+                    progressLayout.showError(
+                        ContextCompat.getDrawable(this@ImportLibraryActivity, R.drawable.ic_warning_white_vector),
+                        "No Novels found!",
+                        getString(R.string.try_again)
+                    ) { getNovelsFromUrl() }
                 }
             } catch (e: Exception) {
 
             }
         }
+    }
+
+    private fun getUserIdFromUrl(urlString: String): String {
+        val url = URL(urlString)
+        return url.path.split("/")[2]
     }
 
     private fun getUrl(): String? {
@@ -155,8 +187,10 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
             itemView.checkbox.visibility = View.VISIBLE
         }
 
-        itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
-        else ContextCompat.getColor(this, android.R.color.transparent))
+        itemView.setBackgroundColor(
+            if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
+            else ContextCompat.getColor(this, android.R.color.transparent)
+        )
     }
 
     override fun onItemClick(item: ImportListItem) {
@@ -236,20 +270,20 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
 
     private fun startImport() {
         val dialog = MaterialDialog.Builder(this)
-                .title("Importing…")
-                .content(R.string.please_wait)
-                .progress(false, updateSet.size, true)
-                .negativeText(R.string.cancel)
-                .cancelable(false)
-                .autoDismiss(false)
-                .onNegative { dialog, _ ->
-                    run {
-                        async.cancelAll()
-                        actionMode?.finish()
-                        dialog.dismiss()
-                    }
+            .title("Importing…")
+            .content(R.string.please_wait)
+            .progress(false, updateSet.size, true)
+            .negativeText(R.string.cancel)
+            .cancelable(false)
+            .autoDismiss(false)
+            .onNegative { dialog, _ ->
+                run {
+                    async.cancelAll()
+                    actionMode?.finish()
+                    dialog.dismiss()
                 }
-                .show()
+            }
+            .show()
         async {
             updateSet.asSequence().forEach {
                 dialog.setContent("Importing: ${it.novelName}")

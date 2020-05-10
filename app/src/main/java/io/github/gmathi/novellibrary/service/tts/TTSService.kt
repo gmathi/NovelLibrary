@@ -360,9 +360,9 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         async.cancelAll()
         async {
             try {
-                var doc = await { NovelApi.getDocumentWithUserAgent(webPageSettings.url) }
+                var doc = await { NovelApi.getDocument(webPageSettings.url) }
                 if (doc.location().contains("rssbook") && doc.location().contains(HostNames.QIDIAN)) {
-                    doc = await { NovelApi.getDocumentWithUserAgent(doc.location().replace("rssbook", "book")) }
+                    doc = await { NovelApi.getDocument(doc.location().replace("rssbook", "book")) }
                 }
                 audioText = cleanDocumentText(doc)
                 title = doc.title()

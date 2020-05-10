@@ -37,7 +37,6 @@ import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.fragment_reader.*
-import okhttp3.HttpUrl
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -288,12 +287,12 @@ class WebPageDBFragment : BaseFragment() {
         async download@{
             try {
 
-                doc = await { NovelApi.getDocumentWithUserAgent(url) }
+                doc = await { NovelApi.getDocument(url) }
 
                 if (doc != null) {
 
                     if (doc!!.location().contains("rssbook") && doc!!.location().contains(HostNames.QIDIAN)) {
-                        doc = await { NovelApi.getDocumentWithUserAgent(doc!!.location().replace("rssbook", "book")) }
+                        doc = await { NovelApi.getDocument(doc!!.location().replace("rssbook", "book")) }
                     }
 //                    if (doc!!.location().contains("/nu/") && doc!!.location().contains(HostNames.FLYING_LINES)) {
 //                        doc = await { NovelApi.getDocumentWithUserAgent(doc!!.location().replace("/nu/", "/chapter/")) }
@@ -345,7 +344,7 @@ class WebPageDBFragment : BaseFragment() {
                                     // Check if URL is from chapter provider
                                     val urlDomain = getUrlDomain(linkedUrl)
                                     if (urlDomain == baseUrlDomain) {
-                                        val otherDoc = await { NovelApi.getDocumentWithUserAgent(linkedUrl) }
+                                        val otherDoc = await { NovelApi.getDocument(linkedUrl) }
                                         val helper = HtmlHelper.getInstance(otherDoc)
                                         helper.removeJS(otherDoc)
                                         helper.additionalProcessing(otherDoc)

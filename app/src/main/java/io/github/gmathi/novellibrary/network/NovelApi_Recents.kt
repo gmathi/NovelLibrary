@@ -7,7 +7,7 @@ fun NovelApi.getRecentlyUpdatedNovels(): ArrayList<RecenlytUpdatedItem>? {
     var searchResults: ArrayList<RecenlytUpdatedItem>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocumentWithUserAgent("https://www.novelupdates.com/")
+        val document = getDocument("https://www.novelupdates.com/")
         val elements = document.body()?.getElementsByTag("td")?.filter { it.className().contains("sid") }
         if (elements != null)
             for (element in elements) {

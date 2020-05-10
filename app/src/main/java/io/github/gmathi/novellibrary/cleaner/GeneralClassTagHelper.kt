@@ -37,8 +37,6 @@ class GeneralClassTagHelper(private val url: String, private val tagName: String
             doc.getElementsByClass("respond-container")?.remove()
         }
 
-
-
         doc.body().children().remove()
         doc.body().classNames().forEach { doc.body().removeClass(it) }
         doc.body().append(contentElement?.outerHtml())
