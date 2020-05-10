@@ -52,7 +52,6 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setRecyclerView()
 
-        readingListUrlEditText.setText("https://www.novelupdates.com/user/87290/goa_naidu2010/?rl=1")
 
         //From Browser or any other Application which is sending the url for reading list
         if (intent.action == Intent.ACTION_VIEW || intent.action == Intent.ACTION_SEND) {
@@ -63,8 +62,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
             adapter.notifyDataSetChanged()
         }
 
-
-//        readingListUrlEditText.setText("http://www.novelupdates.com/readlist/?uname=swordman009")
+//        readingListUrlEditText.setText("https://www.novelupdates.com/user/87290/goa_naidu2010/?rl=1")
 //        getNovelsFromUrl()
 //        adapter.notifyDataSetChanged()
 
@@ -99,13 +97,11 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
                 progressLayout.showLoading()
                 val url = getUrl() ?: return@async
                 val userId = getUserIdFromUrl(url)
-                //action=nu_prevew&pagenum=0&intUserID=87290&isMobile=yes
-                //Request URL: https://www.novelupdates.com/wp-admin/admin-ajax.php
                 val adminUrl = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
                 val formData: HashMap<String, String> = hashMapOf(
                     "action" to "nu_prevew",
                     "pagenum" to "0",
-                    "intUserID" to "87290",
+                    "intUserID" to userId,
                     "isMobile" to "yes"
                 )
                 var body = await { NovelApi.getStringWithFormData(adminUrl, formData) }
@@ -127,7 +123,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
                             importItem.novelImageUrl = styleAttr.substring(22, styleAttr.length - 3)
                         importItem.currentlyReadingChapterName = it.getElementsByClass("cr_status")?.firstOrNull()?.text()
                         importItem.currentlyReading = it.getElementsByClass("cr_status")?.firstOrNull()?.parent()?.text()
-
+                        importItem.isAlreadyInLibrary = dbHelper.getNovelByUrl(importItem.novelUrl!!) != null
                         importItem
                     }
                     progressLayout.showContent()
@@ -178,7 +174,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
                 removeFromUpdateSet(item)
         }
 
-        if (dbHelper.getNovelByUrl(item.novelUrl!!) != null) {
+        if (item.isAlreadyInLibrary) {
             itemView.checkbox.visibility = View.GONE
             itemView.title.setTextColor(ContextCompat.getColor(this@ImportLibraryActivity, R.color.Lime))
             itemView.subtitle.applyFont(assets).text = getString(R.string.already_in_library)
@@ -205,7 +201,8 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
 
     private fun selectAll() {
         adapter.items.forEach {
-            addToUpdateSet(it)
+            if (!it.isAlreadyInLibrary)
+                addToUpdateSet(it)
         }
         adapter.notifyDataSetChanged()
     }
@@ -280,6 +277,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
                 run {
                     async.cancelAll()
                     actionMode?.finish()
+                    adapter.notifyDataSetChanged()
                     dialog.dismiss()
                 }
             }
@@ -288,9 +286,11 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
             updateSet.asSequence().forEach {
                 dialog.setContent("Importing: ${it.novelName}")
                 await { importNovelToLibrary(it) }
+                it.isAlreadyInLibrary = true
                 dialog.incrementProgress(1)
             }
             actionMode?.finish()
+            adapter.notifyDataSetChanged()
             dialog.dismiss()
         }
     }
@@ -298,14 +298,14 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
     private fun importNovelToLibrary(importListItem: ImportListItem) {
         val novel = NovelApi.getNUNovelDetails(importListItem.novelUrl!!) ?: return
         novel.id = dbHelper.insertNovel(novel)
-        val webPages = NovelApi.getChapterUrls(novel)
-        webPages?.forEach {
-            dbHelper.createWebPage(it)
-        }
-        val currentReaderWebPage = webPages?.firstOrNull { it.chapter == importListItem.currentlyReadingChapterName }
-        currentReaderWebPage?.let {
-            dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, it.url)
-        }
+//        val webPages = NovelApi.getChapterUrls(novel)
+//        webPages?.forEach {
+//            dbHelper.createWebPage(it)
+//        }
+//        val currentReaderWebPage = webPages?.firstOrNull { it.chapter == importListItem.currentlyReadingChapterName }
+//        currentReaderWebPage?.let {
+//            dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, it.url)
+//        }
     }
 
     override fun onDestroy() {
