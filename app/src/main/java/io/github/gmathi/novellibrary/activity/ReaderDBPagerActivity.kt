@@ -400,7 +400,7 @@ class ReaderDBPagerActivity :
                     val webPageDBFragment = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as? WebPageDBFragment)
                     val audioText = webPageDBFragment?.doc?.text() ?: return
                     val title = webPageDBFragment.doc?.title() ?: ""
-                    startTTSService(audioText, title, novel.id, webPage?.orderId ?: 0L)
+                    startTTSService(audioText, title, novel.id, sourceId)
                 } else {
                     alertToast(title = "Read Aloud", message = "Only supported in Reader Mode!")
                 }

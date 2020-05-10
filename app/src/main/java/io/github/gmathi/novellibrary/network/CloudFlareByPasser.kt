@@ -72,7 +72,7 @@ object CloudFlareByPasser {
                 webView.loadUrl("https://www.$hostName")
             } else {
                 callback.invoke(State.UNNEEDED)
-                Log.e(TAG, "Not needed")
+                Log.i(TAG, "Not needed")
             }
         }
     }
