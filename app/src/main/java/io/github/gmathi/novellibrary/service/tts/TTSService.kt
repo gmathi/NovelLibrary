@@ -78,9 +78,6 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     private val metadataCompat = MediaMetadataCompat.Builder()
 
 
-//    private var isPlaying: Boolean = false
-
-
     override fun onBind(intent: Intent): IBinder? {
         return null
     }
@@ -139,76 +136,76 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.e(TAG, "OnStartCommand")
         val action = intent?.action
+
+        //If called from Notification Actions like play, pause, e.t.c.
         if (action != null) {
-            Log.e(TAG, "Action: $action")
-            when (action) {
-                ACTION_PLAY -> {
-                    speakNexLine()
-                    mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_PLAYING, 1L, 1F).build())
-                }
-                ACTION_PAUSE -> {
-                    sendToTTS("", TextToSpeech.QUEUE_FLUSH, "STOP_READING")
-                    mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_PAUSED, 1L, 1F).build())
-                }
-                ACTION_STOP -> {
-                    sendToTTS("", TextToSpeech.QUEUE_FLUSH, "STOP_COMPLETELY")
-                    mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_NONE, 1L, 1F).build())
-                }
-                ACTION_NEXT -> {
-                    if (chapterIndex == (novel!!.chaptersCount - 1).toInt()) {
-                        Toast.makeText(this, "No More Chapters. You are up-to-date!", Toast.LENGTH_LONG).show()
-                    } else {
-                        chapterIndex++
-                        setAudioText()
-                    }
-                }
-                ACTION_PREVIOUS -> {
-                    if (chapterIndex == 0) {
-                        Toast.makeText(this, "First Chapter! Cannot go back!", Toast.LENGTH_LONG).show()
-                    } else {
-                        chapterIndex--
-                        setAudioText()
-                   }
-//                   currentOrderId++
-//                    val webPage = dbHelper.getWeb
-//                    if ((currentOrderId+1) < novel.chaptersCount) {
-//                        currentOrderId++
-//                    } else {
-//                        sendToTTS("No More Chapters. You are up-to-date", TextToSpeech.QUEUE_FLUSH, "STOP_COMPLETELY")
-//                        mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_NONE, 1L, 1F).build())
-//                    }
-                }
-            }
-        } else {
-            //Get values from intent
-            audioText = intent?.extras?.getString(AUDIO_TEXT_KEY, null) ?: ""
-            title = intent?.extras?.getString(TITLE, null) ?: ""
-            sourceId = intent?.extras?.getLong(SOURCE_ID, 0L) ?: 0L
-            val novelId = intent?.extras?.getLong(NOVEL_ID, -1L) ?: -1L
-            novel = dbHelper.getNovel(novelId)
-            novel?.let { setChapterIndex(it) }
-
-            metadataCompat.displayTitle = novel?.name ?: "Novel Name Not Found"
-            metadataCompat.displaySubtitle = title
-
-            if (!novel?.imageUrl.isNullOrBlank() && Utils.isConnectedToNetwork(this)) {
-                Glide.with(this).asBitmap().load(novel!!.imageUrl!!.getGlideUrl()).into(object : CustomTarget<Bitmap>() {
-                    override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                        metadataCompat.albumArt = resource
-                        mediaSession.setMetadata(metadataCompat.build())
-                        startReading()
-                    }
-
-                    override fun onLoadCleared(placeholder: Drawable?) {
-                    }
-                })
-            } else {
-                mediaSession.setMetadata(metadataCompat.build())
-                startReading()
-            }
-
+            chooseMediaControllerActions(action)
+            return super.onStartCommand(intent, flags, startId)
         }
+
+        //If called from activity
+        val novelId = intent?.extras?.getLong(NOVEL_ID, -1L) ?: -1L
+        novel = dbHelper.getNovel(novelId)
+        novel?.let { setChapterIndex(it) }
+
+        audioText = intent?.extras?.getString(AUDIO_TEXT_KEY, null) ?: ""
+        title = intent?.extras?.getString(TITLE, null) ?: ""
+        sourceId = intent?.extras?.getLong(SOURCE_ID, 0L) ?: 0L
+
+        metadataCompat.displayTitle = novel?.name ?: "Novel Name Not Found"
+        metadataCompat.displaySubtitle = title
+
+        if (!novel?.imageUrl.isNullOrBlank() && Utils.isConnectedToNetwork(this)) {
+            Glide.with(this).asBitmap().load(novel!!.imageUrl!!.getGlideUrl()).into(object : CustomTarget<Bitmap>() {
+                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                    metadataCompat.albumArt = resource
+                    mediaSession.setMetadata(metadataCompat.build())
+                    startReading()
+                }
+
+                override fun onLoadCleared(placeholder: Drawable?) {
+                }
+            })
+        } else {
+            mediaSession.setMetadata(metadataCompat.build())
+            startReading()
+        }
+
         return super.onStartCommand(intent, flags, startId)
+    }
+
+    private fun chooseMediaControllerActions(action: String) {
+        Log.i(TAG, "TTS Action: $action")
+        when (action) {
+            ACTION_PLAY -> {
+                speakNexLine()
+                mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_PLAYING, 1L, 1F).build())
+            }
+            ACTION_PAUSE -> {
+                sendToTTS("", TextToSpeech.QUEUE_FLUSH, "STOP_READING")
+                mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_PAUSED, 1L, 1F).build())
+            }
+            ACTION_STOP -> {
+                sendToTTS("", TextToSpeech.QUEUE_FLUSH, "STOP_COMPLETELY")
+                mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_NONE, 1L, 1F).build())
+            }
+            ACTION_NEXT -> {
+                if (chapterIndex == (novel!!.chaptersCount - 1).toInt()) {
+                    Toast.makeText(this, "No More Chapters. You are up-to-date!", Toast.LENGTH_LONG).show()
+                } else {
+                    chapterIndex++
+                    setAudioText()
+                }
+            }
+            ACTION_PREVIOUS -> {
+                if (chapterIndex == 0) {
+                    Toast.makeText(this, "First Chapter! Cannot go back!", Toast.LENGTH_LONG).show()
+                } else {
+                    chapterIndex--
+                    setAudioText()
+                }
+            }
+        }
     }
 
     override fun onInit(status: Int) {
@@ -379,7 +376,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun cleanDocumentText(doc: Document) : String {
+    private fun cleanDocumentText(doc: Document): String {
         val htmlHelper = HtmlHelper.getInstance(doc)
         htmlHelper.removeJS(doc)
         htmlHelper.additionalProcessing(doc)
