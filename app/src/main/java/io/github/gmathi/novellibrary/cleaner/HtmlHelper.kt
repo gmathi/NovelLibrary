@@ -79,6 +79,9 @@ open class HtmlHelper protected constructor() {
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("panel-body") }
             if (contentElement != null) return GeneralClassTagHelper(url, "div", "panel-body", appendTitle = false)
 
+            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("post-entry") }
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "post-entry")
+
             return HtmlHelper()
         }
 
