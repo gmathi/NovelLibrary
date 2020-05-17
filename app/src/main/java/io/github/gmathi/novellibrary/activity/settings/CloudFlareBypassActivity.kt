@@ -3,21 +3,20 @@ package io.github.gmathi.novellibrary.activity.settings
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.view.MenuItem
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
+import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.util.Logs
 import kotlinx.android.synthetic.main.activity_cloudflare_bypass.*
 
 class CloudFlareBypassActivity : BaseActivity() {
 
     private var currentHost: String = ""
-    private var closeTimer: CountDownTimer? = null;
+    private var closeTimer: CountDownTimer? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -1,3 +1,5 @@
+package io.github.gmathi.novellibrary.network
+
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
@@ -9,7 +11,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import co.metalab.asyncawait.async
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import org.jsoup.HttpStatusException
@@ -19,7 +20,7 @@ import java.net.URL
 
 object CloudFlareByPasser {
 
-    const val TAG = "CloudFlareByPasser"
+    const val TAG = "io.github.gmathi.novellibrary.network.CloudFlareByPasser"
 
     @SuppressLint("SetJavaScriptEnabled")
     fun check(context: Context, hostName: String = HostNames.NOVEL_UPDATES, callback: (state: State) -> Unit) {

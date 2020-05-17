@@ -87,7 +87,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
         async search@{
 
             if (!Utils.isConnectedToNetwork(activity)) {
-                progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
+                progressLayout.showError(ContextCompat.getDrawable(requireContext(), R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
                     progressLayout.showLoading()
                     currentPageNumber = 1
                     searchNovels()
@@ -115,7 +115,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
                 }
             } else {
                 if (isFragmentActive() && progressLayout != null)
-                    progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_warning_white_vector), getString(R.string.connection_error), getString(R.string.try_again)) {
+                    progressLayout.showError(ContextCompat.getDrawable(requireContext(), R.drawable.ic_warning_white_vector), getString(R.string.connection_error), getString(R.string.try_again)) {
                         progressLayout.showLoading()
                         currentPageNumber = 1
                         searchNovels()
@@ -138,7 +138,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
         if (adapter.items.isEmpty()) {
             if (isFragmentActive() && progressLayout != null)
-                progressLayout.showError(ContextCompat.getDrawable(context!!, R.drawable.ic_youtube_searched_for_white_vector), "No Novels Found!", "Try Again") {
+                progressLayout.showError(ContextCompat.getDrawable(requireContext(), R.drawable.ic_youtube_searched_for_white_vector), "No Novels Found!", "Try Again") {
                     progressLayout.showLoading()
                     currentPageNumber = 1
                     searchNovels()

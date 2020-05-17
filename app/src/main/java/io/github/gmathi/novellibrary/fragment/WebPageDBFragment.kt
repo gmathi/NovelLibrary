@@ -1,6 +1,6 @@
 package io.github.gmathi.novellibrary.fragment
 
-import CloudFlareByPasser
+import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.net.Uri

@@ -62,8 +62,8 @@ class ChaptersFragment : BaseFragment(),
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        novel = arguments!!.getSerializable(NOVEL) as Novel
-        sourceId = arguments!!.getLong(SOURCE_ID)
+        novel = requireArguments().getSerializable(NOVEL) as Novel
+        sourceId = requireArguments().getLong(SOURCE_ID)
 
         progressLayout.showLoading()
         setRecyclerView()
