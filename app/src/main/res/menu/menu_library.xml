@@ -2,6 +2,7 @@
       xmlns:app="http://schemas.android.com/apk/res-auto"
       xmlns:tools="http://schemas.android.com/tools"
       tools:context="com.mgn.bingenovelreader.fragment.LibraryFragment">
+
     <item
         android:id="@+id/action_sync"
         android:icon="@drawable/ic_sync_white_vector"
@@ -15,6 +16,16 @@
         android:title="@string/sort"
         android:titleCondensed="@string/sort"
         app:showAsAction="ifRoom"/>
+
+
+    <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/ic_search_black"
+        android:title="@string/title_search"
+        app:iconTint="@android:color/white"
+        android:titleCondensed="@string/title_search"
+        app:showAsAction="ifRoom"/>
+
 
     <item
         android:id="@+id/action_import_reading_list"

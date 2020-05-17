@@ -13,7 +13,7 @@ import io.github.gmathi.novellibrary.extensions.hideSoftKeyboard
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.SimpleAnimationListener
 import io.github.gmathi.novellibrary.util.SuggestionsBuilder
-import io.github.gmathi.novellibrary.util.addToSearchHistory
+import io.github.gmathi.novellibrary.util.addToNovelSearchHistory
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.fragment_search.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
@@ -69,11 +69,11 @@ class SearchFragment : BaseFragment() {
             hideSoftKeyboard()
             activity?.drawerLayout?.openDrawer(GravityCompat.START)
         }
-        searchView.setSuggestionBuilder(SuggestionsBuilder())
+        searchView.setSuggestionBuilder(SuggestionsBuilder(dataCenter.loadNovelSearchHistory()))
         searchView.setSearchListener(object : PersistentSearchView.SearchListener {
 
             override fun onSearch(searchTerm: String?) {
-                searchTerm?.addToSearchHistory()
+                searchTerm?.addToNovelSearchHistory()
                 if (searchTerm != null) {
                     searchNovels(searchTerm)
                 } else {

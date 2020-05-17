@@ -161,6 +161,10 @@ fun AppCompatActivity.startImportLibraryActivity() {
     startActivityForResult(Intent(this, ImportLibraryActivity::class.java), Constants.IMPORT_LIBRARY_ACT_REQ_CODE)
 }
 
+fun AppCompatActivity.startLibrarySearchActivity() {
+    startActivity(Intent(this, LibrarySearchActivity::class.java))
+}
+
 fun AppCompatActivity.startNovelSectionsActivity() {
     startActivityForResult(Intent(this, NovelSectionsActivity::class.java), Constants.NOVEL_SECTIONS_ACT_REQ_CODE)
 }

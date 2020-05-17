@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.adapter
 import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
+import com.google.gson.internal.bind.ArrayTypeAdapter
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.util.inflate
 import java.util.*
@@ -91,6 +92,10 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
     fun addItems(newItems: ArrayList<T>) {
         items.addAll(newItems)
         notifyDataSetChanged()
+    }
+
+    fun addItems(newItems: List<T>) {
+        addItems(ArrayList(newItems))
     }
 
     fun updateItem(item: T) {

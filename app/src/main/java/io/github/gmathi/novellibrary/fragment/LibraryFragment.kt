@@ -4,23 +4,24 @@ import android.content.Intent
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
-import androidx.core.content.ContextCompat
+import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
-import android.view.*
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.tapadoo.alerter.Alerter
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.*
+import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.startChaptersActivity
 import io.github.gmathi.novellibrary.extensions.startImportLibraryActivity
+import io.github.gmathi.novellibrary.extensions.startLibrarySearchActivity
 import io.github.gmathi.novellibrary.extensions.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelEvent
@@ -31,6 +32,7 @@ import io.github.gmathi.novellibrary.network.getChapterCount
 import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.content_library.*
+import kotlinx.android.synthetic.main.fragment_library_pager.*
 import kotlinx.android.synthetic.main.listitem_library.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -71,7 +73,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        novelSectionId = arguments!!.getLong(NOVEL_SECTION_ID)
+        novelSectionId = requireArguments().getLong(NOVEL_SECTION_ID)
 
         setRecyclerView()
         progressLayout.showLoading()
@@ -124,7 +126,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         itemView.lastOpenedDate.text = getString(R.string.last_read_n_updated, lastRead, lastUpdated)
 
         itemView.popMenu.setOnClickListener {
-            val popup = PopupMenu(activity!!, it)
+            val popup = PopupMenu(requireActivity(), it)
             popup.menuInflater.inflate(R.menu.menu_popup_novel, popup.menu)
 
             popup.setOnMenuItemClickListener {
@@ -221,6 +223,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             R.id.action_sort -> {
                 sortNovelsAlphabetically()
             }
+            R.id.action_search -> {
+                (activity as? AppCompatActivity)?.startLibrarySearchActivity()
+            }
             R.id.action_import_reading_list -> {
                 (activity as? AppCompatActivity)?.startImportLibraryActivity()
             }
@@ -249,7 +254,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             if (syncDialog != null && syncDialog!!.isShowing)
                 syncDialog!!.hide()
 
-            syncDialog = MaterialDialog.Builder(activity!!)
+            syncDialog = MaterialDialog.Builder(requireActivity())
                     .title(R.string.sync_in_progress)
                     .content(R.string.please_wait)
                     .progress(true, 0)
@@ -412,7 +417,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     private fun showNovelSectionsList(position: Int) {
         val novelSections = ArrayList(dbHelper.getAllNovelSections())
         if (novelSections.isEmpty()) {
-            MaterialDialog.Builder(activity!!).content(getString(R.string.no_novel_sections_error)).show()
+            MaterialDialog.Builder(requireActivity()).content(getString(R.string.no_novel_sections_error)).show()
             return
         }
         novelSections.firstOrNull { it.id == novelSectionId }?.let { novelSections.remove(it) }
@@ -420,7 +425,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         if (novelSectionId != -1L)
             novelSectionsNames.add(0, getString(R.string.default_novel_section_name))
 
-        MaterialDialog.Builder(activity!!)
+        MaterialDialog.Builder(requireActivity())
                 .title("Choose A Novel Section")
                 .items(novelSectionsNames)
                 .itemsCallback { _, _, which, _ ->

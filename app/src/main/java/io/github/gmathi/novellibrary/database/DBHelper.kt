@@ -102,12 +102,10 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
             db.execSQL(DBKeys.CREATE_TABLE_LARGE_PREFERENCE)
 
             //Move Novel History Preferences to database because it is a huge data
-            val history = dataCenter.loadNovelHistory()
             val values = ContentValues()
             values.put(DBKeys.KEY_NAME, Constants.LargePreferenceKeys.RVN_HISTORY)
-            values.put(DBKeys.KEY_VALUE, Gson().toJson(history))
+            values.put(DBKeys.KEY_VALUE, "[]")
             db.insert(DBKeys.TABLE_LARGE_PREFERENCE, null, values)
-            dataCenter.removeNovelHistory()
 
             db.execSQL("CREATE INDEX web_pages_url_id_index ON ${DBKeys.TABLE_WEB_PAGE}(${DBKeys.KEY_ID}, ${DBKeys.KEY_URL})")
 
