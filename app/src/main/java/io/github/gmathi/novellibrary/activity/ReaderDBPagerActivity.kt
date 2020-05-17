@@ -56,8 +56,6 @@ class ReaderDBPagerActivity :
     DrawerAdapter.OnItemSelectedListener,
     SimpleItem.Listener<ReaderMenu> {
 
-    private var slidingRootNav: SlidingRootNav? = null
-    lateinit var recyclerView: RecyclerView
 
     companion object {
         private const val READER_MODE = 0
@@ -82,32 +80,50 @@ class ReaderDBPagerActivity :
         private val AVAILABLE_FONTS = linkedMapOf<String, String>()
     }
 
+    private lateinit var slidingRootNav: SlidingRootNav
+    private lateinit var screenTitles: Array<String>
     private lateinit var screenIcons: Array<Drawable?>
-    lateinit var novel: Novel
 
-    private var screenTitles: Array<String>? = null
-    private var adapter: GenericFragmentStatePagerAdapter? = null
-    private var webPage: WebPage? = null
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var novel: Novel
+    private lateinit var adapter: GenericFragmentStatePagerAdapter
+
     private var sourceId: Long = -1L
-    private var totalSize: Int = 0
+    private var webPages: List<WebPage> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader_pager)
-        sourceId = intent.getLongExtra("sourceId", -1L)
+        if (dataCenter.keepScreenOn)
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
+        //Read Intent Extras
+        sourceId = intent.getLongExtra("sourceId", -1L)
         val tempNovel = intent.getSerializableExtra("novel") as Novel?
+
+        //Check if it is Valid Novel
         if (tempNovel == null || tempNovel.chaptersCount.toInt() == 0) {
             finish()
             return
         } else
             novel = tempNovel
 
-        if (dataCenter.keepScreenOn)
-            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        //Get all WebPages & set view pager
+        webPages = dbHelper.getAllWebPages(novel.id, sourceId)
+        if (dataCenter.japSwipe)
+            webPages = webPages.reversed()
 
-        calculateNovelVariables()
+        adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, webPages.size, WebPageFragmentPageListener(novel, webPages))
+        viewPager.addOnPageChangeListener(this)
+        viewPager.adapter = adapter
 
+        //Set the current page to the bookmarked webPage
+        novel.currentWebPageUrl?.let { bookmarkUrl ->
+            val index = webPages.indexOfFirst { it.url == bookmarkUrl }
+            if (index != -1) viewPager.currentItem = index
+        }
+
+        //Set up the Slide-Out Reader Menu.
         slideMenuSetup(savedInstanceState)
         screenIcons = loadScreenIcons()
         screenTitles = loadScreenTitles()
@@ -116,46 +132,17 @@ class ReaderDBPagerActivity :
             toggleSlideRootNab()
         }
 
+        // Easy access to open reader menu button
         if (!dataCenter.isReaderModeButtonVisible)
             menuNav.visibility = INVISIBLE
-
-    }
-
-    private fun calculateNovelVariables(recalculate: Boolean = false) {
-        dbHelper.updateNewReleasesCount(novel.id, 0L)
-        webPage = if (novel.currentWebPageUrl != null)
-            dbHelper.getWebPage(novel.currentWebPageUrl!!)
-        else
-            dbHelper.getWebPage(novel.id, sourceId, 0)
-        totalSize = dbHelper.getWebPagesCount(novel.id, sourceId)
-        adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, totalSize, WebPageFragmentPageListener(novel, sourceId))
-        viewPager.addOnPageChangeListener(this)
-        viewPager.adapter = adapter
-        val index = dbHelper.getAllWebPages(novel.id, sourceId).indexOfFirst { it.url == webPage?.url }
-        if (webPage != null) {
-            var currentItem = if (dataCenter.japSwipe)
-                totalSize - index - 1
-            else
-                index
-            if (recalculate) {
-                if (dataCenter.japSwipe)
-                    currentItem -= 1
-                else
-                    currentItem += 1
-            }
-            viewPager.currentItem = currentItem
-        }
     }
 
     private fun updateBookmark(webPage: WebPage) {
-        if (novel.id != -1L) {
-            dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, webPage.url)
-            val webPageSettings = dbHelper.getWebPageSettings(webPage.url)
-            if (webPageSettings != null) {
-                webPageSettings.isRead = 1
-                dbHelper.updateWebPageSettingsReadStatus(webPageSettings)
-            }
-
+        dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, webPage.url)
+        val webPageSettings = dbHelper.getWebPageSettings(webPage.url)
+        if (webPageSettings != null) {
+            webPageSettings.isRead = 1
+            dbHelper.updateWebPageSettingsReadStatus(webPageSettings)
         }
     }
 
@@ -169,14 +156,7 @@ class ReaderDBPagerActivity :
     }
 
     override fun onPageSelected(position: Int) {
-        val newTotalSize = dbHelper.getWebPagesCount(novel.id, sourceId)
-        if (newTotalSize != totalSize) {
-            calculateNovelVariables(recalculate = true)
-        } else {
-            val offset = if (dataCenter.japSwipe) totalSize - position - 1 else position
-            val webPage = dbHelper.getWebPage(novel.id, sourceId, offset)
-            if (webPage != null) updateBookmark(webPage)
-        }
+        updateBookmark(webPage = webPages[position])
     }
 
     override fun onPageScrollStateChanged(position: Int) {
@@ -301,22 +281,20 @@ class ReaderDBPagerActivity :
             ) as List<DrawerItem<DrawerAdapter.ViewHolder>>
         )
         adapter.setListener(this)
-
         list.isNestedScrollingEnabled = false
         list.layoutManager = LinearLayoutManager(this)
         list.adapter = adapter
-
     }
 
     private fun createItemFor(position: Int): DrawerItem<SimpleItem.ViewHolder> {
-        return SimpleItem(ReaderMenu(screenIcons[position]!!, screenTitles!![position]), this)
+        return SimpleItem(ReaderMenu(screenIcons[position]!!, screenTitles[position]), this)
     }
 
     private fun toggleSlideRootNab() {
-        if (slidingRootNav!!.isMenuOpened)
-            slidingRootNav!!.closeMenu()
+        if (slidingRootNav.isMenuOpened)
+            slidingRootNav.closeMenu()
         else
-            slidingRootNav!!.openMenu()
+            slidingRootNav.openMenu()
     }
 
     private fun loadScreenTitles(): Array<String> {
@@ -347,7 +325,7 @@ class ReaderDBPagerActivity :
      *     Handle Slide Menu Nav Options
      */
     override fun onItemSelected(position: Int) {
-        slidingRootNav!!.closeMenu()
+        slidingRootNav.closeMenu()
         when (position) {
             FONTS -> {
                 if (AVAILABLE_FONTS.isEmpty())
