@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.activity
 
-import CloudFlareByPasser
 import android.app.Activity
 import android.content.Intent
 import android.os.Build
@@ -25,6 +24,7 @@ import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
@@ -129,8 +129,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
         CloudFlareByPasser.check(this, "novelupdates.com") { state ->
 
-            val isActivityRunning = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) !isDestroyed else !isFinishing
-            if (isActivityRunning) {
+            if (!isDestroyed) {
                 if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
                     if (cloudFlareLoadingDialog?.isShowing == true) {
                         Crashlytics.log(getString(R.string.cloud_flare_bypass_success))

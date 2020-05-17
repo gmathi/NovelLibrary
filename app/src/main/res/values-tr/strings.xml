@@ -336,6 +336,14 @@
     <string name="restore_data_description">Restore data from a ZIP archive</string>
     <string name="cloud_flare_check">CloudFlare Check</string>
     <string name="title_more_settings">More Settings</string>
-
+    <string name="show_navbar_at_chapter_end">Show Navigation Bar At Chapter End</string>
+    <string name="show_navbar_at_chapter_end_description">Shows the navigation bar when reached the page end for phones without hardware navbar. Works only when Show Full Screen is on</string>
+    <string name="keep_text_color">Keep text color</string>
+    <string name="keep_text_color_description">Retains inlined text color styles on elements</string>
+    <string name="alternative_text_colors">Invert text colors</string>
+    <string name="alternative_text_colors_description">Inverts brightness on text colors to fit in more with dark theme of reader mode. Applies only when dark theme is enabled</string>
+    <string name="limit_image_width">Fit images</string>
+    <string name="limit_image_width_description">Enforces images maximum width to screen width. Avoids horizontal scroll appearing due to wide images</string>
+    <string name="cloud_flare_check_complete">Obtained CloudFlare clearance.</string>
 
 </resources>
