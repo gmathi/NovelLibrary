@@ -338,6 +338,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun startReader(novel: Novel) {
         if (novel.currentWebPageUrl != null) {
+            dbHelper.updateNewReleasesCount(novel.id, 0L)
             (activity as? AppCompatActivity)?.startReaderDBPagerActivity(novel)
         } else {
             val confirmDialog = (activity as? AppCompatActivity)?.let {
