@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.util
 
 import android.view.View.*
 import io.github.gmathi.novellibrary.BuildConfig
+import io.github.gmathi.novellibrary.network.HostNames
 
 /**
  * Constants used by multiple classes in this package
@@ -115,5 +116,5 @@ object Constants {
 
     const val WORK_KEY_RESULT = "result"
 
-
+    const val WLNUpdatesAPIUrl = "https://www.${HostNames.WLN_UPDATES}/api"
 }

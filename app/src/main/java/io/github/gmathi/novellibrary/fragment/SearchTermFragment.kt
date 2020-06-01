@@ -99,7 +99,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
             var results: ArrayList<Novel>? = null
 
             when (resultType) {
-                HostNames.NOVEL_UPDATES -> results = await { NovelApi.searchNovelUpdates_New(searchTerms, currentPageNumber) }
+                HostNames.NOVEL_UPDATES -> results = await { NovelApi.searchNovelUpdates(searchTerms, currentPageNumber) }
                 HostNames.ROYAL_ROAD -> results = await { NovelApi.searchRoyalRoad(searchTerms, currentPageNumber) }
                 HostNames.NOVEL_FULL -> results = await { NovelApi.searchNovelFull(searchTerms, currentPageNumber) }
                 HostNames.WLN_UPDATES -> results = await { NovelApi.searchWlnUpdates(searchTerms) }
