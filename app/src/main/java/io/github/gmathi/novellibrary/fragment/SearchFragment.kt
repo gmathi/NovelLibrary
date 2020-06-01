@@ -16,7 +16,10 @@ import io.github.gmathi.novellibrary.util.SuggestionsBuilder
 import io.github.gmathi.novellibrary.util.addToNovelSearchHistory
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.fragment_search.*
+import kotlinx.android.synthetic.main.fragment_search.searchView
+import kotlinx.android.synthetic.main.fragment_search.searchViewBgTint
 import org.cryse.widget.persistentsearch.PersistentSearchView
+import org.cryse.widget.persistentsearch.SearchItem
 
 
 class SearchFragment : BaseFragment() {
@@ -65,19 +68,20 @@ class SearchFragment : BaseFragment() {
 
     private fun setSearchView() {
         //searchView.setHomeButtonVisibility(View.GONE)
-        searchView.setHomeButtonListener {
-            hideSoftKeyboard()
-            activity?.drawerLayout?.openDrawer(GravityCompat.START)
-        }
+        searchView.setHomeButtonListener(object : PersistentSearchView.HomeButtonListener {
+            override fun onHomeButtonClick() {
+                hideSoftKeyboard()
+                activity?.drawerLayout?.openDrawer(GravityCompat.START)
+            }
+        })
+
         searchView.setSuggestionBuilder(SuggestionsBuilder(dataCenter.loadNovelSearchHistory()))
         searchView.setSearchListener(object : PersistentSearchView.SearchListener {
 
-            override fun onSearch(searchTerm: String?) {
-                searchTerm?.addToNovelSearchHistory()
-                if (searchTerm != null) {
-                    searchNovels(searchTerm)
-                } else {
-                    // Throw a empty search
+            override fun onSearch(query: String?) {
+                query?.addToNovelSearchHistory()
+                if (query != null) {
+                    searchNovels(query)
                 }
             }
 
@@ -115,8 +119,12 @@ class SearchFragment : BaseFragment() {
                 //Toast.makeText(context, "onSearchCleared", Toast.LENGTH_SHORT).show()
             }
 
-            override fun onSearchTermChanged(searchTerm: String?) {
+            override fun onSearchTermChanged(term: String?) {
                 //Toast.makeText(context, "Search Exited", Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onSuggestion(searchItem: SearchItem?): Boolean {
+                return true
             }
 
             override fun onSearchEditBackPressed(): Boolean {

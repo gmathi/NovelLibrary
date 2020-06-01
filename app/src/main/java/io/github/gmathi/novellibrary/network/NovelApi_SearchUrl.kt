@@ -66,10 +66,11 @@ fun NovelApi.searchWlnUpdatesUrl(url: String): ArrayList<Novel>? {
     try {
         searchResults = ArrayList()
         val document = getDocument(url)
-        val elements = if (url.contains("?json="))
-            document.body().select("div.well > a[href]")
-        else
-            document.body().select("div.row > a[href]")
+        val elements = document.body().select("td > a[href]")
+//        if (url.contains("?json="))
+//            document.body().select("td > a[href]")
+//        else
+//            document.body().select("td > a[href]")
 
         elements?.mapTo(searchResults) {
             Novel(it.text(), it.attr("abs:href"))

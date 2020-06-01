@@ -3,8 +3,6 @@ package io.github.gmathi.novellibrary.activity
 import android.animation.Animator
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.widget.PopupMenu
 import com.afollestad.materialdialogs.MaterialDialog
@@ -22,6 +20,7 @@ import kotlinx.android.synthetic.main.activity_library_search.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_library.view.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
+import org.cryse.widget.persistentsearch.SearchItem
 
 class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel> {
 
@@ -41,15 +40,18 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
 
     private fun setSearchView() {
         //searchView.setHomeButtonVisibility(View.GONE)
-        searchView.setHomeButtonListener {
-            hideSoftKeyboard()
-            finish()
-        }
+        searchView.setHomeButtonListener(object : PersistentSearchView.HomeButtonListener {
+            override fun onHomeButtonClick() {
+                hideSoftKeyboard()
+                finish()
+            }
+        })
+
         searchView.setSuggestionBuilder(SuggestionsBuilder(dataCenter.loadLibrarySearchHistory()))
         searchView.setSearchListener(object : PersistentSearchView.SearchListener {
 
-            override fun onSearch(searchTerm: String?) {
-                searchTerm?.addToLibrarySearchHistory()
+            override fun onSearch(query: String?) {
+                query?.addToLibrarySearchHistory()
             }
 
             override fun onSearchEditOpened() {
@@ -84,8 +86,12 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
 
             }
 
-            override fun onSearchTermChanged(searchTerm: String?) {
-                searchNovels(searchTerm)
+            override fun onSearchTermChanged(term: String?) {
+                searchNovels(term)
+            }
+
+            override fun onSuggestion(searchItem: SearchItem?): Boolean {
+                return true
             }
 
             override fun onSearchEditBackPressed(): Boolean {

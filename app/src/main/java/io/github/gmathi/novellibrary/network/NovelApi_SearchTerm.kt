@@ -77,12 +77,12 @@ fun NovelApi.searchWlnUpdates(searchTerms: String): ArrayList<Novel>? {
             .build()
         val response = OkHttpClient().newCall(request).execute()
         val jsonString = response.body?.string() ?: return searchResults
-        val jsonObject = JsonParser.parseString(json).asJsonObject
+        val jsonObject = JsonParser.parseString(jsonString).asJsonObject
         val dataObject = jsonObject["data"].asJsonObject
         val resultsArray = dataObject["results"].asJsonArray
         resultsArray.forEach { result ->
             val resultObject = result.asJsonObject
-            val allMatchesArray = resultObject.asJsonArray
+            val allMatchesArray = resultObject["match"].asJsonArray
             val sid = resultObject["sid"].asInt
             val novelUrl = "https://www.${HostNames.WLN_UPDATES}/series-id/$sid/"
             allMatchesArray.forEach { match ->
