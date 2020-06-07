@@ -287,7 +287,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 dbHelper.updateChaptersAndReleasesCount(novel.id, it.value.toLong(), novel.newReleasesCount + (it.value - novel.chaptersCount))
 
                 try {
-                    val chapters = await { NovelApi.getChapterUrls(novel) } ?: ArrayList()
+                    val chapters = await { NovelApi.getChapterUrls(novel) }
                     for (i in 0 until chapters.size) {
                         if (dbHelper.getWebPage(chapters[i].url) == null)
                             dbHelper.createWebPage(chapters[i])

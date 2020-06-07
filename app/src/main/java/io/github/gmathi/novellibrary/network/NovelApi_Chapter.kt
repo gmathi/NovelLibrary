@@ -97,7 +97,7 @@ fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage> {
             val sourceId = if (sourceName != null) sourcesMap[sourceName] else -1L
 
             url?.let {
-                val chapterName = arrayListOf(chapter, fragment, postFix).filter { it.isNotBlank() }.joinToString("-")
+                val chapterName = arrayListOf(chapter, fragment, postFix).filter { name -> name.isNotBlank() }.joinToString(" - ")
                 val webPage = WebPage(url = it, chapter = chapterName)
                 webPage.orderId = orderId++
                 webPage.novelId = novel.id
@@ -259,7 +259,7 @@ fun getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage> {
             )
         })
     } catch (e: Exception) {
-        e.printStackTrace();
+        e.printStackTrace()
         ArrayList<WebPage>()
     }
 }

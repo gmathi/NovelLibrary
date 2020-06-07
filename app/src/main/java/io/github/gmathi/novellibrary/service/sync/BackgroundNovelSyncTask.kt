@@ -103,7 +103,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
      */
     private fun updateChapters(novel: Novel, dbHelper: DBHelper) {
         try {
-            val chapters = NovelApi.getChapterUrls(novel) ?: ArrayList()
+            val chapters = NovelApi.getChapterUrls(novel)
             for (i in 0 until chapters.size) {
                 if (dbHelper.getWebPage(chapters[i].url) == null)
                     dbHelper.createWebPage(chapters[i])

@@ -151,7 +151,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
             //Download latest chapters from network
             try {
-                chapters = await { NovelApi.getChapterUrls(novel, showSources) } ?: ArrayList()
+                chapters = await { NovelApi.getChapterUrls(novel, showSources) }
 
                 //Save to DB if the novel is in Library
                 if (novel.id != -1L) {
