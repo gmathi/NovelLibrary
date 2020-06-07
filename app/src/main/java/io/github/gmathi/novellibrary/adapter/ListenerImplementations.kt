@@ -4,6 +4,7 @@ import androidx.fragment.app.Fragment
 import io.github.gmathi.novellibrary.fragment.*
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelSection
+import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.HostNames
 
 //region Fragment Page Listeners
@@ -37,10 +38,10 @@ class SearchResultsListener(private val searchTerms: String, private val tabName
 }
 
 
-class WebPageFragmentPageListener(val novel: Novel, val sourceId: Long) : GenericFragmentStatePagerAdapter.Listener {
+class WebPageFragmentPageListener(val novel: Novel, val webPages: List<WebPage>) : GenericFragmentStatePagerAdapter.Listener {
 
     override fun getFragmentForItem(position: Int): Fragment {
-        return WebPageDBFragment.newInstance(novel.id, sourceId, position)
+        return WebPageDBFragment.newInstance(novel.id, webPages[position])
     }
 }
 

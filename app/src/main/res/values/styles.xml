@@ -8,6 +8,9 @@
         <item name="android:windowBackground">@color/colorDarkKnight</item>
 
         <item name="android:textColorPrimary">@color/colorPrimaryText</item>
+        <item name="android:navigationBarColor">@color/black_transparent</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowTranslucentStatus">true</item>
         <item name="android:fitsSystemWindows">true</item>
     </style>
 
@@ -17,8 +20,9 @@
         <item name="colorPrimaryDark">@color/colorDarkKnight</item>
         <item name="colorAccent">@color/colorTextWarningRed</item>
         <item name="android:windowBackground">@color/colorAccent_dark</item>
-
+        <item name="android:windowTranslucentStatus">false</item>
         <item name="android:textColorPrimary">@color/black</item>
+        <item name="android:navigationBarColor">@color/colorLightKnight</item>
 
     </style>
 
@@ -33,9 +37,12 @@
         <item name="content_color">@color/colorTextContent_dark</item>
         <item name="card_color">@color/white</item>
         <item name="drawer_color">@color/colorPrimaryDark_dark</item>
-
+        <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowBackground">@color/colorAccent_dark</item>
         <item name="android:textColorPrimary">?attr/content_color</item>
+        <item name="android:navigationBarColor">@color/colorDarkKnight</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
     </style>
 
     <style name="DarkTheme_DarkSide" parent="Theme.AppCompat.NoActionBar">
@@ -45,8 +52,12 @@
         <item name="card_color">@color/colorLightKnight</item>
         <item name="drawer_color">@color/colorPrimaryText</item>
         <item name="windowActionModeOverlay">true</item>
+        <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowBackground">@color/colorDarkKnight</item>
         <item name="android:textColorPrimary">@color/colorPrimaryText</item>
+        <item name="android:navigationBarColor">@color/colorDarkKnight</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
     </style>
 
     <!-- User Theme application theme. -->
@@ -55,6 +66,7 @@
         <item name="colorPrimaryDark">@color/colorDarkKnight</item>
         <item name="android:windowBackground">@color/colorDarkKnight</item>
         <item name="android:textColorPrimary">@color/colorPrimaryText</item>
+        <item name="android:navigationBarColor">@color/colorStatusDark</item>
     </style>
 
     <style name="AboutTheme" parent="AppTheme.NoActionBar">
@@ -67,9 +79,10 @@
         <item name="subtitle_color">@color/colorTextSubtitle_dark</item>
         <item name="content_color">@color/colorTextContent_dark</item>
         <item name="card_color">@color/colorPrimaryDark_dark</item>
-
+        <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowBackground">@color/colorAccent_dark</item>
         <item name="android:textColorPrimary">?attr/content_color</item>
+        <item name="android:navigationBarColor">@color/colorDarkKnight</item>
     </style>
 
     <style name="LightTheme" parent="AppTheme.NoActionBar">
@@ -82,7 +95,7 @@
         <item name="subtitle_color">@color/colorTextSubtitle_light</item>
         <item name="content_color">@color/colorTextContent_light</item>
         <item name="card_color">@color/colorRoot_light</item>
-
+        <item name="android:windowTranslucentStatus">false</item>
         <item name="android:textColorPrimary">?attr/content_color</item>
     </style>
 
@@ -104,6 +117,11 @@
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowTranslucentNavigation">false</item>
+        <item name="android:windowTranslucentStatus">false</item>
     </style>
 
     <style name="AppTheme_Light.Translucent" parent="LightTheme">
@@ -152,6 +170,10 @@
 
     <style name="AppImagePreview" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@color/colorDarkKnight</item>
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
     </style>
 
     <style name="spinnerItemStyle" parent="android:Widget.TextView.SpinnerItem">
@@ -171,6 +193,8 @@
         <item name="android:paddingTop">14dp</item>
         <item name="android:paddingBottom">14dp</item>
         <item name="android:layout_marginBottom">12dp</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="elevation">0dp</item>
         <item name="android:textSize">13sp</item>
         <item name="textAllCaps">true</item>
     </style>

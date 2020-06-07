@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.network
 
-import CloudFlareByPasser
 import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
 import org.jsoup.Connection

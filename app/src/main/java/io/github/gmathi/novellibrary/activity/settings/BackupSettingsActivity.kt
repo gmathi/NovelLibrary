@@ -395,7 +395,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             deleteDir(cacheDir)
             deleteDir(filesDir)
             dbHelper.removeAll()
-            dataCenter.saveSearchHistory(ArrayList())
+            dataCenter.saveNovelSearchHistory(ArrayList())
             dialog.dismiss()
         } catch (e: Exception) {
             e.printStackTrace()

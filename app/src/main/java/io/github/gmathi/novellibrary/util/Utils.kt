@@ -376,7 +376,7 @@ object Utils {
         return dialogBuilder
     }
 
-    fun getCurrentFormattedDate() = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date())
+    fun getCurrentFormattedDate(): String = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date())
 
     fun getBitmapFromDrawable(context: Context, @DrawableRes drawableId: Int): Bitmap {
         val drawable = AppCompatResources.getDrawable(context, drawableId)

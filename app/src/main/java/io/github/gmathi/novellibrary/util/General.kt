@@ -27,11 +27,20 @@ fun ViewGroup.inflate(layoutRes: Int): View {
     return LayoutInflater.from(context).inflate(layoutRes, this, false)
 }
 
-fun String.addToSearchHistory() {
-    val list = dataCenter.loadSearchHistory()
-    if (!list.contains(this))
+fun String.addToNovelSearchHistory() {
+    val list = dataCenter.loadNovelSearchHistory()
+    if (!list.contains(this)) {
         list.add(0, this)
-    dataCenter.saveSearchHistory(list)
+        dataCenter.saveNovelSearchHistory(list)
+    }
+}
+
+fun String.addToLibrarySearchHistory() {
+    val list = dataCenter.loadLibrarySearchHistory()
+    if (!list.contains(this)) {
+        list.add(0, this)
+        dataCenter.saveLibrarySearchHistory(list)
+    }
 }
 
 fun String.writableFileName(): String {

@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.view;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -418,7 +419,7 @@ public class TwoWaySeekBar extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         // draw seek bar background line
-        final RectF rect = new RectF(padding,
+        @SuppressLint("DrawAllocation") final RectF rect = new RectF(padding,
                 0.5f * (getHeight() - lineHeight), getWidth() - padding,
                 0.5f * (getHeight() + lineHeight));
         paint.setColor(defaultBackgroundColor);

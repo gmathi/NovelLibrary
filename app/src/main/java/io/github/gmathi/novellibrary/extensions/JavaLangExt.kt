@@ -15,6 +15,7 @@
  */
 package io.github.gmathi.novellibrary.extensions
 
+import com.google.gson.JsonElement
 import java.net.URLEncoder
 import java.nio.charset.Charset
 
@@ -33,6 +34,19 @@ fun String?.containsCaseInsensitive(other: String?) =
         } else {
             false
         }
+
+inline val JsonElement.jsonNullFreeString: String?
+    get() = when {
+        this.isJsonNull -> null
+        this.asString.isNullOrBlank() -> null
+        else -> this.asString
+    }
+
+inline val JsonElement.covertJsonNull: JsonElement?
+    get() = when {
+        this.isJsonNull -> null
+        else -> this
+    }
 
 /**
  * Helper extension to URL encode a [String]. Returns an empty string when called on null.

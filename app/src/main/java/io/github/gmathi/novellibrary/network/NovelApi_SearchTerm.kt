@@ -1,9 +1,15 @@
 package io.github.gmathi.novellibrary.network
 
 import com.google.gson.Gson
+import com.google.gson.JsonParser
 import com.google.gson.annotations.SerializedName
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi.getDocument
+import io.github.gmathi.novellibrary.util.Constants.WLNUpdatesAPIUrl
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 
 
 fun NovelApi.searchRoyalRoad(searchTerms: String, pageNumber: Int = 1): ArrayList<Novel>? {
@@ -21,7 +27,7 @@ fun NovelApi.searchRoyalRoad(searchTerms: String, pageNumber: Int = 1): ArrayLis
                 novel.metaData["Author(s)"] = novel.imageUrl?.substring(29, novel.imageUrl?.indexOf('/', 29) ?: 0)
             novel.rating = element.selectFirst("span[title]").attr("title")
             novel.longDescription = element.selectFirst("div.fiction-description")?.text()
-                    ?: element.selectFirst("div.margin-top-10.col-xs-12")?.text()
+                ?: element.selectFirst("div.margin-top-10.col-xs-12")?.text()
             novel.shortDescription = novel.longDescription?.split("\n")?.firstOrNull()
             searchResults.add(novel)
         }
@@ -36,45 +42,12 @@ fun NovelApi.searchNovelUpdates(searchTerms: String, pageNumber: Int = 1): Array
     try {
         searchResults = ArrayList()
         val document = getDocument("https://www.novelupdates.com/page/$pageNumber/?s=${searchTerms.replace(" ", "+")}")
-        val titleElements = document.body().select("h2.w-blog-entry-title") ?: return searchResults
-        val dataElements = document.body().select("div.w-blog-entry") ?: return searchResults
-
-        (0 until dataElements.size).forEach { i ->
-
-            val novelName = titleElements[i].selectFirst("span.w-blog-entry-title-h")?.text()
-                    ?: return@forEach
-            val novelUrl = titleElements[i].selectFirst("a[href]")?.attr("abs:href")
-                    ?: return@forEach
-            val novel = Novel(novelName, novelUrl)
-
-            novel.imageUrl = dataElements[i].selectFirst("img[src]")?.attr("abs:src")
-            novel.rating = dataElements[i].selectFirst("span.userrate")?.text()?.replace("Rating: ", "")?.trim()
-            novel.genres = dataElements[i].selectFirst("span.s-genre")?.children()?.map { it.text() }
-            novel.shortDescription = dataElements[i].selectFirst("div.w-blog-entry-short")?.textNodes()?.get(0)?.text()
-            novel.longDescription = dataElements[i].selectFirst("span[style=display:none]")?.textNodes()?.map { it.text() }?.joinToString(separator = "\n") { it }
-            searchResults.add(novel)
-        }
-
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
-    return searchResults
-}
-
-fun NovelApi.searchNovelUpdates_New(searchTerms: String, pageNumber: Int = 1): ArrayList<Novel>? {
-    var searchResults: ArrayList<Novel>? = null
-    try {
-        searchResults = ArrayList()
-        val document = getDocument("https://www.novelupdates.com/page/$pageNumber/?s=${searchTerms.replace(" ", "+")}")
         val elements = document.body().select("div.search_main_box_nu") ?: return searchResults
         for (element in elements) {
             val novelName = element.selectFirst("div.search_title > a")?.text() ?: continue
             val novelUrl = element.selectFirst("div.search_title > a")?.attr("abs:href") ?: continue
             val novel = Novel(novelName, novelUrl)
             novel.imageUrl = element.selectFirst("div.search_img_nu > img[src]")?.attr("abs:src")
-
-//            val ratingsElement = element.selectFirst("div.search_ratings") ?: continue
-//            ratingsElement.children().remove()
             novel.rating = element.select("span.search_ratings").text().trim().replace("(", "").replace(")", "")
             searchResults.add(novel)
         }
@@ -90,11 +63,40 @@ fun NovelApi.searchWlnUpdates(searchTerms: String): ArrayList<Novel>? {
     var searchResults: ArrayList<Novel>? = null
     try {
         searchResults = ArrayList()
-        val document = getDocument("https://www.wlnupdates.com/search?title=${searchTerms.replace(" ", "+")}")
-        val elements = document.body().select("td") ?: return searchResults
-        elements.mapTo(searchResults) {
-            Novel(it.select("a[href]").text(), it.select("a[href]").attr("abs:href"))
+
+        val json = """ {
+            "title": "$searchTerms",
+            "mode": "search-title"
+            } """
+
+        val body = json.toRequestBody("application/json".toMediaType())
+
+        val request = Request.Builder()
+            .url(WLNUpdatesAPIUrl)
+            .post(body)
+            .build()
+        val response = OkHttpClient().newCall(request).execute()
+        val jsonString = response.body?.string() ?: return searchResults
+        val jsonObject = JsonParser.parseString(jsonString).asJsonObject
+        val dataObject = jsonObject["data"].asJsonObject
+        val resultsArray = dataObject["results"].asJsonArray
+        resultsArray.forEach { result ->
+            val resultObject = result.asJsonObject
+            val allMatchesArray = resultObject["match"].asJsonArray
+            val sid = resultObject["sid"].asInt
+            val novelUrl = "https://www.${HostNames.WLN_UPDATES}/series-id/$sid/"
+            allMatchesArray.forEach { match ->
+                val matchArray = match.asJsonArray
+                val novelName = matchArray[1].asString
+                searchResults.add(Novel(novelName, novelUrl))
+            }
         }
+
+//        val document = getDocument("https://www.wlnupdates.com/search?title=${searchTerms.replace(" ", "+")}")
+//        val elements = document.body().select("td") ?: return searchResults
+//        elements.mapTo(searchResults) {
+//            Novel(it.select("a[href]").text(), it.select("a[href]").attr("abs:href"))
+//        }
     } catch (e: Exception) {
         e.printStackTrace()
     }
@@ -143,15 +145,17 @@ fun NovelApi.searchScribbleHub(searchTerms: String, pageNumber: Int = 1): ArrayL
 
 
 @Suppress("unused")
-private class LNMTLNovelJson(@SerializedName("id") val id: Int,
-                             @SerializedName("name") val name: String,
-                             @SerializedName("slug") val slug: String,
-                             @SerializedName("name_acronym") val name_acronym: String,
-                             @SerializedName("name_original") val name_original: String,
-                             @SerializedName("name_spelling") val name_spelling: String,
-                             @SerializedName("name_spelling_clean") val name_spelling_clean: String,
-                             @SerializedName("image") val image: String,
-                             @SerializedName("url") val url: String)
+private class LNMTLNovelJson(
+    @SerializedName("id") val id: Int,
+    @SerializedName("name") val name: String,
+    @SerializedName("slug") val slug: String,
+    @SerializedName("name_acronym") val name_acronym: String,
+    @SerializedName("name_original") val name_original: String,
+    @SerializedName("name_spelling") val name_spelling: String,
+    @SerializedName("name_spelling_clean") val name_spelling_clean: String,
+    @SerializedName("image") val image: String,
+    @SerializedName("url") val url: String
+)
 
 private var novelsLNMTL: ArrayList<Novel>? = null
 
@@ -171,7 +175,7 @@ private fun getNovelsLNMTL() {
     // we need to extract the pure json
     // to do so, take the substring between "local: [" and "]"
     val json = text.substring(text.indexOf("local:") + 7)
-            .substringBefore(']') + ']'
+        .substringBefore(']') + ']'
 
     val novels: List<LNMTLNovelJson> = Gson().fromJson(json, Array<LNMTLNovelJson>::class.java).toList()
     for (novelLNMTL in novels) {

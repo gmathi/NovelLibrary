@@ -24,6 +24,7 @@ class DataCenter(context: Context) {
 
         private const val SEARCH_HISTORY_LIST = "searchHistoryList"
         private const val NOVEL_HISTORY_LIST = "novelHistoryList"
+        private const val LIBRARY_HISTORY_LIST = "libraryHistoryList"
 
         private const val SHOW_BACKUP_HINT = "showBackupHint"
         private const val SHOW_RESTORE_HINT = "showRestoreHint"
@@ -69,12 +70,12 @@ class DataCenter(context: Context) {
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
-    fun loadSearchHistory(): ArrayList<String> = Gson().fromJson(prefs.getString(SEARCH_HISTORY_LIST, "[]"), object : TypeToken<ArrayList<String>>() {}.type)
+    fun loadNovelSearchHistory(): ArrayList<String> = Gson().fromJson(prefs.getString(SEARCH_HISTORY_LIST, "[]"), object : TypeToken<ArrayList<String>>() {}.type)
+    fun saveNovelSearchHistory(history: ArrayList<String>) = prefs.edit().putString(SEARCH_HISTORY_LIST, Gson().toJson(history)).apply()
 
-    fun saveSearchHistory(history: ArrayList<String>) = prefs.edit().putString(SEARCH_HISTORY_LIST, Gson().toJson(history)).apply()
+    fun loadLibrarySearchHistory(): ArrayList<String> = Gson().fromJson(prefs.getString(LIBRARY_HISTORY_LIST, "[]"), object : TypeToken<ArrayList<String>>() {}.type)
+    fun saveLibrarySearchHistory(history: ArrayList<String>) = prefs.edit().putString(LIBRARY_HISTORY_LIST, Gson().toJson(history)).apply()
 
-    fun loadNovelHistory(): ArrayList<Novel> = Gson().fromJson(prefs.getString(NOVEL_HISTORY_LIST, "[]"), object : TypeToken<ArrayList<Novel>>() {}.type)
-    fun removeNovelHistory() = prefs.edit().remove(NOVEL_HISTORY_LIST).apply()
 
     var lockRoyalRoad: Boolean
         get() = prefs.getBoolean(LOCK_ROYAL_ROAD, true)

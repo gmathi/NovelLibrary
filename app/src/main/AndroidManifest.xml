@@ -38,8 +38,7 @@
         -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
-            android:resource="@color/colorAccent" />
-        <!-- [END fcm_default_icon] -->
+            android:resource="@color/colorAccent" /> <!-- [END fcm_default_icon] -->
         <!-- [START fcm_default_channel] -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel"
@@ -60,21 +59,18 @@
             <intent-filter>
                 <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY" />
             </intent-filter>
-        </service>
-        <!--<service-->
-        <!--android:name=".service.download.DownloadService"-->
-        <!--android:enabled="true"-->
-        <!--android:exported="false" />-->
+        </service> <!-- <service -->
+        <!-- android:name=".service.download.DownloadService" -->
+        <!-- android:enabled="true" -->
+        <!-- android:exported="false" /> -->
         <service
             android:name=".service.download.DownloadNovelService"
             android:enabled="true"
-            android:exported="false" />
-        <!-- <service -->
+            android:exported="false" /> <!-- <service -->
         <!-- android:name=".service.sync.SyncNovelsService" -->
         <!-- android:enabled="true" -->
         <!-- android:exported="false"> -->
         <!-- </service> -->
-
         <activity
             android:name=".activity.NovelDetailsActivity"
             android:label="@string/title_activity_novel_details"
@@ -208,6 +204,10 @@
             android:name=".activity.ChaptersPagerActivity"
             android:label="@string/title_activity_chapters"
             android:theme="@style/DarkTheme_DarkSide" />
+        <activity
+            android:name=".activity.LibrarySearchActivity"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
 
         <service
             android:name=".service.tts.TTSService"
@@ -221,11 +221,12 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/provider_paths"/>
+                android:resource="@xml/provider_paths" />
         </provider>
 
-        <receiver android:name=".util.NotificationReceiver" android:enabled="true" />
-
+        <receiver
+            android:name=".util.NotificationReceiver"
+            android:enabled="true" />
     </application>
 
 </manifest>

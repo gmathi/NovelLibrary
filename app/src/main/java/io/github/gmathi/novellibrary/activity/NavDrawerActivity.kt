@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.activity
 
-import CloudFlareByPasser
 import android.app.Activity
 import android.content.Intent
 import android.os.Build
@@ -25,6 +24,7 @@ import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
@@ -91,15 +91,15 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                .title("\uD83C\uDF89 What's New 0.12.beta!")
+                .title("\uD83C\uDF89 What's New 0.12.1.beta!")
                 .content(//"** Fixed Cloud Flare for 6.0.1**\n\n" +
-                    "⚠️ Hopefully fixed the annoying chapter skip bug.\n" +
-                            "✨ Import Reading List is working again! \n" +
-                            "✨ More Reader Settings (Explore it!!)\n" +
-                            "✨ Easy access to all reader settings from reader mode.\n" +
-                            "\uD83D\uDEE0 Discord link updated.\n" +
+                    "⚠️ Fixed the new chapter counter to be updated.\n" +
+                            "✨ WLNUpdates now uses API to get data. \n" +
+//                            "✨ More Reader Settings (Explore it!!)\n" +
+//                            "\uD83D\uDEE0 Fixed the chapter being not marked as read.\n" +
+//                            "\uD83D\uDEE0 Discord link updated.\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
-//                                    "⚠️ Fix to show sources for the novel chapters.\n" +
+                                    "⚠️ Fix - 1st chapter not being marked as read.\n" +
 //                                    "✨ Added Hidden Buttons to unlock some hidden functionality!" +
 //                            "\uD83D\uDEE️ Bug Fixes for reported & unreported crashes!" +
                             ""
@@ -129,8 +129,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
         CloudFlareByPasser.check(this, "novelupdates.com") { state ->
 
-            val isActivityRunning = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) !isDestroyed else !isFinishing
-            if (isActivityRunning) {
+            if (!isDestroyed) {
                 if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
                     if (cloudFlareLoadingDialog?.isShowing == true) {
                         Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
@@ -202,7 +201,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 startRecentlyUpdatedNovelsActivity()
             }
             R.id.nav_discord_link -> {
-                openInBrowser("https://discord.gg/BFXf55v")
+                openInBrowser("https://discord.gg/cPMxEVn")
             }
         }
     }
