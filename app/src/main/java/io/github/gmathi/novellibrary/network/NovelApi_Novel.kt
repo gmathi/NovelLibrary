@@ -56,7 +56,7 @@ fun NovelApi.getNUNovelDetails(url: String): Novel? {
     novel.metaData["Associated Names"] = document.getElementById("editassociated").text()
     novel.metaData["PostId"] = document.getElementById("mypostid").attr("value")
 
-    novel.chaptersCount = getNUChapterCount(novel).toLong()
+    novel.chaptersCount = getChapterCount(novel).toLong()
 //    } catch (e: Exception) {
 //        e.printStackTrace()
 //    }
@@ -75,7 +75,7 @@ fun NovelApi.getRRNovelDetails(url: String): Novel? {
         novel.rating = document.head().selectFirst("meta[property=books:rating:value]")?.attr("content")
         novel.longDescription = document.body().selectFirst("div[property=description]")?.text()
         novel.genres = document.body().select("[property=genre]")?.map { it.text() }
-        novel.chaptersCount = getRRChapterCount(document).toLong()
+        novel.chaptersCount = getChapterCount(novel).toLong()
 
         novel.metaData["Author(s)"] = document.head().selectFirst("meta[property=books:author]")?.attr("content")
 
@@ -103,37 +103,37 @@ fun NovelApi.getWlnNovelDetails(url: String): Novel? {
             .build()
         val response = OkHttpClient().newCall(request).execute()
         val jsonString = response.body?.string() ?: return novel
-        val rootJsonObject = JsonParser.parseString(jsonString).asJsonObject["data"].asJsonObject
+        val rootJsonObject = JsonParser.parseString(jsonString)?.asJsonObject?.getAsJsonObject("data") ?: return novel
 
         novel = Novel(rootJsonObject["title"].asString, url)
-        novel.imageUrl = rootJsonObject?.getAsJsonArray("covers")?.firstOrNull()?.asJsonObject?.get("url")?.asString
-        novel.longDescription = rootJsonObject?.get("description")?.asString?.replace("<p>", "\n")?.replace("</p>", "")
-        novel.genres = rootJsonObject?.getAsJsonArray("genres")?.map { it.asJsonObject.get("genre").asString }
-        novel.chaptersCount = rootJsonObject?.getAsJsonArray("releases")?.count()?.toLong() ?: 0L
-        val rating: Double = rootJsonObject?.getAsJsonObject("rating")?.get("avg")?.asDouble ?: 0.0
+        novel.imageUrl = rootJsonObject.getAsJsonArray("covers")?.firstOrNull()?.asJsonObject?.get("url")?.asString
+        novel.longDescription = rootJsonObject.get("description")?.asString?.replace("<p>", "\n")?.replace("</p>", "")
+        novel.genres = rootJsonObject.getAsJsonArray("genres")?.map { it.asJsonObject.get("genre").asString }
+        novel.chaptersCount = rootJsonObject.getAsJsonArray("releases")?.count()?.toLong() ?: 0L
+        val rating: Double = rootJsonObject.getAsJsonObject("rating")?.get("avg")?.asDouble ?: 0.0
         novel.rating = String.format("%.1f", (rating / 2))
 
-        novel.metaData["Author(s)"] = rootJsonObject?.getAsJsonArray("authors")?.joinToString(", ") { author ->
+        novel.metaData["Author(s)"] = rootJsonObject.getAsJsonArray("authors")?.joinToString(", ") { author ->
             val authorObject = author.asJsonObject
             "<a href=\"https://www.${HostNames.WLN_UPDATES}/author-id/${authorObject["id"]}\">${authorObject["author"].asString}</a>"
         }
-        novel.metaData["Illustrator(s)"] = rootJsonObject?.getAsJsonArray("illustrators")?.joinToString(", ") { illustrator ->
+        novel.metaData["Illustrator(s)"] = rootJsonObject.getAsJsonArray("illustrators")?.joinToString(", ") { illustrator ->
             val illustratorObject = illustrator.asJsonObject
-            "<a href=\"https://www.${HostNames.WLN_UPDATES}/artist-id/${illustratorObject["id"]}\">${illustratorObject["illustrators"].asString}</a>"
+            "<a href=\"https://www.${HostNames.WLN_UPDATES}/artist-id/${illustratorObject["id"]}\">${illustratorObject["illustrator"].asString}</a>"
         }
-        novel.metaData["Publisher(s)"] = rootJsonObject?.getAsJsonArray("publishers")?.joinToString(", ") { publisher ->
+        novel.metaData["Publisher(s)"] = rootJsonObject.getAsJsonArray("publishers")?.joinToString(", ") { publisher ->
             val publisherObject = publisher.asJsonObject
             "<a href=\"https://www.${HostNames.WLN_UPDATES}/publishers/${publisherObject["id"]}\">${publisherObject["publisher"].asString}</a>"
         }
 
         //Genre - Sample Url: https://www.wlnupdates.com/search?json=%20%7B%22chapter-limits%22%3A%20%5B0%2C%20false%5D%2C%20%22genre-category%22%3A%20%7B%22action%22%3A%20%22included%22%7D%2C%20%22series-type%22%3A%20%7B%7D%2C%20%22sort-mode%22%3A%20%22update%22%2C%20%22title-search-text%22%3A%20%22%22%7D
-        novel.metaData["Genre(s)"] = rootJsonObject?.getAsJsonArray("genres")?.joinToString(", ") { genreObject ->
+        novel.metaData["Genre(s)"] = rootJsonObject.getAsJsonArray("genres")?.joinToString(", ") { genreObject ->
             val genre = genreObject.asJsonObject["genre"].asString
             "<a href=\"https://www.${HostNames.WLN_UPDATES}/search?json=%20%7B%22chapter-limits%22%3A%20%5B0%2C%20false%5D%2C%20%22genre-category%22%3A%20%7B%22${genre}%22%3A%20%22included%22%7D%2C%20%22series-type%22%3A%20%7B%7D%2C%20%22sort-mode%22%3A%20%22update%22%2C%20%22title-search-text%22%3A%20%22%22%7D\">${genre}</a>"
         }
 
         //Tag - Sample Url: https://www.wlnupdates.com/search?json=%20%7B%22chapter-limits%22%3A%20%5B0%2C%20false%5D%2C%20%22series-type%22%3A%20%7B%7D%2C%20%22sort-mode%22%3A%20%22update%22%2C%20%22tag-category%22%3A%20%7B%22reincarnated-into-another-world%22%3A%20%22included%22%7D%2C%20%22title-search-text%22%3A%20%22%22%7D
-        novel.metaData["Tags"] = rootJsonObject?.getAsJsonArray("tags")?.joinToString(", ") { tagObject ->
+        novel.metaData["Tags"] = rootJsonObject.getAsJsonArray("tags")?.joinToString(", ") { tagObject ->
             val tag = tagObject.asJsonObject["tag"].asString
             "<a href=\"https://www.${HostNames.WLN_UPDATES}/search?json=%20%7B%22chapter-limits%22%3A%20%5B0%2C%20false%5D%2C%20%22series-type%22%3A%20%7B%7D%2C%20%22sort-mode%22%3A%20%22update%22%2C%20%22tag-category%22%3A%20%7B%22${tag}%22%3A%20%22included%22%7D%2C%20%22title-search-text%22%3A%20%22%22%7D\">${tag}</a>"
         }
@@ -147,7 +147,7 @@ fun NovelApi.getWlnNovelDetails(url: String): Novel? {
         novel.metaData["Country of Origin"] = rootJsonObject["origin_loc"]?.jsonNullFreeString ?: "N/A"
         novel.metaData["Status in Country of Origin"] =  rootJsonObject["orig_status"]?.jsonNullFreeString ?: "N/A"
         novel.metaData["Licensed (in English)"] = rootJsonObject["license_en"]?.jsonNullFreeString ?: "N/A"
-        novel.metaData["Alternate Names"] = rootJsonObject?.getAsJsonArray("alternatenames")?.joinToString(", ") { it.asString }
+        novel.metaData["Alternate Names"] = rootJsonObject.getAsJsonArray("alternatenames")?.joinToString(", ") { it.asString }
         novel.metaData["Language"] = rootJsonObject["orig_lang"]?.jsonNullFreeString ?: "N/A"
 
     } catch (e: Exception) {
@@ -175,7 +175,7 @@ fun NovelApi.getNovelFullNovelDetails(url: String): Novel? {
         novel.metaData["Source"] = infoElements[2].text()
         novel.metaData["Status"] = infoElements[3].text()
 
-        novel.chaptersCount = getNovelFullChapterUrls(novel)?.size?.toLong() ?: 0
+        novel.chaptersCount = getChapterCount(novel).toLong()
 
     } catch (e: Exception) {
         e.printStackTrace()

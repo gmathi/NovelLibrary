@@ -1,19 +1,28 @@
 package io.github.gmathi.novellibrary.network
 
 import com.google.gson.Gson
+import com.google.gson.JsonParser
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.database.createSource
 import io.github.gmathi.novellibrary.database.getSource
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.covertJsonNull
+import io.github.gmathi.novellibrary.extensions.jsonNullFreeString
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi.getDocumentWithFormData
+import io.github.gmathi.novellibrary.util.Constants
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.jsoup.Jsoup
 import java.net.URI
+import java.net.URL
 
 
-fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayList<WebPage>? {
+fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayList<WebPage> {
     val host = URI(novel.url).host
     when {
         host.contains(HostNames.NOVEL_UPDATES) -> return if (withSources) getNUALLChapterUrlsWithSources(novel) else getNUALLChapterUrls(novel)
@@ -23,15 +32,14 @@ fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayLi
         host.contains(HostNames.SCRIBBLE_HUB) -> return getScribbleHubChapterUrls(novel)
         host.contains(HostNames.LNMTL) -> return getLNMTLChapterUrls(novel)
     }
-    return null
+    return ArrayList<WebPage>()
 }
 
 //Get RoyalRoad Chapter URLs
-fun NovelApi.getRRChapterUrls(novel: Novel): ArrayList<WebPage>? {
-    var chapters: ArrayList<WebPage>? = null
+fun NovelApi.getRRChapterUrls(novel: Novel): ArrayList<WebPage> {
+    val chapters = ArrayList<WebPage>()
     try {
         val document = getDocument(novel.url)
-        chapters = ArrayList()
         val tableElement = document.body().select("#chapters") ?: return chapters
 
         var orderId = 0L
@@ -47,20 +55,67 @@ fun NovelApi.getRRChapterUrls(novel: Novel): ArrayList<WebPage>? {
     return chapters
 }
 
-fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage>? {
-    var chapters: ArrayList<WebPage>? = null
+fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage> {
+    val chapters = ArrayList<WebPage>()
     try {
-        val document = getDocument(novel.url)
-        chapters = ArrayList()
-        val trElements = document.body().select("tr#release-entry")
+        val novelId = URL(novel.url).path.split("/").filter { it.isNotEmpty() }.last().toInt()
+        val json = """ {
+            "mode": "get-series-id",
+            "id": $novelId
+        } """
+
+        val body = json.toRequestBody("application/json".toMediaType())
+
+        val request = Request.Builder()
+            .url(Constants.WLNUpdatesAPIUrl)
+            .post(body)
+            .build()
+        val response = OkHttpClient().newCall(request).execute()
+        val jsonString = response.body?.string() ?: return chapters
+        val rootJsonObject = JsonParser.parseString(jsonString)?.asJsonObject?.getAsJsonObject("data") ?: return chapters
+        val releasesArray = rootJsonObject.getAsJsonArray("releases")
+
+        val sources: HashSet<String> = HashSet()
+        releasesArray.forEach { release ->
+            val source = release.asJsonObject["tlgroup"].covertJsonNull?.asJsonObject?.get("name")?.jsonNullFreeString
+            source?.let { sources.add(it) }
+        }
+        val sourcesMap: HashMap<String, Long> = HashMap()
+        sources.forEach { source ->
+            val sourceId = dbHelper.createSource(source)
+            sourcesMap[source] = sourceId
+        }
 
         var orderId = 0L
-        trElements?.asReversed()?.asSequence()?.forEach {
-            val webPage = WebPage(url = it.child(0).child(0).attr("abs:href"), chapter = it.getElementsByClass("numeric").joinToString(separator = ".") { element -> element.text() })
-            webPage.orderId = orderId++
-            webPage.novelId = novel.id
-            chapters.add(webPage)
+        releasesArray.reversed().asSequence().forEach { release ->
+            val releaseObject = release.asJsonObject
+            val chapter = releaseObject["chapter"].covertJsonNull?.asInt?.toString() ?: ""
+            val fragment = releaseObject["fragment"].covertJsonNull?.asInt?.toString() ?: ""
+            val postFix = releaseObject["postfix"].jsonNullFreeString ?: ""
+            val url = releaseObject["srcurl"].jsonNullFreeString
+            val sourceName = releaseObject["tlgroup"].covertJsonNull?.asJsonObject?.get("name")?.jsonNullFreeString
+            val sourceId = if (sourceName != null) sourcesMap[sourceName] else -1L
+
+            url?.let {
+                val chapterName = arrayListOf(chapter, fragment, postFix).filter { it.isNotBlank() }.joinToString("-")
+                val webPage = WebPage(url = it, chapter = chapterName)
+                webPage.orderId = orderId++
+                webPage.novelId = novel.id
+                webPage.sourceId = sourceId ?: -1L
+                chapters.add(webPage)
+            }
         }
+
+
+//        val document = getDocument(novel.url)
+//        val trElements = document.body().select("tr#release-entry")
+//
+//        trElements?.asReversed()?.asSequence()?.forEach {
+//            val webPage = WebPage(url = it.child(0).child(0).attr("abs:href"), chapter = it.getElementsByClass("numeric").joinToString(separator = ".") { element -> element.text() })
+//            webPage.orderId = orderId++
+//            webPage.novelId = novel.id
+//            chapters.add(webPage)
+//        }
     } catch (e: Exception) {
         e.printStackTrace()
     }
@@ -193,7 +248,7 @@ private fun getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String,
     return sourceMap
 }
 
-fun getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage>? {
+fun getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage> {
     return try {
         val id = Jsoup.connect(novel.url).get().selectFirst("#rating").attr("data-novel-id")
         val chaptersDoc = Jsoup.connect("https://${HostNames.NOVEL_FULL}/ajax-chapter-option?novelId=$id&currentChapterId=").get()
@@ -204,7 +259,8 @@ fun getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage>? {
             )
         })
     } catch (e: Exception) {
-        e.printStackTrace(); null
+        e.printStackTrace();
+        ArrayList<WebPage>()
     }
 }
 

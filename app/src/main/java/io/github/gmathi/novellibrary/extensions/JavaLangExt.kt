@@ -42,6 +42,11 @@ inline val JsonElement.jsonNullFreeString: String?
         else -> this.asString
     }
 
+inline val JsonElement.covertJsonNull: JsonElement?
+    get() = when {
+        this.isJsonNull -> null
+        else -> this
+    }
 
 /**
  * Helper extension to URL encode a [String]. Returns an empty string when called on null.
