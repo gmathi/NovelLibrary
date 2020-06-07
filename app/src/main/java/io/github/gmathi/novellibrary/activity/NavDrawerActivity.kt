@@ -93,13 +93,13 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             MaterialDialog.Builder(this)
                 .title("\uD83C\uDF89 What's New 0.12.1.beta!")
                 .content(//"** Fixed Cloud Flare for 6.0.1**\n\n" +
-                    "⚠️ Hopefully fixed the annoying chapter skip bug. (x2)\n" +
-                            "✨ Library has new menu item - Search \n" +
+                    "⚠️ Fixed the new chapter counter to be updated.\n" +
+                            "✨ WLNUpdates now uses API to get data. \n" +
 //                            "✨ More Reader Settings (Explore it!!)\n" +
-                            "\uD83D\uDEE0 Fixed the chapter being not marked as read.\n" +
-                            "\uD83D\uDEE0 Discord link updated.\n" +
+//                            "\uD83D\uDEE0 Fixed the chapter being not marked as read.\n" +
+//                            "\uD83D\uDEE0 Discord link updated.\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
-//                                    "⚠️ Fix to show sources for the novel chapters.\n" +
+                                    "⚠️ Fix - 1st chapter not being marked as read.\n" +
 //                                    "✨ Added Hidden Buttons to unlock some hidden functionality!" +
 //                            "\uD83D\uDEE️ Bug Fixes for reported & unreported crashes!" +
                             ""
