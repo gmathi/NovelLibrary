@@ -121,6 +121,7 @@ class ReaderDBPagerActivity :
         novel.currentWebPageUrl?.let { bookmarkUrl ->
             val index = webPages.indexOfFirst { it.url == bookmarkUrl }
             if (index != -1) viewPager.currentItem = index
+            if (index == 0) updateBookmark(webPages[0])
         }
 
         //Set up the Slide-Out Reader Menu.
