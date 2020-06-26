@@ -3,29 +3,31 @@ package io.github.gmathi.novellibrary.activity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
 import androidx.core.content.ContextCompat
-import co.metalab.asyncawait.async
+import androidx.lifecycle.observe
 import com.afollestad.materialdialogs.MaterialDialog
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.ChaptersPageListener
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.*
+import io.github.gmathi.novellibrary.database.getSource
+import io.github.gmathi.novellibrary.database.getWebPage
+import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.shareUrl
-import io.github.gmathi.novellibrary.model.*
-import io.github.gmathi.novellibrary.network.NovelApi
-import io.github.gmathi.novellibrary.network.getChapterUrls
+import io.github.gmathi.novellibrary.model.ChapterActionModeEvent
+import io.github.gmathi.novellibrary.model.EventType
+import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel
 import kotlinx.android.synthetic.main.activity_chapters_pager.*
 import kotlinx.android.synthetic.main.content_chapters_pager.*
+import kotlinx.android.synthetic.main.generic_loading_view.*
 import org.greenrobot.eventbus.EventBus
-import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -33,19 +35,20 @@ import kotlin.collections.ArrayList
 class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
     companion object {
-        private const val TAG = "ChaptersPagerActivity"
+        //private const val TAG = "ChaptersPagerActivity"
     }
 
-    lateinit var novel: Novel
+    val vm: ChaptersViewModel by viewModels()
 
-    var chapters: ArrayList<WebPage> = ArrayList()
-    var chaptersSettings: ArrayList<WebPageSettings> = ArrayList()
     var dataSet: HashSet<WebPage> = HashSet()
-
     private val sources: ArrayList<Pair<Long, String>> = ArrayList()
     private var actionMode: ActionMode? = null
+
     private var confirmDialog: MaterialDialog? = null
-    private var showSources = false
+    private var progressDialog: MaterialDialog? = null
+
+    private var maxProgress: Int = 0
+    private var progressMessage = "In Progress…"
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,143 +57,120 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        novel = intent.getSerializableExtra("novel") as Novel
-        showSources = novel.metaData[Constants.MetaDataKeys.SHOW_SOURCES]?.toBoolean() ?: false
-        dbHelper.updateNewReleasesCount(novel.id, 0L)
+        if (savedInstanceState != null) {
+            val isProgressShowing = savedInstanceState.getBoolean("isProgressShowing", false)
+            if (isProgressShowing) {
+                setProgressDialog(savedInstanceState.getString("progressMessage", "In Progress…"), savedInstanceState.getInt("maxProgress", 0))
+                progressDialog?.show()
+            }
+        }
 
+        val novel = intent.getSerializableExtra("novel") as Novel
+        vm.init(novel, this, this)
+
+        addListeners()
+        addObservers()
+    }
+
+    private fun addListeners() {
         sourcesToggle.setOnClickListener {
             if (Utils.isConnectedToNetwork(this)) {
-                showSources = !showSources
-                novel.metaData[Constants.MetaDataKeys.SHOW_SOURCES] = showSources.toString()
-                dbHelper.updateNovelMetaData(novel)
-                getChapters(forceUpdate = true)
+                vm.toggleSources()
             } else {
                 confirmDialog("You need to have internet connection to do this!", MaterialDialog.SingleButtonCallback { dialog, _ ->
                     dialog.dismiss()
                 })
             }
         }
-
-        if (novel.id == -1L)
-            getChapters()
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (novel.id != -1L) {
-            novel = dbHelper.getNovel(novel.id)!!
-            progressLayout.showLoading()
-            getChaptersFromDB()
+    private fun addObservers() {
+        vm.loadingStatus.observe(this) { newStatus ->
+            //Update loading status
+            when (newStatus) {
+                Constants.Status.START -> {
+                    progressLayout.showLoading()
+                    loadingStateTextView.text = getString(R.string.loading)
+                }
+                Constants.Status.EMPTY_DATA -> {
+                    progressLayout.showEmpty(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.empty_chapters))
+                }
+                Constants.Status.NETWORK_ERROR -> {
+                    progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again)) {
+                        vm.getData()
+                    }
+                }
+                Constants.Status.NO_INTERNET -> {
+                    progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
+                        vm.getData()
+                    }
+                }
+                Constants.Status.DONE -> {
+                    progressLayout.showContent()
+                    setViewPager()
+                }
+                else -> {
+                    progressLayout.showLoading(newStatus)
+                }
+            }
         }
+
+        vm.actionModeProgress.observe(this) { progress ->
+            //Update Action mode actions status
+            when (progress) {
+                Constants.Status.START -> {
+                    progressDialog?.show()
+                }
+                Constants.Status.DONE -> {
+                    progressDialog?.dismiss()
+                    EventBus.getDefault().post(ChapterActionModeEvent(eventType = EventType.COMPLETE))
+                }
+                else -> {
+                    progressDialog?.setProgress(progress.toInt())
+                    //progressDialog?.setProgressNumberFormat(progress)
+                }
+            }
+        }
+
     }
+
 
     private fun setViewPager() {
-        async {
-            while (supportFragmentManager.backStackEntryCount > 0)
-                supportFragmentManager.popBackStack()
+        while (supportFragmentManager.backStackEntryCount > 0)
+            supportFragmentManager.popBackStack()
 
-            sources.clear()
+        sources.clear()
+        val chapters = vm.chapters ?: throw Error("Chapters cannot be null")
 
-            if (showSources) {
-                val sourceIds = chapters.distinctBy { it.sourceId }.map { it.sourceId }
-                sourceIds.forEach { dbHelper.getSource(it)?.let { sources.add(it) } }
-            } else {
-                dbHelper.getSource(-1L)?.let { sources.add(it) }
-            }
-
-            val titles = Array(sources.size, init = {
-                sources[it].second
-            })
-
-            val navPageAdapter = GenericFragmentStatePagerAdapter(supportFragmentManager, titles, titles.size, ChaptersPageListener(novel, sources))
-            viewPager.offscreenPageLimit = 3
-            viewPager.adapter = navPageAdapter
-            tabStrip.setViewPager(viewPager)
-            scrollToBookmark()
+        if (vm.showSources) {
+            val sourceIds = chapters.distinctBy { it.sourceId }.map { it.sourceId }
+            sourceIds.forEach { sourceId -> dbHelper.getSource(sourceId)?.let { sources.add(it) } }
+        } else {
+            dbHelper.getSource(-1L)?.let { sources.add(it) }
         }
+
+        val titles = Array(sources.size, init = {
+            sources[it].second
+        })
+
+        val navPageAdapter = GenericFragmentStatePagerAdapter(supportFragmentManager, titles, titles.size, ChaptersPageListener(vm.novel, sources))
+        viewPager.offscreenPageLimit = 3
+        viewPager.adapter = navPageAdapter
+        tabStrip.setViewPager(viewPager)
+        scrollToBookmark()
     }
 
+
     private fun scrollToBookmark() {
-        novel.currentWebPageUrl?.let { currentWebPageUrl ->
+        vm.novel.currentWebPageUrl?.let { currentWebPageUrl ->
             val currentBookmarkWebPage = dbHelper.getWebPage(currentWebPageUrl) ?: return
             val currentSource = sources.firstOrNull { it.first == currentBookmarkWebPage.sourceId }
-                    ?: return
+                ?: return
             val index = sources.indexOf(currentSource)
             if (index != -1)
                 viewPager.currentItem = index
         }
     }
-
-    //region Data
-    private fun getChaptersFromDB() {
-        async {
-            chapters = await { ArrayList(dbHelper.getAllWebPages(novel.id)) }
-            chaptersSettings = await { ArrayList(dbHelper.getAllWebPageSettings(novel.id)) }
-            if (chapters.isEmpty() || chapters.size < novel.chaptersCount.toInt()) {
-                novel.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
-                dbHelper.updateNovelMetaData(novel)
-                getChapters()
-            } else {
-                progressLayout.showContent()
-                setViewPager()
-            }
-        }
-    }
-
-    private fun getChapters(forceUpdate: Boolean = false) {
-        async chapters@{
-            progressLayout.showLoading()
-            if (!Utils.isConnectedToNetwork(this@ChaptersPagerActivity)) {
-                if (chapters.isEmpty())
-                    progressLayout.showError(ContextCompat.getDrawable(this@ChaptersPagerActivity, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
-                        progressLayout.showLoading()
-                        getChapters()
-                    }
-                return@chapters
-            }
-
-            //Download latest chapters from network
-            try {
-                chapters = await { NovelApi.getChapterUrls(novel, showSources) }
-
-                //Save to DB if the novel is in Library
-                if (novel.id != -1L) {
-                    await { addChaptersToDB(forceUpdate) }
-                }
-                actionMode?.finish()
-                progressLayout.showContent()
-                setViewPager()
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-                if (progressLayout.isLoading)
-                    progressLayout.showError(ContextCompat.getDrawable(this@ChaptersPagerActivity, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again)) {
-                        progressLayout.showLoading()
-                        getChapters()
-                    }
-            }
-        }
-    }
-
-    private fun addChaptersToDB(forceUpdate: Boolean = false) {
-        if (forceUpdate) {
-            dbHelper.deleteWebPages(novel.id)
-        }
-        dbHelper.updateChaptersAndReleasesCount(novel.id, chapters.size.toLong(), 0L)
-        for (i in 0 until chapters.size) {
-            if (forceUpdate)
-                dbHelper.createWebPage(chapters[i])
-            else {
-                if (dbHelper.getWebPage(chapters[i].url) == null)
-                    dbHelper.createWebPage(chapters[i])
-            }
-            if (dbHelper.getWebPageSettings(chapters[i].url) == null)
-                dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
-        }
-        chaptersSettings = ArrayList(dbHelper.getAllWebPageSettings(novel.id))
-    }
-
-    //endregion
 
     //region Options Menu
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -199,8 +179,8 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        menu?.getItem(1)?.isVisible = (novel.id == -1L)
-        menu?.getItem(2)?.isVisible = (novel.id != -1L)
+        menu?.getItem(1)?.isVisible = (vm.novel.id == -1L)
+        menu?.getItem(2)?.isVisible = (vm.novel.id != -1L)
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -209,28 +189,43 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         when (item.itemId) {
             android.R.id.home -> finish()
             R.id.action_sync -> {
-                getChapters(forceUpdate = true)
+                vm.getData(forceUpdate = true)
                 devCounter++
                 if (devCounter == 40) dataCenter.isDeveloper = true
                 return true
             }
             R.id.action_download -> {
                 confirmDialog(getString(R.string.download_all_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
-                    val publisher = novel.metaData["English Publisher"]
+                    val publisher = vm.novel.metaData["English Publisher"]
                     val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true) ?: false
                     if (dataCenter.disableWuxiaDownloads && isWuxiaChapterPresent) {
                         dialog.dismiss()
                         showWuxiaWorldDownloadDialog()
                     } else {
                         dialog.dismiss()
-                        addWebPagesToDownload()
+                        setProgressDialog("Adding chapters to download queue…", vm.chapters?.size ?: 0)
+                        vm.updateChapters(vm.chapters!!, ChaptersViewModel.Action.ADD_DOWNLOADS, callback = {
+                            manageDownloadsDialog()
+                        })
+
                     }
                 })
                 return true
             }
             R.id.action_add_to_library -> {
-                addNovelToLibrary()
+                vm.addNovelToLibrary()
                 invalidateOptionsMenu()
+                vm.addNovelChaptersToDB()
+                return true
+            }
+            R.id.action_sort -> {
+                if (vm.novel.metaData["chapterOrder"] == "des")
+                    vm.novel.metaData["chapterOrder"] = "asc"
+                else
+                    vm.novel.metaData["chapterOrder"] = "des"
+                EventBus.getDefault().post(ChapterActionModeEvent(eventType = EventType.COMPLETE))
+                if (vm.novel.id != -1L)
+                    dbHelper.updateNovel(vm.novel)
                 return true
             }
         }
@@ -279,39 +274,28 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         when (item?.itemId) {
             R.id.action_unread -> {
                 confirmDialog(getString(R.string.mark_chapters_unread_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
-                    dataSet.forEach { webPage ->
-                        val webPageSettings = chaptersSettings.firstOrNull { it.url == webPage.url }
-                        webPageSettings?.let {
-                            it.metaData.remove(Constants.MetaDataKeys.SCROLL_POSITION)
-                            it.isRead = 0
-                            dbHelper.updateWebPageSettingsReadStatus(it)
-                        }
-                    }
+                    setProgressDialog("Marking chapters as unread…", dataSet.size)
+                    vm.updateChapters(ArrayList(dataSet), ChaptersViewModel.Action.MARK_UNREAD)
                     dialog.dismiss()
                     mode?.finish()
                 })
             }
             R.id.action_read -> {
                 confirmDialog(getString(R.string.mark_chapters_read_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
-                    dataSet.forEach { webPage ->
-                        val webPageSettings = chaptersSettings.firstOrNull { it.url == webPage.url }
-                        webPageSettings?.let {
-                            it.isRead = 1
-                            dbHelper.updateWebPageSettingsReadStatus(it)
-                        }
-                    }
+                    setProgressDialog("Marking chapters as read…", dataSet.size)
+                    vm.updateChapters(ArrayList(dataSet), ChaptersViewModel.Action.MARK_READ)
                     dialog.dismiss()
                     mode?.finish()
                 })
             }
             R.id.action_download -> {
                 confirmDialog(getString(R.string.download_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
-                    if (novel.id == -1L) {
+                    if (vm.novel.id == -1L) {
                         dialog.dismiss()
                         showNotInLibraryDialog()
                         mode?.finish()
                     } else {
-                        val publisher = novel.metaData["English Publisher"]
+                        val publisher = vm.novel.metaData["English Publisher"]
                         val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true) ?: false
                         if (dataCenter.disableWuxiaDownloads && isWuxiaChapterPresent) {
                             dialog.dismiss()
@@ -320,7 +304,10 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                             val listToDownload = ArrayList(dataSet)
                             if (listToDownload.isNotEmpty()) {
                                 dialog.dismiss()
-                                addWebPagesToDownload(listToDownload)
+                                setProgressDialog("Add to Downloads…", listToDownload.size)
+                                vm.updateChapters(listToDownload, ChaptersViewModel.Action.ADD_DOWNLOADS) {
+                                    manageDownloadsDialog()
+                                }
                                 mode?.finish()
                             }
                         }
@@ -328,10 +315,9 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 })
             }
             R.id.action_select_interval -> {
-                progressLayout.showLoading()
                 val sourceId = sources[viewPager.currentItem].first
                 if (sourceId == -1L) {
-                    val chaptersForSource = chapters.sortedBy { it.orderId }
+                    val chaptersForSource = vm.chapters!!.sortedBy { it.orderId }
                     val selectedChaptersForSource = dataSet.sortedBy { it.orderId }
                     if (selectedChaptersForSource.size > 1) {
                         val firstIndex = chaptersForSource.indexOf(selectedChaptersForSource.first())
@@ -341,7 +327,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                         EventBus.getDefault().post(ChapterActionModeEvent(sourceId, EventType.UPDATE))
                     }
                 } else {
-                    val chaptersForSource = chapters.filter { it.sourceId == sourceId }.sortedBy { it.orderId }
+                    val chaptersForSource = vm.chapters!!.filter { it.sourceId == sourceId }.sortedBy { it.orderId }
                     val selectedChaptersForSource = dataSet.filter { it.sourceId == sourceId }.sortedBy { it.orderId }
                     if (selectedChaptersForSource.size > 1) {
                         val firstIndex = chaptersForSource.indexOf(selectedChaptersForSource.first())
@@ -351,39 +337,33 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                         EventBus.getDefault().post(ChapterActionModeEvent(sourceId, EventType.UPDATE))
                     }
                 }
-                progressLayout.showContent()
             }
             R.id.action_select_all -> {
-                progressLayout.showLoading()
                 val sourceId = sources[viewPager.currentItem].first
                 if (sourceId == -1L) {
-                    addToDataSet(webPages = chapters)
+                    addToDataSet(webPages = vm.chapters!!)
                 } else {
-                    addToDataSet(webPages = chapters.filter { it.sourceId == sourceId })
+                    addToDataSet(webPages = vm.chapters!!.filter { it.sourceId == sourceId })
                 }
                 EventBus.getDefault().post(ChapterActionModeEvent(sourceId, EventType.UPDATE))
-                progressLayout.showContent()
             }
             R.id.action_clear_selection -> {
-                progressLayout.showLoading()
                 val sourceId = sources[viewPager.currentItem].first
                 if (sourceId == -1L) {
-                    removeFromDataSet(webPages = chapters)
+                    removeFromDataSet(webPages = vm.chapters!!)
                 } else {
-                    removeFromDataSet(webPages = chapters.filter { it.sourceId == sourceId })
+                    removeFromDataSet(webPages = vm.chapters!!.filter { it.sourceId == sourceId })
                 }
-                removeFromDataSet(webPages = chapters.filter { it.sourceId == sourceId })
+                removeFromDataSet(webPages = vm.chapters!!.filter { it.sourceId == sourceId })
                 EventBus.getDefault().post(ChapterActionModeEvent(sourceId, EventType.UPDATE))
-                progressLayout.showContent()
             }
             R.id.action_share_chapter -> {
                 val urls = dataSet.joinToString(separator = ", ") { it.url }
                 shareUrl(urls)
             }
             R.id.action_delete -> {
-                dataSet.forEach {
-                    deleteWebPage(it)
-                }
+                setProgressDialog("Deleting downloaded chapters…", dataSet.size)
+                vm.updateChapters(ArrayList(dataSet), ChaptersViewModel.Action.DELETE_DOWNLOADS)
                 mode?.finish()
             }
         }
@@ -409,125 +389,71 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     //endregion
 
     //region Dialogs
-
-    private fun confirmDialog(content: String, callback: MaterialDialog.SingleButtonCallback) {
+    fun confirmDialog(content: String, positiveCallback: MaterialDialog.SingleButtonCallback, negativeCallback: MaterialDialog.SingleButtonCallback? = null) {
         if (confirmDialog == null || !confirmDialog!!.isShowing) {
-            confirmDialog = MaterialDialog.Builder(this)
-                    .title(getString(R.string.confirm_action))
-                    .content(content)
-                    .positiveText(getString(R.string.okay))
-                    .negativeText(R.string.cancel)
-                    .onPositive(callback)
-                    .onNegative { dialog, _ -> dialog.dismiss() }.build()
-            confirmDialog!!.show()
+            val dialogBuilder = MaterialDialog.Builder(this)
+                .title(getString(R.string.confirm_action))
+                .content(content)
+                .positiveText(getString(R.string.okay))
+                .negativeText(R.string.cancel)
+                .onPositive(positiveCallback)
+
+            if (negativeCallback != null) {
+                dialogBuilder.onNegative(negativeCallback)
+            } else {
+                dialogBuilder.onNegative { dialog, _ -> dialog.dismiss() }
+            }
+
+            confirmDialog = dialogBuilder.build()
+            confirmDialog?.show()
         }
     }
 
-    internal fun confirmDialog(content: String, positiveCallback: MaterialDialog.SingleButtonCallback, negativeCallback: MaterialDialog.SingleButtonCallback) {
-        if (confirmDialog == null || !confirmDialog!!.isShowing) {
-            confirmDialog = MaterialDialog.Builder(this)
-                    .title(getString(R.string.confirm_action))
-                    .content(content)
-                    .positiveText(getString(R.string.okay))
-                    .negativeText(R.string.cancel)
-                    .onPositive(positiveCallback)
-                    .onNegative(negativeCallback).build()
-            confirmDialog!!.show()
-        }
+    private fun showAlertDialog(message: String) {
+        MaterialDialog.Builder(this)
+            .iconRes(R.drawable.ic_warning_white_vector)
+            .title(getString(R.string.alert))
+            .content(message)
+            .positiveText(getString(R.string.okay))
+            .onPositive { dialog, _ -> dialog.dismiss() }
+            .show()
     }
-
 
     private fun showNotInLibraryDialog() {
-        MaterialDialog.Builder(this)
-                .iconRes(R.drawable.ic_warning_white_vector)
-                .title(getString(R.string.alert))
-                .content(getString(R.string.novel_not_in_library_dialog_content))
-                .positiveText(getString(R.string.okay))
-                .onPositive { dialog, _ -> dialog.dismiss() }
-                .show()
+        showAlertDialog(getString(R.string.novel_not_in_library_dialog_content))
     }
 
     private fun showWuxiaWorldDownloadDialog() {
-        MaterialDialog.Builder(this)
-                .iconRes(R.drawable.ic_warning_white_vector)
-                .title(getString(R.string.alert))
-                .content("Downloads are not supported for WuxiaWorld content. Please use their app for downloads/offline reading WuxiaWorld novels.")
-                .positiveText(getString(R.string.okay))
-                .onPositive { dialog, _ -> dialog.dismiss() }
-                .show()
+        showAlertDialog("Downloads are not supported for WuxiaWorld content. Please use their app for downloads/offline reading WuxiaWorld novels.")
     }
 
     private fun manageDownloadsDialog() {
         MaterialDialog.Builder(this)
-                .iconRes(R.drawable.ic_info_white_vector)
-                .title(getString(R.string.manage_downloads))
-                .content("Novel downloads can be managed by navigating to \"Downloads\" through the navigation drawer menu. Please start the download manually!!")
-                .positiveText(getString(R.string.take_me_there))
-                .negativeText(getString(R.string.okay))
-                .onPositive { dialog, _ -> dialog.dismiss(); setResult(Constants.OPEN_DOWNLOADS_RES_CODE); finish() }
-                .onNegative { dialog, _ -> dialog.dismiss() }
-                .show()
+            .iconRes(R.drawable.ic_info_white_vector)
+            .title(getString(R.string.manage_downloads))
+            .content("Novel downloads can be managed by navigating to \"Downloads\" through the navigation drawer menu. Please start the download manually!!")
+            .positiveText(getString(R.string.take_me_there))
+            .negativeText(getString(R.string.okay))
+            .onPositive { dialog, _ -> dialog.dismiss(); setResult(Constants.OPEN_DOWNLOADS_RES_CODE); finish() }
+            .onNegative { dialog, _ -> dialog.dismiss() }
+            .show()
+    }
+
+    private fun setProgressDialog(message: String, maxProgress: Int) {
+        progressMessage = message
+        this.maxProgress = maxProgress
+        progressDialog = MaterialDialog.Builder(this@ChaptersPagerActivity)
+            .content(message)
+            .progress(false, maxProgress, true)
+            .cancelable(false).build()
     }
     //endregion
 
-    private fun addWebPagesToDownload(webPages: List<WebPage> = chapters) {
-        async {
-            val dialog = MaterialDialog.Builder(this@ChaptersPagerActivity)
-                    .content("Adding chapters to download queue…")
-                    .progress(false, webPages.size, true)
-                    .cancelable(false)
-                    .show()
-
-            webPages.forEach {
-                val download = Download(it.url, novel.name, it.chapter)
-                download.orderId = it.orderId.toInt()
-                await { dbHelper.createDownload(download) }
-                dialog.incrementProgress(1)
-            }
-            dialog.setContent("Finished adding chapters…")
-            dialog.dismiss()
-            manageDownloadsDialog()
-        }
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt("maxProgress", maxProgress)
+        outState.putString("progressMessage", progressMessage)
+        outState.putBoolean("isProgressShowing", progressDialog?.isShowing ?: false)
     }
-
-    private fun deleteWebPage(webPage: WebPage) {
-        val webPageSettings = chaptersSettings.firstOrNull { it.url == webPage.url }
-        webPageSettings?.filePath?.let { filePath ->
-                val file = File(filePath)
-                file.delete()
-                webPageSettings.filePath = null
-            try {
-                val otherLinkedPagesJsonString = webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES]
-                if (otherLinkedPagesJsonString != null) {
-                    val linkedPages: ArrayList<WebPage> = Gson().fromJson(otherLinkedPagesJsonString, object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
-                    linkedPages.forEach {
-                        val linkedWebPageSettings = dbHelper.getWebPageSettings(it.url)
-                        if (linkedWebPageSettings?.filePath != null) {
-                            val linkedFile = File(linkedWebPageSettings.filePath!!)
-                            linkedFile.delete()
-                            dbHelper.deleteWebPageSettings(linkedWebPageSettings.url)
-                        }
-                    }
-                    webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = "[]"
-                }
-            } catch (e: Exception) {
-                Logs.error(TAG, e.localizedMessage)
-            }
-            dbHelper.updateWebPageSettings(webPageSettings)
-        }
-    }
-
-    internal fun addNovelToLibrary() {
-        async {
-            if (novel.id != -1L) return@async
-            progressLayout.showLoading()
-            novel.id = await { dbHelper.insertNovel(novel) }
-            invalidateOptionsMenu()
-            chapters.forEach { it.novelId = novel.id }
-            await { addChaptersToDB(true) }
-            progressLayout.showContent()
-        }
-    }
-
 
 }

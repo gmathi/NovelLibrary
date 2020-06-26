@@ -223,3 +223,10 @@ fun DBHelper.deleteNovel(id: Long) {
     this.writableDatabase.delete(DBKeys.TABLE_NOVEL, DBKeys.KEY_ID + " = ?", arrayOf(id.toString()))
 }
 
+fun DBHelper.updateChaptersCount(novelId: Long, chaptersCount: Long) {
+    val values = ContentValues()
+    values.put(DBKeys.KEY_CHAPTERS_COUNT, chaptersCount)
+    this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
+}
+
+

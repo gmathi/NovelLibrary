@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/black">
 
-    <com.nguyenhoanglam.progresslayout.ProgressLayout
+    <io.github.gmathi.novellibrary.util.ProgressLayout
         android:id="@+id/progressLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -29,6 +29,6 @@
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 
-    </com.nguyenhoanglam.progresslayout.ProgressLayout>
+    </io.github.gmathi.novellibrary.util.ProgressLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -21,33 +21,4 @@
 
     <include layout="@layout/content_chapters_pager"/>
 
-    <!--<com.github.clans.fab.FloatingActionMenu-->
-    <!--android:id="@+id/fabMenu"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:layout_gravity="bottom|end"-->
-    <!--android:layout_margin="@dimen/fab_margin"-->
-    <!--app:menu_labels_ellipsize="end"-->
-    <!--app:menu_labels_singleLine="true">-->
-
-    <!--<com.github.clans.fab.FloatingActionButton-->
-    <!--android:id="@+id/fabDownload"-->
-    <!--style="@style/MenuButtonsStyle"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:src="@drawable/ic_file_download_black"-->
-    <!--app:fab_label="Downloads"-->
-    <!--app:srcCompat="@drawable/ic_file_download_black_vector"/>-->
-
-    <!--<com.github.clans.fab.FloatingActionButton-->
-    <!--android:id="@+id/fabSearch"-->
-    <!--style="@style/MenuButtonsStyle"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:src="@drawable/ic_search_black"-->
-    <!--android:tint="@android:color/white"-->
-    <!--app:fab_label="Search Novels"/>-->
-
-    <!--</com.github.clans.fab.FloatingActionMenu>-->
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

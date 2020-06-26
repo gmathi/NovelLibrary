@@ -3,10 +3,11 @@ package io.github.gmathi.novellibrary.fragment
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Parcelable
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
-import android.view.*
-import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.hanks.library.AnimateCheckBox
 import io.github.gmathi.novellibrary.R
@@ -26,8 +27,8 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
 class ChaptersFragment : BaseFragment(),
-        GenericAdapterSelectTitleProvider.Listener<WebPage>,
-        AnimateCheckBox.OnCheckedChangeListener {
+    GenericAdapterSelectTitleProvider.Listener<WebPage>,
+    AnimateCheckBox.OnCheckedChangeListener {
 
     companion object {
 
@@ -48,17 +49,10 @@ class ChaptersFragment : BaseFragment(),
     lateinit var adapter: GenericAdapterSelectTitleProvider<WebPage>
 
     private var sourceId: Long = -1L
-
-    private var counter = 0
     private var lastKnownRecyclerState: Parcelable? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-            inflater.inflate(R.layout.fragment_source_chapters, container, false)
+        inflater.inflate(R.layout.fragment_source_chapters, container, false)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -82,14 +76,14 @@ class ChaptersFragment : BaseFragment(),
     private fun setData(shouldScrollToBookmark: Boolean = true, shouldScrollToFirstUnread: Boolean = true) {
         val chaptersPagerActivity = activity as? ChaptersPagerActivity
         if (chaptersPagerActivity != null) {
-            val chapters = if (sourceId == -1L) chaptersPagerActivity.chapters else chaptersPagerActivity.chapters.filter { it.sourceId == sourceId }
+            val chapters = (if (sourceId == -1L) chaptersPagerActivity.vm.chapters else chaptersPagerActivity.vm.chapters?.filter { it.sourceId == sourceId }) ?: ArrayList<WebPage>()
             if (chapters.isNotEmpty()) {
                 adapter.updateData(if (novel.metaData["chapterOrder"] == "des") ArrayList(chapters.reversed()) else ArrayList(chapters))
                 progressLayout.showContent()
                 if (shouldScrollToBookmark)
                     scrollToBookmark()
                 else if (shouldScrollToFirstUnread)
-                    scrollToFirstUnread(chaptersPagerActivity.chaptersSettings)
+                    scrollToFirstUnread(chaptersPagerActivity.vm.chapterSettings ?: throw Error("Invalid Chapter Settings"))
                 if (chaptersPagerActivity.dataSet.isNotEmpty()) {
                     lastKnownRecyclerState?.let { recyclerView.layoutManager?.onRestoreInstanceState(it) }
                 }
@@ -135,7 +129,7 @@ class ChaptersFragment : BaseFragment(),
     @SuppressLint("SetTextI18n")
     override fun bind(item: WebPage, itemView: View, position: Int) {
 
-        val webPageSettings = (activity as? ChaptersPagerActivity)?.chaptersSettings?.firstOrNull { it.url == item.url }
+        val webPageSettings = (activity as? ChaptersPagerActivity)?.vm?.chapterSettings?.firstOrNull { it.url == item.url }
 
         if (webPageSettings?.filePath != null) {
             itemView.availableOfflineImageView.visibility = View.VISIBLE
@@ -186,7 +180,7 @@ class ChaptersFragment : BaseFragment(),
         if (novel.id == -1L) {
             if (isChecked)
                 chaptersPagerActivity.confirmDialog(getString(R.string.add_to_library_dialog_content, novel.name), MaterialDialog.SingleButtonCallback { dialog, _ ->
-                    chaptersPagerActivity.addNovelToLibrary()
+                    chaptersPagerActivity.vm.addNovelToLibrary()
                     chaptersPagerActivity.invalidateOptionsMenu()
                     chaptersPagerActivity.addToDataSet(webPage)
                     dialog.dismiss()
@@ -237,43 +231,4 @@ class ChaptersFragment : BaseFragment(),
     }
 
     //endregion
-
-    //region Options Menu
-
-    override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
-        menuInflater.inflate(R.menu.menu_fragment_chapters, menu)
-        super.onCreateOptionsMenu(menu, menuInflater)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.action_sort -> {
-                if (novel.metaData["chapterOrder"] == "des")
-                    novel.metaData["chapterOrder"] = "asc"
-                else
-                    novel.metaData["chapterOrder"] = "des"
-                setData(shouldScrollToBookmark = false)
-                dbHelper.updateNovel(novel)
-                return true
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
-//    private fun checkData() {
-//        counter++
-//        if (counter >= 20 && dataCenter.lockRoyalRoad) {
-//            dataCenter.lockRoyalRoad = false
-//            Toast.makeText(activity, "You have unlocked a new source in search!", Toast.LENGTH_SHORT).show()
-//        }
-//    }
-
-    //endregion
-
-    override fun onDestroy() {
-        super.onDestroy()
-        async.cancelAll()
-    }
-
-
 }

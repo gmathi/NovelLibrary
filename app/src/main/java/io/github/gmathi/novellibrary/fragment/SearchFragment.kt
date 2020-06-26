@@ -68,12 +68,10 @@ class SearchFragment : BaseFragment() {
 
     private fun setSearchView() {
         //searchView.setHomeButtonVisibility(View.GONE)
-        searchView.setHomeButtonListener(object : PersistentSearchView.HomeButtonListener {
-            override fun onHomeButtonClick() {
-                hideSoftKeyboard()
-                activity?.drawerLayout?.openDrawer(GravityCompat.START)
-            }
-        })
+        searchView.setHomeButtonListener {
+            hideSoftKeyboard()
+            activity?.drawerLayout?.openDrawer(GravityCompat.START)
+        }
 
         searchView.setSuggestionBuilder(SuggestionsBuilder(dataCenter.loadNovelSearchHistory()))
         searchView.setSearchListener(object : PersistentSearchView.SearchListener {
@@ -82,6 +80,7 @@ class SearchFragment : BaseFragment() {
                 query?.addToNovelSearchHistory()
                 if (query != null) {
                     searchNovels(query)
+                    searchView.setSuggestionBuilder(SuggestionsBuilder(dataCenter.loadNovelSearchHistory()))
                 }
             }
 

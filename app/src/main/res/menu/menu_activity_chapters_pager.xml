@@ -25,4 +25,11 @@
         android:visible="false"
         app:showAsAction="ifRoom"/>
 
+    <item
+        android:id="@+id/action_sort"
+        android:icon="@drawable/ic_swap_vert_vector"
+        android:title="@string/sort_chapters"
+        android:titleCondensed="@string/sort"
+        app:showAsAction="ifRoom"/>
+
 </menu>

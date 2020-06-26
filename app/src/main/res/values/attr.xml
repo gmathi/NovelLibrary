@@ -39,4 +39,25 @@
         <attr name="defaultBackgroundRangeColor" format="color"/>
     </declare-styleable>
 
+    <declare-styleable name="ProgressLayout">
+        <attr name="loadingProgressBarRadius" format="dimension" />
+        <attr name="loadingProgressBarSpinWidth" format="dimension" />
+        <attr name="loadingProgressBarColor" format="color" />
+        <attr name="loadingBackgroundColor" format="color" />
+
+        <attr name="emptyImageWidth" format="dimension" />
+        <attr name="emptyImageHeight" format="dimension" />
+        <attr name="emptyContentTextSize" format="dimension" />
+        <attr name="emptyContentTextColor" format="color" />
+        <attr name="emptyBackgroundColor" format="color" />
+
+        <attr name="errorImageWidth" format="dimension" />
+        <attr name="errorImageHeight" format="dimension" />
+        <attr name="errorContentTextSize" format="dimension" />
+        <attr name="errorContentTextColor" format="color" />
+        <attr name="errorButtonTextSize" format="dimension" />
+        <attr name="errorButtonTextColor" format="color" />
+        <attr name="errorBackgroundColor" format="color" />
+    </declare-styleable>
+
 </resources>

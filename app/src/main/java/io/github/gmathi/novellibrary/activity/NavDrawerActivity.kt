@@ -49,21 +49,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
         //Initialize custom logging
         Fabric.with(this, Crashlytics())
-
-        try {
-            currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
-        } catch (e: Exception) {
-            Crashlytics.logException(e)
-            MaterialDialog.Builder(this@NavDrawerActivity)
-                .content("Error initiating the app. The developer has been notified about this!")
-                .positiveText("Quit")
-                .cancelable(false)
-                .onPositive { dialog, _ ->
-                    dialog.dismiss()
-                    finish()
-                }
-                .show()
-        }
+        currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
 
         if (intent.hasExtra("currentNavId"))
             currentNavId = intent.getIntExtra("currentNavId", currentNavId)
@@ -81,6 +67,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             loadFragment(currentNavId)
             showWhatsNewDialog()
         }
+        currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
 
         if (intent.hasExtra("showDownloads")) {
             intent.removeExtra("showDownloads")

@@ -101,7 +101,9 @@ dependencies {
     implementation 'org.greenrobot:eventbus:3.1.1'
 
     implementation 'com.github.bumptech.glide:glide:4.11.0'
-    implementation 'com.github.nguyenhoanglam:ProgressLayout:1.0.1'
+//    implementation 'com.github.nguyenhoanglam:ProgressLayout:1.0.1'
+    implementation 'com.shouquan:StateLayout:1.0.0'
+
     implementation 'com.github.rubensousa:floatingtoolbar:1.4.4'
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
     implementation 'com.github.medyo:fancybuttons:1.8.3'
@@ -138,12 +140,21 @@ dependencies {
     implementation "com.google.android.gms:play-services-drive:17.0.0"
     implementation "com.google.android.gms:play-services-auth:18.0.0"
 
-    implementation "com.google.firebase:firebase-messaging:20.2.0"
+    implementation "com.google.firebase:firebase-messaging:20.2.1"
     implementation "com.google.firebase:firebase-auth:19.3.1"
 
-    implementation "com.google.firebase:firebase-core:17.4.2"
+    implementation "com.google.firebase:firebase-core:17.4.3"
     implementation "com.google.firebase:firebase-config:19.1.4"
     implementation 'com.google.code.gson:gson:2.8.6'
+
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+
+    def nav_version = "2.2.2"
+    implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
+    implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
+
+    implementation 'com.airbnb.android:lottie:3.4.1'
+
 
 
     implementation('com.crashlytics.sdk.android:crashlytics:2.10.1@aar') {

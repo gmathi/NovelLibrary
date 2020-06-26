@@ -10,7 +10,7 @@
     tools:showIn="@layout/activity_novel_details">
 
 
-    <com.nguyenhoanglam.progresslayout.ProgressLayout
+    <io.github.gmathi.novellibrary.util.ProgressLayout
         android:id="@+id/progressLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -343,7 +343,7 @@
 
             </ScrollView>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-    </com.nguyenhoanglam.progresslayout.ProgressLayout>
+    </io.github.gmathi.novellibrary.util.ProgressLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

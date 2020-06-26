@@ -142,8 +142,7 @@ class ReaderDBPagerActivity :
         dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, webPage.url)
         val webPageSettings = dbHelper.getWebPageSettings(webPage.url)
         if (webPageSettings != null) {
-            webPageSettings.isRead = 1
-            dbHelper.updateWebPageSettingsReadStatus(webPageSettings)
+            dbHelper.updateWebPageSettingsReadStatus(webPageSettings.url, 1, webPageSettings.metaData)
         }
     }
 

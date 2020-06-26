@@ -117,4 +117,14 @@ object Constants {
     const val WORK_KEY_RESULT = "result"
 
     const val WLNUpdatesAPIUrl = "https://www.${HostNames.WLN_UPDATES}/api"
+
+
+    object Status {
+        const val NO_INTERNET = "noInternet"
+        const val NETWORK_ERROR = "networkError"
+        const val EMPTY_DATA = "emptyData"
+        const val START = "Loading…"
+        const val DONE = "done"
+    }
+
 }
