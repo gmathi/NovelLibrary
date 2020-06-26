@@ -380,7 +380,7 @@ class ReaderDBPagerActivity :
                     val title = webPageDBFragment.doc?.title() ?: ""
                     startTTSService(audioText, title, novel.id, sourceId)
                 } else {
-                    alertToast(title = "Read Aloud", message = "Only supported in Reader Mode!")
+                    showAlertDialog(title = "Read Aloud", message = "Only supported in Reader Mode!")
                 }
             }
             MORE_SETTINGS -> startReaderSettingsActivity()

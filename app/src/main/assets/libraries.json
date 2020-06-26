@@ -30,11 +30,6 @@
     "link": "https://github.com/nguyenhoanglam/ProgressLayout"
   },
   {
-    "name": "Floating Toolbar v1.4.4",
-    "description": "A toolbar that morphs from a FloatingActionButton, Inspired by the material design spec: https://material.io/guidelines/components/buttons-floating-action-button.html.",
-    "link": "https://github.com/rubensousa/FloatingToolbar"
-  },
-  {
     "name": "PhotoView v2.1.2",
     "description": "PhotoView aims to help produce an easily usable implementation of a zooming Android ImageView.",
     "link": "https://github.com/chrisbanes/PhotoView"

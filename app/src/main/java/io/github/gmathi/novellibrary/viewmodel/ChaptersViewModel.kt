@@ -48,8 +48,6 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     var actionModeProgress = MutableLiveData<String>()
     var showSources: Boolean = false
 
-    private var isFetchingData = false
-
     fun init(novel: Novel, lifecycleOwner: LifecycleOwner, context: Context) {
         setNovel(novel)
         lifecycleOwner.lifecycle.addObserver(this)
@@ -59,8 +57,6 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
 
 
     fun getData(forceUpdate: Boolean = false) {
-        if (isFetchingData) return
-        isFetchingData = true
         viewModelScope.launch {
             loadingStatus.value = Constants.Status.START
             withContext(Dispatchers.IO) { dbHelper.updateNewReleasesCount(novel.id, 0L) }
@@ -83,7 +79,6 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
                 }
             }
             loadingStatus.value = Constants.Status.DONE
-            isFetchingData = false
         }
     }
 

@@ -13,16 +13,12 @@ import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
-import com.tapadoo.alerter.Alerter
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.startChaptersActivity
-import io.github.gmathi.novellibrary.extensions.startImportLibraryActivity
-import io.github.gmathi.novellibrary.extensions.startLibrarySearchActivity
-import io.github.gmathi.novellibrary.extensions.startReaderDBPagerActivity
+import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelEvent
 import io.github.gmathi.novellibrary.model.NovelSectionEvent
@@ -32,7 +28,6 @@ import io.github.gmathi.novellibrary.network.getChapterCount
 import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.content_library.*
-import kotlinx.android.synthetic.main.fragment_library_pager.*
 import kotlinx.android.synthetic.main.listitem_library.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -69,7 +64,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-            inflater.inflate(R.layout.content_library, container, false)
+        inflater.inflate(R.layout.content_library, container, false)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -113,9 +108,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
         if (!item.imageUrl.isNullOrBlank()) {
             Glide.with(this)
-                    .load(item.imageUrl?.getGlideUrl())
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(itemView.novelImageView)
+                .load(item.imageUrl?.getGlideUrl())
+                .apply(RequestOptions.circleCropTransform())
+                .into(itemView.novelImageView)
         }
 
         itemView.novelTitleTextView.text = item.name
@@ -214,8 +209,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     if (Utils.isConnectedToNetwork(it))
                         syncNovels()
                     else {
-                        Alerter.clearCurrent(it)
-                        Alerter.create(it).setText("No Internet Connection!").setIcon(R.drawable.ic_warning_white_vector).setBackgroundColorRes(R.color.Red).show()
+                        showAlertDialog(message = getString(R.string.no_internet))
                     }
                 }
                 return true
@@ -255,11 +249,11 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 syncDialog!!.hide()
 
             syncDialog = MaterialDialog.Builder(requireActivity())
-                    .title(R.string.sync_in_progress)
-                    .content(R.string.please_wait)
-                    .progress(true, 0)
-                    .cancelable(false)
-                    .build()
+                .title(R.string.sync_in_progress)
+                .content(R.string.please_wait)
+                .progress(true, 0)
+                .cancelable(false)
+                .build()
 
             syncDialog!!.show()
             activity?.invalidateOptionsMenu()
@@ -344,11 +338,11 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         } else {
             val confirmDialog = (activity as? AppCompatActivity)?.let {
                 MaterialDialog.Builder(it)
-                        .title(getString(R.string.no_bookmark_found_dialog_title))
-                        .content(getString(R.string.no_bookmark_found_dialog_description, novel.name))
-                        .positiveText(getString(R.string.okay))
-                        .negativeText(R.string.cancel)
-                        .onPositive { dialog, _ -> it.startChaptersActivity(novel, false); dialog.dismiss() }
+                    .title(getString(R.string.no_bookmark_found_dialog_title))
+                    .content(getString(R.string.no_bookmark_found_dialog_description, novel.name))
+                    .positiveText(getString(R.string.okay))
+                    .negativeText(R.string.cancel)
+                    .onPositive { dialog, _ -> it.startChaptersActivity(novel, false); dialog.dismiss() }
             }
             confirmDialog!!.show()
         }
@@ -383,25 +377,25 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     override fun onItemDismiss(viewHolderPosition: Int) {
         activity?.let {
             MaterialDialog.Builder(it)
-                    .title(getString(R.string.confirm_remove))
-                    .content(getString(R.string.confirm_remove_description_novel))
-                    .positiveText(R.string.remove)
-                    .negativeText(R.string.cancel)
-                    .onPositive { dialog, _ ->
-                        run {
-                            val novel = adapter.items[viewHolderPosition]
-                            Utils.deleteNovel(it, novel.id)
-                            adapter.onItemDismiss(viewHolderPosition)
-                            dialog.dismiss()
-                        }
+                .title(getString(R.string.confirm_remove))
+                .content(getString(R.string.confirm_remove_description_novel))
+                .positiveText(R.string.remove)
+                .negativeText(R.string.cancel)
+                .onPositive { dialog, _ ->
+                    run {
+                        val novel = adapter.items[viewHolderPosition]
+                        Utils.deleteNovel(it, novel.id)
+                        adapter.onItemDismiss(viewHolderPosition)
+                        dialog.dismiss()
                     }
-                    .onNegative { dialog, _ ->
-                        run {
-                            adapter.notifyDataSetChanged()
-                            dialog.dismiss()
-                        }
+                }
+                .onNegative { dialog, _ ->
+                    run {
+                        adapter.notifyDataSetChanged()
+                        dialog.dismiss()
                     }
-                    .show()
+                }
+                .show()
         }
     }
 
@@ -428,20 +422,20 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             novelSectionsNames.add(0, getString(R.string.default_novel_section_name))
 
         MaterialDialog.Builder(requireActivity())
-                .title("Choose A Novel Section")
-                .items(novelSectionsNames)
-                .itemsCallback { _, _, which, _ ->
-                    var id = -1L
-                    if (novelSectionId == -1L)
-                        id = novelSections[which].id
-                    else if (which != 0)
-                        id = novelSections[which - 1].id
+            .title("Choose A Novel Section")
+            .items(novelSectionsNames)
+            .itemsCallback { _, _, which, _ ->
+                var id = -1L
+                if (novelSectionId == -1L)
+                    id = novelSections[which].id
+                else if (which != 0)
+                    id = novelSections[which - 1].id
 
-                    dbHelper.updateNovelSectionId(adapter.items[position].id, id)
-                    EventBus.getDefault().post(NovelSectionEvent(id))
-                    setData()
-                }
-                .show()
+                dbHelper.updateNovelSectionId(adapter.items[position].id, id)
+                EventBus.getDefault().post(NovelSectionEvent(id))
+                setData()
+            }
+            .show()
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

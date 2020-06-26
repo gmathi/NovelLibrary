@@ -97,26 +97,19 @@ dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
 
     implementation 'org.jsoup:jsoup:1.13.1'
-    //implementation 'com.github.arimorty:floatingsearchview:2.1.1'
     implementation 'org.greenrobot:eventbus:3.1.1'
-
     implementation 'com.github.bumptech.glide:glide:4.11.0'
-//    implementation 'com.github.nguyenhoanglam:ProgressLayout:1.0.1'
-    implementation 'com.shouquan:StateLayout:1.0.0'
 
-    implementation 'com.github.rubensousa:floatingtoolbar:1.4.4'
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
     implementation 'com.github.medyo:fancybuttons:1.8.3'
     implementation 'com.github.johnpersano:supertoasts:2.0'
 
     implementation 'com.squareup.okhttp3:okhttp:4.7.2'
     implementation 'com.hanks.animatecheckbox:library:0.1'
-    implementation 'com.afollestad:drag-select-recyclerview:1.0.0'
-    implementation 'com.tapadoo.android:alerter:2.0.1'
     implementation 'com.yarolegovich:sliding-root-nav:1.1.0'
     implementation 'com.ogaclejapan.smarttablayout:library:2.0.0@aar'
     implementation 'com.futuremind.recyclerfastscroll:fastscroll:0.2.5'
-    implementation 'jp.wasabeef:recyclerview-animators:2.2.6'
+    implementation 'jp.wasabeef:recyclerview-animators:3.0.0'
     implementation 'nl.dionsegijn:konfetti:1.0.2'
     implementation 'co.metalab.asyncawait:asyncawait:1.0.0'
 

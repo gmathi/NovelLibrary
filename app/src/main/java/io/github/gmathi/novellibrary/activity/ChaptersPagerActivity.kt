@@ -49,6 +49,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
     private var maxProgress: Int = 0
     private var progressMessage = "In Progress…"
+    private var isSyncing = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -106,6 +107,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                     }
                 }
                 Constants.Status.DONE -> {
+                    isSyncing = false
                     progressLayout.showContent()
                     setViewPager()
                 }
@@ -189,7 +191,10 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         when (item.itemId) {
             android.R.id.home -> finish()
             R.id.action_sync -> {
-                vm.getData(forceUpdate = true)
+                if (!isSyncing) {
+                    isSyncing = true
+                    vm.getData(forceUpdate = true)
+                }
                 devCounter++
                 if (devCounter == 40) dataCenter.isDeveloper = true
                 return true

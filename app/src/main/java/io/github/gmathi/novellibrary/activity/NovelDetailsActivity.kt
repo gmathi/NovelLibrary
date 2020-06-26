@@ -172,7 +172,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     private fun setNovelAddToLibraryButton() {
         if (novel.id == -1L) {
             resetAddToLibraryButton()
-            novelDetailsDownloadButton.setOnClickListener {
+            novelDetailAddToLibraryButton.setOnClickListener {
                 disableAddToLibraryButton()
                 addNovelToDB()
             }
@@ -186,18 +186,18 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun resetAddToLibraryButton() {
-        novelDetailsDownloadButton.setText(getString(R.string.add_to_library))
-        novelDetailsDownloadButton.setIconResource(R.drawable.ic_library_add_white_vector)
-        novelDetailsDownloadButton.setBackgroundColor(ContextCompat.getColor(this@NovelDetailsActivity, android.R.color.transparent))
-        novelDetailsDownloadButton.isClickable = true
+        novelDetailAddToLibraryButton.setText(getString(R.string.add_to_library))
+        novelDetailAddToLibraryButton.setIconResource(R.drawable.ic_library_add_white_vector)
+        novelDetailAddToLibraryButton.setBackgroundColor(ContextCompat.getColor(this@NovelDetailsActivity, android.R.color.transparent))
+        novelDetailAddToLibraryButton.isClickable = true
     }
 
     private fun disableAddToLibraryButton() {
         invalidateOptionsMenu()
-        novelDetailsDownloadButton.setText(getString(R.string.in_library))
-        novelDetailsDownloadButton.setIconResource(R.drawable.ic_local_library_white_vector)
-        novelDetailsDownloadButton.setBackgroundColor(ContextCompat.getColor(this@NovelDetailsActivity, R.color.Green))
-        novelDetailsDownloadButton.isClickable = false
+        novelDetailAddToLibraryButton.setText(getString(R.string.in_library))
+        novelDetailAddToLibraryButton.setIconResource(R.drawable.ic_local_library_white_vector)
+        novelDetailAddToLibraryButton.setBackgroundColor(ContextCompat.getColor(this@NovelDetailsActivity, R.color.Green))
+        novelDetailAddToLibraryButton.isClickable = false
     }
 
 

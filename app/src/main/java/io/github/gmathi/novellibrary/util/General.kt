@@ -15,7 +15,6 @@ import android.widget.TextView
 import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.model.LazyHeaders
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.adapter.GenericAdapterWithDragListener
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames
 import jp.wasabeef.recyclerview.animators.SlideInRightAnimator
@@ -82,21 +81,6 @@ fun RecyclerView.setDefaultsNoAnimation(adapter: RecyclerView.Adapter<*>): Recyc
     this.setHasFixedSize(true)
     this.layoutManager = SnappingLinearLayoutManager(context)
     this.adapter = adapter
-    return this
-}
-
-fun <T> RecyclerView.setDefaults(adapter: GenericAdapterWithDragListener<T>): RecyclerView {
-    val animator = SlideInRightAnimator(OvershootInterpolator(1f))
-    animator.addDuration = 1000
-    animator.removeDuration = 1000
-    animator.changeDuration = 0
-    animator.moveDuration = 200
-
-    this.setHasFixedSize(true)
-    this.layoutManager = SnappingLinearLayoutManager(context)
-    this.itemAnimator = animator
-    this.adapter = adapter
-
     return this
 }
 

@@ -290,7 +290,6 @@ public class ProgressLayout extends RelativeLayout {
             errorStateContentTextView = view.findViewById(R.id.errorStateTextView);
             errorStateButton = view.findViewById(R.id.errorStateButton);
 
-
             addView(errorStateConstraintLayout, layoutParams);
         } else {
             errorStateConstraintLayout.setVisibility(VISIBLE);

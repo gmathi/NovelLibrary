@@ -3,7 +3,6 @@ package io.github.gmathi.novellibrary.adapter
 import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
-import com.afollestad.dragselectrecyclerview.IDragSelectAdapter
 import com.futuremind.recyclerviewfastscroll.SectionTitleProvider
 import io.github.gmathi.novellibrary.util.inflate
 import java.util.*

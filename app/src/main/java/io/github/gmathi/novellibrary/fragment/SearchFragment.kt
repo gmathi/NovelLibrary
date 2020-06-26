@@ -2,12 +2,15 @@ package io.github.gmathi.novellibrary.fragment
 
 import android.animation.Animator
 import android.os.Bundle
-import androidx.core.view.GravityCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.GravityCompat
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.adapter.*
+import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
+import io.github.gmathi.novellibrary.adapter.NavPageListener
+import io.github.gmathi.novellibrary.adapter.SearchResultsListener
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.extensions.hideSoftKeyboard
 import io.github.gmathi.novellibrary.model.Novel
@@ -16,8 +19,6 @@ import io.github.gmathi.novellibrary.util.SuggestionsBuilder
 import io.github.gmathi.novellibrary.util.addToNovelSearchHistory
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.fragment_search.*
-import kotlinx.android.synthetic.main.fragment_search.searchView
-import kotlinx.android.synthetic.main.fragment_search.searchViewBgTint
 import org.cryse.widget.persistentsearch.PersistentSearchView
 import org.cryse.widget.persistentsearch.SearchItem
 
@@ -34,7 +35,7 @@ class SearchFragment : BaseFragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-            inflater.inflate(R.layout.fragment_search, container, false)
+        inflater.inflate(R.layout.fragment_search, container, false)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -87,25 +88,25 @@ class SearchFragment : BaseFragment() {
             override fun onSearchEditOpened() {
                 searchViewBgTint.visibility = View.VISIBLE
                 searchViewBgTint
-                        .animate()
-                        .alpha(1.0f)
-                        .setDuration(300)
-                        .setListener(SimpleAnimationListener())
-                        .start()
+                    .animate()
+                    .alpha(1.0f)
+                    .setDuration(300)
+                    .setListener(SimpleAnimationListener())
+                    .start()
             }
 
             override fun onSearchEditClosed() {
                 searchViewBgTint
-                        .animate()
-                        .alpha(0.0f)
-                        .setDuration(300)
-                        .setListener(object : SimpleAnimationListener() {
-                            override fun onAnimationEnd(animation: Animator) {
-                                super.onAnimationEnd(animation)
-                                searchViewBgTint.visibility = View.GONE
-                            }
-                        })
-                        .start()
+                    .animate()
+                    .alpha(0.0f)
+                    .setDuration(300)
+                    .setListener(object : SimpleAnimationListener() {
+                        override fun onAnimationEnd(animation: Animator) {
+                            super.onAnimationEnd(animation)
+                            searchViewBgTint.visibility = View.GONE
+                        }
+                    })
+                    .start()
             }
 
             override fun onSearchExit() {
@@ -146,11 +147,11 @@ class SearchFragment : BaseFragment() {
 
         val titles = ArrayList<String>()
         titles.add("Novel-Updates")
-        if (!dataCenter.lockRoyalRoad)
+        if (!dataCenter.lockRoyalRoad || dataCenter.isDeveloper)
             titles.add("RoyalRoad")
-        if (!dataCenter.lockNovelFull)
+        if (!dataCenter.lockNovelFull || dataCenter.isDeveloper)
             titles.add("NovelFull")
-        if (!dataCenter.lockScribble)
+        if (!dataCenter.lockScribble || dataCenter.isDeveloper)
             titles.add("ScribbleHub")
         titles.add("WLN-Updates")
         titles.add("LNMTL")
