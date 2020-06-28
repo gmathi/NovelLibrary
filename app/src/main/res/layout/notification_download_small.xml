@@ -3,8 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/colorLightBlue">
+    android:layout_height="wrap_content">
 
     <ImageView
         android:id="@+id/cover"
@@ -12,14 +11,13 @@
         android:layout_height="64dp"
         android:contentDescription="@string/app_icon"
         android:padding="8dp"
-        app:srcCompat="@mipmap/ic_launcher" />
+        />
 
     <LinearLayout
         android:id="@+id/containerActions"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
@@ -30,6 +28,7 @@
             android:id="@+id/play"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
             android:contentDescription="@string/play"
             app:srcCompat="@drawable/ic_circle_play_white" />
 
@@ -38,8 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:contentDescription="@string/stop"
-            app:srcCompat="@drawable/ic_clear_white"
-            />
+            app:srcCompat="@drawable/ic_clear_white" />
 
     </LinearLayout>
 
@@ -50,9 +48,7 @@
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_toStartOf="@id/containerActions"
-        android:layout_toLeftOf="@id/containerActions"
         android:layout_toEndOf="@id/cover"
-        android:layout_toRightOf="@id/cover"
         android:orientation="vertical">
 
         <TextView
@@ -75,6 +71,5 @@
             android:textSize="12sp"
             tools:text="Green Day" />
     </LinearLayout>
-
 
 </RelativeLayout>

@@ -17,6 +17,7 @@ import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.shareUrl
+import io.github.gmathi.novellibrary.extensions.startDownloadNovelService
 import io.github.gmathi.novellibrary.model.ChapterActionModeEvent
 import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.model.Novel
@@ -433,6 +434,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     }
 
     private fun manageDownloadsDialog() {
+        //startDownloadNovelService(vm.novel.name)
         MaterialDialog.Builder(this)
             .iconRes(R.drawable.ic_info_white_vector)
             .title(getString(R.string.manage_downloads))

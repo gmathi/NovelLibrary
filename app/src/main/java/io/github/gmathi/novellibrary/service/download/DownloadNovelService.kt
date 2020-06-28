@@ -62,7 +62,6 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
     }
 
     //region Lifecycle functions
-
     override fun onCreate() {
         super.onCreate()
         Logs.debug(TAG, "onCreate")
@@ -96,10 +95,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
     override fun onHandleIntent(intent: Intent?) {
         Logs.debug(TAG, "onHandleIntent")
 
-        val novelNamePresent = intent?.hasExtra(NOVEL_NAME) ?: false
-        if (!novelNamePresent) return
-
-        val novelName = intent!!.getStringExtra(NOVEL_NAME)
+        val novelName = intent?.getStringExtra(NOVEL_NAME) ?: return
         val downloadNovelThread = DownloadNovelThread(this, novelName, dbHelper, this@DownloadNovelService)
         threadListMap[novelName] = downloadNovelThread
         startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "${getString(R.string.downloading)}: $novelName"))
@@ -206,7 +202,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
         stopIntent.action = "stop"//ACTION_STOP
         //val pendingStopIntent = PendingIntent.getService(this, 0, stopIntent, 0)
 
-        val view = RemoteViews(context.packageName, R.layout.notification_tts)
+        val view = RemoteViews(context.packageName, R.layout.notification_download_small)
         view.setTextViewText(R.id.novelName, "Novel Library")
         view.setTextViewText(R.id.chapterName, status)
         view.setViewVisibility(R.id.containerActions, View.GONE)
