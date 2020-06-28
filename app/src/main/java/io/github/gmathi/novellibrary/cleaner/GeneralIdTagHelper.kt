@@ -6,7 +6,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
 
-class GeneralIdTagHelper(private val url: String, val tagName: String, val id: String) : HtmlHelper() {
+class GeneralIdTagHelper(private val url: String, val tagName: String, val id: String, override var keepContentStyle: Boolean = false) : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc)

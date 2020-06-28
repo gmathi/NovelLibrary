@@ -66,8 +66,9 @@ class ReaderDBPagerActivity :
         private const val REPORT_PAGE = 5
         private const val OPEN_IN_BROWSER = 6
         private const val SHARE_CHAPTER = 7
-        private const val READ_ALOUD = 8
-        private const val MORE_SETTINGS = 9
+        private const val MORE_SETTINGS = 8
+        private const val READ_ALOUD = 9
+
 
         private val FONT_MIME_TYPES = arrayOf(
             MimeTypeMap.getSingleton().getMimeTypeFromExtension("ttf") ?: "application/x-font-ttf",
@@ -276,8 +277,9 @@ class ReaderDBPagerActivity :
                 createItemFor(REPORT_PAGE),
                 createItemFor(OPEN_IN_BROWSER),
                 createItemFor(SHARE_CHAPTER),
-                createItemFor(READ_ALOUD),
-                createItemFor(MORE_SETTINGS)
+                createItemFor(MORE_SETTINGS),
+                createItemFor(READ_ALOUD)
+
             ) as List<DrawerItem<DrawerAdapter.ViewHolder>>
         )
         adapter.setListener(this)
@@ -373,6 +375,7 @@ class ReaderDBPagerActivity :
             REPORT_PAGE -> reportPage()
             OPEN_IN_BROWSER -> inBrowser()
             SHARE_CHAPTER -> share()
+            MORE_SETTINGS -> startReaderSettingsActivity()
             READ_ALOUD -> {
                 if (dataCenter.readerMode) {
                     val webPageDBFragment = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as? WebPageDBFragment)
@@ -383,7 +386,6 @@ class ReaderDBPagerActivity :
                     showAlertDialog(title = "Read Aloud", message = "Only supported in Reader Mode!")
                 }
             }
-            MORE_SETTINGS -> startReaderSettingsActivity()
         }
     }
 
