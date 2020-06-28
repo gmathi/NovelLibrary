@@ -11,12 +11,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
-import com.crashlytics.android.Crashlytics
 import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
-import io.fabric.sdk.android.Fabric
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
@@ -48,7 +46,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         navigationView.setNavigationItemSelectedListener(this)
 
         //Initialize custom logging
-        Fabric.with(this, Crashlytics())
         currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
 
         if (intent.hasExtra("currentNavId"))
@@ -105,7 +102,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             .cancelable(false)
             .negativeText("Skip")
             .onNegative { _, _ ->
-                Crashlytics.log(getString(R.string.cloud_flare_bypass_failure_title))
                 loadFragment(currentNavId)
                 showWhatsNewDialog()
                 checkIntentForNotificationData()
@@ -119,7 +115,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             if (!isDestroyed) {
                 if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
                     if (cloudFlareLoadingDialog?.isShowing == true) {
-                        Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
                         loadFragment(currentNavId)
                         showWhatsNewDialog()
                         checkIntentForNotificationData()

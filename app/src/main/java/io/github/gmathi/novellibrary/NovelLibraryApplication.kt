@@ -7,10 +7,8 @@ import android.webkit.WebView
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationManagerCompat
 import androidx.multidex.MultiDexApplication
-import com.crashlytics.android.Crashlytics
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.security.ProviderInstaller
-import io.fabric.sdk.android.Fabric
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.deleteWebPageSettings
 import io.github.gmathi.novellibrary.database.deleteWebPages
@@ -67,11 +65,6 @@ class NovelLibraryApplication : MultiDexApplication() {
         dbHelper?.deleteWebPages(-1L)
         dbHelper?.deleteWebPageSettings(-1L)
 
-        try {
-            Fabric.with(this, Crashlytics())
-        } catch (e: Exception) {
-            //Do Nothing
-        }
 //        dataCenter?.isDeveloper = true
 //        dataCenter?.lockRoyalRoad = false
 //

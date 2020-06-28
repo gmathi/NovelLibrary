@@ -43,9 +43,6 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel"
             android:value="@string/default_notification_channel_id" />
-        <meta-data
-            android:name="firebase_crashlytics_collection_enabled"
-            android:value="false" />
 
         <service android:name=".service.firebase.NLFirebaseMessagingService">
             <intent-filter>

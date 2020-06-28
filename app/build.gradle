@@ -1,8 +1,10 @@
 apply plugin: 'com.android.application'
-apply plugin: 'io.fabric'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
+
 //apply plugin: 'realm-android'
 
 def keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -142,17 +144,13 @@ dependencies {
 
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
 
-    def nav_version = "2.2.2"
-    implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
-    implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
-
     implementation 'com.airbnb.android:lottie:3.4.1'
+    implementation 'com.github.chimbori:crux:2.2.0'
 
 
+    implementation 'com.google.firebase:firebase-analytics-ktx:17.4.3'
+    implementation 'com.google.firebase:firebase-crashlytics:17.1.0'
 
-    implementation('com.crashlytics.sdk.android:crashlytics:2.10.1@aar') {
-        transitive = true
-    }
 
     canaryImplementation 'com.squareup.leakcanary:leakcanary-android:2.2'
 
@@ -185,5 +183,3 @@ task countTranslations {
 
     json.text += '\r\n}'
 }
-
-apply plugin: 'com.google.gms.google-services'

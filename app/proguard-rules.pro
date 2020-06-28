@@ -36,4 +36,8 @@
 # for DexGuard only
 -keepresourcexmlelements manifest/application/meta-data@value=GlideModule
 
--keep class com.mgn.bingenovelreader.util.ExpandableLayout {*;}
+-keepattributes SourceFile,LineNumberTable        # Keep file names and line numbers.
+-keep public class * extends java.lang.Exception  # Optional: Keep custom exceptions.
+-keep class com.google.firebase.crashlytics.** { *; }
+-dontwarn com.google.firebase.crashlytics.**
+
