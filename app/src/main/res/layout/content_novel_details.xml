@@ -10,7 +10,7 @@
     tools:showIn="@layout/activity_novel_details">
 
 
-    <com.nguyenhoanglam.progresslayout.ProgressLayout
+    <io.github.gmathi.novellibrary.util.ProgressLayout
         android:id="@+id/progressLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -112,7 +112,7 @@
                             </LinearLayout>
 
                             <mehdi.sakout.fancybuttons.FancyButton
-                                android:id="@+id/novelDetailsDownloadButton"
+                                android:id="@+id/novelDetailAddToLibraryButton"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginBottom="20dp"
@@ -343,7 +343,7 @@
 
             </ScrollView>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-    </com.nguyenhoanglam.progresslayout.ProgressLayout>
+    </io.github.gmathi.novellibrary.util.ProgressLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

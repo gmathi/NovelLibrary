@@ -17,4 +17,13 @@
     <dimen name="side_menu_padding">24dp</dimen>
     <dimen name="side_menu_height">56dp</dimen>
     <dimen name="side_menu_text_margin">15dp</dimen>
+
+    <dimen name="spacing_small">5dp</dimen>
+    <dimen name="spacing_medium">10dp</dimen>
+    <dimen name="spacing_large">15dp</dimen>
+
+    <dimen name="font_size">14sp</dimen>
+    <dimen name="image_size">150dp</dimen>
+    <dimen name="progressbar_radius">100dp</dimen>
+    <dimen name="spin_width">8dp</dimen>
 </resources>

@@ -82,10 +82,28 @@ open class HtmlHelper protected constructor() {
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("post-entry") }
             if (contentElement != null) return GeneralClassTagHelper(url, "div", "post-entry")
 
+            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("text-formatting") }
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "text-formatting")
+
+            contentElement = doc.body().select("article.single__contents").firstOrNull()
+            if (contentElement != null) return GeneralClassTagHelper(url, "article", "single__contents")
+
+//            contentElement = doc.body().select("article.story-part").firstOrNull()
+//            if (contentElement != null) return GeneralClassTagHelper(url, "article", "story-part")
+
+            contentElement = doc.body().select("div#chapter").firstOrNull()
+            if (contentElement != null) return GeneralIdTagHelper(url, "div", "chapter")
+
+            //TODO: Xiaxia novel, needs more analysis to fix pre-formatting (jsoup not supporting)
+            contentElement = doc.body().select("section#StoryContent").firstOrNull()
+            if (contentElement != null) return GeneralIdTagHelper(url, "section", "StoryContent")
+
             return HtmlHelper()
         }
 
     }
+
+    open var keepContentStyle = false
 
     fun clean(doc: Document, hostDir: File, novelDir: File) {
         // removeJS(doc)
@@ -196,7 +214,7 @@ open class HtmlHelper protected constructor() {
 
     fun getTitle(doc: Document): String? = doc.head().getElementsByTag("title").text()
 
-    open fun toggleTheme(isDark: Boolean, doc: Document): Document = doc
+    open fun toggleTheme(isDark: Boolean, doc: Document): Document = toggleThemeDefault(isDark, doc)
 
     fun toggleThemeDefault(isDark: Boolean, doc: Document): Document {
         val fontFile = File(dataCenter.fontPath)
@@ -264,6 +282,10 @@ open class HtmlHelper protected constructor() {
 
         if (contentElement.hasAttr("id"))
             contentElement.removeAttr("id")
+
+        if (keepContentStyle) {
+            return
+        }
 
         if (dataCenter.keepTextColor && contentElement.hasAttr("style")) {
             fixStyleWhileRetainingColors(contentElement)

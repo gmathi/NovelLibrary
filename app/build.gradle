@@ -1,8 +1,10 @@
 apply plugin: 'com.android.application'
-apply plugin: 'io.fabric'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
+
 //apply plugin: 'realm-android'
 
 def keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -19,8 +21,8 @@ android {
         minSdkVersion 21
         targetSdkVersion 29
         multiDexEnabled true
-        versionCode 85
-        versionName "0.13.beta"
+        versionCode 86
+        versionName "0.14.beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -97,24 +99,19 @@ dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
 
     implementation 'org.jsoup:jsoup:1.13.1'
-    //implementation 'com.github.arimorty:floatingsearchview:2.1.1'
     implementation 'org.greenrobot:eventbus:3.1.1'
-
     implementation 'com.github.bumptech.glide:glide:4.11.0'
-    implementation 'com.github.nguyenhoanglam:ProgressLayout:1.0.1'
-    implementation 'com.github.rubensousa:floatingtoolbar:1.4.4'
+
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
     implementation 'com.github.medyo:fancybuttons:1.8.3'
     implementation 'com.github.johnpersano:supertoasts:2.0'
 
     implementation 'com.squareup.okhttp3:okhttp:4.7.2'
     implementation 'com.hanks.animatecheckbox:library:0.1'
-    implementation 'com.afollestad:drag-select-recyclerview:1.0.0'
-    implementation 'com.tapadoo.android:alerter:2.0.1'
     implementation 'com.yarolegovich:sliding-root-nav:1.1.0'
     implementation 'com.ogaclejapan.smarttablayout:library:2.0.0@aar'
     implementation 'com.futuremind.recyclerfastscroll:fastscroll:0.2.5'
-    implementation 'jp.wasabeef:recyclerview-animators:2.2.6'
+    implementation 'jp.wasabeef:recyclerview-animators:3.0.0'
     implementation 'nl.dionsegijn:konfetti:1.0.2'
     implementation 'co.metalab.asyncawait:asyncawait:1.0.0'
 
@@ -138,17 +135,22 @@ dependencies {
     implementation "com.google.android.gms:play-services-drive:17.0.0"
     implementation "com.google.android.gms:play-services-auth:18.0.0"
 
-    implementation "com.google.firebase:firebase-messaging:20.2.0"
+    implementation "com.google.firebase:firebase-messaging:20.2.1"
     implementation "com.google.firebase:firebase-auth:19.3.1"
 
-    implementation "com.google.firebase:firebase-core:17.4.2"
+    implementation "com.google.firebase:firebase-core:17.4.3"
     implementation "com.google.firebase:firebase-config:19.1.4"
     implementation 'com.google.code.gson:gson:2.8.6'
 
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
 
-    implementation('com.crashlytics.sdk.android:crashlytics:2.10.1@aar') {
-        transitive = true
-    }
+    implementation 'com.airbnb.android:lottie:3.4.1'
+    implementation 'com.github.chimbori:crux:2.2.0'
+
+
+    implementation 'com.google.firebase:firebase-analytics-ktx:17.4.3'
+    implementation 'com.google.firebase:firebase-crashlytics:17.1.0'
+
 
     canaryImplementation 'com.squareup.leakcanary:leakcanary-android:2.2'
 
@@ -181,5 +183,3 @@ task countTranslations {
 
     json.text += '\r\n}'
 }
-
-apply plugin: 'com.google.gms.google-services'

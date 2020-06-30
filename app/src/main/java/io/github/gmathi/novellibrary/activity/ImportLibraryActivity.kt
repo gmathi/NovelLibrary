@@ -13,15 +13,12 @@ import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.database.createWebPage
 import io.github.gmathi.novellibrary.database.getNovelByUrl
 import io.github.gmathi.novellibrary.database.insertNovel
-import io.github.gmathi.novellibrary.database.updateBookmarkCurrentWebPageUrl
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.ImportListItem
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
-import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.network.getNUNovelDetails
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
@@ -313,3 +310,5 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         async.cancelAll()
     }
 }
+
+

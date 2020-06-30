@@ -22,7 +22,7 @@ import java.net.URI
 import java.net.URL
 
 
-fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayList<WebPage> {
+fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayList<WebPage>? {
     val host = URI(novel.url).host
     when {
         host.contains(HostNames.NOVEL_UPDATES) -> return if (withSources) getNUALLChapterUrlsWithSources(novel) else getNUALLChapterUrls(novel)
@@ -36,13 +36,14 @@ fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayLi
 }
 
 //Get RoyalRoad Chapter URLs
-fun NovelApi.getRRChapterUrls(novel: Novel): ArrayList<WebPage> {
-    val chapters = ArrayList<WebPage>()
+fun NovelApi.getRRChapterUrls(novel: Novel): ArrayList<WebPage>? {
+    var chapters: ArrayList<WebPage>? = null
     try {
         val document = getDocument(novel.url)
         val tableElement = document.body().select("#chapters") ?: return chapters
 
         var orderId = 0L
+        chapters = ArrayList()
         tableElement.select("a[href]")?.forEach {
             val webPage = WebPage(url = it.attr("abs:href"), chapter = it.text())
             webPage.orderId = orderId++
@@ -55,10 +56,10 @@ fun NovelApi.getRRChapterUrls(novel: Novel): ArrayList<WebPage> {
     return chapters
 }
 
-fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage> {
-    val chapters = ArrayList<WebPage>()
+fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage>? {
+    var chapters: ArrayList<WebPage>? = null
     try {
-        val novelId = URL(novel.url).path.split("/").filter { it.isNotEmpty() }.last().toInt()
+        val novelId = URL(novel.url).path.split("/").last { it.isNotEmpty() }.toInt()
         val json = """ {
             "mode": "get-series-id",
             "id": $novelId
@@ -87,6 +88,7 @@ fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage> {
         }
 
         var orderId = 0L
+        chapters = ArrayList()
         releasesArray.reversed().asSequence().forEach { release ->
             val releaseObject = release.asJsonObject
             val chapter = releaseObject["chapter"].covertJsonNull?.asInt?.toString() ?: ""
@@ -106,16 +108,6 @@ fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage> {
             }
         }
 
-
-//        val document = getDocument(novel.url)
-//        val trElements = document.body().select("tr#release-entry")
-//
-//        trElements?.asReversed()?.asSequence()?.forEach {
-//            val webPage = WebPage(url = it.child(0).child(0).attr("abs:href"), chapter = it.getElementsByClass("numeric").joinToString(separator = ".") { element -> element.text() })
-//            webPage.orderId = orderId++
-//            webPage.novelId = novel.id
-//            chapters.add(webPage)
-//        }
     } catch (e: Exception) {
         e.printStackTrace()
     }
@@ -123,8 +115,8 @@ fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage> {
 }
 
 
-fun getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
-    val chapters = ArrayList<WebPage>()
+fun getNUALLChapterUrls(novel: Novel): ArrayList<WebPage>? {
+    var chapters: ArrayList<WebPage>? = null
     try {
         if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 
@@ -137,6 +129,7 @@ fun getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
 
         val doc = getDocumentWithFormData(url, formData)
         var orderId = 0L
+        chapters = ArrayList()
         val elements = doc.getElementsByAttribute("data-id")
         elements?.reversed()?.forEach {
 
@@ -153,8 +146,8 @@ fun getNUALLChapterUrls(novel: Novel): ArrayList<WebPage> {
     return chapters
 }
 
-fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
-    val chapters = ArrayList<WebPage>()
+fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage>? {
+    var chapters: ArrayList<WebPage>? = null
     try {
         if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 
@@ -170,6 +163,7 @@ fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage> {
 
         val doc = getDocumentWithFormData(url, formData)
         var orderId = 0L
+        chapters = ArrayList()
         val elements = doc.getElementsByAttribute("data-id")
         elements?.reversed()?.forEach {
             val webPageUrl = "https:" + it?.attr("href")
@@ -248,7 +242,7 @@ private fun getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String,
     return sourceMap
 }
 
-fun getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage> {
+fun getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage>? {
     return try {
         val id = Jsoup.connect(novel.url).get().selectFirst("#rating").attr("data-novel-id")
         val chaptersDoc = Jsoup.connect("https://${HostNames.NOVEL_FULL}/ajax-chapter-option?novelId=$id&currentChapterId=").get()
@@ -260,12 +254,12 @@ fun getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage> {
         })
     } catch (e: Exception) {
         e.printStackTrace()
-        ArrayList<WebPage>()
+        null
     }
 }
 
-fun getScribbleHubChapterUrls(novel: Novel): ArrayList<WebPage> {
-    val chapters = ArrayList<WebPage>()
+fun getScribbleHubChapterUrls(novel: Novel): ArrayList<WebPage>? {
+    var chapters: ArrayList<WebPage>? = null
     try {
         if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
 
@@ -279,6 +273,7 @@ fun getScribbleHubChapterUrls(novel: Novel): ArrayList<WebPage> {
 
         val doc = getDocumentWithFormData(url, formData)
         var orderId = 0L
+        chapters = ArrayList()
         doc.select("a[href]")?.reversed()?.forEach {
             val webPage = WebPage(it.attr("abs:href"), it.attr("title"))
             webPage.orderId = orderId++
@@ -292,8 +287,8 @@ fun getScribbleHubChapterUrls(novel: Novel): ArrayList<WebPage> {
     return chapters
 }
 
-fun getLNMTLChapterUrls(novel: Novel): ArrayList<WebPage> {
-    val chapters = ArrayList<WebPage>()
+fun getLNMTLChapterUrls(novel: Novel): ArrayList<WebPage>? {
+    var chapters: ArrayList<WebPage>? = null
     try {
         val doc = Jsoup.connect(novel.url).get()
 
@@ -311,6 +306,7 @@ fun getLNMTLChapterUrls(novel: Novel): ArrayList<WebPage> {
         val data = gson["data"] as List<LinkedTreeMap<String, Any>>
 
         var orderId = 0L
+        chapters = ArrayList()
         for (chapter in data) {
             val url = chapter["site_url"]
             val title = chapter["title"]

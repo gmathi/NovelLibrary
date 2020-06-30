@@ -43,18 +43,33 @@ fun DBHelper.createNovel(novel: Novel): Long {
 }
 
 fun DBHelper.getNovel(novelName: String): Novel? {
-    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_NOVEL} WHERE ${DBKeys.KEY_NAME} = \"$novelName\""
-    return getNovelFromQuery(selectQuery)
+    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_NOVEL} WHERE ${DBKeys.KEY_NAME} = ?"
+    return getNovelFromQuery(selectQuery, arrayOf(novelName))
 }
 
 fun DBHelper.getNovelByUrl(novelUrl: String): Novel? {
-    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_NOVEL} WHERE ${DBKeys.KEY_URL} = \"$novelUrl\""
-    return getNovelFromQuery(selectQuery)
+    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_NOVEL} WHERE ${DBKeys.KEY_URL} = ?"
+    return getNovelFromQuery(selectQuery, arrayOf(novelUrl))
 }
 
 fun DBHelper.getNovel(novelId: Long): Novel? {
-    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_NOVEL} WHERE ${DBKeys.KEY_ID} = $novelId"
-    return getNovelFromQuery(selectQuery)
+    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_NOVEL} WHERE ${DBKeys.KEY_ID} = ?"
+    return getNovelFromQuery(selectQuery, arrayOf(novelId.toString()))
+}
+
+fun DBHelper.getNovelFromQuery(selectQuery: String, selectionArgs: Array<String>? = null): Novel? {
+    Logs.debug(LOG, selectQuery)
+    var novel: Novel? = null
+    val cursor = this.readableDatabase.rawQuery(selectQuery, selectionArgs)
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+            novel = getNovelFromCursor(cursor)
+        }
+        cursor.close()
+    }
+    if (novel != null)
+        novel.genres = getGenres(novel.id)
+    return novel
 }
 
 fun getNovelFromCursor(cursor: Cursor): Novel {
@@ -70,25 +85,9 @@ fun getNovelFromCursor(cursor: Cursor): Novel {
     novel.chaptersCount = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CHAPTERS_COUNT))
     novel.currentWebPageUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CURRENT_WEB_PAGE_URL))
     novel.novelSectionId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_SECTION_ID))
-
     return novel
 }
 
-fun DBHelper.getNovelFromQuery(selectQuery: String): Novel? {
-    Logs.debug(LOG, selectQuery)
-    val db = this.readableDatabase
-    val cursor = db.rawQuery(selectQuery, null)
-    var novel: Novel? = null
-    if (cursor != null) {
-        if (cursor.moveToFirst()) {
-            novel = getNovelFromCursor(cursor)
-        }
-        cursor.close()
-    }
-    if (novel != null)
-        novel.genres = getGenres(novel.id)
-    return novel
-}
 
 fun DBHelper.getAllNovels(): List<Novel> {
     val selectQuery = "SELECT * FROM novel ORDER BY ${DBKeys.KEY_ORDER_ID} ASC"
@@ -110,7 +109,6 @@ fun DBHelper.getAllNovels(): List<Novel> {
 
 fun DBHelper.getAllNovels(novelSectionId: Long): List<Novel> {
     val selectQuery = "SELECT * FROM novel WHERE ${DBKeys.KEY_NOVEL_SECTION_ID} = $novelSectionId ORDER BY ${DBKeys.KEY_ORDER_ID} ASC"
-    Logs.debug(LOG, selectQuery)
     val db = this.readableDatabase
     val cursor = db.rawQuery(selectQuery, null)
     val list = ArrayList<Novel>()
@@ -127,11 +125,9 @@ fun DBHelper.getAllNovels(novelSectionId: Long): List<Novel> {
 }
 
 fun DBHelper.getNovelId(novelName: String): Long {
-    val db = this.readableDatabase
-    val selectQuery = "SELECT id FROM ${DBKeys.TABLE_NOVEL} WHERE ${DBKeys.KEY_NAME} = \"$novelName\""
-    Logs.debug(LOG, selectQuery)
-    val cursor = db.rawQuery(selectQuery, null)
-    var id: Long = -1
+    var id = -1L
+    val selectQuery = "SELECT id FROM ${DBKeys.TABLE_NOVEL} WHERE ${DBKeys.KEY_NAME} = ?"
+    val cursor = this.readableDatabase.rawQuery(selectQuery, arrayOf(novelName))
     if (cursor != null) {
         if (cursor.moveToFirst()) {
             id = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ID))
@@ -144,8 +140,6 @@ fun DBHelper.getNovelId(novelName: String): Long {
 
 fun DBHelper.updateNovel(novel: Novel): Long {
     val values = ContentValues()
-
-    //values.put(DBKeys.KEY_ID, novel.id)
     values.put(DBKeys.KEY_NAME, novel.name)
     values.put(DBKeys.KEY_URL, novel.url)
     if (novel.metaData.isNotEmpty())
@@ -222,4 +216,11 @@ fun DBHelper.updateChaptersAndReleasesCount(novelId: Long, totalChaptersCount: L
 fun DBHelper.deleteNovel(id: Long) {
     this.writableDatabase.delete(DBKeys.TABLE_NOVEL, DBKeys.KEY_ID + " = ?", arrayOf(id.toString()))
 }
+
+fun DBHelper.updateChaptersCount(novelId: Long, chaptersCount: Long) {
+    val values = ContentValues()
+    values.put(DBKeys.KEY_CHAPTERS_COUNT, chaptersCount)
+    this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
+}
+
 

@@ -15,7 +15,7 @@ fun NovelApi.getChapterCount(novel: Novel): Int {
                 || host.contains(HostNames.ROYAL_ROAD_OLD) || host.contains(HostNames.ROYAL_ROAD)
                 || host.contains(HostNames.WLN_UPDATES)
                 || host.contains(HostNames.NOVEL_FULL)
-        -> return getChapterUrls(novel).size
+        -> return getChapterUrls(novel)?.size ?: 0
 
         host.contains(HostNames.LNMTL) -> return getLNMTLChapterCount(novel.url)
     }

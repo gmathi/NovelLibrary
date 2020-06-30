@@ -1,9 +1,8 @@
 package io.github.gmathi.novellibrary.util
 
 import android.util.Log
-import com.crashlytics.android.Crashlytics
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.github.gmathi.novellibrary.BuildConfig
-import java.util.*
 
 object Logs {
 
@@ -23,8 +22,7 @@ object Logs {
         if (BuildConfig.DEBUG) {
             Log.w(tag ?: "", message ?: "")
         } else {
-            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", Log.WARN, tag
-                    ?: "", message ?: ""))
+            logToFirebase("W", tag, message)
         }
     }
 
@@ -32,18 +30,15 @@ object Logs {
         if (BuildConfig.DEBUG) {
             Log.w(tag, message, throwable)
         } else {
-            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", Log.WARN, tag
-                    ?: "", message ?: ""))
-            Crashlytics.logException(throwable)
+            logToFirebase("W", tag, message, throwable)
         }
     }
 
     fun error(tag: String?, message: String?) {
         if (BuildConfig.DEBUG) {
-            Log.e(tag, message)
+            Log.e(tag, message ?: "")
         } else {
-            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", Log.ERROR, tag
-                    ?: "", message ?: ""))
+            logToFirebase("E", tag, message)
         }
     }
 
@@ -51,10 +46,13 @@ object Logs {
         if (BuildConfig.DEBUG) {
             Log.e(tag, message, throwable)
         } else {
-            Crashlytics.log(String.format(Locale.getDefault(), "Priority: %d; %s : %s", Log.ERROR, tag
-                    ?: "", message ?: ""))
-            Crashlytics.logException(throwable)
+            logToFirebase("E", tag, message)
         }
+    }
+
+    private fun logToFirebase(logLevel: String, tag: String?, message: String?, throwable: Throwable? = null) {
+        FirebaseCrashlytics.getInstance().log("$logLevel/$tag- $message")
+        throwable?.let { FirebaseCrashlytics.getInstance().recordException(it) }
     }
 
 }

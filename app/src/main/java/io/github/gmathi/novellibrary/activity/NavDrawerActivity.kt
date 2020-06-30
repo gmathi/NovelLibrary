@@ -2,7 +2,6 @@ package io.github.gmathi.novellibrary.activity
 
 import android.app.Activity
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.widget.Toolbar
@@ -11,12 +10,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
-import com.crashlytics.android.Crashlytics
 import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
-import io.fabric.sdk.android.Fabric
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
@@ -48,22 +45,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         navigationView.setNavigationItemSelectedListener(this)
 
         //Initialize custom logging
-        Fabric.with(this, Crashlytics())
-
-        try {
-            currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
-        } catch (e: Exception) {
-            Crashlytics.logException(e)
-            MaterialDialog.Builder(this@NavDrawerActivity)
-                .content("Error initiating the app. The developer has been notified about this!")
-                .positiveText("Quit")
-                .cancelable(false)
-                .onPositive { dialog, _ ->
-                    dialog.dismiss()
-                    finish()
-                }
-                .show()
-        }
+        currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
 
         if (intent.hasExtra("currentNavId"))
             currentNavId = intent.getIntExtra("currentNavId", currentNavId)
@@ -81,6 +63,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             loadFragment(currentNavId)
             showWhatsNewDialog()
         }
+        currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
 
         if (intent.hasExtra("showDownloads")) {
             intent.removeExtra("showDownloads")
@@ -91,15 +74,16 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                .title("\uD83C\uDF89 What's New 0.12.1.beta!")
-                .content(//"** Fixed Cloud Flare for 6.0.1**\n\n" +
-                    "⚠️ Fixed the new chapter counter to be updated.\n" +
-                            "✨ WLNUpdates now uses API to get data. \n" +
-//                            "✨ More Reader Settings (Explore it!!)\n" +
-//                            "\uD83D\uDEE0 Fixed the chapter being not marked as read.\n" +
+                .title("\uD83C\uDF89 What's New 0.13.beta!")
+                .content(
+                    //"** Fixed Cloud Flare for 6.0.1**\n\n" +
+                    "✨️ Chapters Screen loading provides more information.\n" +
+                            "✨ Cleaned up some state management in Chapters Screen.\n" +
+                            "✨ Read Aloud moved to bottom in the reader settings.\n" +
+                            "\uD83D\uDEE0 Support for 2 more translation sites in reader mode.\n" +
 //                            "\uD83D\uDEE0 Discord link updated.\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
-                                    "⚠️ Fix - 1st chapter not being marked as read.\n" +
+//                            "⚠️ Fix - 1st chapter not being marked as read.\n" +
 //                                    "✨ Added Hidden Buttons to unlock some hidden functionality!" +
 //                            "\uD83D\uDEE️ Bug Fixes for reported & unreported crashes!" +
                             ""
@@ -118,7 +102,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             .cancelable(false)
             .negativeText("Skip")
             .onNegative { _, _ ->
-                Crashlytics.log(getString(R.string.cloud_flare_bypass_failure_title))
                 loadFragment(currentNavId)
                 showWhatsNewDialog()
                 checkIntentForNotificationData()
@@ -132,7 +115,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             if (!isDestroyed) {
                 if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
                     if (cloudFlareLoadingDialog?.isShowing == true) {
-                        Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
                         loadFragment(currentNavId)
                         showWhatsNewDialog()
                         checkIntentForNotificationData()
