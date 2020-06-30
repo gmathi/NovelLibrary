@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.network
 
 import android.net.Uri
+import io.github.gmathi.novellibrary.cleaner.ProxyHelper
 import io.github.gmathi.novellibrary.dataCenter
 import org.jsoup.Connection
 import org.jsoup.Jsoup
@@ -36,26 +37,28 @@ object NovelApi {
         isPost: Boolean = false,
         formData: HashMap<String, String> = hashMapOf<String, String>()
     ): Any {
-
         try {
             // Since JSoup can't load different cookies after redirect, disable them and perform redirects manually.
             // Redirect limit here just as a safeguard in case someone decides to do infinite redirect loop.
+            var proxy: ProxyHelper?
             var doc: Connection.Response
             var redirectUrl = url
             var redirectLimit = 5
             do {
-                val connection = Jsoup
-                    .connect(redirectUrl)
-                    .referrer(redirectUrl)
-                    .cookies(CloudFlareByPasser.getCookieMap(URL(redirectUrl)))
-                    .ignoreHttpErrors(ignoreHttpErrors)
-                    .ignoreContentType(ignoreContentType)
-                    .timeout(30000)
-                    .userAgent(HostNames.USER_AGENT)
-                    .followRedirects(false)
+                proxy = ProxyHelper.getInstance(redirectUrl)
+                val connection = proxy?.connect(redirectUrl)
+                        ?: Jsoup
+                            .connect(redirectUrl)
+                            .referrer(redirectUrl)
+                            .cookies(CloudFlareByPasser.getCookieMap(URL(redirectUrl)))
+                            .ignoreHttpErrors(ignoreHttpErrors)
+                            .ignoreContentType(ignoreContentType)
+                            .timeout(30000)
+                            .userAgent(HostNames.USER_AGENT)
+                            .followRedirects(false)
 
                 connection.method(if (isPost) Connection.Method.POST else Connection.Method.GET)
-                if (isPost) {
+                if (isPost && proxy == null) {
                     for (data in formData) {
                         connection.data(data.key, data.value)
                     }
@@ -65,9 +68,12 @@ object NovelApi {
 
                 if (!doc.hasHeader("location")) break
                 redirectUrl = doc.header("location")
-            } while (redirectLimit-- > 0)
+            } while (--redirectLimit >= 0)
 
-            return if (!ignoreContentType) doc.parse() else doc.body()
+            val body = proxy?.body(doc) ?: doc.body()
+
+            return if (ignoreContentType) body
+            else proxy?.document(body, doc) ?: Jsoup.parse(body)
         } catch (e: SSLPeerUnverifiedException) {
             val p = Pattern.compile("Hostname\\s(.*?)\\snot", Pattern.DOTALL or Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE or Pattern.MULTILINE) // Regex for the value of the key
             val m = p.matcher(e.localizedMessage ?: "")
