@@ -35,9 +35,10 @@ class WattpadHelper : HtmlHelper() {
         // remove ALL other unneeded elements (the nuclear option)
         var it: Element? = articleElem
         while (it != null) {
-            it = it.parent()
-            if (it == doc.body() || it == null) break
+            val parent = it.parent()
             it.siblingElements()?.remove()
+            it.unwrap(); it = parent
+            if (it == doc.body()) break
         }
 
         // Request and append second half
