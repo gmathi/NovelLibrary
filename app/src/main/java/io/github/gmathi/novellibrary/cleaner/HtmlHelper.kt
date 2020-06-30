@@ -26,6 +26,7 @@ open class HtmlHelper protected constructor() {
 
         fun getInstance(doc: Document, url: String = doc.location()): HtmlHelper {
             when {
+                url.contains(HostNames.FOXTELLER) -> return FoxtellerCleaner()
                 url.contains(HostNames.WATTPAD) -> return WattpadHelper()
                 url.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
                 url.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
