@@ -194,7 +194,6 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
     }
 
     //endregion
-
     private fun getNotification(context: Context, status: String): Notification {
 
         // Add Pause button intent in notification.

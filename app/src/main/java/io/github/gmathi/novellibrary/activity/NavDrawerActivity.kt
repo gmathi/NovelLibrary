@@ -2,7 +2,6 @@ package io.github.gmathi.novellibrary.activity
 
 import android.app.Activity
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.widget.Toolbar
@@ -75,15 +74,16 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                .title("\uD83C\uDF89 What's New 0.12.1.beta!")
-                .content(//"** Fixed Cloud Flare for 6.0.1**\n\n" +
-                    "⚠️ Fixed the new chapter counter to be updated.\n" +
-                            "✨ WLNUpdates now uses API to get data. \n" +
-//                            "✨ More Reader Settings (Explore it!!)\n" +
-//                            "\uD83D\uDEE0 Fixed the chapter being not marked as read.\n" +
+                .title("\uD83C\uDF89 What's New 0.13.beta!")
+                .content(
+                    //"** Fixed Cloud Flare for 6.0.1**\n\n" +
+                    "✨️ Chapters Screen loading provides more information.\n" +
+                            "✨ Cleaned up some state management in Chapters Screen.\n" +
+                            "✨ Read Aloud moved to bottom in the reader settings.\n" +
+                            "\uD83D\uDEE0 Support for 2 more translation sites in reader mode.\n" +
 //                            "\uD83D\uDEE0 Discord link updated.\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
-                                    "⚠️ Fix - 1st chapter not being marked as read.\n" +
+//                            "⚠️ Fix - 1st chapter not being marked as read.\n" +
 //                                    "✨ Added Hidden Buttons to unlock some hidden functionality!" +
 //                            "\uD83D\uDEE️ Bug Fixes for reported & unreported crashes!" +
                             ""
