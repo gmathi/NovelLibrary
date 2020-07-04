@@ -150,7 +150,7 @@
     <string name="show_reader_scroll_description">Shows Th\' Vertical Scrollbarrr On Starboard Edge O\' Th\' Screen T\' Track Yer Progress O\' Th\' Chapter</string>
     <string name="show_comments_section">Show Comments</string>
     <string name="show_comments_section_description">Shows Th\' Chapter’s Comments Section In Th\' Reader Mode. (limited Websites Supported)</string>
-    <string name="backup">Backup</string>
+    <string name="backup">Back up</string>
     <string name="restore">Restore</string>
     <string name="import_reading_list">Import Readin\' List</string>
     <string name="nu_reading_list_url">Nu Readin\' List Url</string>

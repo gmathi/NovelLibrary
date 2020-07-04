@@ -28,7 +28,7 @@ import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.createIfNotExists
+import io.github.gmathi.novellibrary.extensions.createFileIfNotExists
 import io.github.gmathi.novellibrary.extensions.getOrCreateDirectory
 import io.github.gmathi.novellibrary.extensions.getOrCreateFile
 import io.github.gmathi.novellibrary.model.Novel
@@ -295,7 +295,7 @@ object Utils {
                     subDir.mkdirs()
             } else {
                 val file = File(dir, entry.name)
-                file.createIfNotExists()
+                file.createFileIfNotExists()
                 file.outputStream().use {
                     val data = ByteArray(BUFFER_SIZE)
                     var count = inputStream.read(data, 0, BUFFER_SIZE)

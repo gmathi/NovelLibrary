@@ -210,7 +210,7 @@
     <string name="show_reader_scroll_description">Shows the vertical scrollbar on the right edge of the screen to track your progress of the chapter</string>
     <string name="show_comments_section">Show Comments</string>
     <string name="show_comments_section_description">Shows the chapter’s comments section in the reader mode. (Limited Websites Supported)</string>
-    <string name="backup">Backup</string>
+    <string name="backup">Back up</string>
     <string name="restore">Restore</string>
     <string name="import_reading_list">Import Reading List</string>
     <string name="nu_reading_list_url">NU Reading List URL</string>
