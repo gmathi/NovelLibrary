@@ -206,7 +206,7 @@
     <string name="show_reader_scroll_description">Mostra a barra de rolagem vertical no canto direito da tela para que você possa acompanhar seu progresso no capítulo</string>
     <string name="show_comments_section">Mostrar Comentários</string>
     <string name="show_comments_section_description">Mostra a seção de comentários do capítulo no modo de leitura. (Número Limitado de Websites Suportados)</string>
-    <string name="backup">Backup</string>
+    <string name="backup">Back up</string>
     <string name="restore">Restaurar</string>
     <string name="import_reading_list">Importar Lista de Leitura</string>
     <string name="nu_reading_list_url">URL da Lista de Leitura do Novel Updates</string>
