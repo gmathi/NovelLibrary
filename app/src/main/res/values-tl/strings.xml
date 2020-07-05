@@ -346,5 +346,9 @@
     <string name="cloud_flare_check_complete">Obtained CloudFlare clearance.</string>
     <string name="loading">Loading…</string>
     <string name="empty_chapters">This Novel is most likely copyrighted or pay-walled and that is the reason you don\'t see any chapters!!</string>
+    <string name="remove_favorite">Remove Favorite(s)</string>
+    <string name="mark_favorite">Mark Favorite(s)</string>
+    <string name="unfavorite_chapters_read_dialog_content">Remove chapters from favorites?</string>
+    <string name="favorite_chapters_read_dialog_content">Favorite chapters?</string>
 
 </resources>
