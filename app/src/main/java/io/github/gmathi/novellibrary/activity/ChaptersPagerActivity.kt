@@ -59,15 +59,20 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        val novel: Novel?
+        @Suppress("LiftReturnOrAssignment")
         if (savedInstanceState != null) {
             val isProgressShowing = savedInstanceState.getBoolean("isProgressShowing", false)
             if (isProgressShowing) {
                 setProgressDialog(savedInstanceState.getString("progressMessage", "In Progress…"), savedInstanceState.getInt("maxProgress", 0))
                 progressDialog?.show()
             }
+            novel = savedInstanceState.getSerializable("novel") as? Novel
+        } else {
+            novel = intent.getSerializableExtra("novel") as? Novel
         }
 
-        val novel = intent.getSerializableExtra("novel") as Novel
+        if (novel == null) return
         vm.init(novel, this, this)
 
         addListeners()
@@ -294,6 +299,24 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                     mode?.finish()
                 })
             }
+            R.id.action_unfav -> {
+                confirmDialog(getString(R.string.unfavorite_chapters_read_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
+                    setProgressDialog("Removing chapters from favorites…", dataSet.size)
+                    vm.updateChapters(ArrayList(dataSet), ChaptersViewModel.Action.REMOVE_FAVORITE)
+                    dialog.dismiss()
+                    mode?.finish()
+                })
+            }
+            R.id.action_fav -> {
+                confirmDialog(getString(R.string.favorite_chapters_read_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
+                    setProgressDialog("Marking chapters as favorites…", dataSet.size)
+                    vm.updateChapters(ArrayList(dataSet), ChaptersViewModel.Action.MARK_FAVORITE)
+                    dialog.dismiss()
+                    mode?.finish()
+                })
+            }
+
+
             R.id.action_download -> {
                 confirmDialog(getString(R.string.download_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
                     if (vm.novel.id == -1L) {
@@ -461,6 +484,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         outState.putInt("maxProgress", maxProgress)
         outState.putString("progressMessage", progressMessage)
         outState.putBoolean("isProgressShowing", progressDialog?.isShowing ?: false)
+        outState.putSerializable("novel", vm.novel)
     }
 
 }

@@ -426,7 +426,7 @@
     <string name="group_download_notification_text">Downloads for the novels in your library</string>
     <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
     <string name="reader_mode_description">Reader mode will be on permanently</string>
-    <string name="delete_chapters">Delete Downloads</string>
+    <string name="delete_chapters">Delete Download(s)</string>
 
     <!-- v0.8 Strings -->
 
@@ -562,6 +562,10 @@
 
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="remove_favorite">Remove Favorite(s)</string>
+    <string name="mark_favorite">Mark Favorite(s)</string>
+    <string name="unfavorite_chapters_read_dialog_content">Remove chapters from favorites?</string>
+    <string name="favorite_chapters_read_dialog_content">Favorite chapters?</string>
 
 
 </resources>

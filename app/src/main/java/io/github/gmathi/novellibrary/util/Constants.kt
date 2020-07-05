@@ -102,6 +102,7 @@ object Constants {
         const val SCROLL_POSITION = "scrollY"
         const val OTHER_LINKED_WEB_PAGES = "otherWebPages"
         const val OTHER_LINKED_WEB_PAGES_SETTINGS = "otherWebPagesSettings"
+        const val IS_FAVORITE = "isFavorite"
     }
 
     object LargePreferenceKeys {

@@ -55,11 +55,15 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         this.showSources = novel.metaData[Constants.MetaDataKeys.SHOW_SOURCES]?.toBoolean() ?: false
     }
 
-
     fun getData(forceUpdate: Boolean = false) {
         viewModelScope.launch {
             loadingStatus.value = Constants.Status.START
-            withContext(Dispatchers.IO) { dbHelper.updateNewReleasesCount(novel.id, 0L) }
+            withContext(Dispatchers.IO) {
+                if (novel.id != -1L) {
+                    dbHelper.getNovel(novel.id)?.let { setNovel(it) }
+                    dbHelper.updateNewReleasesCount(novel.id, 0L)
+                }
+            }
             getChapters(forceUpdate = forceUpdate)
 
             if (chapters == null) {
@@ -177,6 +181,8 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
                 DELETE_DOWNLOADS -> deleteDownloadedChapters(webPages)
                 MARK_READ -> updateReadStatus(webPages, 1)
                 MARK_UNREAD -> updateReadStatus(webPages, 0)
+                MARK_FAVORITE -> updateFavoriteStatus(webPages, true)
+                REMOVE_FAVORITE -> updateFavoriteStatus(webPages, false)
             }
         }
     }
@@ -245,6 +251,20 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         }
     }
 
+    private suspend fun updateFavoriteStatus(webPages: ArrayList<WebPage>, favoriteStatus: Boolean) = withContext(Dispatchers.IO) {
+        var counter = 0
+        val chapters = ArrayList(webPages)
+        chapters.forEach { webPage ->
+            withContext(Dispatchers.IO) sub@{
+                val chaptersSettingsList = chapterSettings ?: return@sub
+                val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@sub
+                webPageSettings.metaData[Constants.MetaDataKeys.IS_FAVORITE] = favoriteStatus.toString()
+                dbHelper.updateWebPageSettings(webPageSettings)
+                actionModeProgress.postValue(counter++.toString())
+            }
+        }
+    }
+
     private fun actionModeScope(codeBlock: suspend CoroutineScope.() -> Unit) {
         viewModelScope.launch {
             actionModeProgress.value = Constants.Status.START
@@ -263,7 +283,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     }
 
     enum class Action {
-        ADD_DOWNLOADS, DELETE_DOWNLOADS, MARK_READ, MARK_UNREAD
+        ADD_DOWNLOADS, DELETE_DOWNLOADS, MARK_READ, MARK_UNREAD, MARK_FAVORITE, REMOVE_FAVORITE
     }
 
 }

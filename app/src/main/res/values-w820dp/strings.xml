@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="remove_favorite">Remove Favorite(s)</string>
+    <string name="mark_favorite">Mark Favorite(s)</string>
+    <string name="unfavorite_chapters_read_dialog_content">Remove chapters from favorites?</string>
+    <string name="favorite_chapters_read_dialog_content">Favorite chapters?</string>
+</resources>

@@ -18,6 +18,7 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.extensions.startWebViewActivity
 import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.fragment_source_chapters.*
@@ -169,6 +170,12 @@ class ChaptersFragment : BaseFragment(),
         itemView.setOnLongClickListener {
             itemView.chapterCheckBox.isChecked = true
             true
+        }
+
+        if (webPageSettings?.metaData?.get(Constants.MetaDataKeys.IS_FAVORITE)?.toBoolean() == true) {
+            itemView.favoriteView.visibility = View.VISIBLE
+        } else {
+            itemView.favoriteView.visibility = View.GONE
         }
     }
 
