@@ -55,9 +55,9 @@
     <Button
         android:id="@+id/errorStateButton"
         android:layout_width="wrap_content"
-        android:layout_height="24dp"
+        android:layout_height="32dp"
         android:layout_marginLeft="8dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="8dp"
         android:layout_marginRight="8dp"
         android:background="@drawable/background_transparent_with_border"
         android:text="@string/try_again"
