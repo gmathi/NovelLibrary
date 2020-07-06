@@ -27,13 +27,13 @@ import java.nio.charset.Charset
  * Helper method to check if a [String] contains another in a case insensitive way.
  */
 fun String?.containsCaseInsensitive(other: String?) =
-        if (this == null && other == null) {
-            true
-        } else if (this != null && other != null) {
-            toLowerCase().contains(other.toLowerCase())
-        } else {
-            false
-        }
+    if (this == null && other == null) {
+        true
+    } else if (this != null && other != null) {
+        toLowerCase().contains(other.toLowerCase())
+    } else {
+        false
+    }
 
 inline val JsonElement.jsonNullFreeString: String?
     get() = when {
@@ -58,4 +58,14 @@ inline val String?.urlEncoded: String
         // If UTF-8 is not supported, use the default charset.
         @Suppress("deprecation")
         URLEncoder.encode(this ?: "")
+    }
+
+inline val String.fixMalformed: String
+    get() = when {
+        else -> {
+            var newValue = this
+//            if (newValue.startsWith("//"))
+//                newValue = newValue.replaceFirst("//", "http://")
+            newValue
+        }
     }
