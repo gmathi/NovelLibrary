@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.fragment
 
-import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.net.Uri
@@ -13,7 +12,6 @@ import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
-import androidx.core.content.ContextCompat
 import co.metalab.asyncawait.async
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -24,9 +22,13 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getWebPageSettings
 import io.github.gmathi.novellibrary.database.updateWebPageSettings
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.dataFetchError
+import io.github.gmathi.novellibrary.extensions.noInternetError
+import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.model.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.model.WebPageSettings
+import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
@@ -275,9 +277,9 @@ class WebPageDBFragment : BaseFragment() {
 
         //If no network
         if (!Utils.isConnectedToNetwork(activity)) {
-            progressLayout.showError(ContextCompat.getDrawable(requireActivity(), R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
+            progressLayout.noInternetError(View.OnClickListener {
                 downloadWebPage(url)
-            }
+            })
             return
         }
 
@@ -299,13 +301,9 @@ class WebPageDBFragment : BaseFragment() {
                 //If document fails to load and the fragment is still alive
                 if (doc == null) {
                     if (isResumed && !isRemoving && !isDetached)
-                        progressLayout.showError(
-                            ContextCompat.getDrawable(requireActivity(), R.drawable.ic_warning_white_vector),
-                            getString(R.string.failed_to_load_url),
-                            getString(R.string.try_again)
-                        ) {
+                        progressLayout.dataFetchError(View.OnClickListener {
                             downloadWebPage(url)
-                        }
+                        })
                     return@download
                 }
 
@@ -368,9 +366,9 @@ class WebPageDBFragment : BaseFragment() {
             } catch (e: Exception) {
                 e.printStackTrace()
                 if (isResumed && !isRemoving && !isDetached)
-                    progressLayout.showError(ContextCompat.getDrawable(requireActivity(), R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again)) {
+                    progressLayout.dataFetchError(View.OnClickListener {
                         downloadWebPage(url)
-                    }
+                    })
             }
         }
     }

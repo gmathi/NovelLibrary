@@ -93,6 +93,13 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             swipeRefreshLayout.isRefreshing = false
             progressLayout.showContent()
         }
+        if (adapter.items.size == 0) {
+            progressLayout.showEmpty(
+                resId = R.raw.no_data_blob,
+                isLottieAnimation = true,
+                emptyText = "Your Library is empty!\nLet's start adding some from search screen…"
+            )
+        }
     }
 
 

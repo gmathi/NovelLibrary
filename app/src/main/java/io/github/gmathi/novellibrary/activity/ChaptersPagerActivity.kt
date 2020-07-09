@@ -3,9 +3,9 @@ package io.github.gmathi.novellibrary.activity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.observe
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.R
@@ -16,8 +16,7 @@ import io.github.gmathi.novellibrary.database.getSource
 import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.shareUrl
-import io.github.gmathi.novellibrary.extensions.startDownloadNovelService
+import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.ChapterActionModeEvent
 import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.model.Novel
@@ -27,7 +26,6 @@ import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel
 import kotlinx.android.synthetic.main.activity_chapters_pager.*
 import kotlinx.android.synthetic.main.content_chapters_pager.*
-import kotlinx.android.synthetic.main.generic_loading_view.*
 import org.greenrobot.eventbus.EventBus
 import java.util.*
 import kotlin.collections.ArrayList
@@ -96,21 +94,20 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             //Update loading status
             when (newStatus) {
                 Constants.Status.START -> {
-                    progressLayout.showLoading()
-                    loadingStateTextView.text = getString(R.string.loading)
+                    progressLayout.showLoading(rawId = R.raw.baby_peeking, loadingText = getString(R.string.loading))
                 }
                 Constants.Status.EMPTY_DATA -> {
-                    progressLayout.showEmpty(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.empty_chapters))
+                    progressLayout.showEmpty(resId = R.raw.monkey_logo, isLottieAnimation = true, emptyText = getString(R.string.empty_chapters))
                 }
                 Constants.Status.NETWORK_ERROR -> {
-                    progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again)) {
+                    progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again), onClickListener = View.OnClickListener {
                         vm.getData()
-                    }
+                    })
                 }
                 Constants.Status.NO_INTERNET -> {
-                    progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
+                    progressLayout.noInternetError(View.OnClickListener {
                         vm.getData()
-                    }
+                    })
                 }
                 Constants.Status.DONE -> {
                     isSyncing = false
@@ -118,7 +115,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                     setViewPager()
                 }
                 else -> {
-                    progressLayout.showLoading(newStatus)
+                    progressLayout.updateLoadingStatus(newStatus)
                 }
             }
         }

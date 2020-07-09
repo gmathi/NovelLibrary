@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import androidx.core.content.ContextCompat
 import android.text.Html
 import android.text.Spannable
 import android.text.SpannableString
@@ -19,6 +18,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.Theme
@@ -81,10 +81,10 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         if (!Utils.isConnectedToNetwork(this)) {
             if (novel.id == -1L) {
                 swipeRefreshLayout.isRefreshing = false
-                progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
+                progressLayout.noInternetError(View.OnClickListener {
                     progressLayout.showLoading()
                     getNovelInfo()
-                }
+                })
             }
             return
         }
@@ -104,12 +104,13 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val clip: ClipData = ClipData.newPlainText("Error Message", errorMessage)
                 clipboard.setPrimaryClip(clip)
-                MaterialDialog.Builder(this@NovelDetailsActivity).title("Error!").content("The error message has been copied to clipboard. Please paste it and send it the developer in discord.").show()
+                MaterialDialog.Builder(this@NovelDetailsActivity).title("Error!").content("The error message has been copied to clipboard. Please paste it and send it the developer in discord.")
+                    .show()
                 if (novel.id == -1L)
-                    progressLayout.showError(ContextCompat.getDrawable(this@NovelDetailsActivity, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again)) {
+                    progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again), onClickListener = View.OnClickListener {
                         progressLayout.showLoading()
                         getNovelInfo()
-                    }
+                    })
             }
         }
     }
@@ -139,8 +140,8 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     private fun setNovelImage() {
         if (!novel.imageUrl.isNullOrBlank()) {
             Glide.with(this)
-                    .load(novel.imageUrl?.getGlideUrl())
-                    .into(novelDetailsImage)
+                .load(novel.imageUrl?.getGlideUrl())
+                .into(novelDetailsImage)
             novelDetailsImage.setOnClickListener { startImagePreviewActivity(novel.imageUrl, novel.imageFilePath, novelDetailsImage) }
         }
     }
@@ -264,15 +265,15 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
     private fun confirmNovelDelete() {
         MaterialDialog.Builder(this)
-                .title(getString(R.string.confirm_remove))
-                .content(getString(R.string.confirm_remove_description_novel))
-                .positiveText(getString(R.string.remove))
-                .negativeText(getString(R.string.cancel))
-                .icon(ContextCompat.getDrawable(this, R.drawable.ic_delete_white_vector)!!)
-                .typeface("source_sans_pro_regular.ttf", "source_sans_pro_regular.ttf")
-                .theme(Theme.DARK)
-                .onPositive { _, _ -> deleteNovel() }
-                .show()
+            .title(getString(R.string.confirm_remove))
+            .content(getString(R.string.confirm_remove_description_novel))
+            .positiveText(getString(R.string.remove))
+            .negativeText(getString(R.string.cancel))
+            .icon(ContextCompat.getDrawable(this, R.drawable.ic_delete_white_vector)!!)
+            .typeface("source_sans_pro_regular.ttf", "source_sans_pro_regular.ttf")
+            .theme(Theme.DARK)
+            .onPositive { _, _ -> deleteNovel() }
+            .show()
     }
 
     private fun deleteNovel() {
@@ -303,10 +304,12 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     private fun addNovelToHistory() {
         try {
             var history = dbHelper.getLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY)
-                    ?: "[]"
+                ?: "[]"
             var historyList: ArrayList<Novel> = Gson().fromJson(history, object : TypeToken<ArrayList<Novel>>() {}.type)
-            Logs.error(TAG, "History Size: ${historyList.size
-            }")
+            Logs.error(
+                TAG, "History Size: ${historyList.size
+                }"
+            )
             historyList.removeAll { novel.name == it.name }
             if (historyList.size > 99)
                 historyList = ArrayList(historyList.take(99))
