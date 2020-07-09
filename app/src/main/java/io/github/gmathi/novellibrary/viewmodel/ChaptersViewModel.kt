@@ -66,6 +66,11 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             }
             getChapters(forceUpdate = forceUpdate)
 
+            if (!Utils.isConnectedToNetwork(context)) {
+                loadingStatus.postValue(Constants.Status.NO_INTERNET)
+                return@launch
+            }
+
             if (chapters == null) {
                 loadingStatus.value = Constants.Status.NETWORK_ERROR
                 return@launch

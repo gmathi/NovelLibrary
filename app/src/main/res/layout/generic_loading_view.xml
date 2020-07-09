@@ -34,7 +34,7 @@
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginBottom="4dp"
-        android:visibility="invisible"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@+id/guideline"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
@@ -47,7 +47,9 @@
         android:layout_marginLeft="8dp"
         android:layout_marginTop="4dp"
         android:layout_marginRight="8dp"
+        android:lineSpacingExtra="4dp"
         android:text="@string/loading"
+        android:textAlignment="center"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="@+id/guideline" />

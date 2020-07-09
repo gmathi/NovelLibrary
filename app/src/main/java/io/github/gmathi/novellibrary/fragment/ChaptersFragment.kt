@@ -6,7 +6,6 @@ import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
 import com.hanks.library.AnimateCheckBox
@@ -15,6 +14,8 @@ import io.github.gmathi.novellibrary.activity.ChaptersPagerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapterSelectTitleProvider
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.showEmpty
+import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.extensions.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.extensions.startWebViewActivity
 import io.github.gmathi.novellibrary.model.*
@@ -89,7 +90,7 @@ class ChaptersFragment : BaseFragment(),
                     lastKnownRecyclerState?.let { recyclerView.layoutManager?.onRestoreInstanceState(it) }
                 }
             } else
-                progressLayout.showEmpty(ContextCompat.getDrawable(chaptersPagerActivity, R.drawable.ic_warning_white_vector), "No Chapters Found!")
+                progressLayout.showEmpty(emptyText = "No Chapters Found!")
         }
     }
 
