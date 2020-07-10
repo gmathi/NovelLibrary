@@ -64,8 +64,8 @@ inline val String.fixMalformed: String
     get() = when {
         else -> {
             var newValue = this
-//            if (newValue.startsWith("//"))
-//                newValue = newValue.replaceFirst("//", "http://")
+            if (newValue.startsWith("//"))
+                newValue = newValue.replaceFirst("//", "http://")
             newValue
         }
     }

@@ -74,16 +74,17 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                .title("\uD83C\uDF89 What's New 0.13.beta!")
+                .title("\uD83C\uDF89 What's New 0.15.beta!")
                 .content(
                     //"** Fixed Cloud Flare for 6.0.1**\n\n" +
-                    "✨️ Chapters Screen loading provides more information.\n" +
-                            "✨ Cleaned up some state management in Chapters Screen.\n" +
-                            "✨ Read Aloud moved to bottom in the reader settings.\n" +
+                    "✨️ New animations added to waiting screens.\n" +
+                            "✨ You can now favorite chapters by using the action menu.\n" +
                             "\uD83D\uDEE0 Support for 2 more translation sites in reader mode.\n" +
+                            "⚠️ Fix - Backups are now working.\n" +
+                            "⚠️ Fix - Bookmark is shown correctly.\n" +
 //                            "\uD83D\uDEE0 Discord link updated.\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
-//                            "⚠️ Fix - 1st chapter not being marked as read.\n" +
+//                            "✨ Read Aloud moved to bottom in the reader settings.\n" +
 //                                    "✨ Added Hidden Buttons to unlock some hidden functionality!" +
 //                            "\uD83D\uDEE️ Bug Fixes for reported & unreported crashes!" +
                             ""

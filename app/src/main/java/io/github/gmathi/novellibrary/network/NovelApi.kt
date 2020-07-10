@@ -74,7 +74,7 @@ object NovelApi {
             val body = proxy?.body(doc) ?: doc.body()
 
             return if (ignoreContentType) body
-            else proxy?.document(body, doc) ?: Jsoup.parse(body)
+            else proxy?.document(doc) ?: Jsoup.parse(body, redirectUrl)
         } catch (e: SSLPeerUnverifiedException) {
             val p = Pattern.compile("Hostname\\s(.*?)\\snot", Pattern.DOTALL or Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE or Pattern.MULTILINE) // Regex for the value of the key
             val m = p.matcher(e.localizedMessage ?: "")

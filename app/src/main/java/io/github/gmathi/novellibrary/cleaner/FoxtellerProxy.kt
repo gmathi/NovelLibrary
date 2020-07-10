@@ -1,3 +1,4 @@
+
 package io.github.gmathi.novellibrary.cleaner
 
 import android.util.Base64
@@ -24,8 +25,8 @@ class FoxtellerProxy : ProxyHelper() {
     }
 
     @ExperimentalStdlibApi
-    override fun document(doc: String, res: Connection.Response): Document {
-        val doc = Jsoup.parse(doc)
+    override fun document(res: Connection.Response): Document {
+        val doc = res.parse()
         val xsrf = res.cookie("XSRF-TOKEN")
         val session = res.cookie("foxteller_session") ?: xsrf
         val csrf = doc.selectFirst("meta[name=\"csrf-token\"]").attr("content")

@@ -148,7 +148,7 @@ class ChaptersFragment : BaseFragment(),
 //                    itemView.greenView.animation = null
 //                }
 //            } else
-            itemView.availableOfflineImageView.visibility = View.INVISIBLE
+            itemView.availableOfflineImageView.visibility = View.GONE
         }
 
         itemView.isReadView.visibility = if (webPageSettings?.isRead == 1) View.VISIBLE else View.GONE

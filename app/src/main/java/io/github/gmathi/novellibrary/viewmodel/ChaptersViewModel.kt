@@ -254,6 +254,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
                 actionModeProgress.postValue(counter++.toString())
             }
         }
+        chapterSettings = dbHelper.getAllWebPageSettings(novel.id)
     }
 
     private suspend fun updateFavoriteStatus(webPages: ArrayList<WebPage>, favoriteStatus: Boolean) = withContext(Dispatchers.IO) {
