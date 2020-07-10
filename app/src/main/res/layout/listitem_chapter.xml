@@ -5,6 +5,19 @@
     android:layout_width="match_parent"
     android:layout_height="60dp">
 
+    <ImageView
+        android:id="@+id/bookmarkView"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_margin="1dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:alpha="1"
+        android:backgroundTint="@color/red"
+        android:visibility="visible"
+        app:srcCompat="@drawable/ic_bookmark_orange_vector" />
+
+
     <com.hanks.library.AnimateCheckBox
         android:id="@+id/chapterCheckBox"
         android:layout_width="60dp"
@@ -20,45 +33,49 @@
         app:unCheckColor="#ff0"
         tools:checked="true" />
 
-    <ImageView
-        android:id="@+id/favoriteView"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="4dp"
-        android:tint="@color/red"
-        android:layout_marginEnd="@dimen/default_margin"
-        android:scaleType="centerInside"
-        app:srcCompat="@drawable/ic_favorite"
-        tools:src="@drawable/ic_favorite" />
+    <!--    <ImageView-->
+    <!--        android:id="@+id/favoriteView"-->
+    <!--        android:layout_width="24dp"-->
+    <!--        android:layout_height="24dp"-->
+    <!--        android:layout_alignParentTop="true"-->
+    <!--        android:layout_alignParentEnd="true"-->
+    <!--        android:layout_marginTop="4dp"-->
+    <!--        android:tint="@color/red"-->
+    <!--        android:layout_marginEnd="@dimen/default_margin"-->
+    <!--        android:scaleType="centerInside"-->
+    <!--        app:srcCompat="@drawable/ic_favorite"-->
+    <!--        tools:src="@drawable/ic_favorite" />-->
 
-
-    <ImageView
-        android:id="@+id/bookmarkView"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="4dp"
-        android:layout_marginEnd="@dimen/default_margin"
-        android:scaleType="centerInside"
-        app:srcCompat="@drawable/ic_bookmark_orange_vector"
-        tools:src="@drawable/ic_bookmark_orange_vector" />
-
-    <ImageView
-        android:id="@+id/availableOfflineImageView"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_below="@id/bookmarkView"
+    <LinearLayout
+        android:id="@+id/iconsView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:layout_marginEnd="@dimen/default_margin"
-        android:scaleType="centerInside"
-        android:tint="@color/green"
-        app:srcCompat="@drawable/ic_offline_pin_white_24dp"
-        tools:src="@drawable/ic_offline_pin_white_24dp" />
+        android:gravity="center"
+        android:orientation="vertical">
 
+        <ImageView
+            android:id="@+id/favoriteView"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:scaleType="centerInside"
+            android:tint="@color/IndianRed"
+            app:srcCompat="@drawable/ic_favorite"
+            tools:src="@drawable/ic_bookmark_orange_vector" />
+
+        <ImageView
+            android:id="@+id/availableOfflineImageView"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:scaleType="centerInside"
+            android:tint="@color/green"
+            app:srcCompat="@drawable/ic_offline_pin_white_24dp"
+            tools:src="@drawable/ic_offline_pin_white_24dp" />
+
+
+    </LinearLayout>
 
 
     <TextView
@@ -69,12 +86,13 @@
         android:layout_centerVertical="true"
         android:layout_marginStart="@dimen/default_margin"
         android:layout_marginEnd="@dimen/default_margin"
-        android:layout_toStartOf="@id/favoriteView"
+        android:layout_toStartOf="@id/iconsView"
         android:layout_toEndOf="@id/chapterCheckBox"
         android:ellipsize="end"
         android:maxLines="3"
         android:textColor="@color/white"
         tools:text="ch 14: This is the chapter name, which is very very very long and goes on for about 3 lines" />
+
 
     <View
         android:id="@+id/isReadView"

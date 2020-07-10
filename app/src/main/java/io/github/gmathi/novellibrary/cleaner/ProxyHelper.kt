@@ -31,5 +31,5 @@ open class ProxyHelper {
     open fun body(res: Connection.Response): String = res.body()
 
     /** Modify document after requesting */
-    open fun document(doc: String, res: Connection.Response): Document = Jsoup.parse(doc)
+    open fun document(res: Connection.Response): Document = res.parse()
 }
