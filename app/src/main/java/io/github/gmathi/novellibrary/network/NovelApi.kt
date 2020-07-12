@@ -1,7 +1,7 @@
 package io.github.gmathi.novellibrary.network
 
 import android.net.Uri
-import io.github.gmathi.novellibrary.cleaner.ProxyHelper
+import io.github.gmathi.novellibrary.network.proxy.BaseProxyHelper
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.extensions.fixMalformed
 import org.jsoup.Connection
@@ -41,12 +41,12 @@ object NovelApi {
         try {
             // Since JSoup can't load different cookies after redirect, disable them and perform redirects manually.
             // Redirect limit here just as a safeguard in case someone decides to do infinite redirect loop.
-            var proxy: ProxyHelper?
-            var doc: Connection.Response
+            var proxy: BaseProxyHelper?
+            var response: Connection.Response
             var redirectUrl = url
             var redirectLimit = 5
             do {
-                proxy = ProxyHelper.getInstance(redirectUrl)
+                proxy = BaseProxyHelper.getInstance(redirectUrl)
                 val connection = proxy?.connect(redirectUrl)
                         ?: Jsoup
                             .connect(redirectUrl)
@@ -65,16 +65,17 @@ object NovelApi {
                     }
                 }
 
-                doc = connection.execute()
+                response = connection.execute()
 
-                if (!doc.hasHeader("location")) break
-                redirectUrl = doc.header("location").fixMalformed
+                if (!response.hasHeader("location")) break
+                redirectUrl = response.header("location").fixMalformed
             } while (--redirectLimit >= 0)
 
-            val body = proxy?.body(doc) ?: doc.body()
+            val body = proxy?.body(response) ?: response.body()
 
             return if (ignoreContentType) body
-            else proxy?.document(doc) ?: Jsoup.parse(body, redirectUrl)
+            else proxy?.document(response) ?: Jsoup.parse(body, redirectUrl)
+
         } catch (e: SSLPeerUnverifiedException) {
             val p = Pattern.compile("Hostname\\s(.*?)\\snot", Pattern.DOTALL or Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE or Pattern.MULTILINE) // Regex for the value of the key
             val m = p.matcher(e.localizedMessage ?: "")

@@ -11,6 +11,7 @@ import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.getFileName
 import io.github.gmathi.novellibrary.util.writableFileName
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -26,8 +27,7 @@ open class HtmlHelper protected constructor() {
 
         fun getInstance(doc: Document, url: String = doc.location()): HtmlHelper {
             when {
-                url.contains(HostNames.FOXTELLER) -> return FoxtellerCleaner()
-                url.contains(HostNames.WATTPAD) -> return WattpadHelper()
+                url.contains(HostNames.WATTPAD) -> return WattPadHelper()
                 url.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
                 url.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
                 url.contains(HostNames.QIDIAN) -> return QidianHelper()
@@ -71,9 +71,6 @@ open class HtmlHelper protected constructor() {
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("blog-content") }
             if (contentElement != null) return GeneralClassTagHelper(url, "div", "blog-content")
 
-            contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
-            if (contentElement != null) return CloudFlareDDoSTagHelper()
-
             contentElement = doc.body().select("div#chapter-content").firstOrNull()
             if (contentElement != null) return GeneralIdTagHelper(url, "div", "chapter-content")
 
@@ -99,6 +96,14 @@ open class HtmlHelper protected constructor() {
             contentElement = doc.body().select("section#StoryContent").firstOrNull()
             if (contentElement != null) return GeneralIdTagHelper(url, "section", "StoryContent")
 
+            contentElement = doc.body().select("div.content-container").firstOrNull()
+            if (contentElement != null) return GeneralIdTagHelper(url, "div", "content-container")
+
+
+            //Lastly let's check for cloud flare
+            contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
+            if (contentElement != null) return CloudFlareDDoSTagHelper()
+
             return HtmlHelper()
         }
 
@@ -106,12 +111,16 @@ open class HtmlHelper protected constructor() {
 
     open var keepContentStyle = false
 
-    fun clean(doc: Document, hostDir: File, novelDir: File) {
+    fun downloadResources(doc: Document, hostDir: File, novelDir: File) {
         // removeJS(doc)
         downloadCSS(doc, hostDir)
         downloadImages(doc, novelDir)
         // additionalProcessing(doc)
         // addTitle(doc)
+    }
+
+    fun setProperHrefUrls(doc: Document) {
+        doc.body().select("[href]").forEach { it.attr("href", it.absUrl("href")) }
     }
 
     open fun removeJS(doc: Document) {
@@ -264,6 +273,33 @@ open class HtmlHelper protected constructor() {
     }
 
     open fun getLinkedChapters(doc: Document): ArrayList<String> = ArrayList()
+
+    fun getLinkedChapters(sourceURL: String, contentElement: Element?): ArrayList<String> {
+        val links = ArrayList<String>()
+        val baseUrlDomain = sourceURL.toHttpUrlOrNull()?.topPrivateDomain()
+        val otherLinks = contentElement?.select("a[href]")
+        otherLinks?.forEach {
+            // Other Share links
+            if (it.hasAttr("title") && it.attr("title").contains("Click to share", true)) {
+                return@forEach
+            }
+
+            val linkedUrl = it.absUrl("href").split("#").first()
+            if (linkedUrl == sourceURL || links.contains(linkedUrl)) return@forEach
+
+            try {
+                // Check if URL is from chapter provider, only download from same domain
+                val urlDomain = linkedUrl.toHttpUrlOrNull()?.topPrivateDomain()
+                if (urlDomain == baseUrlDomain) {
+                    links.add(linkedUrl)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        return links
+    }
+
 
     private fun processColorComponent(comp: String): Double {
         if (comp.endsWith("%")) return comp.substring(0, comp.length - 1).toDouble() / 100.0

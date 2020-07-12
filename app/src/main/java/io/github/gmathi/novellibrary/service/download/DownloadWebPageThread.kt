@@ -11,6 +11,7 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.writableFileName
+import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
 
@@ -63,13 +64,19 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         if (!uri.host.isNullOrBlank()) {
 
             val htmlHelper = HtmlHelper.getInstance(doc, uri.host ?: doc.location())
-            htmlHelper.clean(doc, hostDir, novelDir)
+            htmlHelper.downloadResources(doc, hostDir, novelDir)
             webPageSettings.title = htmlHelper.getTitle(doc)
             val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName()))
                     ?: return false
             webPageSettings.filePath = file.path
             webPageSettings.redirectedUrl = doc.location()
 
+            // We need to clean up the document to get only valid linked URLS
+            htmlHelper.removeJS(doc)
+            htmlHelper.additionalProcessing(doc)
+            htmlHelper.setProperHrefUrls(doc)
+
+            // Now we extract other links from the cleaned doc
             val otherLinks = htmlHelper.getLinkedChapters(doc)
             if (otherLinks.isNotEmpty()) {
                 val otherWebPages = ArrayList<WebPageSettings>()
@@ -104,7 +111,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
         val webPageSettings = WebPageSettings(otherChapterLink, novelId)
         val htmlHelper = HtmlHelper.getInstance(doc, uri.host ?: doc.location())
-        htmlHelper.clean(doc, hostDir, novelDir)
+        htmlHelper.downloadResources(doc, hostDir, novelDir)
 
         webPageSettings.title = htmlHelper.getTitle(doc)
         if (webPageSettings.title != null && webPageSettings.title == "") webPageSettings.title = doc.location()

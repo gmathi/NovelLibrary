@@ -306,10 +306,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             var history = dbHelper.getLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY)
                 ?: "[]"
             var historyList: ArrayList<Novel> = Gson().fromJson(history, object : TypeToken<ArrayList<Novel>>() {}.type)
-            Logs.error(
-                TAG, "History Size: ${historyList.size
-                }"
-            )
+            Logs.info(TAG, "Novel Search History Size: ${historyList.size}")
             historyList.removeAll { novel.name == it.name }
             if (historyList.size > 99)
                 historyList = ArrayList(historyList.take(99))

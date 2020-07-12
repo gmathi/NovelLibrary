@@ -25,6 +25,7 @@ object HostNames {
     const val LNMTL = "lnmtl.com"
     const val WATTPAD = "wattpad.com"
     const val FOXTELLER = "foxteller.com"
+    const val BABEL_NOVEL = "babelnovel.com"
 
     const val USER_AGENT = "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Mobile Safari/537.36"
 

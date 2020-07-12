@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.viewmodel
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.*
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -66,7 +67,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             }
             getChapters(forceUpdate = forceUpdate)
 
-            if (!Utils.isConnectedToNetwork(context)) {
+            if (chapters == null && !Utils.isConnectedToNetwork(context)) {
                 loadingStatus.postValue(Constants.Status.NO_INTERNET)
                 return@launch
             }
@@ -156,7 +157,6 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             dbHelper.createWebPage(chaptersList[i])
             dbHelper.createWebPageSettings(WebPageSettings(chaptersList[i].url, novel.id))
         }
-
         chapterSettings = dbHelper.getAllWebPageSettings(novel.id)
     }
 
