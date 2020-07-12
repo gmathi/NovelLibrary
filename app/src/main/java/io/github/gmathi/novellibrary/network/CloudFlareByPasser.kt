@@ -124,25 +124,29 @@ object CloudFlareByPasser {
 
     private fun getCookieMap(hostName: String): Map<String, String> {
         val map = HashMap<String, String>()
-        map[DataCenter.CF_COOKIES_DUID] = dataCenter.getCFDuid(hostName)
-        map[DataCenter.CF_COOKIES_CLEARANCE] = dataCenter.getCFClearance(hostName)
+        if (dataCenter.getCFDuid(hostName).isNotEmpty())
+            map[DataCenter.CF_COOKIES_DUID] = dataCenter.getCFDuid(hostName)
+        if (dataCenter.getCFClearance(hostName).isNotEmpty())
+            map[DataCenter.CF_COOKIES_CLEARANCE] = dataCenter.getCFClearance(hostName)
         return map
     }
 
     fun getCookieMap(url: URL?): Map<String, String> {
         val map = HashMap<String, String>()
         val hostName = url?.host?.replace("www.", "")?.replace("m.", "")?.trim() ?: return map
-        map[DataCenter.CF_COOKIES_DUID] = dataCenter.getCFDuid(hostName)
-        map[DataCenter.CF_COOKIES_CLEARANCE] = dataCenter.getCFClearance(hostName)
+        if (dataCenter.getCFDuid(hostName).isNotEmpty())
+            map[DataCenter.CF_COOKIES_DUID] = dataCenter.getCFDuid(hostName)
+        if (dataCenter.getCFClearance(hostName).isNotEmpty())
+            map[DataCenter.CF_COOKIES_CLEARANCE] = dataCenter.getCFClearance(hostName)
         return map
     }
 
-    fun getCookieMapAsString(url: URL?): String {
-        var cookie = ""
-        val hostName = url?.host?.replace("www.", "")?.replace("m.", "")?.trim() ?: return cookie
-        cookie = "${DataCenter.CF_COOKIES_DUID}:${dataCenter.getCFDuid(hostName)};${DataCenter.CF_COOKIES_CLEARANCE}:${dataCenter.getCFClearance(hostName)};"
-        return cookie
-    }
+//    fun getCookieMapAsString(url: URL?): String {
+//        var cookie = ""
+//        val hostName = url?.host?.replace("www.", "")?.replace("m.", "")?.trim() ?: return cookie
+//        cookie = "${DataCenter.CF_COOKIES_DUID}:${dataCenter.getCFDuid(hostName)};${DataCenter.CF_COOKIES_CLEARANCE}:${dataCenter.getCFClearance(hostName)};"
+//        return cookie
+//    }
 
     enum class State {
         CREATING, CREATED, UNNEEDED

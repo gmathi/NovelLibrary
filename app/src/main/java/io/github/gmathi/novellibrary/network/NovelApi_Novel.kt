@@ -1,7 +1,7 @@
 package io.github.gmathi.novellibrary.network
 
 import com.google.gson.JsonParser
-import io.github.gmathi.novellibrary.extensions.jsonNullFreeString
+import io.github.gmathi.novellibrary.extensions.asJsonNullFreeString
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.Constants
 import okhttp3.MediaType.Companion.toMediaType
@@ -139,16 +139,16 @@ fun NovelApi.getWlnNovelDetails(url: String): Novel? {
         }
 
 
-        novel.metaData["Demographic"] = rootJsonObject["demographic"]?.jsonNullFreeString ?: "N/A"
-        novel.metaData["Homepage"] = rootJsonObject["website"]?.jsonNullFreeString ?: "N/A"
-        novel.metaData["Type"] = rootJsonObject["type"]?.jsonNullFreeString ?: "N/A"
-        novel.metaData["OEL/Translated"] = rootJsonObject["tl_type"]?.jsonNullFreeString ?: "N/A"
-        novel.metaData["Initial publish date"] = rootJsonObject["pub_date"]?.jsonNullFreeString ?: "N/A"
-        novel.metaData["Country of Origin"] = rootJsonObject["origin_loc"]?.jsonNullFreeString ?: "N/A"
-        novel.metaData["Status in Country of Origin"] =  rootJsonObject["orig_status"]?.jsonNullFreeString ?: "N/A"
-        novel.metaData["Licensed (in English)"] = rootJsonObject["license_en"]?.jsonNullFreeString ?: "N/A"
+        novel.metaData["Demographic"] = rootJsonObject["demographic"]?.asJsonNullFreeString ?: "N/A"
+        novel.metaData["Homepage"] = rootJsonObject["website"]?.asJsonNullFreeString ?: "N/A"
+        novel.metaData["Type"] = rootJsonObject["type"]?.asJsonNullFreeString ?: "N/A"
+        novel.metaData["OEL/Translated"] = rootJsonObject["tl_type"]?.asJsonNullFreeString ?: "N/A"
+        novel.metaData["Initial publish date"] = rootJsonObject["pub_date"]?.asJsonNullFreeString ?: "N/A"
+        novel.metaData["Country of Origin"] = rootJsonObject["origin_loc"]?.asJsonNullFreeString ?: "N/A"
+        novel.metaData["Status in Country of Origin"] =  rootJsonObject["orig_status"]?.asJsonNullFreeString ?: "N/A"
+        novel.metaData["Licensed (in English)"] = rootJsonObject["license_en"]?.asJsonNullFreeString ?: "N/A"
         novel.metaData["Alternate Names"] = rootJsonObject.getAsJsonArray("alternatenames")?.joinToString(", ") { it.asString }
-        novel.metaData["Language"] = rootJsonObject["orig_lang"]?.jsonNullFreeString ?: "N/A"
+        novel.metaData["Language"] = rootJsonObject["orig_lang"]?.asJsonNullFreeString ?: "N/A"
 
     } catch (e: Exception) {
         e.printStackTrace()

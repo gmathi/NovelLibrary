@@ -16,6 +16,7 @@
 package io.github.gmathi.novellibrary.extensions
 
 import com.google.gson.JsonElement
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.net.URLEncoder
 import java.nio.charset.Charset
 
@@ -35,7 +36,7 @@ fun String?.containsCaseInsensitive(other: String?) =
         false
     }
 
-inline val JsonElement.jsonNullFreeString: String?
+inline val JsonElement.asJsonNullFreeString: String?
     get() = when {
         this.isJsonNull -> null
         this.asString.isNullOrBlank() -> null
@@ -69,3 +70,6 @@ inline val String.fixMalformed: String
             newValue
         }
     }
+
+inline val String?.getUrlDomain: String?
+    get() = this?.let { this.toHttpUrlOrNull()?.topPrivateDomain() }

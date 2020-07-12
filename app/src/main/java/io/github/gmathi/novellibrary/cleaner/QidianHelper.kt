@@ -9,6 +9,7 @@ import java.util.regex.Pattern
 
 class QidianHelper : HtmlHelper() {
 
+    //This value is set in `removeJS()` which gets called in `WebPageDBFragment.kt : Line 354`
     private var continueReadingUrl: String? = null
 
     override fun additionalProcessing(doc: Document) {

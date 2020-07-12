@@ -8,7 +8,7 @@ import io.github.gmathi.novellibrary.database.createSource
 import io.github.gmathi.novellibrary.database.getSource
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.covertJsonNull
-import io.github.gmathi.novellibrary.extensions.jsonNullFreeString
+import io.github.gmathi.novellibrary.extensions.asJsonNullFreeString
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi.getDocumentWithFormData
@@ -78,7 +78,7 @@ fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage>? {
 
         val sources: HashSet<String> = HashSet()
         releasesArray.forEach { release ->
-            val source = release.asJsonObject["tlgroup"].covertJsonNull?.asJsonObject?.get("name")?.jsonNullFreeString
+            val source = release.asJsonObject["tlgroup"].covertJsonNull?.asJsonObject?.get("name")?.asJsonNullFreeString
             source?.let { sources.add(it) }
         }
         val sourcesMap: HashMap<String, Long> = HashMap()
@@ -93,9 +93,9 @@ fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage>? {
             val releaseObject = release.asJsonObject
             val chapter = releaseObject["chapter"].covertJsonNull?.asInt?.toString() ?: ""
             val fragment = releaseObject["fragment"].covertJsonNull?.asInt?.toString() ?: ""
-            val postFix = releaseObject["postfix"].jsonNullFreeString ?: ""
-            val url = releaseObject["srcurl"].jsonNullFreeString
-            val sourceName = releaseObject["tlgroup"].covertJsonNull?.asJsonObject?.get("name")?.jsonNullFreeString
+            val postFix = releaseObject["postfix"].asJsonNullFreeString ?: ""
+            val url = releaseObject["srcurl"].asJsonNullFreeString
+            val sourceName = releaseObject["tlgroup"].covertJsonNull?.asJsonObject?.get("name")?.asJsonNullFreeString
             val sourceId = if (sourceName != null) sourcesMap[sourceName] else -1L
 
             url?.let {

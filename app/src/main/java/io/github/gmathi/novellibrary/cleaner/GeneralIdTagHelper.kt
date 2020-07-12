@@ -57,13 +57,7 @@ class GeneralIdTagHelper(private val url: String, val tagName: String, val id: S
     }
 
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
-        val url = doc.location()
-        val links = ArrayList<String>()
-        val otherLinks = doc.body().getElementsByTag(tagName).firstOrNull { it.id() == id }?.getElementsByAttributeValueContaining("href", this.url)?.filter { !it.attr("href").contains(url) }
-        if (otherLinks != null && otherLinks.isNotEmpty()) {
-            otherLinks.mapTo(links) { it.attr("href") }
-        }
-        return links
+        return getLinkedChapters(doc.location(), doc.body().select("$tagName#$id").firstOrNull())
     }
 
     private fun removeDirectionalLinks(contentElement: Element?) {

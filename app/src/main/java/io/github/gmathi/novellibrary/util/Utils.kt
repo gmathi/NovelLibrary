@@ -32,6 +32,7 @@ import io.github.gmathi.novellibrary.extensions.createFileIfNotExists
 import io.github.gmathi.novellibrary.extensions.getOrCreateDirectory
 import io.github.gmathi.novellibrary.extensions.getOrCreateFile
 import io.github.gmathi.novellibrary.model.Novel
+import kotlinx.coroutines.CoroutineScope
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -50,8 +51,8 @@ object Utils {
     fun getThemeAccentColor(context: Context): Int {
         val typedValue = TypedValue()
         val a = context.obtainStyledAttributes(
-                typedValue.data,
-                intArrayOf(R.attr.colorAccent)
+            typedValue.data,
+            intArrayOf(R.attr.colorAccent)
         )
         val color = a.getColor(0, Color.CYAN)
         a.recycle()
@@ -62,8 +63,8 @@ object Utils {
     fun getThemePrimaryColor(context: Context): Int {
         val typedValue = TypedValue()
         val a = context.obtainStyledAttributes(
-                typedValue.data,
-                intArrayOf(R.attr.colorPrimary)
+            typedValue.data,
+            intArrayOf(R.attr.colorPrimary)
         )
         val color = a.getColor(0, Color.BLUE)
         a.recycle()
@@ -242,7 +243,7 @@ object Utils {
 
     @Throws(IOException::class)
     fun zip(file: File, outStream: ZipOutputStream, log: Boolean = false) {
-        val basePathLength = (file.parent?.length  ?: file.path.lastIndexOf('/')) + 1
+        val basePathLength = (file.parent?.length ?: file.path.lastIndexOf('/')) + 1
         if (log) Log.i(TAG, "zip: file=${file.name}, basePathLength=$basePathLength")
         if (file.isFile) {
             zipFile(file, outStream, basePathLength, log)
@@ -355,7 +356,13 @@ object Utils {
         return manager.getRunningServices(Integer.MAX_VALUE).any { serviceQualifiedName == it.service.className }
     }
 
-    fun dialogBuilder(activity: AppCompatActivity, title: String? = null, content: String? = null, iconRes: Int = R.drawable.ic_warning_white_vector, isProgress: Boolean = false): MaterialDialog.Builder {
+    fun dialogBuilder(
+        activity: AppCompatActivity,
+        title: String? = null,
+        content: String? = null,
+        iconRes: Int = R.drawable.ic_warning_white_vector,
+        isProgress: Boolean = false
+    ): MaterialDialog.Builder {
         val dialogBuilder = MaterialDialog.Builder(activity)
 
         if (title != null)
@@ -368,7 +375,7 @@ object Utils {
             dialogBuilder.content(content)
 
         dialogBuilder
-                .iconRes(iconRes)
+            .iconRes(iconRes)
 
         if (!isProgress)
             dialogBuilder.positiveText(activity.getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
@@ -407,5 +414,12 @@ object Utils {
     }
 
     fun getUniqueNotificationId() = NotificationId.notificationIdCounter.getAndIncrement()
+
+    fun measureTime(codeBlock: () -> Unit) {
+        val startTime = System.currentTimeMillis()
+        codeBlock()
+        val diff = (System.currentTimeMillis() - startTime) / 1000f
+        Logs.info("MeasuredTime", "$diff")
+    }
 
 }

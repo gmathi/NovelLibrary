@@ -325,6 +325,7 @@ class WebPageDBFragment : BaseFragment() {
                     val htmlHelper = HtmlHelper.getInstance(doc)
                     htmlHelper.removeJS(doc)
                     htmlHelper.additionalProcessing(doc)
+                    htmlHelper.setProperHrefUrls(doc)
                     htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
 
                     if (dataCenter.enableClusterPages) {
@@ -332,27 +333,32 @@ class WebPageDBFragment : BaseFragment() {
                         val baseUrlDomain = getUrlDomain(doc.location())
 
                         // Add the content of the links to the doc
-                        val hrefElements = doc.body().getElementsByTag("a")
+                        val alreadyDownloadedLinks = ArrayList<String>()
+                        alreadyDownloadedLinks.add(doc.location())
+                        val hrefElements = doc.body().select("a[href]")
                         hrefElements?.forEach {
-                            if (it.hasAttr("href")) {
-                                if (it.hasAttr("title") && it.attr("title").contains("Click to share", true)) {
-                                    return@forEach
-                                }
-                                val linkedUrl = it.attr("href")
-                                try {
-                                    // Check if URL is from chapter provider
-                                    val urlDomain = getUrlDomain(linkedUrl)
-                                    if (urlDomain == baseUrlDomain) {
-                                        val otherDoc = await { NovelApi.getDocument(linkedUrl) }
-                                        val helper = HtmlHelper.getInstance(otherDoc)
-                                        helper.removeJS(otherDoc)
-                                        helper.additionalProcessing(otherDoc)
-                                        doc.body().append(otherDoc.body().html())
 
-                                    }
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
+                            // Other Share links
+                            if (it.hasAttr("title") && it.attr("title").contains("Click to share", true)) {
+                                return@forEach
+                            }
+
+                            val linkedUrl = it.attr("href").split("#").first()
+                            if (alreadyDownloadedLinks.contains(linkedUrl)) return@forEach
+
+                            try {
+                                // Check if URL is from chapter provider, only download from same domain
+                                val urlDomain = getUrlDomain(linkedUrl)
+                                if (urlDomain == baseUrlDomain) {
+                                    val otherDoc = await { NovelApi.getDocument(linkedUrl) }
+                                    val helper = HtmlHelper.getInstance(otherDoc)
+                                    helper.removeJS(otherDoc)
+                                    helper.additionalProcessing(otherDoc)
+                                    doc.body().append(otherDoc.body().html())
+                                    alreadyDownloadedLinks.add(otherDoc.location())
                                 }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
                             }
                         }
                     }
@@ -397,6 +403,7 @@ class WebPageDBFragment : BaseFragment() {
             val htmlHelper = HtmlHelper.getInstance(doc)
             htmlHelper.removeJS(doc)
             htmlHelper.additionalProcessing(doc)
+            htmlHelper.setProperHrefUrls(doc)
             htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
 
             if (dataCenter.enableClusterPages) {
