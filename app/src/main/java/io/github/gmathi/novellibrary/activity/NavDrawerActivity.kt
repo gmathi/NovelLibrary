@@ -79,14 +79,15 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                     //"** Fixed Cloud Flare for 6.0.1**\n\n" +
                     "✨️ New animations added to waiting screens.\n" +
                             "✨ You can now favorite chapters by using the action menu.\n" +
-                            "\uD83D\uDEE0 Support for 2 more translation sites in reader mode.\n" +
+                            "\uD83D\uDEE0 Support for 3 more translation sites in reader mode.\n" +
                             "⚠️ Fix - Backups are now working.\n" +
                             "⚠️ Fix - Bookmark is shown correctly.\n" +
+                            "⚠️ Fix - Downloads will now download linked pages.\n" +
 //                            "\uD83D\uDEE0 Discord link updated.\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
 //                            "✨ Read Aloud moved to bottom in the reader settings.\n" +
 //                                    "✨ Added Hidden Buttons to unlock some hidden functionality!" +
-//                            "\uD83D\uDEE️ Bug Fixes for reported & unreported crashes!" +
+//                            "\uD83D\uDEE0 Quality bug fixes inlcuding linked offline pages support!" +
                             ""
                 )
                 .positiveText("Ok")
