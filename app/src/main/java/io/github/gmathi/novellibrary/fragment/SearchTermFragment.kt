@@ -96,13 +96,17 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
             val searchTerms = URLEncoder.encode(searchTerm, "UTF-8")
             var results: ArrayList<Novel>? = null
 
-            when (resultType) {
-                HostNames.NOVEL_UPDATES -> results = await { NovelApi.searchNovelUpdates(searchTerms, currentPageNumber) }
-                HostNames.ROYAL_ROAD -> results = await { NovelApi.searchRoyalRoad(searchTerms, currentPageNumber) }
-                HostNames.NOVEL_FULL -> results = await { NovelApi.searchNovelFull(searchTerms, currentPageNumber) }
-                HostNames.WLN_UPDATES -> results = await { NovelApi.searchWlnUpdates(searchTerms) }
-                HostNames.SCRIBBLE_HUB -> results = await { NovelApi.searchScribbleHub(searchTerms, currentPageNumber) }
-                HostNames.LNMTL -> results = await { NovelApi.searchLNMTL(searchTerms) }
+            try {
+                when (resultType) {
+                    HostNames.NOVEL_UPDATES -> results = await { NovelApi.searchNovelUpdates(searchTerms, currentPageNumber) }
+                    HostNames.ROYAL_ROAD -> results = await { NovelApi.searchRoyalRoad(searchTerms, currentPageNumber) }
+                    HostNames.NOVEL_FULL -> results = await { NovelApi.searchNovelFull(searchTerms, currentPageNumber) }
+                    HostNames.WLN_UPDATES -> results = await { NovelApi.searchWlnUpdates(searchTerms) }
+                    HostNames.SCRIBBLE_HUB -> results = await { NovelApi.searchScribbleHub(searchTerms, currentPageNumber) }
+                    HostNames.LNMTL -> results = await { NovelApi.searchLNMTL(searchTerms) }
+                }
+            } catch (e: Exception) {
+                Logs.error("Search Term", "Search Failed!", e)
             }
 
             if (results != null) {

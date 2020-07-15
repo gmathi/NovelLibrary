@@ -174,7 +174,7 @@ open class HtmlHelper protected constructor() {
             val content = doc.toString()
             stream.use { it.write(content.toByteArray()) }
         } catch (e: Exception) {
-            Logs.warning(TAG, "convertDocToFile: ${file.name}", e)
+            //Logs.warning(TAG, "convertDocToFile: ${file.name}", e)
             return null
         }
         return file
