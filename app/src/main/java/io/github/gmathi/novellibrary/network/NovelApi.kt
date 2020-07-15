@@ -15,22 +15,27 @@ import javax.net.ssl.SSLPeerUnverifiedException
 
 object NovelApi {
 
+    @Throws(Exception::class)
     fun getDocument(url: String, ignoreHttpErrors: Boolean = true): Document {
         return getDocumentWithParams(url, ignoreHttpErrors = ignoreHttpErrors, ignoreContentType = false) as  Document
     }
 
+    @Throws(Exception::class)
     fun getString(url: String, ignoreHttpErrors: Boolean = true): String {
         return getDocumentWithParams(url, ignoreHttpErrors = ignoreHttpErrors, ignoreContentType = true) as  String
     }
 
+    @Throws(Exception::class)
     fun getDocumentWithFormData(url: String, formData:HashMap<String, String>, ignoreHttpErrors:Boolean = true): Document {
        return getDocumentWithParams(url, ignoreHttpErrors, ignoreContentType = false, isPost = true, formData = formData) as Document
     }
 
+    @Throws(Exception::class)
     fun getStringWithFormData(url: String, formData:HashMap<String, String>, ignoreHttpErrors:Boolean = true): String {
         return getDocumentWithParams(url, ignoreHttpErrors, ignoreContentType = true, isPost = true, formData = formData) as String
     }
 
+    @Throws(Exception::class)
     private fun getDocumentWithParams(
         url: String,
         ignoreHttpErrors: Boolean,

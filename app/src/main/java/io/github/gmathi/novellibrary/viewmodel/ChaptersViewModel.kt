@@ -148,7 +148,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             // dbHelper.deleteWebPageSettings(novel.id)
         }
 
-        val chaptersList = chapters!!
+        val chaptersList = chapters ?: return@withContext
         val chaptersCount = chaptersList.size
         dbHelper.updateChaptersCount(novel.id, chaptersCount.toLong())
 
