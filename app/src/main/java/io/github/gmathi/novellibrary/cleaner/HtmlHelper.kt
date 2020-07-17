@@ -17,6 +17,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
 import java.io.FileOutputStream
+import java.net.SocketException
 
 
 open class HtmlHelper protected constructor() {
@@ -151,7 +152,7 @@ open class HtmlHelper protected constructor() {
 
     }
 
-    open fun downloadFile(element: Element, dir: File): File? {
+    open fun downloadFile(element: Element, dir: File, retryCount: Int = 0): File? {
         val uri = Uri.parse(element.absUrl("href"))
         val file: File
         val doc: Document
@@ -161,9 +162,18 @@ open class HtmlHelper protected constructor() {
             file = File(dir, fileName)
             doc = NovelApi.getDocument(uri.toString(), ignoreHttpErrors = false)
         } catch (e: Exception) {
+            when (e) {
+                is SocketException -> {
+                    // Let's try this one more time
+                    if (retryCount == 0) return downloadFile(element, dir, retryCount = 1)
+                }
+            }
+
+            // Let's log all other exceptions
             Logs.warning(TAG, "Uri: $uri", e)
             return null
         }
+
         return convertDocToFile(doc, file)
     }
 
