@@ -29,7 +29,6 @@ import io.github.gmathi.novellibrary.util.Constants.SHARED_PREFS_DIR
 import io.github.gmathi.novellibrary.util.Constants.SIMPLE_NOVEL_BACKUP_FILE_NAME
 import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.Utils.recursiveCopy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -171,7 +170,7 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                     if (!currentDBsDir.exists()) currentDBsDir.mkdir()
                     nm.updateProgress(6) { setContentText(getString(R.string.title_library)) }
                     backupDBsDir.listFiles()?.forEach {
-                        Utils.copyFile(it, File(currentDBsDir, it.name))
+                        it.copyTo(target = File(currentDBsDir, it.name), overwrite = true, bufferSize = Constants.FILE_BUFFER_SIZE)
                     }
                 }
                 nm.updateProgress(8)
@@ -181,7 +180,7 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                     if (!currentSharedPrefsDir.exists()) currentSharedPrefsDir.mkdir()
                     nm.updateProgress(10) { setContentText(getString(R.string.preferences)) }
                     backupSharedPrefsDir.listFiles()?.forEach {
-                        Utils.copyFile(it, File(currentSharedPrefsDir, it.name))
+                        it.copyTo(target = File(currentSharedPrefsDir, it.name), overwrite = true, bufferSize = Constants.FILE_BUFFER_SIZE)
                     }
                 }
                 nm.updateProgress(12)
@@ -190,7 +189,7 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                 if (shouldRestoreFiles && backupFilesDir.exists() && backupFilesDir.isDirectory) {
                     if (!currentFilesDir.exists()) currentFilesDir.mkdir()
                     nm.updateProgress(14) { setContentText(getString(R.string.downloaded_files)) }
-                    recursiveCopy(backupFilesDir, currentFilesDir)
+                    backupDBsDir.copyRecursively(target = currentFilesDir, overwrite = true)
                 }
                 nm.updateProgress(16)
 

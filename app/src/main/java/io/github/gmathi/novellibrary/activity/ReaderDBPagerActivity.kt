@@ -41,6 +41,7 @@ import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.model.*
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.view.TwoWaySeekBar
 import kotlinx.android.synthetic.main.activity_reader_pager.*
@@ -48,6 +49,10 @@ import kotlinx.android.synthetic.main.item_option.view.*
 import kotlinx.android.synthetic.main.menu_left_drawer.*
 import org.greenrobot.eventbus.EventBus
 import java.io.File
+import java.io.FileOutputStream
+import java.lang.Exception
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class ReaderDBPagerActivity :
@@ -58,6 +63,8 @@ class ReaderDBPagerActivity :
 
 
     companion object {
+        private const val TAG = "ReaderDBPagerActivity"
+
         private const val READER_MODE = 0
         private const val NIGHT_MODE = 1
         private const val JAVA_SCRIPT = 2
@@ -486,23 +493,26 @@ class ReaderDBPagerActivity :
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
                 }
             }
-            Constants.ADD_FONT_REQUEST_CODE -> {
-                if (resultCode == Activity.RESULT_OK) {
-                    val uri = data?.data
-                    if (uri != null) {
-                        val document = DocumentFile.fromSingleUri(baseContext, uri)
-                        if (document != null && document.isFile) {
-                            val fontsDir = File(getExternalFilesDir(null) ?: filesDir, "Fonts/")
-                            if (!fontsDir.exists()) fontsDir.mkdir()
-                            val file = File(fontsDir, document.name!!)
-                            Utils.copyFile(contentResolver, document, file)
-                            AVAILABLE_FONTS[file.nameWithoutExtension.replace('_', ' ')] = file.path
-                            dataCenter.fontPath = file.path
-                            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
-                        }
-                    }
-                }
+
+            Constants.ADD_FONT_REQUEST_CODE -> try {
+                // Check for different conditions / edge-cases.
+                if (resultCode != Activity.RESULT_OK) return
+                val uri = data?.data ?: return
+                val document = DocumentFile.fromSingleUri(baseContext, uri) ?: return
+                if (!document.isFile) return
+
+                // After the checks are complete, we copy the font for the reader to use
+                val fontsDir = File(getExternalFilesDir(null) ?: filesDir, "Fonts/")
+                if (!fontsDir.exists()) fontsDir.mkdir()
+                val file = File(fontsDir, document.name ?: "RandomFontName${Random().nextInt()}")
+                contentResolver.openInputStream(document.uri)?.copyTo(FileOutputStream(file), bufferSize = Constants.FILE_BUFFER_SIZE)
+                AVAILABLE_FONTS[file.nameWithoutExtension.replace('_', ' ')] = file.path
+                dataCenter.fontPath = file.path
+                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+            } catch (e:Exception) {
+                Logs.error(TAG, "Unable to copy font", e)
             }
+
             Constants.READER_SETTINGS_ACT_REQ_CODE -> {
                 EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
             }

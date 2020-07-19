@@ -194,7 +194,7 @@
     <string name="clear_selection">Itangal ang napili</string>
     <string name="download_novel">I-download ang libro</string>
     <string name="add_to_library_dialog_content"> Kailangan idagdag muna ang libro sa aklatan bago puwede mong i-download o i-mark ang mga kabanata nito. Gusto mo ba idagdag ang - %s sa aklatan?</string>
-    <string name="swipe_right_for_next_chapter">Jap Style Swipe</string>
+    <string name="swipe_right_for_next_chapter">Left to Right Swipe</string>
     <string name="swipe_right_for_next_chapter_description">Swipe right for next chapter</string>
     <string name="no_bookmark_found_dialog_title">Magsimula na sa pagbabasa?</string>
     <string name="no_bookmark_found_dialog_description">Mukhang hindi mo pa nababasa ang ‘%s’ . Magsimula na ngayon?</string>

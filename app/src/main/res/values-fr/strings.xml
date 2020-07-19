@@ -196,7 +196,7 @@
     <string name="clear_selection">Déselectionner</string>
     <string name="download_novel">Télécharger le Roman</string>
     <string name="add_to_library_dialog_content">Le Roman (%s) doit être dans votre bibliothèque pour télécharger/marquer les Chapitres individuellement ?</string>
-    <string name="swipe_right_for_next_chapter">Glissement (Jap Style)</string>
+    <string name="swipe_right_for_next_chapter">Left to Right Swipe</string>
     <string name="swipe_right_for_next_chapter_description">Glisser vers la droite pour changer de Chapitre</string>
     <string name="no_bookmark_found_dialog_title">Commencer à lire ?</string>
     <string name="no_bookmark_found_dialog_description">Vous n\'avez pas encore commencé “%s”. Pourquoi ne pas commencer maintenant ?</string>
