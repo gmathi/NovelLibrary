@@ -505,7 +505,7 @@ class ReaderDBPagerActivity :
                 val fontsDir = File(getExternalFilesDir(null) ?: filesDir, "Fonts/")
                 if (!fontsDir.exists()) fontsDir.mkdir()
                 val file = File(fontsDir, document.name ?: "RandomFontName${Random().nextInt()}")
-                contentResolver.openInputStream(document.uri)?.copyTo(FileOutputStream(file), bufferSize = Constants.FILE_BUFFER_SIZE)
+                Utils.copyFile(contentResolver, document, file)
                 AVAILABLE_FONTS[file.nameWithoutExtension.replace('_', ' ')] = file.path
                 dataCenter.fontPath = file.path
                 EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))

@@ -43,6 +43,10 @@ class NovelLibraryApplication : MultiDexApplication() {
         var dbHelper: DBHelper? = null
 
         private const val TAG = "NovelLibraryApplication"
+
+        fun refreshDBHelper(context: Context) {
+            dbHelper = DBHelper.refreshInstance(context)
+        }
     }
 
     override fun onCreate() {

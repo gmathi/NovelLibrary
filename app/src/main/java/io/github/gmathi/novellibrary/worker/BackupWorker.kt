@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
-import android.os.FileUtils
 import android.text.format.Formatter
 import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
@@ -15,12 +14,10 @@ import androidx.work.*
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.notNullAndExists
-import io.github.gmathi.novellibrary.util.Constants.BACKUP_DB_PREFIX
 import io.github.gmathi.novellibrary.util.NotificationReceiver
 import io.github.gmathi.novellibrary.util.ProgressNotificationManager
 import io.github.gmathi.novellibrary.util.Constants.DATABASES_DIR
@@ -33,7 +30,6 @@ import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.*
-import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 internal class BackupWorker(context: Context, workerParameters: WorkerParameters) : CoroutineWorker(context, workerParameters) {
@@ -45,7 +41,6 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
         internal const val KEY_SHOULD_BACKUP_DATA_BASE = "shouldBackupDatabase"
         internal const val KEY_SHOULD_BACKUP_PREFERENCES = "shouldBackupPreferences"
         internal const val KEY_SHOULD_BACKUP_FILES = "shouldBackupFiles"
-
 
         const val UNIQUE_WORK_NAME = "backup_work"
     }
@@ -132,7 +127,6 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
                                 BufferedWriter(OutputStreamWriter(FileOutputStream(simpleTextFile)))
                             writer.use { writer.write(jsonString) }
                             nm.updateProgress(3)
-
                             Utils.zip(simpleTextFile, it)
                         }
                         nm.updateProgress(4)
@@ -140,11 +134,7 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
                         // Backup Databases
                         if (shouldBackupDatabase && currentDBsDir.exists() && currentDBsDir.isDirectory) {
                             nm.updateProgress(6) { setContentText(getString(R.string.title_library)) }
-                            //1st create a backup db copy which his thread safe, so the current db is not corrupted.
-                            val localBackupDir = File(currentDBsDir.parent, BACKUP_DB_PREFIX + currentDBsDir.name)
-                            val dbCloneDir = File(localBackupDir, DATABASES_DIR)
-                            currentDBsDir.copyRecursively(dbCloneDir, overwrite = true)
-                            Utils.zip(dbCloneDir, it)
+                            Utils.zip(currentDBsDir, it)
                         }
                         nm.updateProgress(8)
 
