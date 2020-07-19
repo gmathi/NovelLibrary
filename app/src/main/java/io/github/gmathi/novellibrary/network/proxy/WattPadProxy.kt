@@ -22,7 +22,7 @@ class WattPadProxy : BaseProxyHelper() {
             else finds.groups[1]?.value
         }.firstOrNull()
 
-        val preElem = doc.selectFirst("div.page pre")!!
+        val preElem = doc.select("div.page pre").firstOrNull() ?: return doc
         val contentElem = preElem.parent()
 
         // Request and append second half
@@ -30,7 +30,7 @@ class WattPadProxy : BaseProxyHelper() {
             val secondHalfContent = Jsoup.connect(url).execute().body()
             contentElem.append(secondHalfContent)
         } else
-            contentElem.append("<br /><p><b>ERROR: Failed to load second half of chapter.</b></p>")
+            contentElem.append("<br/><p><b>ERROR: Failed to load second half of chapter.</b></p>")
 
         return doc
     }

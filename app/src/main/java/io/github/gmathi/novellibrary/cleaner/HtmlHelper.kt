@@ -12,6 +12,7 @@ import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.getFileName
 import io.github.gmathi.novellibrary.util.writableFileName
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import org.jsoup.HttpStatusException
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -160,12 +161,15 @@ open class HtmlHelper protected constructor() {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: $uri")
             val fileName = uri.getFileName()
             file = File(dir, fileName)
-            doc = NovelApi.getDocument(uri.toString(), ignoreHttpErrors = false)
+            doc = NovelApi.getDocument(uri.toString(), ignoreHttpErrors = false, useProxy = false)
         } catch (e: Exception) {
             when (e) {
                 is SocketException -> {
                     // Let's try this one more time
                     if (retryCount == 0) return downloadFile(element, dir, retryCount = 1)
+                }
+                is HttpStatusException -> {
+                    //Do Nothing
                 }
             }
 
@@ -184,7 +188,7 @@ open class HtmlHelper protected constructor() {
             val content = doc.toString()
             stream.use { it.write(content.toByteArray()) }
         } catch (e: Exception) {
-            //Logs.warning(TAG, "convertDocToFile: ${file.name}", e)
+            Logs.warning(TAG, "convertDocToFile: Document:${doc.location()}, File: ${file.absolutePath}", e)
             return null
         }
         return file

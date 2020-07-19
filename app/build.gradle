@@ -21,8 +21,8 @@ android {
         minSdkVersion 21
         targetSdkVersion 29
         multiDexEnabled true
-        versionCode 87
-        versionName "0.15.beta"
+        versionCode 88
+        versionName "0.15.1.beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -127,6 +127,9 @@ dependencies {
         exclude group: 'com.google.apis'
     })
 
+    //TODO: Need to update to new MaterialDialogs
+//    implementation 'com.afollestad.material-dialogs:core:3.3.0'
+//    implementation 'com.afollestad.material-dialogs:input:3.3.0'
     implementation('com.afollestad.material-dialogs:core:0.9.6.0', {
         exclude group: 'com.android.support'
     })
@@ -137,13 +140,13 @@ dependencies {
 
     implementation "com.google.android.gms:play-services-gcm:17.0.0"
     implementation "com.google.android.gms:play-services-drive:17.0.0"
-    implementation "com.google.android.gms:play-services-auth:18.0.0"
+    implementation "com.google.android.gms:play-services-auth:18.1.0"
 
-    implementation "com.google.firebase:firebase-messaging:20.2.1"
-    implementation "com.google.firebase:firebase-auth:19.3.1"
+    implementation "com.google.firebase:firebase-messaging:20.2.3"
+    implementation "com.google.firebase:firebase-auth:19.3.2"
 
-    implementation "com.google.firebase:firebase-core:17.4.3"
-    implementation "com.google.firebase:firebase-config:19.1.4"
+    implementation "com.google.firebase:firebase-core:17.4.4"
+    implementation "com.google.firebase:firebase-config:19.2.0"
     implementation 'com.google.code.gson:gson:2.8.6'
 
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
@@ -152,8 +155,8 @@ dependencies {
     implementation 'com.github.chimbori:crux:2.2.0'
 
 
-    implementation 'com.google.firebase:firebase-analytics-ktx:17.4.3'
-    implementation 'com.google.firebase:firebase-crashlytics:17.1.0'
+    implementation 'com.google.firebase:firebase-analytics-ktx:17.4.4'
+    implementation 'com.google.firebase:firebase-crashlytics:17.1.1'
 
 
     canaryImplementation 'com.squareup.leakcanary:leakcanary-android:2.2'

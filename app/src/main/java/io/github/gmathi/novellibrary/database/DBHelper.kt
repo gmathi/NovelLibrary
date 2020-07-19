@@ -26,6 +26,12 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
             }
             return sInstance!!
         }
+
+        @Synchronized
+        fun refreshInstance(context: Context): DBHelper {
+            sInstance = DBHelper(context.applicationContext)
+            return sInstance!!
+        }
     }
 
     override fun onCreate(db: SQLiteDatabase) {

@@ -128,7 +128,4 @@ object Constants {
         const val DONE = "done"
     }
 
-    const val FILE_BUFFER_SIZE = 16384
-    const val BACKUP_DB_PREFIX = "Backup_"
-
 }

@@ -277,6 +277,8 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         files = shouldRestoreFiles
 
         if (dataCenter.showRestoreHint) {
+
+
             SuperActivityToast.create(this, Style(), Style.TYPE_BUTTON)
                 .setButtonText(getString(R.string.dont_show_again))
                 .setOnButtonClickListener(

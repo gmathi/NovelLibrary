@@ -74,10 +74,10 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                .title("\uD83C\uDF89 What's New 0.15.beta!")
+                .title("\uD83C\uDF89 What's New 0.15.1.beta!")
                 .content(
-                    //"** Fixed Cloud Flare for 6.0.1**\n\n" +
-                    "✨️ New animations added to waiting screens.\n" +
+                    "--> Patched a lot of Bug Fixes (below updates from 0.15.beta)**\n\n" +
+                            "✨️ New animations added to waiting screens.\n" +
                             "✨ You can now favorite chapters by using the action menu.\n" +
                             "\uD83D\uDEE0 Support for 3 more translation sites in reader mode.\n" +
                             "⚠️ Fix - Backups are now working.\n" +

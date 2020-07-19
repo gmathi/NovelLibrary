@@ -16,13 +16,13 @@ import javax.net.ssl.SSLPeerUnverifiedException
 object NovelApi {
 
     @Throws(Exception::class)
-    fun getDocument(url: String, ignoreHttpErrors: Boolean = true): Document {
-        return getDocumentWithParams(url, ignoreHttpErrors = ignoreHttpErrors, ignoreContentType = false) as  Document
+    fun getDocument(url: String, ignoreHttpErrors: Boolean = true, useProxy: Boolean = true): Document {
+        return getDocumentWithParams(url, ignoreHttpErrors = ignoreHttpErrors, ignoreContentType = false, useProxy = useProxy) as  Document
     }
 
     @Throws(Exception::class)
-    fun getString(url: String, ignoreHttpErrors: Boolean = true): String {
-        return getDocumentWithParams(url, ignoreHttpErrors = ignoreHttpErrors, ignoreContentType = true) as  String
+    fun getString(url: String, ignoreHttpErrors: Boolean = true, useProxy: Boolean = true): String {
+        return getDocumentWithParams(url, ignoreHttpErrors = ignoreHttpErrors, ignoreContentType = true, useProxy = useProxy) as  String
     }
 
     @Throws(Exception::class)
@@ -40,6 +40,7 @@ object NovelApi {
         url: String,
         ignoreHttpErrors: Boolean,
         ignoreContentType: Boolean,
+        useProxy: Boolean = true,
         isPost: Boolean = false,
         formData: HashMap<String, String> = hashMapOf<String, String>()
     ): Any {
@@ -52,6 +53,7 @@ object NovelApi {
             var redirectLimit = 5
             do {
                 proxy = BaseProxyHelper.getInstance(redirectUrl)
+                if (!useProxy) { proxy = null }
                 val connection = proxy?.connect(redirectUrl)
                         ?: Jsoup
                             .connect(redirectUrl)
