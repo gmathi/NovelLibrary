@@ -11,6 +11,7 @@ import io.github.gmathi.novellibrary.extensions.covertJsonNull
 import io.github.gmathi.novellibrary.extensions.asJsonNullFreeString
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.network.NovelApi.getDocument
 import io.github.gmathi.novellibrary.network.NovelApi.getDocumentWithFormData
 import io.github.gmathi.novellibrary.util.Constants
 import okhttp3.MediaType.Companion.toMediaType
@@ -45,7 +46,7 @@ fun NovelApi.getRRChapterUrls(novel: Novel): ArrayList<WebPage>? {
         var orderId = 0L
         chapters = ArrayList()
         tableElement.select("a[href]")?.forEach {
-            val webPage = WebPage(url = it.attr("abs:href"), chapter = it.text())
+            val webPage = WebPage(url = it.absUrl("href"), chapter = it.text())
             webPage.orderId = orderId++
             webPage.novelId = novel.id
             chapters.add(webPage)
@@ -244,14 +245,15 @@ private fun getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String,
 
 fun getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage>? {
     return try {
-        val id = Jsoup.connect(novel.url).get().selectFirst("#rating").attr("data-novel-id")
-        val chaptersDoc = Jsoup.connect("https://${HostNames.NOVEL_FULL}/ajax-chapter-option?novelId=$id&currentChapterId=").get()
-        ArrayList(chaptersDoc.selectFirst("select.chapter_jump").children().mapIndexed { i, elem ->
+        val id = NovelApi.getDocument(novel.url).selectFirst("#rating")?.attr("data-novel-id") ?: return null
+        val chaptersDoc = getDocument("https://${HostNames.NOVEL_FULL}/ajax-chapter-option?novelId=$id&currentChapterId=")
+        val chapters = chaptersDoc.selectFirst("select.chapter_jump")?.children()?.mapIndexed { i, elem ->
             WebPage(
                 url = "https://${HostNames.NOVEL_FULL}${elem.attr("value")}",
                 chapter = elem.text(), novelId = novel.id, orderId = i.toLong()
             )
-        })
+        } ?: return null
+        ArrayList(chapters)
     } catch (e: Exception) {
         e.printStackTrace()
         null

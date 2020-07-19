@@ -45,54 +45,8 @@ import java.util.zip.ZipOutputStream
 object Utils {
 
     private const val TAG = "UTILS"
-    private const val BUFFER_SIZE = 16384
 
-    //region color utils
-    fun getThemeAccentColor(context: Context): Int {
-        val typedValue = TypedValue()
-        val a = context.obtainStyledAttributes(
-            typedValue.data,
-            intArrayOf(R.attr.colorAccent)
-        )
-        val color = a.getColor(0, Color.CYAN)
-        a.recycle()
-
-        return color
-    }
-
-    fun getThemePrimaryColor(context: Context): Int {
-        val typedValue = TypedValue()
-        val a = context.obtainStyledAttributes(
-            typedValue.data,
-            intArrayOf(R.attr.colorPrimary)
-        )
-        val color = a.getColor(0, Color.BLUE)
-        a.recycle()
-
-        return color
-    }
-
-    fun lighten(color: Int, factor: Float): Int {
-        val red = ((Color.red(color) * (1 - factor) / 255 + factor) * 255).toInt()
-        val green = ((Color.green(color) * (1 - factor) / 255 + factor) * 255).toInt()
-        val blue = ((Color.blue(color) * (1 - factor) / 255 + factor) * 255).toInt()
-        return Color.argb(Color.alpha(color), red, green, blue)
-    }
-    //endregion
-
-    //region Bitmap to byte[] Conversions
-
-    fun getBytes(bitmap: Bitmap): ByteArray {
-        val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 0, stream)
-        return stream.toByteArray()
-    }
-
-    // convert from byte array to bitmap
     fun getImage(image: ByteArray): Bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
-
-    //endregion
-
 
     fun getHostDir(context: Context, url: String): File {
         val uri = Uri.parse(url)
@@ -147,94 +101,6 @@ object Utils {
     }
 
     @Throws(IOException::class)
-    fun copyFile(inputStream: InputStream, dst: File) {
-        inputStream.use {
-            FileOutputStream(dst).use { outStream ->
-                val buffer = ByteArray(BUFFER_SIZE)
-                var bytesRead: Int = inputStream.read(buffer)
-                while (bytesRead != -1) {
-                    outStream.write(buffer, 0, bytesRead)
-                    bytesRead = inputStream.read(buffer)
-                }
-            }
-        }
-    }
-
-    @Throws(IOException::class)
-    fun copyFile(src: File, dst: File) {
-        copyFile(src.inputStream(), dst)
-    }
-
-    @Throws(IOException::class)
-    fun copyFile(contentResolver: ContentResolver, src: File, dst: DocumentFile) {
-        FileInputStream(src).use { inStream ->
-            contentResolver.openOutputStream(dst.uri)?.use { outStream ->
-                val buffer = ByteArray(BUFFER_SIZE)
-                var bytesRead = inStream.read(buffer)
-                while (bytesRead != -1) {
-                    outStream.write(buffer, 0, bytesRead)
-                    bytesRead = inStream.read(buffer)
-                }
-            }
-        }
-
-    }
-
-    @Throws(IOException::class)
-    fun copyFile(contentResolver: ContentResolver, src: DocumentFile, dst: File) {
-        contentResolver.openInputStream(src.uri)?.use { inStream ->
-            FileOutputStream(dst).use { outStream ->
-                val buffer = ByteArray(BUFFER_SIZE)
-                var bytesRead = inStream.read(buffer)
-                while (bytesRead != -1) {
-                    outStream.write(buffer, 0, bytesRead)
-                    bytesRead = inStream.read(buffer)
-                }
-            }
-        }
-    }
-
-    @Throws(IOException::class)
-    fun recursiveCopy(src: File, dst: File) {
-        src.listFiles()?.forEach { file ->
-            if (file.isDirectory) {
-                val destDir = File(dst, file.name)
-                if (!destDir.exists()) destDir.mkdir()
-                recursiveCopy(file, destDir)
-            } else {
-                copyFile(file, File(dst, file.name))
-            }
-        }
-    }
-
-    @Throws(IOException::class)
-    fun recursiveCopy(contentResolver: ContentResolver, src: File, dst: DocumentFile) {
-        src.listFiles()?.forEach { file ->
-            if (file.isDirectory) {
-                val destDir = dst.getOrCreateDirectory(file.name)!!
-                recursiveCopy(contentResolver, file, destDir)
-            } else {
-                copyFile(contentResolver, file, dst.getOrCreateFile(src.name)!!)
-            }
-        }
-    }
-
-    @Throws(IOException::class)
-    fun recursiveCopy(contentResolver: ContentResolver, src: DocumentFile, dst: File) {
-        src.listFiles().forEach { file ->
-            val name = file.name
-            if (name != null) {
-                if (file.isDirectory) {
-                    val destDir = File(dst, name)
-                    recursiveCopy(contentResolver, file, destDir)
-                } else {
-                    copyFile(contentResolver, file, File(dst, name))
-                }
-            }
-        }
-    }
-
-    @Throws(IOException::class)
     fun zip(contentResolver: ContentResolver, file: File, zip: DocumentFile, log: Boolean = false) {
         ZipOutputStream(BufferedOutputStream(contentResolver.openOutputStream(zip.uri)!!)).use {
             zip(file, it, log)
@@ -254,16 +120,16 @@ object Utils {
 
     @Throws(IOException::class)
     private fun zipFile(file: File, outStream: ZipOutputStream, basePathLength: Int, log: Boolean = false) {
-        BufferedInputStream(file.inputStream(), BUFFER_SIZE).use {
+        BufferedInputStream(file.inputStream(), Constants.FILE_BUFFER_SIZE).use {
             val entry = ZipEntry(file.path.substring(basePathLength))
             if (log) Log.i(TAG, "zip: file=${file.name}, entry=${entry.name}")
             entry.time = file.lastModified() // to keep modification time after unzipping
             outStream.putNextEntry(entry)
-            val data = ByteArray(BUFFER_SIZE)
-            var count = it.read(data, 0, BUFFER_SIZE)
+            val data = ByteArray(Constants.FILE_BUFFER_SIZE)
+            var count = it.read(data, 0, Constants.FILE_BUFFER_SIZE)
             while (count != -1) {
                 outStream.write(data, 0, count)
-                count = it.read(data, 0, BUFFER_SIZE)
+                count = it.read(data, 0, Constants.FILE_BUFFER_SIZE)
             }
         }
     }
@@ -280,13 +146,6 @@ object Utils {
     }
 
     @Throws(IOException::class)
-    fun unzip(contentResolver: ContentResolver, zip: DocumentFile, dir: File) {
-        ZipInputStream(BufferedInputStream(contentResolver.openInputStream(zip.uri)!!)).use {
-            unzip(it, dir)
-        }
-    }
-
-    @Throws(IOException::class)
     fun unzip(inputStream: ZipInputStream, dir: File) {
         var entry = inputStream.nextEntry
         while (entry != null) {
@@ -298,11 +157,11 @@ object Utils {
                 val file = File(dir, entry.name)
                 file.createFileIfNotExists()
                 file.outputStream().use {
-                    val data = ByteArray(BUFFER_SIZE)
-                    var count = inputStream.read(data, 0, BUFFER_SIZE)
+                    val data = ByteArray(Constants.FILE_BUFFER_SIZE)
+                    var count = inputStream.read(data, 0, Constants.FILE_BUFFER_SIZE)
                     while (count != -1) {
                         it.write(data, 0, count)
-                        count = inputStream.read(data, 0, BUFFER_SIZE)
+                        count = inputStream.read(data, 0, Constants.FILE_BUFFER_SIZE)
                     }
                 }
             }
@@ -384,23 +243,6 @@ object Utils {
     }
 
     fun getCurrentFormattedDate(): String = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date())
-
-    fun getBitmapFromDrawable(context: Context, @DrawableRes drawableId: Int): Bitmap {
-        val drawable = AppCompatResources.getDrawable(context, drawableId)
-
-        return if (drawable is BitmapDrawable) {
-            drawable.bitmap
-        } else if (drawable is VectorDrawableCompat || drawable is VectorDrawable) {
-            val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(bitmap)
-            drawable.setBounds(0, 0, canvas.width, canvas.height)
-            drawable.draw(canvas)
-
-            bitmap
-        } else {
-            throw IllegalArgumentException("unsupported drawable type")
-        }
-    }
 
     //Unique Notification IDs for notifications
     private class NotificationId {

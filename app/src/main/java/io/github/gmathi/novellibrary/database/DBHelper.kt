@@ -4,10 +4,11 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import com.google.gson.Gson
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.Constants
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 
 
 class DBHelper
@@ -142,7 +143,6 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         if (version == DBKeys.VER_WEB_PAGE_SETTINGS) {
 
 
-
             //version = DBKeys.VER_WEB_PAGE_SETTINGS
         }
 
@@ -150,7 +150,8 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
     }
 
     private fun copyDataToDownloads(db: SQLiteDatabase) {
-        val selectQuery = "SELECT d.${DBKeys.KEY_NAME}, d.${DBKeys.KEY_CHAPTER}, d.${DBKeys.KEY_STATUS}, d.${DBKeys.KEY_ORDER_ID}, d.${DBKeys.KEY_METADATA}, w.${DBKeys.KEY_URL} FROM ${DBKeys.TABLE_DOWNLOAD}_old d, ${DBKeys.TABLE_WEB_PAGE} w WHERE d.${DBKeys.KEY_WEB_PAGE_ID} = w.${DBKeys.KEY_ID}"
+        val selectQuery =
+            "SELECT d.${DBKeys.KEY_NAME}, d.${DBKeys.KEY_CHAPTER}, d.${DBKeys.KEY_STATUS}, d.${DBKeys.KEY_ORDER_ID}, d.${DBKeys.KEY_METADATA}, w.${DBKeys.KEY_URL} FROM ${DBKeys.TABLE_DOWNLOAD}_old d, ${DBKeys.TABLE_WEB_PAGE} w WHERE d.${DBKeys.KEY_WEB_PAGE_ID} = w.${DBKeys.KEY_ID}"
         val cursor = db.rawQuery(selectQuery, null)
 
         if (cursor != null) {
@@ -236,6 +237,5 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         deleteNovelGenre(novel.id)
         deleteDownloads(novel.name)
     }
-
 }
 

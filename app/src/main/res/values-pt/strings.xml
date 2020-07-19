@@ -191,7 +191,7 @@
     <string name="clear_selection">Cancelar Seleção</string>
     <string name="download_novel">Fazer Download</string>
     <string name="add_to_library_dialog_content">A série precisa ser adicionada à Biblioteca antes que você possa baixar/marcar capítulos individuais. Deseja adicionar essa série - %s à biblioteca?</string>
-    <string name="swipe_right_for_next_chapter">Estilo Japonês de Deslize</string>
+    <string name="swipe_right_for_next_chapter">Left to Right Swipe</string>
     <string name="swipe_right_for_next_chapter_description">Deslize à direita para ir ao próximo capítulo</string>
     <string name="no_bookmark_found_dialog_title">Começar a Ler?</string>
     <string name="no_bookmark_found_dialog_description">Parece que você ainda não leu ‘%s’, porque não começar agora?</string>

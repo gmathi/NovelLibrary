@@ -192,7 +192,7 @@
     <string name="clear_selection">Auswahl löschen</string>
     <string name="download_novel">Herunterladen Novel</string>
     <string name="add_to_library_dialog_content">Der Roman muss der Bibliothek hinzugefügt werden, bevor Sie einzelne Kapitel herunterladen/markieren können. Möchten Sie diesen Roman - %s der Bibliothek hinzufügen?</string>
-    <string name="swipe_right_for_next_chapter">Jap Style Swipe</string>
+    <string name="swipe_right_for_next_chapter">Left to Right Swipe</string>
     <string name="swipe_right_for_next_chapter_description">Für nächstes Kapitel rechts abbiegen</string>
     <string name="no_bookmark_found_dialog_title">Starten Sie das Lesen?</string>
     <string name="no_bookmark_found_dialog_description">Sieht aus, als hättest du noch ‘%s’ noch nicht gelesen, warum fängst du jetzt nicht an?</string>

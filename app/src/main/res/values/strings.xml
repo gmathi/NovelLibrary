@@ -393,7 +393,7 @@
     <string name="clear_selection">Clear Selection</string>
     <string name="download_novel">Download Novel</string>
     <string name="add_to_library_dialog_content">The novel needs to be added to Library before you can download/mark individual chapters. Do you want to add this novel - %s to the Library?</string>
-    <string name="swipe_right_for_next_chapter">Jap Style Swipe</string>
+    <string name="swipe_right_for_next_chapter">Left to Right Swipe</string>
     <string name="swipe_right_for_next_chapter_description">Swipe right for next chapter</string>
     <string name="no_bookmark_found_dialog_title">Start Reading?</string>
     <string name="no_bookmark_found_dialog_description">Looks like you haven\'t read ‘%s’ yet, why don\'t you start now?</string>
