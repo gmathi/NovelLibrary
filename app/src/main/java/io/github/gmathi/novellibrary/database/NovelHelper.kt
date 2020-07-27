@@ -173,15 +173,13 @@ fun DBHelper.updateNovel(novel: Novel): Long {
 fun DBHelper.updateNovelOrderId(novelId: Long, orderId: Long) {
     val values = ContentValues()
     values.put(DBKeys.KEY_ORDER_ID, orderId)
-    val db = this.writableDatabase
-    db.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
+    this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
 }
 
 fun DBHelper.updateNovelSectionId(novelId: Long, novelSectionId: Long) {
     val values = ContentValues()
     values.put(DBKeys.KEY_NOVEL_SECTION_ID, novelSectionId)
-    val db = this.writableDatabase
-    db.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
+    this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
 }
 
 fun DBHelper.updateBookmarkCurrentWebPageUrl(novelId: Long, currentWebPageUrl: String?) {

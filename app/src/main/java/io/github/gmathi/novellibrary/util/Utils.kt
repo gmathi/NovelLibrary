@@ -32,7 +32,6 @@ import io.github.gmathi.novellibrary.extensions.createFileIfNotExists
 import io.github.gmathi.novellibrary.extensions.getOrCreateDirectory
 import io.github.gmathi.novellibrary.extensions.getOrCreateFile
 import io.github.gmathi.novellibrary.model.Novel
-import kotlinx.coroutines.CoroutineScope
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -280,33 +279,29 @@ object Utils {
     }
 
     @Throws(IOException::class)
-    fun unzip(contentResolver: ContentResolver, zip: DocumentFile, dir: File) {
-        ZipInputStream(BufferedInputStream(contentResolver.openInputStream(zip.uri)!!)).use {
-            unzip(it, dir)
-        }
-    }
-
-    @Throws(IOException::class)
-    fun unzip(inputStream: ZipInputStream, dir: File) {
-        var entry = inputStream.nextEntry
-        while (entry != null) {
-            if (entry.isDirectory) {
-                val subDir = File(dir, entry.name)
-                if (!subDir.exists())
-                    subDir.mkdirs()
-            } else {
-                val file = File(dir, entry.name)
-                file.createFileIfNotExists()
-                file.outputStream().use {
-                    val data = ByteArray(BUFFER_SIZE)
-                    var count = inputStream.read(data, 0, BUFFER_SIZE)
-                    while (count != -1) {
-                        it.write(data, 0, count)
-                        count = inputStream.read(data, 0, BUFFER_SIZE)
+    fun unzip(contentResolver: ContentResolver, uri: Uri, dir: File) {
+        contentResolver.openInputStream(uri)?.let {
+            val inputStream = ZipInputStream(BufferedInputStream(it))
+            var entry = inputStream.nextEntry
+            while (entry != null) {
+                if (entry.isDirectory) {
+                    val subDir = File(dir, entry.name)
+                    if (!subDir.exists())
+                        subDir.mkdirs()
+                } else {
+                    val file = File(dir, entry.name)
+                    file.createFileIfNotExists()
+                    file.outputStream().use {
+                        val data = ByteArray(BUFFER_SIZE)
+                        var count = inputStream.read(data, 0, BUFFER_SIZE)
+                        while (count != -1) {
+                            it.write(data, 0, count)
+                            count = inputStream.read(data, 0, BUFFER_SIZE)
+                        }
                     }
                 }
+                entry = inputStream.nextEntry
             }
-            entry = inputStream.nextEntry
         }
     }
 
