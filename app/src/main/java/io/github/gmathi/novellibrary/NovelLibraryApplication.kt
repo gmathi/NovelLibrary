@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.webkit.WebView
@@ -13,6 +12,7 @@ import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.deleteWebPageSettings
 import io.github.gmathi.novellibrary.database.deleteWebPages
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.network.MultiTrustManager
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.LocaleManager
@@ -21,12 +21,9 @@ import java.io.File
 import java.security.KeyManagementException
 import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
-import java.security.cert.CertificateException
-import java.security.cert.X509Certificate
 import java.util.*
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
-import javax.net.ssl.X509TrustManager
 
 
 val dataCenter: DataCenter by lazy {
@@ -115,25 +112,11 @@ class NovelLibraryApplication : MultiDexApplication() {
 
     @Throws(KeyManagementException::class, NoSuchAlgorithmException::class)
     private fun enableSSLSocket() {
-
         HttpsURLConnection.setDefaultHostnameVerifier { hostName: String?, _ ->
             if (hostName != null) HostNames.isVerifiedHost(hostName) else false
         }
-
         val context = SSLContext.getInstance("TLS")
-        context.init(null, arrayOf<X509TrustManager>(object : X509TrustManager {
-            @SuppressLint("TrustAllX509TrustManager")
-            @Throws(CertificateException::class)
-            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {
-            }
-
-            @SuppressLint("TrustAllX509TrustManager")
-            @Throws(CertificateException::class)
-            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
-            }
-
-            override fun getAcceptedIssuers(): Array<X509Certificate?> = arrayOfNulls(0)
-        }), SecureRandom())
+        context.init(null, arrayOf(MultiTrustManager()), SecureRandom())
         HttpsURLConnection.setDefaultSSLSocketFactory(context.socketFactory)
     }
 
