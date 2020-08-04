@@ -115,6 +115,8 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                     isSyncing = false
                     progressLayout.showContent()
                     setViewPager()
+
+                    //TODO: Recreate menu for those instance where thee chapters can be empty.
                 }
                 else -> {
                     progressLayout.updateLoadingStatus(newStatus)
@@ -207,14 +209,19 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             R.id.action_download -> {
                 confirmDialog(getString(R.string.download_all_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
                     val publisher = vm.novel.metaData["English Publisher"]
-                    dialog.dismiss()
-                    setProgressDialog("Adding chapters to download queue…", vm.chapters?.size ?: 0)
-                    vm.updateChapters(
-                        vm.chapters!!,
-                        ChaptersViewModel.Action.ADD_DOWNLOADS,
-                        callback = {
-                            manageDownloadsDialog()
-                        })
+                    val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true) ?: false
+                    if (dataCenter.disableWuxiaDownloads && isWuxiaChapterPresent) {
+                        dialog.dismiss()
+                        showWuxiaWorldDownloadDialog()
+                    } else {
+                        dialog.dismiss()
+                        vm.chapters?.let {
+                            setProgressDialog("Adding chapters to download queue…", it.size)
+                            vm.updateChapters(it, ChaptersViewModel.Action.ADD_DOWNLOADS, callback = {
+                                manageDownloadsDialog()
+                            })
+                        }
+                    }
                 })
                 return true
             }
@@ -320,17 +327,20 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                         mode?.finish()
                     } else {
                         val publisher = vm.novel.metaData["English Publisher"]
-                        val listToDownload = ArrayList(dataSet)
-                        if (listToDownload.isNotEmpty()) {
+                        val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true) ?: false
+                        if (dataCenter.disableWuxiaDownloads && isWuxiaChapterPresent) {
                             dialog.dismiss()
-                            setProgressDialog("Add to Downloads…", listToDownload.size)
-                            vm.updateChapters(
-                                listToDownload,
-                                ChaptersViewModel.Action.ADD_DOWNLOADS
-                            ) {
-                                manageDownloadsDialog()
+                            showWuxiaWorldDownloadDialog()
+                        } else {
+                            val listToDownload = ArrayList(dataSet)
+                            if (listToDownload.isNotEmpty()) {
+                                dialog.dismiss()
+                                setProgressDialog("Add to Downloads…", listToDownload.size)
+                                vm.updateChapters(listToDownload, ChaptersViewModel.Action.ADD_DOWNLOADS) {
+                                    manageDownloadsDialog()
+                                }
+                                mode?.finish()
                             }
-                            mode?.finish()
                         }
                     }
                 })
@@ -442,6 +452,10 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
     private fun showNotInLibraryDialog() {
         showAlertDialog(getString(R.string.novel_not_in_library_dialog_content))
+    }
+
+    private fun showWuxiaWorldDownloadDialog() {
+        showAlertDialog("Downloads are not supported for WuxiaWorld content. Please use their app for downloads/offline reading WuxiaWorld novels.")
     }
 
     private fun manageDownloadsDialog() {
