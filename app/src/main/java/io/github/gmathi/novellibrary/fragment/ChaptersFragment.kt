@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.fragment
+chpackage io.github.gmathi.novellibrary.fragment
 
 import android.annotation.SuppressLint
 import android.os.Bundle

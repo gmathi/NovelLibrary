@@ -115,6 +115,8 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                     isSyncing = false
                     progressLayout.showContent()
                     setViewPager()
+
+                    //TODO: Recreate menu for those instance where thee chapters can be empty.
                 }
                 else -> {
                     progressLayout.updateLoadingStatus(newStatus)
@@ -213,11 +215,12 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                         showWuxiaWorldDownloadDialog()
                     } else {
                         dialog.dismiss()
-                        setProgressDialog("Adding chapters to download queue…", vm.chapters?.size ?: 0)
-                        vm.updateChapters(vm.chapters!!, ChaptersViewModel.Action.ADD_DOWNLOADS, callback = {
-                            manageDownloadsDialog()
-                        })
-
+                        vm.chapters?.let {
+                            setProgressDialog("Adding chapters to download queue…", it.size)
+                            vm.updateChapters(it, ChaptersViewModel.Action.ADD_DOWNLOADS, callback = {
+                                manageDownloadsDialog()
+                            })
+                        }
                     }
                 })
                 return true
