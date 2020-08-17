@@ -99,8 +99,10 @@ open class HtmlHelper protected constructor() {
             if (contentElement != null) return GeneralIdTagHelper(url, "section", "StoryContent")
 
             contentElement = doc.body().select("div.content-container").firstOrNull()
-            if (contentElement != null) return GeneralIdTagHelper(url, "div", "content-container")
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "content-container")
 
+            contentElement = doc.body().select("article.article-content").firstOrNull()
+            if (contentElement != null) return GeneralClassTagHelper(url, "article", "article-content")
 
             //Lastly let's check for cloud flare
             contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
