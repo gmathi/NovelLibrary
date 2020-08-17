@@ -114,7 +114,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
     fun handleNovelDownload(novelName: String, action: String) {
         Logs.debug(TAG, "handleNovelDownload")
 
-        //android.os.Debug.waitForDebugger()
+        android.os.Debug.waitForDebugger()
         if (action == ACTION_START) {
             var downloadNovelThread = threadListMap[novelName]
             if (downloadNovelThread != null && downloadNovelThread.isAlive) {

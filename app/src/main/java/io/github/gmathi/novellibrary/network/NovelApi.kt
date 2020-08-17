@@ -15,7 +15,11 @@ import javax.net.ssl.SSLPeerUnverifiedException
 object NovelApi {
 
     fun getDocument(url: String, ignoreHttpErrors: Boolean = true): Document {
-        return getDocumentWithParams(url, ignoreHttpErrors = ignoreHttpErrors, ignoreContentType = false) as  Document
+        return getDocumentWithParams(
+            url,
+            ignoreHttpErrors = ignoreHttpErrors,
+            ignoreContentType = false
+        )
     }
 
     fun getString(url: String, ignoreHttpErrors: Boolean = true): String {
@@ -23,7 +27,13 @@ object NovelApi {
     }
 
     fun getDocumentWithFormData(url: String, formData:HashMap<String, String>, ignoreHttpErrors:Boolean = true): Document {
-       return getDocumentWithParams(url, ignoreHttpErrors, ignoreContentType = false, isPost = true, formData = formData) as Document
+        return getDocumentWithParams(
+            url,
+            ignoreHttpErrors,
+            ignoreContentType = false,
+            isPost = true,
+            formData = formData
+        )
     }
 
     fun getStringWithFormData(url: String, formData:HashMap<String, String>, ignoreHttpErrors:Boolean = true): String {
@@ -36,12 +46,12 @@ object NovelApi {
         ignoreContentType: Boolean,
         isPost: Boolean = false,
         formData: HashMap<String, String> = hashMapOf<String, String>()
-    ): Any {
+    ): Document {
         try {
             // Since JSoup can't load different cookies after redirect, disable them and perform redirects manually.
             // Redirect limit here just as a safeguard in case someone decides to do infinite redirect loop.
             var proxy: ProxyHelper?
-            var doc: Connection.Response
+            var response: Connection.Response
             var redirectUrl = url
             var redirectLimit = 5
             do {
@@ -64,16 +74,20 @@ object NovelApi {
                     }
                 }
 
-                doc = connection.execute()
+                response = connection.execute()
 
-                if (!doc.hasHeader("location")) break
-                redirectUrl = doc.header("location")
+                if (!response.hasHeader("location")) break
+                redirectUrl = response.header("location")
             } while (--redirectLimit >= 0)
 
-            val body = proxy?.body(doc) ?: doc.body()
 
-            return if (ignoreContentType) body
-            else proxy?.document(body, doc) ?: Jsoup.parse(body)
+            val doc: Document = proxy?.parse(response) ?: response.parse()
+
+            return if (ignoreContentType) doc
+            else {
+                val body = doc.body().toString()
+                proxy?.document(body, response) ?: doc
+            }
         } catch (e: SSLPeerUnverifiedException) {
             val p = Pattern.compile("Hostname\\s(.*?)\\snot", Pattern.DOTALL or Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE or Pattern.MULTILINE) // Regex for the value of the key
             val m = p.matcher(e.localizedMessage ?: "")

@@ -24,6 +24,7 @@ import io.github.gmathi.novellibrary.model.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.service.download.DownloadListener
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.getGlideUrl
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
@@ -226,9 +227,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
                     if (isServiceConnected && Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME))
                         downloadNovelService?.handleNovelDownload(downloadNovelEvent.novelName, DownloadNovelService.ACTION_REMOVE)
                 }
-                else -> {
-                    //Do Nothing
-                }
+
             }
         }
     }

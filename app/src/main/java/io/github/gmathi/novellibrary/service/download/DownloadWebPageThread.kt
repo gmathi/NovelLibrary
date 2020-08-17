@@ -36,10 +36,14 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
             dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_RUNNING, download.webPageUrl)
             downloadListener.handleEvent(DownloadWebPageEvent(EventType.RUNNING, webPageSettings.url, download))
+            var downloadComplete = downloadChapter(webPageSettings, webPage)
 
-            if (downloadChapter(webPageSettings, webPage)) {
+            if (downloadComplete) {
                 dbHelper.deleteDownload(download.webPageUrl)
                 //downloadListener.handleEvent(DownloadWebPageEvent(EventType.COMPLETE, webPageSettings.url, download))
+            } else {
+
+                Logs.error("DownloadWebPageThread", "Returned False")
             }
 
         } catch (e: InterruptedException) {
@@ -65,16 +69,33 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             val htmlHelper = HtmlHelper.getInstance(doc, uri.host ?: doc.location())
             htmlHelper.clean(doc, hostDir, novelDir)
             webPageSettings.title = htmlHelper.getTitle(doc)
-            val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName()))
-                    ?: return false
+
+            Logs.info("DownloadWebPageThread", "Here")
+
+            val file = htmlHelper.convertDocToFile(
+                doc,
+                File(novelDir, webPageSettings.title!!.writableFileName())
+            )
+                ?: return false
+
+
+
             webPageSettings.filePath = file.path
             webPageSettings.redirectedUrl = doc.location()
 
             val otherLinks = htmlHelper.getLinkedChapters(doc)
             if (otherLinks.isNotEmpty()) {
                 val otherWebPages = ArrayList<WebPageSettings>()
-                otherLinks.mapNotNullTo(otherWebPages) { downloadOtherChapterLinks(it, webPage.novelId, hostDir, novelDir) }
-                webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = Gson().toJson(otherLinks)
+                otherLinks.mapNotNullTo(otherWebPages) {
+                    downloadOtherChapterLinks(
+                        it,
+                        webPage.novelId,
+                        hostDir,
+                        novelDir
+                    )
+                }
+                webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] =
+                    Gson().toJson(otherLinks)
                 otherWebPages.forEach {
                     dbHelper.createWebPageSettings(it)
                 }
@@ -83,7 +104,9 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             if (webPageSettings.metaData.containsKey(Constants.DOWNLOADING))
                 webPageSettings.metaData.remove(Constants.DOWNLOADING)
             dbHelper.updateWebPageSettings(webPageSettings)
+            Logs.info("DownloadWebPageThread", "Here2")
             return true
+
         }
         return false
     }

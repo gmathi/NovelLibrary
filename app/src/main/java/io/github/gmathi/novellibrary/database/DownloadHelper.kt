@@ -6,6 +6,7 @@ import android.database.DatabaseUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.Download
+import io.github.gmathi.novellibrary.util.Logs
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -25,7 +26,7 @@ fun DBHelper.createDownload(download: Download) {
     values.put(DBKeys.KEY_NAME, download.novelName)
     values.put(DBKeys.KEY_WEB_PAGE_URL, download.webPageUrl)
     values.put(DBKeys.KEY_CHAPTER, download.chapter)
-    values.put(DBKeys.KEY_STATUS, Download.STATUS_PAUSED)
+    values.put(DBKeys.KEY_STATUS, Download.STATUS_RUNNING)
     values.put(DBKeys.KEY_ORDER_ID, download.orderId)
     values.put(DBKeys.KEY_METADATA, Gson().toJson(HashMap<String, String?>()))
     this.writableDatabase.insert(DBKeys.TABLE_DOWNLOAD, null, values)
@@ -105,7 +106,12 @@ fun DBHelper.updateDownloadStatus(status: Int): Long {
 }
 
 fun DBHelper.deleteDownload(webPageUrl: String) {
-    this.writableDatabase.delete(DBKeys.TABLE_DOWNLOAD, DBKeys.KEY_WEB_PAGE_URL + " = ?", arrayOf(webPageUrl))
+    Logs.info("DBHelper", "Delete Download Fired.")
+    this.writableDatabase.delete(
+        DBKeys.TABLE_DOWNLOAD,
+        DBKeys.KEY_WEB_PAGE_URL + " = ?",
+        arrayOf(webPageUrl)
+    )
 }
 
 fun DBHelper.deleteDownloads(novelName: String) {
@@ -159,6 +165,14 @@ fun DBHelper.hasDownloadsInQueue(novelName: String): Boolean {
 
 fun DBHelper.getRemainingDownloadsCountForNovel(novelName: String): Int {
     val selectQuery = "SELECT COUNT(*) FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NAME} = \"$novelName\""
+    Logs.info(
+        "DBHelper",
+        novelName + " remaining: " + DatabaseUtils.longForQuery(
+            this.readableDatabase,
+            selectQuery,
+            null
+        ).toInt().toString()
+    )
     return DatabaseUtils.longForQuery(this.readableDatabase, selectQuery, null).toInt()
 }
 
