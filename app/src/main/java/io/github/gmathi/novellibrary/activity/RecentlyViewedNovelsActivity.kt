@@ -51,6 +51,8 @@ class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Nov
 
         //Other Data Fields
         itemView.novelTitleTextView.text = item.name
+        itemView.novelTitleTextView.isSelected = true
+
         if (item.rating != null) {
             var ratingText = "(N/A)"
             try {

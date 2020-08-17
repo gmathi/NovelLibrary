@@ -118,7 +118,19 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     @SuppressLint("SetTextI18n")
     private fun setupViews() {
         setNovelImage()
+
         novelDetailsName.applyFont(assets).text = novel.name
+        novelDetailsName.isSelected = true
+
+        val listener: View.OnClickListener = View.OnClickListener {
+            MaterialDialog.Builder(this)
+                .title("Novel Name")
+                .content(novel.name)
+                .build().show()
+        }
+        novelDetailsName.setOnClickListener(listener)
+        novelDetailsNameInfo.setOnClickListener(listener)
+
         setNovelAuthor()
 
         novelDetailsStatus.applyFont(assets).text = "N/A"

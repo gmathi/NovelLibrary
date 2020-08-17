@@ -121,6 +121,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         }
 
         itemView.novelTitleTextView.text = item.name
+        itemView.novelTitleTextView.isSelected = true
 
         val lastRead = item.metaData[Constants.MetaDataKeys.LAST_READ_DATE] ?: "N/A"
         val lastUpdated = item.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] ?: "N/A"

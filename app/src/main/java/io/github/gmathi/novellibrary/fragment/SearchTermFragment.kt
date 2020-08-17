@@ -182,6 +182,8 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
         //Other Data Fields
         itemView.novelTitleTextView.text = item.name
+        itemView.novelTitleTextView.isSelected = true
+
         if (item.rating != null && item.rating != "N/A") {
             var ratingText = "(N/A)"
             try {
