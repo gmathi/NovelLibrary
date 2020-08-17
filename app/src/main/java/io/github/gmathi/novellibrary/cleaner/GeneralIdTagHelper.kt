@@ -4,20 +4,21 @@ import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import org.jsoup.select.Elements
 import java.io.File
 
-class GeneralIdTagHelper(private val url: String, val tagName: String, val id: String, override var keepContentStyle: Boolean = false) : HtmlHelper() {
+class GeneralIdTagHelper(private val url: String, val tagName: String, val id: String, override var keepContentStyle: Boolean = false, private val appendTitle: Boolean = true) : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc)
         doc.head()?.getElementsByTag("style")?.remove()
         doc.head()?.getElementsByTag("link")?.remove()
 
-        var contentElement = doc.body().getElementsByTag(tagName).firstOrNull { it.id() == id }
-        contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
+        val contentElement = doc.body().select("$tagName#$id")
 
-        if (id == "chapter-content") //Not sure how it behaves on other Ids/tags i.e. websites
-            cleanClassAndIds(contentElement)
+        contentElement.forEach { element -> element.children()?.forEach { cleanCSSFromChildren(it) } }
+        if (appendTitle)
+            contentElement.prepend("<h4>${getTitle(doc)}</h4><br>")
 
         if (!dataCenter.enableDirectionalLinks)
             removeDirectionalLinks(contentElement)
@@ -29,20 +30,10 @@ class GeneralIdTagHelper(private val url: String, val tagName: String, val id: S
             doc.getElementsByClass("respond-container")?.remove()
         }
 
-        contentElement?.children()?.forEach {
-            cleanCSSFromChildren(it)
-        }
-
-        do {
-            contentElement?.siblingElements()?.remove()
-            contentElement = contentElement?.parent()
-            cleanClassAndIds(contentElement)
-        } while (contentElement != null && contentElement.tagName() != "body")
-        contentElement?.getElementsByClass("wpcnt")?.remove()
-        contentElement?.getElementById("jp-post-flair")?.remove()
-
+        doc.body().children().remove()
+        doc.body().classNames().forEach { doc.body().removeClass(it) }
+        doc.body().append(contentElement?.outerHtml())
         doc.getElementById("custom-background-css")?.remove()
-
     }
 
     override fun downloadImage(element: Element, file: File): File? {
@@ -60,16 +51,24 @@ class GeneralIdTagHelper(private val url: String, val tagName: String, val id: S
         return getLinkedChapters(doc.location(), doc.body().select("$tagName#$id").firstOrNull())
     }
 
-    private fun removeDirectionalLinks(contentElement: Element?) {
-        contentElement?.getElementsByTag("a")?.filter {
-            it.text().contains("Previous Chapter", ignoreCase = true)
-                || it.text().contains("Next Chapter", ignoreCase = true)
-                || it.text().contains("Project Page", ignoreCase = true)
-                || it.text().contains("Index", ignoreCase = true)
+    private fun removeDirectionalLinks(contentElement: Elements) {
+        contentElement.forEach { element ->
+            element.getElementsByTag("a")?.filter {
+                it.text().equals("Previous Chapter", ignoreCase = true)
+                        || it.text().equals("Next Chapter", ignoreCase = true)
+                        || it.text().equals("Project Page", ignoreCase = true)
+                        || it.text().equals("Index", ignoreCase = true)
+                        || it.text().equals("[Previous Chapter]", ignoreCase = true)
+                        || it.text().equals("[Next Chapter]", ignoreCase = true)
+                        || it.text().equals("[Table of Contents]", ignoreCase = true)
+                        || it.text().equals("Next", ignoreCase = true)
+                        || it.text().equals("TOC", ignoreCase = true)
+                        || it.text().equals("Previous", ignoreCase = true)
 
-        }?.forEach { it?.remove() }
-
+            }?.forEach { it?.remove() }
+        }
     }
+
 
     override fun toggleTheme(isDark: Boolean, doc: Document): Document {
         return super.toggleThemeDefault(isDark, doc)
