@@ -11,7 +11,6 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.writableFileName
-import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
 
@@ -37,14 +36,13 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
             dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_RUNNING, download.webPageUrl)
             downloadListener.handleEvent(DownloadWebPageEvent(EventType.RUNNING, webPageSettings.url, download))
-            var downloadComplete = downloadChapter(webPageSettings, webPage)
 
+            val downloadComplete = downloadChapter(webPageSettings, webPage)
             if (downloadComplete) {
                 dbHelper.deleteDownload(download.webPageUrl)
                 //downloadListener.handleEvent(DownloadWebPageEvent(EventType.COMPLETE, webPageSettings.url, download))
             } else {
-
-                Logs.error("DownloadWebPageThread", "Returned False")
+                Logs.error(TAG, "Download did not complete!")
             }
 
         } catch (e: InterruptedException) {
@@ -70,17 +68,8 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             val htmlHelper = HtmlHelper.getInstance(doc, uri.host ?: doc.location())
             htmlHelper.downloadResources(doc, hostDir, novelDir)
             webPageSettings.title = htmlHelper.getTitle(doc)
-
-            Logs.info("DownloadWebPageThread", "Here")
-
-            val file = htmlHelper.convertDocToFile(
-                doc,
-                File(novelDir, webPageSettings.title!!.writableFileName())
-            )
+            val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName()))
                 ?: return false
-
-
-
             webPageSettings.filePath = file.path
             webPageSettings.redirectedUrl = doc.location()
 
@@ -93,16 +82,8 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             val otherLinks = htmlHelper.getLinkedChapters(doc)
             if (otherLinks.isNotEmpty()) {
                 val otherWebPages = ArrayList<WebPageSettings>()
-                otherLinks.mapNotNullTo(otherWebPages) {
-                    downloadOtherChapterLinks(
-                        it,
-                        webPage.novelId,
-                        hostDir,
-                        novelDir
-                    )
-                }
-                webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] =
-                    Gson().toJson(otherLinks)
+                otherLinks.mapNotNullTo(otherWebPages) { downloadOtherChapterLinks(it, webPage.novelId, hostDir, novelDir) }
+                webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = Gson().toJson(otherLinks)
                 otherWebPages.forEach {
                     dbHelper.createWebPageSettings(it)
                 }
@@ -111,9 +92,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             if (webPageSettings.metaData.containsKey(Constants.DOWNLOADING))
                 webPageSettings.metaData.remove(Constants.DOWNLOADING)
             dbHelper.updateWebPageSettings(webPageSettings)
-            Logs.info("DownloadWebPageThread", "Here2")
             return true
-
         }
         return false
     }
@@ -140,7 +119,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         if (webPageSettings.title != null && webPageSettings.title == "") webPageSettings.title = doc.location()
 
         val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName()))
-                ?: return null
+            ?: return null
         webPageSettings.filePath = file.path
         webPageSettings.redirectedUrl = doc.location()
         return webPageSettings
