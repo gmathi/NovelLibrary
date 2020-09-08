@@ -11,7 +11,6 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.writableFileName
-import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
 
@@ -38,9 +37,12 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_RUNNING, download.webPageUrl)
             downloadListener.handleEvent(DownloadWebPageEvent(EventType.RUNNING, webPageSettings.url, download))
 
-            if (downloadChapter(webPageSettings, webPage)) {
+            val downloadComplete = downloadChapter(webPageSettings, webPage)
+            if (downloadComplete) {
                 dbHelper.deleteDownload(download.webPageUrl)
                 //downloadListener.handleEvent(DownloadWebPageEvent(EventType.COMPLETE, webPageSettings.url, download))
+            } else {
+                Logs.error(TAG, "Download did not complete!")
             }
 
         } catch (e: InterruptedException) {
@@ -67,7 +69,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             htmlHelper.downloadResources(doc, hostDir, novelDir)
             webPageSettings.title = htmlHelper.getTitle(doc)
             val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName()))
-                    ?: return false
+                ?: return false
             webPageSettings.filePath = file.path
             webPageSettings.redirectedUrl = doc.location()
 
@@ -117,7 +119,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         if (webPageSettings.title != null && webPageSettings.title == "") webPageSettings.title = doc.location()
 
         val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName()))
-                ?: return null
+            ?: return null
         webPageSettings.filePath = file.path
         webPageSettings.redirectedUrl = doc.location()
         return webPageSettings
