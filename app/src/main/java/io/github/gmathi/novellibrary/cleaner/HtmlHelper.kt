@@ -3,6 +3,10 @@ package io.github.gmathi.novellibrary.cleaner
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
+import androidx.core.graphics.alpha
+import androidx.core.graphics.blue
+import androidx.core.graphics.green
+import androidx.core.graphics.red
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
@@ -245,7 +249,19 @@ open class HtmlHelper protected constructor() {
     fun toggleThemeDefault(isDark: Boolean, doc: Document): Document {
         val fontFile = File(dataCenter.fontPath)
         val fontFamily = fontFile.name.substringBeforeLast(".")
-        val nightModeTextBrightness = 87
+
+        val dayBackgroundColor = Color.parseColor("#${dataCenter.dayModeBackgroundColor}")
+        val dayBackgroundColorTransparency = (dayBackgroundColor.alpha * 100) / 255
+        val dayTextColor = Color.parseColor("#${dataCenter.dayModeTextColor}")
+        val dayTextColorTransparency = (dayTextColor.alpha * 100) / 255
+
+        val nightBackgroundColor = Color.parseColor("#${dataCenter.nightModeBackgroundColor}")
+        val nightBackgroundColorTransparency = (nightBackgroundColor.alpha * 100) / 255
+        val nightTextColor = Color.parseColor("#${dataCenter.nightModeTextColor}")
+        val nightTextColorTransparency = (nightTextColor.alpha * 100) / 255
+
+
+
         doc.head().getElementById("darkTheme")?.remove()
         doc.head().append(
             """
@@ -258,15 +274,26 @@ open class HtmlHelper protected constructor() {
                     scroll-behavior: smooth;
                 }
                 body {
-                    ${if (isDark) "background-color" else "color"}: #000;
-                    ${if (isDark) "color" else "background-color"}: rgba(255, 255, 255, .$nightModeTextBrightness);
+                    background-color: ${
+                        if (isDark)
+                            "rgba(${nightBackgroundColor.red}, ${nightBackgroundColor.green}, ${nightBackgroundColor.blue}, .$nightBackgroundColorTransparency)"
+                        else
+                            "rgba(${dayBackgroundColor.red}, ${dayBackgroundColor.green}, ${dayBackgroundColor.blue}, .$dayBackgroundColorTransparency)"
+                        }  
+                    color: ${
+                        if (isDark)
+                            "rgba(${nightTextColor.red}, ${nightTextColor.green}, ${nightTextColor.blue}, .$nightTextColorTransparency)"
+                        else
+                            "rgba(${dayTextColor.red}, ${dayTextColor.green}, ${dayTextColor.blue}, .$dayTextColorTransparency)"
+                        }
+
                     font-family: '$fontFamily';
                     line-height: 1.5;
                     padding: 20px;
                     text-align: left;
                 }
                 a {
-                    color: rgba(${if (isDark) "135, 206, 250" else "0, 0, 238"}, .$nightModeTextBrightness);
+                    color: rgba(${if (isDark) "135, 206, 250, .$nightTextColorTransparency" else "0, 0, 238, .$dayTextColorTransparency" });
                 }
                 table {
                     background: #004b7a;

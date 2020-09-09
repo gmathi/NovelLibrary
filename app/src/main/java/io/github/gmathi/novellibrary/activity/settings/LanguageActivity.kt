@@ -123,7 +123,7 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     @SuppressLint("NewApi")
-    override fun onItemClick(item: String) {
+    override fun onItemClick(item: String, position: Int) {
         val language = if (item == resources.getString(R.string.locale_system_default)) SYSTEM_DEFAULT else languagesMap[item]!!.split('_')[0]
         if (changeLanguage)
             changeLocale(this, language)

@@ -29,10 +29,8 @@ import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.activity_import_library.*
 import kotlinx.android.synthetic.main.content_import_library.*
 import kotlinx.android.synthetic.main.listitem_import_list.view.*
-import okhttp3.*
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import java.io.IOException
 import java.net.URL
 
 
@@ -187,7 +185,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         )
     }
 
-    override fun onItemClick(item: ImportListItem) {
+    override fun onItemClick(item: ImportListItem, position: Int) {
         if (updateSet.contains(item))
             removeFromUpdateSet(item)
         else

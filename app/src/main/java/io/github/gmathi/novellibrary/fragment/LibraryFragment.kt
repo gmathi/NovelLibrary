@@ -105,7 +105,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     //region Adapter Listener Methods - onItemClick(), viewBinder()
 
-    override fun onItemClick(item: Novel) {
+    override fun onItemClick(item: Novel, position: Int) {
         if (lastDeletedId != item.id)
             (activity as? AppCompatActivity)?.startChaptersActivity(item)
     }

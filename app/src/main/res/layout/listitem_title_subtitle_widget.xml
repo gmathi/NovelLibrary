@@ -11,17 +11,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/default_padding_list_item"
-        android:orientation="horizontal"
-        android:baselineAligned="false">
+        android:baselineAligned="false"
+        android:orientation="horizontal">
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/default_margin"
             android:layout_marginStart="@dimen/default_margin"
             android:layout_marginTop="2dp"
-            android:orientation="vertical"
-            android:layout_weight="1">
+            android:layout_marginEnd="@dimen/default_margin"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
 
             <TextView
@@ -36,7 +36,7 @@
                 android:textIsSelectable="false"
                 android:textSize="17sp"
                 android:textStyle="bold"
-                tools:text="Realms of Firmament"/>
+                tools:text="Realms of Firmament" />
 
             <TextView
                 android:id="@+id/subtitle"
@@ -47,7 +47,7 @@
                 android:maxLines="9"
                 android:textIsSelectable="false"
                 android:textSize="15sp"
-                tools:text="Realms of Firmament"/>
+                tools:text="Realms of Firmament" />
 
 
         </LinearLayout>
@@ -62,27 +62,35 @@
             <ImageView
                 android:id="@+id/widgetChevron"
                 android:layout_width="wrap_content"
-                android:layout_gravity="center_vertical|end"
                 android:layout_height="wrap_content"
-                app:srcCompat="@drawable/ic_chevron_right_white_vector"/>
-
-            <Switch
-                android:id="@+id/widgetSwitch"
                 android:layout_gravity="center_vertical|end"
+                app:srcCompat="@drawable/ic_chevron_right_white_vector" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/widgetSwitch"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical|end" />
 
             <TextView
                 android:id="@+id/currentValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:textColor="@color/Gold"
                 android:layout_gravity="center_vertical|end"
+                android:ellipsize="end"
                 android:maxLines="9"
+                android:textColor="@color/Gold"
                 android:textIsSelectable="false"
                 android:textSize="15sp"
-                tools:text="100"/>
+                tools:text="100" />
+
+            <View
+                android:id="@+id/colorView"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center_vertical|end"
+                android:background="@drawable/corner_radius_image"
+                android:visibility="gone" />
 
         </FrameLayout>
 
@@ -93,6 +101,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/black_overlay"
-        tools:visibility="gone"/>
+        tools:visibility="gone" />
 
 </FrameLayout>

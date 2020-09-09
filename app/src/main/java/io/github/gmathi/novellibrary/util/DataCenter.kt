@@ -74,6 +74,13 @@ class DataCenter(context: Context) {
 
         const val CF_COOKIES_CLEARANCE = "cf_clearance"
         const val CF_COOKIES_DUID = "__cfduid"
+
+        //Reader mode background color
+        const val DAY_MODE_BACKGROUND_COLOR = "dayModeBackgroundColor"
+        const val NIGHT_MODE_BACKGROUND_COLOR = "nightModeBackgroundColor"
+        const val DAY_MODE_TEXT_COLOR = "dayModeTextColor"
+        const val NIGHT_MODE_TEXT_COLOR = "nightModeTextColor"
+
     }
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -312,5 +319,21 @@ class DataCenter(context: Context) {
         get() = prefs.getString(GD_INTERNET_TYPE, "WiFi or cellular") ?: "WiFi or cellular"
         set(value) = prefs.edit().putString(GD_INTERNET_TYPE, value).apply()
 
+
+    var dayModeBackgroundColor: String
+        get() = prefs.getString(DAY_MODE_BACKGROUND_COLOR, "FFFFFF") ?: "FFFFFF"
+        set(value) = prefs.edit().putString(DAY_MODE_BACKGROUND_COLOR, value).apply()
+
+    var nightModeBackgroundColor: String
+        get() = prefs.getString(NIGHT_MODE_BACKGROUND_COLOR, "000000") ?: "000000"
+        set(value) = prefs.edit().putString(NIGHT_MODE_BACKGROUND_COLOR, value).apply()
+
+    var dayModeTextColor: String
+        get() = prefs.getString(DAY_MODE_TEXT_COLOR, "000000") ?: "000000"
+        set(value) = prefs.edit().putString(DAY_MODE_TEXT_COLOR, value).apply()
+
+    var nightModeTextColor: String
+        get() = prefs.getString(NIGHT_MODE_TEXT_COLOR, "FFFFFF") ?: "FFFFFF"
+        set(value) = prefs.edit().putString(NIGHT_MODE_TEXT_COLOR, value).apply()
 
 }

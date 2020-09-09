@@ -102,6 +102,7 @@
     <string-array name="reader_titles_list" translatable="false">
         <item>@string/reader_mode</item>
         <item>@string/disable_javascript</item>
+        <item>@string/reader_mode_colors</item>
         <item>@string/swipe_right_for_next_chapter</item>
         <item>@string/show_reader_scroll</item>
         <item>@string/show_comments_section</item>
@@ -121,6 +122,7 @@
     <string-array name="reader_subtitles_list" translatable="false">
         <item>@string/reader_mode_description</item>
         <item>@string/disable_javascript_description</item>
+        <item>@string/reader_mode_colors_description</item>
         <item>@string/swipe_right_for_next_chapter_description</item>
         <item>@string/show_reader_scroll_description</item>
         <item>@string/show_comments_section_description</item>
@@ -174,6 +176,13 @@
         <item>@string/backup_frequency_manual</item>
         <item>@string/backup_frequency_Daily</item>
         <item>@string/backup_frequency_Weekly</item>
+    </string-array>
+
+    <string-array name="reader_background_color_options" translatable="false">
+        <item>@string/day_mode_background_color</item>
+        <item>@string/day_mode_text_color</item>
+        <item>@string/night_mode_background_color</item>
+        <item>@string/night_mode_text_color</item>
     </string-array>
 
     <string name="app_name" translatable="false">Novel Library</string>
@@ -555,17 +564,19 @@
     <string name="loading">Loading…</string>
     <string name="empty_chapters">This Novel is most likely copyrighted or pay-walled and that is the reason you don\'t see any chapters!!</string>
     <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
-    <string name="next">Next</string>
-    <string name="previous">Previous</string>
 
-    <string name="hello_first_fragment">Hello first fragment</string>
-    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="remove_favorite">Remove Favorite(s)</string>
     <string name="mark_favorite">Mark Favorite(s)</string>
     <string name="unfavorite_chapters_read_dialog_content">Remove chapters from favorites?</string>
     <string name="favorite_chapters_read_dialog_content">Favorite chapters?</string>
 
+    <!-- 0.15.3 -->
+    <string name="day_mode_background_color">Day Mode: Background Color</string>
+    <string name="day_mode_text_color">Day Mode: Text Color</string>
+    <string name="night_mode_background_color">Night Mode: Background Color</string>
+    <string name="night_mode_text_color">Night Mode: Text Color</string>
+    <string name="reader_mode_colors">Reader Mode Theme</string>
+    <string name="reader_mode_colors_description">Change the Background and Text colors of both day and night mode</string>
+    <string name="hex_color">Hex: %1$s</string>
 
 </resources>

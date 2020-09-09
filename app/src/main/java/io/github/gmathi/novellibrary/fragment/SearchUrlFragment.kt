@@ -139,7 +139,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
 
 //region Adapter Listener Methods - onItemClick(), viewBinder()
 
-    override fun onItemClick(item: Novel) {
+    override fun onItemClick(item: Novel, position: Int) {
         (activity as? AppCompatActivity)?.startNovelDetailsActivity(item, false)
         //addToDownloads(item)
     }

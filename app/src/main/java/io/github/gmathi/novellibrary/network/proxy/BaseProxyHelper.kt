@@ -36,4 +36,6 @@ open class BaseProxyHelper {
 
     /** Modify document after requesting */
     open fun document(res: Connection.Response): Document = res.parse()
+
+    open fun document(body: String, res: Connection.Response): Document = Jsoup.parse(body)
 }

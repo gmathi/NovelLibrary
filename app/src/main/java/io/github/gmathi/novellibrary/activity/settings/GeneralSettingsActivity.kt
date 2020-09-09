@@ -119,7 +119,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         else ContextCompat.getColor(this, android.R.color.transparent))
     }
 
-    override fun onItemClick(item: String) {
+    override fun onItemClick(item: String, position: Int) {
         when (item) {
             getString(R.string.backup_and_restore) -> startBackupSettingsActivity()
             getString(R.string.change_language) -> startLanguagesActivity(true)

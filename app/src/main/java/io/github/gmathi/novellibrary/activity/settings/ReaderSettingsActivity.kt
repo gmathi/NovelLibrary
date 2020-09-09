@@ -12,6 +12,7 @@ import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.startReaderBackgroundSettingsActivity
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MAX
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MIN
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
@@ -27,22 +28,23 @@ import kotlin.math.abs
 class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     companion object {
-        private const val POSITION_CLEAN_CHAPTERS = 0
+        private const val POSITION_READER_MODE = 0
         private const val POSITION_JAVASCRIPT_DISABLED = 1
-        private const val POSITION_JAP_SWIPE = 2
-        private const val POSITION_SHOW_READER_SCROLL = 3
-        private const val POSITION_SHOW_CHAPTER_COMMENTS = 4
-        private const val POSITION_VOLUME_SCROLL = 5
-        private const val POSITION_VOLUME_SCROLL_LENGTH = 6
-        private const val POSITION_KEEP_SCREEN_ON = 7
-        private const val POSITION_ENABLE_IMMERSIVE_MODE = 8
-        private const val POSITION_SHOW_NAVBAR_AT_CHAPTER_END = 9
-        private const val POSITION_ENABLE_CLUSTER_PAGES = 10
-        private const val POSITION_DIRECTIONAL_LINKS = 11
-        private const val POSITION_READER_MODE_BUTTON_VISIBILITY = 12
-        private const val POSITION_KEEP_TEXT_COLOR = 13
-        private const val POSITION_ALTERNATIVE_TEXT_COLORS = 14
-        private const val POSITION_LIMIT_IMAGE_WIDTH = 15
+        private const val POSITION_READER_MODE_THEME = 2
+        private const val POSITION_JAP_SWIPE = 3
+        private const val POSITION_SHOW_READER_SCROLL = 4
+        private const val POSITION_SHOW_CHAPTER_COMMENTS = 5
+        private const val POSITION_VOLUME_SCROLL = 6
+        private const val POSITION_VOLUME_SCROLL_LENGTH = 7
+        private const val POSITION_KEEP_SCREEN_ON = 8
+        private const val POSITION_ENABLE_IMMERSIVE_MODE = 9
+        private const val POSITION_SHOW_NAVBAR_AT_CHAPTER_END = 10
+        private const val POSITION_ENABLE_CLUSTER_PAGES = 11
+        private const val POSITION_DIRECTIONAL_LINKS = 12
+        private const val POSITION_READER_MODE_BUTTON_VISIBILITY = 13
+        private const val POSITION_KEEP_TEXT_COLOR = 14
+        private const val POSITION_ALTERNATIVE_TEXT_COLORS = 15
+        private const val POSITION_LIMIT_IMAGE_WIDTH = 16
     }
 
     lateinit var adapter: GenericAdapter<String>
@@ -69,7 +71,6 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     override fun bind(item: String, itemView: View, position: Int) {
         //(itemView as ViewGroup).enabled(true)
         itemView.blackOverlay.visibility = View.INVISIBLE
-
         itemView.widgetChevron.visibility = View.INVISIBLE
         itemView.widgetSwitch.visibility = View.INVISIBLE
         itemView.currentValue.visibility = View.INVISIBLE
@@ -79,7 +80,7 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         itemView.subtitle.applyFont(assets).text = settingsItemsDescription[position]
         itemView.widgetSwitch.setOnCheckedChangeListener(null)
         when (position) {
-            POSITION_CLEAN_CHAPTERS -> {
+            POSITION_READER_MODE -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.readerMode
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
@@ -101,6 +102,10 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     }
                 }
             }
+            POSITION_READER_MODE_THEME -> {
+                itemView.widgetChevron.visibility = View.VISIBLE
+            }
+
             POSITION_JAP_SWIPE -> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.japSwipe
@@ -191,14 +196,17 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         else ContextCompat.getColor(this, android.R.color.transparent))
     }
 
-    override fun onItemClick(item: String) {
+    override fun onItemClick(item: String, position: Int) {
 //        if (item == getString(R.string.sync_interval)) {
 //            showSyncIntervalDialog()
 //        }
+        if (position == POSITION_READER_MODE_THEME) {
+            startReaderBackgroundSettingsActivity()
+        }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (item?.itemId == android.R.id.home) finish()
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) finish()
         return super.onOptionsItemSelected(item)
     }
     //endregion

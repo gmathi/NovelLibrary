@@ -97,7 +97,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         else ContextCompat.getColor(this, android.R.color.transparent))
     }
 
-    override fun onItemClick(item: String) {
+    override fun onItemClick(item: String, position: Int) {
         when (item) {
             getString(R.string.general) -> startGeneralSettingsActivity()
             getString(R.string.reader) -> startReaderSettingsActivity()

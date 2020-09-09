@@ -211,7 +211,11 @@
             android:label="@string/title_activity_chapters"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
-            android:name=".activity.LibrarySearchActivity"
+        android:name=".activity.LibrarySearchActivity"
+        android:theme="@style/DarkTheme_DarkSide" >
+        </activity>
+        <activity
+            android:name=".activity.settings.ReaderBackgroundSettingsActivity"
             android:theme="@style/DarkTheme_DarkSide" >
         </activity>
 

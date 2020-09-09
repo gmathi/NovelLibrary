@@ -117,7 +117,7 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
         }
     }
 
-    override fun onItemClick(item: Novel) {
+    override fun onItemClick(item: Novel, position: Int) {
         startChaptersActivity(item)
     }
 
