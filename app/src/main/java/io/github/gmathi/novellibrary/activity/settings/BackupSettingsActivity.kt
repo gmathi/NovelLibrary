@@ -116,7 +116,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         )
     }
 
-    override fun onItemClick(item: String) {
+    override fun onItemClick(item: String, position: Int) {
         when (item) {
             getString(R.string.internal_clear_data) ->
                 deleteFilesDialog()

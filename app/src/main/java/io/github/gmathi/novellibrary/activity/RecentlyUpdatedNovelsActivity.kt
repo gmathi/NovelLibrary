@@ -79,7 +79,7 @@ class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Re
         )
     }
 
-    override fun onItemClick(item: RecenlytUpdatedItem) {
+    override fun onItemClick(item: RecenlytUpdatedItem, position: Int) {
         if (item.novelName != null && item.novelUrl != null) {
             startNovelDetailsActivity(Novel(item.novelName!!, item.novelUrl!!))
         }

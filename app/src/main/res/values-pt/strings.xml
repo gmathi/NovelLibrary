@@ -346,6 +346,13 @@
     <string name="mark_favorite">Mark Favorite(s)</string>
     <string name="unfavorite_chapters_read_dialog_content">Remove chapters from favorites?</string>
     <string name="favorite_chapters_read_dialog_content">Favorite chapters?</string>
+    <string name="day_mode_background_color">Day Mode: Background Color</string>
+    <string name="day_mode_text_color">Day Mode: Text Color</string>
+    <string name="night_mode_background_color">Night Mode: Background Color</string>
+    <string name="night_mode_text_color">Night Mode: Text Color</string>
+    <string name="reader_mode_colors">Reader Mode Theme</string>
+    <string name="reader_mode_colors_description">Change the Background and Text colors of both day and night mode</string>
+    <string name="hex_color">Hex: %1$s</string>
 
 
 </resources>

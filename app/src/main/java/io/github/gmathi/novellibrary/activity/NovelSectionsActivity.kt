@@ -121,7 +121,7 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
         )
     }
 
-    override fun onItemClick(item: NovelSection) {
+    override fun onItemClick(item: NovelSection, position: Int) {
         //Do Nothing
     }
 

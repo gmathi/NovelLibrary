@@ -71,7 +71,7 @@ class ContributionsActivity : BaseActivity(), GenericAdapter.Listener<Library> {
         else ContextCompat.getColor(this, android.R.color.transparent))
     }
 
-    override fun onItemClick(item: Library) {
+    override fun onItemClick(item: Library, position: Int) {
         if (!item.link.isNullOrBlank())
             openInBrowser(item.link!!)
     }

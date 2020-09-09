@@ -170,7 +170,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
         }
     }
 
-    override fun onItemClick(item: String) {
+    override fun onItemClick(item: String, position: Int) {
         //Do Nothing
     }
 
