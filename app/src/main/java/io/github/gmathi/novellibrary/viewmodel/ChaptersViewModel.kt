@@ -1,7 +1,6 @@
 package io.github.gmathi.novellibrary.viewmodel
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.*
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -143,6 +142,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         if (forceUpdate) {
             //Delete the current data
             dbHelper.deleteWebPages(novel.id)
+            chapters?.forEach { dbHelper.deleteWebPage(it.url) }
 
             // We will not delete chapter settings so as to not delete the downloaded chapters file location.
             // dbHelper.deleteWebPageSettings(novel.id)
@@ -157,19 +157,22 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             dbHelper.createWebPage(chaptersList[i])
             dbHelper.createWebPageSettings(WebPageSettings(chaptersList[i].url, novel.id))
         }
+        chapters = dbHelper.getAllWebPages(novel.id)
         chapterSettings = dbHelper.getAllWebPageSettings(novel.id)
     }
 
     fun addNovelToLibrary() {
-        viewModelScope.launch {
-            if (novel.id != -1L) return@launch
-            loadingStatus.value = Constants.Status.START
-            novel.id = withContext(Dispatchers.IO) { dbHelper.insertNovel(novel) }
-            chapters?.forEach { it.novelId = novel.id }
-        }
+        if (novel.id != -1L) return
+        loadingStatus.value = Constants.Status.START
+        novel.id = dbHelper.insertNovel(novel)
+
+        //There is a chance that the above insertion might fail
+        if (novel.id == -1L) return
+        chapters?.forEach { it.novelId = novel.id }
+        addNovelChaptersToDB()
     }
 
-    fun addNovelChaptersToDB() {
+    private fun addNovelChaptersToDB() {
         viewModelScope.launch {
             addToDB(true)
             loadingStatus.value = Constants.Status.DONE
@@ -197,13 +200,13 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         var counter = 0
         webPages.forEach {
             withContext(Dispatchers.IO) {
-                deleteWebPage(it)
+                deleteDownloadedChapter(it)
                 actionModeProgress.postValue(counter++.toString())
             }
         }
     }
 
-    private fun deleteWebPage(webPage: WebPage) {
+    private fun deleteDownloadedChapter(webPage: WebPage) {
         val chaptersSettingsList = chapterSettings ?: return
         val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url }
         webPageSettings?.filePath?.let { filePath ->

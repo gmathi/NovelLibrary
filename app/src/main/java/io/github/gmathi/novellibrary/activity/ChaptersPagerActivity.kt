@@ -96,7 +96,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             when (newStatus) {
                 Constants.Status.START -> {
 //                    progressLayout.showLoading()
-                    progressLayout.showLoading(rawId = R.raw.baby_peeking, loadingText = getString(R.string.loading))
+                    progressLayout.showLoading(loadingText = getString(R.string.loading))
                 }
                 Constants.Status.EMPTY_DATA -> {
                     progressLayout.showEmpty(resId = R.raw.monkey_logo, isLottieAnimation = true, emptyText = getString(R.string.empty_chapters))
@@ -228,7 +228,6 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             R.id.action_add_to_library -> {
                 vm.addNovelToLibrary()
                 invalidateOptionsMenu()
-                vm.addNovelChaptersToDB()
                 return true
             }
             R.id.action_sort -> {

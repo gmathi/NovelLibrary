@@ -7,14 +7,14 @@ import io.github.gmathi.novellibrary.model.WebPage
 
 //private const val LOG = "WebPageHelper"
 
-fun DBHelper.createWebPage(webPage: WebPage) {
+fun DBHelper.createWebPage(webPage: WebPage): Boolean {
     //Check 1st
     val selectQuery = "SELECT * FROM ${DBKeys.TABLE_WEB_PAGE} WHERE ${DBKeys.KEY_URL} = ? LIMIT 1"
     val cursor = this.readableDatabase.rawQuery(selectQuery, arrayOf(webPage.url))
     val recordExists = cursor != null && cursor.count > 0
     cursor.close()
     if (recordExists)
-        return
+        return false
 
     val values = ContentValues()
     values.put(DBKeys.KEY_URL, webPage.url)
@@ -22,7 +22,7 @@ fun DBHelper.createWebPage(webPage: WebPage) {
     values.put(DBKeys.KEY_NOVEL_ID, webPage.novelId)
     values.put(DBKeys.KEY_ORDER_ID, webPage.orderId)
     values.put(DBKeys.KEY_SOURCE_ID, webPage.sourceId)
-    this.writableDatabase.insert(DBKeys.TABLE_WEB_PAGE, null, values)
+    return this.writableDatabase.insert(DBKeys.TABLE_WEB_PAGE, null, values) != -1L
 }
 
 fun DBHelper.getWebPage(url: String): WebPage? {
@@ -95,10 +95,10 @@ fun DBHelper.deleteWebPages(novelId: Long) {
 //fun DBHelper.deleteWebPage(novelId: Long, orderId: Long) {
 //    this.writableDatabase.delete(DBKeys.TABLE_WEB_PAGE, "${DBKeys.KEY_NOVEL_ID} = ? AND ${DBKeys.KEY_ORDER_ID} = ?", arrayOf(novelId.toString(), orderId.toString()))
 //}
-//
-//fun DBHelper.deleteWebPage(url: String) {
-//    this.writableDatabase.delete(DBKeys.TABLE_WEB_PAGE, "${DBKeys.KEY_URL} = ?", arrayOf(url))
-//}
+
+fun DBHelper.deleteWebPage(url: String) {
+    this.writableDatabase.delete(DBKeys.TABLE_WEB_PAGE, "${DBKeys.KEY_URL} = ?", arrayOf(url))
+}
 
 private fun getWebPageFromCursor(cursor: Cursor): WebPage {
     val webPage = WebPage(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL)), cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER)))
