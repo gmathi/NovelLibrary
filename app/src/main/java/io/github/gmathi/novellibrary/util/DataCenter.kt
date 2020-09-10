@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.util
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Color
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -320,20 +321,20 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putString(GD_INTERNET_TYPE, value).apply()
 
 
-    var dayModeBackgroundColor: String
-        get() = prefs.getString(DAY_MODE_BACKGROUND_COLOR, "FFFFFF") ?: "FFFFFF"
-        set(value) = prefs.edit().putString(DAY_MODE_BACKGROUND_COLOR, value).apply()
+    var dayModeBackgroundColor: Int
+        get() = prefs.getInt(DAY_MODE_BACKGROUND_COLOR, Color.WHITE)
+        set(value) = prefs.edit().putInt(DAY_MODE_BACKGROUND_COLOR, value).apply()
 
-    var nightModeBackgroundColor: String
-        get() = prefs.getString(NIGHT_MODE_BACKGROUND_COLOR, "000000") ?: "000000"
-        set(value) = prefs.edit().putString(NIGHT_MODE_BACKGROUND_COLOR, value).apply()
+    var nightModeBackgroundColor: Int
+        get() = prefs.getInt(NIGHT_MODE_BACKGROUND_COLOR, Color.BLACK)
+        set(value) = prefs.edit().putInt(NIGHT_MODE_BACKGROUND_COLOR, value).apply()
 
-    var dayModeTextColor: String
-        get() = prefs.getString(DAY_MODE_TEXT_COLOR, "000000") ?: "000000"
-        set(value) = prefs.edit().putString(DAY_MODE_TEXT_COLOR, value).apply()
+    var dayModeTextColor: Int
+        get() = prefs.getInt(DAY_MODE_TEXT_COLOR, Color.BLACK)
+        set(value) = prefs.edit().putInt(DAY_MODE_TEXT_COLOR, value).apply()
 
-    var nightModeTextColor: String
-        get() = prefs.getString(NIGHT_MODE_TEXT_COLOR, "FFFFFF") ?: "FFFFFF"
-        set(value) = prefs.edit().putString(NIGHT_MODE_TEXT_COLOR, value).apply()
+    var nightModeTextColor: Int
+        get() = prefs.getInt(NIGHT_MODE_TEXT_COLOR, Color.WHITE)
+        set(value) = prefs.edit().putInt(NIGHT_MODE_TEXT_COLOR, value).apply()
 
 }

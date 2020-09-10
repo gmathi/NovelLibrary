@@ -22,6 +22,8 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
 import java.io.FileOutputStream
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.net.SocketException
 
 
@@ -250,17 +252,15 @@ open class HtmlHelper protected constructor() {
         val fontFile = File(dataCenter.fontPath)
         val fontFamily = fontFile.name.substringBeforeLast(".")
 
-        val dayBackgroundColor = Color.parseColor("#${dataCenter.dayModeBackgroundColor}")
-        val dayBackgroundColorTransparency = (dayBackgroundColor.alpha * 100) / 255
-        val dayTextColor = Color.parseColor("#${dataCenter.dayModeTextColor}")
-        val dayTextColorTransparency = (dayTextColor.alpha * 100) / 255
+        val dayBackgroundColor = dataCenter.dayModeBackgroundColor
+        val dayBackgroundColorTransparency = BigDecimal(dayBackgroundColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
+        val dayTextColor = dataCenter.dayModeTextColor
+        val dayTextColorTransparency =  BigDecimal(dayTextColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
 
-        val nightBackgroundColor = Color.parseColor("#${dataCenter.nightModeBackgroundColor}")
-        val nightBackgroundColorTransparency = (nightBackgroundColor.alpha * 100) / 255
-        val nightTextColor = Color.parseColor("#${dataCenter.nightModeTextColor}")
-        val nightTextColorTransparency = (nightTextColor.alpha * 100) / 255
-
-
+        val nightBackgroundColor = dataCenter.nightModeBackgroundColor
+        val nightBackgroundColorTransparency = BigDecimal(nightBackgroundColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
+        val nightTextColor = dataCenter.nightModeTextColor
+        val nightTextColorTransparency = BigDecimal(nightTextColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
 
         doc.head().getElementById("darkTheme")?.remove()
         doc.head().append(
@@ -276,24 +276,23 @@ open class HtmlHelper protected constructor() {
                 body {
                     background-color: ${
                         if (isDark)
-                            "rgba(${nightBackgroundColor.red}, ${nightBackgroundColor.green}, ${nightBackgroundColor.blue}, .$nightBackgroundColorTransparency)"
+                            "rgba(${nightBackgroundColor.red}, ${nightBackgroundColor.green}, ${nightBackgroundColor.blue}, $nightBackgroundColorTransparency)"
                         else
-                            "rgba(${dayBackgroundColor.red}, ${dayBackgroundColor.green}, ${dayBackgroundColor.blue}, .$dayBackgroundColorTransparency)"
-                        }  
+                            "rgba(${dayBackgroundColor.red}, ${dayBackgroundColor.green}, ${dayBackgroundColor.blue}, $dayBackgroundColorTransparency)"
+                        };  
                     color: ${
                         if (isDark)
-                            "rgba(${nightTextColor.red}, ${nightTextColor.green}, ${nightTextColor.blue}, .$nightTextColorTransparency)"
+                            "rgba(${nightTextColor.red}, ${nightTextColor.green}, ${nightTextColor.blue}, $nightTextColorTransparency)"
                         else
-                            "rgba(${dayTextColor.red}, ${dayTextColor.green}, ${dayTextColor.blue}, .$dayTextColorTransparency)"
-                        }
-
+                            "rgba(${dayTextColor.red}, ${dayTextColor.green}, ${dayTextColor.blue}, $dayTextColorTransparency)"
+                        };
                     font-family: '$fontFamily';
                     line-height: 1.5;
                     padding: 20px;
                     text-align: left;
                 }
                 a {
-                    color: rgba(${if (isDark) "135, 206, 250, .$nightTextColorTransparency" else "0, 0, 238, .$dayTextColorTransparency" });
+                    color: rgba(${if (isDark) "135, 206, 250, .$nightTextColorTransparency" else "0, 0, 238, $dayTextColorTransparency" });
                 }
                 table {
                     background: #004b7a;
