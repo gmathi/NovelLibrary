@@ -19,6 +19,8 @@ import kotlinx.android.synthetic.main.activity_settings.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_title_subtitle_widget.view.*
 import okhttp3.internal.toHexString
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class ReaderBackgroundSettingsActivity : BaseActivity(), GenericAdapter.Listener<String>, ColorChooserDialog.ColorCallback {
@@ -65,24 +67,20 @@ class ReaderBackgroundSettingsActivity : BaseActivity(), GenericAdapter.Listener
 
         when (position) {
             POSITION_DAY_BACKGROUND -> {
-                val color = "#${dataCenter.dayModeBackgroundColor}"
-                itemView.subtitle.applyFont(assets).text = getString(R.string.hex_color, color)
-                drawable.setColor(Color.parseColor(color))
+                itemView.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.dayModeBackgroundColor.toHexString().toUpperCase(Locale.ROOT))
+                drawable.setColor(dataCenter.dayModeBackgroundColor)
             }
             POSITION_DAY_TEXT -> {
-                val color = "#${dataCenter.dayModeTextColor}"
-                itemView.subtitle.applyFont(assets).text = getString(R.string.hex_color, color)
-                drawable.setColor(Color.parseColor(color))
+                itemView.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.dayModeTextColor.toHexString().toUpperCase(Locale.ROOT))
+                drawable.setColor(dataCenter.dayModeTextColor)
             }
             POSITION_NIGHT_BACKGROUND -> {
-                val color = "#${dataCenter.nightModeBackgroundColor}"
-                itemView.subtitle.applyFont(assets).text = getString(R.string.hex_color, color)
-                drawable.setColor(Color.parseColor(color))
+                itemView.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.nightModeBackgroundColor.toHexString().toUpperCase(Locale.ROOT))
+                drawable.setColor(dataCenter.nightModeBackgroundColor)
             }
             POSITION_NIGHT_TEXT -> {
-                val color = "#${dataCenter.nightModeTextColor}"
-                itemView.subtitle.applyFont(assets).text = getString(R.string.hex_color, color)
-                drawable.setColor(Color.parseColor(color))
+                itemView.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.nightModeTextColor.toHexString().toUpperCase(Locale.ROOT))
+                drawable.setColor(dataCenter.nightModeTextColor)
             }
         }
 
@@ -104,10 +102,10 @@ class ReaderBackgroundSettingsActivity : BaseActivity(), GenericAdapter.Listener
 
     override fun onColorSelection(dialog: ColorChooserDialog, selectedColor: Int) {
         when (selectedPosition) {
-            POSITION_DAY_BACKGROUND -> dataCenter.dayModeBackgroundColor = selectedColor.toHexString()
-            POSITION_DAY_TEXT -> dataCenter.dayModeTextColor = selectedColor.toHexString()
-            POSITION_NIGHT_BACKGROUND -> dataCenter.nightModeBackgroundColor = selectedColor.toHexString()
-            POSITION_NIGHT_TEXT -> dataCenter.nightModeTextColor = selectedColor.toHexString()
+            POSITION_DAY_BACKGROUND -> dataCenter.dayModeBackgroundColor = selectedColor
+            POSITION_DAY_TEXT -> dataCenter.dayModeTextColor = selectedColor
+            POSITION_NIGHT_BACKGROUND -> dataCenter.nightModeBackgroundColor = selectedColor
+            POSITION_NIGHT_TEXT -> dataCenter.nightModeTextColor = selectedColor
         }
         adapter.updateItem(settingsItems[selectedPosition])
     }
