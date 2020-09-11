@@ -43,6 +43,7 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.Utils.getFormattedText
 import io.github.gmathi.novellibrary.view.TwoWaySeekBar
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.item_option.view.*
@@ -386,7 +387,7 @@ class ReaderDBPagerActivity :
             READ_ALOUD -> {
                 if (dataCenter.readerMode) {
                     val webPageDBFragment = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as? WebPageDBFragment)
-                    val audioText = webPageDBFragment?.doc?.text() ?: return
+                    val audioText = webPageDBFragment?.doc?.getFormattedText() ?: return
                     val title = webPageDBFragment.doc?.title() ?: ""
                     startTTSService(audioText, title, novel.id, sourceId)
                 } else {
