@@ -22,6 +22,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import io.github.gmathi.novellibrary.cleaner.HtmlHelper
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.extensions.albumArt
 import io.github.gmathi.novellibrary.extensions.displaySubtitle
@@ -33,9 +34,11 @@ import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.service.tts.TTSNotificationBuilder.Companion.TTS_NOTIFICATION_ID
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.Utils.getFormattedText
 import io.github.gmathi.novellibrary.util.getGlideUrl
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import org.jsoup.safety.Whitelist
 import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
@@ -85,13 +88,13 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     override fun onCreate() {
         super.onCreate()
 
-        //android.os.Debug.waitForDebugger()
+        android.os.Debug.waitForDebugger()
 
         // Build a PendingIntent that can be used to launch the UI.
         val sessionActivityPendingIntent = PendingIntent.getActivity(this, 0, Intent(), 0)
 
         // Create a new MediaSession.
-        mediaSession = MediaSessionCompat(this, "MusicService")
+        mediaSession = MediaSessionCompat(this, "NovelTTSService")
             .apply {
                 setSessionActivity(sessionActivityPendingIntent)
                 isActive = true
@@ -229,8 +232,15 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         lines.clear()
         lineNumber = 0
 
+        audioText?.split("\n")?.mapTo(lines) { it }
+
+//        Testing Only - Auto Next Chapter
+//        val tempArray = audioText?.split("\n") ?: return
+//        for (x in 0..10) {
+//            lines.add(tempArray[x])
+//        }
+
         //Set new data & start reading
-        audioText?.split(".")?.mapTo(lines) { it }
         mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_PLAYING, 1L, 1F).build())
         speakNexLine()
     }
@@ -239,6 +249,9 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         if (lines.isNotEmpty() && lineNumber < lines.size) {
             sendToTTS(lines[lineNumber], TextToSpeech.QUEUE_ADD, "KEEP_READING")
         } else {
+            if (dataCenter.readAloudNextChapter) {
+                chooseMediaControllerActions(ACTION_NEXT)
+            } else
             mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_NONE, 1L, 1F).build())
         }
     }
@@ -380,8 +393,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         val htmlHelper = HtmlHelper.getInstance(doc)
         htmlHelper.removeJS(doc)
         htmlHelper.additionalProcessing(doc)
-        return doc.text()
+        return doc.getFormattedText()
     }
-
 
 }

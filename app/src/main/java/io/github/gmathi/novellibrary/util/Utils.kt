@@ -32,6 +32,9 @@ import io.github.gmathi.novellibrary.extensions.createFileIfNotExists
 import io.github.gmathi.novellibrary.extensions.getOrCreateDirectory
 import io.github.gmathi.novellibrary.extensions.getOrCreateFile
 import io.github.gmathi.novellibrary.model.Novel
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.safety.Whitelist
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -415,6 +418,12 @@ object Utils {
         codeBlock()
         val diff = (System.currentTimeMillis() - startTime) / 1000f
         Logs.info("MeasuredTime", "$diff")
+    }
+
+    fun Document.getFormattedText(): String {
+        outputSettings(Document.OutputSettings().prettyPrint(false))
+        val htmlString: String = html()//.replace("\\\\n", "\n")
+        return Jsoup.clean(htmlString, "", Whitelist.none(), Document.OutputSettings().prettyPrint(false)).replace("&nbsp", "")
     }
 
 }

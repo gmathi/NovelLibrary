@@ -82,6 +82,8 @@ class DataCenter(context: Context) {
         const val DAY_MODE_TEXT_COLOR = "dayModeTextColor"
         const val NIGHT_MODE_TEXT_COLOR = "nightModeTextColor"
 
+        const val READ_ALOUD_NEXT_CHAPTER = "readAloudNextChapter"
+
     }
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -336,5 +338,9 @@ class DataCenter(context: Context) {
     var nightModeTextColor: Int
         get() = prefs.getInt(NIGHT_MODE_TEXT_COLOR, Color.WHITE)
         set(value) = prefs.edit().putInt(NIGHT_MODE_TEXT_COLOR, value).apply()
+
+    var readAloudNextChapter: Boolean
+        get() = prefs.getBoolean(READ_ALOUD_NEXT_CHAPTER, true)
+        set(value) = prefs.edit().putBoolean(READ_ALOUD_NEXT_CHAPTER, value).apply()
 
 }
