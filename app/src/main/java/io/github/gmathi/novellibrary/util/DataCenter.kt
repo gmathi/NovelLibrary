@@ -83,6 +83,7 @@ class DataCenter(context: Context) {
         const val NIGHT_MODE_TEXT_COLOR = "nightModeTextColor"
 
         const val READ_ALOUD_NEXT_CHAPTER = "readAloudNextChapter"
+        const val SCROLLING_TEXT = "scrollingText"
 
     }
 
@@ -342,5 +343,9 @@ class DataCenter(context: Context) {
     var readAloudNextChapter: Boolean
         get() = prefs.getBoolean(READ_ALOUD_NEXT_CHAPTER, true)
         set(value) = prefs.edit().putBoolean(READ_ALOUD_NEXT_CHAPTER, value).apply()
+
+    var enableScrollingText: Boolean
+        get() = prefs.getBoolean(SCROLLING_TEXT, true)
+        set(value) = prefs.edit().putBoolean(SCROLLING_TEXT, value).apply()
 
 }

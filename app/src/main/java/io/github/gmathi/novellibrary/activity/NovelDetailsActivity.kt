@@ -26,6 +26,7 @@ import com.bumptech.glide.Glide
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
@@ -120,7 +121,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         setNovelImage()
 
         novelDetailsName.applyFont(assets).text = novel.name
-        novelDetailsName.isSelected = true
+        novelDetailsName.isSelected = dataCenter.enableScrollingText
 
         val listener: View.OnClickListener = View.OnClickListener {
             MaterialDialog.Builder(this)

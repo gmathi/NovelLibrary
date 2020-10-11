@@ -11,6 +11,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.createOrUpdateLargePreference
 import io.github.gmathi.novellibrary.database.getLargePreference
 import io.github.gmathi.novellibrary.dbHelper
@@ -51,7 +52,7 @@ class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Nov
 
         //Other Data Fields
         itemView.novelTitleTextView.text = item.name
-        itemView.novelTitleTextView.isSelected = true
+        itemView.novelTitleTextView.isSelected = dataCenter.enableScrollingText
 
         if (item.rating != null) {
             var ratingText = "(N/A)"

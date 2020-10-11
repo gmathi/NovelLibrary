@@ -10,6 +10,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi
@@ -155,7 +156,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
 
         //Other Data Fields
         itemView.novelTitleTextView.text = item.name
-        itemView.novelTitleTextView.isSelected = true
+        itemView.novelTitleTextView.isSelected = dataCenter.enableScrollingText
 
         if (item.rating != null) {
             var ratingText = "(N/A)"
