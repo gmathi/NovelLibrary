@@ -71,8 +71,8 @@
         <item>@string/backup_and_restore</item>
         <!--<item>@string/enable_cloud_flare</item>-->
         <item>@string/disable_notifications</item>
-        <!--<item>@string/faster_downloads</item>-->
         <item>@string/change_language</item>
+        <item>@string/scrolling_text</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
@@ -80,8 +80,8 @@
         <item>@string/backup_and_restore_description</item>
         <!--<item>@string/enable_cloud_flare_description</item>-->
         <item>@string/disable_notifications_description</item>
-        <!--<item>@string/faster_downloads_description</item>-->
         <item>@string/locale_system_default</item>
+        <item>@string/scrolling_text_description</item>
     </string-array>
 
     <string-array name="backup_and_restore_titles_list" translatable="false">
@@ -117,6 +117,7 @@
         <item>@string/keep_text_color</item>
         <item>@string/alternative_text_colors</item>
         <item>@string/limit_image_width</item>
+        <item>@string/auto_read_next_chapter</item>
     </string-array>
 
     <string-array name="reader_subtitles_list" translatable="false">
@@ -137,6 +138,7 @@
         <item>@string/keep_text_color_description</item>
         <item>@string/alternative_text_colors_description</item>
         <item>@string/limit_image_width_description</item>
+        <item>@string/auto_read_next_chapter_description</item>
     </string-array>
 
     <string-array name="reader_mode_menu_titles_list" translatable="false">
@@ -578,5 +580,9 @@
     <string name="reader_mode_colors">Reader Mode Theme</string>
     <string name="reader_mode_colors_description">Change the Background and Text colors of both day and night mode</string>
     <string name="hex_color">Hex: #%1$s</string>
+    <string name="scrolling_text">Scrolling Text</string>
+    <string name="scrolling_text_description">Enable scrolling text on novel titles and other items where text is too large to fit on the screen</string>
+    <string name="auto_read_next_chapter">Auto Read Next Chapter</string>
+    <string name="auto_read_next_chapter_description">Automatically read the next chapter when the current chapter finishes in Read Aloud mode</string>
 
 </resources>

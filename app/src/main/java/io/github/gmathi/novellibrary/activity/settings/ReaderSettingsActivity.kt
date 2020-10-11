@@ -45,6 +45,8 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         private const val POSITION_KEEP_TEXT_COLOR = 14
         private const val POSITION_ALTERNATIVE_TEXT_COLORS = 15
         private const val POSITION_LIMIT_IMAGE_WIDTH = 16
+        private const val POSITION_AUTO_READ_NEXT_CHAPTER = 17
+
     }
 
     lateinit var adapter: GenericAdapter<String>
@@ -189,6 +191,11 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 itemView.widgetSwitch.visibility = View.VISIBLE
                 itemView.widgetSwitch.isChecked = dataCenter.limitImageWidth
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.limitImageWidth = value }
+            }
+            POSITION_AUTO_READ_NEXT_CHAPTER -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.readAloudNextChapter
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.readAloudNextChapter = value }
             }
         }
 

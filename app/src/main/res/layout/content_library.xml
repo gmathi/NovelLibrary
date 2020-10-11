@@ -34,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/white"
                 android:textSize="14sp"
-                android:text="@string/sync_in_progress"
+                android:text="@string/auto_read_next_chapter_description"
                 android:gravity="center"
                 tools:ignore="SmallSp"/>
 

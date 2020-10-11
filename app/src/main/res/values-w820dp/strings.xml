@@ -11,4 +11,7 @@
     <string name="reader_mode_colors">Reader Mode Theme</string>
     <string name="reader_mode_colors_description">Change the Background and Text colors of both day and night mode</string>
     <string name="hex_color">Hex: #%1$s</string>
+    <string name="scrolling_text">Scrolling Text</string>
+    <string name="scrolling_text_description">Enable scrolling text on novel titles and other items where text is too large to fit on the screen</string>
+    <string name="auto_read_next_chapter">Auto Read Next Chapter</string>
 </resources>
