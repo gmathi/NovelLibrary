@@ -74,7 +74,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                .title("\uD83C\uDF89 What's New 0.15.3.beta!")
+                .title("\uD83C\uDF89 What's New 0.15.4.beta!")
                 .content(
                     "✨ Reader Mode Themes - For now you can change Day & Night mode colors\n" +
                             "✨️ Read Aloud - Automatically goes to next chapter.\n" +
