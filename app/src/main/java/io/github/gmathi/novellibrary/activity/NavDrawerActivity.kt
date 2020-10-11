@@ -74,15 +74,15 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                .title("\uD83C\uDF89 What's New 0.15.1.beta!")
+                .title("\uD83C\uDF89 What's New 0.15.3.beta!")
                 .content(
-                    "--> Patched a lot of Bug Fixes (below updates from 0.15.beta)**\n\n" +
-                            "✨️ New animations added to waiting screens.\n" +
-                            "✨ You can now favorite chapters by using the action menu.\n" +
-                            "\uD83D\uDEE0 Support for 3 more translation sites in reader mode.\n" +
-                            "⚠️ Fix - Backups are now working.\n" +
-                            "⚠️ Fix - Bookmark is shown correctly.\n" +
-                            "⚠️ Fix - Downloads will now download linked pages.\n" +
+                    "✨ Reader Mode Themes - For now you can change Day & Night mode colors\n" +
+                            "✨️ Read Aloud - Automatically goes to next chapter.\n" +
+                            "✨ New Chapter Notifications are working again!\n" +
+//                            "\uD83D\uDEE0 Support for 3 more translation sites in reader mode.\n" +
+                            "⚠️ Fix - Chapters threading bug\n" +
+                            "⚠️ Fix - Show all the meta data tags in More Information screen.\n" +
+//                            "⚠️ Fix - Downloads will now download linked pages.\n" +
 //                            "\uD83D\uDEE0 Discord link updated.\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
 //                            "✨ Read Aloud moved to bottom in the reader settings.\n" +
