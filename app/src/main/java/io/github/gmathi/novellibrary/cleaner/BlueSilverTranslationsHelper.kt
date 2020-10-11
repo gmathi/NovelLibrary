@@ -38,7 +38,6 @@ class BlueSilverTranslationsHelper : HtmlHelper() {
     }
 
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
-
         val links = ArrayList<String>()
         val otherLinks = doc.getElementsByAttributeValue("itemprop", "articleBody").firstOrNull()?.getElementsByAttributeValueContaining("href", HostNames.WORD_PRESS)
         if (otherLinks != null && otherLinks.isNotEmpty()) {
@@ -52,7 +51,8 @@ class BlueSilverTranslationsHelper : HtmlHelper() {
         if (otherLinks3 != null && otherLinks3.isNotEmpty()) {
             otherLinks3.mapTo(links) { it.attr("href") }
         }
-        return links
+
+        return ArrayList(links.distinct())
     }
 
     override fun toggleTheme(isDark: Boolean, doc: Document): Document {

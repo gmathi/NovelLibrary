@@ -16,6 +16,9 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.getNovelByUrl
 import io.github.gmathi.novellibrary.database.insertNovel
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.showEmpty
+import io.github.gmathi.novellibrary.extensions.showError
+import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.model.ImportListItem
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
@@ -26,10 +29,8 @@ import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.activity_import_library.*
 import kotlinx.android.synthetic.main.content_import_library.*
 import kotlinx.android.synthetic.main.listitem_import_list.view.*
-import okhttp3.*
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import java.io.IOException
 import java.net.URL
 
 
@@ -85,7 +86,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         adapter = GenericAdapter(items = importList, layoutResId = R.layout.listitem_import_list, listener = this)
         recyclerView.setDefaultsNoAnimation(adapter)
         recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
-        progressLayout.showEmpty(ContextCompat.getDrawable(this@ImportLibraryActivity, R.drawable.ic_arrow_upward_white_vector), "Add a URL to see your reading list here")
+        progressLayout.showEmpty(resId = R.raw.no_data_blob, emptyText = "Add a URL to see your reading list here", isLottieAnimation = true)
     }
 
     private fun getNovelsFromUrl() {
@@ -126,11 +127,9 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
                     progressLayout.showContent()
                     headerLayout.visibility = View.VISIBLE
                 } else {
-                    progressLayout.showError(
-                        ContextCompat.getDrawable(this@ImportLibraryActivity, R.drawable.ic_warning_white_vector),
-                        "No Novels found!",
-                        getString(R.string.try_again)
-                    ) { getNovelsFromUrl() }
+                    progressLayout.showError(errorText = "No Novels found!", buttonText = getString(R.string.try_again), onClickListener = View.OnClickListener {
+                        getNovelsFromUrl()
+                    })
                 }
             } catch (e: Exception) {
 
@@ -186,7 +185,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         )
     }
 
-    override fun onItemClick(item: ImportListItem) {
+    override fun onItemClick(item: ImportListItem, position: Int) {
         if (updateSet.contains(item))
             removeFromUpdateSet(item)
         else
@@ -295,14 +294,6 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
     private fun importNovelToLibrary(importListItem: ImportListItem) {
         val novel = NovelApi.getNUNovelDetails(importListItem.novelUrl!!) ?: return
         novel.id = dbHelper.insertNovel(novel)
-//        val webPages = NovelApi.getChapterUrls(novel)
-//        webPages?.forEach {
-//            dbHelper.createWebPage(it)
-//        }
-//        val currentReaderWebPage = webPages?.firstOrNull { it.chapter == importListItem.currentlyReadingChapterName }
-//        currentReaderWebPage?.let {
-//            dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, it.url)
-//        }
     }
 
     override fun onDestroy() {

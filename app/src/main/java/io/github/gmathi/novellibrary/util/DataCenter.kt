@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.util
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Color
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -62,10 +63,28 @@ class DataCenter(context: Context) {
         private const val DISABLE_WUXIA_DOWNLOADS = "disableWuxiaDownloads"
         private const val HAS_ALREADY_DELETED_OLD_CHANNELS = "hasAlreadyDeletedOldChannels"
 
+        //Backup
+        private const val LAST_LOCAL_BACKUP_TIMESTAMP = "lastLocalBackupTimestamp"
+        private const val LAST_CLOUD_BACKUP_TIMESTAMP = "lastCloudBackupTimestamp"
+        private const val LAST_BACKUP_SIZE = "lastBackupSize"
 
+        //Google Drive Settings
+        private const val GD_BACKUP_INTERVAL = "gdBackupInterval"
+        private const val GD_ACCOUNT_EMAIL = "gdAccountEmail"
+        private const val GD_INTERNET_TYPE = "gdInternetType"
 
         const val CF_COOKIES_CLEARANCE = "cf_clearance"
         const val CF_COOKIES_DUID = "__cfduid"
+
+        //Reader mode background color
+        const val DAY_MODE_BACKGROUND_COLOR = "dayModeBackgroundColor"
+        const val NIGHT_MODE_BACKGROUND_COLOR = "nightModeBackgroundColor"
+        const val DAY_MODE_TEXT_COLOR = "dayModeTextColor"
+        const val NIGHT_MODE_TEXT_COLOR = "nightModeTextColor"
+
+        const val READ_ALOUD_NEXT_CHAPTER = "readAloudNextChapter"
+        const val SCROLLING_TEXT = "scrollingText"
+
     }
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -277,5 +296,56 @@ class DataCenter(context: Context) {
         prefs.edit().putString(CF_COOKIES_STRING + hostName, value).apply()
     }
 
+    //Backup
+
+    var lastLocalBackupTimestamp: String
+        get() = prefs.getString(LAST_LOCAL_BACKUP_TIMESTAMP, "N/A") ?: "N/A"
+        set(value) = prefs.edit().putString(LAST_LOCAL_BACKUP_TIMESTAMP, value).apply()
+
+    var lastCloudBackupTimestamp: String
+        get() = prefs.getString(LAST_CLOUD_BACKUP_TIMESTAMP, "N/A") ?: "N/A"
+        set(value) = prefs.edit().putString(LAST_CLOUD_BACKUP_TIMESTAMP, value).apply()
+
+    var lastBackupSize: String
+        get() = prefs.getString(LAST_BACKUP_SIZE, "N/A") ?: "N/A"
+        set(value) = prefs.edit().putString(LAST_BACKUP_SIZE, value).apply()
+
+    //Google Settings
+    var gdBackupInterval: String
+        get() = prefs.getString(GD_BACKUP_INTERVAL, "Never") ?: "Never"
+        set(value) = prefs.edit().putString(GD_BACKUP_INTERVAL, value).apply()
+
+    var gdAccountEmail: String
+        get() = prefs.getString(GD_ACCOUNT_EMAIL, "-") ?: "-"
+        set(value) = prefs.edit().putString(GD_ACCOUNT_EMAIL, value).apply()
+
+    var gdInternetType: String
+        get() = prefs.getString(GD_INTERNET_TYPE, "WiFi or cellular") ?: "WiFi or cellular"
+        set(value) = prefs.edit().putString(GD_INTERNET_TYPE, value).apply()
+
+
+    var dayModeBackgroundColor: Int
+        get() = prefs.getInt(DAY_MODE_BACKGROUND_COLOR, Color.WHITE)
+        set(value) = prefs.edit().putInt(DAY_MODE_BACKGROUND_COLOR, value).apply()
+
+    var nightModeBackgroundColor: Int
+        get() = prefs.getInt(NIGHT_MODE_BACKGROUND_COLOR, Color.BLACK)
+        set(value) = prefs.edit().putInt(NIGHT_MODE_BACKGROUND_COLOR, value).apply()
+
+    var dayModeTextColor: Int
+        get() = prefs.getInt(DAY_MODE_TEXT_COLOR, Color.BLACK)
+        set(value) = prefs.edit().putInt(DAY_MODE_TEXT_COLOR, value).apply()
+
+    var nightModeTextColor: Int
+        get() = prefs.getInt(NIGHT_MODE_TEXT_COLOR, Color.WHITE)
+        set(value) = prefs.edit().putInt(NIGHT_MODE_TEXT_COLOR, value).apply()
+
+    var readAloudNextChapter: Boolean
+        get() = prefs.getBoolean(READ_ALOUD_NEXT_CHAPTER, true)
+        set(value) = prefs.edit().putBoolean(READ_ALOUD_NEXT_CHAPTER, value).apply()
+
+    var enableScrollingText: Boolean
+        get() = prefs.getBoolean(SCROLLING_TEXT, true)
+        set(value) = prefs.edit().putBoolean(SCROLLING_TEXT, value).apply()
 
 }

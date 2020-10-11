@@ -191,7 +191,7 @@
     <string name="clear_selection">Cancelar Seleção</string>
     <string name="download_novel">Fazer Download</string>
     <string name="add_to_library_dialog_content">A série precisa ser adicionada à Biblioteca antes que você possa baixar/marcar capítulos individuais. Deseja adicionar essa série - %s à biblioteca?</string>
-    <string name="swipe_right_for_next_chapter">Estilo Japonês de Deslize</string>
+    <string name="swipe_right_for_next_chapter">Left to Right Swipe</string>
     <string name="swipe_right_for_next_chapter_description">Deslize à direita para ir ao próximo capítulo</string>
     <string name="no_bookmark_found_dialog_title">Começar a Ler?</string>
     <string name="no_bookmark_found_dialog_description">Parece que você ainda não leu ‘%s’, porque não começar agora?</string>
@@ -206,7 +206,7 @@
     <string name="show_reader_scroll_description">Mostra a barra de rolagem vertical no canto direito da tela para que você possa acompanhar seu progresso no capítulo</string>
     <string name="show_comments_section">Mostrar Comentários</string>
     <string name="show_comments_section_description">Mostra a seção de comentários do capítulo no modo de leitura. (Número Limitado de Websites Suportados)</string>
-    <string name="backup">Backup</string>
+    <string name="backup">Back up</string>
     <string name="restore">Restaurar</string>
     <string name="import_reading_list">Importar Lista de Leitura</string>
     <string name="nu_reading_list_url">URL da Lista de Leitura do Novel Updates</string>
@@ -342,6 +342,21 @@
     <string name="cloud_flare_check_complete">Obtained CloudFlare clearance.</string>
     <string name="loading">Loading…</string>
     <string name="empty_chapters">This Novel is most likely copyrighted or pay-walled and that is the reason you don\'t see any chapters!!</string>
+    <string name="remove_favorite">Remove Favorite(s)</string>
+    <string name="mark_favorite">Mark Favorite(s)</string>
+    <string name="unfavorite_chapters_read_dialog_content">Remove chapters from favorites?</string>
+    <string name="favorite_chapters_read_dialog_content">Favorite chapters?</string>
+    <string name="day_mode_background_color">Day Mode: Background Color</string>
+    <string name="day_mode_text_color">Day Mode: Text Color</string>
+    <string name="night_mode_background_color">Night Mode: Background Color</string>
+    <string name="night_mode_text_color">Night Mode: Text Color</string>
+    <string name="reader_mode_colors">Reader Mode Theme</string>
+    <string name="reader_mode_colors_description">Change the Background and Text colors of both day and night mode</string>
+    <string name="hex_color">Hex: #%1$s</string>
+    <string name="scrolling_text">Scrolling Text</string>
+    <string name="scrolling_text_description">Enable scrolling text on novel titles and other items where text is too large to fit on the screen</string>
+    <string name="auto_read_next_chapter">Auto Read Next Chapter</string>
+    <string name="auto_read_next_chapter_description">Automatically read the next chapter when the current chapter finishes in Read Aloud mode</string>
 
 
 </resources>

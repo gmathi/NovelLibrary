@@ -6,7 +6,6 @@ import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
 import com.hanks.library.AnimateCheckBox
@@ -15,9 +14,12 @@ import io.github.gmathi.novellibrary.activity.ChaptersPagerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapterSelectTitleProvider
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.showEmpty
+import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.extensions.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.extensions.startWebViewActivity
 import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.fragment_source_chapters.*
@@ -88,7 +90,7 @@ class ChaptersFragment : BaseFragment(),
                     lastKnownRecyclerState?.let { recyclerView.layoutManager?.onRestoreInstanceState(it) }
                 }
             } else
-                progressLayout.showEmpty(ContextCompat.getDrawable(chaptersPagerActivity, R.drawable.ic_warning_white_vector), "No Chapters Found!")
+                progressLayout.showEmpty(emptyText = "No Chapters Found!")
         }
     }
 
@@ -146,7 +148,7 @@ class ChaptersFragment : BaseFragment(),
 //                    itemView.greenView.animation = null
 //                }
 //            } else
-            itemView.availableOfflineImageView.visibility = View.INVISIBLE
+            itemView.availableOfflineImageView.visibility = View.GONE
         }
 
         itemView.isReadView.visibility = if (webPageSettings?.isRead == 1) View.VISIBLE else View.GONE
@@ -169,6 +171,12 @@ class ChaptersFragment : BaseFragment(),
         itemView.setOnLongClickListener {
             itemView.chapterCheckBox.isChecked = true
             true
+        }
+
+        if (webPageSettings?.metaData?.get(Constants.MetaDataKeys.IS_FAVORITE)?.toBoolean() == true) {
+            itemView.favoriteView.visibility = View.VISIBLE
+        } else {
+            itemView.favoriteView.visibility = View.GONE
         }
     }
 

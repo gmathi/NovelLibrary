@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="io.github.gmathi.novellibrary">
+    package="io.github.gmathi.novellibrary" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -22,8 +22,17 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
-        tools:ignore="UnusedAttribute">
+        tools:ignore="UnusedAttribute" >
+        <activity
+            android:name=".activity.settings.GoogleBackupActivity"
+            android:label="@string/title_activity_google_backup"
+            android:theme="@style/DarkTheme_DarkSide" >
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
 
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
+        </activity>
         <!-- [START fcm_default_icon] -->
         <!--
              Set custom default icon. This is used when no icon is set for incoming notification messages.
@@ -44,7 +53,7 @@
             android:name="com.google.firebase.messaging.default_notification_channel"
             android:value="@string/default_notification_channel_id" />
 
-        <service android:name=".service.firebase.NLFirebaseMessagingService">
+        <service android:name=".service.firebase.NLFirebaseMessagingService" >
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
@@ -52,7 +61,7 @@
         <service
             android:name=".service.sync.BackgroundNovelSyncTask"
             android:exported="true"
-            android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE">
+            android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE" >
             <intent-filter>
                 <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY" />
             </intent-filter>
@@ -88,7 +97,7 @@
             android:name=".activity.NavDrawerActivity"
             android:label="@string/title_activity_nav_drawer"
             android:launchMode="singleTask"
-            android:theme="@style/DarkTheme_DarkSide">
+            android:theme="@style/DarkTheme_DarkSide" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -153,7 +162,7 @@
             android:name=".activity.ImportLibraryActivity"
             android:label="@string/title_activity_import_library"
             android:parentActivityName=".activity.NavDrawerActivity"
-            android:theme="@style/DarkTheme_DarkSide">
+            android:theme="@style/DarkTheme_DarkSide" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="io.github.gmathi.novellibrary.activity.NavDrawerActivity" />
@@ -202,8 +211,12 @@
             android:label="@string/title_activity_chapters"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
-            android:name=".activity.LibrarySearchActivity"
-            android:theme="@style/DarkTheme_DarkSide">
+        android:name=".activity.LibrarySearchActivity"
+        android:theme="@style/DarkTheme_DarkSide" >
+        </activity>
+        <activity
+            android:name=".activity.settings.ReaderBackgroundSettingsActivity"
+            android:theme="@style/DarkTheme_DarkSide" >
         </activity>
 
         <service
@@ -215,7 +228,7 @@
             android:name=".util.GenericFileProvider"
             android:authorities="${applicationId}.provider"
             android:exported="false"
-            android:grantUriPermissions="true">
+            android:grantUriPermissions="true" >
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />

@@ -79,7 +79,7 @@ class LocaleManager {
         private fun getLanguage(context: Context): String {
             return try {
                 dataCenter.language
-            } catch (e: KotlinNullPointerException) {
+            } catch (e: NullPointerException) {
                 DataCenter(context).language
             }
         }
@@ -120,8 +120,8 @@ class LocaleManager {
             if (dataCenter.language != language) {
                 dataCenter.language = language
                 val intent = context.packageManager
-                        .getLaunchIntentForPackage(context.packageName)!!
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    .getLaunchIntentForPackage(context.packageName)!!
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(intent)
                 if (context is AppCompatActivity)
                     context.finish()

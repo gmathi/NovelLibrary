@@ -3,6 +3,10 @@ package io.github.gmathi.novellibrary.cleaner
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
+import androidx.core.graphics.alpha
+import androidx.core.graphics.blue
+import androidx.core.graphics.green
+import androidx.core.graphics.red
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
@@ -11,11 +15,16 @@ import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.getFileName
 import io.github.gmathi.novellibrary.util.writableFileName
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import org.jsoup.HttpStatusException
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
 import java.io.FileOutputStream
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.net.SocketException
 
 
 open class HtmlHelper protected constructor() {
@@ -26,8 +35,7 @@ open class HtmlHelper protected constructor() {
 
         fun getInstance(doc: Document, url: String = doc.location()): HtmlHelper {
             when {
-                url.contains(HostNames.FOXTELLER) -> return FoxtellerCleaner()
-                url.contains(HostNames.WATTPAD) -> return WattpadHelper()
+                url.contains(HostNames.WATTPAD) -> return WattPadHelper()
                 url.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
                 url.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
                 url.contains(HostNames.QIDIAN) -> return QidianHelper()
@@ -71,9 +79,6 @@ open class HtmlHelper protected constructor() {
             contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("blog-content") }
             if (contentElement != null) return GeneralClassTagHelper(url, "div", "blog-content")
 
-            contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
-            if (contentElement != null) return CloudFlareDDoSTagHelper()
-
             contentElement = doc.body().select("div#chapter-content").firstOrNull()
             if (contentElement != null) return GeneralIdTagHelper(url, "div", "chapter-content")
 
@@ -99,6 +104,16 @@ open class HtmlHelper protected constructor() {
             contentElement = doc.body().select("section#StoryContent").firstOrNull()
             if (contentElement != null) return GeneralIdTagHelper(url, "section", "StoryContent")
 
+            contentElement = doc.body().select("div.content-container").firstOrNull()
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "content-container")
+
+            contentElement = doc.body().select("article.article-content").firstOrNull()
+            if (contentElement != null) return GeneralClassTagHelper(url, "article", "article-content")
+
+            //Lastly let's check for cloud flare
+            contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
+            if (contentElement != null) return CloudFlareDDoSTagHelper()
+
             return HtmlHelper()
         }
 
@@ -106,12 +121,16 @@ open class HtmlHelper protected constructor() {
 
     open var keepContentStyle = false
 
-    fun clean(doc: Document, hostDir: File, novelDir: File) {
+    fun downloadResources(doc: Document, hostDir: File, novelDir: File) {
         // removeJS(doc)
         downloadCSS(doc, hostDir)
         downloadImages(doc, novelDir)
         // additionalProcessing(doc)
         // addTitle(doc)
+    }
+
+    fun setProperHrefUrls(doc: Document) {
+        doc.body().select("[href]").forEach { it.attr("href", it.absUrl("href")) }
     }
 
     open fun removeJS(doc: Document) {
@@ -142,7 +161,7 @@ open class HtmlHelper protected constructor() {
 
     }
 
-    open fun downloadFile(element: Element, dir: File): File? {
+    open fun downloadFile(element: Element, dir: File, retryCount: Int = 0): File? {
         val uri = Uri.parse(element.absUrl("href"))
         val file: File
         val doc: Document
@@ -150,11 +169,23 @@ open class HtmlHelper protected constructor() {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: $uri")
             val fileName = uri.getFileName()
             file = File(dir, fileName)
-            doc = NovelApi.getDocument(uri.toString(), ignoreHttpErrors = false)
+            doc = NovelApi.getDocument(uri.toString(), ignoreHttpErrors = false, useProxy = false)
         } catch (e: Exception) {
+            when (e) {
+                is SocketException -> {
+                    // Let's try this one more time
+                    if (retryCount == 0) return downloadFile(element, dir, retryCount = 1)
+                }
+                is HttpStatusException -> {
+                    //Do Nothing
+                }
+            }
+
+            // Let's log all other exceptions
             Logs.warning(TAG, "Uri: $uri", e)
             return null
         }
+
         return convertDocToFile(doc, file)
     }
 
@@ -165,7 +196,7 @@ open class HtmlHelper protected constructor() {
             val content = doc.toString()
             stream.use { it.write(content.toByteArray()) }
         } catch (e: Exception) {
-            Logs.warning(TAG, "convertDocToFile: ${file.name}", e)
+            Logs.warning(TAG, "convertDocToFile: Document:${doc.location()}, File: ${file.absolutePath}", e)
             return null
         }
         return file
@@ -220,7 +251,17 @@ open class HtmlHelper protected constructor() {
     fun toggleThemeDefault(isDark: Boolean, doc: Document): Document {
         val fontFile = File(dataCenter.fontPath)
         val fontFamily = fontFile.name.substringBeforeLast(".")
-        val nightModeTextBrightness = 87
+
+        val dayBackgroundColor = dataCenter.dayModeBackgroundColor
+        val dayBackgroundColorTransparency = BigDecimal(dayBackgroundColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
+        val dayTextColor = dataCenter.dayModeTextColor
+        val dayTextColorTransparency =  BigDecimal(dayTextColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
+
+        val nightBackgroundColor = dataCenter.nightModeBackgroundColor
+        val nightBackgroundColorTransparency = BigDecimal(nightBackgroundColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
+        val nightTextColor = dataCenter.nightModeTextColor
+        val nightTextColorTransparency = BigDecimal(nightTextColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
+
         doc.head().getElementById("darkTheme")?.remove()
         doc.head().append(
             """
@@ -233,15 +274,25 @@ open class HtmlHelper protected constructor() {
                     scroll-behavior: smooth;
                 }
                 body {
-                    ${if (isDark) "background-color" else "color"}: #000;
-                    ${if (isDark) "color" else "background-color"}: rgba(255, 255, 255, .$nightModeTextBrightness);
+                    background-color: ${
+                        if (isDark)
+                            "rgba(${nightBackgroundColor.red}, ${nightBackgroundColor.green}, ${nightBackgroundColor.blue}, $nightBackgroundColorTransparency)"
+                        else
+                            "rgba(${dayBackgroundColor.red}, ${dayBackgroundColor.green}, ${dayBackgroundColor.blue}, $dayBackgroundColorTransparency)"
+                        };  
+                    color: ${
+                        if (isDark)
+                            "rgba(${nightTextColor.red}, ${nightTextColor.green}, ${nightTextColor.blue}, $nightTextColorTransparency)"
+                        else
+                            "rgba(${dayTextColor.red}, ${dayTextColor.green}, ${dayTextColor.blue}, $dayTextColorTransparency)"
+                        };
                     font-family: '$fontFamily';
                     line-height: 1.5;
                     padding: 20px;
                     text-align: left;
                 }
                 a {
-                    color: rgba(${if (isDark) "135, 206, 250" else "0, 0, 238"}, .$nightModeTextBrightness);
+                    color: rgba(${if (isDark) "135, 206, 250, .$nightTextColorTransparency" else "0, 0, 238, $dayTextColorTransparency" });
                 }
                 table {
                     background: #004b7a;
@@ -264,6 +315,33 @@ open class HtmlHelper protected constructor() {
     }
 
     open fun getLinkedChapters(doc: Document): ArrayList<String> = ArrayList()
+
+    fun getLinkedChapters(sourceURL: String, contentElement: Element?): ArrayList<String> {
+        val links = ArrayList<String>()
+        val baseUrlDomain = sourceURL.toHttpUrlOrNull()?.topPrivateDomain()
+        val otherLinks = contentElement?.select("a[href]")
+        otherLinks?.forEach {
+            // Other Share links
+            if (it.hasAttr("title") && it.attr("title").contains("Click to share", true)) {
+                return@forEach
+            }
+
+            val linkedUrl = it.absUrl("href").split("#").first()
+            if (linkedUrl == sourceURL || links.contains(linkedUrl)) return@forEach
+
+            try {
+                // Check if URL is from chapter provider, only download from same domain
+                val urlDomain = linkedUrl.toHttpUrlOrNull()?.topPrivateDomain()
+                if (urlDomain == baseUrlDomain) {
+                    links.add(linkedUrl)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        return links
+    }
+
 
     private fun processColorComponent(comp: String): Double {
         if (comp.endsWith("%")) return comp.substring(0, comp.length - 1).toDouble() / 100.0

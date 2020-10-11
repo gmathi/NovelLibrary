@@ -35,4 +35,8 @@ class CircusTranslationsHelper : HtmlHelper() {
         return super.toggleThemeDefault(isDark, doc)
     }
 
+    override fun getLinkedChapters(doc: Document): ArrayList<String> {
+        return getLinkedChapters(doc.location(), doc.body().select("#primary").firstOrNull())
+    }
+
 }

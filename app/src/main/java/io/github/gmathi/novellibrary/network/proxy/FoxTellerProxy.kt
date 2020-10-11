@@ -1,14 +1,13 @@
-package io.github.gmathi.novellibrary.cleaner
+package io.github.gmathi.novellibrary.network.proxy
 
 import android.util.Base64
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.Connection
-import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
-class FoxtellerProxy : ProxyHelper() {
+class FoxTellerProxy : BaseProxyHelper() {
     companion object {
         val aux_dem = "https://www.${HostNames.FOXTELLER}/aux_dem"
         val dem_regex = """let +([de]) *= *'(.+?)';""".toRegex()
@@ -24,8 +23,8 @@ class FoxtellerProxy : ProxyHelper() {
     }
 
     @ExperimentalStdlibApi
-    override fun document(doc: String, res: Connection.Response): Document {
-        val doc = Jsoup.parse(doc)
+    override fun document(res: Connection.Response): Document {
+        val doc = res.parse()
         val xsrf = res.cookie("XSRF-TOKEN")
         val session = res.cookie("foxteller_session") ?: xsrf
         val csrf = doc.selectFirst("meta[name=\"csrf-token\"]").attr("content")
@@ -44,7 +43,7 @@ class FoxtellerProxy : ProxyHelper() {
         data.addProperty("x1", dem["d"])
         data.addProperty("x2", dem["e"])
 
-        val aux = connect(aux_dem).referrer(doc.location())
+        val chapterResponse = connect(aux_dem).referrer(doc.location())
             .ignoreContentType(true)
             .method(Connection.Method.POST).requestBody(data.toString())
             .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0")
@@ -63,17 +62,17 @@ class FoxtellerProxy : ProxyHelper() {
             .header("TE", "trailers")
             .execute()
 
-        if (aux.statusCode() != 200) {
+        if (chapterResponse.statusCode() != 200) {
             val content = doc.getElementById("chapter-content")
             content.children().remove()
-            content.append("<p><b>ERROR: Could not load chapter content (${aux.statusCode()}).</b></p>")
+            content.append("<p><b>ERROR: Could not load chapter content (${chapterResponse.statusCode()}).</b></p>")
             return doc
         }
 
-        var chapter = JsonParser.parseString(aux.body())!!.asJsonObject!!["aux"]!!.asString!!
+        var chapter = JsonParser.parseString(chapterResponse.body())?.asJsonObject?.get("aux")?.asString ?: return doc
 
         chapter = chapter.replace(decode_regex) { match ->
-            charmap.getValue(match.groups[1]!!.value).toString()
+            charmap.getValue(match.groups[1]?.value ?: "").toString()
         }
         chapter = Base64.decode(chapter, Base64.DEFAULT).decodeToString()
 

@@ -3,7 +3,6 @@ package io.github.gmathi.novellibrary.adapter
 import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
-import com.google.gson.internal.bind.ArrayTypeAdapter
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.util.inflate
 import java.util.*
@@ -39,12 +38,12 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
 
     class ViewHolder<T>(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(item: T, listener: Listener<T>, position: Int) {
-            with(itemView) { setOnClickListener { listener.onItemClick(item) } }
+            with(itemView) { setOnClickListener { listener.onItemClick(item, position) } }
             listener.bind(item = item, itemView = itemView, position = position)
         }
 
         fun bind(item: T, listener: Listener<T>, position: Int, payloads: MutableList<Any>?) {
-            with(itemView) { setOnClickListener { listener.onItemClick(item) } }
+            with(itemView) { setOnClickListener { listener.onItemClick(item, position) } }
             listener.bind(item = item, itemView = itemView, position = position, payloads = payloads)
         }
 
@@ -58,7 +57,7 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
         fun bind(item: T, itemView: View, position: Int, payloads: MutableList<Any>?) {
             bind(item, itemView, position)
         }
-        fun onItemClick(item: T)
+        fun onItemClick(item: T, position: Int)
     }
 
     interface LoadMoreListener {

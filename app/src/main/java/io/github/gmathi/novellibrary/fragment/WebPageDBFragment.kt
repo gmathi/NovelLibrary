@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.fragment
 
-import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.net.Uri
@@ -13,7 +12,7 @@ import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
-import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import co.metalab.asyncawait.async
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -24,9 +23,13 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getWebPageSettings
 import io.github.gmathi.novellibrary.database.updateWebPageSettings
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.dataFetchError
+import io.github.gmathi.novellibrary.extensions.noInternetError
+import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.model.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.model.WebPageSettings
+import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
@@ -42,6 +45,7 @@ import org.greenrobot.eventbus.ThreadMode
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
+import java.lang.IllegalStateException
 import java.net.URL
 
 
@@ -107,20 +111,27 @@ class WebPageDBFragment : BaseFragment() {
 
     private fun setOnScrollVisibleButtons() {
         // Show the menu button on scroll
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            readerWebView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
-                if (dataCenter.isReaderModeButtonVisible) {
-                    if (scrollY > oldScrollY && scrollY > 0) requireActivity().menuNav.visibility = View.GONE
-                    if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) requireActivity().menuNav.visibility = View.VISIBLE
-                }
-                if (dataCenter.enableImmersiveMode && dataCenter.showNavbarAtChapterEnd) {
-                    // Using deprecated WebView.scale due to WebViewClient.onScaleChanged being completely unreliable.
-                    // New approach sometimes simply does not trigger, causing anything but online reader mode to break.
-                    @Suppress("DEPRECATION") val height = readerWebView.contentHeight * readerWebView.scale - readerWebView.height - 10
-                    requireActivity().window.decorView.systemUiVisibility =
-                        if (height > 0 && scrollY > height) Constants.IMMERSIVE_MODE_W_NAVBAR_FLAGS
-                        else Constants.IMMERSIVE_MODE_FLAGS
-                }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
+
+        readerWebView.setOnScrollChangeListener listener@{ _, _, scrollY, _, oldScrollY ->
+            val activity: FragmentActivity
+            try {
+                activity = requireActivity() //Check if activity is available.
+            } catch (e: Exception) {
+                return@listener
+            }
+
+            if (dataCenter.isReaderModeButtonVisible) {
+                if (scrollY > oldScrollY && scrollY > 0) activity.menuNav.visibility = View.GONE
+                if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) activity.menuNav.visibility = View.VISIBLE
+            }
+            if (dataCenter.enableImmersiveMode && dataCenter.showNavbarAtChapterEnd) {
+                // Using deprecated WebView.scale due to WebViewClient.onScaleChanged being completely unreliable.
+                // New approach sometimes simply does not trigger, causing anything but online reader mode to break.
+                @Suppress("DEPRECATION") val height = readerWebView.contentHeight * readerWebView.scale - readerWebView.height - 10
+                activity.window.decorView.systemUiVisibility =
+                    if (height > 0 && scrollY > height) Constants.IMMERSIVE_MODE_W_NAVBAR_FLAGS
+                    else Constants.IMMERSIVE_MODE_FLAGS
             }
         }
     }
@@ -275,9 +286,9 @@ class WebPageDBFragment : BaseFragment() {
 
         //If no network
         if (!Utils.isConnectedToNetwork(activity)) {
-            progressLayout.showError(ContextCompat.getDrawable(requireActivity(), R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
+            progressLayout.noInternetError(View.OnClickListener {
                 downloadWebPage(url)
-            }
+            })
             return
         }
 
@@ -299,13 +310,9 @@ class WebPageDBFragment : BaseFragment() {
                 //If document fails to load and the fragment is still alive
                 if (doc == null) {
                     if (isResumed && !isRemoving && !isDetached)
-                        progressLayout.showError(
-                            ContextCompat.getDrawable(requireActivity(), R.drawable.ic_warning_white_vector),
-                            getString(R.string.failed_to_load_url),
-                            getString(R.string.try_again)
-                        ) {
+                        progressLayout.dataFetchError(View.OnClickListener {
                             downloadWebPage(url)
-                        }
+                        })
                     return@download
                 }
 
@@ -327,6 +334,7 @@ class WebPageDBFragment : BaseFragment() {
                     val htmlHelper = HtmlHelper.getInstance(doc)
                     htmlHelper.removeJS(doc)
                     htmlHelper.additionalProcessing(doc)
+                    htmlHelper.setProperHrefUrls(doc)
                     htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
 
                     if (dataCenter.enableClusterPages) {
@@ -334,27 +342,32 @@ class WebPageDBFragment : BaseFragment() {
                         val baseUrlDomain = getUrlDomain(doc.location())
 
                         // Add the content of the links to the doc
-                        val hrefElements = doc.body().getElementsByTag("a")
+                        val alreadyDownloadedLinks = ArrayList<String>()
+                        alreadyDownloadedLinks.add(doc.location())
+                        val hrefElements = doc.body().select("a[href]")
                         hrefElements?.forEach {
-                            if (it.hasAttr("href")) {
-                                if (it.hasAttr("title") && it.attr("title").contains("Click to share", true)) {
-                                    return@forEach
-                                }
-                                val linkedUrl = it.attr("href")
-                                try {
-                                    // Check if URL is from chapter provider
-                                    val urlDomain = getUrlDomain(linkedUrl)
-                                    if (urlDomain == baseUrlDomain) {
-                                        val otherDoc = await { NovelApi.getDocument(linkedUrl) }
-                                        val helper = HtmlHelper.getInstance(otherDoc)
-                                        helper.removeJS(otherDoc)
-                                        helper.additionalProcessing(otherDoc)
-                                        doc.body().append(otherDoc.body().html())
 
-                                    }
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
+                            // Other Share links
+                            if (it.hasAttr("title") && it.attr("title").contains("Click to share", true)) {
+                                return@forEach
+                            }
+
+                            val linkedUrl = it.attr("href").split("#").first()
+                            if (alreadyDownloadedLinks.contains(linkedUrl)) return@forEach
+
+                            try {
+                                // Check if URL is from chapter provider, only download from same domain
+                                val urlDomain = getUrlDomain(linkedUrl)
+                                if (urlDomain == baseUrlDomain) {
+                                    val otherDoc = await { NovelApi.getDocument(linkedUrl) }
+                                    val helper = HtmlHelper.getInstance(otherDoc)
+                                    helper.removeJS(otherDoc)
+                                    helper.additionalProcessing(otherDoc)
+                                    doc.body().append(otherDoc.body().html())
+                                    alreadyDownloadedLinks.add(otherDoc.location())
                                 }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
                             }
                         }
                     }
@@ -368,9 +381,9 @@ class WebPageDBFragment : BaseFragment() {
             } catch (e: Exception) {
                 e.printStackTrace()
                 if (isResumed && !isRemoving && !isDetached)
-                    progressLayout.showError(ContextCompat.getDrawable(requireActivity(), R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again)) {
+                    progressLayout.dataFetchError(View.OnClickListener {
                         downloadWebPage(url)
-                    }
+                    })
             }
         }
     }
@@ -399,6 +412,7 @@ class WebPageDBFragment : BaseFragment() {
             val htmlHelper = HtmlHelper.getInstance(doc)
             htmlHelper.removeJS(doc)
             htmlHelper.additionalProcessing(doc)
+            htmlHelper.setProperHrefUrls(doc)
             htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
 
             if (dataCenter.enableClusterPages) {
@@ -483,10 +497,11 @@ class WebPageDBFragment : BaseFragment() {
 
     override fun onPause() {
         super.onPause()
-        webPageSettings.let {
-            it.metaData[Constants.MetaDataKeys.SCROLL_POSITION] = readerWebView.scrollY.toString()
-            dbHelper.updateWebPageSettings(it)
-        }
+        if (this::webPageSettings.isInitialized)
+            webPageSettings.let {
+                it.metaData[Constants.MetaDataKeys.SCROLL_POSITION] = readerWebView.scrollY.toString()
+                dbHelper.updateWebPageSettings(it)
+            }
     }
 
     override fun onDestroy() {

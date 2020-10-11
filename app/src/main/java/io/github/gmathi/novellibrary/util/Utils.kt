@@ -28,10 +28,13 @@ import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.createIfNotExists
+import io.github.gmathi.novellibrary.extensions.createFileIfNotExists
 import io.github.gmathi.novellibrary.extensions.getOrCreateDirectory
 import io.github.gmathi.novellibrary.extensions.getOrCreateFile
 import io.github.gmathi.novellibrary.model.Novel
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.safety.Whitelist
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -50,8 +53,8 @@ object Utils {
     fun getThemeAccentColor(context: Context): Int {
         val typedValue = TypedValue()
         val a = context.obtainStyledAttributes(
-                typedValue.data,
-                intArrayOf(R.attr.colorAccent)
+            typedValue.data,
+            intArrayOf(R.attr.colorAccent)
         )
         val color = a.getColor(0, Color.CYAN)
         a.recycle()
@@ -62,8 +65,8 @@ object Utils {
     fun getThemePrimaryColor(context: Context): Int {
         val typedValue = TypedValue()
         val a = context.obtainStyledAttributes(
-                typedValue.data,
-                intArrayOf(R.attr.colorPrimary)
+            typedValue.data,
+            intArrayOf(R.attr.colorPrimary)
         )
         val color = a.getColor(0, Color.BLUE)
         a.recycle()
@@ -242,7 +245,7 @@ object Utils {
 
     @Throws(IOException::class)
     fun zip(file: File, outStream: ZipOutputStream, log: Boolean = false) {
-        val basePathLength = (file.parent?.length  ?: file.path.lastIndexOf('/')) + 1
+        val basePathLength = (file.parent?.length ?: file.path.lastIndexOf('/')) + 1
         if (log) Log.i(TAG, "zip: file=${file.name}, basePathLength=$basePathLength")
         if (file.isFile) {
             zipFile(file, outStream, basePathLength, log)
@@ -279,33 +282,29 @@ object Utils {
     }
 
     @Throws(IOException::class)
-    fun unzip(contentResolver: ContentResolver, zip: DocumentFile, dir: File) {
-        ZipInputStream(BufferedInputStream(contentResolver.openInputStream(zip.uri)!!)).use {
-            unzip(it, dir)
-        }
-    }
-
-    @Throws(IOException::class)
-    fun unzip(inputStream: ZipInputStream, dir: File) {
-        var entry = inputStream.nextEntry
-        while (entry != null) {
-            if (entry.isDirectory) {
-                val subDir = File(dir, entry.name)
-                if (!subDir.exists())
-                    subDir.mkdirs()
-            } else {
-                val file = File(dir, entry.name)
-                file.createIfNotExists()
-                file.outputStream().use {
-                    val data = ByteArray(BUFFER_SIZE)
-                    var count = inputStream.read(data, 0, BUFFER_SIZE)
-                    while (count != -1) {
-                        it.write(data, 0, count)
-                        count = inputStream.read(data, 0, BUFFER_SIZE)
+    fun unzip(contentResolver: ContentResolver, uri: Uri, dir: File) {
+        contentResolver.openInputStream(uri)?.let {
+            val inputStream = ZipInputStream(BufferedInputStream(it))
+            var entry = inputStream.nextEntry
+            while (entry != null) {
+                if (entry.isDirectory) {
+                    val subDir = File(dir, entry.name)
+                    if (!subDir.exists())
+                        subDir.mkdirs()
+                } else {
+                    val file = File(dir, entry.name)
+                    file.createFileIfNotExists()
+                    file.outputStream().use {
+                        val data = ByteArray(BUFFER_SIZE)
+                        var count = inputStream.read(data, 0, BUFFER_SIZE)
+                        while (count != -1) {
+                            it.write(data, 0, count)
+                            count = inputStream.read(data, 0, BUFFER_SIZE)
+                        }
                     }
                 }
+                entry = inputStream.nextEntry
             }
-            entry = inputStream.nextEntry
         }
     }
 
@@ -355,7 +354,13 @@ object Utils {
         return manager.getRunningServices(Integer.MAX_VALUE).any { serviceQualifiedName == it.service.className }
     }
 
-    fun dialogBuilder(activity: AppCompatActivity, title: String? = null, content: String? = null, iconRes: Int = R.drawable.ic_warning_white_vector, isProgress: Boolean = false): MaterialDialog.Builder {
+    fun dialogBuilder(
+        activity: AppCompatActivity,
+        title: String? = null,
+        content: String? = null,
+        iconRes: Int = R.drawable.ic_warning_white_vector,
+        isProgress: Boolean = false
+    ): MaterialDialog.Builder {
         val dialogBuilder = MaterialDialog.Builder(activity)
 
         if (title != null)
@@ -368,7 +373,7 @@ object Utils {
             dialogBuilder.content(content)
 
         dialogBuilder
-                .iconRes(iconRes)
+            .iconRes(iconRes)
 
         if (!isProgress)
             dialogBuilder.positiveText(activity.getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
@@ -407,5 +412,18 @@ object Utils {
     }
 
     fun getUniqueNotificationId() = NotificationId.notificationIdCounter.getAndIncrement()
+
+    fun measureTime(codeBlock: () -> Unit) {
+        val startTime = System.currentTimeMillis()
+        codeBlock()
+        val diff = (System.currentTimeMillis() - startTime) / 1000f
+        Logs.info("MeasuredTime", "$diff")
+    }
+
+    fun Document.getFormattedText(): String {
+        outputSettings(Document.OutputSettings().prettyPrint(false))
+        val htmlString: String = html()//.replace("\\\\n", "\n")
+        return Jsoup.clean(htmlString, "", Whitelist.none(), Document.OutputSettings().prettyPrint(false)).replace("&nbsp", "")
+    }
 
 }

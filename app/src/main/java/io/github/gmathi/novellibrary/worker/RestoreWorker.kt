@@ -112,10 +112,8 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                 val uri: Uri = Uri.parse(inputData.getString(KEY_URI))
 
                 nm.newIndeterminateProgress { setContentText(getString(R.string.eztracting_zip)) }
-                ZipInputStream(BufferedInputStream(contentResolver.openInputStream(uri)!!)).use {
-                    // TODO: if possible extract selectively, directly to the data directory without using the cache directory
-                    Utils.unzip(it, cacheDir)
-                }
+                // TODO: if possible extract selectively, directly to the data directory without using the cache directory
+                Utils.unzip(contentResolver, uri, cacheDir)
 
                 val backupDBsDir = File(cacheDir, DATABASES_DIR)
                 val backupFilesDir = File(cacheDir, FILES_DIR)

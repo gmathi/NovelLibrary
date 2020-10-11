@@ -54,7 +54,7 @@ class MetaDataActivity : BaseActivity(), GenericAdapter.Listener<Map.Entry<Strin
         }
     }
 
-    override fun onItemClick(item: Map.Entry<String, String?>) {
+    override fun onItemClick(item: Map.Entry<String, String?>, position: Int) {
 
     }
 

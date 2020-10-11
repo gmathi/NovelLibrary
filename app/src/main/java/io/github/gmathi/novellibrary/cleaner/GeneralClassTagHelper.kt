@@ -56,14 +56,9 @@ class GeneralClassTagHelper(private val url: String, private val tagName: String
     }
 
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
-        val url = doc.location()
-        val links = ArrayList<String>()
-        val otherLinks = doc.body().getElementsByTag(tagName).firstOrNull { it.hasClass(className) }?.getElementsByAttributeValueContaining("href", this.url)?.filter { !it.attr("href").contains(url) }
-        if (otherLinks != null && otherLinks.isNotEmpty()) {
-            otherLinks.mapTo(links) { it.attr("href") }
-        }
-        return links
+        return getLinkedChapters(doc.location(), doc.body().select("$tagName.$className").firstOrNull())
     }
+
 
     private fun removeDirectionalLinks(contentElement: Elements) {
         contentElement.forEach { element ->

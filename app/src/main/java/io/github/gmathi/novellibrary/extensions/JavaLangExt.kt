@@ -16,6 +16,7 @@
 package io.github.gmathi.novellibrary.extensions
 
 import com.google.gson.JsonElement
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.net.URLEncoder
 import java.nio.charset.Charset
 
@@ -27,15 +28,15 @@ import java.nio.charset.Charset
  * Helper method to check if a [String] contains another in a case insensitive way.
  */
 fun String?.containsCaseInsensitive(other: String?) =
-        if (this == null && other == null) {
-            true
-        } else if (this != null && other != null) {
-            toLowerCase().contains(other.toLowerCase())
-        } else {
-            false
-        }
+    if (this == null && other == null) {
+        true
+    } else if (this != null && other != null) {
+        toLowerCase().contains(other.toLowerCase())
+    } else {
+        false
+    }
 
-inline val JsonElement.jsonNullFreeString: String?
+inline val JsonElement.asJsonNullFreeString: String?
     get() = when {
         this.isJsonNull -> null
         this.asString.isNullOrBlank() -> null
@@ -59,3 +60,16 @@ inline val String?.urlEncoded: String
         @Suppress("deprecation")
         URLEncoder.encode(this ?: "")
     }
+
+inline val String.fixMalformed: String
+    get() = when {
+        else -> {
+            var newValue = this
+            if (newValue.startsWith("//"))
+                newValue = newValue.replaceFirst("//", "http://")
+            newValue
+        }
+    }
+
+inline val String?.getUrlDomain: String?
+    get() = this?.let { this.toHttpUrlOrNull()?.topPrivateDomain() }

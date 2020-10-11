@@ -65,6 +65,7 @@ object Constants {
     const val OPEN_FIREBASE_AUTH_UI = 18
     const val RECENT_VIEWED_ACT_REQ_CODE = 19
     const val READER_SETTINGS_ACT_REQ_CODE = 20
+    const val READER_BACKGROUND_SETTINGS_ACT_REQ_CODE = 20
 
     const val TTS_ACT_REQ_CODE = 1000
     const val ADD_FONT_REQUEST_CODE = 1101
@@ -102,6 +103,7 @@ object Constants {
         const val SCROLL_POSITION = "scrollY"
         const val OTHER_LINKED_WEB_PAGES = "otherWebPages"
         const val OTHER_LINKED_WEB_PAGES_SETTINGS = "otherWebPagesSettings"
+        const val IS_FAVORITE = "isFavorite"
     }
 
     object LargePreferenceKeys {

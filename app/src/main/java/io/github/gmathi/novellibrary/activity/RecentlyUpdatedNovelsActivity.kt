@@ -9,6 +9,8 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import co.metalab.asyncawait.async
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.extensions.noInternetError
+import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.extensions.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.RecenlytUpdatedItem
@@ -49,10 +51,10 @@ class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Re
 
             if (!Utils.isConnectedToNetwork(this@RecentlyUpdatedNovelsActivity)) {
                 if (adapter.items.isEmpty())
-                    progressLayout.showError(ContextCompat.getDrawable(this@RecentlyUpdatedNovelsActivity, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
+                    progressLayout.noInternetError(View.OnClickListener {
                         progressLayout.showLoading()
                         getRecentlyUpdatedNovels()
-                    }
+                    })
                 return@async
             }
 
@@ -71,11 +73,13 @@ class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Re
         itemView.title.applyFont(assets).text = item.novelName
         itemView.subtitle.applyFont(assets).text = "${item.chapterName} [ ${item.publisherName} ]"
 
-        itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
-        else ContextCompat.getColor(this, android.R.color.transparent))
+        itemView.setBackgroundColor(
+            if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
+            else ContextCompat.getColor(this, android.R.color.transparent)
+        )
     }
 
-    override fun onItemClick(item: RecenlytUpdatedItem) {
+    override fun onItemClick(item: RecenlytUpdatedItem, position: Int) {
         if (item.novelName != null && item.novelUrl != null) {
             startNovelDetailsActivity(Novel(item.novelName!!, item.novelUrl!!))
         }

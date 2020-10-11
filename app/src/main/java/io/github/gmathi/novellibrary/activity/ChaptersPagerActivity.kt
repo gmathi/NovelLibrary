@@ -3,9 +3,9 @@ package io.github.gmathi.novellibrary.activity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.observe
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.R
@@ -16,18 +16,17 @@ import io.github.gmathi.novellibrary.database.getSource
 import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.shareUrl
-import io.github.gmathi.novellibrary.extensions.startDownloadNovelService
+import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.ChapterActionModeEvent
 import io.github.gmathi.novellibrary.model.EventType
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.ProgressLayout
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel
 import kotlinx.android.synthetic.main.activity_chapters_pager.*
 import kotlinx.android.synthetic.main.content_chapters_pager.*
-import kotlinx.android.synthetic.main.generic_loading_view.*
 import org.greenrobot.eventbus.EventBus
 import java.util.*
 import kotlin.collections.ArrayList
@@ -59,15 +58,20 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        val novel: Novel?
+        @Suppress("LiftReturnOrAssignment")
         if (savedInstanceState != null) {
             val isProgressShowing = savedInstanceState.getBoolean("isProgressShowing", false)
             if (isProgressShowing) {
                 setProgressDialog(savedInstanceState.getString("progressMessage", "In Progress…"), savedInstanceState.getInt("maxProgress", 0))
                 progressDialog?.show()
             }
+            novel = savedInstanceState.getSerializable("novel") as? Novel
+        } else {
+            novel = intent.getSerializableExtra("novel") as? Novel
         }
 
-        val novel = intent.getSerializableExtra("novel") as Novel
+        if (novel == null) return
         vm.init(novel, this, this)
 
         addListeners()
@@ -91,29 +95,31 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             //Update loading status
             when (newStatus) {
                 Constants.Status.START -> {
-                    progressLayout.showLoading()
-                    loadingStateTextView.text = getString(R.string.loading)
+//                    progressLayout.showLoading()
+                    progressLayout.showLoading(loadingText = getString(R.string.loading))
                 }
                 Constants.Status.EMPTY_DATA -> {
-                    progressLayout.showEmpty(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.empty_chapters))
+                    progressLayout.showEmpty(resId = R.raw.monkey_logo, isLottieAnimation = true, emptyText = getString(R.string.empty_chapters))
                 }
                 Constants.Status.NETWORK_ERROR -> {
-                    progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.failed_to_load_url), getString(R.string.try_again)) {
+                    progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again), onClickListener = View.OnClickListener {
                         vm.getData()
-                    }
+                    })
                 }
                 Constants.Status.NO_INTERNET -> {
-                    progressLayout.showError(ContextCompat.getDrawable(this, R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
+                    progressLayout.noInternetError(View.OnClickListener {
                         vm.getData()
-                    }
+                    })
                 }
                 Constants.Status.DONE -> {
                     isSyncing = false
                     progressLayout.showContent()
                     setViewPager()
+
+                    //TODO: Recreate menu for those instance where thee chapters can be empty.
                 }
                 else -> {
-                    progressLayout.showLoading(newStatus)
+                    progressLayout.updateLoadingStatus(newStatus)
                 }
             }
         }
@@ -209,11 +215,12 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                         showWuxiaWorldDownloadDialog()
                     } else {
                         dialog.dismiss()
-                        setProgressDialog("Adding chapters to download queue…", vm.chapters?.size ?: 0)
-                        vm.updateChapters(vm.chapters!!, ChaptersViewModel.Action.ADD_DOWNLOADS, callback = {
-                            manageDownloadsDialog()
-                        })
-
+                        vm.chapters?.let {
+                            setProgressDialog("Adding chapters to download queue…", it.size)
+                            vm.updateChapters(it, ChaptersViewModel.Action.ADD_DOWNLOADS, callback = {
+                                manageDownloadsDialog()
+                            })
+                        }
                     }
                 })
                 return true
@@ -221,7 +228,6 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             R.id.action_add_to_library -> {
                 vm.addNovelToLibrary()
                 invalidateOptionsMenu()
-                vm.addNovelChaptersToDB()
                 return true
             }
             R.id.action_sort -> {
@@ -294,6 +300,24 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                     mode?.finish()
                 })
             }
+            R.id.action_unfav -> {
+                confirmDialog(getString(R.string.unfavorite_chapters_read_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
+                    setProgressDialog("Removing chapters from favorites…", dataSet.size)
+                    vm.updateChapters(ArrayList(dataSet), ChaptersViewModel.Action.REMOVE_FAVORITE)
+                    dialog.dismiss()
+                    mode?.finish()
+                })
+            }
+            R.id.action_fav -> {
+                confirmDialog(getString(R.string.favorite_chapters_read_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
+                    setProgressDialog("Marking chapters as favorites…", dataSet.size)
+                    vm.updateChapters(ArrayList(dataSet), ChaptersViewModel.Action.MARK_FAVORITE)
+                    dialog.dismiss()
+                    mode?.finish()
+                })
+            }
+
+
             R.id.action_download -> {
                 confirmDialog(getString(R.string.download_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
                     if (vm.novel.id == -1L) {
@@ -461,6 +485,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         outState.putInt("maxProgress", maxProgress)
         outState.putString("progressMessage", progressMessage)
         outState.putBoolean("isProgressShowing", progressDialog?.isShowing ?: false)
+        outState.putSerializable("novel", vm.novel)
     }
 
 }

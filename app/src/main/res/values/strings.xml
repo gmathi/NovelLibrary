@@ -71,8 +71,8 @@
         <item>@string/backup_and_restore</item>
         <!--<item>@string/enable_cloud_flare</item>-->
         <item>@string/disable_notifications</item>
-        <!--<item>@string/faster_downloads</item>-->
         <item>@string/change_language</item>
+        <item>@string/scrolling_text</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
@@ -80,8 +80,8 @@
         <item>@string/backup_and_restore_description</item>
         <!--<item>@string/enable_cloud_flare_description</item>-->
         <item>@string/disable_notifications_description</item>
-        <!--<item>@string/faster_downloads_description</item>-->
         <item>@string/locale_system_default</item>
+        <item>@string/scrolling_text_description</item>
     </string-array>
 
     <string-array name="backup_and_restore_titles_list" translatable="false">
@@ -102,6 +102,7 @@
     <string-array name="reader_titles_list" translatable="false">
         <item>@string/reader_mode</item>
         <item>@string/disable_javascript</item>
+        <item>@string/reader_mode_colors</item>
         <item>@string/swipe_right_for_next_chapter</item>
         <item>@string/show_reader_scroll</item>
         <item>@string/show_comments_section</item>
@@ -116,11 +117,13 @@
         <item>@string/keep_text_color</item>
         <item>@string/alternative_text_colors</item>
         <item>@string/limit_image_width</item>
+        <item>@string/auto_read_next_chapter</item>
     </string-array>
 
     <string-array name="reader_subtitles_list" translatable="false">
         <item>@string/reader_mode_description</item>
         <item>@string/disable_javascript_description</item>
+        <item>@string/reader_mode_colors_description</item>
         <item>@string/swipe_right_for_next_chapter_description</item>
         <item>@string/show_reader_scroll_description</item>
         <item>@string/show_comments_section_description</item>
@@ -135,6 +138,7 @@
         <item>@string/keep_text_color_description</item>
         <item>@string/alternative_text_colors_description</item>
         <item>@string/limit_image_width_description</item>
+        <item>@string/auto_read_next_chapter_description</item>
     </string-array>
 
     <string-array name="reader_mode_menu_titles_list" translatable="false">
@@ -176,6 +180,13 @@
         <item>@string/backup_frequency_Weekly</item>
     </string-array>
 
+    <string-array name="reader_background_color_options" translatable="false">
+        <item>@string/day_mode_background_color</item>
+        <item>@string/day_mode_text_color</item>
+        <item>@string/night_mode_background_color</item>
+        <item>@string/night_mode_text_color</item>
+    </string-array>
+
     <string name="app_name" translatable="false">Novel Library</string>
 
     <string name="default_notification_channel_id" translatable="false">io.github.gmathi.novellibrary.channel_id.DEFAULT</string>
@@ -212,6 +223,8 @@
     <string name="title_activity_import_library" translatable="false">@string/import_reading_list</string>
     <string name="title_activity_chapter_downloads" translatable="false">ChapterDownloadsActivity</string>
     <string name="title_activity_web_view" translatable="false">@string/app_name</string>
+    <string name="title_activity_google_backup" translatable="false">Google Backup Settings</string>
+
 
     <string name="title_activity_language" translatable="false">LanguageActivity</string>
     <string name="title_activity_novel_downloads" translatable="false">@string/title_downloads</string>
@@ -391,7 +404,7 @@
     <string name="clear_selection">Clear Selection</string>
     <string name="download_novel">Download Novel</string>
     <string name="add_to_library_dialog_content">The novel needs to be added to Library before you can download/mark individual chapters. Do you want to add this novel - %s to the Library?</string>
-    <string name="swipe_right_for_next_chapter">Jap Style Swipe</string>
+    <string name="swipe_right_for_next_chapter">Left to Right Swipe</string>
     <string name="swipe_right_for_next_chapter_description">Swipe right for next chapter</string>
     <string name="no_bookmark_found_dialog_title">Start Reading?</string>
     <string name="no_bookmark_found_dialog_description">Looks like you haven\'t read ‘%s’ yet, why don\'t you start now?</string>
@@ -407,7 +420,7 @@
     <string name="show_reader_scroll_description">Shows the vertical scrollbar on the right edge of the screen to track your progress of the chapter</string>
     <string name="show_comments_section">Show Comments</string>
     <string name="show_comments_section_description">Shows the chapter’s comments section in the reader mode. (Limited Websites Supported)</string>
-    <string name="backup">Backup</string>
+    <string name="backup">Back up</string>
     <string name="restore">Restore</string>
     <string name="import_reading_list">Import Reading List</string>
     <string name="nu_reading_list_url">NU Reading List URL</string>
@@ -424,7 +437,7 @@
     <string name="group_download_notification_text">Downloads for the novels in your library</string>
     <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
     <string name="reader_mode_description">Reader mode will be on permanently</string>
-    <string name="delete_chapters">Delete Downloads</string>
+    <string name="delete_chapters">Delete Download(s)</string>
 
     <!-- v0.8 Strings -->
 
@@ -552,6 +565,24 @@
     <string name="cloud_flare_check_complete">Obtained CloudFlare clearance.</string>
     <string name="loading">Loading…</string>
     <string name="empty_chapters">This Novel is most likely copyrighted or pay-walled and that is the reason you don\'t see any chapters!!</string>
+    <!-- Strings used for fragments for navigation -->
 
+    <string name="remove_favorite">Remove Favorite(s)</string>
+    <string name="mark_favorite">Mark Favorite(s)</string>
+    <string name="unfavorite_chapters_read_dialog_content">Remove chapters from favorites?</string>
+    <string name="favorite_chapters_read_dialog_content">Favorite chapters?</string>
+
+    <!-- 0.15.3 -->
+    <string name="day_mode_background_color">Day Mode: Background Color</string>
+    <string name="day_mode_text_color">Day Mode: Text Color</string>
+    <string name="night_mode_background_color">Night Mode: Background Color</string>
+    <string name="night_mode_text_color">Night Mode: Text Color</string>
+    <string name="reader_mode_colors">Reader Mode Theme</string>
+    <string name="reader_mode_colors_description">Change the Background and Text colors of both day and night mode</string>
+    <string name="hex_color">Hex: #%1$s</string>
+    <string name="scrolling_text">Scrolling Text</string>
+    <string name="scrolling_text_description">Enable scrolling text on novel titles and other items where text is too large to fit on the screen</string>
+    <string name="auto_read_next_chapter">Auto Read Next Chapter</string>
+    <string name="auto_read_next_chapter_description">Automatically read the next chapter when the current chapter finishes in Read Aloud mode</string>
 
 </resources>

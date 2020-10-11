@@ -16,6 +16,7 @@ import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
@@ -93,12 +94,19 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             swipeRefreshLayout.isRefreshing = false
             progressLayout.showContent()
         }
+        if (adapter.items.size == 0) {
+            progressLayout.showEmpty(
+                resId = R.raw.no_data_blob,
+                isLottieAnimation = true,
+                emptyText = "Your Library is empty!\nLet's start adding some from search screen…"
+            )
+        }
     }
 
 
     //region Adapter Listener Methods - onItemClick(), viewBinder()
 
-    override fun onItemClick(item: Novel) {
+    override fun onItemClick(item: Novel, position: Int) {
         if (lastDeletedId != item.id)
             (activity as? AppCompatActivity)?.startChaptersActivity(item)
     }
@@ -114,6 +122,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         }
 
         itemView.novelTitleTextView.text = item.name
+        itemView.novelTitleTextView.isSelected = dataCenter.enableScrollingText
 
         val lastRead = item.metaData[Constants.MetaDataKeys.LAST_READ_DATE] ?: "N/A"
         val lastUpdated = item.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] ?: "N/A"

@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.service.sync
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -44,6 +45,11 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
     private fun startNovelsSync(dbHelper: DBHelper) {
         Logs.debug(TAG, "start novel sync")
+
+        //For Testing - get a Novel and delete 5 chapters
+        //dbHelper.getAllNovels().forEach { novel ->
+        //            dbHelper.updateChaptersCount(novel.id, novel.chaptersCount - 5)
+        //        }
 
         val totalCountMap: HashMap<Novel, Int> = HashMap()
 
@@ -94,7 +100,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
             PendingIntent.FLAG_CANCEL_CURRENT
         )
 
-        showBundledNotifications(this, novelsList, contentIntent)
+        showBundledNotifications(novelsList, contentIntent)
 
     }
 
@@ -124,6 +130,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
         private val thisClass = BackgroundNovelSyncTask::class.java
         private const val TAG = "BackgroundNovelSyncTask"
+        private const val UPDATE_NOTIFICATION_GROUP = "updateNotificationGroup"
 
         fun scheduleRepeat(context: Context) {
             cancelAll(context)
@@ -164,14 +171,9 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
     }
 
-    private fun showBundledNotifications(
-        context: Context,
-        novelsList: ArrayList<Novel>,
-        contentIntent: PendingIntent
-    ) {
-        val notificationManager = NotificationManagerCompat.from(context)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+    private fun showBundledNotifications(novelsList: ArrayList<Novel>, contentIntent: PendingIntent) {
+        val notificationManager = NotificationManagerCompat.from(this)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notificationManager.createNotificationChannel(
                 NotificationChannel(
                     getString(R.string.new_chapters_notification_channel_id),
@@ -180,41 +182,27 @@ class BackgroundNovelSyncTask : GcmTaskService() {
                 ).apply {
                     description = getString(R.string.new_chapters_notification_channel_description)
                 })
-
-        notificationManager.notify(
-            Utils.getUniqueNotificationId(),
-            createNotificationBuilder(
-                getString(R.string.app_name),
-                getString(R.string.group_update_notification_text),
-                contentIntent
-            ).build()
-        )
-        novelsList.forEach { novel ->
-            notificationManager.notify(
-                Utils.getUniqueNotificationId(),
-                createNotificationBuilder(
-                    novel.name,
-                    getString(
-                        R.string.new_chapters_notification_content_single,
-                        novel.newReleasesCount.toInt()
-                    ),
-                    createNovelDetailsPendingIntent(novel)
-                ).build()
-            )
         }
+
+        val first = createNotificationBuilder(getString(R.string.app_name), getString(R.string.group_update_notification_text), contentIntent)
+        first.setGroupSummary(true).setGroup(UPDATE_NOTIFICATION_GROUP)
+        notificationManager.notify(Utils.getUniqueNotificationId(), first.build())
+
+        val notificationList = ArrayList<Notification>()
+        novelsList.forEach { novel ->
+            val notificationBuilder =
+                createNotificationBuilder(novel.name, getString(R.string.new_chapters_notification_content_single, novel.newReleasesCount.toInt()), createNovelDetailsPendingIntent(novel))
+            notificationBuilder.setGroup(UPDATE_NOTIFICATION_GROUP)
+            notificationList.add(notificationBuilder.build())
+        }
+
+        notificationList.forEach { notificationManager.notify(Utils.getUniqueNotificationId(), it) }
     }
 
 
-    private fun createNotificationBuilder(
-        title: String,
-        message: String,
-        contentIntent: PendingIntent
-    ): NotificationCompat.Builder {
-        val largeIcon = BitmapFactory.decodeResource(
-            applicationContext.resources,
-            R.drawable.ic_library_add_white_vector
-        )
-        val mBuilder = NotificationCompat.Builder(this, "default")
+    private fun createNotificationBuilder(title: String, message: String, contentIntent: PendingIntent): NotificationCompat.Builder {
+        val largeIcon = BitmapFactory.decodeResource(applicationContext.resources, R.drawable.ic_library_add_white_vector)
+        val mBuilder = NotificationCompat.Builder(this, getString(R.string.new_chapters_notification_channel_id))
             .setContentTitle(title)
             .setContentText(message)
             .setLargeIcon(largeIcon)

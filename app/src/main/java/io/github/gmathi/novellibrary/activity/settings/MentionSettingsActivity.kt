@@ -47,7 +47,7 @@ class MentionSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         else ContextCompat.getColor(this, android.R.color.transparent))
     }
 
-    override fun onItemClick(item: String) {
+    override fun onItemClick(item: String, position: Int) {
         when (item) {
             getString(R.string.languages_supported) -> startLanguagesActivity()
             getString(R.string.copyright_notice) -> startCopyrightActivity()

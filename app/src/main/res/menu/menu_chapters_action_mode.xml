@@ -39,16 +39,26 @@
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_unread"
-        android:icon="@drawable/ic_visibility_off_white_vector"
         android:title="@string/mark_unread"
         android:titleCondensed="@string/unread"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_read"
-        android:icon="@drawable/ic_visibility_white_vector"
         android:title="@string/mark_read"
         android:titleCondensed="@string/read"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_unfav"
+        android:title="@string/remove_favorite"
+        android:titleCondensed="@string/remove_favorite"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_fav"
+        android:title="@string/mark_favorite"
+        android:titleCondensed="@string/mark_favorite"
         app:showAsAction="ifRoom" />
 
     <item

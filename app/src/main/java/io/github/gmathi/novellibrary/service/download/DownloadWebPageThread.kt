@@ -37,9 +37,12 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_RUNNING, download.webPageUrl)
             downloadListener.handleEvent(DownloadWebPageEvent(EventType.RUNNING, webPageSettings.url, download))
 
-            if (downloadChapter(webPageSettings, webPage)) {
+            val downloadComplete = downloadChapter(webPageSettings, webPage)
+            if (downloadComplete) {
                 dbHelper.deleteDownload(download.webPageUrl)
                 //downloadListener.handleEvent(DownloadWebPageEvent(EventType.COMPLETE, webPageSettings.url, download))
+            } else {
+                Logs.error(TAG, "Download did not complete!")
             }
 
         } catch (e: InterruptedException) {
@@ -63,13 +66,19 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         if (!uri.host.isNullOrBlank()) {
 
             val htmlHelper = HtmlHelper.getInstance(doc, uri.host ?: doc.location())
-            htmlHelper.clean(doc, hostDir, novelDir)
+            htmlHelper.downloadResources(doc, hostDir, novelDir)
             webPageSettings.title = htmlHelper.getTitle(doc)
             val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName()))
-                    ?: return false
+                ?: return false
             webPageSettings.filePath = file.path
             webPageSettings.redirectedUrl = doc.location()
 
+            // We need to clean up the document to get only valid linked URLS
+            htmlHelper.removeJS(doc)
+            htmlHelper.additionalProcessing(doc)
+            htmlHelper.setProperHrefUrls(doc)
+
+            // Now we extract other links from the cleaned doc
             val otherLinks = htmlHelper.getLinkedChapters(doc)
             if (otherLinks.isNotEmpty()) {
                 val otherWebPages = ArrayList<WebPageSettings>()
@@ -104,13 +113,13 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
         val webPageSettings = WebPageSettings(otherChapterLink, novelId)
         val htmlHelper = HtmlHelper.getInstance(doc, uri.host ?: doc.location())
-        htmlHelper.clean(doc, hostDir, novelDir)
+        htmlHelper.downloadResources(doc, hostDir, novelDir)
 
         webPageSettings.title = htmlHelper.getTitle(doc)
         if (webPageSettings.title != null && webPageSettings.title == "") webPageSettings.title = doc.location()
 
         val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName()))
-                ?: return null
+            ?: return null
         webPageSettings.filePath = file.path
         webPageSettings.redirectedUrl = doc.location()
         return webPageSettings

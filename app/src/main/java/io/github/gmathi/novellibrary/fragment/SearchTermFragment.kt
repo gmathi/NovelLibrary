@@ -5,14 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import co.metalab.asyncawait.async
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.extensions.isFragmentActive
-import io.github.gmathi.novellibrary.extensions.startNovelDetailsActivity
+import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.*
 import io.github.gmathi.novellibrary.util.Logs
@@ -28,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, GenericAdapter.LoadMoreListener {
 
     override var currentPageNumber: Int = 1
-    override val preloadCount:Int = 50
+    override val preloadCount: Int = 50
     override val isPageLoading: AtomicBoolean = AtomicBoolean(false)
     private lateinit var searchTerm: String
     private lateinit var resultType: String
@@ -87,24 +86,28 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
         async search@{
 
             if (!Utils.isConnectedToNetwork(activity)) {
-                progressLayout.showError(ContextCompat.getDrawable(requireContext(), R.drawable.ic_warning_white_vector), getString(R.string.no_internet), getString(R.string.try_again)) {
+                progressLayout.noInternetError(View.OnClickListener {
                     progressLayout.showLoading()
                     currentPageNumber = 1
                     searchNovels()
-                }
+                })
                 return@search
             }
 
             val searchTerms = URLEncoder.encode(searchTerm, "UTF-8")
             var results: ArrayList<Novel>? = null
 
-            when (resultType) {
-                HostNames.NOVEL_UPDATES -> results = await { NovelApi.searchNovelUpdates(searchTerms, currentPageNumber) }
-                HostNames.ROYAL_ROAD -> results = await { NovelApi.searchRoyalRoad(searchTerms, currentPageNumber) }
-                HostNames.NOVEL_FULL -> results = await { NovelApi.searchNovelFull(searchTerms, currentPageNumber) }
-                HostNames.WLN_UPDATES -> results = await { NovelApi.searchWlnUpdates(searchTerms) }
-                HostNames.SCRIBBLE_HUB -> results = await { NovelApi.searchScribbleHub(searchTerms, currentPageNumber) }
-                HostNames.LNMTL -> results = await { NovelApi.searchLNMTL(searchTerms) }
+            try {
+                when (resultType) {
+                    HostNames.NOVEL_UPDATES -> results = await { NovelApi.searchNovelUpdates(searchTerms, currentPageNumber) }
+                    HostNames.ROYAL_ROAD -> results = await { NovelApi.searchRoyalRoad(searchTerms, currentPageNumber) }
+                    HostNames.NOVEL_FULL -> results = await { NovelApi.searchNovelFull(searchTerms, currentPageNumber) }
+                    HostNames.WLN_UPDATES -> results = await { NovelApi.searchWlnUpdates(searchTerms) }
+                    HostNames.SCRIBBLE_HUB -> results = await { NovelApi.searchScribbleHub(searchTerms, currentPageNumber) }
+                    HostNames.LNMTL -> results = await { NovelApi.searchLNMTL(searchTerms) }
+                }
+            } catch (e: Exception) {
+                Logs.error("Search Term", "Search Failed!", e)
             }
 
             if (results != null) {
@@ -115,11 +118,11 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
                 }
             } else {
                 if (isFragmentActive() && progressLayout != null)
-                    progressLayout.showError(ContextCompat.getDrawable(requireContext(), R.drawable.ic_warning_white_vector), getString(R.string.connection_error), getString(R.string.try_again)) {
+                    progressLayout.showError(errorText = getString(R.string.connection_error), buttonText = getString(R.string.try_again), onClickListener = View.OnClickListener {
                         progressLayout.showLoading()
                         currentPageNumber = 1
                         searchNovels()
-                    }
+                    })
             }
         }
     }
@@ -138,11 +141,16 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
         if (adapter.items.isEmpty()) {
             if (isFragmentActive() && progressLayout != null)
-                progressLayout.showError(ContextCompat.getDrawable(requireContext(), R.drawable.ic_youtube_searched_for_white_vector), "No Novels Found!", "Try Again") {
-                    progressLayout.showLoading()
-                    currentPageNumber = 1
-                    searchNovels()
-                }
+                progressLayout.showEmpty(
+                    resId = R.raw.empty_search,
+                    isLottieAnimation = true,
+                    emptyText = "No Novels Found!",
+                    buttonText = getString(R.string.try_again),
+                    onClickListener = View.OnClickListener {
+                        progressLayout.showLoading()
+                        currentPageNumber = 1
+                        searchNovels()
+                    })
         } else {
             if (isFragmentActive() && progressLayout != null)
                 progressLayout.showContent()
@@ -158,7 +166,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
     //region Adapter Listener Methods - onItemClick(), viewBinder()
 
-    override fun onItemClick(item: Novel) {
+    override fun onItemClick(item: Novel, position: Int) {
         (activity as? AppCompatActivity)?.startNovelDetailsActivity(item, false)
         //addToDownloads(item)
     }
@@ -168,13 +176,15 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
         if (!item.imageUrl.isNullOrBlank()) {
             Glide.with(this)
-                    .load(item.imageUrl?.getGlideUrl())
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(itemView.novelImageView)
+                .load(item.imageUrl?.getGlideUrl())
+                .apply(RequestOptions.circleCropTransform())
+                .into(itemView.novelImageView)
         }
 
         //Other Data Fields
         itemView.novelTitleTextView.text = item.name
+        itemView.novelTitleTextView.isSelected = dataCenter.enableScrollingText
+
         if (item.rating != null && item.rating != "N/A") {
             var ratingText = "(N/A)"
             try {

@@ -130,6 +130,11 @@ fun AppCompatActivity.startReaderSettingsActivity() {
     startActivityForResult(intent, Constants.READER_SETTINGS_ACT_REQ_CODE)
 }
 
+fun AppCompatActivity.startReaderBackgroundSettingsActivity() {
+    val intent = Intent(this, ReaderBackgroundSettingsActivity::class.java)
+    startActivityForResult(intent, Constants.READER_BACKGROUND_SETTINGS_ACT_REQ_CODE)
+}
+
 fun AppCompatActivity.startMentionSettingsActivity() {
     val intent = Intent(this, MentionSettingsActivity::class.java)
     startActivity(intent)

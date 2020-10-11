@@ -26,14 +26,14 @@ import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.worker.oneTimeBackupWorkRequest
-import io.github.gmathi.novellibrary.worker.oneTimeRestoreWorkRequest
-import io.github.gmathi.novellibrary.worker.periodicBackupWorkRequest
 import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.worker.BackupWorker
+import io.github.gmathi.novellibrary.worker.oneTimeBackupWorkRequest
+import io.github.gmathi.novellibrary.worker.oneTimeRestoreWorkRequest
+import io.github.gmathi.novellibrary.worker.periodicBackupWorkRequest
 import kotlinx.android.synthetic.main.activity_settings.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_title_subtitle_widget.view.*
@@ -116,7 +116,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         )
     }
 
-    override fun onItemClick(item: String) {
+    override fun onItemClick(item: String, position: Int) {
         when (item) {
             getString(R.string.internal_clear_data) ->
                 deleteFilesDialog()
@@ -277,6 +277,8 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         files = shouldRestoreFiles
 
         if (dataCenter.showRestoreHint) {
+
+
             SuperActivityToast.create(this, Style(), Style.TYPE_BUTTON)
                 .setButtonText(getString(R.string.dont_show_again))
                 .setOnButtonClickListener(
@@ -320,10 +322,15 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                             else
                                 null
 
+                        //Backup File location is not the same
                         if (uri != oldUri) {
                             // Release old permissions
-                            if (oldUri != null)
-                                contentResolver.releasePersistableUriPermission(oldUri, readWriteFlags)
+                            try {
+                                if (oldUri != null)
+                                    contentResolver.releasePersistableUriPermission(oldUri, readWriteFlags)
+                            } catch (e: Exception) {
+                                //Don't do anything
+                            }
 
                             // Request for the new permissions to persist
                             contentResolver.takePersistableUriPermission(uri, data.flags and readWriteFlags)
