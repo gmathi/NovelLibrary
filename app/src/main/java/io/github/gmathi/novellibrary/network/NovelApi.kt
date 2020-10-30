@@ -3,7 +3,7 @@ package io.github.gmathi.novellibrary.network
 import android.net.Uri
 import io.github.gmathi.novellibrary.network.proxy.BaseProxyHelper
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.extensions.fixMalformed
+import io.github.gmathi.novellibrary.extensions.fixMalformedWithHost
 import org.jsoup.Connection
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -75,7 +75,7 @@ object NovelApi {
                 response = connection.execute()
 
                 if (!response.hasHeader("location")) break
-                redirectUrl = response.header("location").fixMalformed
+                redirectUrl = response.header("location").fixMalformedWithHost(response.url().host, response.url().protocol)
             } while (--redirectLimit >= 0)
 
             val body = proxy?.body(response) ?: response.body()
