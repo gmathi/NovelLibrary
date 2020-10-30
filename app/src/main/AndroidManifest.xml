@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="io.github.gmathi.novellibrary" >
+    package="io.github.gmathi.novellibrary">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -22,16 +22,17 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
-        tools:ignore="UnusedAttribute" >
+        tools:ignore="UnusedAttribute">
         <activity
             android:name=".activity.settings.GoogleBackupActivity"
             android:label="@string/title_activity_google_backup"
-            android:theme="@style/DarkTheme_DarkSide" >
-<!--            <intent-filter>-->
-<!--                <action android:name="android.intent.action.MAIN" />-->
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide">
+            <!--            <intent-filter>-->
+            <!--                <action android:name="android.intent.action.MAIN" />-->
 
-<!--                <category android:name="android.intent.category.LAUNCHER" />-->
-<!--            </intent-filter>-->
+            <!--                <category android:name="android.intent.category.LAUNCHER" />-->
+            <!--            </intent-filter>-->
         </activity>
         <!-- [START fcm_default_icon] -->
         <!--
@@ -53,7 +54,8 @@
             android:name="com.google.firebase.messaging.default_notification_channel"
             android:value="@string/default_notification_channel_id" />
 
-        <service android:name=".service.firebase.NLFirebaseMessagingService" >
+        <service android:name=".service.firebase.NLFirebaseMessagingService"
+            android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
@@ -61,7 +63,7 @@
         <service
             android:name=".service.sync.BackgroundNovelSyncTask"
             android:exported="true"
-            android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE" >
+            android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE">
             <intent-filter>
                 <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY" />
             </intent-filter>
@@ -80,24 +82,29 @@
         <activity
             android:name=".activity.NovelDetailsActivity"
             android:label="@string/title_activity_novel_details"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.ImagePreviewActivity"
             android:label=""
+            android:screenOrientation="fullUser"
             android:theme="@style/AppImagePreview" />
         <activity
             android:name=".activity.ReaderDBPagerActivity"
             android:label="@string/title_activity_reader_pager"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.SettingsActivity"
             android:label="@string/title_activity_settings"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.NavDrawerActivity"
             android:label="@string/title_activity_nav_drawer"
             android:launchMode="singleTask"
-            android:theme="@style/DarkTheme_DarkSide" >
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -113,56 +120,69 @@
         <activity
             android:name=".activity.MetaDataActivity"
             android:label="@string/title_activity_meta_data"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.LibrariesUsedActivity"
             android:label="@string/title_activity_libraries_used"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.ContributionsActivity"
             android:label="@string/title_activity_contributions"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.CopyrightActivity"
             android:label="@string/title_activity_copyright"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.CloudFlareBypassActivity"
             android:label="@string/cloud_flare_check"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.SearchUrlActivity"
             android:label="@string/title_activity_search_results"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.GeneralSettingsActivity"
             android:label="@string/title_activity_general_settings"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.BackupSettingsActivity"
             android:label="@string/title_activity_backup_n_restore_settings"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.ReaderSettingsActivity"
             android:label="@string/title_activity_reader_settings"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.MentionSettingsActivity"
             android:label="@string/title_activity_mention_settings"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.LanguageActivity"
             android:label="@string/title_activity_language"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.NovelDownloadsActivity"
             android:label="@string/title_activity_novel_downloads"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.ImportLibraryActivity"
             android:label="@string/title_activity_import_library"
             android:parentActivityName=".activity.NavDrawerActivity"
-            android:theme="@style/DarkTheme_DarkSide" >
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="io.github.gmathi.novellibrary.activity.NavDrawerActivity" />
@@ -193,31 +213,36 @@
         <activity
             android:name=".activity.RecentlyUpdatedNovelsActivity"
             android:label="@string/title_activity_recently_updated_novels"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.RecentlyViewedNovelsActivity"
             android:label="@string/title_activity_recently_viewed_novels"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.WebViewActivity"
             android:label="@string/title_activity_web_view"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.NovelSectionsActivity"
             android:label="@string/title_activity_novel_sections"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.ChaptersPagerActivity"
             android:label="@string/title_activity_chapters"
+            android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
-        android:name=".activity.LibrarySearchActivity"
-        android:theme="@style/DarkTheme_DarkSide" >
-        </activity>
+            android:name=".activity.LibrarySearchActivity"
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.ReaderBackgroundSettingsActivity"
-            android:theme="@style/DarkTheme_DarkSide" >
-        </activity>
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide" />
 
         <service
             android:name=".service.tts.TTSService"
@@ -228,7 +253,7 @@
             android:name=".util.GenericFileProvider"
             android:authorities="${applicationId}.provider"
             android:exported="false"
-            android:grantUriPermissions="true" >
+            android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
