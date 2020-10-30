@@ -292,31 +292,47 @@ fun getScribbleHubChapterUrls(novel: Novel): ArrayList<WebPage>? {
 fun getLNMTLChapterUrls(novel: Novel): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
-        val doc = Jsoup.connect(novel.url).get()
+        // Fetch initial info about available volumes and API endpoint route
+        val doc = getDocument(novel.url)
 
         val scripts = doc.select("script")
         val script = scripts.find { it.html().contains("lnmtl.firstResponse =") } ?: return chapters
-        val text = script.html()
+        val text = script.html().split(";")
 
-        val json = text.substring(text.indexOf("lnmtl.firstResponse =") + 21)
-            .substringBefore(";lnmtl.volumes =")
+        // It can be hardcoded to be `https://lnmtl.com/chapter`, but I decided to parse it just in case.
+        val route = text.find { it.startsWith("lnmtl.route =") }?.trim()?.substring(15)?.substringBeforeLast('\'') ?: "https://lnmtl.com/chapter";
+        val volumeJson = text.find { it.startsWith("lnmtl.volumes =") }?.substring(15)
 
         val type = object : TypeToken<Map<String, Any>>() {}.type
-        val gson: LinkedTreeMap<String, Any> = Gson().fromJson(json, type) ?: return chapters
+        val volumeType = object : TypeToken<List<Map<String, Any>>>() {}.type
+        val volumeGson: List<LinkedTreeMap<String, Any>> = Gson().fromJson(volumeJson, volumeType)?: return chapters
 
-        @Suppress("UNCHECKED_CAST")
-        val data = gson["data"] as List<LinkedTreeMap<String, Any>>
-
+        // Potential optimization is to skip fetching first page of first volume,
+        // but that would increase code complexity a lot
         var orderId = 0L
         chapters = ArrayList()
-        for (chapter in data) {
-            val url = chapter["site_url"]
-            val title = chapter["title"]
-            if (url !is String || title !is String) continue
-            val webPage = WebPage(url, title)
-            webPage.orderId = orderId++
-            webPage.novelId = novel.id
-            chapters.add(webPage)
+        for (volume in volumeGson) {
+            val id = (volume["id"] as Double).toInt()
+            var page = 1
+            do {
+                val pageDoc = Jsoup.connect("${route}?page=${page++}&volumeId=${id}").ignoreContentType(true).execute().body()
+                val pageGson: LinkedTreeMap<String, Any> = Gson().fromJson(pageDoc, type) ?: break
+
+                @Suppress("UNCHECKED_CAST")
+                val data = pageGson["data"] as List<LinkedTreeMap<String, Any>>
+
+                for (chapter in data) {
+                    val url = chapter["site_url"]
+                    val title = "c${chapter["position"]?:(orderId+1)}${if (chapter["part"] != null) "p${chapter["part"]}" else ""} ${chapter["title"]?:""}"
+                    if (url !is String) continue
+                    val webPage = WebPage(url, title)
+                    webPage.orderId = orderId++
+                    webPage.novelId = novel.id
+                    chapters.add(webPage)
+                }
+
+            } while (pageGson["total"] != pageGson["to"])
+
         }
     } catch (e: Exception) {
         e.printStackTrace()
