@@ -71,5 +71,15 @@ inline val String.fixMalformed: String
         }
     }
 
+fun String.fixMalformedWithHost(host: String?, protocol: String?): String {
+    var url = this
+    if (url.startsWith("//"))
+        url = url.replaceFirst("//", (protocol ?: "http") + "://")
+    if (host != null && url.startsWith("/"))
+        url = (protocol ?: "http") + "://" + host + url
+    return url
+}
+
+
 inline val String?.getUrlDomain: String?
     get() = this?.let { this.toHttpUrlOrNull()?.topPrivateDomain() }

@@ -1,9 +1,9 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.animation.Animator
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
@@ -13,7 +13,10 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.*
+import io.github.gmathi.novellibrary.extensions.hideSoftKeyboard
+import io.github.gmathi.novellibrary.extensions.startChaptersActivity
+import io.github.gmathi.novellibrary.extensions.startNovelDetailsActivity
+import io.github.gmathi.novellibrary.extensions.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.activity_library_search.*
@@ -144,6 +147,7 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
             popup.menuInflater.inflate(R.menu.menu_popup_novel, popup.menu)
             popup.menu.findItem(R.id.action_novel_remove).isVisible = false
             popup.menu.findItem(R.id.action_novel_assign_novel_section).isVisible = false
+//            popup.menu.findItem(R.id.action_reset_novel).isVisible = false
 
             popup.setOnMenuItemClickListener { menuItem ->
                 when (menuItem.itemId) {

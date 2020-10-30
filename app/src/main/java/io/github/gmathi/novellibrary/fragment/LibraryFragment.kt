@@ -152,6 +152,18 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                         onItemDismiss(position)
                         true
                     }
+//                    R.id.action_reset_novel -> {
+//                        var novel: Novel = adapter.items[position]
+//                        var chapters: ArrayList<WebPage>? = null
+//                        Utils.deleteNovel(requireContext(), novel.id)
+//                        if (novel.id != -1L) true
+//                        novel.id = dbHelper.insertNovel(novel)
+//
+//                        //There is a chance that the above insertion might fail
+//                        if (novel.id == -1L) true
+//                        chapters?.forEach {chapter -> chapter.novelId = novel.id }
+//                        true
+//                    }
                     else -> {
                         true
                     }
