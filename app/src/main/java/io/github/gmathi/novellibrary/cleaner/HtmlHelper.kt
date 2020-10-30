@@ -306,7 +306,7 @@ open class HtmlHelper protected constructor() {
                 p  {
                     text-align: left;
                 }
-                ${if (dataCenter.limitImageWidth) "img { max-width: 100%; }" else ""}
+                ${if (dataCenter.limitImageWidth) "img { max-width: 100%; height: initial !important; }" else ""}
             </style>
             """.trimIndent()
         )
