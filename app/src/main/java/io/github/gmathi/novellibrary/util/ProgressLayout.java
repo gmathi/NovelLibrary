@@ -21,12 +21,15 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 
 import com.airbnb.lottie.LottieAnimationView;
+import com.airbnb.lottie.LottieDrawable;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import io.github.gmathi.novellibrary.R;
+
+import static android.animation.ValueAnimator.INFINITE;
 
 public class ProgressLayout extends RelativeLayout {
 
@@ -85,7 +88,7 @@ public class ProgressLayout extends RelativeLayout {
     }
 
     private void init() {
-        inflater = LayoutInflater.from(getContext());
+        inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         currentBackground = this.getBackground();
     }
 

@@ -584,6 +584,5 @@
     <string name="scrolling_text_description">Enable scrolling text on novel titles and other items where text is too large to fit on the screen</string>
     <string name="auto_read_next_chapter">Auto Read Next Chapter</string>
     <string name="auto_read_next_chapter_description">Automatically read the next chapter when the current chapter finishes in Read Aloud mode</string>
-    <string name="reset_novel">Reset Novel</string>
 
 </resources>

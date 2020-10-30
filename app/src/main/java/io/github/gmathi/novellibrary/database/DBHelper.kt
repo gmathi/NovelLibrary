@@ -6,6 +6,9 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.Constants
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 
 
 class DBHelper
@@ -240,15 +243,5 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         deleteNovelGenre(novel.id)
         deleteDownloads(novel.name)
     }
-
-//    fun resetNovel(novel: Novel) {
-//        deleteDownloads(novel.name)
-//        if (novel.id == -1L) {
-//            novel.id = dbHelper.insertNovel(novel)
-//
-//            //There is a chance that the above insertion might fail
-//            var x = novel.id
-//        }
-//    }
 }
 
