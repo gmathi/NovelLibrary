@@ -15,12 +15,11 @@ class WuxiaWorldHelper : HtmlHelper() {
         removeCSS(doc)
         var contentElement = doc.selectFirst("div.p-15")
         contentElement?.selectFirst("div.font-resize")?.remove()
-        contentElement?.select("span[style]")?.forEach { it?.removeAttr("style") }
+        cleanCSSFromChildren(contentElement)
 
         do {
+            cleanClassAndIds(contentElement)
             contentElement?.siblingElements()?.remove()
-            contentElement?.classNames()?.forEach { contentElement?.removeClass(it) }
-            contentElement?.attr("style", "")
             contentElement = contentElement?.parent()
         } while (contentElement != null && contentElement.tagName() != "body")
         contentElement?.classNames()?.forEach { contentElement.removeClass(it) }

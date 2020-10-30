@@ -482,9 +482,6 @@ open class HtmlHelper protected constructor() {
      * It could be done with Android capabilities, but it seems that Color utilities do not have HSL color space (only HSV).
      */
     private fun invertColor(red: Double, green: Double, blue: Double, alpha: Double): String {
-        val rf = red / 255.0
-        val gf = green / 255.0
-        val bf = blue / 255.0
         val min = red.coerceAtMost(green).coerceAtMost(blue)
         val max = red.coerceAtLeast(green).coerceAtLeast(blue)
         val lightness = (min + max) / 2.0
