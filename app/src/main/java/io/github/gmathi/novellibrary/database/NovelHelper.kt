@@ -6,7 +6,10 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.NovelGenre
+import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.network.getNovelDetails
 import io.github.gmathi.novellibrary.util.Logs
+import kotlinx.coroutines.coroutineScope
 import java.util.*
 
 private const val LOG = "NovelHelper"
@@ -223,4 +226,12 @@ fun DBHelper.updateChaptersCount(novelId: Long, chaptersCount: Long) {
     this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
 }
 
+// Using Kotlin suspend functions
+suspend fun DBHelper.resetNovel(novel: Novel) = coroutineScope {
+    // Completely delete all novel data and start fresh. Hard reset mode ;p
+    cleanupNovelData(novel)
 
+    // Notice: Cannot run getNovelDetails on MainThread
+    val newNovel = NovelApi.getNovelDetails(novel.url)
+    if (newNovel != null) insertNovel(newNovel)
+}
