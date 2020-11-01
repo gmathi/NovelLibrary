@@ -36,6 +36,9 @@ import kotlinx.coroutines.runBlocking
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 
 class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleItemTouchListener {
@@ -167,6 +170,20 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                         onItemDismiss(position)
                         true
                     }
+                    R.id.action_reset_novel -> {
+                        if (!Utils.isConnectedToNetwork(context)) { showAlertDialog(message = "You need to be connected to Internet to Hard Reset.")}
+                        val novel: Novel = adapter.items[position]
+                        // We cannot block the main thread since we end up using Network methods later in dbHelper.resetNovel()
+                        // Instead of using async{} which is deprecated, we can use GlobalScope.Launch {} which uses the Kotlin Coroutines
+                        // We run resetNovel in GlobalScope, wait for it with .join() (which is why we need runBlocking{})
+                        // then we syncNovels() so that it shows in Library
+                        runBlocking {
+                            GlobalScope.launch { dbHelper.resetNovel(novel) }.join()
+                            setData()
+                        }
+                        true
+                    }
+
                     else -> {
                         true
                     }
@@ -263,7 +280,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         }
     }
 
-    private fun syncNovels() {
+    private fun syncNovels(novel: Novel? = null) {
         //activity.startSyncService()
         async syncing@{
 
@@ -284,7 +301,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             val totalCountMap: HashMap<Novel, Int> = HashMap()
 
-            val novels = dbHelper.getAllNovels(novelSectionId)
+            val novels = if (novel == null) dbHelper.getAllNovels(novelSectionId) else listOf(novel)
             novels.forEach {
                 try {
                     val totalChapters = await { NovelApi.getChapterCount(it) }

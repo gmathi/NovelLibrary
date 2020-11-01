@@ -226,12 +226,14 @@ fun DBHelper.updateChaptersCount(novelId: Long, chaptersCount: Long) {
     this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
 }
 
-// Using Kotlin suspend functions
+
 suspend fun DBHelper.resetNovel(novel: Novel) = coroutineScope {
     // Completely delete all novel data and start fresh. Hard reset mode ;p
     cleanupNovelData(novel)
 
     // Notice: Cannot run getNovelDetails on MainThread
     val newNovel = NovelApi.getNovelDetails(novel.url)
+    newNovel?.novelSectionId =  novel.novelSectionId
+    newNovel?.orderId = novel.orderId
     if (newNovel != null) insertNovel(newNovel)
 }
