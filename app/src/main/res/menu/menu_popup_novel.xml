@@ -15,6 +15,10 @@
         android:title="@string/assign_novel_section" />
 
     <item
+        android:id="@+id/action_reset_novel"
+        android:title="@string/reset_novel" />
+
+    <item
         android:id="@+id/action_novel_remove"
         android:title="@string/remove" />
 
