@@ -45,7 +45,6 @@ import org.greenrobot.eventbus.ThreadMode
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
-import java.lang.IllegalStateException
 import java.net.URL
 
 
@@ -275,6 +274,12 @@ class WebPageDBFragment : BaseFragment() {
                 doc?.outerHtml(),
                 "text/html", "UTF-8", null
             )
+            if (it.metaData.containsKey(Constants.MetaDataKeys.SCROLL_POSITION)) {
+                readerWebView.scrollTo(
+                    0, (it.metaData[Constants.MetaDataKeys.SCROLL_POSITION]
+                            )!!.toInt()
+                )
+            }
         }
     }
 
