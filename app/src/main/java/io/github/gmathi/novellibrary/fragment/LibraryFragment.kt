@@ -155,22 +155,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                         true
                     }
                     R.id.action_reset_novel -> {
-                        var novel: Novel = adapter.items[position]
-                        // We cannot block the main thread since we end up using Network methods later in dbHelper.resetNovel()
-                        // Instead of using async{} which is deprecated, we can use GlobalScope.Launch {} which uses the Kotlin Coroutines
-                        // We run resetNovel in GlobalScope, wait for it with .join() (which is why we need runBlocking{})
-                        // then we syncNovels() so that it shows in Library
-                        runBlocking {
-                            GlobalScope.launch { dbHelper.resetNovel(novel) }.join()
-                            syncNovels()
-                        }
-                        true
-                    }
-                    R.id.action_novel_remove -> {
-                        onItemDismiss(position)
-                        true
-                    }
-                    R.id.action_reset_novel -> {
                         if (!Utils.isConnectedToNetwork(context)) { showAlertDialog(message = "You need to be connected to Internet to Hard Reset.")}
                         val novel: Novel = adapter.items[position]
                         // We cannot block the main thread since we end up using Network methods later in dbHelper.resetNovel()
@@ -181,6 +165,10 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                             GlobalScope.launch { dbHelper.resetNovel(novel) }.join()
                             setData()
                         }
+                        true
+                    }
+                    R.id.action_novel_remove -> {
+                        onItemDismiss(position)
                         true
                     }
 
