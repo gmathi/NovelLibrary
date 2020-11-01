@@ -154,10 +154,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                         showNovelSectionsList(position)
                         true
                     }
-                    R.id.action_novel_remove -> {
-                        onItemDismiss(position)
-                        true
-                    }
                     R.id.action_reset_novel -> {
                         if (!Utils.isConnectedToNetwork(context)) { showAlertDialog(message = "You need to be connected to Internet to Hard Reset.")}
                         val novel: Novel = adapter.items[position]
@@ -171,6 +167,11 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                         }
                         true
                     }
+                    R.id.action_novel_remove -> {
+                        onItemDismiss(position)
+                        true
+                    }
+
 
                     else -> {
                         true
