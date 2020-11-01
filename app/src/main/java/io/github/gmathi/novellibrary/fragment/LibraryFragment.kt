@@ -172,7 +172,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                         true
                     }
 
-
                     else -> {
                         true
                     }

@@ -226,6 +226,7 @@ fun DBHelper.updateChaptersCount(novelId: Long, chaptersCount: Long) {
     this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
 }
 
+
 suspend fun DBHelper.resetNovel(novel: Novel) = coroutineScope {
     // Completely delete all novel data and start fresh. Hard reset mode ;p
     cleanupNovelData(novel)
@@ -236,6 +237,3 @@ suspend fun DBHelper.resetNovel(novel: Novel) = coroutineScope {
     newNovel?.orderId = novel.orderId
     if (newNovel != null) insertNovel(newNovel)
 }
-
-
-
