@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.service.sync
 
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -131,6 +130,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         private val thisClass = BackgroundNovelSyncTask::class.java
         private const val TAG = "BackgroundNovelSyncTask"
         private const val UPDATE_NOTIFICATION_GROUP = "updateNotificationGroup"
+        private var NOTIFICATION_ID = 0
 
         fun scheduleRepeat(context: Context) {
             cancelAll(context)
@@ -172,6 +172,9 @@ class BackgroundNovelSyncTask : GcmTaskService() {
     }
 
     private fun showBundledNotifications(novelsList: ArrayList<Novel>, contentIntent: PendingIntent) {
+        if (NOTIFICATION_ID == 0) {
+            NOTIFICATION_ID = Utils.getUniqueNotificationId()
+        }
         val notificationManager = NotificationManagerCompat.from(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notificationManager.createNotificationChannel(
@@ -186,17 +189,14 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
         val first = createNotificationBuilder(getString(R.string.app_name), getString(R.string.group_update_notification_text), contentIntent)
         first.setGroupSummary(true).setGroup(UPDATE_NOTIFICATION_GROUP)
-        notificationManager.notify(Utils.getUniqueNotificationId(), first.build())
+        notificationManager.notify(NOTIFICATION_ID, first.build())
 
-        val notificationList = ArrayList<Notification>()
         novelsList.forEach { novel ->
             val notificationBuilder =
                 createNotificationBuilder(novel.name, getString(R.string.new_chapters_notification_content_single, novel.newReleasesCount.toInt()), createNovelDetailsPendingIntent(novel))
             notificationBuilder.setGroup(UPDATE_NOTIFICATION_GROUP)
-            notificationList.add(notificationBuilder.build())
+            notificationManager.notify((NOTIFICATION_ID + novel.id + 1).toInt(), notificationBuilder.build())
         }
-
-        notificationList.forEach { notificationManager.notify(Utils.getUniqueNotificationId(), it) }
     }
 
 

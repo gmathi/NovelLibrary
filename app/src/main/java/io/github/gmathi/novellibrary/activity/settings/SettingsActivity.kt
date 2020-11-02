@@ -72,13 +72,13 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     @Suppress("DEPRECATION")
     private fun setRemoteConfig() {
-        remoteConfig.setConfigSettings(FirebaseRemoteConfigSettings.Builder().setDeveloperModeEnabled(BuildConfig.DEBUG).build())
+        remoteConfig.setConfigSettingsAsync(FirebaseRemoteConfigSettings.Builder().build())
         val defaults = HashMap<String, Any>()
         defaults[CODE_NAME_SCRIB] = DEFAULT_CODE
         defaults[CODE_NAME_NF] = DEFAULT_CODE
         defaults[CODE_NAME_RRL] = DEFAULT_CODE
         defaults[CODE_NAME_WW] = DEFAULT_CODE
-        remoteConfig.setDefaults(defaults)
+        remoteConfig.setDefaultsAsync(defaults)
         remoteConfig.fetchAndActivate()
     }
 

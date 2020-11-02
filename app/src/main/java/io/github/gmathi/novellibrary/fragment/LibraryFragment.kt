@@ -30,6 +30,9 @@ import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.content_library.*
 import kotlinx.android.synthetic.main.listitem_library.view.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -148,10 +151,27 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                         showNovelSectionsList(position)
                         true
                     }
+                    R.id.action_reset_novel -> {
+                        if (Utils.isConnectedToNetwork(context)) {
+                            val novel: Novel = adapter.items[position]
+                            // We cannot block the main thread since we end up using Network methods later in dbHelper.resetNovel()
+                            // Instead of using async{} which is deprecated, we can use GlobalScope.Launch {} which uses the Kotlin Coroutines
+                            // We run resetNovel in GlobalScope, wait for it with .join() (which is why we need runBlocking{})
+                            // then we syncNovels() so that it shows in Library
+                            runBlocking {
+                                GlobalScope.launch { dbHelper.resetNovel(novel) }.join()
+                                setData()
+                            }
+                        } else {
+                            showAlertDialog(message = "You need to be connected to Internet to Hard Reset.")
+                        }
+                        true
+                    }
                     R.id.action_novel_remove -> {
                         onItemDismiss(position)
                         true
                     }
+
                     else -> {
                         true
                     }
@@ -248,7 +268,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         }
     }
 
-    private fun syncNovels() {
+    private fun syncNovels(novel: Novel? = null) {
         //activity.startSyncService()
         async syncing@{
 
@@ -269,7 +289,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             val totalCountMap: HashMap<Novel, Int> = HashMap()
 
-            val novels = dbHelper.getAllNovels(novelSectionId)
+            val novels = if (novel == null) dbHelper.getAllNovels(novelSectionId) else listOf(novel)
             novels.forEach {
                 try {
                     val totalChapters = await { NovelApi.getChapterCount(it) }

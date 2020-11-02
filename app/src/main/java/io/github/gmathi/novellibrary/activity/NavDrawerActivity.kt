@@ -74,20 +74,21 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                .title("\uD83C\uDF89 What's New 0.15.4.beta!")
+                .title("\uD83C\uDF89 What's New 0.15.5.beta!")
                 .content(
-                    "✨ Reader Mode Themes - For now you can change Day & Night mode colors\n" +
-                            "✨️ Read Aloud - Automatically goes to next chapter.\n" +
-                            "✨ New Chapter Notifications are working again!\n" +
+//                    "✨ Fix for downloaded pages to remember the scroll position\n" +
+//                            "✨️ Read Aloud - Automatically goes to next chapter.\n" +
+//                            "✨ New Chapter Notifications are working again!\n" +
 //                            "\uD83D\uDEE0 Support for 3 more translation sites in reader mode.\n" +
-                            "⚠️ Fix - Chapters threading bug\n" +
-                            "⚠️ Fix - Show all the meta data tags in More Information screen.\n" +
-//                            "⚠️ Fix - Downloads will now download linked pages.\n" +
+                    "⚠️ Fix - Downloaded pages to remember the scroll position\n" +
+                            "⚠️ Fix - Reader Mode fix for Wuxia Novels\n" +
+                            "⚠️ Fix - LNMTL chapters load correctly, with Chapter/Volume Numbers\n" +
+                            "⚠️ Fix - Updated Notifications will stack/update the previous notification\n" +
 //                            "\uD83D\uDEE0 Discord link updated.\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
 //                            "✨ Read Aloud moved to bottom in the reader settings.\n" +
 //                                    "✨ Added Hidden Buttons to unlock some hidden functionality!" +
-//                            "\uD83D\uDEE0 Quality bug fixes inlcuding linked offline pages support!" +
+                            "\uD83D\uDEE0  Experimental - Added Hard Reset to Novel Popup menu to reset the novel." +
                             ""
                 )
                 .positiveText("Ok")
