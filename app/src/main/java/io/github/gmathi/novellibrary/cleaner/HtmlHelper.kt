@@ -110,6 +110,9 @@ open class HtmlHelper protected constructor() {
             contentElement = doc.body().select("article.article-content").firstOrNull()
             if (contentElement != null) return GeneralClassTagHelper(url, "article", "article-content")
 
+            contentElement = doc.body().select("div.page-content").firstOrNull()
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "page-content")
+
             //Lastly let's check for cloud flare
             contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
             if (contentElement != null) return CloudFlareDDoSTagHelper()
