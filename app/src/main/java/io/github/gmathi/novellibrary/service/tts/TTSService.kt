@@ -88,7 +88,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     override fun onCreate() {
         super.onCreate()
 
-        //android.os.Debug.waitForDebugger()
+        android.os.Debug.waitForDebugger()
 
         // Build a PendingIntent that can be used to launch the UI.
         val sessionActivityPendingIntent = PendingIntent.getActivity(this, 0, Intent(), 0)
@@ -231,8 +231,34 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         //Reset old data
         lines.clear()
         lineNumber = 0
+        var extractedLines: ArrayList<String> = ArrayList()
+        audioText?.split("\n")?.filter { it.isNotEmpty() }?.mapTo(extractedLines) { it }
 
-        audioText?.split("\n")?.mapTo(lines) { it }
+        val characterLimit = 50
+        extractedLines.forEach { extractedLine ->
+            //If line length is less than `characterLimit`
+            if (extractedLine.length < characterLimit) {
+                lines.add(extractedLine)
+                return@forEach
+            }
+
+            //Break a single big line in to multiple lines
+            var lineToBreak = extractedLine.trim()
+            while (lineToBreak.isNotEmpty()) {
+                var index = lineToBreak.indexOf(".")
+                while (index != -1 && index < characterLimit) {
+                    index = lineToBreak.indexOf(".", startIndex = index+1)
+                }
+
+                if (index == -1) {
+                    lines.add(lineToBreak)
+                    return@forEach
+                } else {
+                    lines.add(lineToBreak.substring(0, index+1))
+                    lineToBreak = lineToBreak.substring(index+1, lineToBreak.length).trim()
+                }
+            }
+        }
 
 //        Testing Only - Auto Next Chapter
 //        val tempArray = audioText?.split("\n") ?: return
