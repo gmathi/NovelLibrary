@@ -6,12 +6,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.GravityCompat
+import com.google.firebase.analytics.ktx.logEvent
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.NavPageListener
 import io.github.gmathi.novellibrary.adapter.SearchResultsListener
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.extensions.FAC
 import io.github.gmathi.novellibrary.extensions.hideSoftKeyboard
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.util.SimpleAnimationListener
@@ -82,6 +85,9 @@ class SearchFragment : BaseFragment() {
                 if (query != null) {
                     searchNovels(query)
                     searchView.setSuggestionBuilder(SuggestionsBuilder(dataCenter.loadNovelSearchHistory()))
+                    (activity as BaseActivity).firebaseAnalytics.logEvent(FAC.Event.SEARCH_NOVEL) {
+                        param(FAC.Param.SEARCH_TERM, query)
+                    }
                 }
             }
 

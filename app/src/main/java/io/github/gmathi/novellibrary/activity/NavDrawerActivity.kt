@@ -11,9 +11,11 @@ import androidx.fragment.app.FragmentTransaction
 import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.firebase.ui.auth.IdpResponse
+import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.messaging.FirebaseMessaging
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
@@ -69,6 +71,18 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             intent.removeExtra("showDownloads")
             startNovelDownloadsActivity()
         }
+
+        //Test
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Logs.warning("", "Fetching FCM registration token failed", task.exception!!)
+                return@OnCompleteListener
+            }
+
+            // Get new FCM registration token
+            val token = task.result
+            Logs.warning("", "FCM registration token - $token")
+        })
     }
 
     private fun showWhatsNewDialog() {

@@ -88,7 +88,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     override fun onCreate() {
         super.onCreate()
 
-        android.os.Debug.waitForDebugger()
+        //android.os.Debug.waitForDebugger()
 
         // Build a PendingIntent that can be used to launch the UI.
         val sessionActivityPendingIntent = PendingIntent.getActivity(this, 0, Intent(), 0)

@@ -23,6 +23,7 @@ import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.Theme
 import com.bumptech.glide.Glide
+import com.google.firebase.analytics.ktx.logEvent
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
@@ -196,6 +197,10 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     private fun addNovelToDB() {
         if (novel.id == -1L) {
             novel.id = dbHelper.insertNovel(novel)
+            firebaseAnalytics.logEvent(FAC.Event.ADD_NOVEL) {
+                param(FAC.Param.NOVEL_NAME, novel.name)
+                param(FAC.Param.NOVEL_URL, novel.url)
+            }
         }
     }
 
@@ -294,6 +299,10 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         novel.id = -1L
         setNovelAddToLibraryButton()
         invalidateOptionsMenu()
+        firebaseAnalytics.logEvent(FAC.Event.REMOVE_NOVEL) {
+            param(FAC.Param.NOVEL_NAME, novel.name)
+            param(FAC.Param.NOVEL_URL, novel.url)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
