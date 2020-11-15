@@ -36,6 +36,7 @@ import io.github.gmathi.novellibrary.network.getNovelDetails
 import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.activity_novel_details.*
 import kotlinx.android.synthetic.main.content_novel_details.*
+import kotlinx.android.synthetic.main.listitem_metadata.view.*
 
 
 class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener {
@@ -137,6 +138,18 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         novelDetailsStatus.applyFont(assets).text = "N/A"
         if (novel.metaData["Year"] != null)
             novelDetailsStatus.applyFont(assets).text = novel.metaData["Year"]
+
+        if (novel.metaData["English Publisher"]?:"" != "" || novel.metaData["Licensed (in English)"] == "Yes") {
+            val publisher = if (novel.metaData["English Publisher"] == null || novel.metaData["English Publisher"] == "") "an unknown publisher" else novel.metaData["English Publisher"]
+            val warningLabel = getString(R.string.licensed_warning, publisher)
+            @Suppress("DEPRECATION")
+            novelDetailsLicensedAlert.movementMethod = TextViewLinkHandler(this)
+            novelDetailsLicensedAlert.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+                Html.fromHtml(warningLabel, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(warningLabel)
+            novelDetailsLicensedLayout.visibility = View.VISIBLE
+        } else {
+            novelDetailsLicensedLayout.visibility = View.GONE
+        }
 
         setNovelRating()
         setNovelAddToLibraryButton()

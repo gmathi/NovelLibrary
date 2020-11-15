@@ -587,5 +587,7 @@
 
     <!-- 0.15.5-->
     <string name="reset_novel" tools:ignore="MissingTranslation">Hard Reset Novel</string>
+    
+    <string name="licensed_warning">This novel was officially licensed by %1$s and may have missing (by DMCA or voluntary), or paywalled, chapters</string>
 
 </resources>
