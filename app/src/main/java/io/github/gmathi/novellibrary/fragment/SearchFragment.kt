@@ -161,6 +161,7 @@ class SearchFragment : BaseFragment() {
             titles.add("ScribbleHub")
         titles.add("WLN-Updates")
         titles.add("LNMTL")
+        titles.add("Neovel")
 
         val searchPageAdapter: GenericFragmentStatePagerAdapter
         searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles.toTypedArray(), titles.size, SearchResultsListener(searchTerm, titles))

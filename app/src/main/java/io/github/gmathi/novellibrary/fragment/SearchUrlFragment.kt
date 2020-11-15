@@ -32,6 +32,8 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
     private lateinit var searchUrl: String
 
     companion object {
+        private const val TAG = "SearchUrlFragment"
+
         fun newInstance(url: String): SearchUrlFragment {
             val bundle = Bundle()
             bundle.putString("url", url)
@@ -165,7 +167,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
                 itemView.novelRatingBar.rating = rating
                 ratingText = "(" + String.format("%.1f", rating) + ")"
             } catch (e: Exception) {
-                Logs.warning("Library Activity", "Rating: " + item.rating, e)
+                Logs.warning(TAG, "Rating: " + item.rating, e)
             }
             itemView.novelRatingText.text = ratingText
         }

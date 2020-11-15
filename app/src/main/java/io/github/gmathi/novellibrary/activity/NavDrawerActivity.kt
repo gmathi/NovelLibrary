@@ -72,17 +72,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             startNovelDownloadsActivity()
         }
 
-        //Test
-        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                Logs.warning("", "Fetching FCM registration token failed", task.exception!!)
-                return@OnCompleteListener
-            }
-
-            // Get new FCM registration token
-            val token = task.result
-            Logs.warning("", "FCM registration token - $token")
-        })
     }
 
     private fun showWhatsNewDialog() {

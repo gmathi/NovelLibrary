@@ -15,13 +15,13 @@ object Constants {
     const val VOLUME_SCROLL_LENGTH_STEP = 250
     const val VOLUME_SCROLL_LENGTH_MIN = -10
     const val VOLUME_SCROLL_LENGTH_MAX = 10
-    const val IMMERSIVE_MODE_FLAGS = ( SYSTEM_UI_FLAG_LAYOUT_STABLE
+    const val IMMERSIVE_MODE_FLAGS = (SYSTEM_UI_FLAG_LAYOUT_STABLE
             or SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
             or SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
             or SYSTEM_UI_FLAG_HIDE_NAVIGATION
             or SYSTEM_UI_FLAG_FULLSCREEN
             or SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-    const val IMMERSIVE_MODE_W_NAVBAR_FLAGS = ( SYSTEM_UI_FLAG_LAYOUT_STABLE
+    const val IMMERSIVE_MODE_W_NAVBAR_FLAGS = (SYSTEM_UI_FLAG_LAYOUT_STABLE
             or SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
             or SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
             or SYSTEM_UI_FLAG_FULLSCREEN
@@ -71,8 +71,6 @@ object Constants {
     const val ADD_FONT_REQUEST_CODE = 1101
 
 
-
-
     //endregion
 
 
@@ -118,8 +116,8 @@ object Constants {
 
     const val WORK_KEY_RESULT = "result"
 
-    const val WLNUpdatesAPIUrl = "https://www.${HostNames.WLN_UPDATES}/api"
-
+    const val WLN_UPDATES_API_URL = "https://www.${HostNames.WLN_UPDATES}/api"
+    const val NEOVEL_API_URL = "https://${HostNames.NEOVEL}/"
 
     object Status {
         const val NO_INTERNET = "noInternet"

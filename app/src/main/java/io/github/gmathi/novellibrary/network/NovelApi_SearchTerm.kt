@@ -3,13 +3,18 @@ package io.github.gmathi.novellibrary.network
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.google.gson.annotations.SerializedName
+import io.github.gmathi.novellibrary.extensions.asJsonNullFreeString
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi.getDocument
-import io.github.gmathi.novellibrary.util.Constants.WLNUpdatesAPIUrl
+import io.github.gmathi.novellibrary.util.Constants.NEOVEL_API_URL
+import io.github.gmathi.novellibrary.util.Constants.WLN_UPDATES_API_URL
+import io.github.gmathi.novellibrary.util.encodeBase64ToString
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 fun NovelApi.searchRoyalRoad(searchTerms: String, pageNumber: Int = 1): ArrayList<Novel>? {
@@ -72,7 +77,7 @@ fun NovelApi.searchWlnUpdates(searchTerms: String): ArrayList<Novel>? {
         val body = json.toRequestBody("application/json".toMediaType())
 
         val request = Request.Builder()
-            .url(WLNUpdatesAPIUrl)
+            .url(WLN_UPDATES_API_URL)
             .post(body)
             .build()
         val response = OkHttpClient().newCall(request).execute()
@@ -193,5 +198,40 @@ fun NovelApi.searchLNMTL(searchTerms: String): ArrayList<Novel>? {
         ArrayList(novelsLNMTL!!.filter { it.name.contains(searchTerms, true) })
     else
         ArrayList()
+}
+
+fun NovelApi.searchNeovel(searchTerms: String): ArrayList<Novel>? {
+    var searchResults: ArrayList<Novel>? = null
+    try {
+        searchResults = ArrayList()
+
+        val request = Request.Builder()
+            .url(NEOVEL_API_URL+"V2/books/search?language=ALL&filter=0&name=${searchTerms.encodeBase64ToString()}&sort=6&page=0&onlyOffline=true&genreIds=0&genreCombining=0&tagIds=0&tagCombining=0&minChapterCount=0&maxChapterCount=4000")
+            .get()
+            .build()
+        val response = OkHttpClient().newCall(request).execute()
+        val jsonString = response.body?.string() ?: return searchResults
+        val jsonArray = JsonParser.parseString(jsonString).asJsonArray
+
+        jsonArray.forEach { result ->
+            val resultObject = result.asJsonObject
+            val id = resultObject["id"].asInt.toString()
+            val novelUrl = "https://${HostNames.NEOVEL}/V1/book/details?bookId=$id&language=EN"
+            val novel = resultObject["name"].asJsonNullFreeString?.let { Novel(it, novelUrl) } ?: return@forEach
+            novel.imageUrl = "https://${HostNames.NEOVEL}/V2/book/image?bookId=$id&oldApp=false"
+            novel.metaData["id"] = id
+            novel.rating = resultObject["rating"].asFloat.toString()
+            searchResults.add(novel)
+        }
+
+//        val document = getDocument("https://www.wlnupdates.com/search?title=${searchTerms.replace(" ", "+")}")
+//        val elements = document.body().select("td") ?: return searchResults
+//        elements.mapTo(searchResults) {
+//            Novel(it.select("a[href]").text(), it.select("a[href]").attr("abs:href"))
+//        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return searchResults
 }
 

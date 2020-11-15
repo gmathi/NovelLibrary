@@ -44,6 +44,7 @@ open class HtmlHelper protected constructor() {
                 url.contains(HostNames.TUMBLR) -> return TumblrCleaner()
                 url.contains(HostNames.BAKA_TSUKI) -> return BakaTsukiCleaner()
                 url.contains(HostNames.SCRIBBLE_HUB) -> return ScribbleHubHelper()
+                url.contains(HostNames.NEOVEL) -> return NeovelHelper()
             }
 
             var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("chapter-content") }

@@ -11,7 +11,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.extensions.openInBrowser
-import io.github.gmathi.novellibrary.model.Library
+import io.github.gmathi.novellibrary.model.GenericJsonMappedModel
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.applyFont
@@ -23,10 +23,10 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 
-class ContributionsActivity : BaseActivity(), GenericAdapter.Listener<Library> {
+class ContributionsActivity : BaseActivity(), GenericAdapter.Listener<GenericJsonMappedModel> {
 
-    lateinit var adapter: GenericAdapter<Library>
-    private lateinit var contributors: ArrayList<Library>
+    lateinit var adapter: GenericAdapter<GenericJsonMappedModel>
+    private lateinit var contributors: ArrayList<GenericJsonMappedModel>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,7 +39,7 @@ class ContributionsActivity : BaseActivity(), GenericAdapter.Listener<Library> {
         setRecyclerView()
     }
 
-    private fun getContributorsData(): ArrayList<Library?>? {
+    private fun getContributorsData(): ArrayList<GenericJsonMappedModel?>? {
         val reader: BufferedReader
         val stringBuilder = StringBuilder()
         try {
@@ -49,7 +49,7 @@ class ContributionsActivity : BaseActivity(), GenericAdapter.Listener<Library> {
                 stringBuilder.append(mLine)
                 mLine = reader.readLine()
             }
-            return Gson().fromJson(stringBuilder.toString(), object : TypeToken<ArrayList<Library>>() {}.type)
+            return Gson().fromJson(stringBuilder.toString(), object : TypeToken<ArrayList<GenericJsonMappedModel>>() {}.type)
         } catch (e: IOException) {
             Logs.error("ContributionsActivity", e.localizedMessage, e)
         }
@@ -63,7 +63,7 @@ class ContributionsActivity : BaseActivity(), GenericAdapter.Listener<Library> {
         swipeRefreshLayout.isEnabled = false
     }
 
-    override fun bind(item: Library, itemView: View, position: Int) {
+    override fun bind(item: GenericJsonMappedModel, itemView: View, position: Int) {
         itemView.title.applyFont(assets).text = item.name
         itemView.subtitle.applyFont(assets).text = item.description
         itemView.chevron.visibility = if (!item.link.isNullOrBlank()) View.VISIBLE else View.INVISIBLE
@@ -71,7 +71,7 @@ class ContributionsActivity : BaseActivity(), GenericAdapter.Listener<Library> {
         else ContextCompat.getColor(this, android.R.color.transparent))
     }
 
-    override fun onItemClick(item: Library, position: Int) {
+    override fun onItemClick(item: GenericJsonMappedModel, position: Int) {
         if (!item.link.isNullOrBlank())
             openInBrowser(item.link!!)
     }

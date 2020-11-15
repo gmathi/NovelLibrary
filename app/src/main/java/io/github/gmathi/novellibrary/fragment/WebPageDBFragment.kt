@@ -36,6 +36,7 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.setDefaultSettings
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.fragment_reader.*
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -151,6 +152,7 @@ class WebPageDBFragment : BaseFragment() {
 
     @SuppressLint("JavascriptInterface", "AddJavascriptInterface")
     private fun setWebView() {
+        readerWebView.setDefaultSettings()
         readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
         readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled
         readerWebView.settings.userAgentString = HostNames.USER_AGENT
