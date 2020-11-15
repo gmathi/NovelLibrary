@@ -45,6 +45,7 @@ open class HtmlHelper protected constructor() {
                 url.contains(HostNames.BAKA_TSUKI) -> return BakaTsukiCleaner()
                 url.contains(HostNames.SCRIBBLE_HUB) -> return ScribbleHubHelper()
                 url.contains(HostNames.NEOVEL) -> return NeovelHelper()
+                url.contains(HostNames.ACTIVE_TRANSLATIONS) -> return ActiveTranslationHelper()
             }
 
             var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("chapter-content") }
@@ -317,6 +318,9 @@ open class HtmlHelper protected constructor() {
                     width: initial !important;
                     height: initial !important;
                 }
+                svg {
+                    max-width: 100vw;
+                }
             </style>
             """.trimIndent()
         )
@@ -382,6 +386,13 @@ open class HtmlHelper protected constructor() {
                         // Image is not linking anywhere - apply zoom on click.
                         img.addEventListener("click", toggleZoom);
                     }
+                }
+                
+                // Attempt to mitigate SVGs being extremely big by limiting their size based off `viewBox` attribute.
+                var svg = document.querySelectorAll("svg");
+                for (var i = 0; i < svg.length; i++) {
+                    var s = svg[i];
+                    s.style.maxWidth = "min(100vw, " + s.viewBox.baseVal.width + "px)";
                 }
             </script>
             """.trimIndent()
