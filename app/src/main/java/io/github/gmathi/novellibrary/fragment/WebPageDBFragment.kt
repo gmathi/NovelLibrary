@@ -152,7 +152,7 @@ class WebPageDBFragment : BaseFragment() {
     @SuppressLint("JavascriptInterface", "AddJavascriptInterface")
     private fun setWebView() {
         readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
-        readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled
+        readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
         readerWebView.settings.userAgentString = HostNames.USER_AGENT
         readerWebView.setBackgroundColor(Color.argb(1, 0, 0, 0))
         readerWebView.addJavascriptInterface(this, "HTMLOUT")
@@ -410,10 +410,11 @@ class WebPageDBFragment : BaseFragment() {
         loadData()
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     private fun cleanDocument(doc: Document) {
         try {
             progressLayout.showLoading()
-            readerWebView.settings.javaScriptEnabled = false
+            readerWebView.settings.javaScriptEnabled = true
             val htmlHelper = HtmlHelper.getInstance(doc)
             htmlHelper.removeJS(doc)
             htmlHelper.additionalProcessing(doc)
@@ -485,13 +486,14 @@ class WebPageDBFragment : BaseFragment() {
             ReaderSettingsEvent.READER_MODE -> {
                 readerWebView.loadUrl("about:blank")
                 readerWebView.clearHistory()
+                readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
                 loadData()
             }
             ReaderSettingsEvent.TEXT_SIZE -> {
                 changeTextSize()
             }
             ReaderSettingsEvent.JAVA_SCRIPT -> {
-                readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled
+                readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
                 loadData()
             }
             ReaderSettingsEvent.FONT -> {

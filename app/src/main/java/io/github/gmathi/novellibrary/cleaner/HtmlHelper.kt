@@ -307,7 +307,79 @@ open class HtmlHelper protected constructor() {
                     text-align: left;
                 }
                 ${if (dataCenter.limitImageWidth) "img { max-width: 100%; height: initial !important; }" else ""}
+                img.full-size-image {
+                    max-width: initial !important;
+                    max-height: initial !important;
+                    width: initial !important;
+                    height: initial !important;
+                }
             </style>
+            """.trimIndent()
+        )
+        doc.body().append(
+            """
+            <script>
+                function longPressStart(e) {
+                    var img = e.currentTarget;
+                    var t = e.changedTouches[0];
+                    img._touch = t.identifier;
+                    img._touchX = t.screenX;
+                    img._touchY = t.screenY;
+                    img._pressTime = e.timeStamp;
+                }
+                function longPressEnd(e) {
+                    var img = e.currentTarget;
+                    var t = e.changedTouches[0];
+                    var dx = t.screenX - img._touchX;
+                    var dy = t.screenY - img._touchY;
+                    var radius = Math.max(t.radiusX||20, t.radiusY||20) * 2;
+                    // Only accept touch zoom action when we don't scroll and we unpressed same finger that initiated the touch.
+                    if (t.identifier === img._touch) {
+                        var dt = e.timeStamp = img._pressTime;
+                        if (dt > 600 && (dx*dx+dy*dy) < radius*radius) {
+                            // Pressed for 0.6s
+                            toggleZoom(e);
+                        }
+                        img._touch = null;
+                    }
+                }
+                function toggleZoom(e) {
+                    var img = e.currentTarget;
+                    // Some websites use thumbnails + attribute to load images in full-screen mode
+                    // Try to detect that and swap the image url to the full one.
+                    var original = img.getAttribute("data-orig-file");
+                    if (img.classList.toggle("full-size-image")) {
+                        if (original && img.src != original) {
+                            img._srcset = img.srcset;
+                            img._thumbnail = img.src;
+                            img.srcset = "";
+                            img.src = original;
+                        }
+                    } else if (original && img._thumbnail) {
+                        img.src = img._thumbnail;
+                        img.srcset = img._srcset;
+                    }
+                }
+                var images = document.querySelectorAll("img");
+                for (var i = 0; i < images.length; i++) {
+                    var img = images[i];
+                    // Check if image is part of the link.
+                    var parent = img.parentElement;
+                    do {
+                      if (parent.tagName == "A") break;
+                       parent = parent.parentElement;
+                    } while (parent);
+                    
+                    if (parent) {
+                        // Image is part of the link, apply zoom toggle on long press.
+                        img.addEventListener("touchstart", longPressStart);
+                        img.addEventListener("touchend", longPressEnd);
+                    } else {
+                        // Image is not linking anywhere - apply zoom on click.
+                        img.addEventListener("click", toggleZoom);
+                    }
+                }
+            </script>
             """.trimIndent()
         )
 
