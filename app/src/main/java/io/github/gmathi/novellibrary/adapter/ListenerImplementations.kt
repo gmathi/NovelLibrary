@@ -32,7 +32,7 @@ class SearchResultsListener(private val searchTerms: String, private val tabName
             "NovelFull" -> SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_FULL)
             "ScribbleHub" -> SearchTermFragment.newInstance(searchTerms, HostNames.SCRIBBLE_HUB)
             "LNMTL" -> SearchTermFragment.newInstance(searchTerms, HostNames.LNMTL)
-            "Neovel" -> SearchTermFragment.newInstance(searchTerms, HostNames.NEOVEL)
+            //"Neovel" -> SearchTermFragment.newInstance(searchTerms, HostNames.NEOVEL)
             else -> SearchTermFragment.newInstance(searchTerms, HostNames.WLN_UPDATES)
         }
     }
