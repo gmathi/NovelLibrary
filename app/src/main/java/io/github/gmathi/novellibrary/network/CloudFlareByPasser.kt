@@ -13,6 +13,7 @@ import co.metalab.asyncawait.async
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.setDefaultSettings
 import org.jsoup.HttpStatusException
 import org.jsoup.Jsoup
 import java.io.IOException
@@ -30,7 +31,9 @@ object CloudFlareByPasser {
                 Logs.error(TAG, "is needed")
                 clearCookies(hostName)
 
-                val webView = WebView(context).apply {
+                val webView = WebView(context)
+                webView.setDefaultSettings()
+                webView.apply {
                     settings?.javaScriptEnabled = true
                     settings?.userAgentString = HostNames.USER_AGENT
                     webViewClient = object : WebViewClient() {

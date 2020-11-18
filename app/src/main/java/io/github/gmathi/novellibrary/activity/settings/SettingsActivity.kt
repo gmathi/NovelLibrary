@@ -46,7 +46,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         const val CODE_NAME_SCRIB = "code_unlock_scrib"
         const val CODE_NAME_NF = "code_unlock_nf"
         const val CODE_NAME_RRL = "code_unlock_rrl"
-        const val CODE_NAME_WW = "code_unlock_ww"
+        const val CODE_NAME_WW = "code_unlock_wwd"
 
     }
 

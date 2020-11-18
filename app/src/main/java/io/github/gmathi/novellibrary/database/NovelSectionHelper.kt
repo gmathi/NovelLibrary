@@ -1,7 +1,6 @@
 package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
-import android.util.Log
 import io.github.gmathi.novellibrary.model.NovelSection
 import io.github.gmathi.novellibrary.util.Logs
 
@@ -18,8 +17,8 @@ fun DBHelper.createNovelSection(novelSectionName: String): Long {
 }
 
 fun DBHelper.getNovelSection(novelSectionName: String): NovelSection? {
-    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_NOVEL_SECTION} WHERE ${DBKeys.KEY_NAME} = \"$novelSectionName\""
-    return getNovelSectionFromQuery(selectQuery)
+    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_NOVEL_SECTION} WHERE ${DBKeys.KEY_NAME} = ?"
+    return getNovelSectionFromQuery(selectQuery, arrayOf(novelSectionName))
 }
 
 fun DBHelper.getNovelSection(novelSectionId: Long): NovelSection? {
@@ -27,10 +26,10 @@ fun DBHelper.getNovelSection(novelSectionId: Long): NovelSection? {
     return getNovelSectionFromQuery(selectQuery)
 }
 
-fun DBHelper.getNovelSectionFromQuery(selectQuery: String): NovelSection? {
+fun DBHelper.getNovelSectionFromQuery(selectQuery: String, selectionArgs: Array<String>? = null): NovelSection? {
     val db = this.readableDatabase
     Logs.debug(LOG, selectQuery)
-    val cursor = db.rawQuery(selectQuery, null)
+    val cursor = db.rawQuery(selectQuery, selectionArgs)
     var novelSection: NovelSection? = null
     if (cursor != null) {
         if (cursor.moveToFirst()) {
@@ -91,8 +90,10 @@ fun DBHelper.updateNovelSectionName(novelSectionId: Long, name: String) {
 
 fun DBHelper.deleteNovelSection(id: Long) {
     val db = this.writableDatabase
-    db.delete(DBKeys.TABLE_NOVEL_SECTION, DBKeys.KEY_ID + " = ?",
-            arrayOf(id.toString()))
+    db.delete(
+        DBKeys.TABLE_NOVEL_SECTION, DBKeys.KEY_ID + " = ?",
+        arrayOf(id.toString())
+    )
 }
 
 

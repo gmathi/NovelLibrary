@@ -44,6 +44,8 @@ open class HtmlHelper protected constructor() {
                 url.contains(HostNames.TUMBLR) -> return TumblrCleaner()
                 url.contains(HostNames.BAKA_TSUKI) -> return BakaTsukiCleaner()
                 url.contains(HostNames.SCRIBBLE_HUB) -> return ScribbleHubHelper()
+                url.contains(HostNames.NEOVEL) -> return NeovelHelper()
+                url.contains(HostNames.ACTIVE_TRANSLATIONS) -> return ActiveTranslationHelper()
             }
 
             var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("chapter-content") }
@@ -109,6 +111,9 @@ open class HtmlHelper protected constructor() {
 
             contentElement = doc.body().select("article.article-content").firstOrNull()
             if (contentElement != null) return GeneralClassTagHelper(url, "article", "article-content")
+
+            contentElement = doc.body().select("div.page-content").firstOrNull()
+            if (contentElement != null) return GeneralClassTagHelper(url, "div", "page-content")
 
             //Lastly let's check for cloud flare
             contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
@@ -307,7 +312,89 @@ open class HtmlHelper protected constructor() {
                     text-align: left;
                 }
                 ${if (dataCenter.limitImageWidth) "img { max-width: 100%; height: initial !important; }" else ""}
+                img.full-size-image {
+                    max-width: initial !important;
+                    max-height: initial !important;
+                    width: initial !important;
+                    height: initial !important;
+                }
+                svg {
+                    max-width: 100vw;
+                }
             </style>
+            """.trimIndent()
+        )
+        doc.body().append(
+            """
+            <script>
+                function longPressStart(e) {
+                    var img = e.currentTarget;
+                    var t = e.changedTouches[0];
+                    img._touch = t.identifier;
+                    img._touchX = t.screenX;
+                    img._touchY = t.screenY;
+                    img._pressTime = e.timeStamp;
+                }
+                function longPressEnd(e) {
+                    var img = e.currentTarget;
+                    var t = e.changedTouches[0];
+                    var dx = t.screenX - img._touchX;
+                    var dy = t.screenY - img._touchY;
+                    var radius = Math.max(t.radiusX||20, t.radiusY||20) * 2;
+                    // Only accept touch zoom action when we don't scroll and we unpressed same finger that initiated the touch.
+                    if (t.identifier === img._touch) {
+                        var dt = e.timeStamp = img._pressTime;
+                        if (dt > 600 && (dx*dx+dy*dy) < radius*radius) {
+                            // Pressed for 0.6s
+                            toggleZoom(e);
+                        }
+                        img._touch = null;
+                    }
+                }
+                function toggleZoom(e) {
+                    var img = e.currentTarget;
+                    // Some websites use thumbnails + attribute to load images in full-screen mode
+                    // Try to detect that and swap the image url to the full one.
+                    var original = img.getAttribute("data-orig-file");
+                    if (img.classList.toggle("full-size-image")) {
+                        if (original && img.src != original) {
+                            img._srcset = img.srcset;
+                            img._thumbnail = img.src;
+                            img.srcset = "";
+                            img.src = original;
+                        }
+                    } else if (original && img._thumbnail) {
+                        img.src = img._thumbnail;
+                        img.srcset = img._srcset;
+                    }
+                }
+                var images = document.querySelectorAll("img");
+                for (var i = 0; i < images.length; i++) {
+                    var img = images[i];
+                    // Check if image is part of the link.
+                    var parent = img.parentElement;
+                    do {
+                      if (parent.tagName == "A") break;
+                       parent = parent.parentElement;
+                    } while (parent);
+                    
+                    if (parent) {
+                        // Image is part of the link, apply zoom toggle on long press.
+                        img.addEventListener("touchstart", longPressStart);
+                        img.addEventListener("touchend", longPressEnd);
+                    } else {
+                        // Image is not linking anywhere - apply zoom on click.
+                        img.addEventListener("click", toggleZoom);
+                    }
+                }
+                
+                // Attempt to mitigate SVGs being extremely big by limiting their size based off `viewBox` attribute.
+                var svg = document.querySelectorAll("svg");
+                for (var i = 0; i < svg.length; i++) {
+                    var s = svg[i];
+                    s.style.maxWidth = "min(100vw, " + s.viewBox.baseVal.width + "px)";
+                }
+            </script>
             """.trimIndent()
         )
 

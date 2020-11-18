@@ -116,7 +116,9 @@ class NovelLibraryApplication : MultiDexApplication() {
             if (hostName != null) HostNames.isVerifiedHost(hostName) else false
         }
         val context = SSLContext.getInstance("TLS")
-        context.init(null, arrayOf(MultiTrustManager()), SecureRandom())
+        val multiTrustManager = MultiTrustManager()
+        multiTrustManager.addDefaultTrustManager()
+        context.init(null, arrayOf(multiTrustManager), SecureRandom())
         HttpsURLConnection.setDefaultSSLSocketFactory(context.socketFactory)
     }
 
@@ -127,6 +129,7 @@ class NovelLibraryApplication : MultiDexApplication() {
             Logs.error("SecurityException", "Google Play Services not available.")
         } catch (e: Exception) {
             Logs.error("Exception", "Other Exception: ${e.localizedMessage}", e)
+
         }
     }
 

@@ -1,14 +1,15 @@
 package io.github.gmathi.novellibrary.network
 
 import com.google.gson.Gson
+import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.database.createSource
 import io.github.gmathi.novellibrary.database.getSource
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.covertJsonNull
 import io.github.gmathi.novellibrary.extensions.asJsonNullFreeString
+import io.github.gmathi.novellibrary.extensions.covertJsonNull
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi.getDocument
@@ -21,7 +22,11 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.jsoup.Jsoup
 import java.net.URI
 import java.net.URL
-
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
+import kotlin.collections.HashSet
+import kotlin.collections.set
 
 fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayList<WebPage>? {
     val host = URI(novel.url).host
@@ -32,6 +37,7 @@ fun NovelApi.getChapterUrls(novel: Novel, withSources: Boolean = false): ArrayLi
         host.contains(HostNames.NOVEL_FULL) -> return getNovelFullChapterUrls(novel)
         host.contains(HostNames.SCRIBBLE_HUB) -> return getScribbleHubChapterUrls(novel)
         host.contains(HostNames.LNMTL) -> return getLNMTLChapterUrls(novel)
+        host.contains(HostNames.NEOVEL) -> return getNeovelChapterUrls(novel)
     }
     return ArrayList<WebPage>()
 }
@@ -69,7 +75,7 @@ fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage>? {
         val body = json.toRequestBody("application/json".toMediaType())
 
         val request = Request.Builder()
-            .url(Constants.WLNUpdatesAPIUrl)
+            .url(Constants.WLN_UPDATES_API_URL)
             .post(body)
             .build()
         val response = OkHttpClient().newCall(request).execute()
@@ -305,7 +311,7 @@ fun getLNMTLChapterUrls(novel: Novel): ArrayList<WebPage>? {
 
         val type = object : TypeToken<Map<String, Any>>() {}.type
         val volumeType = object : TypeToken<List<Map<String, Any>>>() {}.type
-        val volumeGson: List<LinkedTreeMap<String, Any>> = Gson().fromJson(volumeJson, volumeType)?: return chapters
+        val volumeGson: List<LinkedTreeMap<String, Any>> = Gson().fromJson(volumeJson, volumeType) ?: return chapters
 
         // Potential optimization is to skip fetching first page of first volume,
         // but that would increase code complexity a lot
@@ -323,7 +329,7 @@ fun getLNMTLChapterUrls(novel: Novel): ArrayList<WebPage>? {
 
                 for (chapter in data) {
                     val url = chapter["site_url"]
-                    val title = "c${chapter["position"]?:(orderId+1)}${if (chapter["part"] != null) "p${chapter["part"]}" else ""} ${chapter["title"]?:""}"
+                    val title = "c${chapter["position"] ?: (orderId + 1)}${if (chapter["part"] != null) "p${chapter["part"]}" else ""} ${chapter["title"] ?: ""}"
                     if (url !is String) continue
                     val webPage = WebPage(url, title)
                     webPage.orderId = orderId++
@@ -334,6 +340,59 @@ fun getLNMTLChapterUrls(novel: Novel): ArrayList<WebPage>? {
             } while (pageGson["total"] != pageGson["to"])
 
         }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return chapters
+}
+
+fun NovelApi.getNeovelChapterUrls(novel: Novel): ArrayList<WebPage>? {
+    var chapters: ArrayList<WebPage>? = null
+    try {
+        val novelId = novel.metaData["id"]
+        val url = "https://${HostNames.NEOVEL}/V5/chapters?bookId=$novelId&language=EN"
+
+        val request = Request.Builder()
+            .url(url)
+            .get()
+            .build()
+
+        val response = OkHttpClient().newCall(request).execute()
+        val jsonString = response.body?.string() ?: return chapters
+        val jsonArray = JsonParser.parseString(jsonString)?.asJsonArray ?: return chapters
+
+        val sortedChaptersArray = jsonArray.sortedWith(object : Comparator<JsonElement> {
+            override fun compare(element1: JsonElement?, element2: JsonElement?): Int {
+                val j1Volume = element1?.asJsonObject?.get("chapterVolume")?.asFloat ?: return -1
+                val j2Volume = element2?.asJsonObject?.get("chapterVolume")?.asFloat ?: return 1
+                if (j1Volume.equals(j2Volume)) {
+                    val j1ChapterNumber = element1.asJsonObject?.get("chapterNumber")?.asFloat ?: return -1
+                    val j2ChapterNumber = element2.asJsonObject?.get("chapterNumber")?.asFloat ?: return 1
+                    return j1ChapterNumber.compareTo(j2ChapterNumber)
+                } else {
+                    return j1Volume.compareTo(j2Volume)
+                }
+            }
+        })
+
+        chapters = ArrayList()
+        sortedChaptersArray.forEachIndexed { index, jsonElement ->
+            val jsonObject = jsonElement.asJsonObject ?: return@forEachIndexed
+            val chapterPrefix = "Volume:${jsonObject["chapterVolume"]}, Chapter:${jsonObject["chapterNumber"]}"
+            var chapterName = jsonObject["chapterName"].asJsonNullFreeString ?: ""
+            if (chapterName != "") {
+                chapterName += "\n$chapterPrefix"
+            } else {
+                chapterName = chapterPrefix
+            }
+            val chapterUrl = "https://${HostNames.NEOVEL}/read/$novelId/EN/${jsonObject["chapterId"]}"
+            val webPage = WebPage(url = chapterUrl, chapter = chapterName)
+            webPage.orderId = index.toLong()
+            webPage.novelId = novel.id
+            webPage.sourceId = -1L
+            chapters.add(webPage)
+        }
+
     } catch (e: Exception) {
         e.printStackTrace()
     }

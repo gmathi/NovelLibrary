@@ -153,13 +153,13 @@ fun DBHelper.getDownloadNovelNames(): List<String> {
 
 
 fun DBHelper.hasDownloadsInQueue(novelName: String): Boolean {
-    val selectQuery = "SELECT COUNT(*) FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NAME} = \"$novelName\" AND ${DBKeys.KEY_STATUS} = ${Download.STATUS_IN_QUEUE} LIMIT 1"
-    return (DatabaseUtils.longForQuery(this.readableDatabase, selectQuery, null).toInt() > 0)
+    val selectQuery = "SELECT COUNT(*) FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NAME} = ? AND ${DBKeys.KEY_STATUS} = ${Download.STATUS_IN_QUEUE} LIMIT 1"
+    return (DatabaseUtils.longForQuery(this.readableDatabase, selectQuery, arrayOf(novelName)).toInt() > 0)
 }
 
 fun DBHelper.getRemainingDownloadsCountForNovel(novelName: String): Int {
-    val selectQuery = "SELECT COUNT(*) FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NAME} = \"$novelName\""
-    return DatabaseUtils.longForQuery(this.readableDatabase, selectQuery, null).toInt()
+    val selectQuery = "SELECT COUNT(*) FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NAME} = ?"
+    return DatabaseUtils.longForQuery(this.readableDatabase, selectQuery, arrayOf(novelName)).toInt()
 }
 
 

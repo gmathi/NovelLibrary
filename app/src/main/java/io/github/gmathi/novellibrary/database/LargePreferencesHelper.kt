@@ -1,8 +1,6 @@
 package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
-import android.database.DatabaseUtils
-import android.util.Log
 import io.github.gmathi.novellibrary.util.Logs
 
 private const val LOG = "LargePreferenceHelper"
@@ -21,14 +19,14 @@ fun DBHelper.createOrUpdateLargePreference(name: String, value: String?) {
 }
 
 fun DBHelper.getLargePreference(name: String): String? {
-    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_LARGE_PREFERENCE} WHERE ${DBKeys.KEY_NAME} = \"$name\""
-    return getLargePreferenceFromQuery(selectQuery)
+    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_LARGE_PREFERENCE} WHERE ${DBKeys.KEY_NAME} = ?"
+    return getLargePreferenceFromQuery(selectQuery, arrayOf(name))
 }
 
-fun DBHelper.getLargePreferenceFromQuery(selectQuery: String): String? {
+fun DBHelper.getLargePreferenceFromQuery(selectQuery: String, selectionArgs: Array<String>? = null): String? {
     val db = this.readableDatabase
     Logs.debug(LOG, selectQuery)
-    val cursor = db.rawQuery(selectQuery, null)
+    val cursor = db.rawQuery(selectQuery, selectionArgs)
     var value: String? = null
     if (cursor != null) {
         if (cursor.moveToFirst()) {

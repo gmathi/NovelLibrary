@@ -23,6 +23,7 @@ import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.Theme
 import com.bumptech.glide.Glide
+import com.google.firebase.analytics.ktx.logEvent
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
@@ -138,10 +139,12 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         if (novel.metaData["Year"] != null)
             novelDetailsStatus.applyFont(assets).text = novel.metaData["Year"]
 
+        setLicensingInfo()
         setNovelRating()
         setNovelAddToLibraryButton()
         setNovelGenre()
         setNovelDescription()
+
         novelDetailsChapters.text = getString(R.string.chapters) + " (${novel.chaptersCount})"
         novelDetailsChaptersLayout.setOnClickListener {
             if (novel.chaptersCount != 0L) startChaptersActivity(novel, false)
@@ -166,6 +169,20 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             @Suppress("DEPRECATION")
             novelDetailsAuthor.applyFont(assets).text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
                 Html.fromHtml(author, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(author)
+        }
+    }
+
+    private fun setLicensingInfo() {
+        if (novel.metaData["English Publisher"]?:"" != "" || novel.metaData["Licensed (in English)"] == "Yes") {
+            val publisher = if (novel.metaData["English Publisher"] == null || novel.metaData["English Publisher"] == "") "an unknown publisher" else novel.metaData["English Publisher"]
+            val warningLabel = getString(R.string.licensed_warning, publisher)
+            @Suppress("DEPRECATION")
+            novelDetailsLicensedAlert.movementMethod = TextViewLinkHandler(this)
+            novelDetailsLicensedAlert.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+                Html.fromHtml(warningLabel, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(warningLabel)
+            novelDetailsLicensedLayout.visibility = View.VISIBLE
+        } else {
+            novelDetailsLicensedLayout.visibility = View.GONE
         }
     }
 
@@ -196,6 +213,10 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     private fun addNovelToDB() {
         if (novel.id == -1L) {
             novel.id = dbHelper.insertNovel(novel)
+            firebaseAnalytics.logEvent(FAC.Event.ADD_NOVEL) {
+                param(FAC.Param.NOVEL_NAME, novel.name)
+                param(FAC.Param.NOVEL_URL, novel.url)
+            }
         }
     }
 
@@ -294,6 +315,10 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         novel.id = -1L
         setNovelAddToLibraryButton()
         invalidateOptionsMenu()
+        firebaseAnalytics.logEvent(FAC.Event.REMOVE_NOVEL) {
+            param(FAC.Param.NOVEL_NAME, novel.name)
+            param(FAC.Param.NOVEL_URL, novel.url)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

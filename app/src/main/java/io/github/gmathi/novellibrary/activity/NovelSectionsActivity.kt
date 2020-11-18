@@ -12,10 +12,12 @@ import androidx.core.view.MotionEventCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import com.afollestad.materialdialogs.MaterialDialog
+import com.google.firebase.analytics.ktx.logEvent
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.FAC
 import io.github.gmathi.novellibrary.extensions.showEmpty
 import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.model.NovelSection
@@ -161,6 +163,9 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                         dbHelper.deleteNovelSection(novelSection.id)
                     }
                     setData()
+                    firebaseAnalytics.logEvent(FAC.Event.REMOVE_NOVEL_SECTION) {
+                        param(FAC.Param.NOVEL_SECTION_NAME, novelSection.name ?: "N/A")
+                    }
                     dialog.dismiss()
                 }
             }
@@ -182,6 +187,9 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                 if (newName.isNotBlank() && dbHelper.getNovelSection(newName) == null) {
                     dbHelper.updateNovelSectionName(novelSection.id, newName)
                     setData()
+                    firebaseAnalytics.logEvent(FAC.Event.RENAME_NOVEL_SECTION) {
+                        param(FAC.Param.NOVEL_SECTION_NAME, newName)
+                    }
                 } else {
                     MaterialDialog.Builder(this@NovelSectionsActivity).content(getString(R.string.novel_section_name_error)).show()
                 }
@@ -198,6 +206,9 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                 if (name.isNotBlank() && dbHelper.getNovelSection(name) == null) {
                     dbHelper.createNovelSection(name)
                     setData()
+                    firebaseAnalytics.logEvent(FAC.Event.ADD_NOVEL_SECTION) {
+                        param(FAC.Param.NOVEL_SECTION_NAME, name)
+                    }
                 } else {
                     MaterialDialog.Builder(this@NovelSectionsActivity).content(getString(R.string.novel_section_name_error)).show()
                 }

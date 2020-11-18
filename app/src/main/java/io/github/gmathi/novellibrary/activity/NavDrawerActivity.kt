@@ -69,26 +69,27 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             intent.removeExtra("showDownloads")
             startNovelDownloadsActivity()
         }
+
     }
 
     private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                .title("\uD83C\uDF89 What's New 0.15.5.beta!")
+                .title("\uD83C\uDF89 What's New 0.15.6.beta!")
                 .content(
-//                    "✨ Fix for downloaded pages to remember the scroll position\n" +
-//                            "✨️ Read Aloud - Automatically goes to next chapter.\n" +
-//                            "✨ New Chapter Notifications are working again!\n" +
+                    "✨️ Zoom Images on Reader mode\n" +
+                            "✨ Analytics - so we can try the popular novel from the actual NL reader base.\n" +
+                            "✨ Novel Details shows which novels have been licensed\n" +
+                            "⚠️ Fix - No Novels/Chapters loading issue due to ssl errors\n" +
+                            "⚠️ Fix - ActiveTranslations will work in reader mode\n" +
+                            "⚠️ Fix - Read Aloud bug for Wuxia novels\n" +
+                            "\uD83D\uDEE0️ Other minor bug fixes.\n" +
 //                            "\uD83D\uDEE0 Support for 3 more translation sites in reader mode.\n" +
-                    "⚠️ Fix - Downloaded pages to remember the scroll position\n" +
-                            "⚠️ Fix - Reader Mode fix for Wuxia Novels\n" +
-                            "⚠️ Fix - LNMTL chapters load correctly, with Chapter/Volume Numbers\n" +
-                            "⚠️ Fix - Updated Notifications will stack/update the previous notification\n" +
 //                            "\uD83D\uDEE0 Discord link updated.\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
 //                            "✨ Read Aloud moved to bottom in the reader settings.\n" +
 //                                    "✨ Added Hidden Buttons to unlock some hidden functionality!" +
-                            "\uD83D\uDEE0  Experimental - Added Hard Reset to Novel Popup menu to reset the novel." +
+//                            "\uD83D\uDEE0  Experimental - Added Hard Reset to Novel Popup menu to reset the novel." +
                             ""
                 )
                 .positiveText("Ok")
