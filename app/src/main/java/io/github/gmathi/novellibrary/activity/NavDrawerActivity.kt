@@ -80,11 +80,11 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                     "✨️ Zoom Images on Reader mode\n" +
                             "✨ Analytics - so we can try the popular novel from the actual NL reader base.\n" +
                             "✨ Novel Details shows which novels have been licensed\n" +
-//                            "\uD83D\uDEE0 Support for 3 more translation sites in reader mode.\n" +
                             "⚠️ Fix - No Novels/Chapters loading issue due to ssl errors\n" +
                             "⚠️ Fix - ActiveTranslations will work in reader mode\n" +
                             "⚠️ Fix - Read Aloud bug for Wuxia novels\n" +
                             "\uD83D\uDEE0️ Other minor bug fixes.\n" +
+//                            "\uD83D\uDEE0 Support for 3 more translation sites in reader mode.\n" +
 //                            "\uD83D\uDEE0 Discord link updated.\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
 //                            "✨ Read Aloud moved to bottom in the reader settings.\n" +
