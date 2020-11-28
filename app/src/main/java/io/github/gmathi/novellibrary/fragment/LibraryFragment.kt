@@ -290,12 +290,14 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             val totalCountMap: HashMap<Novel, Int> = HashMap()
 
             val novels = if (novel == null) dbHelper.getAllNovels(novelSectionId) else listOf(novel)
+            var counter = 0
             novels.forEach {
                 try {
                     val totalChapters = await { NovelApi.getChapterCount(it) }
                     if (totalChapters != 0 && totalChapters > it.chaptersCount.toInt()) {
                         totalCountMap[it] = totalChapters
                     }
+                    syncDialog!!.setContent(getString(R.string.sync_fetching_chapter_counts, ++counter, novels.count()))
                 } catch (e: Exception) {
                     Logs.error(TAG, "Novel: $it", e)
                     return@forEach
@@ -303,6 +305,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             }
 
             //Update DB with new chapters
+            counter = 0
             totalCountMap.forEach {
                 val novel = it.key
                 novel.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
@@ -318,6 +321,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                         if (dbHelper.getWebPageSettings(chapters[i].url) == null)
                             dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
                     }
+                    syncDialog!!.setContent(getString(R.string.sync_fetching_chapter_list, ++counter, totalCountMap.count()))
 
                 } catch (e: Exception) {
                     Logs.error(TAG, "Novel: $it", e)
