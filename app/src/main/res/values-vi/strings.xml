@@ -1,0 +1,379 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+       Important please do not change the order of the string-arrays or generally anything unless it's text you're translating
+
+       What You'll Need:
+
+       1. A good text editor I recommend Atom (https://atom.io/), Sublime (https://www.sublimetext.com/), Brackets (http://brackets.io/) if you want to use something else no problem
+       2. A little knowledge on basic HTML things like <p> <b> <i> <br/> since there are certain parts I used a bit of html to format information https://www.w3schools.com/tags/
+       3. Know what character escaping is, because you cannot use characters like ' or , or ; or & or $ or % e.t.c without escaping them. e.g.
+          What\'s Trending should become What\'s Trending (Refer to http://www.ascii.cl/htmlcodes.htm look at the HTML Name Column for some conventions) not what i am looking for?
+
+       Just a quick note for translators, if you see some text that has %s or %d or %f just leave those as they are those are place holders:
+       %s - is a place holder for text most likely coming from NovelLibrary, e.g. %s liked your status post -> will be eCookie or Josh liked your status post
+       %d - is a place holder for a number, e.g. You have %d notifications -> will be You have 1 or 3 or 10 notifications
+       %f - is also a place holder for a decimal number works exactly as the others mentioned above
+
+       I know different languages have different rules like RTL so if you need to change the positions/order of %s or %d or %f you can still do so just don't remove the % sign
+       N.B. If any of the tags <string name="abc" translatable="false" ></string> have an attribute labeled translatable="false" it means you should not translate it!
+       So you can just omit those fields
+
+       Special Cases:
+       1. There are some cases I used <![CDATA[ some text here ]]>  CDATA sections are used to escape blocks of text containing characters that would otherwise be regarded as markup.
+       The only delimiter that is recognized in a CDATA section is the "]]>" string that ends the CDATA section. CDATA sections cannot be nested.
+       Their primary purpose is for including material such as XML fragments, without needing to escape all the delimiters.
+
+       Uploading your files:
+       You may just send the files directly and the file name should be something like strings_en.xml for english and strings_fr.xml for french respective of your locale
+       To All Translators I am very grateful for your help! :)
+   -->
+
+    <string-array name="search_tab_titles">
+        <item>Nổi bật</item>
+        <item>Đánh giá cao</item>
+        <item>Xếp hạng cao</item>
+    </string-array>
+
+    <string name="title_activity_novel_details">Thông tin chi tiết</string>
+    <string name="title_activity_settings">Cài đặt</string>
+    <string name="title_activity_chapters">Các chương truyện</string>
+    <string name="title_activity_meta_data">Nhiều thông tin hơn</string>
+    <string name="title_activity_recently_updated_novels">Truyện cập nhật gần đây</string>
+    <string name="title_activity_recently_viewed_novels">Truyện đã xem gần đây</string>
+
+
+    <string name="action_settings">Cài đặt</string>
+    <string name="action_sync">Đồng bộ cập nhật</string>
+    <string name="action_favourite">Ưa thích</string>
+    <string name="action_bookmark">Đánh dấu</string>
+
+
+    <string name="title_library">Thư viện</string>
+    <string name="title_search">Tìm kiếm</string>
+    <string name="title_downloads">Tải về</string>
+
+    <string name="app_description">Ứng dụng đọc Tiểu thuyết tổng hợp</string>
+
+    <!-- Strings related to Settings -->
+    <!--<string name="pref_title_dark_theme">Chế độ Ban đêm</string>-->
+    <!--<string name="pref_description_dark_theme">Hiện chỉ hỗ trợ RoyalRoadl.com</string>-->
+    <!--<string name="pref_title_experimental_download">Tải xuống siêu tốc (Thử nghiệm) </string>-->
+    <!--<string name="pref_description_experimental_download">Tải xuống cực nhanh. Thiết bị của bạn có thể bị đơ mất một lúc.</string>-->
+    <!--<string name="pref_title_queue_novel_downloads">Hàng chờ tải xuống</string>-->
+    <!--<string name="pref_description_queue_novel_downloads">Lần lượt tải các truyện xuống. Nếu bị tắt, tối đa 5 truyện sẽ được tải xuống cùng lúc.</string>-->
+    <!--<string name="pref_title_download_latest_first">Tải chương mới nhất trước</string>-->
+    <!--<string name="pref_description_download_latest_first">Ưu tiên tải chương mới nhất trước.</string>-->
+    <!--<string name="chapters_left_to_download">Còn %d chương chưa tải xuống</string>-->
+
+
+    <!-- Transition Names -->
+    <string name="synopsis">Tóm tắt</string>
+    <string name="genres">Thể loại</string>
+    <string name="chapters">Các chương truyện</string>
+    <string name="legal">Pháp lý</string>
+
+    <string name="download">Tải xuống</string>
+    <string name="downloaded">Đã tải xuống</string>
+    <string name="downloading">Đang tải xuống</string>
+    <string name="chapters_loading_message">Việc nạp dữ liệu sẽ mất chút thời gian tuỳ thuộc số lượng chương truyện</string>
+
+    <string name="no_internet">Không có kết nối Internet!</string>
+    <string name="try_again">Thử lại</string>
+    <string name="clear">Dọn dẹp</string>
+    <string name="clear_data">Dọn dẹp Cache &amp; Dữ liệu</string>
+    <string name="clear_data_description">Dọn dẹp cache, các tệp tin và cơ sở dữ liệu.</string>
+    <string name="sync">Đồng bộ hoá</string>
+    <string name="remove_from_library">Xoá khỏi thư viện</string>
+    <string name="cancel">Huỷ</string>
+    <string name="remove">Xoá bỏ</string>
+    <string name="confirm_remove">Xác nhận xoá bỏ</string>
+    <string name="confirm_remove_description_novel">Truyện sẽ bị xóa khỏi thư viện đồng thời xoá tất cả các chương</string>
+    <string name="remove_from_downloads">Xoá khỏi Tải xuống?</string>
+    <string name="add_to_library">Thêm vào Thư viện</string>
+    <string name="in_library">Đã có trong Thư viện</string>
+    <string name="sort">Sắp xếp</string>
+    <string name="sort_chapters">Sắp xếp các chương</string>
+    <string name="clearing_data">Đang xoá dữ liệu</string>
+    <string name="please_wait">Đợi một tí…</string>
+    <string name="theme">Chủ đề</string>
+    <string name="toggle_theme">Đổi chủ đề</string>
+    <string name="close_menu">Đóng danh mục</string>
+    <string name="close">Đóng</string>
+    <string name="text_size">Cỡ chữ</string>
+    <string name="more_information">Nhiều thông tin hơn</string>
+    <string name="more_info_description">Hoạ sĩ minh hoạ, Bản quyền, Nhóm dịch, bla bla...</string>
+    <string name="search_novel">Tìm truyện</string>
+    <string name="bug_report">Báo lỗi</string>
+    <string name="open_in_browser">Mở bằng Trình duyệt</string>
+    <string name="share">Chia sẻ</string>
+    <string name="copyright_notice">Nhắc nhở Bản quyền</string>
+    <string name="donate_developer">Ủng hộ Nhà phát triển</string>
+    <string name="about_us">Thông tin về Chúng tôi</string>
+    <string name="cloud_flare_check">Kiểm tra Tường lửa</string>
+    <string name="libraries_used">Các thư viện đã dùng</string>
+    <string name="contributions">Đóng góp</string>
+    <string name="donate">Ủng hộ</string>
+    <string name="donation_email_body">Thanks for all the work. I would like to see this in the next version and here is my donation.</string>
+    <string name="content_restricted">Nội dung bị hạn chế!</string>
+    <string name="lock_hint">Bấm vào nút ẩn để mở khoá nội dung. Cố mà tìm ra nhé!!</string>
+
+
+    <string name="copyright_content" tools:ignore="TypographyQuotes">
+        "Novel Library là ứng dụng cung cấp dịch vụ tổng hợp kết quả tìm kiếm cho "
+        "những người đọc tiểu thuyết. Tất cả các nội dung trong Novel Library được chia sẻ bởi độc giả hoặc được ứng dụng tìm kiếm "
+        "và đối chiếu tự động qua Internet. Novel Library không cung cấp bất cứ nội dung nào. \n\n"
+
+        "Bản quyền của mọi nội dung trong ứng dụng Novel Library thuộc về cả tác giả lẫn nhà xuất bản "
+        "Nếu bạn có thắc mắc về bản quyền nội dung, vui lòng liên hệ "
+        "chúng tôi và chúng tôi sẽ liên lạc lại với bạn rồi gỡ bỏ nội dung. \n\n"
+
+        "Tất cả các nội dung trong ứng dụng Novel Library thể hiện góc nhìn của tác giả một cách cá nhân "
+        "và không thể hiện vị trí của ứng dụng. Chúng tôi xin miễn trừ trách nhiệm pháp lý. "
+        "Nếu bạn thấy bất cứ nội dung nào phạm luật, vui lòng báo cáo với chúng tôi để chúng tôi xem xét. \n\n"
+
+        "Liên hệ: gmathi.developer@gmail.com\n"
+
+    </string>
+
+    <string name="donate_content" tools:ignore="TypographyQuotes">
+        "Việc ủng hộ sẽ giúp tăng tốc ra bản cập nhật và các tính năng mới. "
+        "Bạn có thể gửi tiền ủng hộ bằng ứng dụng Gmail tới gmathi.developer@gmail.com "
+    </string>
+    <string name="app_exit">Bấm Quay lại thêm lần nữa để thoát Novel Library</string>
+    <string name="general">Tổng quan</string>
+    <string name="faster_downloads">Tải xuống nhanh hơn</string>
+    <string name="faster_downloads_description">Đang thử nghiệm: Tải xuống cực nhanh, nhưng thiết bị của bạn có thể bị lag khi đang tải.</string>
+    <string name="first_screen_library">Chọn “Thư viện” làm màn hình chính</string>
+    <string name="first_screen_library_description">Nếu tắt thì “Tìm kiếm” sẽ là màn hình chính.</string>
+    <string name="clean_pages">Dọn chương</string>
+    <string name="clean_pages_description">Dọn dẹp các chương trước khi nạp dữ liệu.</string>
+    <string name="failed_to_load_url">Tải nội dung thất bại!</string>
+    <string name="disable_javascript">Tắt JavaScript</string>
+    <string name="disable_javascript_description">Vài trang web sẽ nạp quảng cáo khi bật JavaScript</string>
+    <string name="donations_description_new">Tôi rất vui vì bạn muốn ủng hộ! Trong lúc này, hãy giới thiệu và chia sẻ ứng dụng với những người thích đọc tiểu thuyết giống bạn!</string>
+    <string name="language">Ngôn ngữ</string>
+    <string name="languages_supported">Các ngôn ngữ được hỗ trợ</string>
+    <string name="download_chapters">Tải các mục đã chọn</string>
+    <string name="mark_read">Đánh dấu đã đọc</string>
+    <string name="mark_unread">Đánh dấu chưa đọc</string>
+    <string name="unread">Chưa đọc</string>
+    <string name="read">Đã đọc</string>
+    <string name="chapters_selected">Đã chọn %1$d</string>
+    <string name="okay">OK</string>
+    <string name="confirm_action">Xác nhận hành động</string>
+    <string name="mark_chapters_unread_dialog_content">Đánh dấu đã đọc các chương này?</string>
+    <string name="mark_chapters_read_dialog_content">Đánh dấu chưa đọc các chương này?</string>
+    <string name="download_chapters_dialog_content">Tải xuống các chương đã chọn?</string>
+    <string name="alert">Cảnh báo</string>
+    <string name="novel_not_in_library_dialog_content">Truyện cần được thêm vào thư viện để có thể tải các chương một cách độc lập!</string>
+    <string name="download_all_chapters_dialog_content">Quản lý các truyện tải xuống bằng trình quản lý tải xuống. Có tải tất cả các chương không?</string>
+    <string name="background_chapter_downloads">Đã bắt đầu tải chương dưới nền</string>
+
+    <!-- v0.5 Strings -->
+
+    <string name="select_all_from_page">Chọn tất cả trong trang</string>
+    <string name="clear_selection_from_page">Xoá lựa chọn trong trang</string>
+    <string name="download_in_queue">Đã có trong hàng chờ</string>
+    <string name="download_paused">Đã tạm dừng</string>
+    <string name="status">Tình trạng</string>
+    <string name="manage_downloads">Quản lý tải xuống</string>
+    <string name="manage_downloads_dialog_content">Có thể quản ký các truyện tải về bằng cách chọn “Tải xuống” trong ngăn kéo điều hướng</string>
+    <string name="take_me_there">Đưa tôi tới đó</string>
+    <string name="collection_chapters_info">Đang thu thập thông tin về các chương</string>
+    <string name="download_all_new_chapters_dialog_content">Quản lý các truyện tải xuống bằng trình quản lý tải xuống. Có tải tất cả các chương mới không??</string>
+    <string name="quick_access">Truy cập nhanh</string>
+    <string name="new_chapters_notification_content_full">%1$d bộ truyện với tổng cộng %2$d chương mới. Bấm để bắt đầu đọc!</string>
+    <string name="new_chapters_notification_content_single">%1$d chương mới</string>
+    <string name="new_chapters_notification_title">Có chương mới!</string>
+    <string name="sync_in_progress">Đang đồng bộ hoá</string>
+
+    <!-- v0.6 Strings -->
+
+    <string name="mentions">Các lượt nhắc</string>
+    <string name="select_all">Chọn tất cả</string>
+    <string name="clear_selection">Xoá lựa chọn</string>
+    <string name="download_novel">Tải truyện xuống</string>
+    <string name="add_to_library_dialog_content">Truyện cần được thêm vào thư viện để có thể đánh dấu/tải chương độc lập. Vạn có muốn thêm truyện - %s vào thư viện không?</string>
+    <string name="swipe_right_for_next_chapter">Vuốt từ Trái sang Phải</string>
+    <string name="swipe_right_for_next_chapter_description">Vuốt sang Phải để đọc chương sau</string>
+    <string name="no_bookmark_found_dialog_title">Bắt đầu đọc không?</string>
+    <string name="no_bookmark_found_dialog_description">Hình như bạn chưa từng đọc ‘%s’, sao không đọc ngay cho nóng hổi nhỉ?</string>
+    <string name="sync_interval">Thời gian đồng bộ hoá</string>
+    <string name="sync_interval_description">Kiểm tra Thời gian đồng bộ</string>
+
+    <!-- v0.7 Strings -->
+
+    <string name="clean">Dọn dẹp</string>
+    <string name="reader">Trìnhnđọc</string>
+    <string name="reader_mode">Chế độ đọc</string>
+    <string name="show_reader_scroll">Hiện thanh cuộn</string>
+    <string name="show_reader_scroll_description">Hiện thanh cuộn ở cạnh phải màn hình để theo dõi tiến độ chương truyện</string>
+    <string name="show_comments_section">Hiện bình luận</string>
+    <string name="show_comments_section_description">Hiện khu vực bình luận trong chế độ đọc. (Giới hạn các trang được hỗ trợ)</string>
+    <string name="backup">Sao lưu</string>
+    <string name="restore">Khôi phục</string>
+    <string name="import_reading_list">Nhập danh sách đọc</string>
+    <string name="nu_reading_list_url">URL danh sách đọc của NovelUpdates</string>
+    <string name="volume_scroll">Cuộn bằng phím Âm lượng</string>
+    <string name="volume_scroll_description">Dùng phím âm lượng để trượt lên/xuống khi đọc</string>
+    <string name="keep_screen_on">Giữ màn hình luôn sáng</string>
+    <string name="keep_screen_on_description">Giữ màn hình luôn sáng khi đang đọc</string>
+    <string name="join_us_on_discord">Tham gia Discord</string>
+    <string name="other">Khác</string>
+    <string name="no_bookmark">Không có đánh dấu!</string>
+    <string name="imported_list">Danh sách đã nhầm</string>
+    <string name="already_in_library">[ Đã có trong thư viện ]</string>
+    <string name="group_update_notification_text">Cập nhật các truyện có trong thư viện</string>
+    <string name="group_download_notification_text">Tải xuống các truyện có trong thư viện</string>
+    <string name="confirm_remove_download_description">Bạn có muốn xoá truyện khỏi Tải xuống không?</string>
+    <string name="reader_mode_description">Chế độ đọc sẽ vĩnh viễn được bật</string>
+    <string name="delete_chapters">Xoá tải xuống</string>
+
+    <!-- v0.8 Strings -->
+
+    <string name="immersive_mode">Hiển thị toàn màn hình</string>
+    <string name="immersive_mode_description">Ẩn thanh điều hướng hệ thống khi đọc</string>
+    <string name="title_reader">Chế độ đọc</string>
+    <string name="title_night">Chế độ ban đêm</string>
+    <string name="title_java_script">JavaScript</string>
+    <string name="title_fonts">Fonts chưz</string>
+    <string name="title_fonts_size">Cỡ Font</string>
+    <string name="title_merge_pages">Gộp các trang</string>
+    <string name="title_report_page">Báo cáo trang</string>
+    <string name="title_open_in_browser">Mở trong trình duyệt</string>
+    <string name="title_share_chapter">Chia sẻ chương</string>
+    <string name="refresh_cloud_flare_cookies">Làm mới Cookie của CloudFlare</string>
+
+    <string name="merge_pages">Gộp toàn bộ Link </string>
+    <string name="merge_pages_description">Gộp tất cả các trang thành một trang, để các bài thông báo sẽ hiện lên trong cùng 1 màn hình</string>
+
+    <string name="directional_links">Đường dẫn trực tiếp</string>
+    <string name="directional_links_description">Các đường dẫn "Chương sau" &amp; "Chương trước" sẽ hiện trong chế độ đọc</string>
+
+    <string name="reader_mode_button_visibility">Hiện nút Chế độ đọc</string>
+    <string name="reader_mode_button_visibility_description">Biểu tượng chế độ đọc sẽ bị ẩn nếu mục này bị tắt. Bạn cũng có thể mở danh sách Chế độ đọc bằng cách vuốt từ cạnh phải màn hình</string>
+
+    <string name="cloud_flare_bypass_description">Sẽ tốn từ 5s tới 15 giây để kiểm tra tường lửa…</string>
+    <string name="cloud_flare_bypass_success">Vượt tường lửa thành công</string>
+    <string name="cloud_flare_bypass_failure_title">Vượt tường lửa thất bại</string>
+
+    <string name="backup_and_restore">Sao lưu &amp; Khôi phục</string>
+    <string name="backup_and_restore_description">Sao lưu &amp; Khôi phục dữ liệu thành tệp ZIP</string>
+
+    <string name="internal_clear_data">Dọn dẹp Cache &amp; Data</string>
+    <string name="internal_clear_data_description">Dọn dẹp cache, các tệp tin và cơ sở dữ liệu (gồm cả các thư mục được tạo tự động)</string>
+
+    <string name="backup_data">Sao lưu dữ liệu</string>
+    <string name="backup_data_description">Sao lưu dữ liệu thành tệp ZIP</string>
+    <string name="restore_data">Khôi phục dữ liệu</string>
+    <string name="restore_data_description">Khôi phục dữ liệu từ tệp ZIP</string>
+
+    <string name="enable_cloud_flare">Cookie của CloudFlare</string>
+    <string name="enable_cloud_flare_description">Bạn cần khởi động lại ứng dụng sau khi thay đổi tuỳ chọn này!</string>
+
+    <string name="preferences">Thiết lập ưa thích (cài đặt trình đọc, bla bla…)</string>
+    <string name="downloaded_files">Các chương đã tải (tệp)</string>
+
+    <string name="disable_notifications">Bật Thông báo</string>
+    <string name="disable_notifications_description">Bật thông báo theo giờ khi chương mới được cập nhật</string>
+
+    <string name="title_novel_sections">Các nhóm tiểu thuyết</string>
+    <string name="add_novel_section">Thêm nhóm tiểu thuyết</string>
+
+    <string name="confirm_remove_description_novel_section">Nhóm tiểu thuyết sẽ bị xoá bỏ và tất cả các truyện sẽ được chuyển vào danh sách Đang đọc</string>
+    <string name="rename">Đổi tên</string>
+    <string name="add_novel_section_title">Thêm nhóm tiểu thuyết</string>
+    <string name="add_novel_section_description">Nhập tên nhóm tiểu thuyết mới:</string>
+    <string name="novel_section_name">Tên nhóm tiểu thuyết</string>
+    <string name="novel_section_empty_message">Thẻm \"Nhóm tiểu thuyết\" &amp; phân loại các tiểu thuyết bạn đọc</string>
+    <string name="novel_section_name_error">Tên nhóm tiểu thuyết trống rỗng hoặc đã tồn tại</string>
+    <string name="assign_novel_section">Chỉ định nhóm tiểu thuyết</string>
+    <string name="move_up_down">Di chuyển Lên/Xuống</string>
+    <string name="no_novel_sections_error">Không có nhóm tiểu thuyết nào!</string>
+    <string name="last_read_n_updated">Đọc lần cuối: %1$s\nCập nhật lần cuối: %2$s</string>
+    <string name="default_novel_section_name">Đang đọc</string>
+    <string name="content_description_sources_or_all">Nguồn/Tất cả</string>
+    <string name="select_interval">Chọn thời gian</string>
+    <string name="simple_text_backup"> Sao lưu tiểu thuyết thuần chữ &amp; các nhóm tiểu thuyết</string>
+    <string name="title_read_aloud">Đọc to</string>
+    <string name="stop">Dừng</string>
+    <string name="pause">Tạm dừng</string>
+    <string name="app_icon">Biểu tượng ứng dụng</string>
+    <string name="play">Chơi</string>
+    <string name="previous_chapter">Chương trước</string>
+    <string name="next_chapter">Chương sau</string>
+    <string name="connection_error">Lỗi kết nối!</string>
+
+    <!-- v0.9 Strings -->
+
+    <string name="change_language">Ngôn ngữ</string>
+    <string name="translated">Đã dịch %1$d trong số %2$d (≈%3$s%%)</string>
+    <string name="locale_system_default">Mặc định hệ thống</string>
+    <string name="locale_english">English</string>
+    <string name="locale_german">German</string>
+    <string name="locale_indonesian">Indonesian</string>
+    <string name="locale_portuguese">Portuguese</string>
+    <string name="locale_spanish">Spanish</string>
+    <string name="locale_turkish">Turkish</string>
+    <string name="locale_french">French</string>
+    <string name="locale_Tagalog">Tagalog</string>
+    <string name="locale_latin">Latin</string>
+    <string name="locale_pirate">Pirate</string>
+    <string name="volume_scroll_length">Khoảng cách cuộn</string>
+    <string name="volume_scroll_length_description">Thay đổi khoảng cách cuộn khi dùng phím âm lượng</string>
+    <string name="reverse">Đảo ngược</string>
+    <string name="about_us_content">Đây là dự án mã nguồn mở được phát triển một cách tâm huyết cho cộng đồng đọc tiểu thuyết. Nếu muốn giúp đỡ thì bạn có thể liên hệ chúng tôi qua Discord!</string>
+    <string name="bug_report_content">Vui lòng sử dụng Discord để báo lỗi.%1$s</string>
+    <string name="copy_to_clipboard">Sao chép vào Bảng nhớ tạm</string>
+    <string name="add_font">Thêm Font</string>
+    <string name="dont_show_again">Không hiện lại nữa</string>
+    <string name="backup_hint">Chọn vị trí đặt tệp ZIP sao lưu</string>
+    <string name="restore_hint">Điều hướng tới vị trí tệp ZIP của bạn rồi chọn</string>
+    <string name="backup_frequency">Tần suất sao lưu</string>
+    <string name="backup_frequency_description">Tần suất sao lưu tự động</string>
+    <string name="backup_frequency_manual">Thủ công</string>
+    <string name="backup_frequency_Daily">Hằng ngày</string>
+    <string name="backup_frequency_Weekly">Hằng tuần</string>
+    <string name="backup_success">Sao lưu thành công!</string>
+    <string name="backup_fail">Sao lưu thất bại!</string>
+    <string name="restore_success">Khôi phục thành công!</string>
+    <string name="restore_fail">Khôi phục thất bại!</string>
+    <string name="need_more_space">Không đủ bộ nhớ trên thiết bị! Hãy dọn dẹp bộ nhớ - %1$s và thử lại!</string>
+    <string name="backup_file_not_found">Không tìm thấy tệp sao lưu. Hãy chọn chỗ khác</string>
+    <string name="eztracting_zip">Đang giải nén tệp tin ZIP</string>
+    <string name="simple_text_restore">Khôi phục tiểu thuyết thuần chữ &amp; các nhóm tiểu thuyết</string>
+    <string name="title_more_settings">Cài đặt chi tiết</string>
+
+    <string name="show_navbar_at_chapter_end">Hiện thanh điều hướng ở cuối chương</string>
+    <string name="show_navbar_at_chapter_end_description">Hiện thanh điều hướng ở cuối chương cho các thiết bị không có phím điều hướng vật lý. Chỉ hoạt động trong chế độ toàn màn hình</string>
+    <string name="keep_text_color">Giữ màu chữ</string>
+    <string name="keep_text_color_description">Giữ lại màu chữ nội tuyến của các yếu tố</string>
+    <string name="alternative_text_colors">Đảo màu chữ</string>
+    <string name="alternative_text_colors_description">Đảo màu chữ cho phù hợp với chủ đề ban đêm của chế độ đọc. Kích hoạt khi chế độ ban đêm đã bật.</string>
+    <string name="limit_image_width">Hình ảnh vừa khít</string>
+    <string name="limit_image_width_description">Ép chiều rộng tối đa của hình ảnh vừa màn hình. Tránh việc trượt ngang do hình ảnh quá rộng.</string>
+    <string name="cloud_flare_check_complete">Đã vượt qua tường lửa CloudFlare.</string>
+    <string name="loading">Đang nạp…</string>
+    <string name="empty_chapters">Tiểu thuyết này đã được mua bản quyền hoặc tính phí nên bạn không thấy chương nào!!</string>
+    <!-- Strings used for fragments for navigation -->
+
+    <string name="remove_favorite">Xoá khỏi Ưa thích</string>
+    <string name="mark_favorite">Đánh dấu Ưa thích</string>
+    <string name="unfavorite_chapters_read_dialog_content">Có xoá các chương khỏi mục Ưa thích không?</string>
+    <string name="favorite_chapters_read_dialog_content">Có thêm các chương vào mục Ưa thích không?</string>
+
+    <!-- 0.15.3 -->
+    <string name="day_mode_background_color">Chế độ ban ngày: Màu nền</string>
+    <string name="day_mode_text_color">Chế độ ban ngày: Màu chữ</string>
+    <string name="night_mode_background_color">Chế độ ban đêm: Màu nền</string>
+    <string name="night_mode_text_color">Chế độ ban đêm: Màu chữ</string>
+    <string name="reader_mode_colors">Chủ đề của Chế độ đọc</string>
+    <string name="reader_mode_colors_description">Đổi màu nền và màu chữ của cả 2 chế độ ngày và đêm</string>
+    <string name="hex_color">Hex: #%1$s</string>
+    <string name="scrolling_text">Cuộn chữ</string>
+    <string name="scrolling_text_description">Bật cuộn chữ cho tiêu đề tiểu thuyết và các mục có chữ quá lớn để chúng vừa với màn hình</string>
+    <string name="auto_read_next_chapter">Tự động đọc chương sau</string>
+    <string name="auto_read_next_chapter_description">Tự động đọc chương tiếp theo khi hết chương hiện tại trong chế độ Đọc to</string>
+
+</resources>
