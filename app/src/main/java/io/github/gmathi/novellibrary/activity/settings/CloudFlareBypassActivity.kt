@@ -11,6 +11,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.util.setDefaultSettings
 import kotlinx.android.synthetic.main.activity_cloudflare_bypass.*
 
 class CloudFlareBypassActivity : BaseActivity() {
@@ -25,6 +26,7 @@ class CloudFlareBypassActivity : BaseActivity() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         checkDone.visibility = View.GONE
+        view.setDefaultSettings()
         view.settings.javaScriptEnabled = true
         view.settings.userAgentString = HostNames.USER_AGENT
         view.webViewClient = object : WebViewClient() {

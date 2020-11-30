@@ -27,6 +27,9 @@ import kotlinx.android.synthetic.main.listitem_novel.view.*
 class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
     lateinit var adapter: GenericAdapter<Novel>
+    companion object {
+        private const val TAG = "RecentlyViewedNovelsActivity"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,7 +64,7 @@ class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Nov
                 itemView.novelRatingBar.rating = rating
                 ratingText = "(" + String.format("%.1f", rating) + ")"
             } catch (e: Exception) {
-                Logs.warning("Library Activity", "Rating: " + item.rating, e)
+                Logs.warning(TAG, "Rating: " + item.rating, e)
             }
             itemView.novelRatingText.text = ratingText
         }

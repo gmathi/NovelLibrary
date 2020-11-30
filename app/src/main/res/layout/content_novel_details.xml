@@ -237,6 +237,37 @@
                         android:background="@color/SlateGray" />
 
                     <RelativeLayout
+                        android:id="@+id/novelDetailsLicensedLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@color/black_transparent"
+                        android:minHeight="20dp"
+                        android:padding="@dimen/default_margin">
+
+                        <ImageView
+                            android:id="@+id/licensedWarningIcon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            app:srcCompat="@drawable/ic_warning_white_vector"
+                            app:tint="@color/colorLightRed" />
+
+                        <TextView
+                            android:id="@+id/novelDetailsLicensedAlert"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="@dimen/default_margin"
+                            android:layout_toEndOf="@id/licensedWarningIcon"
+                            android:text="@string/licensed_warning"
+                            android:textColorLink="@color/RoyalBlue"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                    </RelativeLayout>
+
+                    <RelativeLayout
                         android:id="@+id/novelDetailsChaptersLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -248,8 +279,8 @@
                             android:id="@+id/novelDetailsChapterIcon"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_alignParentLeft="true"
                             android:layout_alignParentStart="true"
+                            android:layout_alignParentLeft="true"
                             android:layout_centerVertical="true"
                             app:srcCompat="@drawable/ic_library_books_white_vector" />
 
@@ -261,10 +292,10 @@
                             android:layout_centerVertical="true"
                             android:layout_margin="@dimen/default_margin"
                             android:layout_marginBottom="8dp"
-                            android:layout_toEndOf="@id/novelDetailsChapterIcon"
-                            android:layout_toLeftOf="@id/chevron"
-                            android:layout_toRightOf="@id/novelDetailsChapterIcon"
                             android:layout_toStartOf="@id/chevron"
+                            android:layout_toLeftOf="@id/chevron"
+                            android:layout_toEndOf="@id/novelDetailsChapterIcon"
+                            android:layout_toRightOf="@id/novelDetailsChapterIcon"
                             android:text="@string/chapters"
                             android:textAllCaps="true"
                             android:textColor="@color/white"

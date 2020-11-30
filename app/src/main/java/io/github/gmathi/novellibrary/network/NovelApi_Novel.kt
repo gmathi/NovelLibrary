@@ -22,6 +22,7 @@ fun NovelApi.getNovelDetails(url: String): Novel? {
         host.contains(HostNames.NOVEL_FULL) -> novel = getNovelFullNovelDetails(url)
         host.contains(HostNames.SCRIBBLE_HUB) -> novel = getScribbleHubNovelDetails(url)
         host.contains(HostNames.LNMTL) -> novel = getLNMTLNovelDetails(url)
+        host.contains(HostNames.NEOVEL) -> novel = getNeovelNovelDetails(url)
     }
     return novel
 }
@@ -92,7 +93,7 @@ fun NovelApi.getWlnNovelDetails(url: String): Novel? {
         val body = json.toRequestBody("application/json".toMediaType())
 
         val request = Request.Builder()
-            .url(Constants.WLNUpdatesAPIUrl)
+            .url(Constants.WLN_UPDATES_API_URL)
             .post(body)
             .build()
         val response = OkHttpClient().newCall(request).execute()
@@ -242,3 +243,110 @@ fun NovelApi.getLNMTLNovelDetails(url: String): Novel? {
     }
     return novel
 }
+
+fun NovelApi.getNeovelNovelDetails(url: String): Novel? {
+    var novel: Novel? = null
+    try {
+
+        val request = Request.Builder()
+            .url(url)
+            .get()
+            .build()
+        val response = OkHttpClient().newCall(request).execute()
+        val jsonString = response.body?.string() ?: return novel
+
+        val rootJsonObject = JsonParser.parseString(jsonString)?.asJsonObject ?: return novel
+        val id = rootJsonObject["id"].asInt.toString()
+        novel = Novel(rootJsonObject["name"].asString, url)
+        novel.imageUrl = "https://${HostNames.NEOVEL}/V2/book/image?bookId=$id&oldApp=false"
+
+        novel.longDescription = rootJsonObject.get("bookDescription")?.asString
+        novel.rating = rootJsonObject["rating"].asFloat.toString()
+        novel.chaptersCount = rootJsonObject["nbrReleases"].asLong
+
+
+        if (neovelGenres == null) {
+            getNeovelGenres()
+        }
+        if (neovelTags == null) {
+            getNeovelTags()
+        }
+
+        neovelGenres?.let { map ->
+            novel.genres = rootJsonObject.getAsJsonArray("genreIds")?.filter { map[it.asInt] != null }?.map { map[it.asInt]!! }
+            novel.metaData["Genre(s)"] = rootJsonObject.getAsJsonArray("tagIds")?.filter { map[it.asInt] != null }?.joinToString(", ") { map[it.asInt]!! }
+        }
+        neovelTags?.let { map ->
+            novel.metaData["Tag(s)"] = rootJsonObject.getAsJsonArray("tagIds")?.filter { map[it.asInt] != null }?.joinToString(", ") { map[it.asInt]!! }
+        }
+
+
+        novel.metaData["Author(s)"] = rootJsonObject.getAsJsonArray("authors")?.joinToString(", ") {
+            it.asJsonNullFreeString ?: ""
+        }
+
+
+
+        novel.metaData["Status"] = rootJsonObject["bookState"]?.asJsonNullFreeString ?: "N/A"
+        novel.metaData["Release Frequency"] = rootJsonObject["releaseFrequency"]?.asJsonNullFreeString ?: "N/A"
+        novel.metaData["Chapter Read Count"] = rootJsonObject["chapterReadCount"]?.asInt.toString() ?: "N/A"
+        novel.metaData["Followers"] = rootJsonObject["followers"]?.asJsonNullFreeString ?: "N/A"
+        novel.metaData["Initial publish date"] = rootJsonObject["votes"]?.asJsonNullFreeString ?: "N/A"
+        novel.metaData["Votes"] = rootJsonObject["origin_loc"]?.asJsonNullFreeString ?: "N/A"
+//        novel.metaData["Status in Country of Origin"] = rootJsonObject["orig_status"]?.asJsonNullFreeString ?: "N/A"
+//        novel.metaData["Licensed (in English)"] = rootJsonObject["license_en"]?.asJsonNullFreeString ?: "N/A"
+//        novel.metaData["Alternate Names"] = rootJsonObject.getAsJsonArray("alternatenames")?.joinToString(", ") { it.asString }
+//        novel.metaData["Language"] = rootJsonObject["orig_lang"]?.asJsonNullFreeString ?: "N/A"
+////
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return novel
+}
+
+// Below is to cache Neovel Genres & Tags
+private var neovelGenres: HashMap<Int, String>? = null
+private var neovelTags: HashMap<Int, String>? = null
+
+private fun getNeovelGenres() {
+    try {
+        val request = Request.Builder()
+            .url("https://${HostNames.NEOVEL}/V1/genres")
+            .get()
+            .build()
+        val response = OkHttpClient().newCall(request).execute()
+        val jsonString = response.body?.string() ?: return
+
+        val jsonArray = JsonParser.parseString(jsonString)?.asJsonArray
+        neovelGenres = HashMap()
+        jsonArray?.forEach {
+            val genreObject = it.asJsonObject
+            neovelGenres!![genreObject["id"].asInt] = genreObject["en"].asString
+        }
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
+
+private fun getNeovelTags() {
+    try {
+        val request = Request.Builder()
+            .url("https://${HostNames.NEOVEL}/V1/tags")
+            .get()
+            .build()
+        val response = OkHttpClient().newCall(request).execute()
+        val jsonString = response.body?.string() ?: return
+
+        val jsonArray = JsonParser.parseString(jsonString)?.asJsonArray
+        neovelTags = HashMap()
+        jsonArray?.forEach {
+            val tagObject = it.asJsonObject
+            neovelTags!![tagObject["id"].asInt] = tagObject["en"].asString
+        }
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
+

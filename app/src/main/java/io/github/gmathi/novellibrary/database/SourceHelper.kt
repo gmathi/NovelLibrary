@@ -1,7 +1,6 @@
 package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
-import android.util.Log
 import io.github.gmathi.novellibrary.util.Logs
 
 
@@ -17,8 +16,8 @@ fun DBHelper.createSource(sourceName: String): Long {
 }
 
 fun DBHelper.getSource(sourceName: String): Pair<Long, String>? {
-    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_SOURCE} WHERE ${DBKeys.KEY_NAME} = \"$sourceName\""
-    return getSourceFromQuery(selectQuery)
+    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_SOURCE} WHERE ${DBKeys.KEY_NAME} = ?"
+    return getSourceFromQuery(selectQuery, arrayOf(sourceName))
 }
 
 fun DBHelper.getSource(sourceId: Long): Pair<Long, String>? {
@@ -26,10 +25,10 @@ fun DBHelper.getSource(sourceId: Long): Pair<Long, String>? {
     return getSourceFromQuery(selectQuery)
 }
 
-fun DBHelper.getSourceFromQuery(selectQuery: String): Pair<Long, String>? {
+fun DBHelper.getSourceFromQuery(selectQuery: String, selectionArgs: Array<String>? = null): Pair<Long, String>? {
     val db = this.readableDatabase
     Logs.debug(LOG, selectQuery)
-    val cursor = db.rawQuery(selectQuery, null)
+    val cursor = db.rawQuery(selectQuery, selectionArgs)
     var source: Pair<Long, String>? = null
     if (cursor != null) {
         if (cursor.moveToFirst()) {
@@ -62,8 +61,7 @@ fun DBHelper.getSourcesForNovel(novelId: Long): ArrayList<Pair<Long, String>> {
 
 fun DBHelper.deleteSource(id: Long) {
     val db = this.writableDatabase
-    db.delete(DBKeys.TABLE_SOURCE, DBKeys.KEY_ID + " = ?",
-            arrayOf(id.toString()))
+    db.delete(DBKeys.TABLE_SOURCE, DBKeys.KEY_ID + " = ?", arrayOf(id.toString()))
 }
 
 

@@ -26,6 +26,7 @@ import androidx.viewpager.widget.ViewPager
 import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.Theme
+import com.google.firebase.analytics.ktx.logEvent
 import com.yarolegovich.slidingrootnav.SlideGravity
 import com.yarolegovich.slidingrootnav.SlidingRootNav
 import com.yarolegovich.slidingrootnav.SlidingRootNavBuilder
@@ -50,8 +51,6 @@ import kotlinx.android.synthetic.main.item_option.view.*
 import kotlinx.android.synthetic.main.menu_left_drawer.*
 import org.greenrobot.eventbus.EventBus
 import java.io.File
-import java.io.FileOutputStream
-import java.lang.Exception
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -103,6 +102,7 @@ class ReaderDBPagerActivity :
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader_pager)
+
         if (dataCenter.keepScreenOn)
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
@@ -390,6 +390,10 @@ class ReaderDBPagerActivity :
                     val audioText = webPageDBFragment?.doc?.getFormattedText() ?: return
                     val title = webPageDBFragment.doc?.title() ?: ""
                     startTTSService(audioText, title, novel.id, sourceId)
+                    firebaseAnalytics.logEvent(FAC.Event.LISTEN_NOVEL) {
+                        param(FAC.Param.NOVEL_NAME, novel.name)
+                        param(FAC.Param.NOVEL_URL, novel.url)
+                    }
                 } else {
                     showAlertDialog(title = "Read Aloud", message = "Only supported in Reader Mode!")
                 }
@@ -510,7 +514,7 @@ class ReaderDBPagerActivity :
                 AVAILABLE_FONTS[file.nameWithoutExtension.replace('_', ' ')] = file.path
                 dataCenter.fontPath = file.path
                 EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
-            } catch (e:Exception) {
+            } catch (e: Exception) {
                 Logs.error(TAG, "Unable to copy font", e)
             }
 
@@ -524,6 +528,11 @@ class ReaderDBPagerActivity :
         super.onResume()
         novel.metaData[Constants.MetaDataKeys.LAST_READ_DATE] = Utils.getCurrentFormattedDate()
         dbHelper.updateNovelMetaData(novel)
+        firebaseAnalytics.logEvent(FAC.Event.READ_NOVEL) {
+            param(FAC.Param.NOVEL_NAME, novel.name)
+            param(FAC.Param.NOVEL_URL, novel.url)
+        }
     }
+
 
 }

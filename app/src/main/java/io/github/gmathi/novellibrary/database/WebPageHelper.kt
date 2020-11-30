@@ -38,21 +38,6 @@ fun DBHelper.getWebPage(url: String): WebPage? {
     return webPage
 }
 
-//fun DBHelper.getWebPage(novelId: Long, url: String): WebPage? {
-//    val db = this.readableDatabase
-//    val selectQuery = "SELECT  * FROM ${DBKeys.TABLE_WEB_PAGE} WHERE ${DBKeys.KEY_NOVEL_ID} = $novelId AND ${DBKeys.KEY_URL} = \"$url\""
-//    Logs.debug(LOG, selectQuery)
-//    var webPage: WebPage? = null
-//    val cursor = db.rawQuery(selectQuery, null)
-//    if (cursor != null) {
-//        if (cursor.moveToFirst()) {
-//            webPage = getWebPageFromCursor(cursor)
-//        }
-//        cursor.close()
-//    }
-//    return webPage
-//}
-
 fun DBHelper.getAllWebPages(novelId: Long): ArrayList<WebPage> {
     val list = ArrayList<WebPage>()
     val selectQuery = "SELECT * FROM ${DBKeys.TABLE_WEB_PAGE} WHERE ${DBKeys.KEY_NOVEL_ID} = ? ORDER BY ${DBKeys.KEY_ORDER_ID} ASC"
@@ -91,10 +76,6 @@ fun DBHelper.getAllWebPages(novelId: Long, sourceId: Long): List<WebPage> {
 fun DBHelper.deleteWebPages(novelId: Long) {
     this.writableDatabase.delete(DBKeys.TABLE_WEB_PAGE, DBKeys.KEY_NOVEL_ID + " = ?", arrayOf(novelId.toString()))
 }
-
-//fun DBHelper.deleteWebPage(novelId: Long, orderId: Long) {
-//    this.writableDatabase.delete(DBKeys.TABLE_WEB_PAGE, "${DBKeys.KEY_NOVEL_ID} = ? AND ${DBKeys.KEY_ORDER_ID} = ?", arrayOf(novelId.toString(), orderId.toString()))
-//}
 
 fun DBHelper.deleteWebPage(url: String) {
     this.writableDatabase.delete(DBKeys.TABLE_WEB_PAGE, "${DBKeys.KEY_URL} = ?", arrayOf(url))

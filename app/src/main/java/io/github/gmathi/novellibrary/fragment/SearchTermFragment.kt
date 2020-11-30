@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, GenericAdapter.LoadMoreListener {
 
+
     override var currentPageNumber: Int = 1
     override val preloadCount: Int = 50
     override val isPageLoading: AtomicBoolean = AtomicBoolean(false)
@@ -33,6 +34,8 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
     private lateinit var resultType: String
 
     companion object {
+        private const val TAG = "SearchTermFragment"
+
         fun newInstance(searchTerms: String, resultType: String): SearchTermFragment {
             val bundle = Bundle()
             bundle.putString("searchTerm", searchTerms)
@@ -105,9 +108,10 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
                     HostNames.WLN_UPDATES -> results = await { NovelApi.searchWlnUpdates(searchTerms) }
                     HostNames.SCRIBBLE_HUB -> results = await { NovelApi.searchScribbleHub(searchTerms, currentPageNumber) }
                     HostNames.LNMTL -> results = await { NovelApi.searchLNMTL(searchTerms) }
+                    HostNames.NEOVEL -> results =  await { NovelApi.searchNeovel(searchTerms) }
                 }
             } catch (e: Exception) {
-                Logs.error("Search Term", "Search Failed!", e)
+                Logs.error(TAG, "Search Failed!", e)
             }
 
             if (results != null) {
@@ -192,7 +196,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
                 itemView.novelRatingBar.rating = rating
                 ratingText = "(" + String.format("%.1f", rating) + ")"
             } catch (e: Exception) {
-                Logs.warning("Library Activity", "Rating: " + item.rating, e)
+                Logs.warning(TAG, "Rating: " + item.rating, e)
             }
             itemView.novelRatingText.text = ratingText
         }
