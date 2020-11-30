@@ -590,5 +590,8 @@
 
     <!-- 0.15.6-->
     <string name="licensed_warning" tools:ignore="MissingTranslation">This novel was officially licensed by %1$s and may have missing (by DMCA or voluntary), or paywalled, chapters</string>
+    
+    <string name="sync_fetching_chapter_counts">Obtaining chapter counts: %1$d / %2$d\n%3$s</string>
+    <string name="sync_fetching_chapter_list">Obtaining chapter lists: %1$d / %2$d\n%3$s</string>
 
 </resources>

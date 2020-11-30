@@ -290,8 +290,10 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             val totalCountMap: HashMap<Novel, Int> = HashMap()
 
             val novels = if (novel == null) dbHelper.getAllNovels(novelSectionId) else listOf(novel)
+            var counter = 0
             novels.forEach {
                 try {
+                    syncDialog!!.setContent(getString(R.string.sync_fetching_chapter_counts, counter++, novels.count(), it.name))
                     val totalChapters = await { NovelApi.getChapterCount(it) }
                     if (totalChapters != 0 && totalChapters > it.chaptersCount.toInt()) {
                         totalCountMap[it] = totalChapters
@@ -303,8 +305,10 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             }
 
             //Update DB with new chapters
+            counter = 0
             totalCountMap.forEach {
                 val novel = it.key
+                syncDialog!!.setContent(getString(R.string.sync_fetching_chapter_list, counter++, totalCountMap.count(), novel.name))
                 novel.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
                 dbHelper.updateNovelMetaData(novel)
                 dbHelper.updateChaptersAndReleasesCount(novel.id, it.value.toLong(), novel.newReleasesCount + (it.value - novel.chaptersCount))
