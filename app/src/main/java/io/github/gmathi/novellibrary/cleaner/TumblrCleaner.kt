@@ -1,11 +1,8 @@
 package io.github.gmathi.novellibrary.cleaner
 
-import android.net.Uri
 import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
-import java.io.File
 
-class TumblrCleaner : HtmlHelper() {
+class TumblrCleaner : HtmlCleaner() {
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc)

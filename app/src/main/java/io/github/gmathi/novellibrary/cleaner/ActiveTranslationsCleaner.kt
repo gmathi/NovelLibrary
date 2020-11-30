@@ -3,7 +3,7 @@ package io.github.gmathi.novellibrary.cleaner
 import io.github.gmathi.novellibrary.dataCenter
 import org.jsoup.nodes.Document
 
-class ActiveTranslationsCleaner : HtmlHelper() {
+class ActiveTranslationsCleaner : HtmlCleaner() {
     override fun additionalProcessing(doc: Document) {
         // Grab the CSS that contains the rest of chapter text and preserve it.
         val cssChapter = doc.select("div.entry-content>style").outerHtml()

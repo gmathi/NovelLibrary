@@ -1,14 +1,10 @@
 package io.github.gmathi.novellibrary.cleaner
 
-import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
 import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
-import org.jsoup.select.Elements
-import java.io.File
 
 
-class NeovelCleaner() : HtmlHelper() {
+class NeovelCleaner() : HtmlCleaner() {
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc)

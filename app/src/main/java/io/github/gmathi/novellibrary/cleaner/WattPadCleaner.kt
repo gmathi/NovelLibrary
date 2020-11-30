@@ -3,7 +3,7 @@ package io.github.gmathi.novellibrary.cleaner
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
-class WattPadCleaner : HtmlHelper() {
+class WattPadCleaner : HtmlCleaner() {
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc, false)
 

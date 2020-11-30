@@ -1,14 +1,9 @@
 package io.github.gmathi.novellibrary.cleaner
 
-import android.net.Uri
-import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
-import java.io.File
 
 
-class ScribbleHubCleaner : HtmlHelper() {
+class ScribbleHubCleaner : HtmlCleaner() {
 
 
     override fun additionalProcessing(doc: Document) {

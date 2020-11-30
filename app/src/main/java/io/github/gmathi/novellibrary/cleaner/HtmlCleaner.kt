@@ -27,13 +27,13 @@ import java.math.RoundingMode
 import java.net.SocketException
 
 
-open class HtmlHelper protected constructor() {
+open class HtmlCleaner protected constructor() {
 
     companion object {
 
         private const val TAG = "HtmlHelper"
 
-        fun getInstance(doc: Document, url: String = doc.location()): HtmlHelper {
+        fun getInstance(doc: Document, url: String = doc.location()): HtmlCleaner {
             when {
                 url.contains(HostNames.WATTPAD) -> return WattPadCleaner()
                 url.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldCleaner()
@@ -123,7 +123,7 @@ open class HtmlHelper protected constructor() {
             contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
             if (contentElement != null) return CloudFlareDDoSTagCleaner()
 
-            return HtmlHelper()
+            return HtmlCleaner()
         }
 
     }

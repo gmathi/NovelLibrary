@@ -21,7 +21,7 @@ import co.metalab.asyncawait.async
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
-import io.github.gmathi.novellibrary.cleaner.HtmlHelper
+import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.extensions.albumArt
@@ -38,7 +38,6 @@ import io.github.gmathi.novellibrary.util.Utils.getFormattedText
 import io.github.gmathi.novellibrary.util.getGlideUrl
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import org.jsoup.safety.Whitelist
 import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
@@ -416,7 +415,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     }
 
     private fun cleanDocumentText(doc: Document): String {
-        val htmlHelper = HtmlHelper.getInstance(doc)
+        val htmlHelper = HtmlCleaner.getInstance(doc)
         htmlHelper.removeJS(doc)
         htmlHelper.additionalProcessing(doc)
         return doc.getFormattedText()

@@ -1,13 +1,10 @@
 package io.github.gmathi.novellibrary.cleaner
 
-import android.net.Uri
 import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
-import java.io.File
 
 
-class WordPressCleaner : HtmlHelper() {
+class WordPressCleaner : HtmlCleaner() {
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc, false)
