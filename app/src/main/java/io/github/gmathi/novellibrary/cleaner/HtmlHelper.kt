@@ -35,89 +35,93 @@ open class HtmlHelper protected constructor() {
 
         fun getInstance(doc: Document, url: String = doc.location()): HtmlHelper {
             when {
-                url.contains(HostNames.WATTPAD) -> return WattPadHelper()
-                url.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldHelper()
-                url.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsHelper()
-                url.contains(HostNames.QIDIAN) -> return QidianHelper()
+                url.contains(HostNames.WATTPAD) -> return WattPadCleaner()
+                url.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldCleaner()
+                url.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsCleaner()
+                url.contains(HostNames.QIDIAN) -> return QidianCleaner()
                 url.contains(HostNames.GOOGLE_DOCS) -> return GoogleDocsCleaner()
-                url.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsHelper()
+                url.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsCleaner()
                 url.contains(HostNames.TUMBLR) -> return TumblrCleaner()
                 url.contains(HostNames.BAKA_TSUKI) -> return BakaTsukiCleaner()
-                url.contains(HostNames.SCRIBBLE_HUB) -> return ScribbleHubHelper()
-                url.contains(HostNames.NEOVEL) -> return NeovelHelper()
-                url.contains(HostNames.ACTIVE_TRANSLATIONS) -> return ActiveTranslationHelper()
+                url.contains(HostNames.SCRIBBLE_HUB) -> return ScribbleHubCleaner()
+                url.contains(HostNames.NEOVEL) -> return NeovelCleaner()
+                url.contains(HostNames.ACTIVE_TRANSLATIONS) -> return ActiveTranslationsCleaner()
             }
 
-            var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("chapter-content") }
-            if (contentElement != null) return GeneralClassTagHelper(url, "div", "chapter-content")
+            var contentElement = doc.body().select("div.chapter-content").firstOrNull()
+            if (contentElement != null) return GeneralQueryCleaner(url, "div.chapter-content")
 
-            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
-            if (contentElement != null) return GeneralClassTagHelper(url, "div", "entry-content")
+            contentElement = doc.body().select("div.entry-content").firstOrNull()
+            if (contentElement != null) return GeneralQueryCleaner(url, "div.entry-content")
 
-            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("elementor-widget-theme-post-content") }
-            if (contentElement != null) return GeneralClassTagHelper(url, "div", "elementor-widget-theme-post-content", appendTitle = false)
+            contentElement = doc.body().select("div.elementor-widget-theme-post-content").firstOrNull()
+            if (contentElement != null) return GeneralQueryCleaner(url, "div.elementor-widget-theme-post-content", appendTitle = false)
 
-            contentElement = doc.body().getElementsByTag("article").firstOrNull { it.hasClass("hentry") }
-            if (contentElement != null) return GeneralClassTagHelper(url, "article", "hentry")
+            contentElement = doc.body().select("article.hentry").firstOrNull()
+            if (contentElement != null) return GeneralQueryCleaner(url, "article.hentry")
 
-            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("hentry") }
-            if (contentElement != null) return GeneralClassTagHelper(url, "div", "hentry")
+            contentElement = doc.body().select("div.hentry").firstOrNull()
+            if (contentElement != null) return GeneralQueryCleaner(url, "div.hentry")
 
-            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.id() == "chapter_body" }
-            if (contentElement != null) return GeneralIdTagHelper(url, "div", "chapter_body")
+            contentElement = doc.body().select("div#chapter_body").firstOrNull()
+            if (contentElement != null) return GeneralQueryCleaner(url, "div#chapter_body")
 
-            contentElement = doc.body().getElementsByTag("article").firstOrNull { it.id() == "releases" }
-            if (contentElement != null) return GeneralIdTagHelper(url, "article", "releases")
+            contentElement = doc.body().select("article#releases").firstOrNull()
+            if (contentElement != null) return GeneralQueryCleaner(url, "article#releases")
 
-            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("td-main-content") }
-            if (contentElement != null) return GeneralClassTagHelper(url, "div", "td-main-content")
+            contentElement = doc.body().select("div.td-main-content").firstOrNull()
+            if (contentElement != null) return GeneralQueryCleaner(url, "div.td-main-content")
 
-            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.id() == "content" }
-            if (contentElement != null) return GeneralIdTagHelper(url, "div", "content")
+            contentElement = doc.body().select("div#content").firstOrNull()
+            if (contentElement != null) return GeneralQueryCleaner(url, "div#content")
 
-            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("post-inner") }
-            if (contentElement != null) return GeneralClassTagHelper(url, "div", "post-inner", appendTitle = false)
+            contentElement = doc.body().select("div.post-inner").firstOrNull()
+            if (contentElement != null) return GeneralQueryCleaner(url, "div.post-inner", appendTitle = false)
 
-            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("blog-content") }
-            if (contentElement != null) return GeneralClassTagHelper(url, "div", "blog-content")
+            contentElement = doc.body().select("div.blog-content").firstOrNull()
+            if (contentElement != null) return GeneralQueryCleaner(url, "div.blog-content")
 
             contentElement = doc.body().select("div#chapter-content").firstOrNull()
-            if (contentElement != null) return GeneralIdTagHelper(url, "div", "chapter-content")
+            if (contentElement != null) return GeneralQueryCleaner(url, "div#chapter-content")
 
-            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("panel-body") }
-            if (contentElement != null) return GeneralClassTagHelper(url, "div", "panel-body", appendTitle = false)
+            contentElement = doc.body().select("div.panel-body").firstOrNull()
+            if (contentElement != null) return GeneralQueryCleaner(url, "div.panel-body", appendTitle = false)
 
-            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("post-entry") }
-            if (contentElement != null) return GeneralClassTagHelper(url, "div", "post-entry")
+            contentElement = doc.body().select("div.post-entry").firstOrNull()
+            if (contentElement != null) return GeneralQueryCleaner(url, "div.post-entry")
 
-            contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("text-formatting") }
-            if (contentElement != null) return GeneralClassTagHelper(url, "div", "text-formatting")
+            contentElement = doc.body().select("div.text-formatting").firstOrNull()
+            if (contentElement != null) return GeneralQueryCleaner(url, "div.text-formatting")
 
             contentElement = doc.body().select("article.single__contents").firstOrNull()
-            if (contentElement != null) return GeneralClassTagHelper(url, "article", "single__contents")
+            if (contentElement != null) return GeneralQueryCleaner(url, "article.single__contents")
 
 //            contentElement = doc.body().select("article.story-part").firstOrNull()
 //            if (contentElement != null) return GeneralClassTagHelper(url, "article", "story-part")
 
             contentElement = doc.body().select("div#chapter").firstOrNull()
-            if (contentElement != null) return GeneralIdTagHelper(url, "div", "chapter")
+            if (contentElement != null) return GeneralQueryCleaner(url, "div#chapter")
 
             //TODO: Xiaxia novel, needs more analysis to fix pre-formatting (jsoup not supporting)
             contentElement = doc.body().select("section#StoryContent").firstOrNull()
-            if (contentElement != null) return GeneralIdTagHelper(url, "section", "StoryContent")
+            if (contentElement != null) return GeneralQueryCleaner(url, "section#StoryContent")
 
             contentElement = doc.body().select("div.content-container").firstOrNull()
-            if (contentElement != null) return GeneralClassTagHelper(url, "div", "content-container")
+            if (contentElement != null) return GeneralQueryCleaner(url, "div.content-container")
 
             contentElement = doc.body().select("article.article-content").firstOrNull()
-            if (contentElement != null) return GeneralClassTagHelper(url, "article", "article-content")
+            if (contentElement != null) return GeneralQueryCleaner(url, "article.article-content")
 
             contentElement = doc.body().select("div.page-content").firstOrNull()
-            if (contentElement != null) return GeneralClassTagHelper(url, "div", "page-content")
+            if (contentElement != null) return GeneralQueryCleaner(url, "div.page-content")
+
+            // Sample: deviantart journals (NU group: darksilencer)
+            contentElement = doc.body().select("div.legacy-journal").firstOrNull()
+            if (contentElement != null) return GeneralQueryCleaner(url, "div.legacy-journal")
 
             //Lastly let's check for cloud flare
             contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
-            if (contentElement != null) return CloudFlareDDoSTagHelper()
+            if (contentElement != null) return CloudFlareDDoSTagCleaner()
 
             return HtmlHelper()
         }
@@ -125,6 +129,8 @@ open class HtmlHelper protected constructor() {
     }
 
     open var keepContentStyle = false
+    open var keepContentIds = false
+    open var keepContentClasses = false
 
     fun downloadResources(doc: Document, hostDir: File, novelDir: File) {
         // removeJS(doc)
@@ -143,8 +149,13 @@ open class HtmlHelper protected constructor() {
         doc.getElementsByTag("noscript").remove()
     }
 
-    open fun removeCSS(doc: Document) {
+    open fun removeCSS(doc: Document, clearHead : Boolean = true) {
         doc.getElementsByTag("link").remove()
+        if (clearHead) {
+            doc.head()?.getElementsByTag("style")?.remove()
+            doc.head()?.getElementsByTag("link")?.remove()
+        }
+        doc.getElementById("custom-background-css")?.remove()
     }
 
 
@@ -236,6 +247,7 @@ open class HtmlHelper protected constructor() {
 
     open fun downloadImage(element: Element, file: File): File? {
         val uri = Uri.parse(element.absUrl("src"))
+        if (uri.toString().contains("uploads/avatars")) return null
         try {
             val response = Jsoup.connect(uri.toString()).userAgent(HostNames.USER_AGENT).ignoreContentType(true).execute()
             val bytes = response.bodyAsBytes()
@@ -444,9 +456,10 @@ open class HtmlHelper protected constructor() {
 
     fun cleanClassAndIds(contentElement: Element?) {
         if (contentElement == null) return
-        contentElement.classNames()?.forEach { contentElement.removeClass(it) }
+        if (!keepContentClasses)
+            contentElement.classNames()?.forEach { contentElement.removeClass(it) }
 
-        if (contentElement.hasAttr("id"))
+        if (!keepContentIds && contentElement.hasAttr("id"))
             contentElement.removeAttr("id")
 
         if (keepContentStyle) {

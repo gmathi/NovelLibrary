@@ -7,13 +7,13 @@ import java.io.File
 import java.util.regex.Pattern
 
 
-class QidianHelper : HtmlHelper() {
+class QidianCleaner : HtmlHelper() {
 
     //This value is set in `removeJS()` which gets called in `WebPageDBFragment.kt : Line 354`
     private var continueReadingUrl: String? = null
 
     override fun additionalProcessing(doc: Document) {
-        removeCSS(doc)
+        removeCSS(doc, false)
         if (continueReadingUrl != null) {
             doc.body().children().remove()
             doc.body().classNames()?.forEach { doc.body().removeClass(it) }
@@ -34,12 +34,6 @@ class QidianHelper : HtmlHelper() {
             contentElement = contentElement?.parent()
         } while (contentElement != null && contentElement.tagName() != "body")
         contentElement?.classNames()?.forEach { contentElement.removeClass(it) }
-    }
-
-    override fun downloadImage(element: Element, file: File): File? {
-        val uri = Uri.parse(element.attr("src"))
-        if (uri.toString().contains("uploads/avatars")) return null
-        else return super.downloadImage(element, file)
     }
 
     override fun removeJS(doc: Document) {
@@ -76,10 +70,4 @@ class QidianHelper : HtmlHelper() {
 //        }
 //        return links
 //    }
-
-    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
-        return super.toggleThemeDefault(isDark, doc)
-    }
-
-
 }

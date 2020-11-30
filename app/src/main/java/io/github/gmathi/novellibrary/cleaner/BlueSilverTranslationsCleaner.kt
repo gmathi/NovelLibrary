@@ -6,10 +6,10 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
 
-class BlueSilverTranslationsHelper : HtmlHelper() {
+class BlueSilverTranslationsCleaner : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
-        removeCSS(doc)
+        removeCSS(doc, false)
         doc.head()?.getElementsByTag("link")?.remove()
         var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
@@ -31,12 +31,6 @@ class BlueSilverTranslationsHelper : HtmlHelper() {
 
     }
 
-    override fun downloadImage(element: Element, file: File): File? {
-        val uri = Uri.parse(element.attr("src"))
-        return if (uri.toString().contains("uploads/avatars")) null
-        else super.downloadImage(element, file)
-    }
-
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
         val links = ArrayList<String>()
         val otherLinks = doc.getElementsByAttributeValue("itemprop", "articleBody").firstOrNull()?.getElementsByAttributeValueContaining("href", HostNames.WORD_PRESS)
@@ -53,9 +47,5 @@ class BlueSilverTranslationsHelper : HtmlHelper() {
         }
 
         return ArrayList(links.distinct())
-    }
-
-    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
-        return super.toggleThemeDefault(isDark, doc)
     }
 }

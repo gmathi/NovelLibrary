@@ -7,10 +7,10 @@ import org.jsoup.nodes.Element
 import java.io.File
 
 
-class WordPressHelper : HtmlHelper() {
+class WordPressCleaner : HtmlHelper() {
 
     override fun additionalProcessing(doc: Document) {
-        removeCSS(doc)
+        removeCSS(doc, false)
         doc.head()?.getElementsByTag("link")?.remove()
         var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.hasClass("entry-content") }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
@@ -24,12 +24,6 @@ class WordPressHelper : HtmlHelper() {
         contentElement?.getElementById("jp-post-flair")?.remove()
     }
 
-    override fun downloadImage(element: Element, file: File): File? {
-        val uri = Uri.parse(element.attr("src"))
-        return if (uri.toString().contains("uploads/avatars")) null
-        else super.downloadImage(element, file)
-    }
-
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
 
         val links = ArrayList<String>()
@@ -38,11 +32,6 @@ class WordPressHelper : HtmlHelper() {
             otherLinks.mapTo(links) { it.attr("href") }
         }
         return links
-    }
-
-
-    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
-        return super.toggleThemeDefault(isDark, doc)
     }
 
 }

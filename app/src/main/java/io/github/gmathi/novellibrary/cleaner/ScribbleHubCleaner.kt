@@ -8,11 +8,11 @@ import org.jsoup.nodes.Element
 import java.io.File
 
 
-class ScribbleHubHelper : HtmlHelper() {
+class ScribbleHubCleaner : HtmlHelper() {
 
 
     override fun additionalProcessing(doc: Document) {
-        removeCSS(doc)
+        removeCSS(doc, false)
         var contentElement = doc.selectFirst("div#chp_contents")
         contentElement?.selectFirst("div.nav_chp_fi")?.remove()
         contentElement?.selectFirst("div.ta_c_bm")?.remove()
@@ -25,15 +25,4 @@ class ScribbleHubHelper : HtmlHelper() {
         } while (contentElement != null && contentElement.tagName() != "body")
         contentElement?.classNames()?.forEach { contentElement.removeClass(it) }
     }
-
-    override fun downloadImage(element: Element, file: File): File? {
-        val uri = Uri.parse(element.attr("src"))
-        return if (uri.toString().contains("uploads/avatars")) null
-        else super.downloadImage(element, file)
-    }
-
-    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
-        return super.toggleThemeDefault(isDark, doc)
-    }
-
 }
