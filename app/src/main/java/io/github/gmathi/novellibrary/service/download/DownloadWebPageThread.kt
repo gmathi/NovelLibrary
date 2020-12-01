@@ -3,7 +3,7 @@ package io.github.gmathi.novellibrary.service.download
 import android.content.Context
 import android.net.Uri
 import com.google.gson.Gson
-import io.github.gmathi.novellibrary.cleaner.HtmlHelper
+import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.model.*
 import io.github.gmathi.novellibrary.network.NovelApi
@@ -65,7 +65,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         val uri = Uri.parse(doc.location())
         if (!uri.host.isNullOrBlank()) {
 
-            val htmlHelper = HtmlHelper.getInstance(doc, uri.host ?: doc.location())
+            val htmlHelper = HtmlCleaner.getInstance(doc, uri.host ?: doc.location())
             htmlHelper.downloadResources(doc, hostDir, novelDir)
             webPageSettings.title = htmlHelper.getTitle(doc)
             val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName()))
@@ -112,7 +112,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         if (uri.host.isNullOrBlank()) return null
 
         val webPageSettings = WebPageSettings(otherChapterLink, novelId)
-        val htmlHelper = HtmlHelper.getInstance(doc, uri.host ?: doc.location())
+        val htmlHelper = HtmlCleaner.getInstance(doc, uri.host ?: doc.location())
         htmlHelper.downloadResources(doc, hostDir, novelDir)
 
         webPageSettings.title = htmlHelper.getTitle(doc)

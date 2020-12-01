@@ -18,7 +18,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ReaderDBPagerActivity
-import io.github.gmathi.novellibrary.cleaner.HtmlHelper
+import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getWebPageSettings
 import io.github.gmathi.novellibrary.database.updateWebPageSettings
@@ -338,7 +338,7 @@ class WebPageDBFragment : BaseFragment() {
 
                 // Process the document and load it onto the webView
                 doc?.let { doc ->
-                    val htmlHelper = HtmlHelper.getInstance(doc)
+                    val htmlHelper = HtmlCleaner.getInstance(doc)
                     htmlHelper.removeJS(doc)
                     htmlHelper.additionalProcessing(doc)
                     htmlHelper.setProperHrefUrls(doc)
@@ -367,7 +367,7 @@ class WebPageDBFragment : BaseFragment() {
                                 val urlDomain = getUrlDomain(linkedUrl)
                                 if (urlDomain == baseUrlDomain) {
                                     val otherDoc = await { NovelApi.getDocument(linkedUrl) }
-                                    val helper = HtmlHelper.getInstance(otherDoc)
+                                    val helper = HtmlCleaner.getInstance(otherDoc)
                                     helper.removeJS(otherDoc)
                                     helper.additionalProcessing(otherDoc)
                                     doc.body().append(otherDoc.body().html())
@@ -417,7 +417,7 @@ class WebPageDBFragment : BaseFragment() {
         try {
             progressLayout.showLoading()
             readerWebView.settings.javaScriptEnabled = true
-            val htmlHelper = HtmlHelper.getInstance(doc)
+            val htmlHelper = HtmlCleaner.getInstance(doc)
             htmlHelper.removeJS(doc)
             htmlHelper.additionalProcessing(doc)
             htmlHelper.setProperHrefUrls(doc)
@@ -437,7 +437,7 @@ class WebPageDBFragment : BaseFragment() {
                         if (url == null) url = internalFilePath
                         val otherDoc = Jsoup.parse(input, "UTF-8", url)
                         if (otherDoc != null) {
-                            val helper = HtmlHelper.getInstance(otherDoc)
+                            val helper = HtmlCleaner.getInstance(otherDoc)
                             helper.removeJS(otherDoc)
                             helper.additionalProcessing(otherDoc)
                             doc.body().append(otherDoc.body().html())
@@ -455,7 +455,7 @@ class WebPageDBFragment : BaseFragment() {
 
     private fun applyTheme() {
         doc?.let {
-            HtmlHelper.getInstance(it).toggleTheme(dataCenter.isDarkTheme, it)
+            HtmlCleaner.getInstance(it).toggleTheme(dataCenter.isDarkTheme, it)
             loadCreatedDocument()
         }
     }

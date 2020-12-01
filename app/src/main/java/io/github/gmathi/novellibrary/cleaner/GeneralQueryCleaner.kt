@@ -1,20 +1,18 @@
 package io.github.gmathi.novellibrary.cleaner
 
-import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
 import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
-import java.io.File
 
-class GeneralIdTagHelper(private val url: String, val tagName: String, val id: String, override var keepContentStyle: Boolean = false, private val appendTitle: Boolean = true) : HtmlHelper() {
+class GeneralQueryCleaner(private val url: String, private val query: String, private val appendTitle: Boolean = true,
+                          override var keepContentStyle: Boolean = false, override var keepContentIds: Boolean = false, override var keepContentClasses: Boolean = false) : HtmlCleaner() {
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc)
-        doc.head()?.getElementsByTag("style")?.remove()
-        doc.head()?.getElementsByTag("link")?.remove()
 
-        val contentElement = doc.body().select("$tagName#$id")
+        val contentElement = doc.body().select(query)
+
+        websiteSpecificFixes(contentElement)
 
         contentElement.forEach { element -> element.children()?.forEach { cleanCSSFromChildren(it) } }
         if (appendTitle)
@@ -33,23 +31,21 @@ class GeneralIdTagHelper(private val url: String, val tagName: String, val id: S
         doc.body().children().remove()
         doc.body().classNames().forEach { doc.body().removeClass(it) }
         doc.body().append(contentElement?.outerHtml())
-        doc.getElementById("custom-background-css")?.remove()
+
     }
 
-    override fun downloadImage(element: Element, file: File): File? {
-        val uri = Uri.parse(element.attr("src"))
-        return if (uri.toString().contains("uploads/avatars")) null
-        else super.downloadImage(element, file)
-    }
-
-    override fun removeJS(doc: Document) {
-        super.removeJS(doc)
-        doc.getElementsByTag("noscript").remove()
+    fun websiteSpecificFixes(contentElement : Elements) {
+        //Fix for volarenovels.com
+        if (url.contains("volarenovels.com")) {
+            val elements = contentElement.select("[id*=announcement]")
+            contentElement.removeAll(elements)
+        }
     }
 
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
-        return getLinkedChapters(doc.location(), doc.body().select("$tagName#$id").firstOrNull())
+        return getLinkedChapters(doc.location(), doc.body().select(query).firstOrNull())
     }
+
 
     private fun removeDirectionalLinks(contentElement: Elements) {
         contentElement.forEach { element ->
@@ -67,10 +63,5 @@ class GeneralIdTagHelper(private val url: String, val tagName: String, val id: S
 
             }?.forEach { it?.remove() }
         }
-    }
-
-
-    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
-        return super.toggleThemeDefault(isDark, doc)
     }
 }
