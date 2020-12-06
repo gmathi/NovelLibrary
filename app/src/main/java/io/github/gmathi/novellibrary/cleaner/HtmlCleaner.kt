@@ -129,7 +129,7 @@ open class HtmlCleaner protected constructor() {
     }
 
     open var keepContentStyle = false
-    open var keepContentIds = false
+    open var keepContentIds = true
     open var keepContentClasses = false
 
     fun downloadResources(doc: Document, hostDir: File, novelDir: File) {
@@ -333,6 +333,12 @@ open class HtmlCleaner protected constructor() {
                 svg {
                     max-width: 100vw;
                 }
+                .footnote, .footnote+span {
+                    border-bottom: 1px dashed;
+                }
+                .footnote+span::before {
+                    content: " ";
+                }
             </style>
             """.trimIndent()
         )
@@ -398,6 +404,57 @@ open class HtmlCleaner protected constructor() {
                         // Image is not linking anywhere - apply zoom on click.
                         img.addEventListener("click", toggleZoom);
                     }
+                }
+                
+                // Footnote integration QOL
+                function makeFootnote(tag, text) {
+                    if (tag.classList.contains("footnote") || tag._footnoteSource) return;
+                    tag.classList.add("footnote");
+                    var disp = document.createElement("span");
+                    disp.innerHTML = text;
+                    disp.style.display = "none";
+                    tag.insertAdjacentElement("afterend", disp);
+                    
+                    function toggleFootnote(e) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        if (disp.style.display == "none") disp.style.display = "";
+                        else disp.style.display = "none";
+                    }
+                    tag.addEventListener("click", toggleFootnote);
+                    disp.addEventListener("click", toggleFootnote);
+                }
+                // Footnotes
+                var footnotes = document.querySelectorAll("sup");
+                for (var i = 0; i < footnotes.length; i++) {
+                    var parent = footnotes[i];
+                    var anchor = parent.querySelector("a");
+                    if (anchor && new URL(parent.href).hash != "") anchor = null;
+                    
+                    while (parent && !parent.title) {
+                        if (!anchor && parent.tagName == "A" && new URL(parent.href).hash != "") anchor = parent;
+                        parent = parent.parentElement;
+                    }
+                    if (parent) {
+                        makeFootnote(parent, parent.title);
+                    } else if (anchor) {
+                        // footnote doesn't have a title with footnote contents: Attempt to find the footnote data
+                        var footnoteBase = document.querySelector(new URL(anchor.href).hash);
+                        if (footnoteBase) {
+                            var nextEl = footnoteBase.nextSibling;
+                            footnoteBase._footnoteSource = true;
+                            if (nextEl && (footnoteBase.textContent == "" || footnoteBase.textContent.trim().length <= anchor.textContent.trim().length)) {
+                                makeFootnote(anchor, nextEl.textContent);
+                            } else {
+                                makeFootnote(anchor, footnoteBase.textContent);
+                            }
+                        }
+                    }
+                }
+                // <abbr> support
+                var abbrs = document.querySelectorAll("a[title][href^='#'],abbr[title]");
+                for (var i = 0; i < abbrs.length; i++) {
+                    makeFootnote(abbrs[i], abbrs[i].title);
                 }
                 
                 // Attempt to mitigate SVGs being extremely big by limiting their size based off `viewBox` attribute.
