@@ -28,13 +28,14 @@
             android:label="@string/title_activity_google_backup"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide">
-            <!--            <intent-filter>-->
-            <!--                <action android:name="android.intent.action.MAIN" />-->
 
-            <!--                <category android:name="android.intent.category.LAUNCHER" />-->
-            <!--            </intent-filter>-->
-        </activity>
-        <!-- [START fcm_default_icon] -->
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
+        </activity> <!-- [START fcm_default_icon] -->
         <!--
              Set custom default icon. This is used when no icon is set for incoming notification messages.
              See README(https://goo.gl/l4GJaQ) for more.
@@ -54,7 +55,8 @@
             android:name="com.google.firebase.messaging.default_notification_channel"
             android:value="@string/default_notification_channel_id" />
 
-        <service android:name=".service.firebase.NLFirebaseMessagingService"
+        <service
+            android:name=".service.firebase.NLFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
@@ -165,6 +167,21 @@
         <activity
             android:name=".activity.settings.MentionSettingsActivity"
             android:label="@string/title_activity_mention_settings"
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide" />
+        <activity
+            android:name=".activity.settings.SyncSettingsSelectionActivity"
+            android:label="@string/title_activity_sync_selection_settings"
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide" />
+        <activity
+            android:name=".activity.settings.SyncSettingsActivity"
+            android:label="@string/title_activity_sync_settings"
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide" />
+        <activity
+            android:name=".activity.settings.SyncLoginActivity"
+            android:label="@string/title_activity_sync_login"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity

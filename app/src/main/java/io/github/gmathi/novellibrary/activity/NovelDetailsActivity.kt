@@ -34,6 +34,7 @@ import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getNovelDetails
+import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.activity_novel_details.*
 import kotlinx.android.synthetic.main.content_novel_details.*
@@ -213,6 +214,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     private fun addNovelToDB() {
         if (novel.id == -1L) {
             novel.id = dbHelper.insertNovel(novel)
+            NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncAddNovels(it.host)) it.addNovel(novel, null) }
             firebaseAnalytics.logEvent(FAC.Event.ADD_NOVEL) {
                 param(FAC.Param.NOVEL_NAME, novel.name)
                 param(FAC.Param.NOVEL_URL, novel.url)

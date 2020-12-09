@@ -40,6 +40,7 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
 import io.github.gmathi.novellibrary.util.Logs
@@ -149,6 +150,7 @@ class ReaderDBPagerActivity :
 
     private fun updateBookmark(webPage: WebPage) {
         dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, webPage.url)
+        NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, webPage) }
         val webPageSettings = dbHelper.getWebPageSettings(webPage.url)
         if (webPageSettings != null) {
             dbHelper.updateWebPageSettingsReadStatus(webPageSettings.url, 1, webPageSettings.metaData)

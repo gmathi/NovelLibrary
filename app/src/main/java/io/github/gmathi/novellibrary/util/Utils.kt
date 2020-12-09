@@ -26,12 +26,14 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.createFileIfNotExists
 import io.github.gmathi.novellibrary.extensions.getOrCreateDirectory
 import io.github.gmathi.novellibrary.extensions.getOrCreateFile
 import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.network.sync.NovelSync
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.safety.Whitelist
@@ -123,6 +125,7 @@ object Utils {
         val novelDir = getNovelDir(hostDir, novel.name)
         novelDir.deleteRecursively()
         dbHelper.cleanupNovelData(novel)
+        NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncDeleteNovels(it.host)) it.removeNovel(novel) }
         broadcastNovelDelete(context, novel)
     }
 

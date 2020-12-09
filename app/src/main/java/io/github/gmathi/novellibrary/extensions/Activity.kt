@@ -163,6 +163,28 @@ fun AppCompatActivity.startCloudFlareBypassActivity(hostName: String) {
     startActivity(intent)
 }
 
+fun AppCompatActivity.startSyncSettingsSelectionActivity() {
+    val intent = Intent(this, SyncSettingsSelectionActivity::class.java)
+    startActivity(intent)
+}
+
+fun AppCompatActivity.startSyncSettingsActivity(url: String) {
+    val intent = Intent(this, SyncSettingsActivity::class.java)
+    val bundle = Bundle()
+    bundle.putString("url", url)
+    intent.putExtras(bundle)
+    startActivity(intent)
+}
+
+fun AppCompatActivity.startSyncLoginActivity(url: String, lookup: String) {
+    val intent = Intent(this, SyncLoginActivity::class.java)
+    val bundle = Bundle()
+    bundle.putString("url", url)
+    bundle.putString("lookup", lookup)
+    intent.putExtras(bundle)
+    startActivity(intent)
+}
+
 fun AppCompatActivity.startImportLibraryActivity() {
     startActivityForResult(Intent(this, ImportLibraryActivity::class.java), Constants.IMPORT_LIBRARY_ACT_REQ_CODE)
 }

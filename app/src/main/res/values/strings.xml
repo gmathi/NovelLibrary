@@ -30,33 +30,71 @@
    -->
 
     <string-array name="search_results_tab_titles" translatable="false">
-        <item>Novel-Updates</item>
-        <item>WLN-Updates</item>
-        <item>LNMTL</item>
+        <item>@string/source_novel_updates</item>
+        <item>@string/source_wln_updates</item>
+        <item>@string/source_lnmtl</item>
     </string-array>
 
     <string-array name="search_results_tab_titles_unlocked" translatable="false">
-        <item>Novel-Updates</item>
-        <item>RoyalRoad</item>
-        <item>WLN-Updates</item>
-        <item>LNMTL</item>
+        <item>@string/source_novel_updates</item>
+        <item>@string/source_royalroad</item>
+        <item>@string/source_wln_updates</item>
+        <item>@string/source_lnmtl</item>
     </string-array>
 
     <string-array name="search_results_tab_titles_developer_only" translatable="false">
-        <item>Novel-Updates</item>
-        <item>RoyalRoad</item>
-        <item>NovelFull</item>
-        <item>WLN-Updates</item>
-        <item>LNMTL</item>
+        <item>@string/source_novel_updates</item>
+        <item>@string/source_royalroad</item>
+        <item>@string/source_novelfull</item>
+        <item>@string/source_wln_updates</item>
+        <item>@string/source_lnmtl</item>
     </string-array>
 
     <string-array name="settings_list" translatable="false">
         <item>@string/general</item>
         <item>@string/reader</item>
         <item>@string/mentions</item>
+        <item>@string/sync</item>
         <item>@string/donate_developer</item>
         <item>@string/about_us</item>
         <item>@string/cloud_flare_check</item>
+    </string-array>
+
+    <string-array name="sync_list" translatable="false">
+        <item>@string/experimental_sync_disclaimer</item>
+        <item>@string/source_novel_updates</item>
+<!--        <item>@string/source_wln_updates</item>-->
+<!--        <item>@string/source_lnmtl</item>-->
+    </string-array>
+
+    <string-array name="sync_options" translatable="false">
+        <item>@string/enable_sync</item>
+        <item>@string/sync_status</item>
+        <item>@string/sync_log_in</item>
+        <item>@string/sync_add_novels</item>
+        <item>@string/sync_delete_novels</item>
+        <item>@string/sync_bookmarks</item>
+        <item>@string/make_full_sync</item>
+<!--        <item>@string/fetch_novels</item>-->
+<!--        <item>@string/fetch_bookmarks</item>-->
+<!--        <item>@string/fetch_sections</item>-->
+<!--        <item>@string/make_full_fetch</item>-->
+        <item>@string/sync_forget</item>
+    </string-array>
+
+    <string-array name="sync_options_descriptions" translatable="false">
+        <item>@string/enable_sync_description</item>
+        <item>@string/enable_sync_description</item>
+        <item>@string/sync_log_in_description</item>
+        <item>@string/sync_add_novels_description</item>
+        <item>@string/sync_delete_novels_description</item>
+        <item>@string/sync_bookmarks_description</item>
+        <item>@string/make_full_sync_description</item>
+        <!--        <item>@string/fetch_novels_description</item>-->
+        <!--        <item>@string/fetch_bookmarks_description</item>-->
+        <!--        <item>@string/fetch_sections_description</item>-->
+        <!--        <item>@string/make_full_fetch_description</item>-->
+        <item>@string/sync_forget_description</item>
     </string-array>
 
     <string-array name="mention_settings_list" translatable="false">
@@ -219,6 +257,9 @@
     <string name="title_activity_backup_n_restore_settings" translatable="false">@string/backup_and_restore</string>
     <string name="title_activity_reader_settings" translatable="false">@string/reader</string>
     <string name="title_activity_mention_settings" translatable="false">@string/mentions</string>
+    <string name="title_activity_sync_selection_settings" translatable="false">@string/sync</string>
+    <string name="title_activity_sync_settings" translatable="false">@string/sync_settings</string>
+    <string name="title_activity_sync_login" translatable="false">@string/sync_log_in_title</string>
     <string name="title_activity_chapters_new" translatable="false">@string/chapters</string>
     <string name="title_activity_import_library" translatable="false">@string/import_reading_list</string>
     <string name="title_activity_chapter_downloads" translatable="false">ChapterDownloadsActivity</string>
@@ -590,8 +631,53 @@
 
     <!-- 0.15.6-->
     <string name="licensed_warning" tools:ignore="MissingTranslation">This novel was officially licensed by %1$s and may have missing (by DMCA or voluntary), or paywalled, chapters</string>
-    
+
     <string name="sync_fetching_chapter_counts">Obtaining chapter counts: %1$d / %2$d\n%3$s</string>
     <string name="sync_fetching_chapter_list">Obtaining chapter lists: %1$d / %2$d\n%3$s</string>
+
+    <string name="source_novel_updates">Novel-Updates</string>
+    <string name="source_wln_updates">WLN-Updates</string>
+    <string name="source_lnmtl">LNMTL</string>
+    <string name="source_royalroad">RoyalRoad</string>
+    <string name="source_novelfull">NovelFull</string>
+
+    <string name="logged_in">Logged in</string>
+    <string name="not_logged_in">Not logged in</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+    <string name="sync_cookies_not_found">Login cookies not found</string>
+    <string name="sync_cookies_found">Login cookies found</string>
+    <string name="confirm_forget_cookies">Forget Login</string>
+    <string name="confirm_forget_cookies_description">Delete login cookies and log out from the sync source?</string>
+    <string name="confirm_full_sync">@string/make_full_sync</string>
+    <string name="confirm_full_sync_description">Add all novels and sections from the app to the list on the source website?</string>
+    <string name="sync_batch_progress_title">Sync in progress: %1$d / %2$d</string>
+    <string name="sync_batch_progress">Adding novel: %1$s</string>
+    <string name="sync_batch_progress_bookmarks">Setting bookmark: %1$s</string>
+    <string name="sync_log_in_title">Sync: Log In</string>
+    <string name="sync_settings">Sync: Settings</string>
+
+    <string name="enable_sync">Enable Sync</string>
+    <string name="enable_sync_description">Synchronize novels from this source to the lists on the source website.</string>
+    <string name="sync_status">Sync Status</string>
+    <string name="sync_status_description">%1$s, %2$s</string>
+    <string name="sync_log_in">Log In</string>
+    <string name="sync_log_in_description">Open browser to log in to the source website. Don\'t forget to hit the "Remember Me" checkbox!</string>
+    <string name="sync_add_novels">Synchronize new novels</string>
+    <string name="sync_add_novels_description">Novels added through app will be added to your list on the source website.</string>
+    <string name="sync_delete_novels">Synchronize deleted novels</string>
+    <string name="sync_delete_novels_description">Novels removed through app will be removed from your list on the source website.</string>
+    <string name="sync_bookmarks">Synchronize bookmarks</string>
+    <string name="sync_bookmarks_description">Reading chapters in the app will synchronize reading bookmark on the source website.</string>
+    <string name="make_full_sync">Perform full sync</string>
+    <string name="make_full_sync_description">Add novels and sections from the app to your lists on the source website.</string>
+    <string name="sync_forget">Forget log in</string>
+    <string name="sync_forget_description">Delete the Login cookies from the device.</string>
+
+    <string name="experimental_sync_disclaimer">Experimental feature!</string>
+    <string name="experimental_sync_description">
+        The sync feature lets you synchronize your app library with the source website.
+        Please keep in mind that this feature is experimental and currently only supports syncing from the app to the source website but not the other way around.
+    </string>
 
 </resources>

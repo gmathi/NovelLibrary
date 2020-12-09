@@ -27,6 +27,7 @@ import io.github.gmathi.novellibrary.model.WebPageSettings
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterCount
 import io.github.gmathi.novellibrary.network.getChapterUrls
+import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.content_library.*
 import kotlinx.android.synthetic.main.listitem_library.view.*
@@ -464,8 +465,10 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 else if (which != 0)
                     id = novelSections[which - 1].id
 
-                dbHelper.updateNovelSectionId(adapter.items[position].id, id)
+                val novel = adapter.items[position]
+                dbHelper.updateNovelSectionId(novel.id, id)
                 EventBus.getDefault().post(NovelSectionEvent(id))
+                NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncAddNovels(it.host)) it.updateNovel(novel, novelSections.firstOrNull { section -> section.id == id }) }
                 setData()
             }
             .show()
