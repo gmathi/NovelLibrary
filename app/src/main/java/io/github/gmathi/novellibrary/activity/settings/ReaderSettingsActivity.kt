@@ -215,18 +215,14 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         if (position == POSITION_READER_MODE_THEME) {
             startReaderBackgroundSettingsActivity()
         } else if (position == POSITION_CUSTOM_QUERY_LOOKUPS) {
-            var lookup: CharSequence = dataCenter.customQueryLookups
             MaterialDialog.Builder(this)
                 .title(getString(R.string.custom_query_lookups_edit))
                 .inputType(InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_CLASS_TEXT)
-                .input(getString(R.string.custom_query_lookups_hint), lookup) { _, input ->
-                    lookup = input
-                }
+                .input(getString(R.string.custom_query_lookups_hint), dataCenter.customQueryLookups) { _, _ -> }
                 .positiveText(getString(R.string.fui_button_text_save))
                 .negativeText(getString(R.string.cancel))
                 .onPositive { widget, _ ->
                     dataCenter.customQueryLookups = widget.inputEditText?.text.toString()
-
                 }
                 .show()
         }
