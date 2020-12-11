@@ -8,6 +8,7 @@ import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.model.QueryLookup
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
@@ -33,6 +34,33 @@ open class HtmlCleaner protected constructor() {
 
         private const val TAG = "HtmlHelper"
 
+        private val defaultLookups = listOf(
+            QueryLookup("div.chapter-content"),
+            QueryLookup("div.entry-content"),
+            QueryLookup("div.elementor-widget-theme-post-content", appendTitleHeader = false),
+            QueryLookup("article.hentry"),
+            QueryLookup("div.hentry"),
+            QueryLookup("div#chapter_body"),
+            QueryLookup("article#releases"),
+            QueryLookup("div.td-main-content"),
+            QueryLookup("div#content"),
+            QueryLookup("div.post-inner", appendTitleHeader = false),
+            QueryLookup("div.blog-content"),
+            QueryLookup("div#chapter-content"),
+            QueryLookup("div.panel-body", appendTitleHeader = false),
+            QueryLookup("div.post-entry"),
+            QueryLookup("div.text-formatting"),
+            QueryLookup("article.single__contents"),
+            //QueryLookup("article.story-part"),
+            QueryLookup("div#chapter"),
+            //TODO: Xiaxia novel, needs more analysis to fix pre-formatting (jsoup not supporting)
+            QueryLookup("section#StoryContent"),
+            QueryLookup("div.content-container"),
+            QueryLookup("article.article-content"),
+            QueryLookup("div.page-content"),
+            QueryLookup("div.legacy-journal") // Sample: deviantart journals (NU group: darksilencer)
+        )
+
         fun getInstance(doc: Document, url: String = doc.location()): HtmlCleaner {
             when {
                 url.contains(HostNames.WATTPAD) -> return WattPadCleaner()
@@ -48,82 +76,23 @@ open class HtmlCleaner protected constructor() {
                 url.contains(HostNames.ACTIVE_TRANSLATIONS) -> return ActiveTranslationsCleaner()
             }
 
-            var contentElement = doc.body().select("div.chapter-content").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "div.chapter-content")
-
-            contentElement = doc.body().select("div.entry-content").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "div.entry-content")
-
-            contentElement = doc.body().select("div.elementor-widget-theme-post-content").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "div.elementor-widget-theme-post-content", appendTitle = false)
-
-            contentElement = doc.body().select("article.hentry").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "article.hentry")
-
-            contentElement = doc.body().select("div.hentry").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "div.hentry")
-
-            contentElement = doc.body().select("div#chapter_body").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "div#chapter_body")
-
-            contentElement = doc.body().select("article#releases").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "article#releases")
-
-            contentElement = doc.body().select("div.td-main-content").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "div.td-main-content")
-
-            contentElement = doc.body().select("div#content").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "div#content")
-
-            contentElement = doc.body().select("div.post-inner").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "div.post-inner", appendTitle = false)
-
-            contentElement = doc.body().select("div.blog-content").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "div.blog-content")
-
-            contentElement = doc.body().select("div#chapter-content").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "div#chapter-content")
-
-            contentElement = doc.body().select("div.panel-body").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "div.panel-body", appendTitle = false)
-
-            contentElement = doc.body().select("div.post-entry").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "div.post-entry")
-
-            contentElement = doc.body().select("div.text-formatting").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "div.text-formatting")
-
-            contentElement = doc.body().select("article.single__contents").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "article.single__contents")
-
-//            contentElement = doc.body().select("article.story-part").firstOrNull()
-//            if (contentElement != null) return GeneralClassTagHelper(url, "article", "story-part")
-
-            contentElement = doc.body().select("div#chapter").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "div#chapter")
-
-            //TODO: Xiaxia novel, needs more analysis to fix pre-formatting (jsoup not supporting)
-            contentElement = doc.body().select("section#StoryContent").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "section#StoryContent")
-
-            contentElement = doc.body().select("div.content-container").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "div.content-container")
-
-            contentElement = doc.body().select("article.article-content").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "article.article-content")
-
-            contentElement = doc.body().select("div.page-content").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "div.page-content")
-
-            // Sample: deviantart journals (NU group: darksilencer)
-            contentElement = doc.body().select("div.legacy-journal").firstOrNull()
-            if (contentElement != null) return GeneralQueryCleaner(url, "div.legacy-journal")
+            val body = doc.body()
+            val lookup = getQueryLookups().firstOrNull { body.select(it.query).isNotEmpty() }
+            if (lookup != null) return GeneralQueryCleaner(url, lookup.query, appendTitle = lookup.appendTitleHeader)
 
             //Lastly let's check for cloud flare
-            contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
+            val contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
             if (contentElement != null) return CloudFlareDDoSTagCleaner()
 
             return HtmlCleaner()
+        }
+
+        private fun getQueryLookups(): List<QueryLookup> {
+            val lookups = dataCenter.customQueryLookups
+            if (lookups.isNotBlank()) {
+                return defaultLookups + lookups.split('\n').filter { it.isNotBlank() }.map { QueryLookup(it.trim()) }
+            }
+            return defaultLookups
         }
 
     }

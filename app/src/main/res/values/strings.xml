@@ -118,6 +118,7 @@
         <item>@string/alternative_text_colors</item>
         <item>@string/limit_image_width</item>
         <item>@string/auto_read_next_chapter</item>
+        <item>@string/custom_query_lookups</item>
     </string-array>
 
     <string-array name="reader_subtitles_list" translatable="false">
@@ -139,6 +140,7 @@
         <item>@string/alternative_text_colors_description</item>
         <item>@string/limit_image_width_description</item>
         <item>@string/auto_read_next_chapter_description</item>
+        <item>@string/custom_query_lookups_description</item>
     </string-array>
 
     <string-array name="reader_mode_menu_titles_list" translatable="false">
@@ -593,5 +595,10 @@
     
     <string name="sync_fetching_chapter_counts">Obtaining chapter counts: %1$d / %2$d\n%3$s</string>
     <string name="sync_fetching_chapter_list">Obtaining chapter lists: %1$d / %2$d\n%3$s</string>
+
+    <string name="custom_query_lookups">Custom Reader Mode lookups</string>
+    <string name="custom_query_lookups_description">Advanced usage: Add custom query selectors for unsupported websites in reader mode, enabling their support.</string>
+    <string name="custom_query_lookups_edit">Adding custom query selectors</string>
+    <string name="custom_query_lookups_hint">div.chapter-contents</string>
 
 </resources>
