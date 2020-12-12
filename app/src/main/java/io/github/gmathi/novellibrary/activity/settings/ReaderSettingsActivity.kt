@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.activity.settings
 
 import android.os.Bundle
+import android.text.InputType
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import android.view.MenuItem
@@ -46,6 +47,7 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         private const val POSITION_ALTERNATIVE_TEXT_COLORS = 15
         private const val POSITION_LIMIT_IMAGE_WIDTH = 16
         private const val POSITION_AUTO_READ_NEXT_CHAPTER = 17
+        private const val POSITION_CUSTOM_QUERY_LOOKUPS = 18
 
     }
 
@@ -197,6 +199,9 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 itemView.widgetSwitch.isChecked = dataCenter.readAloudNextChapter
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.readAloudNextChapter = value }
             }
+            POSITION_CUSTOM_QUERY_LOOKUPS -> {
+                itemView.widgetChevron.visibility = View.VISIBLE
+            }
         }
 
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
@@ -209,6 +214,17 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 //        }
         if (position == POSITION_READER_MODE_THEME) {
             startReaderBackgroundSettingsActivity()
+        } else if (position == POSITION_CUSTOM_QUERY_LOOKUPS) {
+            MaterialDialog.Builder(this)
+                .title(getString(R.string.custom_query_lookups_edit))
+                .inputType(InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_CLASS_TEXT)
+                .input(getString(R.string.custom_query_lookups_hint), dataCenter.customQueryLookups) { _, _ -> }
+                .positiveText(getString(R.string.fui_button_text_save))
+                .negativeText(getString(R.string.cancel))
+                .onPositive { widget, _ ->
+                    dataCenter.customQueryLookups = widget.inputEditText?.text.toString()
+                }
+                .show()
         }
     }
 
