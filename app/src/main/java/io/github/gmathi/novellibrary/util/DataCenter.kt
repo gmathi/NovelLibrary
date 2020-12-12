@@ -62,6 +62,7 @@ class DataCenter(context: Context) {
         private const val DEVELOPER = "developer"
         private const val DISABLE_WUXIA_DOWNLOADS = "disableWuxiaDownloads"
         private const val HAS_ALREADY_DELETED_OLD_CHANNELS = "hasAlreadyDeletedOldChannels"
+        private const val LOGIN_COOKIES_STRING = "loginCookiesString"
         private const val CUSTOM_QUERY_LOOKUPS = "customQueryLookups"
 
         //Backup
@@ -85,6 +86,12 @@ class DataCenter(context: Context) {
 
         const val READ_ALOUD_NEXT_CHAPTER = "readAloudNextChapter"
         const val SCROLLING_TEXT = "scrollingText"
+
+        // Sync
+        const val SYNC_ENABLE = "sync_enable_"
+        const val SYNC_ADD_NOVELS = "sync_add_novels_"
+        const val SYNC_DELETE_NOVELS = "sync_delete_novels_"
+        const val SYNC_BOOKMARKS = "sync_bookmarks_"
 
     }
 
@@ -298,6 +305,50 @@ class DataCenter(context: Context) {
 
     fun setCFCookiesString(hostName: String, value: String) {
         prefs.edit().putString(CF_COOKIES_STRING + hostName, value).apply()
+    }
+
+    fun getLoginCookiesString(hostName: String): String {
+        return prefs.getString(LOGIN_COOKIES_STRING + hostName, "")!!;
+    }
+
+    fun setLoginCookiesString(hostName: String, value: String) {
+        prefs.edit().putString(LOGIN_COOKIES_STRING + hostName, value).apply()
+    }
+
+    fun deleteLoginCookieString(hostName: String) {
+        prefs.edit().remove(LOGIN_COOKIES_STRING + hostName).apply()
+    }
+
+    fun getSyncEnabled(name: String): Boolean {
+        return prefs.getBoolean(SYNC_ENABLE + name, false)
+    }
+
+    fun setSyncEnabled(name: String, value: Boolean) {
+        prefs.edit().putBoolean(SYNC_ENABLE + name, value).apply()
+    }
+
+    fun getSyncAddNovels(name: String): Boolean {
+        return prefs.getBoolean(SYNC_ADD_NOVELS + name, true)
+    }
+
+    fun setSyncAddNovels(name: String, value: Boolean) {
+        prefs.edit().putBoolean(SYNC_ADD_NOVELS + name, value).apply()
+    }
+
+    fun getSyncDeleteNovels(name: String): Boolean {
+        return prefs.getBoolean(SYNC_DELETE_NOVELS + name, true)
+    }
+
+    fun setSyncDeleteNovels(name: String, value: Boolean) {
+        prefs.edit().putBoolean(SYNC_DELETE_NOVELS + name, value).apply()
+    }
+
+    fun getSyncBookmarks(name: String): Boolean {
+        return prefs.getBoolean(SYNC_BOOKMARKS + name, true)
+    }
+
+    fun setSyncBookmarks(name: String, value: Boolean) {
+        prefs.edit().putBoolean(SYNC_BOOKMARKS + name, value).apply()
     }
 
     //Backup

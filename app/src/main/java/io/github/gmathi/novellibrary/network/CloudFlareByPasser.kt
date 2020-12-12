@@ -113,7 +113,28 @@ object CloudFlareByPasser {
         return false
     }
 
-    private fun clearCookies(hostName: String) {
+    fun saveLoginCookies(hostName: String, lookup: Regex) : Boolean {
+        val pureHost = hostName.replace("www.", "").replace("m.", "")
+        val general = saveLoginCookiesInternal(pureHost, lookup)
+        val www = saveLoginCookiesInternal("www.$pureHost", lookup)
+        val mobile = saveLoginCookiesInternal("m.$pureHost", lookup)
+        return general || www || mobile;
+    }
+
+    private fun saveLoginCookiesInternal(hostName: String, lookup: Regex) : Boolean {
+        val cookies = CookieManager.getInstance().getCookie("https://$hostName/").trim()
+        val parts = cookies.split(";".toRegex()).dropLastWhile { it.isEmpty() }.filter {
+            lookup.containsMatchIn(it)
+        }
+        return if (parts.count() != 0) {
+            dataCenter.setLoginCookiesString(hostName, parts.joinToString(";"))
+            true
+        } else {
+            false
+        }
+    }
+
+    fun clearCookies(hostName: String) {
         val cookieManager = CookieManager.getInstance()
         val cookieString = cookieManager.getCookie(".$hostName")
         if (cookieString != null) {
@@ -134,13 +155,24 @@ object CloudFlareByPasser {
         return map
     }
 
-    fun getCookieMap(url: URL?): Map<String, String> {
-        val map = HashMap<String, String>()
-        val hostName = url?.host?.replace("www.", "")?.replace("m.", "")?.trim() ?: return map
+    private fun populateCookieMap(hostName: String, map: HashMap<String, String>) {
         if (dataCenter.getCFDuid(hostName).isNotEmpty())
             map[DataCenter.CF_COOKIES_DUID] = dataCenter.getCFDuid(hostName)
         if (dataCenter.getCFClearance(hostName).isNotEmpty())
             map[DataCenter.CF_COOKIES_CLEARANCE] = dataCenter.getCFClearance(hostName)
+        dataCenter.getLoginCookiesString(hostName).split(";".toRegex()).dropLastWhile { it.isEmpty() }.forEach {
+            val idx = it.indexOf('=')
+            map[it.substring(0, idx)] = it.substring(idx+1)
+        }
+    }
+
+    fun getCookieMap(url: URL?): Map<String, String> {
+        val map = HashMap<String, String>()
+        if (url?.host == null) return map
+        val hostName = url.host.replace("www.", "").replace("m.", "").trim()
+        populateCookieMap(hostName, map)
+        populateCookieMap("www.$hostName", map)
+        populateCookieMap("m.$hostName", map)
         return map
     }
 

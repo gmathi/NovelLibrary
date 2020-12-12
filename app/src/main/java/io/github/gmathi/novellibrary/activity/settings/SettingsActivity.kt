@@ -23,10 +23,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.extensions.startCloudFlareBypassActivity
-import io.github.gmathi.novellibrary.extensions.startGeneralSettingsActivity
-import io.github.gmathi.novellibrary.extensions.startMentionSettingsActivity
-import io.github.gmathi.novellibrary.extensions.startReaderSettingsActivity
+import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
@@ -92,7 +89,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     override fun bind(item: String, itemView: View, position: Int) {
         itemView.settingsTitle.applyFont(assets).text = item
-        itemView.chevron.visibility = if (position == 0 || position == 1 || position == 2) View.VISIBLE else View.INVISIBLE
+        itemView.chevron.visibility = if (position < 4) View.VISIBLE else View.INVISIBLE
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
         else ContextCompat.getColor(this, android.R.color.transparent))
     }
@@ -102,6 +99,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             getString(R.string.general) -> startGeneralSettingsActivity()
             getString(R.string.reader) -> startReaderSettingsActivity()
             getString(R.string.mentions) -> startMentionSettingsActivity()
+            getString(R.string.sync) -> startSyncSettingsSelectionActivity()
             getString(R.string.donate_developer) -> donateDeveloperDialog()
             getString(R.string.about_us) -> aboutUsDialog()
             getString(R.string.cloud_flare_check) -> startCloudFlareBypassActivity("novelupdates.com")

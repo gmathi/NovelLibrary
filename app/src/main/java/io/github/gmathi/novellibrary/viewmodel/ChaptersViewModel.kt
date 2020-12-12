@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.*
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Download
@@ -12,6 +13,7 @@ import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.model.WebPageSettings
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterUrls
+import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
@@ -165,7 +167,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         if (novel.id != -1L) return
         loadingStatus.value = Constants.Status.START
         novel.id = dbHelper.insertNovel(novel)
-
+        NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncAddNovels(it.host)) it.addNovel(novel) }
         //There is a chance that the above insertion might fail
         if (novel.id == -1L) return
         chapters?.forEach { it.novelId = novel.id }

@@ -11,16 +11,19 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.MotionEventCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
+import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.google.firebase.analytics.ktx.logEvent
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.FAC
 import io.github.gmathi.novellibrary.extensions.showEmpty
 import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.model.NovelSection
+import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.SimpleItemTouchListener
@@ -159,6 +162,7 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                     if (novelSection.id != -1L) {
                         dbHelper.getAllNovels(novelSection.id).forEach {
                             dbHelper.updateNovelSectionId(it.id, -1L)
+                            NovelSync.getInstance(it)?.applyAsync { sync -> if (dataCenter.getSyncAddNovels(sync.host)) sync.updateNovel(it, null) }
                         }
                         dbHelper.deleteNovelSection(novelSection.id)
                     }
@@ -187,6 +191,12 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                 if (newName.isNotBlank() && dbHelper.getNovelSection(newName) == null) {
                     dbHelper.updateNovelSectionName(novelSection.id, newName)
                     setData()
+                    val oldName = novelSection.name
+                    async {
+                        NovelSync.getAllInstances().forEach {
+                            await { if (dataCenter.getSyncAddNovels(it.host)) it.renameSection(novelSection, oldName, newName) }
+                        }
+                    }
                     firebaseAnalytics.logEvent(FAC.Event.RENAME_NOVEL_SECTION) {
                         param(FAC.Param.NOVEL_SECTION_NAME, newName)
                     }

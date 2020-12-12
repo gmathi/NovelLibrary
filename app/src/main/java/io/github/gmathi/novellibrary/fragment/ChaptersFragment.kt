@@ -12,13 +12,12 @@ import com.hanks.library.AnimateCheckBox
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ChaptersPagerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapterSelectTitleProvider
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.showEmpty
-import io.github.gmathi.novellibrary.extensions.showLoading
-import io.github.gmathi.novellibrary.extensions.startReaderDBPagerActivity
-import io.github.gmathi.novellibrary.extensions.startWebViewActivity
+import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
@@ -123,6 +122,7 @@ class ChaptersFragment : BaseFragment(),
         if (novel.id != -1L) {
             novel.currentWebPageUrl = item.url
             dbHelper.updateNovel(novel)
+            NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, item) }
             startReaderDBPagerActivity(novel, sourceId)
         } else
             startWebViewActivity(item.url)
