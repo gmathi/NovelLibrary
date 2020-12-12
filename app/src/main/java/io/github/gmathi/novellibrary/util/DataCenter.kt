@@ -62,6 +62,7 @@ class DataCenter(context: Context) {
         private const val DEVELOPER = "developer"
         private const val DISABLE_WUXIA_DOWNLOADS = "disableWuxiaDownloads"
         private const val HAS_ALREADY_DELETED_OLD_CHANNELS = "hasAlreadyDeletedOldChannels"
+        private const val CUSTOM_QUERY_LOOKUPS = "customQueryLookups"
 
         //Backup
         private const val LAST_LOCAL_BACKUP_TIMESTAMP = "lastLocalBackupTimestamp"
@@ -256,6 +257,9 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(HAS_ALREADY_DELETED_OLD_CHANNELS, false)
         set(value) = prefs.edit().putBoolean(HAS_ALREADY_DELETED_OLD_CHANNELS, value).apply()
 
+    var customQueryLookups: String
+        get() = prefs.getString(CUSTOM_QUERY_LOOKUPS, "")!!
+        set(value) = prefs.edit().putString(CUSTOM_QUERY_LOOKUPS, value).apply()
 
     // Verified HostNames management
 
