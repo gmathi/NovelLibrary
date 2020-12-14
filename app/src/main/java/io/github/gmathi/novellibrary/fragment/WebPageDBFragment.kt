@@ -39,10 +39,7 @@ import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.setDefaultSettings
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.fragment_reader.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -60,6 +57,7 @@ class WebPageDBFragment : BaseFragment() {
 
     var doc: Document? = null
     var history: ArrayList<WebPageSettings> = ArrayList()
+    var job: Job? = null
 
     companion object {
         private const val NOVEL_ID = "novelId"
@@ -113,6 +111,7 @@ class WebPageDBFragment : BaseFragment() {
 
     }
 
+    @Suppress("DEPRECATION")
     private fun setOnScrollVisibleButtons() {
         // Show the menu button on scroll
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
@@ -132,7 +131,8 @@ class WebPageDBFragment : BaseFragment() {
             if (dataCenter.enableImmersiveMode && dataCenter.showNavbarAtChapterEnd) {
                 // Using deprecated WebView.scale due to WebViewClient.onScaleChanged being completely unreliable.
                 // New approach sometimes simply does not trigger, causing anything but online reader mode to break.
-                @Suppress("DEPRECATION") val height = readerWebView.contentHeight * readerWebView.scale - readerWebView.height - 10
+
+                val height = readerWebView.contentHeight * readerWebView.scale - readerWebView.height - 10
                 activity.window.decorView.systemUiVisibility =
                     if (height > 0 && scrollY > height) Constants.IMMERSIVE_MODE_W_NAVBAR_FLAGS
                     else Constants.IMMERSIVE_MODE_FLAGS
@@ -267,7 +267,7 @@ class WebPageDBFragment : BaseFragment() {
 
         } else {
             //Download the page and clean it to make it readable!
-            lifecycleScope.cancel()
+            if (job != null && job!!.isActive) job!!.cancel()
             downloadWebPage(webPage.url)
         }
     }
@@ -297,13 +297,13 @@ class WebPageDBFragment : BaseFragment() {
 
         //If no network
         if (!Utils.isConnectedToNetwork(activity)) {
-            progressLayout.noInternetError(View.OnClickListener {
+            progressLayout.noInternetError {
                 downloadWebPage(url)
-            })
+            }
             return
         }
 
-        lifecycleScope.launch download@{
+        job = lifecycleScope.launch download@{
             try {
 
                 doc = withContext(Dispatchers.IO) { NovelApi.getDocument(url) }
@@ -321,7 +321,7 @@ class WebPageDBFragment : BaseFragment() {
                 //If document fails to load and the fragment is still alive
                 if (doc == null) {
                     if (isResumed && !isRemoving && !isDetached)
-                        progressLayout.dataFetchError{
+                        progressLayout.dataFetchError {
                             downloadWebPage(url)
                         }
                     return@download
@@ -382,19 +382,21 @@ class WebPageDBFragment : BaseFragment() {
                             }
                         }
                     }
-
-                    loadCreatedDocument()
+                    if (this.isActive)
+                        loadCreatedDocument()
+                    else return@download
                 }
 
                 progressLayout.showContent()
                 swipeRefreshLayout.isRefreshing = false
 
             } catch (e: Exception) {
+
                 e.printStackTrace()
                 if (isResumed && !isRemoving && !isDetached)
-                    progressLayout.dataFetchError(View.OnClickListener {
+                    progressLayout.dataFetchError {
                         downloadWebPage(url)
-                    })
+                    }
             }
         }
     }
@@ -519,6 +521,7 @@ class WebPageDBFragment : BaseFragment() {
 
     override fun onDestroy() {
         EventBus.getDefault().unregister(this)
+        if (job != null && job!!.isActive) job!!.cancel()
         super.onDestroy()
     }
 

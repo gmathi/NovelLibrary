@@ -41,6 +41,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
     private var importList = ArrayList<ImportListItem>()
     private var updateSet: HashSet<ImportListItem> = HashSet()
     private var actionMode: ActionMode? = null
+    private var job: Job? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -271,14 +272,14 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
             .autoDismiss(false)
             .onNegative { dialog, _ ->
                 run {
-                    lifecycleScope.cancel()
+                    job?.cancel()
                     actionMode?.finish()
                     adapter.notifyDataSetChanged()
                     dialog.dismiss()
                 }
             }
             .show()
-        lifecycleScope.launch {
+        job = lifecycleScope.launch {
             updateSet.asSequence().forEach {
                 dialog.setContent("Importing: ${it.novelName}")
                 withContext(Dispatchers.IO) { importNovelToLibrary(it) }

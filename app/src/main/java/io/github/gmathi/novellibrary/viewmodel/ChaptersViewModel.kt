@@ -275,10 +275,10 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         }
     }
 
-    private fun actionModeScope(codeBlock: suspend CoroutineScope.() -> Unit) {
+    private fun actionModeScope(block: suspend CoroutineScope.() -> Unit) {
         viewModelScope.launch {
             actionModeProgress.value = Constants.Status.START
-            codeBlock()
+            block()
             actionModeProgress.value = Constants.Status.DONE
         }
     }

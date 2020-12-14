@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.service.tts
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
@@ -68,7 +69,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     private lateinit var notificationManager: NotificationManagerCompat
     private lateinit var dbHelper: DBHelper
 
-    private var blockingJob: CoroutineScope? = null
+    private var blockingJob: Job? = null
     private var novel: Novel? = null
     private var sourceId: Long = 0L
     private var audioText: String? = null
@@ -85,6 +86,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         return null
     }
 
+    @SuppressLint("UnspecifiedImmutableFlag")
     override fun onCreate() {
         super.onCreate()
 
@@ -122,7 +124,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
                         lineNumber++
                         speakNexLine()
                     } else if (utteranceId == "STOP_READING") {
-
+                        //Do Nothing
                     }
                 }
 
@@ -231,7 +233,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         //Reset old data
         lines.clear()
         lineNumber = 0
-        var extractedLines: ArrayList<String> = ArrayList()
+        val extractedLines: ArrayList<String> = ArrayList()
         audioText?.split("\n")?.filter { it.isNotEmpty() }?.mapTo(extractedLines) { it }
 
         val characterLimit = 50
@@ -247,15 +249,15 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
             while (lineToBreak.isNotEmpty()) {
                 var index = lineToBreak.indexOf(".")
                 while (index != -1 && index < characterLimit) {
-                    index = lineToBreak.indexOf(".", startIndex = index+1)
+                    index = lineToBreak.indexOf(".", startIndex = index + 1)
                 }
 
                 if (index == -1) {
                     lines.add(lineToBreak)
                     return@forEach
                 } else {
-                    lines.add(lineToBreak.substring(0, index+1))
-                    lineToBreak = lineToBreak.substring(index+1, lineToBreak.length).trim()
+                    lines.add(lineToBreak.substring(0, index + 1))
+                    lineToBreak = lineToBreak.substring(index + 1, lineToBreak.length).trim()
                 }
             }
         }
@@ -278,7 +280,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
             if (dataCenter.readAloudNextChapter) {
                 chooseMediaControllerActions(ACTION_NEXT)
             } else
-            mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_NONE, 1L, 1F).build())
+                mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_NONE, 1L, 1F).build())
         }
     }
 
@@ -293,6 +295,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         }
     }
 
+    @SuppressLint("UnspecifiedImmutableFlag")
     private fun createPendingIntent(action: String): PendingIntent {
         val actionIntent = Intent(this, TTSService::class.java)
         actionIntent.action = action
@@ -397,8 +400,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
 
     private fun loadFromWeb(webPageSettings: WebPageSettings) {
         blockingJob?.cancel()
-        runBlocking<Unit> {
-            blockingJob = this
+        blockingJob = GlobalScope.launch {
             try {
                 var doc = withContext(Dispatchers.IO) { NovelApi.getDocument(webPageSettings.url) }
                 if (doc.location().contains("rssbook") && doc.location().contains(HostNames.QIDIAN)) {
