@@ -15,7 +15,6 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
-import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.Theme
 import com.github.johnpersano.supertoasts.library.Style
@@ -202,7 +201,6 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 .getWorkInfoByIdLiveData(workRequestId!!)
                 .removeObservers(this)
         super.onDestroy()
-        async.cancelAll()
     }
 
     private fun showDialog(title: String? = null, content: String? = null, iconRes: Int = R.drawable.ic_warning_white_vector, isProgress: Boolean = false) {

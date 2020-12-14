@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import co.metalab.asyncawait.async
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
@@ -21,6 +21,10 @@ import io.github.gmathi.novellibrary.util.getGlideUrl
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
 
 
@@ -80,7 +84,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
 
     private fun searchNovels() {
 
-        async search@{
+        lifecycleScope.launch search@{
 
             if (!Utils.isConnectedToNetwork(activity)) {
                 progressLayout.noInternetError(View.OnClickListener {
@@ -91,7 +95,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
                 return@search
             }
 
-            val results = await { NovelApi.searchUrl(searchUrl, pageNumber = currentPageNumber) }
+            val results = withContext(Dispatchers.IO) { NovelApi.searchUrl(searchUrl, pageNumber = currentPageNumber) }
             if (results != null) {
                 if (isVisible && (!isDetached || !isRemoving)) {
                     loadSearchResults(results)

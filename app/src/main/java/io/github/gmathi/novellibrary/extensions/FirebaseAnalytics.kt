@@ -7,9 +7,10 @@ object FAC {
         const val SEARCH_NOVEL = "search_novel"
         const val ADD_NOVEL = "add_novel"
         const val REMOVE_NOVEL = "remove_novel"
-        const val READ_NOVEL = "read_novel"
+        const val OPEN_NOVEL = "open_novel"
         const val LISTEN_NOVEL = "listen_novel"
         const val DOWNLOAD_NOVEL = "download_novel"
+        const val READ_NOVEL = "read_novel"
 
 
         const val ADD_NOVEL_SECTION = "add_novel_section"

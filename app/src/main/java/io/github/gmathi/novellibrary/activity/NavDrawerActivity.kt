@@ -8,7 +8,6 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
-import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.navigation.NavigationView
@@ -244,7 +243,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onDestroy() {
-        async.cancelAll()
         super.onDestroy()
     }
 

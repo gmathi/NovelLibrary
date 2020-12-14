@@ -20,7 +20,8 @@ class WebViewActivity : BaseActivity() {
                 userAgentString = HostNames.USER_AGENT
             }
             webViewClient = WebViewClient()
-            loadUrl(intent.getStringExtra("url"))
+            val url = intent.getStringExtra("url") ?: return
+            loadUrl(url)
         }
     }
 }

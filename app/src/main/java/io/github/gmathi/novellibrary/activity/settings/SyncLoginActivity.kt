@@ -23,7 +23,7 @@ class SyncLoginActivity : BaseActivity() {
 
         confirm.setOnClickListener { finish() }
 
-        val url = intent.getStringExtra("url")
+        val url = intent.getStringExtra("url") ?: return
         val host = URL(url).host
         CloudFlareByPasser.clearCookies(host)
         view.setDefaultSettings()

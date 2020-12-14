@@ -23,19 +23,22 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:ignore="UnusedAttribute">
-        <activity
-            android:name=".activity.settings.GoogleBackupActivity"
-            android:label="@string/title_activity_google_backup"
-            android:screenOrientation="fullUser"
-            android:theme="@style/DarkTheme_DarkSide">
 
-            <!-- <intent-filter> -->
-            <!-- <action android:name="android.intent.action.MAIN" /> -->
+        <!--        <activity-->
+        <!--            android:name=".activity.settings.GoogleBackupActivity"-->
+        <!--            android:label="@string/title_activity_google_backup"-->
+        <!--            android:screenOrientation="fullUser"-->
+        <!--            android:theme="@style/DarkTheme_DarkSide">-->
+
+        <!-- <intent-filter> -->
+        <!-- <action android:name="android.intent.action.MAIN" /> -->
 
 
-            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
-            <!-- </intent-filter> -->
-        </activity> <!-- [START fcm_default_icon] -->
+        <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+        <!-- </intent-filter> -->
+        <!--        </activity>-->
+
+        <!-- [START fcm_default_icon] -->
         <!--
              Set custom default icon. This is used when no icon is set for incoming notification messages.
              See README(https://goo.gl/l4GJaQ) for more.

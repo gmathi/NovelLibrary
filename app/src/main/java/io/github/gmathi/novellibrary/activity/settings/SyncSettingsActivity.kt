@@ -5,7 +5,6 @@ import android.view.MenuItem
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
-import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
@@ -185,12 +184,12 @@ class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
         var counter = 0
         val total = novels.count()
-        novelSync.batchAdd(novels, sections) { it, last ->
-            if (last) {
+        novelSync.batchAdd(novels, sections) { novelName ->
+            if (counter == total) {
                 dialog.dismiss()
             } else {
                 dialog.setTitle(getString(R.string.sync_batch_progress_title, ++counter, total))
-                dialog.setContent(getString(R.string.sync_batch_progress, it.name))
+                dialog.setContent(getString(R.string.sync_batch_progress, novelName))
             }
         }
     }

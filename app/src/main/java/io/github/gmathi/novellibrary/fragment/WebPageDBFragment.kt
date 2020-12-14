@@ -13,7 +13,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
-import co.metalab.asyncawait.async
+import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
@@ -39,6 +39,10 @@ import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.setDefaultSettings
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.fragment_reader.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -263,7 +267,7 @@ class WebPageDBFragment : BaseFragment() {
 
         } else {
             //Download the page and clean it to make it readable!
-            async.cancelAll()
+            lifecycleScope.cancel()
             downloadWebPage(webPage.url)
         }
     }
@@ -273,7 +277,7 @@ class WebPageDBFragment : BaseFragment() {
         webPageSettings.let {
             readerWebView.loadDataWithBaseURL(
                 if (it.filePath != null) "$FILE_PROTOCOL${it.filePath}" else doc?.location(),
-                doc?.outerHtml(),
+                doc?.outerHtml() ?: "",
                 "text/html", "UTF-8", null
             )
             if (it.metaData.containsKey(Constants.MetaDataKeys.SCROLL_POSITION)) {
@@ -299,27 +303,27 @@ class WebPageDBFragment : BaseFragment() {
             return
         }
 
-        async download@{
+        lifecycleScope.launch download@{
             try {
 
-                doc = await { NovelApi.getDocument(url) }
+                doc = withContext(Dispatchers.IO) { NovelApi.getDocument(url) }
 
                 if (doc != null) {
 
                     if (doc!!.location().contains("rssbook") && doc!!.location().contains(HostNames.QIDIAN)) {
-                        doc = await { NovelApi.getDocument(doc!!.location().replace("rssbook", "book")) }
+                        doc = withContext(Dispatchers.IO) { NovelApi.getDocument(doc!!.location().replace("rssbook", "book")) }
                     }
 //                    if (doc!!.location().contains("/nu/") && doc!!.location().contains(HostNames.FLYING_LINES)) {
-//                        doc = await { NovelApi.getDocumentWithUserAgent(doc!!.location().replace("/nu/", "/chapter/")) }
+//                        doc = withContext(Dispatchers.IO) { NovelApi.getDocumentWithUserAgent(doc!!.location().replace("/nu/", "/chapter/")) }
 //                    }
                 }
 
                 //If document fails to load and the fragment is still alive
                 if (doc == null) {
                     if (isResumed && !isRemoving && !isDetached)
-                        progressLayout.dataFetchError(View.OnClickListener {
+                        progressLayout.dataFetchError{
                             downloadWebPage(url)
-                        })
+                        }
                     return@download
                 }
 
@@ -366,7 +370,7 @@ class WebPageDBFragment : BaseFragment() {
                                 // Check if URL is from chapter provider, only download from same domain
                                 val urlDomain = getUrlDomain(linkedUrl)
                                 if (urlDomain == baseUrlDomain) {
-                                    val otherDoc = await { NovelApi.getDocument(linkedUrl) }
+                                    val otherDoc = withContext(Dispatchers.IO) { NovelApi.getDocument(linkedUrl) }
                                     val helper = HtmlCleaner.getInstance(otherDoc)
                                     helper.removeJS(otherDoc)
                                     helper.additionalProcessing(otherDoc)
@@ -515,7 +519,6 @@ class WebPageDBFragment : BaseFragment() {
 
     override fun onDestroy() {
         EventBus.getDefault().unregister(this)
-        async.cancelAll()
         super.onDestroy()
     }
 

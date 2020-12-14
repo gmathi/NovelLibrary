@@ -1,11 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.content.pm.PackageManager
-import android.content.pm.PackageManager.GET_META_DATA
-import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.analytics.FirebaseAnalytics

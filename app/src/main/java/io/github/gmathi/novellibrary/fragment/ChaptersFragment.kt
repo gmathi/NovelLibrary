@@ -6,6 +6,7 @@ import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
 import com.hanks.library.AnimateCheckBox
@@ -122,7 +123,7 @@ class ChaptersFragment : BaseFragment(),
         if (novel.id != -1L) {
             novel.currentWebPageUrl = item.url
             dbHelper.updateNovel(novel)
-            NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, item) }
+            NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, item) }
             startReaderDBPagerActivity(novel, sourceId)
         } else
             startWebViewActivity(item.url)

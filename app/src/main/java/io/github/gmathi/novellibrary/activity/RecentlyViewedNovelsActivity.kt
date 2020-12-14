@@ -80,9 +80,9 @@ class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Nov
         return super.onCreateOptionsMenu(menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (item?.itemId == android.R.id.home) finish()
-        if (item?.itemId == R.id.action_clear)
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) finish()
+        if (item.itemId == R.id.action_clear)
             MaterialDialog.Builder(this)
                     .content("Are you sure you want to clear all the recently viewed novels list?")
                     .positiveText("Yes")

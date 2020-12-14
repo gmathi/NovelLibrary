@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import co.metalab.asyncawait.async
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
@@ -20,6 +20,10 @@ import io.github.gmathi.novellibrary.util.getGlideUrl
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.net.URLEncoder
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -86,7 +90,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
     private fun searchNovels() {
 
-        async search@{
+        lifecycleScope.launch search@{
 
             if (!Utils.isConnectedToNetwork(activity)) {
                 progressLayout.noInternetError(View.OnClickListener {
@@ -102,13 +106,13 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
             try {
                 when (resultType) {
-                    HostNames.NOVEL_UPDATES -> results = await { NovelApi.searchNovelUpdates(searchTerms, currentPageNumber) }
-                    HostNames.ROYAL_ROAD -> results = await { NovelApi.searchRoyalRoad(searchTerms, currentPageNumber) }
-                    HostNames.NOVEL_FULL -> results = await { NovelApi.searchNovelFull(searchTerms, currentPageNumber) }
-                    HostNames.WLN_UPDATES -> results = await { NovelApi.searchWlnUpdates(searchTerms) }
-                    HostNames.SCRIBBLE_HUB -> results = await { NovelApi.searchScribbleHub(searchTerms, currentPageNumber) }
-                    HostNames.LNMTL -> results = await { NovelApi.searchLNMTL(searchTerms) }
-                    HostNames.NEOVEL -> results =  await { NovelApi.searchNeovel(searchTerms) }
+                    HostNames.NOVEL_UPDATES -> results = withContext(Dispatchers.IO) { NovelApi.searchNovelUpdates(searchTerms, currentPageNumber) }
+                    HostNames.ROYAL_ROAD -> results = withContext(Dispatchers.IO) { NovelApi.searchRoyalRoad(searchTerms, currentPageNumber) }
+                    HostNames.NOVEL_FULL -> results = withContext(Dispatchers.IO) { NovelApi.searchNovelFull(searchTerms, currentPageNumber) }
+                    HostNames.WLN_UPDATES -> results = withContext(Dispatchers.IO) { NovelApi.searchWlnUpdates(searchTerms) }
+                    HostNames.SCRIBBLE_HUB -> results = withContext(Dispatchers.IO) { NovelApi.searchScribbleHub(searchTerms, currentPageNumber) }
+                    HostNames.LNMTL -> results = withContext(Dispatchers.IO) { NovelApi.searchLNMTL(searchTerms) }
+                    HostNames.NEOVEL -> results =  withContext(Dispatchers.IO) { NovelApi.searchNeovel(searchTerms) }
                 }
             } catch (e: Exception) {
                 Logs.error(TAG, "Search Failed!", e)

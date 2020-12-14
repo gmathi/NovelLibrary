@@ -1,18 +1,17 @@
 package io.github.gmathi.novellibrary.network.sync
 
-import co.metalab.asyncawait.async
 import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.NovelGenre
 import io.github.gmathi.novellibrary.model.NovelSection
 import io.github.gmathi.novellibrary.model.WebPage
 import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
-import org.jsoup.select.Elements
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.IOException
-import java.net.CookieManager
 import java.net.URL
 
 class NovelUpdatesSync : NovelSync() {
@@ -25,7 +24,7 @@ class NovelUpdatesSync : NovelSync() {
         const val COOKIE_REGEX = "wordpress_(logged_in|sec|user_sw)_"
 
         @Suppress("NOTHING_TO_INLINE")
-        inline fun validateNovel(novel : Novel) {
+        inline fun validateNovel(novel: Novel) {
             if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
             //if (!novel.url.contains(HostNames.NOVEL_UPDATES)) throw Exception("Not a NU novel!")
         }
@@ -48,37 +47,36 @@ class NovelUpdatesSync : NovelSync() {
         return COOKIE_REGEX
     }
 
-    override fun addNovel(novel: Novel, section : NovelSection?) : Boolean {
+    override fun addNovel(novel: Novel, section: NovelSection?): Boolean {
         validateNovel(novel)
 
         val category = getSectionIndex(section)
         return try {
             NovelApi.getString(UPDATE_NOVEL_URL.format(novel.metaData["PostId"], category, "move"), ignoreHttpErrors = false)
             true;
-        } catch (e : IOException) {
+        } catch (e: IOException) {
             false;
         }
     }
 
-    override fun removeNovel(novel: Novel) : Boolean {
+    override fun removeNovel(novel: Novel): Boolean {
         validateNovel(novel)
 
         return try {
             NovelApi.getString(READINGLIST_UPDATE_URL.format(novel.metaData["PostId"], "0", "noo"), ignoreHttpErrors = false)
             true;
-        } catch (e : IOException) {
+        } catch (e: IOException) {
             false;
         }
     }
 
-    override fun updateNovel(novel: Novel, section : NovelSection?) : Boolean {
+    override fun updateNovel(novel: Novel, section: NovelSection?): Boolean {
         return addNovel(novel, section)
     }
 
-    override fun batchAdd(novels: List<Novel>, sections: List<NovelSection>, predicate: ((Novel, Boolean) -> Unit)?): Boolean {
-        async {
-
-            val categories = ArrayList(await { fetchCategories() })
+    override fun batchAdd(novels: List<Novel>, sections: List<NovelSection>, progress: ((String) -> Unit)?): Boolean {
+        runBlocking {
+            val categories = ArrayList(withContext(Dispatchers.IO) { fetchCategories() })
             val categoryMap = HashMap<Long, Int>()
             val initialCategoryCount = categories.count()
 
@@ -93,65 +91,63 @@ class NovelUpdatesSync : NovelSync() {
             }
 
             if (initialCategoryCount != categories.count()) {
-                if (!await { setCategories(categories) }) return@async
+                if (!withContext(Dispatchers.IO) { setCategories(categories) }) return@runBlocking
             }
 
             novels.forEach { novel ->
                 try {
-                    if (predicate != null) predicate(novel, false)
-                    await { NovelApi.getString(UPDATE_NOVEL_URL.format(novel.metaData["PostId"], categoryMap[novel.novelSectionId] ?: 0, "move"), ignoreHttpErrors = false) }
+                    progress?.let { it(novel.name) }
+                    withContext(Dispatchers.IO) { NovelApi.getString(UPDATE_NOVEL_URL.format(novel.metaData["PostId"], categoryMap[novel.novelSectionId] ?: 0, "move"), ignoreHttpErrors = false) }
                     novel.currentWebPageUrl?.let {
-                        await { setBookmark(novel, dbHelper.getWebPage(it)?:return@await) }
+                        withContext(Dispatchers.IO) { setBookmark(novel, dbHelper.getWebPage(it) ?: return@withContext) }
                     }
                 } catch (e: IOException) {
-                    return@async
+                    return@runBlocking
                 }
             }
-            if (predicate != null) predicate(novels.first(), true)
         }
         return true
     }
 
-    override fun setBookmark(novel: Novel, chapter : WebPage) : Boolean {
+    override fun setBookmark(novel: Novel, chapter: WebPage): Boolean {
         validateNovel(novel)
-
         return try {
             val chapterId = chapter.url.split("/").dropLastWhile { it.isEmpty() }.last()
             NovelApi.getString(READINGLIST_UPDATE_URL.format(novel.metaData["PostId"], chapterId, "yes"), ignoreHttpErrors = false)
-            true;
-        } catch (e : IOException) {
-            false;
+            true
+        } catch (e: IOException) {
+            false
         }
     }
 
-    override fun clearBookmark(novel: Novel, chapter : WebPage) : Boolean {
+    override fun clearBookmark(novel: Novel, chapter: WebPage): Boolean {
         validateNovel(novel)
 
         return try {
             NovelApi.getString(READINGLIST_UPDATE_URL.format(novel.metaData["PostId"], "0", "no"), ignoreHttpErrors = false)
-            true;
-        } catch (e : IOException) {
-            false;
+            true
+        } catch (e: IOException) {
+            false
         }
     }
 
     override fun addSection(section: NovelSection): Boolean {
-        return setCategories(fetchCategories() + CategoryInfo(section.name?:"NL Section ${section.id}"))
+        return setCategories(fetchCategories() + CategoryInfo(section.name ?: "NL Section ${section.id}"))
     }
 
     override fun removeSection(section: NovelSection): Boolean {
-        val name = section.name?:"NL Section ${section.id}"
+        val name = section.name ?: "NL Section ${section.id}"
         return setCategories(fetchCategories().filter { it.name != name })
     }
 
-    override fun renameSection(section: NovelSection, oldName : String?, newName : String?): Boolean {
+    override fun renameSection(section: NovelSection, oldName: String?, newName: String?): Boolean {
         val categories = fetchCategories()
         val existing = categories.firstOrNull { it.name == oldName }
         return if (existing == null) {
 //            setCategories(categories + CategoryInfo(section.name?:"NL Section ${section.id}"))
             false
         } else {
-            existing.name = newName?:"NL Section ${section.id}"
+            existing.name = newName ?: "NL Section ${section.id}"
             setCategories(categories)
         }
     }
@@ -166,7 +162,7 @@ class NovelUpdatesSync : NovelSync() {
 
     // internal
 
-    private fun getSectionIndex(section : NovelSection?) : Int {
+    private fun getSectionIndex(section: NovelSection?): Int {
         return if (section == null) {
             0
         } else {
@@ -174,13 +170,13 @@ class NovelUpdatesSync : NovelSync() {
             val existingIndex = categories.firstOrNull { it.name == section.name }?.index
             if (existingIndex != null) existingIndex
             else {
-                setCategories(categories + CategoryInfo(section.name?:"NL Section ${section.id}"))
+                setCategories(categories + CategoryInfo(section.name ?: "NL Section ${section.id}"))
                 categories.count()
             }
         }
     }
 
-    private fun setCategories(categories : List<CategoryInfo>) : Boolean {
+    private fun setCategories(categories: List<CategoryInfo>): Boolean {
         val toKeep = mutableListOf<Int>()
         val toDelete = mutableListOf<Int>()
         val data = HashMap<String, String>()
@@ -200,12 +196,12 @@ class NovelUpdatesSync : NovelSync() {
         return try {
             NovelApi.getStringWithFormData(CATEGORY_LIST_URL, data, ignoreHttpErrors = false)
             true;
-        } catch (e : IOException) {
+        } catch (e: IOException) {
             false;
         }
     }
 
-    private fun fetchCategories() : List<CategoryInfo> {
+    private fun fetchCategories(): List<CategoryInfo> {
         return NovelApi.getDocument(CATEGORY_LIST_URL).body().select("#myTable_crl tbody tr").map {
             CategoryInfo(
                 it.select("input[name^=fname]").attr("value"),
@@ -216,11 +212,9 @@ class NovelUpdatesSync : NovelSync() {
         }
     }
 
-    class CategoryInfo(var name : String, var description : String = "NovelLibrary section", var icon : String = "default_rl.png", var index : Int = 0) {
-
+    class CategoryInfo(var name: String, var description: String = "NovelLibrary section", var icon: String = "default_rl.png", var index: Int = 0) {
         var keep = true
-
-        override fun toString() : String {
+        override fun toString(): String {
             return "fname$index=$name&description$index=$description&webmenu$index=$icon"
         }
 

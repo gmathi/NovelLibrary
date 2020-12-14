@@ -8,8 +8,8 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.view.ActionMode
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
-import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
@@ -29,6 +29,7 @@ import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.activity_import_library.*
 import kotlinx.android.synthetic.main.content_import_library.*
 import kotlinx.android.synthetic.main.listitem_import_list.view.*
+import kotlinx.coroutines.*
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.net.URL
@@ -37,7 +38,6 @@ import java.net.URL
 class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportListItem>, ActionMode.Callback {
 
     lateinit var adapter: GenericAdapter<ImportListItem>
-
     private var importList = ArrayList<ImportListItem>()
     private var updateSet: HashSet<ImportListItem> = HashSet()
     private var actionMode: ActionMode? = null
@@ -90,10 +90,10 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
     }
 
     private fun getNovelsFromUrl() {
-        async {
+        lifecycleScope.launch {
             try {
                 progressLayout.showLoading()
-                val url = getUrl() ?: return@async
+                val url = getUrl() ?: return@launch
                 val userId = getUserIdFromUrl(url)
                 val adminUrl = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
                 val formData: HashMap<String, String> = hashMapOf(
@@ -102,11 +102,11 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
                     "intUserID" to userId,
                     "isMobile" to "yes"
                 )
-                var body = await { NovelApi.getStringWithFormData(adminUrl, formData) }
+                var body = withContext(Dispatchers.IO) { NovelApi.getStringWithFormData(adminUrl, formData) }
                 body = body.replace("\\\"", "\"")
-                        .replace("\\n", "")
-                        .replace("\\t", "")
-                        .replace("\\/", "/")
+                    .replace("\\n", "")
+                    .replace("\\t", "")
+                    .replace("\\/", "/")
 
                 val doc: Document = Jsoup.parse(body)
                 val novels = doc.body().select("a.mb-box-btn")
@@ -127,12 +127,12 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
                     progressLayout.showContent()
                     headerLayout.visibility = View.VISIBLE
                 } else {
-                    progressLayout.showError(errorText = "No Novels found!", buttonText = getString(R.string.try_again), onClickListener = View.OnClickListener {
+                    progressLayout.showError(errorText = "No Novels found!", buttonText = getString(R.string.try_again), onClickListener = {
                         getNovelsFromUrl()
                     })
                 }
             } catch (e: Exception) {
-
+                e.printStackTrace()
             }
         }
     }
@@ -193,7 +193,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         adapter.updateItem(item)
     }
 
-    //region ActionMode Callback
+//region ActionMode Callback
 
     private fun selectAll() {
         adapter.items.forEach {
@@ -258,7 +258,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         adapter.notifyDataSetChanged()
     }
 
-    //endregion
+//endregion
 
 
     private fun startImport() {
@@ -271,17 +271,17 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
             .autoDismiss(false)
             .onNegative { dialog, _ ->
                 run {
-                    async.cancelAll()
+                    lifecycleScope.cancel()
                     actionMode?.finish()
                     adapter.notifyDataSetChanged()
                     dialog.dismiss()
                 }
             }
             .show()
-        async {
+        lifecycleScope.launch {
             updateSet.asSequence().forEach {
                 dialog.setContent("Importing: ${it.novelName}")
-                await { importNovelToLibrary(it) }
+                withContext(Dispatchers.IO) { importNovelToLibrary(it) }
                 it.isAlreadyInLibrary = true
                 dialog.incrementProgress(1)
             }
@@ -296,10 +296,6 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         novel.id = dbHelper.insertNovel(novel)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        async.cancelAll()
-    }
 }
 
 

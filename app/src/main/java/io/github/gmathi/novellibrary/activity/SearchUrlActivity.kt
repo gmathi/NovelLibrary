@@ -16,7 +16,7 @@ class SearchUrlActivity : BaseActivity() {
         setSupportActionBar(toolbar)
         supportActionBar?.title = "Search: ${intent.getStringExtra("title")}"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        val url = intent.getStringExtra("url")
+        val url = intent.getStringExtra("url") ?: return
         val fragment = SearchUrlFragment.newInstance(url)
         replaceFragment(fragment, "SearchUrlFragment")
     }
@@ -39,8 +39,8 @@ class SearchUrlActivity : BaseActivity() {
         finish()
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (item?.itemId == android.R.id.home) finish()
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) finish()
         return super.onOptionsItemSelected(item)
     }
 

@@ -18,6 +18,7 @@ import android.webkit.WebView
 import android.widget.CompoundButton
 import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.MATCH_PARENT
@@ -149,8 +150,12 @@ class ReaderDBPagerActivity :
     }
 
     private fun updateBookmark(webPage: WebPage) {
+        firebaseAnalytics.logEvent(FAC.Event.READ_NOVEL) {
+            param(FAC.Param.NOVEL_NAME, novel.name)
+            param(FAC.Param.NOVEL_URL, novel.url)
+        }
         dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, webPage.url)
-        NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, webPage) }
+        NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, webPage) }
         val webPageSettings = dbHelper.getWebPageSettings(webPage.url)
         if (webPageSettings != null) {
             dbHelper.updateWebPageSettingsReadStatus(webPageSettings.url, 1, webPageSettings.metaData)
@@ -530,7 +535,7 @@ class ReaderDBPagerActivity :
         super.onResume()
         novel.metaData[Constants.MetaDataKeys.LAST_READ_DATE] = Utils.getCurrentFormattedDate()
         dbHelper.updateNovelMetaData(novel)
-        firebaseAnalytics.logEvent(FAC.Event.READ_NOVEL) {
+        firebaseAnalytics.logEvent(FAC.Event.OPEN_NOVEL) {
             param(FAC.Param.NOVEL_NAME, novel.name)
             param(FAC.Param.NOVEL_URL, novel.url)
         }

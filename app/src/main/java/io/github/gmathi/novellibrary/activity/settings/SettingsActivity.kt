@@ -112,9 +112,9 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         return super.onCreateOptionsMenu(menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (item?.itemId == android.R.id.home) finish()
-        if (item?.itemId == R.id.action_report_page) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) finish()
+        if (item.itemId == R.id.action_report_page) {
             val systemInfo = systemInfo()
             MaterialDialog.Builder(this)
                     .content(getString(R.string.bug_report_content, "\n\n" + systemInfo))
@@ -130,8 +130,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     .autoDismiss(false)
                     .show()
         }
-        return if (item == null) false
-        else super.onOptionsItemSelected(item)
+        return super.onOptionsItemSelected(item)
     }
     //endregion
 

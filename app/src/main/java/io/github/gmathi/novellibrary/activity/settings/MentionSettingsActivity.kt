@@ -57,8 +57,8 @@ class MentionSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     }
 
     //region OptionsMenu
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (item?.itemId == android.R.id.home) finish()
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) finish()
         return super.onOptionsItemSelected(item)
     }
     //endregion

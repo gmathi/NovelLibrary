@@ -5,8 +5,8 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
-import co.metalab.asyncawait.async
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.extensions.noInternetError
@@ -23,6 +23,9 @@ import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_recently_updated_novels.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_title_subtitle.view.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<RecenlytUpdatedItem> {
 
@@ -47,18 +50,17 @@ class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Re
     }
 
     private fun getRecentlyUpdatedNovels() {
-        async {
-
+        lifecycleScope.launch {
             if (!Utils.isConnectedToNetwork(this@RecentlyUpdatedNovelsActivity)) {
                 if (adapter.items.isEmpty())
-                    progressLayout.noInternetError(View.OnClickListener {
+                    progressLayout.noInternetError {
                         progressLayout.showLoading()
                         getRecentlyUpdatedNovels()
-                    })
-                return@async
+                    }
+                return@launch
             }
 
-            val items = await { NovelApi.getRecentlyUpdatedNovels() } ?: return@async
+            val items = withContext(Dispatchers.IO) { NovelApi.getRecentlyUpdatedNovels() } ?: return@launch
             adapter.updateData(items)
             progressLayout.showContent()
             swipeRefreshLayout.isRefreshing = false
@@ -85,8 +87,8 @@ class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Re
         }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (item?.itemId == android.R.id.home) finish()
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) finish()
         return super.onOptionsItemSelected(item)
     }
     //endregion

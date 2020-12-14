@@ -17,7 +17,6 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationManagerCompat
-import co.metalab.asyncawait.async
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -36,6 +35,7 @@ import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.Utils.getFormattedText
 import io.github.gmathi.novellibrary.util.getGlideUrl
+import kotlinx.coroutines.*
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
@@ -68,6 +68,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     private lateinit var notificationManager: NotificationManagerCompat
     private lateinit var dbHelper: DBHelper
 
+    private var blockingJob: CoroutineScope? = null
     private var novel: Novel? = null
     private var sourceId: Long = 0L
     private var audioText: String? = null
@@ -395,12 +396,13 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     }
 
     private fun loadFromWeb(webPageSettings: WebPageSettings) {
-        async.cancelAll()
-        async {
+        blockingJob?.cancel()
+        runBlocking<Unit> {
+            blockingJob = this
             try {
-                var doc = await { NovelApi.getDocument(webPageSettings.url) }
+                var doc = withContext(Dispatchers.IO) { NovelApi.getDocument(webPageSettings.url) }
                 if (doc.location().contains("rssbook") && doc.location().contains(HostNames.QIDIAN)) {
-                    doc = await { NovelApi.getDocument(doc.location().replace("rssbook", "book")) }
+                    doc = withContext(Dispatchers.IO) { NovelApi.getDocument(doc.location().replace("rssbook", "book")) }
                 }
                 audioText = cleanDocumentText(doc)
                 title = doc.title()

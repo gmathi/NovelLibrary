@@ -26,7 +26,7 @@ class ActiveTranslationsCleaner : HtmlCleaner() {
         doc.body().append(contentElement?.outerHtml())
         doc.body().append(cssChapter)
         // Restore user-select
-        // Since a lot of text is based on CSS pseudoelements, text selection is still broken,
+        // Since a lot of text is based on CSS pseudo elements, text selection is still broken,
         // but at least it is selectable somewhat.
         doc.body().append(
             """

@@ -24,7 +24,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-
 class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), LifecycleObserver {
 
     companion object {
@@ -167,7 +166,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         if (novel.id != -1L) return
         loadingStatus.value = Constants.Status.START
         novel.id = dbHelper.insertNovel(novel)
-        NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncAddNovels(it.host)) it.addNovel(novel) }
+        NovelSync.getInstance(novel)?.applyAsync(viewModelScope) { if (dataCenter.getSyncAddNovels(it.host)) it.addNovel(novel) }
         //There is a chance that the above insertion might fail
         if (novel.id == -1L) return
         chapters?.forEach { it.novelId = novel.id }

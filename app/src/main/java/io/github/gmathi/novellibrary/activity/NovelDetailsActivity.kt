@@ -19,7 +19,7 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import co.metalab.asyncawait.async
+import androidx.lifecycle.lifecycleScope
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.Theme
 import com.bumptech.glide.Glide
@@ -38,6 +38,10 @@ import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.activity_novel_details.*
 import kotlinx.android.synthetic.main.content_novel_details.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.math.min
 
 
 class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener {
@@ -84,36 +88,36 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         if (!Utils.isConnectedToNetwork(this)) {
             if (novel.id == -1L) {
                 swipeRefreshLayout.isRefreshing = false
-                progressLayout.noInternetError(View.OnClickListener {
+                progressLayout.noInternetError {
                     progressLayout.showLoading()
                     getNovelInfo()
-                })
+                }
             }
             return
         }
 
-        async {
+        lifecycleScope.launch {
             try {
-                val downloadedNovel = await { NovelApi.getNovelDetails(novel.url) }
+                val downloadedNovel = withContext(Dispatchers.IO) { NovelApi.getNovelDetails(novel.url) }
                 novel.copyFrom(downloadedNovel)
                 addNovelToHistory()
-                if (novel.id != -1L) await { dbHelper.updateNovel(novel) }
+                if (novel.id != -1L) withContext(Dispatchers.IO) { dbHelper.updateNovel(novel) }
                 setupViews()
                 progressLayout.showContent()
                 swipeRefreshLayout.isRefreshing = false
             } catch (e: Exception) {
                 e.printStackTrace()
-                val errorMessage = e.localizedMessage + "\n" + e.stackTrace.joinToString(separator = "\n") { it.toString() }
+                val errorMessage = e.localizedMessage ?: "Unknown Error" + "\n" + e.stackTrace.joinToString(separator = "\n") { it.toString() }
                 val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val clip: ClipData = ClipData.newPlainText("Error Message", errorMessage)
                 clipboard.setPrimaryClip(clip)
                 MaterialDialog.Builder(this@NovelDetailsActivity).title("Error!").content("The error message has been copied to clipboard. Please paste it and send it the developer in discord.")
                     .show()
                 if (novel.id == -1L)
-                    progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again), onClickListener = View.OnClickListener {
+                    progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again)) {
                         progressLayout.showLoading()
                         getNovelInfo()
-                    })
+                    }
             }
         }
     }
@@ -173,11 +177,11 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun setLicensingInfo() {
-        if (novel.metaData["English Publisher"]?:"" != "" || novel.metaData["Licensed (in English)"] == "Yes") {
+        if (novel.metaData["English Publisher"] ?: "" != "" || novel.metaData["Licensed (in English)"] == "Yes") {
             val publisher = if (novel.metaData["English Publisher"] == null || novel.metaData["English Publisher"] == "") "an unknown publisher" else novel.metaData["English Publisher"]
             val warningLabel = getString(R.string.licensed_warning, publisher)
-            @Suppress("DEPRECATION")
             novelDetailsLicensedAlert.movementMethod = TextViewLinkHandler(this)
             novelDetailsLicensedAlert.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
                 Html.fromHtml(warningLabel, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(warningLabel)
@@ -214,7 +218,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     private fun addNovelToDB() {
         if (novel.id == -1L) {
             novel.id = dbHelper.insertNovel(novel)
-            NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncAddNovels(it.host)) it.addNovel(novel, null) }
+            NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncAddNovels(it.host)) it.addNovel(novel, null) }
             firebaseAnalytics.logEvent(FAC.Event.ADD_NOVEL) {
                 param(FAC.Param.NOVEL_NAME, novel.name)
                 param(FAC.Param.NOVEL_URL, novel.url)
@@ -272,9 +276,9 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 }
             }
 
-            val novelDescription = "${novel.longDescription?.subSequence(0, Math.min(300, novel.longDescription!!.length))}… Expand"
+            val novelDescription = "${novel.longDescription?.subSequence(0, min(300, novel.longDescription?.length ?: 0))}… Expand"
             val ss2 = SpannableString(novelDescription)
-            ss2.setSpan(expandClickable, Math.min(300, novel.longDescription!!.length) + 2, novelDescription.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            ss2.setSpan(expandClickable, min(300, novel.longDescription?.length ?: 0) + 2, novelDescription.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
             novelDetailsDescription.applyFont(assets).text = ss2
             novelDetailsDescription.movementMethod = LinkMovementMethod.getInstance()
         }
@@ -290,11 +294,11 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         return super.onPrepareOptionsMenu(menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when {
-            item?.itemId == android.R.id.home -> finish()
-            item?.itemId == R.id.action_delete_novel -> confirmNovelDelete()
-            item?.itemId == R.id.action_share -> shareUrl(novel.url)
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> finish()
+            R.id.action_delete_novel -> confirmNovelDelete()
+            R.id.action_share -> shareUrl(novel.url)
         }
         return super.onOptionsItemSelected(item)
     }
@@ -358,10 +362,4 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             dbHelper.deleteLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY)
         }
     }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        async.cancelAll()
-    }
-
 }

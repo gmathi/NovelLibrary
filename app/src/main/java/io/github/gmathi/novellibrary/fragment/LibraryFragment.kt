@@ -8,8 +8,8 @@ import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
-import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -31,9 +31,7 @@ import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.content_library.*
 import kotlinx.android.synthetic.main.listitem_library.view.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -137,8 +135,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             val popup = PopupMenu(requireActivity(), it)
             popup.menuInflater.inflate(R.menu.menu_popup_novel, popup.menu)
 
-            popup.setOnMenuItemClickListener {
-                when (it.itemId) {
+            popup.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
                     R.id.action_novel_details -> {
                         if (lastDeletedId != item.id)
                             startNovelDetailsActivity(item, false)
@@ -271,7 +269,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun syncNovels(novel: Novel? = null) {
         //activity.startSyncService()
-        async syncing@{
+        lifecycleScope.launch syncing@{
 
             if (activity == null) return@syncing
 
@@ -295,7 +293,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             novels.forEach {
                 try {
                     syncDialog!!.setContent(getString(R.string.sync_fetching_chapter_counts, counter++, novels.count(), it.name))
-                    val totalChapters = await { NovelApi.getChapterCount(it) }
+                    val totalChapters = withContext(Dispatchers.IO) { NovelApi.getChapterCount(it) }
                     if (totalChapters != 0 && totalChapters > it.chaptersCount.toInt()) {
                         totalCountMap[it] = totalChapters
                     }
@@ -308,20 +306,20 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             //Update DB with new chapters
             counter = 0
             totalCountMap.forEach {
-                val novel = it.key
-                syncDialog!!.setContent(getString(R.string.sync_fetching_chapter_list, counter++, totalCountMap.count(), novel.name))
-                novel.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
-                dbHelper.updateNovelMetaData(novel)
-                dbHelper.updateChaptersAndReleasesCount(novel.id, it.value.toLong(), novel.newReleasesCount + (it.value - novel.chaptersCount))
+                val updatedNovel = it.key
+                syncDialog!!.setContent(getString(R.string.sync_fetching_chapter_list, counter++, totalCountMap.count(), updatedNovel.name))
+                updatedNovel.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
+                dbHelper.updateNovelMetaData(updatedNovel)
+                dbHelper.updateChaptersAndReleasesCount(updatedNovel.id, it.value.toLong(), updatedNovel.newReleasesCount + (it.value - updatedNovel.chaptersCount))
 
                 try {
                     //TODO: Handle Empty State
-                    val chapters = await { NovelApi.getChapterUrls(novel) } ?: ArrayList()
+                    val chapters = withContext(Dispatchers.IO) { NovelApi.getChapterUrls(updatedNovel) } ?: ArrayList()
                     for (i in 0 until chapters.size) {
                         if (dbHelper.getWebPage(chapters[i].url) == null)
                             dbHelper.createWebPage(chapters[i])
                         if (dbHelper.getWebPageSettings(chapters[i].url) == null)
-                            dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
+                            dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, updatedNovel.id))
                     }
 
                 } catch (e: Exception) {
@@ -468,7 +466,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 val novel = adapter.items[position]
                 dbHelper.updateNovelSectionId(novel.id, id)
                 EventBus.getDefault().post(NovelSectionEvent(id))
-                NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncAddNovels(it.host)) it.updateNovel(novel, novelSections.firstOrNull { section -> section.id == id }) }
+                NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncAddNovels(it.host)) it.updateNovel(novel, novelSections.firstOrNull { section -> section.id == id }) }
                 setData()
             }
             .show()
@@ -483,7 +481,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun onDestroy() {
         super.onDestroy()
-        async.cancelAll()
     }
 
 }

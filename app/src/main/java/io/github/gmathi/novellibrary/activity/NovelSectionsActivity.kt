@@ -9,9 +9,9 @@ import android.view.View
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.core.view.MotionEventCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
-import co.metalab.asyncawait.async
 import com.afollestad.materialdialogs.MaterialDialog
 import com.google.firebase.analytics.ktx.logEvent
 import io.github.gmathi.novellibrary.R
@@ -31,6 +31,9 @@ import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_novel_sections.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_novel_section.view.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSection>, SimpleItemTouchListener {
 
@@ -102,8 +105,8 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
             val popup = PopupMenu(this@NovelSectionsActivity, it)
             popup.menuInflater.inflate(R.menu.menu_popup_novel_section, popup.menu)
 
-            popup.setOnMenuItemClickListener {
-                when (it.itemId) {
+            popup.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
                     R.id.action_novel_section_rename -> {
                         onItemRename(position)
                         true
@@ -162,7 +165,7 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                     if (novelSection.id != -1L) {
                         dbHelper.getAllNovels(novelSection.id).forEach {
                             dbHelper.updateNovelSectionId(it.id, -1L)
-                            NovelSync.getInstance(it)?.applyAsync { sync -> if (dataCenter.getSyncAddNovels(sync.host)) sync.updateNovel(it, null) }
+                            NovelSync.getInstance(it)?.applyAsync(lifecycleScope) { sync -> if (dataCenter.getSyncAddNovels(sync.host)) sync.updateNovel(it, null) }
                         }
                         dbHelper.deleteNovelSection(novelSection.id)
                     }
@@ -192,9 +195,9 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                     dbHelper.updateNovelSectionName(novelSection.id, newName)
                     setData()
                     val oldName = novelSection.name
-                    async {
+                    lifecycleScope.launch {
                         NovelSync.getAllInstances().forEach {
-                            await { if (dataCenter.getSyncAddNovels(it.host)) it.renameSection(novelSection, oldName, newName) }
+                            withContext(Dispatchers.IO) { if (dataCenter.getSyncAddNovels(it.host)) it.renameSection(novelSection, oldName, newName) }
                         }
                     }
                     firebaseAnalytics.logEvent(FAC.Event.RENAME_NOVEL_SECTION) {

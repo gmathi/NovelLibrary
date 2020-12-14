@@ -9,11 +9,13 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.annotation.RequiresApi
-import co.metalab.asyncawait.async
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.setDefaultSettings
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.jsoup.HttpStatusException
 import org.jsoup.Jsoup
 import java.io.IOException
@@ -25,65 +27,64 @@ object CloudFlareByPasser {
 
     @SuppressLint("SetJavaScriptEnabled")
     fun check(context: Context, hostName: String = HostNames.NOVEL_UPDATES, callback: (state: State) -> Unit) {
-        async {
-            if (await { isNeeded(hostName) }) {
-                callback.invoke(State.CREATING)
-                Logs.error(TAG, "is needed")
-                clearCookies(hostName)
+        if (isNeeded(hostName)) {
+            callback.invoke(State.CREATING)
+            Logs.error(TAG, "is needed")
+            clearCookies(hostName)
 
-                val webView = WebView(context)
-                webView.setDefaultSettings()
-                webView.apply {
-                    settings?.javaScriptEnabled = true
-                    settings?.userAgentString = HostNames.USER_AGENT
-                    webViewClient = object : WebViewClient() {
+            val webView = WebView(context)
+            webView.setDefaultSettings()
+            webView.apply {
+                settings.javaScriptEnabled = true
+                settings.userAgentString = HostNames.USER_AGENT
 
-                        @Suppress("OverridingDeprecatedMember")
-                        override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                            Log.d(TAG, "Override $url")
-                            if (url.toString() == "https://www.$hostName/") {
-                                Log.d(TAG, "Cookies: " + CookieManager.getInstance().getCookie("https://www.$hostName/"))
-                                if (saveCookies(hostName)) {
-                                    callback.invoke(State.CREATED)
-                                }
+                webViewClient = object : WebViewClient() {
+
+                    @Suppress("OverridingDeprecatedMember")
+                    override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                        Log.d(TAG, "Override $url")
+                        if (url.toString() == "https://www.$hostName/") {
+                            Log.d(TAG, "Cookies: " + CookieManager.getInstance().getCookie("https://www.$hostName/"))
+                            if (saveCookies(hostName)) {
+                                callback.invoke(State.CREATED)
                             }
-                            return false
                         }
+                        return false
+                    }
 
-                        @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-                        override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                            Log.d(TAG, "Override ${request?.url}")
-                            if (request?.url.toString() == "https://www.$hostName/") {
-                                Log.d(TAG, "Cookies: " + CookieManager.getInstance().getCookie("https://www.$hostName/"))
-                                if (saveCookies(hostName)) {
-                                    callback.invoke(State.CREATED)
-                                }
+                    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+                    override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                        Log.d(TAG, "Override ${request?.url}")
+                        if (request?.url.toString() == "https://www.$hostName/") {
+                            Log.d(TAG, "Cookies: " + CookieManager.getInstance().getCookie("https://www.$hostName/"))
+                            if (saveCookies(hostName)) {
+                                callback.invoke(State.CREATED)
                             }
-                            return false
                         }
+                        return false
+                    }
 
-                        override fun onPageFinished(view: WebView?, url: String?) {
-                            val cookies = CookieManager.getInstance().getCookie(url)
-                            if (cookies != null && cookies.contains("cf_clearance")) {
-                                if (saveCookies(hostName)) {
-                                    callback.invoke(State.CREATED)
-                                }
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        val cookies = CookieManager.getInstance().getCookie(url)
+                        if (cookies != null && cookies.contains("cf_clearance")) {
+                            if (saveCookies(hostName)) {
+                                callback.invoke(State.CREATED)
                             }
                         }
                     }
-                    settings?.userAgentString = HostNames.USER_AGENT
                 }
-                webView.loadUrl("https://www.$hostName")
-            } else {
-                callback.invoke(State.UNNEEDED)
-                Log.i(TAG, "Not needed")
             }
+            webView.loadUrl("https://www.$hostName")
+        } else {
+            callback.invoke(State.UNNEEDED)
+            Log.i(TAG, "Not needed")
         }
     }
 
-    private fun isNeeded(hostName: String): Boolean {
-        return try {
-            val response = Jsoup.connect("https://www.$hostName").cookies(getCookieMap(hostName)).userAgent(HostNames.USER_AGENT).execute()
+
+    private fun isNeeded(hostName: String): Boolean = runBlocking<Boolean> {
+        try {
+            val response = withContext(Dispatchers.IO) { Jsoup.connect("https://www.$hostName").cookies(getCookieMap(hostName)).userAgent(HostNames.USER_AGENT).execute() }
             response.statusCode() == 503 && response.hasHeader("cf-ray")
         } catch (e: HttpStatusException) {
             e.statusCode == 503
@@ -113,7 +114,7 @@ object CloudFlareByPasser {
         return false
     }
 
-    fun saveLoginCookies(hostName: String, lookup: Regex) : Boolean {
+    fun saveLoginCookies(hostName: String, lookup: Regex): Boolean {
         val pureHost = hostName.replace("www.", "").replace("m.", "")
         val general = saveLoginCookiesInternal(pureHost, lookup)
         val www = saveLoginCookiesInternal("www.$pureHost", lookup)
@@ -121,7 +122,7 @@ object CloudFlareByPasser {
         return general || www || mobile;
     }
 
-    private fun saveLoginCookiesInternal(hostName: String, lookup: Regex) : Boolean {
+    private fun saveLoginCookiesInternal(hostName: String, lookup: Regex): Boolean {
         val cookies = CookieManager.getInstance().getCookie("https://$hostName/").trim()
         val parts = cookies.split(";".toRegex()).dropLastWhile { it.isEmpty() }.filter {
             lookup.containsMatchIn(it)
@@ -162,7 +163,7 @@ object CloudFlareByPasser {
             map[DataCenter.CF_COOKIES_CLEARANCE] = dataCenter.getCFClearance(hostName)
         dataCenter.getLoginCookiesString(hostName).split(";".toRegex()).dropLastWhile { it.isEmpty() }.forEach {
             val idx = it.indexOf('=')
-            map[it.substring(0, idx)] = it.substring(idx+1)
+            map[it.substring(0, idx)] = it.substring(idx + 1)
         }
     }
 
