@@ -4,7 +4,7 @@ import androidx.recyclerview.widget.RecyclerView
 import android.util.SparseArray
 import android.view.View
 import android.view.ViewGroup
-import io.github.gmathi.novellibrary.model.DrawerItem
+import io.github.gmathi.novellibrary.model.ui.DrawerItem
 
 
 class DrawerAdapter(private val items: List<DrawerItem<ViewHolder>>) : RecyclerView.Adapter<DrawerAdapter.ViewHolder>() {

@@ -2,9 +2,9 @@ package io.github.gmathi.novellibrary.network.sync
 
 import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.NovelSection
-import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.NovelSection
+import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
@@ -25,7 +25,7 @@ class NovelUpdatesSync : NovelSync() {
 
         @Suppress("NOTHING_TO_INLINE")
         inline fun validateNovel(novel: Novel) {
-            if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
+            if (!novel.metadata.containsKey("PostId")) throw Exception("No PostId Found!")
             //if (!novel.url.contains(HostNames.NOVEL_UPDATES)) throw Exception("Not a NU novel!")
         }
     }
@@ -52,7 +52,7 @@ class NovelUpdatesSync : NovelSync() {
 
         val category = getSectionIndex(section)
         return try {
-            NovelApi.getString(UPDATE_NOVEL_URL.format(novel.metaData["PostId"], category, "move"), ignoreHttpErrors = false)
+            NovelApi.getString(UPDATE_NOVEL_URL.format(novel.metadata["PostId"], category, "move"), ignoreHttpErrors = false)
             true;
         } catch (e: IOException) {
             false;
@@ -63,7 +63,7 @@ class NovelUpdatesSync : NovelSync() {
         validateNovel(novel)
 
         return try {
-            NovelApi.getString(READINGLIST_UPDATE_URL.format(novel.metaData["PostId"], "0", "noo"), ignoreHttpErrors = false)
+            NovelApi.getString(READINGLIST_UPDATE_URL.format(novel.metadata["PostId"], "0", "noo"), ignoreHttpErrors = false)
             true;
         } catch (e: IOException) {
             false;
@@ -97,8 +97,8 @@ class NovelUpdatesSync : NovelSync() {
             novels.forEach { novel ->
                 try {
                     progress?.let { it(novel.name) }
-                    withContext(Dispatchers.IO) { NovelApi.getString(UPDATE_NOVEL_URL.format(novel.metaData["PostId"], categoryMap[novel.novelSectionId] ?: 0, "move"), ignoreHttpErrors = false) }
-                    novel.currentWebPageUrl?.let {
+                    withContext(Dispatchers.IO) { NovelApi.getString(UPDATE_NOVEL_URL.format(novel.metadata["PostId"], categoryMap[novel.novelSectionId] ?: 0, "move"), ignoreHttpErrors = false) }
+                    novel.currentChapterUrl?.let {
                         withContext(Dispatchers.IO) { setBookmark(novel, dbHelper.getWebPage(it) ?: return@withContext) }
                     }
                 } catch (e: IOException) {
@@ -113,7 +113,7 @@ class NovelUpdatesSync : NovelSync() {
         validateNovel(novel)
         return try {
             val chapterId = chapter.url.split("/").dropLastWhile { it.isEmpty() }.last()
-            NovelApi.getString(READINGLIST_UPDATE_URL.format(novel.metaData["PostId"], chapterId, "yes"), ignoreHttpErrors = false)
+            NovelApi.getString(READINGLIST_UPDATE_URL.format(novel.metadata["PostId"], chapterId, "yes"), ignoreHttpErrors = false)
             true
         } catch (e: IOException) {
             false
@@ -124,7 +124,7 @@ class NovelUpdatesSync : NovelSync() {
         validateNovel(novel)
 
         return try {
-            NovelApi.getString(READINGLIST_UPDATE_URL.format(novel.metaData["PostId"], "0", "no"), ignoreHttpErrors = false)
+            NovelApi.getString(READINGLIST_UPDATE_URL.format(novel.metadata["PostId"], "0", "no"), ignoreHttpErrors = false)
             true
         } catch (e: IOException) {
             false

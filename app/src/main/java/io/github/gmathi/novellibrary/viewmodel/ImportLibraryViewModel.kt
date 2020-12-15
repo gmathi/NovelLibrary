@@ -139,7 +139,7 @@
 //    fun toggleSources() {
 //        showSources = !showSources
 //        viewModelScope.launch {
-//            novel.metaData[Constants.MetaDataKeys.SHOW_SOURCES] = showSources.toString()
+//            novel.metadata[Constants.MetaDataKeys.SHOW_SOURCES] = showSources.toString()
 //            withContext(Dispatchers.IO) { dbHelper.updateNovelMetaData(novel) }
 //        }
 //        getData(true)
@@ -159,7 +159,7 @@
 //                val chapterSettings = dbHelper.getAllWebPageSettings(novel.id)
 //
 //                if (chapters.isEmpty() || chapters.size < novel.chaptersCount.toInt()) {
-//                    novel.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
+//                    novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
 //                    dbHelper.updateNovelMetaData(novel)
 //                } else {
 //                    this@ImportLibraryViewModel.chapters = chapters
@@ -259,7 +259,7 @@
 //            file.delete()
 //            webPageSettings.filePath = null
 //            try {
-//                val otherLinkedPagesJsonString = webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES]
+//                val otherLinkedPagesJsonString = webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES]
 //                if (otherLinkedPagesJsonString != null) {
 //                    val linkedPages: ArrayList<WebPage> = Gson().fromJson(otherLinkedPagesJsonString, object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
 //                    linkedPages.forEach {
@@ -270,7 +270,7 @@
 //                            dbHelper.deleteWebPageSettings(linkedWebPageSettings.url)
 //                        }
 //                    }
-//                    webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = "[]"
+//                    webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = "[]"
 //                }
 //            } catch (e: Exception) {
 //                Logs.error(TAG, "Delete WebPage: $webPage", e)
@@ -298,7 +298,7 @@
 //            withContext(Dispatchers.IO) sub@{
 //                val chaptersSettingsList = chapterSettings ?: return@sub
 //                val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@sub
-//                dbHelper.updateWebPageSettingsReadStatus(webPageSettings.url, readStatus, HashMap(webPageSettings.metaData))
+//                dbHelper.updateWebPageSettingsReadStatus(webPageSettings.url, readStatus, HashMap(webPageSettings.metadata))
 //                actionModeProgress.postValue(counter++.toString())
 //            }
 //        }
@@ -312,7 +312,7 @@
 //            withContext(Dispatchers.IO) sub@{
 //                val chaptersSettingsList = chapterSettings ?: return@sub
 //                val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@sub
-//                webPageSettings.metaData[Constants.MetaDataKeys.IS_FAVORITE] = favoriteStatus.toString()
+//                webPageSettings.metadata[Constants.MetaDataKeys.IS_FAVORITE] = favoriteStatus.toString()
 //                dbHelper.updateWebPageSettings(webPageSettings)
 //                actionModeProgress.postValue(counter++.toString())
 //            }

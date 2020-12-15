@@ -3,9 +3,9 @@ package io.github.gmathi.novellibrary.network.sync
 import android.webkit.CookieManager
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.extensions.containsCaseInsensitive
-import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.NovelSection
-import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.NovelSection
+import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.network.HostNames
 import kotlinx.coroutines.*
 

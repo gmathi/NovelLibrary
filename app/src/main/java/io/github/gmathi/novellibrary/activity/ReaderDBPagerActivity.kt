@@ -40,7 +40,12 @@ import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
-import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.WebPage
+import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
+import io.github.gmathi.novellibrary.model.ui.DrawerItem
+import io.github.gmathi.novellibrary.model.ui.ReaderMenu
+import io.github.gmathi.novellibrary.model.ui.SimpleItem
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
@@ -94,7 +99,6 @@ class ReaderDBPagerActivity :
     private lateinit var screenTitles: Array<String>
     private lateinit var screenIcons: Array<Drawable?>
 
-    private lateinit var recyclerView: RecyclerView
     private lateinit var novel: Novel
     private lateinit var adapter: GenericFragmentStatePagerAdapter
 
@@ -129,7 +133,7 @@ class ReaderDBPagerActivity :
         viewPager.adapter = adapter
 
         //Set the current page to the bookmarked webPage
-        novel.currentWebPageUrl?.let { bookmarkUrl ->
+        novel.currentChapterUrl?.let { bookmarkUrl ->
             val index = webPages.indexOfFirst { it.url == bookmarkUrl }
             if (index != -1) viewPager.currentItem = index
             if (index == 0) updateBookmark(webPages[0])
@@ -158,10 +162,11 @@ class ReaderDBPagerActivity :
         NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, webPage) }
         val webPageSettings = dbHelper.getWebPageSettings(webPage.url)
         if (webPageSettings != null) {
-            dbHelper.updateWebPageSettingsReadStatus(webPageSettings.url, 1, webPageSettings.metaData)
+            dbHelper.updateWebPageSettingsReadStatus(webPageSettings.url, 1, webPageSettings.metadata)
         }
     }
 
+    @Suppress("DEPRECATION")
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
 
@@ -533,7 +538,7 @@ class ReaderDBPagerActivity :
 
     override fun onResume() {
         super.onResume()
-        novel.metaData[Constants.MetaDataKeys.LAST_READ_DATE] = Utils.getCurrentFormattedDate()
+        novel.metadata[Constants.MetaDataKeys.LAST_READ_DATE] = Utils.getCurrentFormattedDate()
         dbHelper.updateNovelMetaData(novel)
         firebaseAnalytics.logEvent(FAC.Event.OPEN_NOVEL) {
             param(FAC.Param.NOVEL_NAME, novel.name)

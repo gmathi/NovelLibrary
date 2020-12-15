@@ -2,7 +2,7 @@ package io.github.gmathi.novellibrary.network
 
 import com.google.gson.JsonParser
 import io.github.gmathi.novellibrary.extensions.asJsonNullFreeString
-import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.Constants
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -30,29 +30,30 @@ fun NovelApi.getNovelDetails(url: String): Novel? {
 fun NovelApi.getNUNovelDetails(url: String): Novel? {
     var novel: Novel? = null
     val document = getDocument(url)
-    novel = Novel(document.selectFirst(".seriestitlenu")?.text() ?: "NameUnableToFetch", url)
+    novel = Novel(url)
+    document.selectFirst(".seriestitlenu")?.text()?.let { novel.name = it }
     novel.imageUrl = document.selectFirst(".seriesimg > img[src]")?.attr("abs:src")
     novel.longDescription = document.body().selectFirst("#editdescription")?.text()
     novel.rating = document.body().selectFirst("span.uvotes")?.text()?.substring(1, 4)
     novel.genres = document.body().selectFirst("#seriesgenre")?.children()?.map { it.text() }
 
     document.select(".genre")?.let { elements ->
-        elements.select("#authtag")?.joinToString(", ") { it.outerHtml() }?.let { novel.metaData["Author(s)"] = it }
-        elements.select("[gid]")?.joinToString(", ") { it.outerHtml() }?.let { novel.metaData["Genre(s)"] = it }
-        elements.select("#artiststag")?.joinToString(", ") { it.outerHtml() }?.let { novel.metaData["Artist(s)"] = it }
-        elements.select("#etagme")?.joinToString(", ") { it.outerHtml() }?.let { novel.metaData["Tags"] = it }
-        elements.select(".type")?.firstOrNull()?.outerHtml()?.let { novel.metaData["Type"] = it }
-        elements.select("a[lid].lang")?.firstOrNull()?.outerHtml()?.let { novel.metaData["Language"] = it }
-        elements.select("#myopub")?.joinToString(", ") { it.outerHtml() }?.let { novel.metaData["Original Publisher"] = it }
-        elements.select("#myepub")?.joinToString(", ") { it.outerHtml() }?.let { novel.metaData["English Publisher"] = it }
+        elements.select("#authtag")?.joinToString(", ") { it.outerHtml() }?.let { novel.metadata["Author(s)"] = it }
+        elements.select("[gid]")?.joinToString(", ") { it.outerHtml() }?.let { novel.metadata["Genre(s)"] = it }
+        elements.select("#artiststag")?.joinToString(", ") { it.outerHtml() }?.let { novel.metadata["Artist(s)"] = it }
+        elements.select("#etagme")?.joinToString(", ") { it.outerHtml() }?.let { novel.metadata["Tags"] = it }
+        elements.select(".type")?.firstOrNull()?.outerHtml()?.let { novel.metadata["Type"] = it }
+        elements.select("a[lid].lang")?.firstOrNull()?.outerHtml()?.let { novel.metadata["Language"] = it }
+        elements.select("#myopub")?.joinToString(", ") { it.outerHtml() }?.let { novel.metadata["Original Publisher"] = it }
+        elements.select("#myepub")?.joinToString(", ") { it.outerHtml() }?.let { novel.metadata["English Publisher"] = it }
     }
 
-    document.select("#edityear")?.firstOrNull()?.text()?.let { novel.metaData["Year"] = it }
-    document.select("#editstatus")?.firstOrNull()?.text()?.let { novel.metaData["Status in Country of Origin"] = it }
-    document.select("#showlicensed")?.firstOrNull()?.text()?.let { novel.metaData["Licensed (in English)"] = it }
-    document.select("#showtranslated")?.firstOrNull()?.text()?.let { novel.metaData["Completely Translated"] = it }
-    document.select("#editassociated")?.firstOrNull()?.text()?.let { novel.metaData["Associated Names"] = it }
-    document.select("#mypostid")?.firstOrNull()?.attr("value")?.let { novel.metaData["PostId"] = it }
+    document.select("#edityear")?.firstOrNull()?.text()?.let { novel.metadata["Year"] = it }
+    document.select("#editstatus")?.firstOrNull()?.text()?.let { novel.metadata["Status in Country of Origin"] = it }
+    document.select("#showlicensed")?.firstOrNull()?.text()?.let { novel.metadata["Licensed (in English)"] = it }
+    document.select("#showtranslated")?.firstOrNull()?.text()?.let { novel.metadata["Completely Translated"] = it }
+    document.select("#editassociated")?.firstOrNull()?.text()?.let { novel.metadata["Associated Names"] = it }
+    document.select("#mypostid")?.firstOrNull()?.attr("value")?.let { novel.metadata["PostId"] = it }
 
     novel.chaptersCount = getChapterCount(novel).toLong()
     return novel
@@ -72,7 +73,7 @@ fun NovelApi.getRRNovelDetails(url: String): Novel? {
         novel.genres = document.body().select("[property=genre]")?.map { it.text() }
         novel.chaptersCount = getChapterCount(novel).toLong()
 
-        novel.metaData["Author(s)"] = document.head().selectFirst("meta[property=books:author]")?.attr("content")
+        novel.metadata["Author(s)"] = document.head().selectFirst("meta[property=books:author]")?.attr("content")
 
     } catch (e: Exception) {
         e.printStackTrace()
@@ -108,42 +109,42 @@ fun NovelApi.getWlnNovelDetails(url: String): Novel? {
         val rating: Double = rootJsonObject.getAsJsonObject("rating")?.get("avg")?.asDouble ?: 0.0
         novel.rating = String.format("%.1f", (rating / 2))
 
-        novel.metaData["Author(s)"] = rootJsonObject.getAsJsonArray("authors")?.joinToString(", ") { author ->
+        novel.metadata["Author(s)"] = rootJsonObject.getAsJsonArray("authors")?.joinToString(", ") { author ->
             val authorObject = author.asJsonObject
             "<a href=\"https://www.${HostNames.WLN_UPDATES}/author-id/${authorObject["id"]}\">${authorObject["author"].asString}</a>"
         }
-        novel.metaData["Illustrator(s)"] = rootJsonObject.getAsJsonArray("illustrators")?.joinToString(", ") { illustrator ->
+        novel.metadata["Illustrator(s)"] = rootJsonObject.getAsJsonArray("illustrators")?.joinToString(", ") { illustrator ->
             val illustratorObject = illustrator.asJsonObject
             "<a href=\"https://www.${HostNames.WLN_UPDATES}/artist-id/${illustratorObject["id"]}\">${illustratorObject["illustrator"].asString}</a>"
         }
-        novel.metaData["Publisher(s)"] = rootJsonObject.getAsJsonArray("publishers")?.joinToString(", ") { publisher ->
+        novel.metadata["Publisher(s)"] = rootJsonObject.getAsJsonArray("publishers")?.joinToString(", ") { publisher ->
             val publisherObject = publisher.asJsonObject
             "<a href=\"https://www.${HostNames.WLN_UPDATES}/publishers/${publisherObject["id"]}\">${publisherObject["publisher"].asString}</a>"
         }
 
         //Genre - Sample Url: https://www.wlnupdates.com/search?json=%20%7B%22chapter-limits%22%3A%20%5B0%2C%20false%5D%2C%20%22genre-category%22%3A%20%7B%22action%22%3A%20%22included%22%7D%2C%20%22series-type%22%3A%20%7B%7D%2C%20%22sort-mode%22%3A%20%22update%22%2C%20%22title-search-text%22%3A%20%22%22%7D
-        novel.metaData["Genre(s)"] = rootJsonObject.getAsJsonArray("genres")?.joinToString(", ") { genreObject ->
+        novel.metadata["Genre(s)"] = rootJsonObject.getAsJsonArray("genres")?.joinToString(", ") { genreObject ->
             val genre = genreObject.asJsonObject["genre"].asString
             "<a href=\"https://www.${HostNames.WLN_UPDATES}/search?json=%20%7B%22chapter-limits%22%3A%20%5B0%2C%20false%5D%2C%20%22genre-category%22%3A%20%7B%22${genre}%22%3A%20%22included%22%7D%2C%20%22series-type%22%3A%20%7B%7D%2C%20%22sort-mode%22%3A%20%22update%22%2C%20%22title-search-text%22%3A%20%22%22%7D\">${genre}</a>"
         }
 
         //Tag - Sample Url: https://www.wlnupdates.com/search?json=%20%7B%22chapter-limits%22%3A%20%5B0%2C%20false%5D%2C%20%22series-type%22%3A%20%7B%7D%2C%20%22sort-mode%22%3A%20%22update%22%2C%20%22tag-category%22%3A%20%7B%22reincarnated-into-another-world%22%3A%20%22included%22%7D%2C%20%22title-search-text%22%3A%20%22%22%7D
-        novel.metaData["Tags"] = rootJsonObject.getAsJsonArray("tags")?.joinToString(", ") { tagObject ->
+        novel.metadata["Tags"] = rootJsonObject.getAsJsonArray("tags")?.joinToString(", ") { tagObject ->
             val tag = tagObject.asJsonObject["tag"].asString
             "<a href=\"https://www.${HostNames.WLN_UPDATES}/search?json=%20%7B%22chapter-limits%22%3A%20%5B0%2C%20false%5D%2C%20%22series-type%22%3A%20%7B%7D%2C%20%22sort-mode%22%3A%20%22update%22%2C%20%22tag-category%22%3A%20%7B%22${tag}%22%3A%20%22included%22%7D%2C%20%22title-search-text%22%3A%20%22%22%7D\">${tag}</a>"
         }
 
 
-        novel.metaData["Demographic"] = rootJsonObject["demographic"]?.asJsonNullFreeString ?: "N/A"
-        novel.metaData["Homepage"] = rootJsonObject["website"]?.asJsonNullFreeString ?: "N/A"
-        novel.metaData["Type"] = rootJsonObject["type"]?.asJsonNullFreeString ?: "N/A"
-        novel.metaData["OEL/Translated"] = rootJsonObject["tl_type"]?.asJsonNullFreeString ?: "N/A"
-        novel.metaData["Initial publish date"] = rootJsonObject["pub_date"]?.asJsonNullFreeString ?: "N/A"
-        novel.metaData["Country of Origin"] = rootJsonObject["origin_loc"]?.asJsonNullFreeString ?: "N/A"
-        novel.metaData["Status in Country of Origin"] = rootJsonObject["orig_status"]?.asJsonNullFreeString ?: "N/A"
-        novel.metaData["Licensed (in English)"] = rootJsonObject["license_en"]?.asJsonNullFreeString ?: "N/A"
-        novel.metaData["Alternate Names"] = rootJsonObject.getAsJsonArray("alternatenames")?.joinToString(", ") { it.asString }
-        novel.metaData["Language"] = rootJsonObject["orig_lang"]?.asJsonNullFreeString ?: "N/A"
+        novel.metadata["Demographic"] = rootJsonObject["demographic"]?.asJsonNullFreeString ?: "N/A"
+        novel.metadata["Homepage"] = rootJsonObject["website"]?.asJsonNullFreeString ?: "N/A"
+        novel.metadata["Type"] = rootJsonObject["type"]?.asJsonNullFreeString ?: "N/A"
+        novel.metadata["OEL/Translated"] = rootJsonObject["tl_type"]?.asJsonNullFreeString ?: "N/A"
+        novel.metadata["Initial publish date"] = rootJsonObject["pub_date"]?.asJsonNullFreeString ?: "N/A"
+        novel.metadata["Country of Origin"] = rootJsonObject["origin_loc"]?.asJsonNullFreeString ?: "N/A"
+        novel.metadata["Status in Country of Origin"] = rootJsonObject["orig_status"]?.asJsonNullFreeString ?: "N/A"
+        novel.metadata["Licensed (in English)"] = rootJsonObject["license_en"]?.asJsonNullFreeString ?: "N/A"
+        novel.metadata["Alternate Names"] = rootJsonObject.getAsJsonArray("alternatenames")?.joinToString(", ") { it.asString }
+        novel.metadata["Language"] = rootJsonObject["orig_lang"]?.asJsonNullFreeString ?: "N/A"
 
     } catch (e: Exception) {
         e.printStackTrace()
@@ -165,10 +166,10 @@ fun NovelApi.getNovelFullNovelDetails(url: String): Novel? {
         novel.longDescription = document.body().select("div.desc-text > p").joinToString(separator = "\n") { it.text() }
         novel.rating = (document.body().select("div.small > em > strong > span").first().text().toDouble() / 2).toString()
 
-        novel.metaData["Author(s)"] = infoElements[0].select("a").joinToString(", ") { "<a href=\"${it.attr("abs:href")}\">${it.text()}</a>" }
-        novel.metaData["Genre(s)"] = infoElements[1].select("a").joinToString(", ") { "<a href=\"${it.attr("abs:href")}\">${it.text()}</a>" }
-        novel.metaData["Source"] = infoElements[2].text()
-        novel.metaData["Status"] = infoElements[3].text()
+        novel.metadata["Author(s)"] = infoElements[0].select("a").joinToString(", ") { "<a href=\"${it.attr("abs:href")}\">${it.text()}</a>" }
+        novel.metadata["Genre(s)"] = infoElements[1].select("a").joinToString(", ") { "<a href=\"${it.attr("abs:href")}\">${it.text()}</a>" }
+        novel.metadata["Source"] = infoElements[2].text()
+        novel.metadata["Status"] = infoElements[3].text()
 
         novel.chaptersCount = getChapterCount(novel).toLong()
 
@@ -187,18 +188,18 @@ fun NovelApi.getScribbleHubNovelDetails(url: String): Novel? {
 
         novel = Novel(pageElement.select("div.fic_title").text() ?: "NameUnableToFetch", url)
         novel.imageUrl = pageElement.select("div.fic_image > img").attr("abs:src")
-        novel.metaData["Author(s)"] = pageElement.select("span[property='author'] a").outerHtml()
+        novel.metadata["Author(s)"] = pageElement.select("span[property='author'] a").outerHtml()
 
 
         val genresElements = pageElement.select("span.wi_fic_genre a.fic_genre")//.select("a.fic_genre")
         novel.genres = genresElements.map { it.text() }
-        novel.metaData["Genre(s)"] = genresElements.joinToString(", ") { it.outerHtml() }
+        novel.metadata["Genre(s)"] = genresElements.joinToString(", ") { it.outerHtml() }
 
         novel.longDescription = pageElement.select("div.wi_fic_desc").text()
         novel.rating = pageElement.select("meta[property='ratingValue']").attr("content")
 
-        novel.metaData["Tags"] = pageElement.select("#etagme")?.joinToString(", ") { it.outerHtml() }
-        novel.metaData["PostId"] = document.getElementById("mypostid").attr("value")
+        novel.metadata["Tags"] = pageElement.select("#etagme")?.joinToString(", ") { it.outerHtml() }
+        novel.metadata["PostId"] = document.getElementById("mypostid").attr("value")
 
         novel.chaptersCount = document.getElementById("chpcounter").attr("value").toLong()
 
@@ -228,14 +229,14 @@ fun NovelApi.getLNMTLNovelDetails(url: String): Novel? {
         val detailsElement = doc.selectFirst("div.container .row > div:last-child")
 
         val authors = detailsElement?.selectFirst("dt:contains(Authors)")?.nextElementSibling()?.select("span")
-        novel.metaData["Author(s)"] = authors?.joinToString(", ") { it.text() }
+        novel.metadata["Author(s)"] = authors?.joinToString(", ") { it.text() }
 
         val genres = detailsElement?.selectFirst("div.panel-heading:contains(Genres)")?.nextElementSibling()?.select("ul li")
         novel.genres = genres?.map { it.text() }
-        novel.metaData["Genre(s)"] = genres?.joinToString(", ") { it.html() }
+        novel.metadata["Genre(s)"] = genres?.joinToString(", ") { it.html() }
 
         val tags = detailsElement?.selectFirst("div.panel-heading:contains(Tags)")?.nextElementSibling()?.select("ul li")
-        novel.metaData["Tags"] = tags?.joinToString(", ") { it.html() }
+        novel.metadata["Tags"] = tags?.joinToString(", ") { it.html() }
 
         novel.chaptersCount = getLNMTLChapterCount(url).toLong()
     } catch (e: java.lang.Exception) {
@@ -274,29 +275,29 @@ fun NovelApi.getNeovelNovelDetails(url: String): Novel? {
 
         neovelGenres?.let { map ->
             novel.genres = rootJsonObject.getAsJsonArray("genreIds")?.filter { map[it.asInt] != null }?.map { map[it.asInt]!! }
-            novel.metaData["Genre(s)"] = rootJsonObject.getAsJsonArray("tagIds")?.filter { map[it.asInt] != null }?.joinToString(", ") { map[it.asInt]!! }
+            novel.metadata["Genre(s)"] = rootJsonObject.getAsJsonArray("tagIds")?.filter { map[it.asInt] != null }?.joinToString(", ") { map[it.asInt]!! }
         }
         neovelTags?.let { map ->
-            novel.metaData["Tag(s)"] = rootJsonObject.getAsJsonArray("tagIds")?.filter { map[it.asInt] != null }?.joinToString(", ") { map[it.asInt]!! }
+            novel.metadata["Tag(s)"] = rootJsonObject.getAsJsonArray("tagIds")?.filter { map[it.asInt] != null }?.joinToString(", ") { map[it.asInt]!! }
         }
 
 
-        novel.metaData["Author(s)"] = rootJsonObject.getAsJsonArray("authors")?.joinToString(", ") {
+        novel.metadata["Author(s)"] = rootJsonObject.getAsJsonArray("authors")?.joinToString(", ") {
             it.asJsonNullFreeString ?: ""
         }
 
 
 
-        novel.metaData["Status"] = rootJsonObject["bookState"]?.asJsonNullFreeString ?: "N/A"
-        novel.metaData["Release Frequency"] = rootJsonObject["releaseFrequency"]?.asJsonNullFreeString ?: "N/A"
-        novel.metaData["Chapter Read Count"] = rootJsonObject["chapterReadCount"]?.asInt.toString() ?: "N/A"
-        novel.metaData["Followers"] = rootJsonObject["followers"]?.asJsonNullFreeString ?: "N/A"
-        novel.metaData["Initial publish date"] = rootJsonObject["votes"]?.asJsonNullFreeString ?: "N/A"
-        novel.metaData["Votes"] = rootJsonObject["origin_loc"]?.asJsonNullFreeString ?: "N/A"
-//        novel.metaData["Status in Country of Origin"] = rootJsonObject["orig_status"]?.asJsonNullFreeString ?: "N/A"
-//        novel.metaData["Licensed (in English)"] = rootJsonObject["license_en"]?.asJsonNullFreeString ?: "N/A"
-//        novel.metaData["Alternate Names"] = rootJsonObject.getAsJsonArray("alternatenames")?.joinToString(", ") { it.asString }
-//        novel.metaData["Language"] = rootJsonObject["orig_lang"]?.asJsonNullFreeString ?: "N/A"
+        novel.metadata["Status"] = rootJsonObject["bookState"]?.asJsonNullFreeString ?: "N/A"
+        novel.metadata["Release Frequency"] = rootJsonObject["releaseFrequency"]?.asJsonNullFreeString ?: "N/A"
+        novel.metadata["Chapter Read Count"] = rootJsonObject["chapterReadCount"]?.asInt.toString() ?: "N/A"
+        novel.metadata["Followers"] = rootJsonObject["followers"]?.asJsonNullFreeString ?: "N/A"
+        novel.metadata["Initial publish date"] = rootJsonObject["votes"]?.asJsonNullFreeString ?: "N/A"
+        novel.metadata["Votes"] = rootJsonObject["origin_loc"]?.asJsonNullFreeString ?: "N/A"
+//        novel.metadata["Status in Country of Origin"] = rootJsonObject["orig_status"]?.asJsonNullFreeString ?: "N/A"
+//        novel.metadata["Licensed (in English)"] = rootJsonObject["license_en"]?.asJsonNullFreeString ?: "N/A"
+//        novel.metadata["Alternate Names"] = rootJsonObject.getAsJsonArray("alternatenames")?.joinToString(", ") { it.asString }
+//        novel.metadata["Language"] = rootJsonObject["orig_lang"]?.asJsonNullFreeString ?: "N/A"
 ////
     } catch (e: Exception) {
         e.printStackTrace()

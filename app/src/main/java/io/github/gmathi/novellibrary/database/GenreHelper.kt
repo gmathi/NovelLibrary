@@ -1,10 +1,8 @@
 package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
-import android.util.Log
-import io.github.gmathi.novellibrary.model.Genre
+import io.github.gmathi.novellibrary.model.database.Genre
 import io.github.gmathi.novellibrary.util.Logs
-import java.util.*
 import kotlin.collections.ArrayList
 
 

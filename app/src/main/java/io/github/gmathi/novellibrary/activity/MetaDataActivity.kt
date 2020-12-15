@@ -8,10 +8,10 @@ import android.view.View
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.extensions.startSearchResultsActivity
-import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.util.TextViewLinkHandler
+import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.util.view.TextViewLinkHandler
 import kotlinx.android.synthetic.main.activity_meta_data.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_metadata.view.*
@@ -38,7 +38,7 @@ class MetaDataActivity : BaseActivity(), GenericAdapter.Listener<Map.Entry<Strin
 
     private fun setRecyclerView() {
         @Suppress("UNCHECKED_CAST")
-        adapter = GenericAdapter(items = (ArrayList(novel.metaData.entries) as ArrayList<Map.Entry<String, String?>>), layoutResId = R.layout.listitem_metadata, listener = this)
+        adapter = GenericAdapter(items = (ArrayList(novel.metadata.entries) as ArrayList<Map.Entry<String, String?>>), layoutResId = R.layout.listitem_metadata, listener = this)
         recyclerView.setDefaults(adapter)
         swipeRefreshLayout.setOnRefreshListener { swipeRefreshLayout.isRefreshing = false }
     }

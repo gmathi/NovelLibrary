@@ -7,7 +7,6 @@ import android.graphics.Color
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import io.github.gmathi.novellibrary.model.Novel
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.Constants.DEFAULT_FONT_PATH
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
@@ -92,6 +91,9 @@ class DataCenter(context: Context) {
         const val SYNC_ADD_NOVELS = "sync_add_novels_"
         const val SYNC_DELETE_NOVELS = "sync_delete_novels_"
         const val SYNC_BOOKMARKS = "sync_bookmarks_"
+
+        //DNS over HTTPS
+        const val ENABLE_DOH = "enable_doh"
 
     }
 
@@ -403,4 +405,7 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(SCROLLING_TEXT, true)
         set(value) = prefs.edit().putBoolean(SCROLLING_TEXT, value).apply()
 
+    var enableDOH: Boolean
+        get() = prefs.getBoolean(ENABLE_DOH, false)
+        set(value) = prefs.edit().putBoolean(ENABLE_DOH, value).apply()
 }

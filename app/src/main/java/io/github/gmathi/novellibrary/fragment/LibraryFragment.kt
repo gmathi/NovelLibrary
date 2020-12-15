@@ -20,10 +20,10 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
-import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.NovelEvent
-import io.github.gmathi.novellibrary.model.NovelSectionEvent
-import io.github.gmathi.novellibrary.model.WebPageSettings
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.WebPageSettings
+import io.github.gmathi.novellibrary.model.other.NovelEvent
+import io.github.gmathi.novellibrary.model.other.NovelSectionEvent
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterCount
 import io.github.gmathi.novellibrary.network.getChapterUrls
@@ -126,8 +126,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         itemView.novelTitleTextView.text = item.name
         itemView.novelTitleTextView.isSelected = dataCenter.enableScrollingText
 
-        val lastRead = item.metaData[Constants.MetaDataKeys.LAST_READ_DATE] ?: "N/A"
-        val lastUpdated = item.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] ?: "N/A"
+        val lastRead = item.metadata[Constants.MetaDataKeys.LAST_READ_DATE] ?: "N/A"
+        val lastUpdated = item.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] ?: "N/A"
 
         itemView.lastOpenedDate.text = getString(R.string.last_read_n_updated, lastRead, lastUpdated)
 
@@ -205,8 +205,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             itemView.newChapterCount.visibility = View.GONE
         }
 
-        if (item.currentWebPageUrl != null) {
-            val orderId = dbHelper.getWebPage(item.currentWebPageUrl!!)?.orderId
+        if (item.currentChapterUrl != null) {
+            val orderId = dbHelper.getWebPage(item.currentChapterUrl!!)?.orderId
             if (orderId != null) {
                 val progress = "${orderId + 1} / ${item.chaptersCount}"
                 itemView.novelProgressText.text = progress
@@ -308,7 +308,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             totalCountMap.forEach {
                 val updatedNovel = it.key
                 syncDialog!!.setContent(getString(R.string.sync_fetching_chapter_list, counter++, totalCountMap.count(), updatedNovel.name))
-                updatedNovel.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
+                updatedNovel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
                 dbHelper.updateNovelMetaData(updatedNovel)
                 dbHelper.updateChaptersAndReleasesCount(updatedNovel.id, it.value.toLong(), updatedNovel.newReleasesCount + (it.value - updatedNovel.chaptersCount))
 
@@ -364,7 +364,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     private fun startReader(novel: Novel) {
-        if (novel.currentWebPageUrl != null) {
+        if (novel.currentChapterUrl != null) {
             dbHelper.updateNewReleasesCount(novel.id, 0L)
             (activity as? AppCompatActivity)?.startReaderDBPagerActivity(novel)
         } else {

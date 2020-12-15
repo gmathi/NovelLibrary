@@ -26,9 +26,9 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.dataFetchError
 import io.github.gmathi.novellibrary.extensions.noInternetError
 import io.github.gmathi.novellibrary.extensions.showLoading
-import io.github.gmathi.novellibrary.model.ReaderSettingsEvent
-import io.github.gmathi.novellibrary.model.WebPage
-import io.github.gmathi.novellibrary.model.WebPageSettings
+import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
+import io.github.gmathi.novellibrary.model.database.WebPage
+import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
@@ -204,9 +204,9 @@ class WebPageDBFragment : BaseFragment() {
                 }
 
                 webPageSettings.let {
-                    if (it.metaData.containsKey(Constants.MetaDataKeys.SCROLL_POSITION)) {
+                    if (it.metadata.containsKey(Constants.MetaDataKeys.SCROLL_POSITION)) {
                         view?.scrollTo(
-                            0, (it.metaData[Constants.MetaDataKeys.SCROLL_POSITION]
+                            0, (it.metadata[Constants.MetaDataKeys.SCROLL_POSITION]
                                 ?: "0").toInt()
                         )
                     }
@@ -280,9 +280,9 @@ class WebPageDBFragment : BaseFragment() {
                 doc?.outerHtml() ?: "",
                 "text/html", "UTF-8", null
             )
-            if (it.metaData.containsKey(Constants.MetaDataKeys.SCROLL_POSITION)) {
+            if (it.metadata.containsKey(Constants.MetaDataKeys.SCROLL_POSITION)) {
                 readerWebView.scrollTo(
-                    0, (it.metaData[Constants.MetaDataKeys.SCROLL_POSITION]
+                    0, (it.metadata[Constants.MetaDataKeys.SCROLL_POSITION]
                             )!!.toInt()
                 )
             }
@@ -431,9 +431,9 @@ class WebPageDBFragment : BaseFragment() {
 
             if (dataCenter.enableClusterPages) {
                 // Add the content of the links to the doc
-                if (webPageSettings.metaData.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
+                if (webPageSettings.metadata.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
                     val links: ArrayList<String> =
-                        Gson().fromJson(webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES_SETTINGS], object : TypeToken<java.util.ArrayList<String>>() {}.type)
+                        Gson().fromJson(webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES_SETTINGS], object : TypeToken<java.util.ArrayList<String>>() {}.type)
                     links.forEach {
                         val tempWebPageSettings = dbHelper.getWebPageSettings(it)!!
                         val internalFilePath = "$FILE_PROTOCOL${tempWebPageSettings.filePath}"
@@ -468,8 +468,8 @@ class WebPageDBFragment : BaseFragment() {
 
     fun checkUrl(url: String?): Boolean {
         if (url == null) return false
-        if (webPageSettings.metaData.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
-            val links: ArrayList<String> = Gson().fromJson(webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<String>>() {}.type)
+        if (webPageSettings.metadata.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
+            val links: ArrayList<String> = Gson().fromJson(webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<String>>() {}.type)
             links.forEach {
                 val tempWebPageSettings = dbHelper.getWebPageSettings(it) ?: return@forEach
                 if (it == url || (tempWebPageSettings.redirectedUrl != null && tempWebPageSettings.redirectedUrl == url)) {
@@ -514,7 +514,7 @@ class WebPageDBFragment : BaseFragment() {
         super.onPause()
         if (this::webPageSettings.isInitialized)
             webPageSettings.let {
-                it.metaData[Constants.MetaDataKeys.SCROLL_POSITION] = readerWebView.scrollY.toString()
+                it.metadata[Constants.MetaDataKeys.SCROLL_POSITION] = readerWebView.scrollY.toString()
                 dbHelper.updateWebPageSettings(it)
             }
     }

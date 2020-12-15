@@ -1,7 +1,7 @@
 package io.github.gmathi.novellibrary.service.download
 
-import io.github.gmathi.novellibrary.model.DownloadNovelEvent
-import io.github.gmathi.novellibrary.model.DownloadWebPageEvent
+import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
+import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
 
 interface DownloadListener {
 

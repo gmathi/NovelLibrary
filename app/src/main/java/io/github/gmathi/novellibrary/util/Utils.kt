@@ -32,10 +32,8 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.createFileIfNotExists
 import io.github.gmathi.novellibrary.extensions.getOrCreateDirectory
 import io.github.gmathi.novellibrary.extensions.getOrCreateFile
-import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.network.sync.NovelSync
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.currentCoroutineContext
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.safety.Whitelist
@@ -46,8 +44,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 
 
 object Utils {

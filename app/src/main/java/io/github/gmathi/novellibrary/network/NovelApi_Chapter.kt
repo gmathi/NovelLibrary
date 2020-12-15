@@ -10,8 +10,8 @@ import io.github.gmathi.novellibrary.database.getSource
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.asJsonNullFreeString
 import io.github.gmathi.novellibrary.extensions.covertJsonNull
-import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi.getDocument
 import io.github.gmathi.novellibrary.network.NovelApi.getDocumentWithFormData
 import io.github.gmathi.novellibrary.util.Constants
@@ -125,9 +125,9 @@ fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage>? {
 fun getNUALLChapterUrls(novel: Novel): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
-        if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
+        if (!novel.metadata.containsKey("PostId")) throw Exception("No PostId Found!")
 
-        val novelUpdatesNovelId = novel.metaData["PostId"] ?: ""
+        val novelUpdatesNovelId = novel.metadata["PostId"] ?: ""
         val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
         val formData: HashMap<String, String> = hashMapOf(
             "action" to "nd_getchapters",
@@ -156,12 +156,12 @@ fun getNUALLChapterUrls(novel: Novel): ArrayList<WebPage>? {
 fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
-        if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
+        if (!novel.metadata.containsKey("PostId")) throw Exception("No PostId Found!")
 
         //val sourceMapList = ArrayList<HashMap<String, Long>>()
         val sourceMapList = getNUChapterUrlsWithSources(novel)
 
-        val novelUpdatesNovelId = novel.metaData["PostId"] ?: ""
+        val novelUpdatesNovelId = novel.metadata["PostId"] ?: ""
         val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
         val formData: HashMap<String, String> = hashMapOf(
             "action" to "nd_getchapters",
@@ -196,9 +196,9 @@ private fun getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, so
 
     try {
         val dbSourceId = dbHelper.getSource(sourceName!!)?.first ?: -1L
-        if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
+        if (!novel.metadata.containsKey("PostId")) throw Exception("No PostId Found!")
 
-        val novelUpdatesNovelId = novel.metaData["PostId"] ?: ""
+        val novelUpdatesNovelId = novel.metadata["PostId"] ?: ""
         val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
         val formData: HashMap<String, String> = hashMapOf(
             "action" to "nd_getchapters",
@@ -222,9 +222,9 @@ private fun getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String,
 
     val sourceMap = ArrayList<HashMap<String, Long>>()
     try {
-        if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
+        if (!novel.metadata.containsKey("PostId")) throw Exception("No PostId Found!")
 
-        val novelUpdatesNovelId = novel.metaData["PostId"] ?: ""
+        val novelUpdatesNovelId = novel.metadata["PostId"] ?: ""
         val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
         val formData: HashMap<String, String> = hashMapOf(
             "action" to "nd_getgroupnovel",
@@ -269,12 +269,12 @@ fun getNovelFullChapterUrls(novel: Novel): ArrayList<WebPage>? {
 fun getScribbleHubChapterUrls(novel: Novel): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
-        if (!novel.metaData.containsKey("PostId")) throw Exception("No PostId Found!")
+        if (!novel.metadata.containsKey("PostId")) throw Exception("No PostId Found!")
 
         val url = "https://www.scribblehub.com/wp-admin/admin-ajax.php"
         val formData: HashMap<String, String> = hashMapOf(
             "action" to "wi_gettocchp",
-            "strSID" to novel.metaData["PostId"]!!,
+            "strSID" to novel.metadata["PostId"]!!,
             "strmypostid" to "0",
             "strFic" to "yes"
         )
@@ -349,7 +349,7 @@ fun getLNMTLChapterUrls(novel: Novel): ArrayList<WebPage>? {
 fun NovelApi.getNeovelChapterUrls(novel: Novel): ArrayList<WebPage>? {
     var chapters: ArrayList<WebPage>? = null
     try {
-        val novelId = novel.metaData["id"]
+        val novelId = novel.metadata["id"]
         val url = "https://${HostNames.NEOVEL}/V5/chapters?bookId=$novelId&language=EN"
 
         val request = Request.Builder()

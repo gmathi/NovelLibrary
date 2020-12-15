@@ -8,7 +8,7 @@ import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.model.QueryLookup
+import io.github.gmathi.novellibrary.model.other.QueryLookup
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL

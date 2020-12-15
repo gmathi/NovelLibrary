@@ -31,11 +31,12 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
-import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getNovelDetails
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
+import io.github.gmathi.novellibrary.util.view.TextViewLinkHandler
 import kotlinx.android.synthetic.main.activity_novel_details.*
 import kotlinx.android.synthetic.main.content_novel_details.*
 import kotlinx.coroutines.Dispatchers
@@ -141,8 +142,8 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         setNovelAuthor()
 
         novelDetailsStatus.applyFont(assets).text = "N/A"
-        if (novel.metaData["Year"] != null)
-            novelDetailsStatus.applyFont(assets).text = novel.metaData["Year"]
+        if (novel.metadata["Year"] != null)
+            novelDetailsStatus.applyFont(assets).text = novel.metadata["Year"]
 
         setLicensingInfo()
         setNovelRating()
@@ -168,7 +169,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun setNovelAuthor() {
-        val author = novel.metaData["Author(s)"]
+        val author = novel.metadata["Author(s)"]
         if (author != null) {
             novelDetailsAuthor.movementMethod = TextViewLinkHandler(this)
             @Suppress("DEPRECATION")
@@ -179,8 +180,8 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
     @Suppress("DEPRECATION")
     private fun setLicensingInfo() {
-        if (novel.metaData["English Publisher"] ?: "" != "" || novel.metaData["Licensed (in English)"] == "Yes") {
-            val publisher = if (novel.metaData["English Publisher"] == null || novel.metaData["English Publisher"] == "") "an unknown publisher" else novel.metaData["English Publisher"]
+        if (novel.metadata["English Publisher"] ?: "" != "" || novel.metadata["Licensed (in English)"] == "Yes") {
+            val publisher = if (novel.metadata["English Publisher"] == null || novel.metadata["English Publisher"] == "") "an unknown publisher" else novel.metadata["English Publisher"]
             val warningLabel = getString(R.string.licensed_warning, publisher)
             novelDetailsLicensedAlert.movementMethod = TextViewLinkHandler(this)
             novelDetailsLicensedAlert.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)

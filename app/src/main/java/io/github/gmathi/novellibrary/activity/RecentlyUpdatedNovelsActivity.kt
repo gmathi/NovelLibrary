@@ -12,8 +12,8 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.extensions.noInternetError
 import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.extensions.startNovelDetailsActivity
-import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.RecenlytUpdatedItem
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.other.RecentlyUpdatedItem
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getRecentlyUpdatedNovels
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
@@ -27,9 +27,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<RecenlytUpdatedItem> {
+class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<RecentlyUpdatedItem> {
 
-    lateinit var adapter: GenericAdapter<RecenlytUpdatedItem>
+    lateinit var adapter: GenericAdapter<RecentlyUpdatedItem>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,7 +69,7 @@ class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Re
     }
 
     @SuppressLint("SetTextI18n")
-    override fun bind(item: RecenlytUpdatedItem, itemView: View, position: Int) {
+    override fun bind(item: RecentlyUpdatedItem, itemView: View, position: Int) {
         itemView.chevron.visibility = View.VISIBLE
 
         itemView.title.applyFont(assets).text = item.novelName
@@ -81,7 +81,7 @@ class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Re
         )
     }
 
-    override fun onItemClick(item: RecenlytUpdatedItem, position: Int) {
+    override fun onItemClick(item: RecentlyUpdatedItem, position: Int) {
         if (item.novelName != null && item.novelUrl != null) {
             startNovelDetailsActivity(Novel(item.novelName!!, item.novelUrl!!))
         }

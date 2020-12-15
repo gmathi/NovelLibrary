@@ -2,7 +2,7 @@ package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
 import android.database.Cursor
-import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.model.database.WebPage
 
 
 //private const val LOG = "WebPageHelper"

@@ -18,12 +18,11 @@ import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
-import io.github.gmathi.novellibrary.model.ChapterActionModeEvent
-import io.github.gmathi.novellibrary.model.EventType
-import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.other.ChapterActionModeEvent
+import io.github.gmathi.novellibrary.model.other.EventType
+import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.ProgressLayout
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel
 import kotlinx.android.synthetic.main.activity_chapters_pager.*
@@ -172,10 +171,10 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
 
     private fun scrollToBookmark() {
-        vm.novel.currentWebPageUrl?.let { currentWebPageUrl ->
-            val currentBookmarkWebPage = dbHelper.getWebPage(currentWebPageUrl) ?: return
+        vm.novel.currentChapterUrl?.let { currentChapterUrl ->
+            val currentBookmarkWebPage = dbHelper.getWebPage(currentChapterUrl) ?: return@let
             val currentSource = sources.firstOrNull { it.first == currentBookmarkWebPage.sourceId }
-                ?: return
+                ?: return@let
             val index = sources.indexOf(currentSource)
             if (index != -1)
                 viewPager.currentItem = index
@@ -209,7 +208,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             }
             R.id.action_download -> {
                 confirmDialog(getString(R.string.download_all_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
-                    val publisher = vm.novel.metaData["English Publisher"]
+                    val publisher = vm.novel.metadata["English Publisher"]
                     val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true) ?: false
                     if (dataCenter.disableWuxiaDownloads && isWuxiaChapterPresent) {
                         dialog.dismiss()
@@ -240,10 +239,10 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 return true
             }
             R.id.action_sort -> {
-                if (vm.novel.metaData["chapterOrder"] == "des")
-                    vm.novel.metaData["chapterOrder"] = "asc"
+                if (vm.novel.metadata["chapterOrder"] == "des")
+                    vm.novel.metadata["chapterOrder"] = "asc"
                 else
-                    vm.novel.metaData["chapterOrder"] = "des"
+                    vm.novel.metadata["chapterOrder"] = "des"
                 EventBus.getDefault().post(ChapterActionModeEvent(eventType = EventType.COMPLETE))
                 if (vm.novel.id != -1L)
                     dbHelper.updateNovel(vm.novel)
@@ -334,7 +333,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                         showNotInLibraryDialog()
                         mode?.finish()
                     } else {
-                        val publisher = vm.novel.metaData["English Publisher"]
+                        val publisher = vm.novel.metadata["English Publisher"]
                         val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true) ?: false
                         if (dataCenter.disableWuxiaDownloads && isWuxiaChapterPresent) {
                             dialog.dismiss()

@@ -15,8 +15,8 @@ import com.google.android.gms.gcm.*
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.database.*
-import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.WebPageSettings
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterCount
 import io.github.gmathi.novellibrary.network.getChapterUrls
@@ -70,7 +70,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         //Update DB with new chapters
         totalCountMap.forEach {
             val novel = it.key
-            novel.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
+            novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
             dbHelper.updateNovelMetaData(novel)
             dbHelper.updateChaptersAndReleasesCount(
                 novel.id,

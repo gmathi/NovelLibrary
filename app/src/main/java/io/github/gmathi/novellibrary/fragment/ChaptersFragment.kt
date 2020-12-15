@@ -17,7 +17,12 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
-import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.WebPage
+import io.github.gmathi.novellibrary.model.database.WebPageSettings
+import io.github.gmathi.novellibrary.model.other.ChapterActionModeEvent
+import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
+import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
@@ -80,7 +85,7 @@ class ChaptersFragment : BaseFragment(),
         if (chaptersPagerActivity != null) {
             val chapters = (if (sourceId == -1L) chaptersPagerActivity.vm.chapters else chaptersPagerActivity.vm.chapters?.filter { it.sourceId == sourceId }) ?: ArrayList<WebPage>()
             if (chapters.isNotEmpty()) {
-                adapter.updateData(if (novel.metaData["chapterOrder"] == "des") ArrayList(chapters.reversed()) else ArrayList(chapters))
+                adapter.updateData(if (novel.metadata["chapterOrder"] == "des") ArrayList(chapters.reversed()) else ArrayList(chapters))
                 progressLayout.showContent()
                 if (shouldScrollToBookmark)
                     scrollToBookmark()
@@ -95,16 +100,16 @@ class ChaptersFragment : BaseFragment(),
     }
 
     private fun scrollToBookmark() {
-        if (novel.currentWebPageUrl != null) {
-            val index = adapter.items.indexOfFirst { it.url == novel.currentWebPageUrl }
+        if (novel.currentChapterUrl != null) {
+            val index = adapter.items.indexOfFirst { it.url == novel.currentChapterUrl }
             if (index != -1)
                 recyclerView.scrollToPosition(index)
         }
     }
 
     private fun scrollToFirstUnread(chaptersSettings: ArrayList<WebPageSettings>) {
-        if (novel.currentWebPageUrl != null) {
-            val index = if (novel.metaData["chapterOrder"] == "des")
+        if (novel.currentChapterUrl != null) {
+            val index = if (novel.metadata["chapterOrder"] == "des")
                 adapter.items.indexOfLast { chapter -> chaptersSettings.firstOrNull { it.url == chapter.url && it.isRead == 0 } != null }
             else
                 adapter.items.indexOfFirst { chapter -> chaptersSettings.firstOrNull { it.url == chapter.url && it.isRead == 0 } != null }
@@ -121,7 +126,7 @@ class ChaptersFragment : BaseFragment(),
 
     override fun onItemClick(item: WebPage, position: Int) {
         if (novel.id != -1L) {
-            novel.currentWebPageUrl = item.url
+            novel.currentChapterUrl = item.url
             dbHelper.updateNovel(novel)
             NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, item) }
             startReaderDBPagerActivity(novel, sourceId)
@@ -138,7 +143,7 @@ class ChaptersFragment : BaseFragment(),
             itemView.availableOfflineImageView.visibility = View.VISIBLE
             itemView.availableOfflineImageView.animation = null
         } else {
-//            if (Download.STATUS_IN_QUEUE.toString() == webPageSettings?.metaData[Constants.DOWNLOADING]) {
+//            if (Download.STATUS_IN_QUEUE.toString() == webPageSettings?.metadata[Constants.DOWNLOADING]) {
 //                if (item.id != -1L && DownloadService.chapters.contains(item)) {
 //                    itemView.greenView.visibility = View.VISIBLE
 //                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@OldChaptersActivity, R.color.white))
@@ -153,7 +158,7 @@ class ChaptersFragment : BaseFragment(),
         }
 
         itemView.isReadView.visibility = if (webPageSettings?.isRead == 1) View.VISIBLE else View.GONE
-        itemView.bookmarkView.visibility = if (item.url == novel.currentWebPageUrl) View.VISIBLE else View.GONE
+        itemView.bookmarkView.visibility = if (item.url == novel.currentChapterUrl) View.VISIBLE else View.GONE
 
         itemView.chapterTitle.text = item.chapter
 
@@ -174,7 +179,7 @@ class ChaptersFragment : BaseFragment(),
             true
         }
 
-        if (webPageSettings?.metaData?.get(Constants.MetaDataKeys.IS_FAVORITE)?.toBoolean() == true) {
+        if (webPageSettings?.metadata?.get(Constants.MetaDataKeys.IS_FAVORITE)?.toBoolean() == true) {
             itemView.favoriteView.visibility = View.VISIBLE
         } else {
             itemView.favoriteView.visibility = View.GONE

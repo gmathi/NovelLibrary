@@ -1,7 +1,7 @@
 package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
-import io.github.gmathi.novellibrary.model.NovelSection
+import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.util.Logs
 
 

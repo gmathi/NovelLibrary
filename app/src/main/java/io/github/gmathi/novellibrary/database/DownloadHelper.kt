@@ -5,7 +5,7 @@ import android.database.Cursor
 import android.database.DatabaseUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import io.github.gmathi.novellibrary.model.Download
+import io.github.gmathi.novellibrary.model.database.Download
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -51,7 +51,7 @@ private fun getDownload(cursor: Cursor): Download {
     )
     download.status = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_STATUS))
     download.orderId = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
-    download.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<java.util.HashMap<String, String>>() {}.type)
+    download.metadata = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<java.util.HashMap<String, String>>() {}.type)
     return download
 }
 

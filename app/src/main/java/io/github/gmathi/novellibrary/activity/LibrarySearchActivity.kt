@@ -1,9 +1,9 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.animation.Animator
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
@@ -13,8 +13,11 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.*
-import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.extensions.hideSoftKeyboard
+import io.github.gmathi.novellibrary.extensions.startChaptersActivity
+import io.github.gmathi.novellibrary.extensions.startNovelDetailsActivity
+import io.github.gmathi.novellibrary.extensions.startReaderDBPagerActivity
+import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.*
 import kotlinx.android.synthetic.main.activity_library_search.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
@@ -134,8 +137,8 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
         itemView.novelTitleTextView.text = item.name
         itemView.novelTitleTextView.isSelected = dataCenter.enableScrollingText
 
-        val lastRead = item.metaData[Constants.MetaDataKeys.LAST_READ_DATE] ?: "N/A"
-        val lastUpdated = item.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] ?: "N/A"
+        val lastRead = item.metadata[Constants.MetaDataKeys.LAST_READ_DATE] ?: "N/A"
+        val lastUpdated = item.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] ?: "N/A"
 
         itemView.lastOpenedDate.text = getString(R.string.last_read_n_updated, lastRead, lastUpdated)
 
@@ -165,7 +168,7 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
     }
 
     private fun startReader(novel: Novel) {
-        if (novel.currentWebPageUrl != null) {
+        if (novel.currentChapterUrl != null) {
             startReaderDBPagerActivity(novel)
         } else {
             val confirmDialog = this.let {
@@ -201,7 +204,6 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
             isDateSorted = !isDateSorted
         }
     }
-
 
 
 }

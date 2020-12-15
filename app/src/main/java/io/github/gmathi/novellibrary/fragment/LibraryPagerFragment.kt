@@ -12,7 +12,7 @@ import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.LibraryPageListener
 import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.model.NovelSection
+import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.util.Constants
 import kotlinx.android.synthetic.main.content_library_pager.*
 import kotlinx.android.synthetic.main.fragment_library_pager.*

@@ -18,14 +18,14 @@
 //    var rating: String? = null
 //    var longDescription: String? = null
 //    var imageFilePath: String? = null
-//    var currentWebPageUrl: String? = null
+//    var currentChapterUrl: String? = null
 //    var orderId: Long = -1
 //    var newReleasesCount = 0L
 //    var updatedChapterCount = 0L
 //
 //    var genres: RealmList<RGenre>? = RealmList()
 //    var webPages: RealmList<RWebPage>? = RealmList()
-//    var metaData: RealmList<RMetadata>? = RealmList()
+//    var metadata: RealmList<RMetadata>? = RealmList()
 //
 //
 //    fun copyFrom(otherNovel: RNovel?) {
@@ -36,7 +36,7 @@
 //            imageUrl = if (otherNovel.imageUrl != null) otherNovel.imageUrl else imageUrl
 //            imageFilePath = if (otherNovel.imageFilePath != null) otherNovel.imageFilePath else imageFilePath
 //            longDescription = if (otherNovel.longDescription != null) otherNovel.longDescription else longDescription
-//            currentWebPageUrl = if (otherNovel.currentWebPageUrl != null) otherNovel.currentWebPageUrl else currentWebPageUrl
+//            currentChapterUrl = if (otherNovel.currentChapterUrl != null) otherNovel.currentChapterUrl else currentChapterUrl
 //            newReleasesCount = if (otherNovel.newReleasesCount != 0L) otherNovel.newReleasesCount else newReleasesCount
 //            updatedChapterCount = if (otherNovel.updatedChapterCount != 0L) otherNovel.updatedChapterCount else updatedChapterCount
 //            orderId = if (otherNovel.orderId != -1L) otherNovel.orderId else orderId

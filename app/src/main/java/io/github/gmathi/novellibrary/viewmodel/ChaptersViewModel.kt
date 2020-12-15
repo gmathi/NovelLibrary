@@ -7,10 +7,10 @@ import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.model.Download
-import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.WebPage
-import io.github.gmathi.novellibrary.model.WebPageSettings
+import io.github.gmathi.novellibrary.model.database.Download
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.WebPage
+import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.network.sync.NovelSync
@@ -53,7 +53,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         setNovel(novel)
         lifecycleOwner.lifecycle.addObserver(this)
         this.context = context
-        this.showSources = novel.metaData[Constants.MetaDataKeys.SHOW_SOURCES]?.toBoolean() ?: false
+        this.showSources = novel.metadata[Constants.MetaDataKeys.SHOW_SOURCES]?.toBoolean() ?: false
     }
 
     fun getData(forceUpdate: Boolean = false) {
@@ -95,7 +95,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     fun toggleSources() {
         showSources = !showSources
         viewModelScope.launch {
-            novel.metaData[Constants.MetaDataKeys.SHOW_SOURCES] = showSources.toString()
+            novel.metadata[Constants.MetaDataKeys.SHOW_SOURCES] = showSources.toString()
             withContext(Dispatchers.IO) { dbHelper.updateNovelMetaData(novel) }
         }
         getData(true)
@@ -115,7 +115,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
                 val chapterSettings = dbHelper.getAllWebPageSettings(novel.id)
 
                 if (chapters.isEmpty() || chapters.size < novel.chaptersCount.toInt()) {
-                    novel.metaData[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
+                    novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
                     dbHelper.updateNovelMetaData(novel)
                 } else {
                     this@ChaptersViewModel.chapters = chapters
@@ -215,7 +215,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             file.delete()
             webPageSettings.filePath = null
             try {
-                val otherLinkedPagesJsonString = webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES]
+                val otherLinkedPagesJsonString = webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES]
                 if (otherLinkedPagesJsonString != null) {
                     val linkedPages: ArrayList<WebPage> = Gson().fromJson(otherLinkedPagesJsonString, object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
                     linkedPages.forEach {
@@ -226,7 +226,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
                             dbHelper.deleteWebPageSettings(linkedWebPageSettings.url)
                         }
                     }
-                    webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = "[]"
+                    webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = "[]"
                 }
             } catch (e: Exception) {
                 Logs.error(TAG, "Delete WebPage: $webPage", e)
@@ -254,7 +254,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             withContext(Dispatchers.IO) sub@{
                 val chaptersSettingsList = chapterSettings ?: return@sub
                 val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@sub
-                dbHelper.updateWebPageSettingsReadStatus(webPageSettings.url, readStatus, HashMap(webPageSettings.metaData))
+                dbHelper.updateWebPageSettingsReadStatus(webPageSettings.url, readStatus, HashMap(webPageSettings.metadata))
                 actionModeProgress.postValue(counter++.toString())
             }
         }
@@ -268,7 +268,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             withContext(Dispatchers.IO) sub@{
                 val chaptersSettingsList = chapterSettings ?: return@sub
                 val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@sub
-                webPageSettings.metaData[Constants.MetaDataKeys.IS_FAVORITE] = favoriteStatus.toString()
+                webPageSettings.metadata[Constants.MetaDataKeys.IS_FAVORITE] = favoriteStatus.toString()
                 dbHelper.updateWebPageSettings(webPageSettings)
                 actionModeProgress.postValue(counter++.toString())
             }

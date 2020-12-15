@@ -1,21 +1,18 @@
 package io.github.gmathi.novellibrary.service.download
 
 import android.content.Context
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.getDownloadItemInQueue
 import io.github.gmathi.novellibrary.database.getRemainingDownloadsCountForNovel
-import io.github.gmathi.novellibrary.model.DownloadNovelEvent
-import io.github.gmathi.novellibrary.model.DownloadWebPageEvent
-import io.github.gmathi.novellibrary.model.EventType
+import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
+import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
+import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
-import kotlin.concurrent.thread
 
 
 class DownloadNovelThread(val context: Context, val novelName: String, val dbHelper: DBHelper, private val downloadListener: DownloadListener) : Thread(), DownloadListener {
@@ -37,14 +34,16 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
                 if (!Utils.isConnectedToNetwork(context)) throw InterruptedException(Constants.NO_NETWORK)
 
 //                if (!fasterDownloads)
-                    // .get at the end makes it a synchronous task
-                    threadPool?.submit(DownloadWebPageThread(context, download, dbHelper, this@DownloadNovelThread))?.get()
+                // .get at the end makes it a synchronous task
+                threadPool?.submit(DownloadWebPageThread(context, download, dbHelper, this@DownloadNovelThread))?.get()
 //                else
-                    // Put all in at the same time - TODO:// Problem with multitasking when adding 1000+ chapters at the same time. Need to streamline it for multitasking
+                // Put all in at the same time - TODO:// Problem with multitasking when adding 1000+ chapters at the same time. Need to streamline it for multitasking
 //                    threadPool?.submit(DownloadWebPageThread(context, download, dbHelper, this@DownloadNovelThread))
 
                 //Check if thread was shutdown
-                if (interrupted()) { threadPool?.shutdownNow(); return }
+                if (interrupted()) {
+                    threadPool?.shutdownNow(); return
+                }
 
                 download = dbHelper.getDownloadItemInQueue(novelName)
             }
@@ -52,7 +51,7 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
             threadPool?.shutdown()
             try {
 //                if (!fasterDownloads)
-                    threadPool?.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)
+                threadPool?.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)
 //                else {
 //                    if (threadPool != null)
 //                        while (!threadPool!!.awaitTermination(1, TimeUnit.MINUTES) && !isInterrupted) {

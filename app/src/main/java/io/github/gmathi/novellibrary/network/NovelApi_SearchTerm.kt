@@ -4,7 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.google.gson.annotations.SerializedName
 import io.github.gmathi.novellibrary.extensions.asJsonNullFreeString
-import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.network.NovelApi.getDocument
 import io.github.gmathi.novellibrary.util.Constants.NEOVEL_API_URL
 import io.github.gmathi.novellibrary.util.Constants.WLN_UPDATES_API_URL
@@ -13,7 +13,6 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.util.*
 import kotlin.collections.ArrayList
 
 
@@ -27,9 +26,9 @@ fun NovelApi.searchRoyalRoad(searchTerms: String, pageNumber: Int = 1): ArrayLis
             val urlElement = element.selectFirst("a[href]") ?: continue
             val novel = Novel(urlElement.text(), urlElement.attr("abs:href"))
             novel.imageUrl = element.selectFirst("img[src]")?.attr("abs:src")
-            novel.metaData["Author(s)"] = element.selectFirst("span.author")?.text()?.substring(3)
-            if (novel.metaData["Author(s)"] == null && novel.imageUrl?.startsWith("https://www.royalroadcdn.com/") == true)
-                novel.metaData["Author(s)"] = novel.imageUrl?.substring(29, novel.imageUrl?.indexOf('/', 29) ?: 0)
+            novel.metadata["Author(s)"] = element.selectFirst("span.author")?.text()?.substring(3)
+            if (novel.metadata["Author(s)"] == null && novel.imageUrl?.startsWith("https://www.royalroadcdn.com/") == true)
+                novel.metadata["Author(s)"] = novel.imageUrl?.substring(29, novel.imageUrl?.indexOf('/', 29) ?: 0)
             novel.rating = element.selectFirst("span[title]").attr("title")
             novel.longDescription = element.selectFirst("div.fiction-description")?.text()
                 ?: element.selectFirst("div.margin-top-10.col-xs-12")?.text()
@@ -219,7 +218,7 @@ fun NovelApi.searchNeovel(searchTerms: String): ArrayList<Novel>? {
             val novelUrl = "https://${HostNames.NEOVEL}/V1/book/details?bookId=$id&language=EN"
             val novel = resultObject["name"].asJsonNullFreeString?.let { Novel(it, novelUrl) } ?: return@forEach
             novel.imageUrl = "https://${HostNames.NEOVEL}/V2/book/image?bookId=$id&oldApp=false"
-            novel.metaData["id"] = id
+            novel.metadata["id"] = id
             novel.rating = resultObject["rating"].asFloat.toString()
             searchResults.add(novel)
         }

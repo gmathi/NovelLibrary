@@ -1,6 +1,6 @@
 package io.github.gmathi.novellibrary.network
 
-import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.addPageNumberToUrl
 
 fun NovelApi.searchUrl(url: String, pageNumber: Int): ArrayList<Novel>? {

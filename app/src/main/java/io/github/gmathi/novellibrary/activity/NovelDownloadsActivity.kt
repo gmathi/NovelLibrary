@@ -18,10 +18,10 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.startDownloadNovelService
-import io.github.gmathi.novellibrary.model.Download
-import io.github.gmathi.novellibrary.model.DownloadNovelEvent
-import io.github.gmathi.novellibrary.model.DownloadWebPageEvent
-import io.github.gmathi.novellibrary.model.EventType
+import io.github.gmathi.novellibrary.model.database.Download
+import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
+import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
+import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.service.download.DownloadListener
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Utils

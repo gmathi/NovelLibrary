@@ -2,9 +2,9 @@ package io.github.gmathi.novellibrary.adapter
 
 import androidx.fragment.app.Fragment
 import io.github.gmathi.novellibrary.fragment.*
-import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.NovelSection
-import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.NovelSection
+import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.network.HostNames
 
 //region Fragment Page Listeners

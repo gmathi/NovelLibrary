@@ -19,7 +19,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.createNovel
 import io.github.gmathi.novellibrary.database.createNovelSection
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.NotificationReceiver
 import io.github.gmathi.novellibrary.util.ProgressNotificationManager
 import io.github.gmathi.novellibrary.util.Constants
@@ -34,7 +34,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.*
-import java.util.zip.ZipInputStream
 
 internal class RestoreWorker(context: Context, workerParameters: WorkerParameters) :
     CoroutineWorker(context, workerParameters) {
@@ -149,10 +148,10 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                         if (novelJson.has("imageUrl"))
                             novel.imageUrl = novelJson.getString("imageUrl")
                         if (novelJson.has("currentlyReading"))
-                            novel.currentWebPageUrl = novelJson.getString("currentlyReading")
-                        if (novelJson.has("metaData"))
-                            novel.metaData = Gson().fromJson(
-                                novelJson.getString("metaData"),
+                            novel.currentChapterUrl = novelJson.getString("currentlyReading")
+                        if (novelJson.has("metadata"))
+                            novel.metadata = Gson().fromJson(
+                                novelJson.getString("metadata"),
                                 object : TypeToken<HashMap<String, String>>() {}.type
                             )
 

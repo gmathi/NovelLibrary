@@ -634,6 +634,7 @@
     <!-- 0.15.6-->
     <string name="licensed_warning" tools:ignore="MissingTranslation">This novel was officially licensed by %1$s and may have missing (by DMCA or voluntary), or paywalled, chapters</string>
 
+    <!-- 0.16 -->
     <string name="sync_fetching_chapter_counts">Obtaining chapter counts: %1$d / %2$d\n%3$s</string>
     <string name="sync_fetching_chapter_list">Obtaining chapter lists: %1$d / %2$d\n%3$s</string>
 
@@ -685,5 +686,11 @@
     <string name="custom_query_lookups_description">Advanced usage: Add custom query selectors for unsupported websites in reader mode, enabling their support.</string>
     <string name="custom_query_lookups_edit">Adding custom query selectors</string>
     <string name="custom_query_lookups_hint">div.chapter-contents</string>
+
+    <string name="information_cloudflare_bypass_failure">Failed to bypass Cloudflare</string>
+    <string name="information_webview_required">WebView is required for NovelLibrary</string>
+    <string name="information_webview_outdated">Please update the WebView app for better compatibility</string>
+
+    <string name="source_not_installed">Source not installed: %1$s</string>
 
 </resources>

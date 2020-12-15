@@ -11,7 +11,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.extensions.openInBrowser
-import io.github.gmathi.novellibrary.model.GenericJsonMappedModel
+import io.github.gmathi.novellibrary.model.other.GenericJsonMappedModel
 import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.applyFont

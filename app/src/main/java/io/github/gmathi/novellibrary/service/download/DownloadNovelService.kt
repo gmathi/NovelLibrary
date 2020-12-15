@@ -15,10 +15,10 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.updateDownloadStatus
-import io.github.gmathi.novellibrary.model.Download
-import io.github.gmathi.novellibrary.model.DownloadNovelEvent
-import io.github.gmathi.novellibrary.model.DownloadWebPageEvent
-import io.github.gmathi.novellibrary.model.EventType
+import io.github.gmathi.novellibrary.model.database.Download
+import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
+import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
+import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils

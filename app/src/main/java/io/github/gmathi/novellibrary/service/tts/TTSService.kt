@@ -27,8 +27,8 @@ import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.extensions.albumArt
 import io.github.gmathi.novellibrary.extensions.displaySubtitle
 import io.github.gmathi.novellibrary.extensions.displayTitle
-import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.model.WebPageSettings
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.service.tts.TTSNotificationBuilder.Companion.TTS_NOTIFICATION_ID
@@ -362,8 +362,8 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
 
     //Helper functions
     private fun setChapterIndex(novel: Novel) {
-        val webPage = if (novel.currentWebPageUrl != null)
-            dbHelper.getWebPage(novel.currentWebPageUrl!!)
+        val webPage = if (novel.currentChapterUrl != null)
+            dbHelper.getWebPage(novel.currentChapterUrl!!)
         else
             dbHelper.getWebPage(novel.id, sourceId, 0)
         if (webPage?.url == null) return

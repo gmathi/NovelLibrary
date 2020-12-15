@@ -4,7 +4,7 @@ import android.content.ContentValues
 import android.database.Cursor
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import io.github.gmathi.novellibrary.model.WebPageSettings
+import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.util.Constants
 import java.util.*
 import kotlin.collections.ArrayList
@@ -28,7 +28,7 @@ fun DBHelper.createWebPageSettings(webPageSettings: WebPageSettings) {
     values.put(DBKeys.KEY_TITLE, webPageSettings.title)
     values.put(DBKeys.KEY_FILE_PATH, webPageSettings.filePath)
     values.put(DBKeys.KEY_IS_READ, webPageSettings.isRead)
-    values.put(DBKeys.KEY_METADATA, Gson().toJson(webPageSettings.metaData))
+    values.put(DBKeys.KEY_METADATA, Gson().toJson(webPageSettings.metadata))
     this.writableDatabase.insert(DBKeys.TABLE_WEB_PAGE_SETTINGS, null, values)
 }
 
@@ -102,18 +102,18 @@ fun DBHelper.updateWebPageSettings(webPageSettings: WebPageSettings) {
     values.put(DBKeys.KEY_TITLE, webPageSettings.title)
     values.put(DBKeys.KEY_REDIRECT_URL, webPageSettings.redirectedUrl)
     values.put(DBKeys.KEY_FILE_PATH, webPageSettings.filePath)
-    values.put(DBKeys.KEY_METADATA, Gson().toJson(webPageSettings.metaData))
+    values.put(DBKeys.KEY_METADATA, Gson().toJson(webPageSettings.metadata))
     this.writableDatabase.update(DBKeys.TABLE_WEB_PAGE_SETTINGS, values, "${DBKeys.KEY_URL} = ?", arrayOf(webPageSettings.url))
 }
 
-fun DBHelper.updateWebPageSettingsReadStatus(url: String, readStatus: Int, metaData: HashMap<String, String?>) {
+fun DBHelper.updateWebPageSettingsReadStatus(url: String, readStatus: Int, metadata: HashMap<String, String?>) {
     val values = ContentValues()
     if (readStatus == 0) {
-        metaData.remove(Constants.MetaDataKeys.SCROLL_POSITION)
+        metadata.remove(Constants.MetaDataKeys.SCROLL_POSITION)
     }
 
     values.put(DBKeys.KEY_IS_READ, readStatus)
-    values.put(DBKeys.KEY_METADATA, Gson().toJson(metaData))
+    values.put(DBKeys.KEY_METADATA, Gson().toJson(metadata))
     this.writableDatabase.update(DBKeys.TABLE_WEB_PAGE_SETTINGS, values, "${DBKeys.KEY_URL} = ?", arrayOf(url))
 }
 
@@ -131,6 +131,6 @@ private fun getWebPageSettingsFromCursor(cursor: Cursor): WebPageSettings {
     webPageSettings.title = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_TITLE))
     webPageSettings.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
     webPageSettings.isRead = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_IS_READ))
-    webPageSettings.metaData = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
+    webPageSettings.metadata = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
     return webPageSettings
 }

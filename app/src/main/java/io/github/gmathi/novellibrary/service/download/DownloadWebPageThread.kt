@@ -5,7 +5,12 @@ import android.net.Uri
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
 import io.github.gmathi.novellibrary.database.*
-import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.model.database.Download
+import io.github.gmathi.novellibrary.model.database.WebPage
+import io.github.gmathi.novellibrary.model.database.WebPageSettings
+import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
+import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
+import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
@@ -83,14 +88,14 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             if (otherLinks.isNotEmpty()) {
                 val otherWebPages = ArrayList<WebPageSettings>()
                 otherLinks.mapNotNullTo(otherWebPages) { downloadOtherChapterLinks(it, webPage.novelId, hostDir, novelDir) }
-                webPageSettings.metaData[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = Gson().toJson(otherLinks)
+                webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = Gson().toJson(otherLinks)
                 otherWebPages.forEach {
                     dbHelper.createWebPageSettings(it)
                 }
             }
 
-            if (webPageSettings.metaData.containsKey(Constants.DOWNLOADING))
-                webPageSettings.metaData.remove(Constants.DOWNLOADING)
+            if (webPageSettings.metadata.containsKey(Constants.DOWNLOADING))
+                webPageSettings.metadata.remove(Constants.DOWNLOADING)
             dbHelper.updateWebPageSettings(webPageSettings)
             return true
         }
