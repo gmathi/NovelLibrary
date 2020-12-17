@@ -15,11 +15,11 @@ import io.github.gmathi.novellibrary.adapter.NavPageListener
 import io.github.gmathi.novellibrary.adapter.SearchResultsListener
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.extensions.FAC
-import io.github.gmathi.novellibrary.extensions.hideSoftKeyboard
 import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.util.SimpleAnimationListener
-import io.github.gmathi.novellibrary.util.SuggestionsBuilder
+import io.github.gmathi.novellibrary.util.view.SimpleAnimationListener
+import io.github.gmathi.novellibrary.util.view.SuggestionsBuilder
 import io.github.gmathi.novellibrary.util.addToNovelSearchHistory
+import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.fragment_search.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
@@ -161,7 +161,7 @@ class SearchFragment : BaseFragment() {
             titles.add("ScribbleHub")
         titles.add("WLN-Updates")
         titles.add("LNMTL")
-        //titles.add("Neovel")
+        titles.add("Neovel")
 
         val searchPageAdapter: GenericFragmentStatePagerAdapter
         searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles.toTypedArray(), titles.size, SearchResultsListener(searchTerm, titles))

@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.util
+package io.github.gmathi.novellibrary.util.system
 
 import java.io.ByteArrayOutputStream
 

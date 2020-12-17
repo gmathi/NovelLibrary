@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.extensions
+package io.github.gmathi.novellibrary.util.storage
 
 import androidx.documentfile.provider.DocumentFile
 

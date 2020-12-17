@@ -176,7 +176,7 @@ abstract class HttpSource : CatalogueSource {
         return client.newCall(novelDetailsRequest(novel))
             .asObservableSuccess()
             .map { response ->
-                novelDetailsParse(response)
+                novelDetailsParse(novel, response)
             }
     }
 
@@ -187,7 +187,7 @@ abstract class HttpSource : CatalogueSource {
      * @param novel the novel to be updated.
      */
     open fun novelDetailsRequest(novel: Novel): Request {
-        return GET(baseUrl + novel.url, headers)
+        return GET(novel.url, headers)
     }
 
     /**
@@ -195,7 +195,7 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param response the response from the site.
      */
-    protected abstract fun novelDetailsParse(response: Response): Novel
+    protected abstract fun novelDetailsParse(novel: Novel, response: Response): Novel
 
 
     /**
@@ -209,7 +209,7 @@ abstract class HttpSource : CatalogueSource {
         return client.newCall(chapterListRequest(novel))
             .asObservableSuccess()
             .map { response ->
-                chapterListParse(response)
+                chapterListParse(novel, response)
             }
 //        } else {
 //            Observable.error(Exception("Licensed - No chapters to show"))
@@ -223,7 +223,7 @@ abstract class HttpSource : CatalogueSource {
      * @param novel the novel to look for chapters.
      */
     protected open fun chapterListRequest(novel: Novel): Request {
-        return GET(baseUrl + novel.url, headers)
+        return GET(novel.url, headers)
     }
 
     /**
@@ -231,7 +231,7 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param response the response from the site.
      */
-    protected abstract fun chapterListParse(response: Response): List<Chapter>
+    protected abstract fun chapterListParse(novel: Novel, response: Response): List<Chapter>
 
 
     /**

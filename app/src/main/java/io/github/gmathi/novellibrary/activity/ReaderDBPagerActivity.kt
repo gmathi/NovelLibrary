@@ -52,7 +52,8 @@ import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.Utils.getFormattedText
-import io.github.gmathi.novellibrary.view.TwoWaySeekBar
+import io.github.gmathi.novellibrary.util.system.*
+import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.item_option.view.*
 import kotlinx.android.synthetic.main.menu_left_drawer.*

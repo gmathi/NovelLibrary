@@ -17,6 +17,7 @@ import com.bumptech.glide.load.model.LazyHeaders
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.util.view.SnappingLinearLayoutManager
 import jp.wasabeef.recyclerview.animators.SlideInRightAnimator
 import java.net.URL
 

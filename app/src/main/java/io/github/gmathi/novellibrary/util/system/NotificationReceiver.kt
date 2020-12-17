@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.util
+package io.github.gmathi.novellibrary.util.system
 
 import android.app.Notification
 import android.content.BroadcastReceiver
@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
+import io.github.gmathi.novellibrary.util.Utils
 
 
 internal class NotificationReceiver : BroadcastReceiver() {

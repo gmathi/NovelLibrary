@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.view;
+package io.github.gmathi.novellibrary.util.view;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

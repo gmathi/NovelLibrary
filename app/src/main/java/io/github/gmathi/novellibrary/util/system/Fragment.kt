@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.extensions
+package io.github.gmathi.novellibrary.util.system
 
 import android.content.Intent
 import android.os.Bundle

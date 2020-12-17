@@ -8,8 +8,8 @@ import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.database.createSource
 import io.github.gmathi.novellibrary.database.getSource
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.asJsonNullFreeString
-import io.github.gmathi.novellibrary.extensions.covertJsonNull
+import io.github.gmathi.novellibrary.util.lang.asJsonNullFreeString
+import io.github.gmathi.novellibrary.util.lang.covertJsonNull
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi.getDocument

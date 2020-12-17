@@ -2,7 +2,7 @@ package io.github.gmathi.novellibrary.network.sync
 
 import android.webkit.CookieManager
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.extensions.containsCaseInsensitive
+import io.github.gmathi.novellibrary.util.lang.containsCaseInsensitive
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.model.database.WebPage

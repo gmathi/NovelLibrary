@@ -18,6 +18,8 @@ import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.getGlideUrl
 import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.util.system.isFragmentActive
+import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
 import kotlinx.coroutines.Dispatchers

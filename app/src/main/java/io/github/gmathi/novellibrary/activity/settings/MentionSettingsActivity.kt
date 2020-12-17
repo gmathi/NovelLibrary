@@ -8,11 +8,11 @@ import android.view.View
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.*
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.extensions.startContributionsActivity
-import io.github.gmathi.novellibrary.extensions.startCopyrightActivity
-import io.github.gmathi.novellibrary.extensions.startLanguagesActivity
-import io.github.gmathi.novellibrary.extensions.startLibrariesUsedActivity
-import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.util.system.startContributionsActivity
+import io.github.gmathi.novellibrary.util.system.startCopyrightActivity
+import io.github.gmathi.novellibrary.util.system.startLanguagesActivity
+import io.github.gmathi.novellibrary.util.system.startLibrariesUsedActivity
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_settings.*

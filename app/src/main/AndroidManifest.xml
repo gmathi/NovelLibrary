@@ -270,7 +270,7 @@
             android:exported="false" />
 
         <provider
-            android:name=".util.GenericFileProvider"
+            android:name=".util.storage.GenericFileProvider"
             android:authorities="${applicationId}.provider"
             android:exported="false"
             android:grantUriPermissions="true">
@@ -280,7 +280,7 @@
         </provider>
 
         <receiver
-            android:name=".util.NotificationReceiver"
+            android:name=".util.system.NotificationReceiver"
             android:enabled="true" />
     </application>
 

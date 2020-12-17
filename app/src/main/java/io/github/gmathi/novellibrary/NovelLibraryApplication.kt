@@ -15,7 +15,7 @@ import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.MultiTrustManager
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.DataCenter
-import io.github.gmathi.novellibrary.util.LocaleManager
+import io.github.gmathi.novellibrary.util.lang.LocaleManager
 import io.github.gmathi.novellibrary.util.Logs
 import java.io.File
 import java.security.KeyManagementException

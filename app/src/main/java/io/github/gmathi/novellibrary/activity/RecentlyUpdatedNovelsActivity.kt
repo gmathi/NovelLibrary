@@ -11,12 +11,12 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.extensions.noInternetError
 import io.github.gmathi.novellibrary.extensions.showLoading
-import io.github.gmathi.novellibrary.extensions.startNovelDetailsActivity
+import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.RecentlyUpdatedItem
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getRecentlyUpdatedNovels
-import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults

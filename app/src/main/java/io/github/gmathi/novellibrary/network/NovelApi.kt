@@ -3,7 +3,7 @@ package io.github.gmathi.novellibrary.network
 import android.net.Uri
 import io.github.gmathi.novellibrary.network.proxy.BaseProxyHelper
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.extensions.fixMalformedWithHost
+import io.github.gmathi.novellibrary.util.lang.fixMalformedWithHost
 import org.jsoup.Connection
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document

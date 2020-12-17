@@ -97,7 +97,7 @@
             android:layout_height="1dp"
             android:background="@color/gray"/>
 
-        <io.github.gmathi.novellibrary.util.ProgressLayout
+        <io.github.gmathi.novellibrary.util.view.ProgressLayout
             android:id="@+id/progressLayout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -109,7 +109,7 @@
                 android:layout_height="match_parent"
                 />
 
-        </io.github.gmathi.novellibrary.util.ProgressLayout>
+        </io.github.gmathi.novellibrary.util.view.ProgressLayout>
 
     </LinearLayout>
 

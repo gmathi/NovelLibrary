@@ -1,14 +1,8 @@
 package io.github.gmathi.novellibrary.network.proxy
 
 import com.google.gson.JsonParser
-import io.github.gmathi.novellibrary.extensions.asJsonNullFreeString
-import io.github.gmathi.novellibrary.network.CloudFlareByPasser
-import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.util.Constants
-import okhttp3.OkHttpClient
-import okhttp3.Request
+import io.github.gmathi.novellibrary.util.lang.asJsonNullFreeString
 import org.jsoup.Connection
-import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.net.URL
 

@@ -24,6 +24,7 @@ import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.system.shareUrl
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel
 import kotlinx.android.synthetic.main.activity_chapters_pager.*
 import kotlinx.android.synthetic.main.content_chapters_pager.*

@@ -45,7 +45,7 @@
     </androidx.cardview.widget.CardView>
 
 
-    <io.github.gmathi.novellibrary.util.ProgressLayout
+    <io.github.gmathi.novellibrary.util.view.ProgressLayout
         android:id="@+id/progressLayout"
         android:layout_below="@+id/statusCard"
         android:layout_alignWithParentIfMissing="true"
@@ -63,7 +63,7 @@
                 android:layout_height="match_parent"/>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    </io.github.gmathi.novellibrary.util.ProgressLayout>
+    </io.github.gmathi.novellibrary.util.view.ProgressLayout>
 
 
 </RelativeLayout>

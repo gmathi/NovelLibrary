@@ -24,9 +24,9 @@ import io.github.gmathi.novellibrary.extensions.showEmpty
 import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.network.sync.NovelSync
-import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
-import io.github.gmathi.novellibrary.util.SimpleItemTouchHelperCallback
-import io.github.gmathi.novellibrary.util.SimpleItemTouchListener
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
+import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_novel_sections.*
 import kotlinx.android.synthetic.main.content_recycler_view.*

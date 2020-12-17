@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.util
+package io.github.gmathi.novellibrary.util.lang
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -13,6 +13,8 @@ import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
+import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.util.Logs
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader

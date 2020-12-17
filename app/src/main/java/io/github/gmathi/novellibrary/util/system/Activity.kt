@@ -1,8 +1,9 @@
-package io.github.gmathi.novellibrary.extensions
+package io.github.gmathi.novellibrary.util.system
 
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -16,7 +17,7 @@ import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.service.tts.TTSService
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.TransitionHelper
+import io.github.gmathi.novellibrary.util.view.TransitionHelper
 import io.github.gmathi.novellibrary.util.Utils
 
 fun AppCompatActivity.startNavDrawerActivity() {
@@ -265,3 +266,14 @@ fun Activity.showAlertDialog(title: String? = null, message: String? = null, ico
     builder.positiveText(R.string.okay).onPositive { dialog, _ -> dialog.dismiss() }
     builder.show()
 }
+
+/**
+ * Checks whether if the device has a display cutout (i.e. notch, camera cutout, etc.).
+ *
+ * Only works in Android 9+.
+ */
+fun Activity.hasDisplayCutout(): Boolean {
+    return Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
+            window.decorView.rootWindowInsets?.displayCutout != null
+}
+

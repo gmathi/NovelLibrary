@@ -36,7 +36,8 @@ import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getNovelDetails
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
-import io.github.gmathi.novellibrary.util.view.TextViewLinkHandler
+import io.github.gmathi.novellibrary.util.system.*
+import io.github.gmathi.novellibrary.util.view.*
 import kotlinx.android.synthetic.main.activity_novel_details.*
 import kotlinx.android.synthetic.main.content_novel_details.*
 import kotlinx.coroutines.Dispatchers

@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.util
+package io.github.gmathi.novellibrary.util.view
 
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
@@ -12,6 +12,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.io.Closeable

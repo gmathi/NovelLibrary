@@ -20,8 +20,8 @@ import io.github.gmathi.novellibrary.database.createNovel
 import io.github.gmathi.novellibrary.database.createNovelSection
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.util.NotificationReceiver
-import io.github.gmathi.novellibrary.util.ProgressNotificationManager
+import io.github.gmathi.novellibrary.util.system.NotificationReceiver
+import io.github.gmathi.novellibrary.util.view.ProgressNotificationManager
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.DATABASES_DIR
 import io.github.gmathi.novellibrary.util.Constants.FILES_DIR

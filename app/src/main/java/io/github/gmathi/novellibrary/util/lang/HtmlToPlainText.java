@@ -1,8 +1,7 @@
-package io.github.gmathi.novellibrary.util;
+package io.github.gmathi.novellibrary.util.lang;
 
 import org.jsoup.Jsoup;
 import org.jsoup.internal.StringUtil;
-import org.jsoup.helper.Validate;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;

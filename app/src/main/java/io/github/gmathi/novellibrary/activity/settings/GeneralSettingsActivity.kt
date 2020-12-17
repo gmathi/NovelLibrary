@@ -9,11 +9,11 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.extensions.startBackupSettingsActivity
-import io.github.gmathi.novellibrary.extensions.startLanguagesActivity
+import io.github.gmathi.novellibrary.util.system.startBackupSettingsActivity
+import io.github.gmathi.novellibrary.util.system.startLanguagesActivity
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
-import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_settings.*

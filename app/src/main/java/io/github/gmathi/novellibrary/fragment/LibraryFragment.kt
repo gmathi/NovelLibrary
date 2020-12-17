@@ -29,6 +29,9 @@ import io.github.gmathi.novellibrary.network.getChapterCount
 import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
+import io.github.gmathi.novellibrary.util.system.*
+import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
+import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
 import kotlinx.android.synthetic.main.content_library.*
 import kotlinx.android.synthetic.main.listitem_library.view.*
 import kotlinx.coroutines.*

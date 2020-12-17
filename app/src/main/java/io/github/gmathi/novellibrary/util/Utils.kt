@@ -29,9 +29,9 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.createFileIfNotExists
-import io.github.gmathi.novellibrary.extensions.getOrCreateDirectory
-import io.github.gmathi.novellibrary.extensions.getOrCreateFile
+import io.github.gmathi.novellibrary.util.storage.createFileIfNotExists
+import io.github.gmathi.novellibrary.util.storage.getOrCreateDirectory
+import io.github.gmathi.novellibrary.util.storage.getOrCreateFile
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import org.jsoup.Jsoup

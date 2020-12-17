@@ -23,7 +23,7 @@ import io.github.gmathi.novellibrary.model.other.ImportListItem
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getNUNovelDetails
-import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.activity_import_library.*

@@ -7,7 +7,7 @@ import android.view.MenuItem
 import android.view.View
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.extensions.startSearchResultsActivity
+import io.github.gmathi.novellibrary.util.system.startSearchResultsActivity
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults

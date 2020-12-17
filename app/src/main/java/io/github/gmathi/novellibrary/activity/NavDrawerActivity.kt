@@ -16,7 +16,6 @@ import com.google.firebase.auth.FirebaseAuth
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.database.Novel
@@ -24,6 +23,7 @@ import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.system.*
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
 import org.cryse.widget.persistentsearch.PersistentSearchView

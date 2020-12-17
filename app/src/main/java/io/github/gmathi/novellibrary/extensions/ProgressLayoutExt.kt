@@ -2,7 +2,7 @@ package io.github.gmathi.novellibrary.extensions
 
 import android.view.View
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.util.ProgressLayout
+import io.github.gmathi.novellibrary.util.view.ProgressLayout
 
 
 fun ProgressLayout.showLoading(

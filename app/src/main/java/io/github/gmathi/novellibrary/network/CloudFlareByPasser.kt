@@ -12,7 +12,7 @@ import androidx.annotation.RequiresApi
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.setDefaultSettings
+import io.github.gmathi.novellibrary.util.system.setDefaultSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext

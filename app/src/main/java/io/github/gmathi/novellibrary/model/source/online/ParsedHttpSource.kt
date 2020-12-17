@@ -1,9 +1,10 @@
+
 package io.github.gmathi.novellibrary.model.source.online
 
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.Chapter
 import io.github.gmathi.novellibrary.model.other.NovelsPage
-import io.github.gmathi.novellibrary.util.asJsoup
+import io.github.gmathi.novellibrary.util.network.asJsoup
 import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -138,8 +139,8 @@ abstract class ParsedHttpSource : HttpSource() {
      *
      * @param response the response from the site.
      */
-    override fun novelDetailsParse(response: Response): Novel {
-        return novelDetailsParse(response.asJsoup())
+    override fun novelDetailsParse(novel: Novel, response: Response): Novel {
+        return novelDetailsParse(novel, response.asJsoup())
     }
 
     /**
@@ -147,7 +148,7 @@ abstract class ParsedHttpSource : HttpSource() {
      *
      * @param document the parsed document.
      */
-    protected abstract fun novelDetailsParse(document: Document): Novel
+    protected abstract fun novelDetailsParse(novel: Novel, document: Document): Novel
 
 
 
@@ -156,9 +157,14 @@ abstract class ParsedHttpSource : HttpSource() {
      *
      * @param response the response from the site.
      */
-    override fun chapterListParse(response: Response): List<Chapter> {
+    override fun chapterListParse(novel: Novel, response: Response): List<Chapter> {
         val document = response.asJsoup()
-        return document.select(chapterListSelector()).map { chapterFromElement(it) }
+        return document.select(chapterListSelector()).mapIndexed { index, element ->
+            val chapter = chapterFromElement(element)
+            chapter.novelId = novel.id
+            chapter.orderId = index.toLong()
+            chapter
+        }
     }
 
     /**

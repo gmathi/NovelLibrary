@@ -8,7 +8,7 @@ package io.github.gmathi.novellibrary.viewmodel
 //import com.github.johnpersano.supertoasts.library.utils.PaletteUtils
 //import io.github.gmathi.novellibrary.R
 //import io.github.gmathi.novellibrary.dataCenter
-//import io.github.gmathi.novellibrary.extensions.getReadableSize
+//import io.github.gmathi.novellibrary.util.storage.getReadableSize
 //import java.io.File
 //import java.text.SimpleDateFormat
 //import java.util.*

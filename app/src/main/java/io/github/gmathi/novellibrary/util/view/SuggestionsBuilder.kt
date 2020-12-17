@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.util
+package io.github.gmathi.novellibrary.util.view
 
 import org.cryse.widget.persistentsearch.SearchItem
 import org.cryse.widget.persistentsearch.SearchSuggestionsBuilder

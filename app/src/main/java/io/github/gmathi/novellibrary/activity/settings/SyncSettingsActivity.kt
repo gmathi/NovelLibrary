@@ -13,9 +13,9 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.startSyncLoginActivity
+import io.github.gmathi.novellibrary.util.system.startSyncLoginActivity
 import io.github.gmathi.novellibrary.network.sync.NovelSync
-import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_settings.*

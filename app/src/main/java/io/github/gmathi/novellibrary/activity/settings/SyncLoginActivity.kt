@@ -3,14 +3,13 @@ package io.github.gmathi.novellibrary.activity.settings
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.MenuItem
-import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.util.setDefaultSettings
+import io.github.gmathi.novellibrary.util.system.setDefaultSettings
 import kotlinx.android.synthetic.main.activity_sync_login.*
 import java.net.URL
 

@@ -3,12 +3,12 @@ package io.github.gmathi.novellibrary.network
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.google.gson.annotations.SerializedName
-import io.github.gmathi.novellibrary.extensions.asJsonNullFreeString
+import io.github.gmathi.novellibrary.util.lang.asJsonNullFreeString
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.network.NovelApi.getDocument
 import io.github.gmathi.novellibrary.util.Constants.NEOVEL_API_URL
 import io.github.gmathi.novellibrary.util.Constants.WLN_UPDATES_API_URL
-import io.github.gmathi.novellibrary.util.encodeBase64ToString
+import io.github.gmathi.novellibrary.util.system.encodeBase64ToString
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request

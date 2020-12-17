@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.util
+package io.github.gmathi.novellibrary.util.view
 
 import androidx.appcompat.app.AppCompatActivity
 import android.content.Intent

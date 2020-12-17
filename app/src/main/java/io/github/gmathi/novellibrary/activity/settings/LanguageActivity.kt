@@ -12,9 +12,9 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
-import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
-import io.github.gmathi.novellibrary.util.LocaleManager.Companion.changeLocale
-import io.github.gmathi.novellibrary.util.LocaleManager.Companion.translated
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.util.lang.LocaleManager.Companion.changeLocale
+import io.github.gmathi.novellibrary.util.lang.LocaleManager.Companion.translated
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_language.*

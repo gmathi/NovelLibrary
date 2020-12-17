@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.util
+package io.github.gmathi.novellibrary.util.network
 
 import okhttp3.Response
 import org.jsoup.Jsoup

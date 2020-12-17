@@ -36,7 +36,7 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.setDefaultSettings
+import io.github.gmathi.novellibrary.util.system.setDefaultSettings
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.fragment_reader.*
 import kotlinx.coroutines.*

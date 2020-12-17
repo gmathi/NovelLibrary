@@ -11,7 +11,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.util.setDefaultSettings
+import io.github.gmathi.novellibrary.util.system.setDefaultSettings
 import kotlinx.android.synthetic.main.activity_cloudflare_bypass.*
 
 class CloudFlareBypassActivity : BaseActivity() {

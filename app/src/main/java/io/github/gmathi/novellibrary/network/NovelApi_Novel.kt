@@ -1,7 +1,7 @@
 package io.github.gmathi.novellibrary.network
 
 import com.google.gson.JsonParser
-import io.github.gmathi.novellibrary.extensions.asJsonNullFreeString
+import io.github.gmathi.novellibrary.util.lang.asJsonNullFreeString
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.Constants
 import okhttp3.MediaType.Companion.toMediaType

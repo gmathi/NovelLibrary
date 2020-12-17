@@ -24,9 +24,9 @@ import com.bumptech.glide.request.transition.Transition
 import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
-import io.github.gmathi.novellibrary.extensions.albumArt
-import io.github.gmathi.novellibrary.extensions.displaySubtitle
-import io.github.gmathi.novellibrary.extensions.displayTitle
+import io.github.gmathi.novellibrary.util.lang.albumArt
+import io.github.gmathi.novellibrary.util.lang.displaySubtitle
+import io.github.gmathi.novellibrary.util.lang.displayTitle
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.network.HostNames

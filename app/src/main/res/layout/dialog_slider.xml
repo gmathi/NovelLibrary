@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:padding="@dimen/default_padding_list_item">
 
-    <io.github.gmathi.novellibrary.view.TwoWaySeekBar
+    <io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
         android:id="@+id/seekBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

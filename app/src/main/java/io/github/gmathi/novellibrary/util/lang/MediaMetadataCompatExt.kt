@@ -16,7 +16,7 @@
 
 
 @file:Suppress("unused")
-package io.github.gmathi.novellibrary.extensions
+package io.github.gmathi.novellibrary.util.lang
 
 
 import android.graphics.Bitmap

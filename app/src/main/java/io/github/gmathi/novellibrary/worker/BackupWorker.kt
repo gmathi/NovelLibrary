@@ -17,9 +17,9 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.notNullAndExists
-import io.github.gmathi.novellibrary.util.NotificationReceiver
-import io.github.gmathi.novellibrary.util.ProgressNotificationManager
+import io.github.gmathi.novellibrary.util.storage.notNullAndExists
+import io.github.gmathi.novellibrary.util.system.NotificationReceiver
+import io.github.gmathi.novellibrary.util.view.ProgressNotificationManager
 import io.github.gmathi.novellibrary.util.Constants.DATABASES_DIR
 import io.github.gmathi.novellibrary.util.Constants.DATA_SUBFOLDER
 import io.github.gmathi.novellibrary.util.Constants.FILES_DIR

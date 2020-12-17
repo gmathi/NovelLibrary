@@ -13,13 +13,13 @@ import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.startReaderBackgroundSettingsActivity
+import io.github.gmathi.novellibrary.util.system.startReaderBackgroundSettingsActivity
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MAX
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MIN
-import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
-import io.github.gmathi.novellibrary.view.TwoWaySeekBar
+import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
 import kotlinx.android.synthetic.main.activity_settings.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_title_subtitle_widget.view.*

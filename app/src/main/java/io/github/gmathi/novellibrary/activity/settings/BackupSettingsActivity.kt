@@ -26,7 +26,7 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
-import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.worker.BackupWorker

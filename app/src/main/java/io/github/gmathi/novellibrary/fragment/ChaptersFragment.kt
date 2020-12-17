@@ -25,8 +25,10 @@ import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
+import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
+import io.github.gmathi.novellibrary.util.system.startWebViewActivity
 import kotlinx.android.synthetic.main.fragment_source_chapters.*
 import kotlinx.android.synthetic.main.listitem_chapter.view.*
 import org.greenrobot.eventbus.EventBus
