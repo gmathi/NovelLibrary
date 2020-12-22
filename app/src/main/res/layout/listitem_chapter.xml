@@ -61,16 +61,16 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:scaleType="centerInside"
-            android:tint="@color/IndianRed"
+            app:tint="@color/IndianRed"
             app:srcCompat="@drawable/ic_favorite"
-            tools:src="@drawable/ic_bookmark_orange_vector" />
+            tools:src="@drawable/ic_favorite" />
 
         <ImageView
             android:id="@+id/availableOfflineImageView"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:scaleType="centerInside"
-            android:tint="@color/green"
+            app:tint="@color/green"
             app:srcCompat="@drawable/ic_offline_pin_white_24dp"
             tools:src="@drawable/ic_offline_pin_white_24dp" />
 

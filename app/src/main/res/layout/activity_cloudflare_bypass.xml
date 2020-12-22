@@ -41,7 +41,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:contentDescription="@string/cloud_flare_check_complete"
-        android:tint="@color/colorStateGreen"
+        app:tint="@color/colorStateGreen"
         app:srcCompat="@drawable/ic_check_circle_white_vector" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

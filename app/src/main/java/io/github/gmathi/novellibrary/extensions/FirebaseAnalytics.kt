@@ -16,6 +16,8 @@ object FAC {
         const val ADD_NOVEL_SECTION = "add_novel_section"
         const val REMOVE_NOVEL_SECTION = "remove_novel_section"
         const val RENAME_NOVEL_SECTION = "rename_novel_section"
+
+        const val SELECTOR_QUERY = "selector_query"
     }
 
     object Param {
@@ -30,6 +32,7 @@ object FAC {
         const val CHAPTER_IS_DOWNLOADED = "chapter_is_downloaded"
 
         const val SEARCH_TERM = "search_term"
+
     }
 }
 

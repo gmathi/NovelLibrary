@@ -2,23 +2,26 @@ package io.github.gmathi.novellibrary.activity.settings
 
 import android.os.Bundle
 import android.text.InputType
-import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.DividerItemDecoration
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.logEvent
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.util.system.startReaderBackgroundSettingsActivity
+import io.github.gmathi.novellibrary.extensions.FAC
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MAX
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MIN
-import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.util.system.startReaderBackgroundSettingsActivity
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
 import kotlinx.android.synthetic.main.activity_settings.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
@@ -137,10 +140,10 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 val enable = dataCenter.volumeScroll
                 //itemView.enabled(enable)
                 itemView.blackOverlay.visibility =
-                        if (enable)
-                            View.INVISIBLE
-                        else
-                            View.VISIBLE
+                    if (enable)
+                        View.INVISIBLE
+                    else
+                        View.VISIBLE
                 itemView.currentValue.visibility = View.VISIBLE
                 val value = dataCenter.scrollLength
                 itemView.currentValue.text = "${if (value < 0) resources.getString(R.string.reverse) else ""} ${abs(value)}"
@@ -204,8 +207,10 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             }
         }
 
-        itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
-        else ContextCompat.getColor(this, android.R.color.transparent))
+        itemView.setBackgroundColor(
+            if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
+            else ContextCompat.getColor(this, android.R.color.transparent)
+        )
     }
 
     override fun onItemClick(item: String, position: Int) {
@@ -223,6 +228,9 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 .negativeText(getString(R.string.cancel))
                 .onPositive { widget, _ ->
                     dataCenter.userSpecifiedSelectorQueries = widget.inputEditText?.text.toString()
+                    firebaseAnalytics.logEvent(FAC.Event.SELECTOR_QUERY) {
+                        param(FirebaseAnalytics.Param.VALUE, widget.inputEditText?.text.toString())
+                    }
                 }
                 .show()
         }
@@ -288,10 +296,10 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         var value = dataCenter.scrollLength
 
         val dialog = MaterialDialog.Builder(this)
-                .title(R.string.volume_scroll_length)
-                .customView(R.layout.dialog_slider, true)
-                .dismissListener { dataCenter.scrollLength = value }
-                .build()
+            .title(R.string.volume_scroll_length)
+            .customView(R.layout.dialog_slider, true)
+            .dismissListener { dataCenter.scrollLength = value }
+            .build()
         dialog.show()
 
         val seekBar = dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)
