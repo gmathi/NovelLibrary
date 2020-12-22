@@ -3,7 +3,6 @@ package io.github.gmathi.novellibrary.activity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
 import androidx.lifecycle.observe
@@ -13,15 +12,16 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.ChaptersPageListener
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.getSource
+import io.github.gmathi.novellibrary.database.getTranslatorSource
 import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.TranslatorSource
+import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.other.ChapterActionModeEvent
 import io.github.gmathi.novellibrary.model.other.EventType
-import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.system.shareUrl
@@ -42,7 +42,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     val vm: ChaptersViewModel by viewModels()
 
     var dataSet: HashSet<WebPage> = HashSet()
-    private val sources: ArrayList<Pair<Long, String>> = ArrayList()
+    private val translatorSources: ArrayList<TranslatorSource> = ArrayList()
     private var actionMode: ActionMode? = null
 
     private var confirmDialog: MaterialDialog? = null
@@ -84,7 +84,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             if (Utils.isConnectedToNetwork(this)) {
                 vm.toggleSources()
             } else {
-                confirmDialog("You need to have internet connection to do this!", MaterialDialog.SingleButtonCallback { dialog, _ ->
+                confirmDialog("You need to have internet connection to do this!", { dialog, _ ->
                     dialog.dismiss()
                 })
             }
@@ -103,12 +103,12 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                     progressLayout.showEmpty(resId = R.raw.monkey_logo, isLottieAnimation = true, emptyText = getString(R.string.empty_chapters))
                 }
                 Constants.Status.NETWORK_ERROR -> {
-                    progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again), onClickListener = View.OnClickListener {
+                    progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again), onClickListener = {
                         vm.getData()
                     })
                 }
                 Constants.Status.NO_INTERNET -> {
-                    progressLayout.noInternetError(View.OnClickListener {
+                    progressLayout.noInternetError({
                         vm.getData()
                     })
                 }
@@ -149,21 +149,19 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         while (supportFragmentManager.backStackEntryCount > 0)
             supportFragmentManager.popBackStack()
 
-        sources.clear()
+        translatorSources.clear()
         val chapters = vm.chapters ?: throw Error("Chapters cannot be null")
 
         if (vm.showSources) {
-            val sourceIds = chapters.distinctBy { it.sourceId }.map { it.sourceId }
-            sourceIds.forEach { sourceId -> dbHelper.getSource(sourceId)?.let { sources.add(it) } }
+            val sourceIds = chapters.distinctBy { it.translatorSourceId }.map { it.translatorSourceId }
+            sourceIds.forEach { sourceId -> dbHelper.getTranslatorSource(sourceId)?.let { translatorSources.add(it) } }
         } else {
-            dbHelper.getSource(-1L)?.let { sources.add(it) }
+            dbHelper.getTranslatorSource(-1L)?.let { translatorSources.add(it) }
         }
 
-        val titles = Array(sources.size, init = {
-            sources[it].second
-        })
+        val titles = translatorSources.map { it.name }.toTypedArray()
 
-        val navPageAdapter = GenericFragmentStatePagerAdapter(supportFragmentManager, titles, titles.size, ChaptersPageListener(vm.novel, sources))
+        val navPageAdapter = GenericFragmentStatePagerAdapter(supportFragmentManager, titles, titles.size, ChaptersPageListener(vm.novel, translatorSources))
         viewPager.offscreenPageLimit = 3
         viewPager.adapter = navPageAdapter
         tabStrip.setViewPager(viewPager)
@@ -174,9 +172,9 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     private fun scrollToBookmark() {
         vm.novel.currentChapterUrl?.let { currentChapterUrl ->
             val currentBookmarkWebPage = dbHelper.getWebPage(currentChapterUrl) ?: return@let
-            val currentSource = sources.firstOrNull { it.first == currentBookmarkWebPage.sourceId }
+            val currentSource = translatorSources.firstOrNull { it.id == currentBookmarkWebPage.translatorSourceId }
                 ?: return@let
-            val index = sources.indexOf(currentSource)
+            val index = translatorSources.indexOf(currentSource)
             if (index != -1)
                 viewPager.currentItem = index
         }
@@ -208,7 +206,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 return true
             }
             R.id.action_download -> {
-                confirmDialog(getString(R.string.download_all_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
+                confirmDialog(getString(R.string.download_all_chapters_dialog_content), { dialog, _ ->
                     val publisher = vm.novel.metadata["English Publisher"]
                     val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true) ?: false
                     if (dataCenter.disableWuxiaDownloads && isWuxiaChapterPresent) {
@@ -294,7 +292,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.action_unread -> {
-                confirmDialog(getString(R.string.mark_chapters_unread_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
+                confirmDialog(getString(R.string.mark_chapters_unread_dialog_content), { dialog, _ ->
                     setProgressDialog("Marking chapters as unread…", dataSet.size)
                     vm.updateChapters(ArrayList(dataSet), ChaptersViewModel.Action.MARK_UNREAD)
                     dialog.dismiss()
@@ -302,7 +300,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 })
             }
             R.id.action_read -> {
-                confirmDialog(getString(R.string.mark_chapters_read_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
+                confirmDialog(getString(R.string.mark_chapters_read_dialog_content), { dialog, _ ->
                     setProgressDialog("Marking chapters as read…", dataSet.size)
                     vm.updateChapters(ArrayList(dataSet), ChaptersViewModel.Action.MARK_READ)
                     dialog.dismiss()
@@ -310,7 +308,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 })
             }
             R.id.action_unfav -> {
-                confirmDialog(getString(R.string.unfavorite_chapters_read_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
+                confirmDialog(getString(R.string.unfavorite_chapters_read_dialog_content), { dialog, _ ->
                     setProgressDialog("Removing chapters from favorites…", dataSet.size)
                     vm.updateChapters(ArrayList(dataSet), ChaptersViewModel.Action.REMOVE_FAVORITE)
                     dialog.dismiss()
@@ -318,7 +316,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 })
             }
             R.id.action_fav -> {
-                confirmDialog(getString(R.string.favorite_chapters_read_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
+                confirmDialog(getString(R.string.favorite_chapters_read_dialog_content), { dialog, _ ->
                     setProgressDialog("Marking chapters as favorites…", dataSet.size)
                     vm.updateChapters(ArrayList(dataSet), ChaptersViewModel.Action.MARK_FAVORITE)
                     dialog.dismiss()
@@ -328,7 +326,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
 
             R.id.action_download -> {
-                confirmDialog(getString(R.string.download_chapters_dialog_content), MaterialDialog.SingleButtonCallback { dialog, _ ->
+                confirmDialog(getString(R.string.download_chapters_dialog_content), { dialog, _ ->
                     if (vm.novel.id == -1L) {
                         dialog.dismiss()
                         showNotInLibraryDialog()
@@ -358,8 +356,8 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 })
             }
             R.id.action_select_interval -> {
-                val sourceId = sources[viewPager.currentItem].first
-                if (sourceId == -1L) {
+                val translatorSourceId = translatorSources[viewPager.currentItem].id
+                if (translatorSourceId == -1L) {
                     val chaptersForSource = vm.chapters!!.sortedBy { it.orderId }
                     val selectedChaptersForSource = dataSet.sortedBy { it.orderId }
                     if (selectedChaptersForSource.size > 1) {
@@ -367,38 +365,38 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                         val lastIndex = chaptersForSource.indexOf(selectedChaptersForSource.last())
                         val subList = chaptersForSource.subList(firstIndex, lastIndex)
                         addToDataSet(subList)
-                        EventBus.getDefault().post(ChapterActionModeEvent(sourceId, EventType.UPDATE))
+                        EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceId, EventType.UPDATE))
                     }
                 } else {
-                    val chaptersForSource = vm.chapters!!.filter { it.sourceId == sourceId }.sortedBy { it.orderId }
-                    val selectedChaptersForSource = dataSet.filter { it.sourceId == sourceId }.sortedBy { it.orderId }
+                    val chaptersForSource = vm.chapters!!.filter { it.translatorSourceId == translatorSourceId }.sortedBy { it.orderId }
+                    val selectedChaptersForSource = dataSet.filter { it.translatorSourceId == translatorSourceId }.sortedBy { it.orderId }
                     if (selectedChaptersForSource.size > 1) {
                         val firstIndex = chaptersForSource.indexOf(selectedChaptersForSource.first())
                         val lastIndex = chaptersForSource.indexOf(selectedChaptersForSource.last())
                         val subList = chaptersForSource.subList(firstIndex, lastIndex)
                         addToDataSet(subList)
-                        EventBus.getDefault().post(ChapterActionModeEvent(sourceId, EventType.UPDATE))
+                        EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceId, EventType.UPDATE))
                     }
                 }
             }
             R.id.action_select_all -> {
-                val sourceId = sources[viewPager.currentItem].first
-                if (sourceId == -1L) {
+                val translatorSourceId = translatorSources[viewPager.currentItem].id
+                if (translatorSourceId == -1L) {
                     addToDataSet(webPages = vm.chapters!!)
                 } else {
-                    addToDataSet(webPages = vm.chapters!!.filter { it.sourceId == sourceId })
+                    addToDataSet(webPages = vm.chapters!!.filter { it.translatorSourceId == translatorSourceId })
                 }
-                EventBus.getDefault().post(ChapterActionModeEvent(sourceId, EventType.UPDATE))
+                EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceId, EventType.UPDATE))
             }
             R.id.action_clear_selection -> {
-                val sourceId = sources[viewPager.currentItem].first
-                if (sourceId == -1L) {
+                val translatorSourceId = translatorSources[viewPager.currentItem].id
+                if (translatorSourceId == -1L) {
                     removeFromDataSet(webPages = vm.chapters!!)
                 } else {
-                    removeFromDataSet(webPages = vm.chapters!!.filter { it.sourceId == sourceId })
+                    removeFromDataSet(webPages = vm.chapters!!.filter { it.translatorSourceId == translatorSourceId })
                 }
-                removeFromDataSet(webPages = vm.chapters!!.filter { it.sourceId == sourceId })
-                EventBus.getDefault().post(ChapterActionModeEvent(sourceId, EventType.UPDATE))
+                removeFromDataSet(webPages = vm.chapters!!.filter { it.translatorSourceId == translatorSourceId })
+                EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceId, EventType.UPDATE))
             }
             R.id.action_share_chapter -> {
                 val urls = dataSet.joinToString(separator = ", ") { it.url }

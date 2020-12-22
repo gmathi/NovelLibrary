@@ -4,8 +4,8 @@ import io.github.gmathi.novellibrary.dataCenter
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 
-class GeneralQueryCleaner(private val url: String, private val query: String, private val appendTitle: Boolean = true,
-                          override var keepContentStyle: Boolean = false, override var keepContentIds: Boolean = true, override var keepContentClasses: Boolean = false) : HtmlCleaner() {
+class GenericSelectorQueryCleaner(private val url: String, private val query: String, private val appendTitle: Boolean = true,
+                                  override var keepContentStyle: Boolean = false, override var keepContentIds: Boolean = true, override var keepContentClasses: Boolean = false) : HtmlCleaner() {
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc)

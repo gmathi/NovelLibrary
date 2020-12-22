@@ -5,16 +5,16 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.reflect.TypeToken
-import io.github.gmathi.novellibrary.database.createSource
-import io.github.gmathi.novellibrary.database.getSource
+import io.github.gmathi.novellibrary.database.createTranslatorSource
+import io.github.gmathi.novellibrary.database.getTranslatorSource
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.util.lang.asJsonNullFreeString
-import io.github.gmathi.novellibrary.util.lang.covertJsonNull
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi.getDocument
 import io.github.gmathi.novellibrary.network.NovelApi.getDocumentWithFormData
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.lang.asJsonNullFreeString
+import io.github.gmathi.novellibrary.util.lang.covertJsonNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -90,7 +90,7 @@ fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage>? {
         }
         val sourcesMap: HashMap<String, Long> = HashMap()
         sources.forEach { source ->
-            val sourceId = dbHelper.createSource(source)
+            val sourceId = dbHelper.createTranslatorSource(source)
             sourcesMap[source] = sourceId
         }
 
@@ -110,7 +110,7 @@ fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage>? {
                 val webPage = WebPage(url = it, chapter = chapterName)
                 webPage.orderId = orderId++
                 webPage.novelId = novel.id
-                webPage.sourceId = sourceId ?: -1L
+                webPage.translatorSourceId = sourceId ?: -1L
                 chapters.add(webPage)
             }
         }
@@ -178,7 +178,7 @@ fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage>? {
             webPage.orderId = orderId++
             webPage.novelId = novel.id
             for (sourceMap in sourceMapList) {
-                webPage.sourceId = sourceMap[webPageUrl] ?: continue
+                webPage.translatorSourceId = sourceMap[webPageUrl] ?: continue
                 break
             }
             chapters.add(webPage)
@@ -190,12 +190,12 @@ fun getNUALLChapterUrlsWithSources(novel: Novel): ArrayList<WebPage>? {
     return chapters
 }
 
-private fun getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, sourceName: String? = null): HashMap<String, Long> {
+private fun getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, sourceName: String): HashMap<String, Long> {
 
     val sourceMap = HashMap<String, Long>()
 
     try {
-        val dbSourceId = dbHelper.getSource(sourceName!!)?.first ?: -1L
+        val dbSourceId = dbHelper.getTranslatorSource(sourceName)?.id ?: -1L
         if (!novel.metadata.containsKey("PostId")) throw Exception("No PostId Found!")
 
         val novelUpdatesNovelId = novel.metadata["PostId"] ?: ""
@@ -234,7 +234,7 @@ private fun getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String,
 
         val doc = getDocumentWithFormData(url, formData)
         doc.select("div.checkbox")?.forEach {
-            dbHelper.createSource(it.text())
+            dbHelper.createTranslatorSource(it.text())
             val tempSourceMap = getNUALLChapterUrlsForSource(
                 novel,
                 it.selectFirst("input.grp-filter-attr[value]").attr("value").toInt(),
@@ -389,7 +389,7 @@ fun NovelApi.getNeovelChapterUrls(novel: Novel): ArrayList<WebPage>? {
             val webPage = WebPage(url = chapterUrl, chapter = chapterName)
             webPage.orderId = index.toLong()
             webPage.novelId = novel.id
-            webPage.sourceId = -1L
+            webPage.translatorSourceId = -1L
             chapters.add(webPage)
         }
 

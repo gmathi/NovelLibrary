@@ -182,6 +182,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     CODE_NAME_SCRIB -> dataCenter.lockScribble = !dataCenter.lockScribble
                     CODE_NAME_WW -> dataCenter.disableWuxiaDownloads = !dataCenter.disableWuxiaDownloads
                 }
+                return
             }
         }
     }

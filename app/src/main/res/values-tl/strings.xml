@@ -411,7 +411,12 @@
         Please keep in mind that this feature is experimental and currently only supports syncing from the app to the source website but not the other way around.
     </string>
     <string name="custom_query_lookups">Custom Reader Mode lookups</string>
-    <string name="custom_query_lookups_description">Advanced usage: Add custom query selectors for unsupported websites in reader mode, enabling their support.</string>
-    <string name="custom_query_lookups_edit">Adding custom query selectors</string>
+    <string name="custom_query_lookups_description">Advanced usage: Add your own selector query for unsupported websites in reader mode, enabling their support. (Refer JSOUP documentation for help)</string>
+    <string name="custom_query_lookups_edit">Adding your own selector query</string>
     <string name="custom_query_lookups_hint">div.chapter-contents</string>
+    <string name="information_cloudflare_bypass_failure">Failed to bypass Cloudflare</string>
+    <string name="information_webview_required">WebView is required for NovelLibrary</string>
+    <string name="information_webview_outdated">Please update the WebView app for better compatibility</string>
+
+    <string name="source_not_installed">Source not installed: %1$s</string>
 </resources>

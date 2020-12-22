@@ -218,11 +218,11 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             MaterialDialog.Builder(this)
                 .title(getString(R.string.custom_query_lookups_edit))
                 .inputType(InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_CLASS_TEXT)
-                .input(getString(R.string.custom_query_lookups_hint), dataCenter.customQueryLookups) { _, _ -> }
+                .input(getString(R.string.custom_query_lookups_hint), dataCenter.userSpecifiedSelectorQueries) { _, _ -> }
                 .positiveText(getString(R.string.fui_button_text_save))
                 .negativeText(getString(R.string.cancel))
                 .onPositive { widget, _ ->
-                    dataCenter.customQueryLookups = widget.inputEditText?.text.toString()
+                    dataCenter.userSpecifiedSelectorQueries = widget.inputEditText?.text.toString()
                 }
                 .show()
         }

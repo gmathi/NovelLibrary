@@ -17,9 +17,9 @@ data class Chapter(var url: String, var chapterName: String) : Parcelable, Seria
     var orderId: Long = -1L
 
     /**
-     * In-case the chapter is aggregated from multiple sources, this source id determines the source. Default is -1L
+     * In-case the chapter is aggregated from multiple translator sources, this source id determines the source. Default is -1L
      */
-    var sourceId: Long = -1L
+    var translatorSourceName: String? = null
 
     //Parcelable Implementation
 
@@ -29,7 +29,7 @@ data class Chapter(var url: String, var chapterName: String) : Parcelable, Seria
     ) {
         novelId = parcel.readLong()
         orderId = parcel.readLong()
-        sourceId = parcel.readLong()
+        translatorSourceName = parcel.readString()
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -37,7 +37,7 @@ data class Chapter(var url: String, var chapterName: String) : Parcelable, Seria
         parcel.writeString(chapterName)
         parcel.writeLong(novelId)
         parcel.writeLong(orderId)
-        parcel.writeLong(sourceId)
+        parcel.writeString(translatorSourceName)
     }
 
     override fun describeContents(): Int {
@@ -65,7 +65,7 @@ data class Chapter(var url: String, var chapterName: String) : Parcelable, Seria
         if (chapterName != other.chapterName) return false
         if (novelId != other.novelId) return false
         if (orderId != other.orderId) return false
-        if (sourceId != other.sourceId) return false
+        if (translatorSourceName != other.translatorSourceName) return false
 
         return true
     }
@@ -75,12 +75,12 @@ data class Chapter(var url: String, var chapterName: String) : Parcelable, Seria
         result = 31 * result + chapterName.hashCode()
         result = 31 * result + novelId.hashCode()
         result = 31 * result + orderId.hashCode()
-        result = 31 * result + sourceId.hashCode()
+        result = 31 * result + translatorSourceName.hashCode()
         return result
     }
 
     override fun toString(): String {
-        return "Chapter(url='$url', chapterName='$chapterName', novelId=$novelId, orderId=$orderId, sourceId=$sourceId)"
+        return "Chapter(url='$url', chapterName='$chapterName', novelId=$novelId, orderId=$orderId, translatorSourceName=$translatorSourceName)"
     }
 
 

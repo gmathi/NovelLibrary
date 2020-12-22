@@ -4,7 +4,7 @@ import java.io.Serializable
 
 data class WebPage(var url: String, var chapter: String,
                    var novelId: Long = -1L, var orderId: Long = -1L,
-                   var sourceId: Long = -1L) : Serializable {
+                   var translatorSourceId: Long = -1L) : Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -17,13 +17,13 @@ data class WebPage(var url: String, var chapter: String,
         var result = url.hashCode()
         result = 31 * result + chapter.hashCode()
         result = 31 * result + novelId.hashCode()
-        result = 31 * result + sourceId.hashCode()
+        result = 31 * result + translatorSourceId.hashCode()
         result = 31 * result + orderId.hashCode()
         return result
     }
 
     override fun toString(): String {
-        return "WebPage(url='$url', chapter='$chapter', novelId=$novelId, sourceId=$sourceId, orderId=$orderId)"
+        return "WebPage(url='$url', chapter='$chapter', novelId=$novelId, sourceId=$translatorSourceId, orderId=$orderId)"
     }
 
 }

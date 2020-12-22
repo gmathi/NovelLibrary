@@ -4,6 +4,7 @@ import androidx.fragment.app.Fragment
 import io.github.gmathi.novellibrary.fragment.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.NovelSection
+import io.github.gmathi.novellibrary.model.database.TranslatorSource
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.network.HostNames
 
@@ -52,9 +53,9 @@ class LibraryPageListener(private val novelSections: ArrayList<NovelSection>) : 
     }
 }
 
-class ChaptersPageListener(private val novel: Novel, private val sources: ArrayList<Pair<Long, String>>) : GenericFragmentStatePagerAdapter.Listener {
+class ChaptersPageListener(private val novel: Novel, private val translatorSources: ArrayList<TranslatorSource>) : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment {
-        return ChaptersFragment.newInstance(novel, sources[position].first)
+        return ChaptersFragment.newInstance(novel, translatorSources[position].id)
     }
 }
 //endregion

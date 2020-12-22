@@ -127,4 +127,8 @@ object Constants {
         const val DONE = "done"
     }
 
+    object RemoteConfig {
+        const val SELECTOR_QUERIES = "selector_queries"
+    }
+
 }

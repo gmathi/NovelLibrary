@@ -85,7 +85,7 @@ class ChaptersFragment : BaseFragment(),
     private fun setData(shouldScrollToBookmark: Boolean = true, shouldScrollToFirstUnread: Boolean = true) {
         val chaptersPagerActivity = activity as? ChaptersPagerActivity
         if (chaptersPagerActivity != null) {
-            val chapters = (if (sourceId == -1L) chaptersPagerActivity.vm.chapters else chaptersPagerActivity.vm.chapters?.filter { it.sourceId == sourceId }) ?: ArrayList<WebPage>()
+            val chapters = (if (sourceId == -1L) chaptersPagerActivity.vm.chapters else chaptersPagerActivity.vm.chapters?.filter { it.translatorSourceId == sourceId }) ?: ArrayList<WebPage>()
             if (chapters.isNotEmpty()) {
                 adapter.updateData(if (novel.metadata["chapterOrder"] == "des") ArrayList(chapters.reversed()) else ArrayList(chapters))
                 progressLayout.showContent()

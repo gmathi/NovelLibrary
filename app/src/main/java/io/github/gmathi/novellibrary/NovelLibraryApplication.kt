@@ -8,15 +8,21 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.multidex.MultiDexApplication
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.security.ProviderInstaller
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.deleteWebPageSettings
 import io.github.gmathi.novellibrary.database.deleteWebPages
+import io.github.gmathi.novellibrary.model.other.SelectorQuery
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.MultiTrustManager
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
+import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.DataCenter
-import io.github.gmathi.novellibrary.util.lang.LocaleManager
 import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.lang.LocaleManager
 import java.io.File
 import java.security.KeyManagementException
 import java.security.NoSuchAlgorithmException
@@ -100,6 +106,8 @@ class NovelLibraryApplication : MultiDexApplication() {
 
         if (dataCenter!!.enableNotifications)
             startSyncService()
+
+        setRemoteConfig()
     }
 
     @Deprecated("This method deletes old notification channels. Assuming that all users updated and run the app at least once, this method should be removed!")
@@ -144,6 +152,17 @@ class NovelLibraryApplication : MultiDexApplication() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         LocaleManager.updateContextLocale(this)
+    }
+
+    fun setRemoteConfig() {
+        val remoteConfig = FirebaseRemoteConfig.getInstance()
+        remoteConfig.setConfigSettingsAsync(FirebaseRemoteConfigSettings.Builder().build())
+        val defaults = HashMap<String, Any>()
+        defaults[Constants.RemoteConfig.SELECTOR_QUERIES] = "[]"
+        remoteConfig.setDefaultsAsync(defaults)
+        remoteConfig.fetchAndActivate().addOnCompleteListener {
+            dataCenter?.htmlCleanerSelectorQueries = Gson().fromJson(remoteConfig.getString(Constants.RemoteConfig.SELECTOR_QUERIES), object : TypeToken<ArrayList<SelectorQuery>>() {}.type)
+        }
     }
 
 }

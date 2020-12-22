@@ -7,11 +7,11 @@ import android.graphics.Color
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import io.github.gmathi.novellibrary.model.other.SelectorQuery
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.Constants.DEFAULT_FONT_PATH
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import java.io.File
-import java.util.*
 
 
 class DataCenter(context: Context) {
@@ -62,7 +62,7 @@ class DataCenter(context: Context) {
         private const val DISABLE_WUXIA_DOWNLOADS = "disableWuxiaDownloads"
         private const val HAS_ALREADY_DELETED_OLD_CHANNELS = "hasAlreadyDeletedOldChannels"
         private const val LOGIN_COOKIES_STRING = "loginCookiesString"
-        private const val CUSTOM_QUERY_LOOKUPS = "customQueryLookups"
+        private const val USER_SPECIFIED_SELECTOR_QUERIES = "userSpecifiedSelectorQueries"
 
         //Backup
         private const val LAST_LOCAL_BACKUP_TIMESTAMP = "lastLocalBackupTimestamp"
@@ -95,6 +95,8 @@ class DataCenter(context: Context) {
         //DNS over HTTPS
         const val ENABLE_DOH = "enable_doh"
 
+        //Content Selectors List
+        const val SELECTOR_QUERIES = "selectorsQueries"
     }
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -240,7 +242,7 @@ class DataCenter(context: Context) {
             }
             return path
         }
-        set(value) = prefs.edit().putString(FONT_PATH, if (value.isBlank()) DEFAULT_FONT_PATH else value ).apply()
+        set(value) = prefs.edit().putString(FONT_PATH, if (value.isBlank()) DEFAULT_FONT_PATH else value).apply()
 
     var enableClusterPages: Boolean
         get() = prefs.getBoolean(ENABLE_CLUSTER_PAGES, false)
@@ -266,14 +268,11 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(HAS_ALREADY_DELETED_OLD_CHANNELS, false)
         set(value) = prefs.edit().putBoolean(HAS_ALREADY_DELETED_OLD_CHANNELS, value).apply()
 
-    var customQueryLookups: String
-        get() = prefs.getString(CUSTOM_QUERY_LOOKUPS, "")!!
-        set(value) = prefs.edit().putString(CUSTOM_QUERY_LOOKUPS, value).apply()
 
     // Verified HostNames management
 
     fun getVerifiedHosts(): ArrayList<String> =
-            Gson().fromJson(prefs.getString(VERIFIED_HOSTS, Gson().toJson(HostNames.defaultHostNamesList)), object : TypeToken<ArrayList<String>>() {}.type)
+        Gson().fromJson(prefs.getString(VERIFIED_HOSTS, Gson().toJson(HostNames.defaultHostNamesList)), object : TypeToken<ArrayList<String>>() {}.type)
 
     fun saveVerifiedHost(host: String) {
         val hostNames = getVerifiedHosts()
@@ -405,7 +404,15 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(SCROLLING_TEXT, true)
         set(value) = prefs.edit().putBoolean(SCROLLING_TEXT, value).apply()
 
+    var userSpecifiedSelectorQueries: String
+        get() = prefs.getString(USER_SPECIFIED_SELECTOR_QUERIES, "") ?: ""
+        set(value) = prefs.edit().putString(USER_SPECIFIED_SELECTOR_QUERIES, value).apply()
+
     var enableDOH: Boolean
         get() = prefs.getBoolean(ENABLE_DOH, false)
         set(value) = prefs.edit().putBoolean(ENABLE_DOH, value).apply()
+
+    var htmlCleanerSelectorQueries: ArrayList<SelectorQuery>
+        get() = Gson().fromJson(prefs.getString(SELECTOR_QUERIES, "[]"), object : TypeToken<ArrayList<SelectorQuery>>() {}.type)
+        set(value) = prefs.edit().putString(SELECTOR_QUERIES, Gson().toJson(value)).apply()
 }

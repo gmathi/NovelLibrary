@@ -21,7 +21,7 @@ fun DBHelper.createWebPage(webPage: WebPage): Boolean {
     values.put(DBKeys.KEY_CHAPTER, webPage.chapter)
     values.put(DBKeys.KEY_NOVEL_ID, webPage.novelId)
     values.put(DBKeys.KEY_ORDER_ID, webPage.orderId)
-    values.put(DBKeys.KEY_SOURCE_ID, webPage.sourceId)
+    values.put(DBKeys.KEY_SOURCE_ID, webPage.translatorSourceId)
     return this.writableDatabase.insert(DBKeys.TABLE_WEB_PAGE, null, values) != -1L
 }
 
@@ -84,7 +84,7 @@ fun DBHelper.deleteWebPage(url: String) {
 private fun getWebPageFromCursor(cursor: Cursor): WebPage {
     val webPage = WebPage(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL)), cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER)))
     webPage.novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID))
-    webPage.sourceId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_SOURCE_ID))
+    webPage.translatorSourceId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_SOURCE_ID))
     webPage.orderId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
     return webPage
 }

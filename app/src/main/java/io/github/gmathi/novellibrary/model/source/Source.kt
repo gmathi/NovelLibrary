@@ -35,13 +35,6 @@ interface Source {
     fun fetchChapterList(novel: Novel): Observable<List<Chapter>>
 
     /**
-     * [1.x API] Get the updated details for a manga.
-     */
-    suspend fun getMangaDetails(novel: Novel): Novel {
-        return fetchNovelDetails(novel).awaitSingle()
-    }
-
-    /**
      * [1.x API] Get all the available chapters for a manga.
      */
     suspend fun getChapterList(novel: Novel): List<Chapter> {

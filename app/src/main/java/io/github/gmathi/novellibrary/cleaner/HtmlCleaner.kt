@@ -8,7 +8,7 @@ import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.model.other.QueryLookup
+import io.github.gmathi.novellibrary.model.other.SelectorQuery
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
@@ -32,34 +32,34 @@ open class HtmlCleaner protected constructor() {
 
     companion object {
 
-        private const val TAG = "HtmlHelper"
-
-        private val defaultLookups = listOf(
-            QueryLookup("div.chapter-content"),
-            QueryLookup("div.entry-content"),
-            QueryLookup("div.elementor-widget-theme-post-content", appendTitleHeader = false),
-            QueryLookup("article.hentry"),
-            QueryLookup("div.hentry"),
-            QueryLookup("div#chapter_body"),
-            QueryLookup("article#releases"),
-            QueryLookup("div.td-main-content"),
-            QueryLookup("div#content"),
-            QueryLookup("div.post-inner", appendTitleHeader = false),
-            QueryLookup("div.blog-content"),
-            QueryLookup("div#chapter-content"),
-            QueryLookup("div.panel-body", appendTitleHeader = false),
-            QueryLookup("div.post-entry"),
-            QueryLookup("div.text-formatting"),
-            QueryLookup("article.single__contents"),
-            //QueryLookup("article.story-part"),
-            QueryLookup("div#chapter"),
+        val defaultSelectorQueries = listOf(
+            SelectorQuery("div.chapter-content"),
+            SelectorQuery("div.entry-content"),
+            SelectorQuery("div.elementor-widget-theme-post-content", appendTitleHeader = false),
+            SelectorQuery("article.hentry"),
+            SelectorQuery("div.hentry"),
+            SelectorQuery("div#chapter_body"),
+            SelectorQuery("article#releases"),
+            SelectorQuery("div.td-main-content"),
+            SelectorQuery("div#content"),
+            SelectorQuery("div.post-inner", appendTitleHeader = false),
+            SelectorQuery("div.blog-content"),
+            SelectorQuery("div#chapter-content"),
+            SelectorQuery("div.panel-body", appendTitleHeader = false),
+            SelectorQuery("div.post-entry"),
+            SelectorQuery("div.text-formatting"),
+            SelectorQuery("article.single__contents"),
+            //SelectorQuery("article.story-part"),
+            SelectorQuery("div#chapter"),
             //TODO: Xiaxia novel, needs more analysis to fix pre-formatting (jsoup not supporting)
-            QueryLookup("section#StoryContent"),
-            QueryLookup("div.content-container"),
-            QueryLookup("article.article-content"),
-            QueryLookup("div.page-content"),
-            QueryLookup("div.legacy-journal") // Sample: deviantart journals (NU group: darksilencer)
+            SelectorQuery("section#StoryContent"),
+            SelectorQuery("div.content-container"),
+            SelectorQuery("article.article-content"),
+            SelectorQuery("div.page-content"),
+            SelectorQuery("div.legacy-journal") // Sample: deviantart journals (NU group: darksilencer)
         )
+
+        private const val TAG = "HtmlHelper"
 
         fun getInstance(doc: Document, url: String = doc.location()): HtmlCleaner {
             when {
@@ -77,8 +77,8 @@ open class HtmlCleaner protected constructor() {
             }
 
             val body = doc.body()
-            val lookup = getQueryLookups().firstOrNull { body.select(it.query).isNotEmpty() }
-            if (lookup != null) return GeneralQueryCleaner(url, lookup.query, appendTitle = lookup.appendTitleHeader)
+            val lookup = getSelectorQueries().firstOrNull { body.select(it.query).isNotEmpty() }
+            if (lookup != null) return GenericSelectorQueryCleaner(url, lookup.query, appendTitle = lookup.appendTitleHeader)
 
             //Lastly let's check for cloud flare
             val contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
@@ -87,14 +87,15 @@ open class HtmlCleaner protected constructor() {
             return HtmlCleaner()
         }
 
-        private fun getQueryLookups(): List<QueryLookup> {
-            val lookups = dataCenter.customQueryLookups
-            if (lookups.isNotBlank()) {
-                return defaultLookups + lookups.split('\n').filter { it.isNotBlank() }.map { QueryLookup(it.trim()) }
+        private fun getSelectorQueries(): List<SelectorQuery> {
+            var htmlCleanerSelectorQueries = dataCenter.htmlCleanerSelectorQueries
+            if (htmlCleanerSelectorQueries.isNullOrEmpty()) htmlCleanerSelectorQueries = ArrayList(defaultSelectorQueries)
+            val userSpecifiedSelectorQueries = dataCenter.userSpecifiedSelectorQueries
+            if (userSpecifiedSelectorQueries.isNotBlank()) {
+                htmlCleanerSelectorQueries + userSpecifiedSelectorQueries.split('\n').filter { it.isNotBlank() }.map { SelectorQuery(it.trim()) }
             }
-            return defaultLookups
+            return htmlCleanerSelectorQueries
         }
-
     }
 
     open var keepContentStyle = false
@@ -118,7 +119,7 @@ open class HtmlCleaner protected constructor() {
         doc.getElementsByTag("noscript").remove()
     }
 
-    open fun removeCSS(doc: Document, clearHead : Boolean = true) {
+    open fun removeCSS(doc: Document, clearHead: Boolean = true) {
         doc.getElementsByTag("link").remove()
         if (clearHead) {
             doc.head()?.getElementsByTag("style")?.remove()
@@ -234,14 +235,14 @@ open class HtmlCleaner protected constructor() {
 
     open fun toggleTheme(isDark: Boolean, doc: Document): Document = toggleThemeDefault(isDark, doc)
 
-    fun toggleThemeDefault(isDark: Boolean, doc: Document): Document {
+    private fun toggleThemeDefault(isDark: Boolean, doc: Document): Document {
         val fontFile = File(dataCenter.fontPath)
         val fontFamily = fontFile.name.substringBeforeLast(".")
 
         val dayBackgroundColor = dataCenter.dayModeBackgroundColor
         val dayBackgroundColorTransparency = BigDecimal(dayBackgroundColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
         val dayTextColor = dataCenter.dayModeTextColor
-        val dayTextColorTransparency =  BigDecimal(dayTextColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
+        val dayTextColorTransparency = BigDecimal(dayTextColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
 
         val nightBackgroundColor = dataCenter.nightModeBackgroundColor
         val nightBackgroundColorTransparency = BigDecimal(nightBackgroundColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
@@ -261,24 +262,24 @@ open class HtmlCleaner protected constructor() {
                 }
                 body {
                     background-color: ${
-                        if (isDark)
-                            "rgba(${nightBackgroundColor.red}, ${nightBackgroundColor.green}, ${nightBackgroundColor.blue}, $nightBackgroundColorTransparency)"
-                        else
-                            "rgba(${dayBackgroundColor.red}, ${dayBackgroundColor.green}, ${dayBackgroundColor.blue}, $dayBackgroundColorTransparency)"
-                        };  
+                if (isDark)
+                    "rgba(${nightBackgroundColor.red}, ${nightBackgroundColor.green}, ${nightBackgroundColor.blue}, $nightBackgroundColorTransparency)"
+                else
+                    "rgba(${dayBackgroundColor.red}, ${dayBackgroundColor.green}, ${dayBackgroundColor.blue}, $dayBackgroundColorTransparency)"
+            };  
                     color: ${
-                        if (isDark)
-                            "rgba(${nightTextColor.red}, ${nightTextColor.green}, ${nightTextColor.blue}, $nightTextColorTransparency)"
-                        else
-                            "rgba(${dayTextColor.red}, ${dayTextColor.green}, ${dayTextColor.blue}, $dayTextColorTransparency)"
-                        };
+                if (isDark)
+                    "rgba(${nightTextColor.red}, ${nightTextColor.green}, ${nightTextColor.blue}, $nightTextColorTransparency)"
+                else
+                    "rgba(${dayTextColor.red}, ${dayTextColor.green}, ${dayTextColor.blue}, $dayTextColorTransparency)"
+            };
                     font-family: '$fontFamily';
                     line-height: 1.5;
                     padding: 20px;
                     text-align: left;
                 }
                 a {
-                    color: rgba(${if (isDark) "135, 206, 250, .$nightTextColorTransparency" else "0, 0, 238, $dayTextColorTransparency" });
+                    color: rgba(${if (isDark) "135, 206, 250, .$nightTextColorTransparency" else "0, 0, 238, $dayTextColorTransparency"});
                 }
                 table {
                     background: #004b7a;
