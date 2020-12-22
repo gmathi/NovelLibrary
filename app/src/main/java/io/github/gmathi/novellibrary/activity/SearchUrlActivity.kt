@@ -1,8 +1,8 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentTransaction
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import android.view.MenuItem
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.fragment.SearchUrlFragment
@@ -16,7 +16,7 @@ class SearchUrlActivity : BaseActivity() {
         setSupportActionBar(toolbar)
         supportActionBar?.title = "Search: ${intent.getStringExtra("title")}"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        val url = intent.getStringExtra("url")
+        val url = intent.getStringExtra("url") ?: return
         val fragment = SearchUrlFragment.newInstance(url)
         replaceFragment(fragment, "SearchUrlFragment")
     }
@@ -39,8 +39,8 @@ class SearchUrlActivity : BaseActivity() {
         finish()
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (item?.itemId == android.R.id.home) finish()
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) finish()
         return super.onOptionsItemSelected(item)
     }
 

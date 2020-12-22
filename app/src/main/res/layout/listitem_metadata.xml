@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:padding="@dimen/default_padding_list_item">
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:padding="@dimen/default_padding_list_item">
 
 
     <LinearLayout
@@ -26,6 +27,8 @@
             android:paddingTop="4dp"
             android:textColor="@color/white"
             android:textSize="12sp"
+            android:textAllCaps="true"
+            tools:text="Tags"
             android:textStyle="bold"/>
 
 
@@ -36,7 +39,6 @@
                 android:ellipsize="end"
                 android:background="@drawable/corner_radius_metadata_item_subtext"
                 android:gravity="center_vertical|start"
-                android:maxLines="5"
                 android:minHeight="40dp"
                 android:padding="8dp"
                 android:textColorLink="@color/white"

@@ -1,26 +1,35 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.database.createOrUpdateLargePreference
+import io.github.gmathi.novellibrary.database.getLargePreference
+import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_recently_viewed_novels.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_novel.view.*
 
-class RecentlyViewedNovelsActivity : AppCompatActivity(), GenericAdapter.Listener<Novel> {
+class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
     lateinit var adapter: GenericAdapter<Novel>
+    companion object {
+        private const val TAG = "RecentlyViewedNovelsActivity"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,15 +46,17 @@ class RecentlyViewedNovelsActivity : AppCompatActivity(), GenericAdapter.Listene
 
     override fun bind(item: Novel, itemView: View, position: Int) {
         itemView.novelImageView.setImageResource(android.R.color.transparent)
-        if (item.imageUrl != null) {
+        if (!item.imageUrl.isNullOrBlank()) {
             Glide.with(this)
-                .load(item.imageUrl)
-                .apply(RequestOptions.circleCropTransform())
-                .into(itemView.novelImageView)
+                    .load(item.imageUrl)
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(itemView.novelImageView)
         }
 
         //Other Data Fields
         itemView.novelTitleTextView.text = item.name
+        itemView.novelTitleTextView.isSelected = dataCenter.enableScrollingText
+
         if (item.rating != null) {
             var ratingText = "(N/A)"
             try {
@@ -53,13 +64,13 @@ class RecentlyViewedNovelsActivity : AppCompatActivity(), GenericAdapter.Listene
                 itemView.novelRatingBar.rating = rating
                 ratingText = "(" + String.format("%.1f", rating) + ")"
             } catch (e: Exception) {
-                Log.w("Library Activity", "Rating: " + item.rating, e)
+                Logs.warning(TAG, "Rating: " + item.rating, e)
             }
             itemView.novelRatingText.text = ratingText
         }
     }
 
-    override fun onItemClick(item: Novel) {
+    override fun onItemClick(item: Novel, position: Int) {
         startNovelDetailsActivity(item)
     }
 
@@ -69,27 +80,29 @@ class RecentlyViewedNovelsActivity : AppCompatActivity(), GenericAdapter.Listene
         return super.onCreateOptionsMenu(menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (item?.itemId == android.R.id.home) finish()
-        if (item?.itemId == R.id.action_clear)
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) finish()
+        if (item.itemId == R.id.action_clear)
             MaterialDialog.Builder(this)
-                .content("Are you sure you want to clear all the recently viewed novels list?")
-                .positiveText("Yes")
-                .onPositive { dialog, _ ->
-                    dataCenter.saveNovelHistory(ArrayList())
-                    adapter.updateData(ArrayList(dataCenter.loadNovelHistory().reversed()))
-                    dialog.dismiss()
-                }
-                .negativeText("No")
-                .onNegative { dialog, _ -> dialog.dismiss() }
-                .show()
+                    .content("Are you sure you want to clear all the recently viewed novels list?")
+                    .positiveText("Yes")
+                    .onPositive { dialog, _ ->
+                        dbHelper.createOrUpdateLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY, "[]")
+                        adapter.updateData(ArrayList())
+                        dialog.dismiss()
+                    }
+                    .negativeText("No")
+                    .onNegative { dialog, _ -> dialog.dismiss() }
+                    .show()
         return super.onOptionsItemSelected(item)
     }
     //endregion
 
     override fun onResume() {
         super.onResume()
-        adapter.updateData(ArrayList(dataCenter.loadNovelHistory().reversed()))
+        val history = dbHelper.getLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY) ?: "[]"
+        val historyList: java.util.ArrayList<Novel> = Gson().fromJson(history, object : TypeToken<java.util.ArrayList<Novel>>() {}.type)
+        adapter.updateData(ArrayList(historyList.asReversed()))
     }
 
 

@@ -1,46 +1,50 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.content.Intent
-import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.view.ActionMode
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.RecyclerView
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import co.metalab.asyncawait.async
+import androidx.appcompat.view.ActionMode
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.database.addWebPages
-import io.github.gmathi.novellibrary.database.addWebPagesFromImportList
 import io.github.gmathi.novellibrary.database.getNovelByUrl
 import io.github.gmathi.novellibrary.database.insertNovel
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.model.ImportListItem
+import io.github.gmathi.novellibrary.extensions.showEmpty
+import io.github.gmathi.novellibrary.extensions.showError
+import io.github.gmathi.novellibrary.extensions.showLoading
+import io.github.gmathi.novellibrary.model.other.ImportListItem
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
-import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.network.getNUNovelDetails
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.activity_import_library.*
 import kotlinx.android.synthetic.main.content_import_library.*
 import kotlinx.android.synthetic.main.listitem_import_list.view.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import java.net.URL
 
 
-class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<ImportListItem>,
-    ActionMode.Callback {
+class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportListItem>, ActionMode.Callback {
 
     lateinit var adapter: GenericAdapter<ImportListItem>
-
     private var importList = ArrayList<ImportListItem>()
     private var updateSet: HashSet<ImportListItem> = HashSet()
     private var actionMode: ActionMode? = null
+    private var job: Job? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,23 +54,17 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setRecyclerView()
 
+
         //From Browser or any other Application which is sending the url for reading list
-        if (Intent.ACTION_VIEW == intent.action) {
-            val url = intent.data!!.toString()
+        if (intent.action == Intent.ACTION_VIEW || intent.action == Intent.ACTION_SEND) {
+            val url = if (intent.action == Intent.ACTION_VIEW) intent.data!!.toString()
+            else intent.getStringExtra(Intent.EXTRA_TEXT)
             readingListUrlEditText.setText(url)
             getNovelsFromUrl()
             adapter.notifyDataSetChanged()
-        } else
+        }
 
-            if (Intent.ACTION_SEND == intent.action) {
-                val url = intent.getStringExtra(Intent.EXTRA_TEXT)
-                readingListUrlEditText.setText(url)
-                getNovelsFromUrl()
-                adapter.notifyDataSetChanged()
-            }
-
-
-//        readingListUrlEditText.setText("http://www.novelupdates.com/readlist/?uname=swordman009")
+//        readingListUrlEditText.setText("https://www.novelupdates.com/user/87290/goa_naidu2010/?rl=1")
 //        getNovelsFromUrl()
 //        adapter.notifyDataSetChanged()
 
@@ -86,33 +84,36 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
                 upButton.setImageDrawable(ContextCompat.getDrawable(this@ImportLibraryActivity, R.drawable.ic_arrow_drop_down_white_vector))
             }
         }
-
     }
 
     private fun setRecyclerView() {
         adapter = GenericAdapter(items = importList, layoutResId = R.layout.listitem_import_list, listener = this)
         recyclerView.setDefaultsNoAnimation(adapter)
-        recyclerView.addItemDecoration(object : DividerItemDecoration(this, DividerItemDecoration.VERTICAL) {
-
-            override fun getItemOffsets(outRect: Rect?, view: View?, parent: RecyclerView?, state: RecyclerView.State?) {
-                val position = parent?.getChildAdapterPosition(view)
-                if (position == parent?.adapter?.itemCount?.minus(1)) {
-                    outRect?.setEmpty()
-                } else {
-                    super.getItemOffsets(outRect, view, parent, state)
-                }
-            }
-        })
-        progressLayout.showEmpty(ContextCompat.getDrawable(this@ImportLibraryActivity, R.drawable.ic_arrow_upward_white_vector), "Add a URL to see your reading list here")
+        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
+        progressLayout.showEmpty(resId = R.raw.no_data_blob, emptyText = "Add a URL to see your reading list here", isLottieAnimation = true)
     }
 
     private fun getNovelsFromUrl() {
-        async {
+        lifecycleScope.launch {
             try {
-                val url = getUrl() ?: return@async
                 progressLayout.showLoading()
-                val doc = await { NovelApi.getDocumentWithUserAgent(url) }
-                val novels = doc.body()?.getElementsByClass("mb-box-btn")?.filter { it.tagName() == "a" }
+                val url = getUrl() ?: return@launch
+                val userId = getUserIdFromUrl(url)
+                val adminUrl = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
+                val formData: HashMap<String, String> = hashMapOf(
+                    "action" to "nu_prevew",
+                    "pagenum" to "0",
+                    "intUserID" to userId,
+                    "isMobile" to "yes"
+                )
+                var body = withContext(Dispatchers.IO) { NovelApi.getStringWithFormData(adminUrl, formData) }
+                body = body.replace("\\\"", "\"")
+                    .replace("\\n", "")
+                    .replace("\\t", "")
+                    .replace("\\/", "/")
+
+                val doc: Document = Jsoup.parse(body)
+                val novels = doc.body().select("a.mb-box-btn")
                 if (novels != null && novels.isNotEmpty()) {
                     importList.clear()
                     novels.mapTo(importList) {
@@ -124,25 +125,32 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
                             importItem.novelImageUrl = styleAttr.substring(22, styleAttr.length - 3)
                         importItem.currentlyReadingChapterName = it.getElementsByClass("cr_status")?.firstOrNull()?.text()
                         importItem.currentlyReading = it.getElementsByClass("cr_status")?.firstOrNull()?.parent()?.text()
-
+                        importItem.isAlreadyInLibrary = dbHelper.getNovelByUrl(importItem.novelUrl!!) != null
                         importItem
                     }
                     progressLayout.showContent()
                     headerLayout.visibility = View.VISIBLE
                 } else {
-                    progressLayout.showError(ContextCompat.getDrawable(this@ImportLibraryActivity, R.drawable.ic_warning_white_vector), "No Novels found!", getString(R.string.try_again)) { getNovelsFromUrl() }
+                    progressLayout.showError(errorText = "No Novels found!", buttonText = getString(R.string.try_again), onClickListener = {
+                        getNovelsFromUrl()
+                    })
                 }
             } catch (e: Exception) {
-
+                e.printStackTrace()
             }
         }
+    }
+
+    private fun getUserIdFromUrl(urlString: String): String {
+        val url = URL(urlString)
+        return url.path.split("/")[2]
     }
 
     private fun getUrl(): String? {
         val url = readingListUrlEditText?.text?.toString() ?: return null
         return try {
-            val uri = Uri.parse(url)
-            if (uri.scheme.startsWith("http") && uri.host.contains(HostNames.NOVEL_UPDATES) && uri.pathSegments.contains("readlist"))
+            val uri = Uri.parse(url) ?: return null
+            if (uri.scheme!!.startsWith("http") && uri.host!!.contains(HostNames.NOVEL_UPDATES))
                 url
             else
                 null
@@ -166,7 +174,7 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
                 removeFromUpdateSet(item)
         }
 
-        if (dbHelper.getNovelByUrl(item.novelUrl!!) != null) {
+        if (item.isAlreadyInLibrary) {
             itemView.checkbox.visibility = View.GONE
             itemView.title.setTextColor(ContextCompat.getColor(this@ImportLibraryActivity, R.color.Lime))
             itemView.subtitle.applyFont(assets).text = getString(R.string.already_in_library)
@@ -175,11 +183,13 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
             itemView.checkbox.visibility = View.VISIBLE
         }
 
-        itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
-        else ContextCompat.getColor(this, android.R.color.transparent))
+        itemView.setBackgroundColor(
+            if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
+            else ContextCompat.getColor(this, android.R.color.transparent)
+        )
     }
 
-    override fun onItemClick(item: ImportListItem) {
+    override fun onItemClick(item: ImportListItem, position: Int) {
         if (updateSet.contains(item))
             removeFromUpdateSet(item)
         else
@@ -187,11 +197,12 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
         adapter.updateItem(item)
     }
 
-    //region ActionMode Callback
+//region ActionMode Callback
 
     private fun selectAll() {
         adapter.items.forEach {
-            addToUpdateSet(it)
+            if (!it.isAlreadyInLibrary)
+                addToUpdateSet(it)
         }
         adapter.notifyDataSetChanged()
     }
@@ -251,7 +262,7 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
         adapter.notifyDataSetChanged()
     }
 
-    //endregion
+//endregion
 
 
     private fun startImport() {
@@ -264,19 +275,22 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
             .autoDismiss(false)
             .onNegative { dialog, _ ->
                 run {
-                    async.cancelAll()
+                    job?.cancel()
                     actionMode?.finish()
+                    adapter.notifyDataSetChanged()
                     dialog.dismiss()
                 }
             }
             .show()
-        async {
+        job = lifecycleScope.launch {
             updateSet.asSequence().forEach {
                 dialog.setContent("Importing: ${it.novelName}")
-                await { importNovelToLibrary(it) }
+                withContext(Dispatchers.IO) { importNovelToLibrary(it) }
+                it.isAlreadyInLibrary = true
                 dialog.incrementProgress(1)
             }
             actionMode?.finish()
+            adapter.notifyDataSetChanged()
             dialog.dismiss()
         }
     }
@@ -284,17 +298,8 @@ class ImportLibraryActivity : AppCompatActivity(), GenericAdapter.Listener<Impor
     private fun importNovelToLibrary(importListItem: ImportListItem) {
         val novel = NovelApi.getNUNovelDetails(importListItem.novelUrl!!) ?: return
         novel.id = dbHelper.insertNovel(novel)
-        val webPages = NovelApi.getChapterUrls(novel)?.asReversed() ?: return
-        val index = webPages.indexOfFirst { it.chapter == importListItem.currentlyReadingChapterName }
-        if (index != -1) {
-            dbHelper.addWebPagesFromImportList(webPages, novel, index)
-        } else {
-            dbHelper.addWebPages(webPages, novel)
-        }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        async.cancelAll()
-    }
 }
+
+

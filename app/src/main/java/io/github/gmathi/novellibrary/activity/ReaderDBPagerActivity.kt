@@ -1,24 +1,33 @@
 package io.github.gmathi.novellibrary.activity
 
 
-import android.Manifest
+import android.animation.ObjectAnimator
+import android.app.Activity
 import android.content.Intent
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
-import android.os.*
-import android.support.v4.content.ContextCompat
-import android.support.v4.view.ViewPager
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.KeyEvent
 import android.view.View
+import android.view.View.*
 import android.view.WindowManager
+import android.webkit.MimeTypeMap
 import android.webkit.WebView
 import android.widget.CompoundButton
-import android.widget.SeekBar
+import androidx.core.content.ContextCompat
+import androidx.documentfile.provider.DocumentFile
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.LayoutParams.MATCH_PARENT
+import androidx.recyclerview.widget.RecyclerView.LayoutParams.WRAP_CONTENT
+import androidx.viewpager.widget.ViewPager
+import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.folderselector.FileChooserDialog
-import com.crashlytics.android.Crashlytics
-import com.thanosfisherman.mayi.Mayi
+import com.afollestad.materialdialogs.Theme
+import com.google.firebase.analytics.ktx.logEvent
 import com.yarolegovich.slidingrootnav.SlideGravity
 import com.yarolegovich.slidingrootnav.SlidingRootNav
 import com.yarolegovich.slidingrootnav.SlidingRootNavBuilder
@@ -29,81 +38,110 @@ import io.github.gmathi.novellibrary.adapter.WebPageFragmentPageListener
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
-import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.WebPage
+import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
+import io.github.gmathi.novellibrary.model.ui.DrawerItem
+import io.github.gmathi.novellibrary.model.ui.ReaderMenu
+import io.github.gmathi.novellibrary.model.ui.SimpleItem
+import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.Utils.getFormattedText
+import io.github.gmathi.novellibrary.util.system.*
+import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
 import kotlinx.android.synthetic.main.activity_reader_pager.*
 import kotlinx.android.synthetic.main.item_option.view.*
 import kotlinx.android.synthetic.main.menu_left_drawer.*
 import org.greenrobot.eventbus.EventBus
 import java.io.File
-import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 class ReaderDBPagerActivity :
-        BaseActivity(),
-        ViewPager.OnPageChangeListener,
-        DrawerAdapter.OnItemSelectedListener,
-        SimpleItem.Listener<ReaderMenu>,
-        SeekBar.OnSeekBarChangeListener,
-        FileChooserDialog.FileCallback {
+    BaseActivity(),
+    ViewPager.OnPageChangeListener,
+    DrawerAdapter.OnItemSelectedListener,
+    SimpleItem.Listener<ReaderMenu> {
 
-    private var slidingRootNav: SlidingRootNav? = null
-    lateinit var recyclerView: RecyclerView
 
     companion object {
+        private const val TAG = "ReaderDBPagerActivity"
+
         private const val READER_MODE = 0
-        private const val JAVA_SCRIPT = 1
-        private const val FONTS = 2
-        private const val FONT_SIZE = 3
-        private const val MERGE_PAGES = 4
+        private const val NIGHT_MODE = 1
+        private const val JAVA_SCRIPT = 2
+        private const val FONTS = 3
+        private const val FONT_SIZE = 4
         private const val REPORT_PAGE = 5
         private const val OPEN_IN_BROWSER = 6
         private const val SHARE_CHAPTER = 7
+        private const val MORE_SETTINGS = 8
+        private const val READ_ALOUD = 9
 
-        private const val VOLUME_SCROLL_STEP = 50
+
+        private val FONT_MIME_TYPES = arrayOf(
+            MimeTypeMap.getSingleton().getMimeTypeFromExtension("ttf") ?: "application/x-font-ttf",
+            "fonts/ttf",
+            MimeTypeMap.getSingleton().getMimeTypeFromExtension("otf") ?: "application/x-font-opentype",
+            "fonts/otf",
+            "application/octet-stream"
+        )
+
+        private val AVAILABLE_FONTS = linkedMapOf<String, String>()
     }
 
-    private var screenTitles: Array<String>? = null
+    private lateinit var slidingRootNav: SlidingRootNav
+    private lateinit var screenTitles: Array<String>
     private lateinit var screenIcons: Array<Drawable?>
 
-    var novel: Novel? = null
-    private var webPage: WebPage? = null
+    private lateinit var novel: Novel
+    private lateinit var adapter: GenericFragmentStatePagerAdapter
 
-    private var adapter: GenericFragmentStatePagerAdapter? = null
+    private var sourceId: Long = -1L
+    private var webPages: List<WebPage> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reader_pager)
-        novel = intent.getSerializableExtra("novel") as Novel?
-        if (novel == null || novel?.chaptersCount?.toInt() == 0) finish()
 
         if (dataCenter.keepScreenOn)
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        dbHelper.updateNewReleasesCount(novel!!.id, 0L)
-        adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, novel!!.chaptersCount.toInt(), WebPageFragmentPageListener(novel!!))
+        //Read Intent Extras
+        sourceId = intent.getLongExtra("sourceId", -1L)
+        val tempNovel = intent.getSerializableExtra("novel") as Novel?
+
+        //Check if it is Valid Novel
+        if (tempNovel == null || tempNovel.chaptersCount.toInt() == 0) {
+            finish()
+            return
+        } else
+            novel = tempNovel
+
+        //Get all WebPages & set view pager
+        webPages = dbHelper.getAllWebPages(novel.id, sourceId)
+        if (dataCenter.japSwipe)
+            webPages = webPages.reversed()
+
+        adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, webPages.size, WebPageFragmentPageListener(novel, webPages))
         viewPager.addOnPageChangeListener(this)
         viewPager.adapter = adapter
 
-        webPage = if (novel!!.currentWebPageId != -1L)
-            dbHelper.getWebPage(novel!!.currentWebPageId)
-        else
-            dbHelper.getWebPage(novel!!.id, 0)
-
-        if (webPage != null) {
-            updateBookmark(webPage!!)
-            viewPager.currentItem =
-                    if (dataCenter.japSwipe)
-                        novel!!.chaptersCount.toInt() - webPage!!.orderId.toInt() - 1
-                    else
-                        webPage!!.orderId.toInt()
+        //Set the current page to the bookmarked webPage
+        novel.currentChapterUrl?.let { bookmarkUrl ->
+            val index = webPages.indexOfFirst { it.url == bookmarkUrl }
+            if (index != -1) viewPager.currentItem = index
+            if (index == 0) updateBookmark(webPages[0])
         }
 
+        //Set up the Slide-Out Reader Menu.
         slideMenuSetup(savedInstanceState)
-
         screenIcons = loadScreenIcons()
         screenTitles = loadScreenTitles()
         slideMenuAdapterSetup()
@@ -111,46 +149,36 @@ class ReaderDBPagerActivity :
             toggleSlideRootNab()
         }
 
+        // Easy access to open reader menu button
         if (!dataCenter.isReaderModeButtonVisible)
-            menuNav.visibility = View.INVISIBLE
+            menuNav.visibility = INVISIBLE
     }
 
     private fun updateBookmark(webPage: WebPage) {
-        if (webPage.novelId != -1L && webPage.id != -1L)
-            dbHelper.updateBookmarkCurrentWebPageId(webPage.novelId, webPage.id)
-        if (webPage.id != -1L) {
-            webPage.isRead = 1
-            dbHelper.updateWebPageReadStatus(webPage)
+        firebaseAnalytics.logEvent(FAC.Event.READ_NOVEL) {
+            param(FAC.Param.NOVEL_NAME, novel.name)
+            param(FAC.Param.NOVEL_URL, novel.url)
+        }
+        dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, webPage.url)
+        NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, webPage) }
+        val webPageSettings = dbHelper.getWebPageSettings(webPage.url)
+        if (webPageSettings != null) {
+            dbHelper.updateWebPageSettingsReadStatus(webPageSettings.url, 1, webPageSettings.metadata)
         }
     }
 
+    @Suppress("DEPRECATION")
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
 
         if (hasFocus && dataCenter.enableImmersiveMode) {
-            val immersiveModeOptions: Int
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                main_content.fitsSystemWindows = false
-
-                immersiveModeOptions = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-            } else {
-                immersiveModeOptions = (View.SYSTEM_UI_FLAG_LOW_PROFILE)
-            }
-
-            window.decorView.systemUiVisibility = immersiveModeOptions
+            main_content.fitsSystemWindows = false
+            window.decorView.systemUiVisibility = Constants.IMMERSIVE_MODE_FLAGS
         }
     }
 
     override fun onPageSelected(position: Int) {
-        val orderId = if (dataCenter.japSwipe) novel!!.chaptersCount.toInt() - position - 1 else position
-        val webPage = dbHelper.getWebPage(novel!!.id, orderId.toLong())
-        if (webPage != null) updateBookmark(webPage)
-        //fabClean.visibility = View.VISIBLE
+        updateBookmark(webPage = webPages[position])
     }
 
     override fun onPageScrollStateChanged(position: Int) {
@@ -163,33 +191,24 @@ class ReaderDBPagerActivity :
 
     private fun changeTextSize() {
         val dialog = MaterialDialog.Builder(this)
-                .title(R.string.text_size)
-                .customView(R.layout.dialog_text_slider, true)
-                .build()
+            .title(R.string.text_size)
+            .customView(R.layout.dialog_slider, true)
+            .build()
         dialog.show()
-        dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.setOnSeekBarChangeListener(this)
-        dialog.customView?.findViewById<SeekBar>(R.id.fontSeekBar)?.progress = dataCenter.textSize
+
+        dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setOnSeekBarChangedListener { _, progress ->
+            dataCenter.textSize = progress.toInt()
+            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
+        }
+        dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setProgress(dataCenter.textSize.toDouble())
     }
 
     private fun reportPage() {
         MaterialDialog.Builder(this)
-                .content("Please use discord to report a bug.")
-                .positiveText("Ok")
-                .onPositive { dialog, _ -> dialog.dismiss() }
-                .show()
-//        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
-//        val chapterName = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.webPage?.chapter
-//        if (url != null) {
-//            val email = getString(R.string.dev_email)
-//            val subject = "[IMPROVEMENT]"
-//            val body = StringBuilder()
-//            body.append("Please improve the viewing experience of this page.\n")
-//            body.append("Novel Name: ${novel?.name} \n")
-//            body.append("Novel Url: ${novel?.url} \n")
-//            body.append("Chapter Name: $chapterName \n ")
-//            body.append("Chapter Url: $url \n ")
-//            sendEmail(email, subject, body.toString())
-//        }
+            .content("Please use discord to report a bug.")
+            .positiveText("Ok")
+            .onPositive { dialog, _ -> dialog.dismiss() }
+            .show()
     }
 
     private fun inBrowser() {
@@ -205,21 +224,6 @@ class ReaderDBPagerActivity :
         }
     }
 
-
-    //region SeekBar Progress Listener
-    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-        dataCenter.textSize = progress
-        EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
-    }
-
-    override fun onStartTrackingTouch(p0: SeekBar?) {
-    }
-
-    override fun onStopTrackingTouch(p0: SeekBar?) {
-    }
-    //endregion
-
-
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val action = event.action
         val keyCode = event.keyCode
@@ -227,13 +231,21 @@ class ReaderDBPagerActivity :
         return when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
-                    webView?.scrollBy(0, -VOLUME_SCROLL_STEP)
+                    val anim = ObjectAnimator.ofInt(
+                        webView, "scrollY", webView?.scrollY
+                            ?: 0, (webView?.scrollY ?: 0) - dataCenter.scrollLength * VOLUME_SCROLL_LENGTH_STEP
+                    )
+                    anim.setDuration(500).start()
                 }
                 dataCenter.volumeScroll
             }
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
-                    webView?.scrollBy(0, VOLUME_SCROLL_STEP)
+                    val anim = ObjectAnimator.ofInt(
+                        webView, "scrollY", webView?.scrollY
+                            ?: 0, (webView?.scrollY ?: 0) + dataCenter.scrollLength * VOLUME_SCROLL_LENGTH_STEP
+                    )
+                    anim.setDuration(500).start()
                 }
                 dataCenter.volumeScroll
             }
@@ -246,58 +258,66 @@ class ReaderDBPagerActivity :
         val currentFrag = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment)
         when {
             currentFrag.history.isNotEmpty() -> currentFrag.goBack()
-        //currentFrag.readerWebView.canGoBack() -> currentFrag.readerWebView.goBack()
+            //currentFrag.readerWebView.canGoBack() -> currentFrag.readerWebView.goBack()
             else -> super.onBackPressed()
         }
     }
 
     fun checkUrl(url: String): Boolean {
-        val webPage = dbHelper.getWebPageByRedirectedUrl(novel!!.id, url) ?: return false
-
-        viewPager.currentItem = webPage.orderId.toInt()
-        updateBookmark(webPage)
-        return true
+        val webPageSettings = dbHelper.getWebPageSettingsByRedirectedUrl(url) ?: return false
+        val webPage = dbHelper.getWebPage(webPageSettings.url) ?: return false
+        val index = dbHelper.getAllWebPages(novel.id, sourceId).indexOf(webPage)
+        return if (index == -1)
+            false
+        else {
+            viewPager.currentItem = index
+            updateBookmark(webPage)
+            true
+        }
     }
 
     private fun slideMenuSetup(savedInstanceState: Bundle?) {
         slidingRootNav = SlidingRootNavBuilder(this)
-                .withMenuOpened(false)
-                .withContentClickableWhenMenuOpened(true)
-                .withSavedState(savedInstanceState)
-                .withGravity(SlideGravity.RIGHT)
-                .withMenuLayout(R.layout.menu_left_drawer)
-                .inject()
+            .withMenuOpened(false)
+            .withContentClickableWhenMenuOpened(true)
+            .withSavedState(savedInstanceState)
+            .withGravity(SlideGravity.RIGHT)
+            .withMenuLayout(R.layout.menu_left_drawer)
+            .inject()
     }
 
     private fun slideMenuAdapterSetup() {
         @Suppress("UNCHECKED_CAST")
-        val adapter = DrawerAdapter(Arrays.asList(
+        val adapter = DrawerAdapter(
+            listOf(
                 createItemFor(READER_MODE).setSwitchOn(true),
+                createItemFor(NIGHT_MODE).setSwitchOn(true),
                 createItemFor(JAVA_SCRIPT).setSwitchOn(true),
                 createItemFor(FONTS),
                 createItemFor(FONT_SIZE),
-                createItemFor(MERGE_PAGES).setSwitchOn(true),
                 createItemFor(REPORT_PAGE),
                 createItemFor(OPEN_IN_BROWSER),
-                createItemFor(SHARE_CHAPTER)
-        ) as List<DrawerItem<DrawerAdapter.ViewHolder>>)
-        adapter.setListener(this)
+                createItemFor(SHARE_CHAPTER),
+                createItemFor(MORE_SETTINGS),
+                createItemFor(READ_ALOUD)
 
+            ) as List<DrawerItem<DrawerAdapter.ViewHolder>>
+        )
+        adapter.setListener(this)
         list.isNestedScrollingEnabled = false
         list.layoutManager = LinearLayoutManager(this)
         list.adapter = adapter
-
     }
 
     private fun createItemFor(position: Int): DrawerItem<SimpleItem.ViewHolder> {
-        return SimpleItem(ReaderMenu(screenIcons[position]!!, screenTitles!![position]), this)
+        return SimpleItem(ReaderMenu(screenIcons[position]!!, screenTitles[position]), this)
     }
 
     private fun toggleSlideRootNab() {
-        if (slidingRootNav!!.isMenuOpened)
-            slidingRootNav!!.closeMenu()
+        if (slidingRootNav.isMenuOpened)
+            slidingRootNav.closeMenu()
         else
-            slidingRootNav!!.openMenu()
+            slidingRootNav.openMenu()
     }
 
     private fun loadScreenTitles(): Array<String> {
@@ -317,30 +337,80 @@ class ReaderDBPagerActivity :
         return icons
     }
 
+    private fun createTypeface(path: String = dataCenter.fontPath): Typeface {
+        return if (path.startsWith("/android_asset"))
+            Typeface.createFromAsset(assets, path.substringAfter('/').substringAfter('/'))
+        else
+            Typeface.createFromFile(path)
+    }
+
     /**
      *     Handle Slide Menu Nav Options
      */
     override fun onItemSelected(position: Int) {
-        slidingRootNav!!.closeMenu()
+        slidingRootNav.closeMenu()
         when (position) {
             FONTS -> {
-                Mayi.withActivity(this@ReaderDBPagerActivity)
-                        .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        .onResult {
-                            if (it.isGranted)
-                                openFontChooserDialog()
-                            else
-                                MaterialDialog.Builder(this)
-                                        .content("Enable \"Write External Storage\" permission for Novel Library " +
-                                                "from your device Settings -> Applications -> Novel Library -> Permissions")
-                                        .positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
-                                        .show()
-                        }.check()
+                if (AVAILABLE_FONTS.isEmpty())
+                    getAvailableFonts()
+
+                var selectedFont = dataCenter.fontPath.substringAfterLast('/')
+                    .substringBeforeLast('.')
+                    .replace('_', ' ')
+
+                var typeFace = createTypeface()
+
+                val dialog = MaterialDialog.Builder(this)
+                    .theme(Theme.DARK)
+                    .title(getString(R.string.title_fonts))
+                    .items(AVAILABLE_FONTS.keys)
+                    .alwaysCallSingleChoiceCallback()
+                    .itemsCallbackSingleChoice(AVAILABLE_FONTS.keys.indexOf(selectedFont)) { dialog, _, which, font ->
+                        if (which == 0) {
+                            addFont()
+                            dialog.dismiss()
+                        } else {
+                            val fontPath = AVAILABLE_FONTS[font.toString()]
+                            if (fontPath != null) {
+                                selectedFont = font.toString()
+                                typeFace = createTypeface(fontPath)
+                                dialog.setTypeface(dialog.titleView, typeFace)
+                            } else {
+                                dialog.selectedIndex = AVAILABLE_FONTS.keys.indexOf(selectedFont)
+                                dialog.notifyItemsChanged()
+                            }
+                        }
+                        true
+                    }
+                    .onPositive { _, which ->
+                        if (which == DialogAction.POSITIVE) {
+                            dataCenter.fontPath = AVAILABLE_FONTS[selectedFont] ?: ""
+                            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+                        }
+                    }
+                    .positiveText(R.string.okay)
+                    .show()
+                dialog.setTypeface(dialog.titleView, typeFace)
             }
             FONT_SIZE -> changeTextSize()
             REPORT_PAGE -> reportPage()
             OPEN_IN_BROWSER -> inBrowser()
             SHARE_CHAPTER -> share()
+            MORE_SETTINGS -> startReaderSettingsActivity()
+            READ_ALOUD -> {
+                if (dataCenter.readerMode) {
+                    val webPageDBFragment = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as? WebPageDBFragment)
+                    val audioText = webPageDBFragment?.doc?.getFormattedText() ?: return
+                    val title = webPageDBFragment.doc?.title() ?: ""
+                    startTTSService(audioText, title, novel.id, sourceId)
+                    firebaseAnalytics.logEvent(FAC.Event.LISTEN_NOVEL) {
+                        param(FAC.Param.NOVEL_NAME, novel.name)
+                        param(FAC.Param.NOVEL_URL, novel.url)
+                    }
+                } else {
+                    showAlertDialog(title = "Read Aloud", message = "Only supported in Reader Mode!")
+                }
+            }
         }
     }
 
@@ -348,97 +418,134 @@ class ReaderDBPagerActivity :
      *     For Reader Mode & Night Mode toggle
      */
     override fun bind(item: ReaderMenu, itemView: View, position: Int, simpleItem: SimpleItem) {
+        if (itemView.visibility == GONE) {
+            itemView.visibility = VISIBLE
+            itemView.layoutParams = RecyclerView.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+        }
 
         itemView.title.text = item.title
         itemView.icon.setImageDrawable(item.icon)
-        itemView.switchReaderMode.setOnCheckedChangeListener(null)
+        itemView.itemSwitch.setOnCheckedChangeListener(null)
+
         if (simpleItem.isSwitchOn() && position == READER_MODE) {
-            itemView.titleNightMode.text = getString(R.string.title_night)
-            itemView.switchReaderMode.visibility = View.VISIBLE
-            itemView.switchReaderMode.isChecked = dataCenter.readerMode
-            itemView.switchNightMode.isChecked = dataCenter.isDarkTheme
-            if (itemView.switchReaderMode.isChecked)
-                itemView.linNightMode.visibility = View.VISIBLE
+            itemView.itemSwitch.visibility = VISIBLE
+            itemView.itemSwitch.isChecked = dataCenter.readerMode
+        } else if (simpleItem.isSwitchOn() && position == NIGHT_MODE) {
+            if (!dataCenter.readerMode) {
+                itemView.visibility = GONE
+                itemView.layoutParams = RecyclerView.LayoutParams(0, 0)
+            } else {
+                itemView.itemSwitch.visibility = VISIBLE
+                itemView.itemSwitch.isChecked = dataCenter.isDarkTheme
+            }
         } else if (simpleItem.isSwitchOn() && position == JAVA_SCRIPT) {
-            itemView.switchReaderMode.visibility = View.VISIBLE
-            itemView.switchReaderMode.isChecked = !dataCenter.javascriptDisabled
-        } else if (simpleItem.isSwitchOn() && position == MERGE_PAGES) {
-            itemView.switchReaderMode.visibility = View.VISIBLE
-            itemView.switchReaderMode.isChecked = dataCenter.enableClusterPages
+            if (dataCenter.readerMode) {
+                itemView.visibility = GONE
+                itemView.layoutParams = RecyclerView.LayoutParams(0, 0)
+            } else {
+                itemView.itemSwitch.visibility = VISIBLE
+                itemView.itemSwitch.isChecked = !dataCenter.javascriptDisabled
+            }
         } else
-            itemView.switchReaderMode.visibility = View.GONE
+            itemView.itemSwitch.visibility = GONE
 
-
-        itemView.switchReaderMode.setOnCheckedChangeListener({ _: CompoundButton, isChecked: Boolean ->
+        itemView.itemSwitch.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
             when (position) {
                 READER_MODE -> {
                     dataCenter.readerMode = isChecked
-                    itemView.linNightMode.visibility = if (isChecked)
-                        View.VISIBLE
-                    else
-                        View.GONE
+                    if (isChecked && !dataCenter.javascriptDisabled)
+                        dataCenter.javascriptDisabled = true
+                    list.adapter?.notifyItemRangeChanged(NIGHT_MODE, 2)
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+                }
+                NIGHT_MODE -> {
+                    dataCenter.isDarkTheme = isChecked
+                    EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
                 }
                 JAVA_SCRIPT -> {
                     dataCenter.javascriptDisabled = !isChecked
+                    if (!dataCenter.javascriptDisabled && dataCenter.readerMode)
+                        dataCenter.readerMode = false
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCRIPT))
                 }
-                MERGE_PAGES -> {
-                    dataCenter.enableClusterPages = isChecked
-                    EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
-                }
             }
-        })
-
-        itemView.switchNightMode.setOnCheckedChangeListener({ _: CompoundButton, isChecked: Boolean ->
-            dataCenter.isDarkTheme = isChecked
-            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
-        })
-
-    }
-
-    private fun openFontChooserDialog() {
-        try {
-            val externalDirectory = Environment.getExternalStorageDirectory()
-            if (externalDirectory != null && externalDirectory.exists())
-                FileChooserDialog.Builder(this)
-                        .initialPath(externalDirectory.path)  // changes initial path, defaults to external storage directory
-                        .extensionsFilter(".ttf") // Optional extension filter, will override mimeType()
-                        .tag("optional-identifier")
-                        .goUpLabel("Up") // custom go up label, default label is "..."
-                        .show(this) // an AppCompatActivity which implements FileCallback
-            else
-                MaterialDialog.Builder(this)
-                        .content("Cannot find the internal storage or sd card. Please check your storage settings.")
-                        .positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
-                        .show()
-        } catch (e: Exception) {
-            Crashlytics.logException(e)
         }
     }
 
-    override fun onFileSelection(dialog: FileChooserDialog, file: File) {
-        dialog.dismiss()
-        dataCenter.fontPath = file.path
-        EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+    @Synchronized
+    private fun getAvailableFonts() {
+        if (AVAILABLE_FONTS.isNotEmpty()) return
+
+        AVAILABLE_FONTS[getString(R.string.add_font)] = ""
+
+        assets.list("fonts")?.filter {
+            it.endsWith(".ttf") || it.endsWith(".otf")
+        }?.forEach {
+            AVAILABLE_FONTS[it.substringBeforeLast('.').replace('_', ' ')] = "/android_asset/fonts/$it"
+        }
+
+        val appFontsDir = File(getExternalFilesDir(null) ?: filesDir, "Fonts")
+        if (!appFontsDir.exists()) appFontsDir.mkdir()
+        appFontsDir.listFiles()?.forEach {
+            AVAILABLE_FONTS[it.nameWithoutExtension.replace('_', ' ')] = it.path
+        }
     }
 
-    override fun onFileChooserDismissed(dialog: FileChooserDialog) {
-        //Do Nothing
+    private fun addFont() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+            .addCategory(Intent.CATEGORY_OPENABLE)
+            .setType("*/*")
+            .putExtra(Intent.EXTRA_MIME_TYPES, FONT_MIME_TYPES)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+//                        .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+        startActivityForResult(intent, Constants.ADD_FONT_REQUEST_CODE)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == Constants.IWV_ACT_REQ_CODE) {
-            Handler(Looper.getMainLooper()).post {
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+
+        when (requestCode) {
+            Constants.IWV_ACT_REQ_CODE -> {
+                Handler(Looper.getMainLooper()).post {
+                    EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+                }
+            }
+
+            Constants.ADD_FONT_REQUEST_CODE -> try {
+                // Check for different conditions / edge-cases.
+                if (resultCode != Activity.RESULT_OK) return
+                val uri = data?.data ?: return
+                val document = DocumentFile.fromSingleUri(baseContext, uri) ?: return
+                if (!document.isFile) return
+
+                // After the checks are complete, we copy the font for the reader to use
+                val fontsDir = File(getExternalFilesDir(null) ?: filesDir, "Fonts/")
+                if (!fontsDir.exists()) fontsDir.mkdir()
+                val file = File(fontsDir, document.name ?: "RandomFontName${Random().nextInt()}")
+                Utils.copyFile(contentResolver, document, file)
+                AVAILABLE_FONTS[file.nameWithoutExtension.replace('_', ' ')] = file.path
+                dataCenter.fontPath = file.path
+                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+            } catch (e: Exception) {
+                Logs.error(TAG, "Unable to copy font", e)
+            }
+
+            Constants.READER_SETTINGS_ACT_REQ_CODE -> {
+                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        novel!!.metaData[Constants.MetaDataKeys.LAST_READ_DATE] = Utils.getCurrentFormattedDate()
-        dbHelper.updateNovelMetaData(novel!!)
+        novel.metadata[Constants.MetaDataKeys.LAST_READ_DATE] = Utils.getCurrentFormattedDate()
+        dbHelper.updateNovelMetaData(novel)
+        firebaseAnalytics.logEvent(FAC.Event.OPEN_NOVEL) {
+            param(FAC.Param.NOVEL_NAME, novel.name)
+            param(FAC.Param.NOVEL_URL, novel.url)
+        }
     }
+
+
 }

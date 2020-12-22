@@ -8,12 +8,11 @@ import android.view.ViewGroup
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.activity.NovelSectionsActivity
-import io.github.gmathi.novellibrary.activity.startNovelSectionsActivity
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.LibraryPageListener
 import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.model.NovelSection
+import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.util.Constants
 import kotlinx.android.synthetic.main.content_library_pager.*
 import kotlinx.android.synthetic.main.fragment_library_pager.*
@@ -50,7 +49,7 @@ class LibraryPagerFragment : BaseFragment() {
 
         //We Manually add this because we want it to be static and the name to be change in different languages
         novelSections.clear()
-        novelSections.add(NovelSection(-1L, "Currently Reading"))
+        novelSections.add(NovelSection(-1L, getString(R.string.default_novel_section_name)))
         novelSections.addAll(dbHelper.getAllNovelSections())
 
         val titles = Array(novelSections.size, init = {
@@ -64,8 +63,6 @@ class LibraryPagerFragment : BaseFragment() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-       // super.onActivityResult(requestCode, resultCode, data)
-        //TODO: NOT WORKING!!!
         if (requestCode == Constants.NOVEL_SECTIONS_ACT_REQ_CODE) {
             setViewPager()
         } else {

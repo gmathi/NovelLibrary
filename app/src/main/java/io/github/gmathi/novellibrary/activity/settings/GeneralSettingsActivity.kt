@@ -1,18 +1,19 @@
 package io.github.gmathi.novellibrary.activity.settings
 
-import android.graphics.Rect
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.RecyclerView
 import android.view.MenuItem
 import android.view.View
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
-import io.github.gmathi.novellibrary.activity.startBackupSettingsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.util.system.startBackupSettingsActivity
+import io.github.gmathi.novellibrary.util.system.startLanguagesActivity
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
+import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_settings.*
@@ -27,8 +28,9 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
 
         private const val POSITION_LOAD_LIBRARY_SCREEN = 0
         private const val POSITION_BACKUP_AND_RESTORE = 1
-        private const val POSITION_ENABLE_CLOUD_FLARE = 2
-        private const val POSITION_ENABLE_NOTIFICATIONS = 3
+        private const val POSITION_ENABLE_NOTIFICATIONS = 2
+        private const val POSITION_LANGUAGES = 3
+        private const val POSITION_ENABLE_SCROLLING_TEXT = 4
 
     }
 
@@ -46,28 +48,31 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     }
 
     private fun setRecyclerView() {
-        settingsItems = ArrayList(resources.getStringArray(io.github.gmathi.novellibrary.R.array.general_titles_list).asList())
-        settingsItemsDescription = ArrayList(resources.getStringArray(io.github.gmathi.novellibrary.R.array.general_subtitles_list).asList())
+        settingsItems = ArrayList(resources.getStringArray(R.array.general_titles_list).asList())
+
+        val items = ArrayList(resources.getStringArray(R.array.general_subtitles_list).asList())
+        val systemDefault = resources.getString(R.string.locale_system_default)
+        if (items.contains(systemDefault)) {
+            val language = try {
+                dataCenter.language
+            } catch (e: KotlinNullPointerException) {
+                SYSTEM_DEFAULT
+            }
+            items[items.indexOfFirst { it == systemDefault }] = LanguageActivity.getLanguageName(this, language)
+        }
+        settingsItemsDescription = items
+
         adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
         recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(object : DividerItemDecoration(this, DividerItemDecoration.VERTICAL) {
-
-            override fun getItemOffsets(outRect: Rect?, view: View?, parent: RecyclerView?, state: RecyclerView.State?) {
-                val position = parent?.getChildAdapterPosition(view)
-                if (position == parent?.adapter?.itemCount?.minus(1)) {
-                    outRect?.setEmpty()
-                } else {
-                    super.getItemOffsets(outRect, view, parent, state)
-                }
-            }
-        })
+        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
         swipeRefreshLayout.isEnabled = false
     }
 
     override fun bind(item: String, itemView: View, position: Int) {
         itemView.widgetChevron.visibility = View.INVISIBLE
         itemView.widgetSwitch.visibility = View.INVISIBLE
-        itemView.widgetButton.visibility = View.INVISIBLE
+        itemView.currentValue.visibility = View.INVISIBLE
+        itemView.blackOverlay.visibility = View.INVISIBLE
 
         itemView.title.applyFont(assets).text = item
         itemView.subtitle.applyFont(assets).text = settingsItemsDescription[position]
@@ -79,14 +84,8 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.loadLibraryScreen = value }
             }
 
-            POSITION_BACKUP_AND_RESTORE -> {
+            POSITION_BACKUP_AND_RESTORE, POSITION_LANGUAGES -> {
                 itemView.widgetChevron.visibility = View.VISIBLE
-            }
-
-            POSITION_ENABLE_CLOUD_FLARE -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.enableCloudFlare
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableCloudFlare = value }
             }
 
             POSITION_ENABLE_NOTIFICATIONS -> {
@@ -100,20 +99,27 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                         BackgroundNovelSyncTask.cancelAll(applicationContext)
                 }
             }
+
+            POSITION_ENABLE_SCROLLING_TEXT -> {
+                itemView.widgetSwitch.visibility = View.VISIBLE
+                itemView.widgetSwitch.isChecked = dataCenter.enableScrollingText
+                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableScrollingText = value }
+            }
         }
 
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
         else ContextCompat.getColor(this, android.R.color.transparent))
     }
 
-    override fun onItemClick(item: String) {
-        if (item == getString(R.string.backup_and_restore)) {
-            startBackupSettingsActivity()
+    override fun onItemClick(item: String, position: Int) {
+        when (item) {
+            getString(R.string.backup_and_restore) -> startBackupSettingsActivity()
+            getString(R.string.change_language) -> startLanguagesActivity(true)
         }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (item?.itemId == android.R.id.home) finish()
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) finish()
         return super.onOptionsItemSelected(item)
     }
     //endregion

@@ -1,31 +1,29 @@
 package io.github.gmathi.novellibrary.activity
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.support.design.widget.NavigationView
-import android.support.design.widget.Snackbar
-import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentTransaction
-import android.support.v4.view.GravityCompat
-import android.support.v7.widget.Toolbar
 import android.view.MenuItem
-import co.metalab.asyncawait.async
+import androidx.appcompat.widget.Toolbar
+import androidx.core.view.GravityCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import com.afollestad.materialdialogs.MaterialDialog
-import com.crashlytics.android.Crashlytics
+import com.firebase.ui.auth.IdpResponse
+import com.google.android.material.navigation.NavigationView
+import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.updateTotalChapterCount
-import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.fragment.DownloadFragment
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
-import io.github.gmathi.novellibrary.model.Novel
-import io.github.gmathi.novellibrary.network.CloudFlare
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.system.*
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
@@ -37,106 +35,96 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private var currentNavId: Int = R.id.nav_search
 
     private var cloudFlareLoadingDialog: MaterialDialog? = null
+    private var mAuth: FirebaseAuth? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_nav_drawer)
+        mAuth = FirebaseAuth.getInstance()
         navigationView.setNavigationItemSelectedListener(this)
 
-
-        try {
-            currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
-        } catch (e: Exception) {
-            Crashlytics.logException(e)
-            MaterialDialog.Builder(this@NavDrawerActivity)
-                    .content("Error initiating the app. The developer has been notified about this!")
-                    .positiveText("Quit")
-                    .cancelable(false)
-                    .onPositive { dialog, _ ->
-                        dialog.dismiss()
-                        finish()
-                    }
-                    .show()
-        }
+        //Initialize custom logging
+        currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
 
         if (intent.hasExtra("currentNavId"))
             currentNavId = intent.getIntExtra("currentNavId", currentNavId)
 
-        if (savedInstanceState != null) {
+        if (savedInstanceState != null && savedInstanceState.containsKey("currentNavId")) {
             currentNavId = savedInstanceState.getInt("currentNavId")
-        }
-
-        if (intent.extras != null) {
-            if (intent.extras.containsKey("novelsChapMap")) {
-                @Suppress("UNCHECKED_CAST")
-                val novelsMap = intent.extras.getSerializable("novelsChapMap") as? HashMap<Novel, Int>
-                novelsMap?.keys?.forEach {
-                    dbHelper.updateTotalChapterCount(it.id, novelsMap[it]!!.toLong())
-                }
-            }
         }
 
         snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
-        if (dataCenter.enableCloudFlare && Utils.isConnectedToNetwork(this)) {
+        if (Utils.isConnectedToNetwork(this)) {
             checkForCloudFlare()
         } else {
             checkIntentForNotificationData()
             loadFragment(currentNavId)
+            showWhatsNewDialog()
+        }
+        currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
+
+        if (intent.hasExtra("showDownloads")) {
+            intent.removeExtra("showDownloads")
+            startNovelDownloadsActivity()
         }
 
+    }
+
+    private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog.Builder(this)
-                    .title("📢 Announcement!")
-                    .content("Please refresh/sync your library for the new changes to be effective! \nDownloads will be fixed in next update. Thank you for your patience.")
-                    .positiveText("Ok")
-                    .onPositive { dialog, _ -> dialog.dismiss() }
-                    .show()
+                .title("\uD83C\uDF89 What's New 0.16.beta!")
+                .content(
+                    "✨️ Add your own selector query for websites not yet discovered/supported. (Refer to \"Jsoup Selectors\" for more info)\n" +
+                            "✨ Detailed Sync Status so you know the progress!\n" +
+                            "✨ Add support for <abbr> and footnotes Keep IDs by default\n" +
+//                            "⚠️ Fix - No Novels/Chapters loading issue due to ssl errors\n" +
+//                            "⚠️ Fix - ActiveTranslations will work in reader mode\n" +
+//                            "⚠️ Fix - Read Aloud bug for Wuxia novels\n" +
+                            "\uD83D\uDEE0️ Other major/minor bug fixes.\n" +
+//                            "\uD83D\uDEE0 Support for 3 more translation sites in reader mode.\n" +
+//                            "\uD83D\uDEE0 Discord link updated.\n" +
+//                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
+//                            "✨ Read Aloud moved to bottom in the reader settings.\n" +
+//                                    "✨ Added Hidden Buttons to unlock some hidden functionality!" +
+//                            "\uD83D\uDEE0  Experimental - Added Hard Reset to Novel Popup menu to reset the novel." +
+                            ""
+                )
+                .positiveText("Ok")
+                .onPositive { dialog, _ -> dialog.dismiss() }
+                .show()
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
-
-//        dbHelper.createNovelSection("Reading")
-//        dbHelper.createNovelSection("OnHold")
-//        dbHelper.createNovelSection("General")
-//        dbHelper.createNovelSection("Completed")
-//        dbHelper.createNovelSection("Hiatus")
-//        dbHelper.createNovelSection("#923 283")
-
     }
 
     private fun checkForCloudFlare() {
 
-        cloudFlareLoadingDialog = Utils.dialogBuilder(this@NavDrawerActivity, content = getString(R.string.cloud_flare_bypass_description), isProgress = true).cancelable(false).build()
-
-        val listener = object : CloudFlare.Companion.Listener {
-            override fun onSuccess() {
-                Handler(Looper.getMainLooper()).post {
-                    Crashlytics.log(getString(R.string.cloud_flare_bypass_success))
-                    loadFragment(currentNavId)
-                    checkIntentForNotificationData()
-                    cloudFlareLoadingDialog?.dismiss()
-                }
+        cloudFlareLoadingDialog = Utils
+            .dialogBuilder(this@NavDrawerActivity, content = "If this is taking too long, You can skip and goto \"Settings\" -> \"CloudFlare Check\" to make the app work.", isProgress = true)
+            .cancelable(false)
+            .negativeText("Skip")
+            .onNegative { _, _ ->
+                loadFragment(currentNavId)
+                showWhatsNewDialog()
+                checkIntentForNotificationData()
             }
-
-            override fun onFailure() {
-                Handler(Looper.getMainLooper()).post {
-                    cloudFlareLoadingDialog?.hide()
-                    MaterialDialog.Builder(this@NavDrawerActivity)
-                            .content(getString(R.string.cloud_flare_bypass_success))
-                            .positiveText(getString(R.string.try_again))
-                            .onPositive { dialog, _ ->
-                                dialog.dismiss()
-                                checkForCloudFlare()
-                            }
-                            .show()
-                }
-            }
-        }
+            .build()
 
         cloudFlareLoadingDialog?.show()
 
-        async {
-            await { CloudFlare(this@NavDrawerActivity, listener).check() }
+        CloudFlareByPasser.check(this, "novelupdates.com") { state ->
+
+            if (!isDestroyed) {
+                if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
+                    if (cloudFlareLoadingDialog?.isShowing == true) {
+                        loadFragment(currentNavId)
+                        showWhatsNewDialog()
+                        checkIntentForNotificationData()
+                        cloudFlareLoadingDialog?.dismiss()
+                    }
+                }
+            }
         }
     }
 
@@ -151,11 +139,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                     (existingSearchFrag as SearchFragment).closeSearch()
                     return
                 }
-            }
-            val existingDownloadFrag = supportFragmentManager.findFragmentByTag(DownloadFragment::class.toString())
-            if (existingDownloadFrag != null) {
-                loadFragment(R.id.nav_library)
-                return
             }
 
             if (snackBar != null && snackBar!!.isShown)
@@ -203,17 +186,17 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 startRecentlyUpdatedNovelsActivity()
             }
             R.id.nav_discord_link -> {
-                openInBrowser("https://discord.gg/g2cQswh")
+                openInBrowser("https://discord.gg/cPMxEVn")
             }
         }
     }
 
     private fun replaceFragment(fragment: Fragment, tag: String) {
         supportFragmentManager.beginTransaction()
-                .replace(R.id.navFragmentContainer, fragment, tag)
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                .addToBackStack(tag)
-                .commitAllowingStateLoss()
+            .replace(R.id.navFragmentContainer, fragment, tag)
+            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+            .addToBackStack(tag)
+            .commitAllowingStateLoss()
     }
 
     fun setToolbar(toolbar: Toolbar?) {
@@ -224,6 +207,20 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when {
+            requestCode == Constants.OPEN_FIREBASE_AUTH_UI -> {
+                val response = IdpResponse.fromResultIntent(data)
+                if (resultCode == Activity.RESULT_OK) {
+                    // Successfully signed in
+                    val user = FirebaseAuth.getInstance().currentUser
+                    Logs.error("NAV USER", user?.displayName)
+                    // ...
+                } else {
+                    // Sign in failed. If response is null the user canceled the
+                    // sign-in flow using the back button. Otherwise check
+                    // response.getError().getErrorCode() and handle the error.
+                    // ...
+                }
+            }
             resultCode == Constants.OPEN_DOWNLOADS_RES_CODE -> loadFragment(R.id.nav_downloads)
             requestCode == Constants.IWV_ACT_REQ_CODE -> checkIntentForNotificationData()
             else -> super.onActivityResult(requestCode, resultCode, data)
@@ -231,22 +228,21 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun checkIntentForNotificationData() {
-        if (intent.extras != null && intent.extras.containsKey("novel")) {
-            val novel = intent.extras.getSerializable("novel") as? Novel
+        if (intent.extras != null && intent.extras!!.containsKey("novel")) {
+            val novel = intent.extras!!.getSerializable("novel") as? Novel
             novel?.let {
-                intent.extras.remove("novel")
+                intent.extras!!.remove("novel")
                 startChaptersActivity(novel)
             }
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
+    override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState?.putInt("currentNavId", currentNavId)
+        outState.putInt("currentNavId", currentNavId)
     }
 
     override fun onDestroy() {
-        async.cancelAll()
         super.onDestroy()
     }
 

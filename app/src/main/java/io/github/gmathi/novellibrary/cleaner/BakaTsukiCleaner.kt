@@ -1,18 +1,13 @@
 package io.github.gmathi.novellibrary.cleaner
 
-import android.net.Uri
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
-import java.io.File
 
-class BakaTsukiCleaner : HtmlHelper() {
+class BakaTsukiCleaner : HtmlCleaner() {
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc)
-        doc.head()?.getElementsByTag("style")?.remove()
-        doc.head()?.getElementsByTag("link")?.remove()
 
         var contentElement = doc.body().getElementsByTag("div").firstOrNull { it.id() == "content" }
         contentElement?.prepend("<h4>${getTitle(doc)}</h4><br>")
@@ -41,29 +36,10 @@ class BakaTsukiCleaner : HtmlHelper() {
         contentElement?.getElementsByClass("wpcnt")?.remove()
         contentElement?.getElementById("jp-post-flair")?.remove()
 
-        doc.getElementById("custom-background-css")?.remove()
-
-    }
-
-    override fun downloadImage(element: Element, dir: File): File? {
-        val uri = Uri.parse(element.attr("src"))
-        return if (uri.toString().contains("uploads/avatars")) null
-        else super.downloadImage(element, dir)
-    }
-
-    override fun removeJS(doc: Document) {
-        super.removeJS(doc)
-        doc.getElementsByTag("noscript").remove()
     }
 
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
-        val url = doc.location()
-        val links = ArrayList<String>()
-        val otherLinks = doc.body().getElementsByTag("div").firstOrNull { it.id() == "content" }?.getElementsByAttributeValueContaining("href", HostNames.BAKA_TSUKI)?.filter { !it.attr("href").contains(url) }
-        if (otherLinks != null && otherLinks.isNotEmpty()) {
-            otherLinks.mapTo(links) { it.attr("href") }
-        }
-        return links
+        return getLinkedChapters(doc.location(), doc.body().select("div#content").firstOrNull())
     }
 
     private fun removeDirectionalLinks(contentElement: Element?) {
@@ -75,9 +51,5 @@ class BakaTsukiCleaner : HtmlHelper() {
 
         }?.forEach { it?.remove() }
         contentElement?.getElementsByTag("table")?.lastOrNull()?.remove()
-    }
-
-    override fun toggleTheme(isDark: Boolean, doc: Document): Document {
-        return super.toggleThemeDefault(isDark, doc)
     }
 }

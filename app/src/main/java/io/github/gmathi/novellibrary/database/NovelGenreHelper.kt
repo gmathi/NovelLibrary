@@ -1,8 +1,8 @@
 package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
-import android.util.Log
-import io.github.gmathi.novellibrary.model.NovelGenre
+import io.github.gmathi.novellibrary.model.database.NovelGenre
+import io.github.gmathi.novellibrary.util.Logs
 import java.util.*
 
 private const val LOG = "NovelGenreHelper"
@@ -20,7 +20,7 @@ fun DBHelper.createNovelGenre(arg: NovelGenre): Long {
 fun DBHelper.hasNovelGenreEntry(novelGenre: NovelGenre): Boolean {
     val db = this.readableDatabase
     val selectQuery = "SELECT  * FROM " + DBKeys.TABLE_NOVEL_GENRE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novelGenre.novelId + " AND " + DBKeys.KEY_GENRE_ID + " = " + novelGenre.genreId
-    Log.d(LOG, selectQuery)
+    Logs.debug(LOG, selectQuery)
     val cursor = db.rawQuery(selectQuery, null)
     var exists = false
     if (cursor != null) {
@@ -32,7 +32,7 @@ fun DBHelper.hasNovelGenreEntry(novelGenre: NovelGenre): Boolean {
 
 fun DBHelper.getAllNovelGenre(novelId: Long): List<NovelGenre> {
     val selectQuery = "SELECT  * FROM " + DBKeys.TABLE_NOVEL_GENRE + " WHERE " + DBKeys.KEY_NOVEL_ID + " = " + novelId
-    Log.d(LOG, selectQuery)
+    Logs.debug(LOG, selectQuery)
     val db = this.readableDatabase
     val cursor = db.rawQuery(selectQuery, null)
     val list = ArrayList<NovelGenre>()

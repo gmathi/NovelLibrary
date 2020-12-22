@@ -1,9 +1,8 @@
 package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
-import android.util.Log
-import io.github.gmathi.novellibrary.model.Genre
-import java.util.*
+import io.github.gmathi.novellibrary.model.database.Genre
+import io.github.gmathi.novellibrary.util.Logs
 import kotlin.collections.ArrayList
 
 
@@ -19,25 +18,14 @@ fun DBHelper.createGenre(genreName: String): Long {
 }
 
 fun DBHelper.getGenre(genreName: String): Genre? {
-    val selectQuery = "SELECT * FROM " + DBKeys.TABLE_GENRE + " WHERE " + DBKeys.KEY_NAME + " = \"" + genreName + "\""
-    return getGenreFromQuery(selectQuery)
+    val selectQuery = "SELECT * FROM " + DBKeys.TABLE_GENRE + " WHERE " + DBKeys.KEY_NAME + " = ?"
+    return getGenreFromQuery(selectQuery, arrayOf(genreName))
 }
 
 fun DBHelper.getGenre(genreId: Long): Genre? {
     val selectQuery = "SELECT * FROM " + DBKeys.TABLE_GENRE + " WHERE " + DBKeys.KEY_ID + " = " + genreId
     return getGenreFromQuery(selectQuery)
 }
-
-//fun DBHelper.getGenres(novelId: Long): List<String> {
-//    val novelGenres = getAllNovelGenre(novelId)
-//    val genres = ArrayList<String>()
-//    novelGenres.forEach {
-//        val genre = getGenre(it.genreId)
-//        if (genre != null)
-//            genres.add(genre.name)
-//    }
-//    return genres
-//}
 
 fun DBHelper.getGenres(novelId: Long): List<String>? {
     val selectQuery =  " SELECT group_concat(g.name) as Genres" +
@@ -47,8 +35,7 @@ fun DBHelper.getGenres(novelId: Long): List<String>? {
     val cursor = this.readableDatabase.rawQuery(selectQuery, null)
     if (cursor != null) {
         if (cursor.moveToFirst()) {
-           return Arrays.asList<String>(*cursor.getString(cursor.getColumnIndex("Genres")).split(",".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray())
-
+           return listOf(*cursor.getString(cursor.getColumnIndex("Genres")).split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray())
         }
         cursor.close()
     }
@@ -56,10 +43,10 @@ fun DBHelper.getGenres(novelId: Long): List<String>? {
 }
 
 
-fun DBHelper.getGenreFromQuery(selectQuery: String): Genre? {
+fun DBHelper.getGenreFromQuery(selectQuery: String, selectionArgs: Array<String>? = null): Genre? {
     val db = this.readableDatabase
-    Log.d(LOG, selectQuery)
-    val cursor = db.rawQuery(selectQuery, null)
+    Logs.debug(LOG, selectQuery)
+    val cursor = db.rawQuery(selectQuery, selectionArgs)
     var genre: Genre? = null
     if (cursor != null) {
         if (cursor.moveToFirst()) {
@@ -75,7 +62,7 @@ fun DBHelper.getGenreFromQuery(selectQuery: String): Genre? {
 fun DBHelper.getAllGenre(): List<Genre> {
     val list = ArrayList<Genre>()
     val selectQuery = "SELECT  * FROM " + DBKeys.TABLE_GENRE
-    Log.d(LOG, selectQuery)
+    Logs.debug(LOG, selectQuery)
     val db = this.readableDatabase
     val c = db.rawQuery(selectQuery, null)
     if (c != null) {

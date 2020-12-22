@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:fancy="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -10,12 +10,12 @@
     tools:showIn="@layout/activity_novel_details">
 
 
-    <com.nguyenhoanglam.progresslayout.ProgressLayout
+    <io.github.gmathi.novellibrary.util.view.ProgressLayout
         android:id="@+id/progressLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <android.support.v4.widget.SwipeRefreshLayout
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipeRefreshLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
@@ -55,13 +55,31 @@
                             android:layout_toRightOf="@id/novelDetailsImage"
                             android:orientation="vertical">
 
-                            <TextView
-                                android:id="@+id/novelDetailsName"
+                            <LinearLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="50dp"
-                                android:maxLines="2"
-                                android:textColor="@color/white"
-                                android:textSize="17sp" />
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/novelDetailsName"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="50dp"
+                                    android:ellipsize="end"
+                                    android:maxLines="2"
+                                    android:layout_weight="1"
+                                    android:textColor="@color/white"
+                                    android:textSize="17sp" />
+
+                                <ImageView
+                                    android:id="@+id/novelDetailsNameInfo"
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_gravity="center_vertical"
+                                    app:srcCompat="@drawable/ic_info_white_vector"/>
+
+                            </LinearLayout>
+
+
 
                             <TextView
                                 android:id="@+id/novelDetailsAuthor"
@@ -112,7 +130,7 @@
                             </LinearLayout>
 
                             <mehdi.sakout.fancybuttons.FancyButton
-                                android:id="@+id/novelDetailsDownloadButton"
+                                android:id="@+id/novelDetailAddToLibraryButton"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginBottom="20dp"
@@ -219,6 +237,37 @@
                         android:background="@color/SlateGray" />
 
                     <RelativeLayout
+                        android:id="@+id/novelDetailsLicensedLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@color/black_transparent"
+                        android:minHeight="20dp"
+                        android:padding="@dimen/default_margin">
+
+                        <ImageView
+                            android:id="@+id/licensedWarningIcon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            app:srcCompat="@drawable/ic_warning_white_vector"
+                            app:tint="@color/colorLightRed" />
+
+                        <TextView
+                            android:id="@+id/novelDetailsLicensedAlert"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="@dimen/default_margin"
+                            android:layout_toEndOf="@id/licensedWarningIcon"
+                            android:text="@string/licensed_warning"
+                            android:textColorLink="@color/RoyalBlue"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                    </RelativeLayout>
+
+                    <RelativeLayout
                         android:id="@+id/novelDetailsChaptersLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -230,8 +279,8 @@
                             android:id="@+id/novelDetailsChapterIcon"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_alignParentLeft="true"
                             android:layout_alignParentStart="true"
+                            android:layout_alignParentLeft="true"
                             android:layout_centerVertical="true"
                             app:srcCompat="@drawable/ic_library_books_white_vector" />
 
@@ -243,10 +292,10 @@
                             android:layout_centerVertical="true"
                             android:layout_margin="@dimen/default_margin"
                             android:layout_marginBottom="8dp"
-                            android:layout_toEndOf="@id/novelDetailsChapterIcon"
-                            android:layout_toLeftOf="@id/chevron"
-                            android:layout_toRightOf="@id/novelDetailsChapterIcon"
                             android:layout_toStartOf="@id/chevron"
+                            android:layout_toLeftOf="@id/chevron"
+                            android:layout_toEndOf="@id/novelDetailsChapterIcon"
+                            android:layout_toRightOf="@id/novelDetailsChapterIcon"
                             android:text="@string/chapters"
                             android:textAllCaps="true"
                             android:textColor="@color/white"
@@ -342,8 +391,8 @@
                 </LinearLayout>
 
             </ScrollView>
-        </android.support.v4.widget.SwipeRefreshLayout>
-    </com.nguyenhoanglam.progresslayout.ProgressLayout>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    </io.github.gmathi.novellibrary.util.view.ProgressLayout>
 
 
-</android.support.constraint.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

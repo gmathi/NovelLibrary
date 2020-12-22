@@ -1,34 +1,32 @@
 package io.github.gmathi.novellibrary.activity.settings
 
-import android.graphics.Rect
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.MenuItem
 import android.view.View
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
-import io.github.gmathi.novellibrary.activity.openInBrowser
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.model.Library
+import io.github.gmathi.novellibrary.util.system.openInBrowser
+import io.github.gmathi.novellibrary.model.other.GenericJsonMappedModel
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_libraries_used.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_title_subtitle.view.*
-import org.jsoup.helper.StringUtil
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 
-class ContributionsActivity : BaseActivity(), GenericAdapter.Listener<Library> {
+class ContributionsActivity : BaseActivity(), GenericAdapter.Listener<GenericJsonMappedModel> {
 
-    lateinit var adapter: GenericAdapter<Library>
-    private lateinit var contributors: ArrayList<Library>
+    lateinit var adapter: GenericAdapter<GenericJsonMappedModel>
+    private lateinit var contributors: ArrayList<GenericJsonMappedModel>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,7 +39,7 @@ class ContributionsActivity : BaseActivity(), GenericAdapter.Listener<Library> {
         setRecyclerView()
     }
 
-    private fun getContributorsData(): ArrayList<Library?>? {
+    private fun getContributorsData(): ArrayList<GenericJsonMappedModel?>? {
         val reader: BufferedReader
         val stringBuilder = StringBuilder()
         try {
@@ -51,10 +49,9 @@ class ContributionsActivity : BaseActivity(), GenericAdapter.Listener<Library> {
                 stringBuilder.append(mLine)
                 mLine = reader.readLine()
             }
-            return Gson().fromJson(stringBuilder.toString(), object : TypeToken<ArrayList<Library>>() {}.type)
-        } catch (ex: IOException) {
-            Log.e("Deserialize", ex.message)
-            ex.printStackTrace()
+            return Gson().fromJson(stringBuilder.toString(), object : TypeToken<ArrayList<GenericJsonMappedModel>>() {}.type)
+        } catch (e: IOException) {
+            Logs.error("ContributionsActivity", e.localizedMessage, e)
         }
         return null
     }
@@ -62,35 +59,25 @@ class ContributionsActivity : BaseActivity(), GenericAdapter.Listener<Library> {
     private fun setRecyclerView() {
         adapter = GenericAdapter(items = contributors, layoutResId = R.layout.listitem_title_subtitle, listener = this)
         recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(object : DividerItemDecoration(this, DividerItemDecoration.VERTICAL) {
-
-            override fun getItemOffsets(outRect: Rect?, view: View?, parent: RecyclerView?, state: RecyclerView.State?) {
-                val position = parent?.getChildAdapterPosition(view)
-                if (position == parent?.adapter?.itemCount?.minus(1)) {
-                    outRect?.setEmpty()
-                } else {
-                    super.getItemOffsets(outRect, view, parent, state)
-                }
-            }
-        })
+        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
         swipeRefreshLayout.isEnabled = false
     }
 
-    override fun bind(item: Library, itemView: View, position: Int) {
+    override fun bind(item: GenericJsonMappedModel, itemView: View, position: Int) {
         itemView.title.applyFont(assets).text = item.name
         itemView.subtitle.applyFont(assets).text = item.description
-        itemView.chevron.visibility = if (!StringUtil.isBlank(item.link)) View.VISIBLE else View.INVISIBLE
+        itemView.chevron.visibility = if (!item.link.isNullOrBlank()) View.VISIBLE else View.INVISIBLE
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
         else ContextCompat.getColor(this, android.R.color.transparent))
     }
 
-    override fun onItemClick(item: Library) {
-        if (!StringUtil.isBlank(item.link))
+    override fun onItemClick(item: GenericJsonMappedModel, position: Int) {
+        if (!item.link.isNullOrBlank())
             openInBrowser(item.link!!)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (item?.itemId == android.R.id.home) finish()
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) finish()
         return super.onOptionsItemSelected(item)
     }
 

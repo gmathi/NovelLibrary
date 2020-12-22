@@ -1,7 +1,13 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.annotation.SuppressLint
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
+import android.os.IBinder
+import androidx.annotation.UiThread
 import android.view.MenuItem
 import android.view.View
 import com.afollestad.materialdialogs.MaterialDialog
@@ -11,7 +17,12 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.model.*
+import io.github.gmathi.novellibrary.util.system.startDownloadNovelService
+import io.github.gmathi.novellibrary.model.database.Download
+import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
+import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
+import io.github.gmathi.novellibrary.model.other.EventType
+import io.github.gmathi.novellibrary.service.download.DownloadListener
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.getGlideUrl
@@ -19,14 +30,32 @@ import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import kotlinx.android.synthetic.main.activity_novel_downloads.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_download_queue_old.view.*
-import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 
-class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
+
+class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, DownloadListener {
 
     companion object {
         private const val TAG = "NovelDownloadsActivity"
+    }
+
+    private var downloadNovelService: DownloadNovelService? = null
+    private var isServiceConnected: Boolean = false
+
+    /** Defines callbacks for service binding, passed to bindService()  */
+    private val mConnection = object : ServiceConnection {
+
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            val binder = service as DownloadNovelService.DownloadNovelBinder
+            downloadNovelService = binder.getService()
+            downloadNovelService?.downloadListener = this@NovelDownloadsActivity
+            isServiceConnected = true
+        }
+
+        override fun onServiceDisconnected(className: ComponentName) {
+            isServiceConnected = false
+            downloadNovelService?.downloadListener = null
+        }
     }
 
     lateinit var adapter: GenericAdapter<String>
@@ -36,78 +65,33 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         setContentView(R.layout.activity_novel_downloads)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-        setFab()
-        setRecyclerView()
-    }
-
-    private fun setFab() {
         fab.hide()
-
-//        if (Utils.isServiceRunning(this, DownloadService.QUALIFIED_NAME)) {
-//            fab.setImageResource(R.drawable.ic_pause_white_vector)
-//            fab.tag = "playing"
-//        } else {
-//            fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
-//            fab.tag = "paused"
-//        }
-
-//        fab.setOnClickListener { _ ->
-//            if (!adapter.items.isEmpty()) {
-//                if (fab.tag == "playing") {
-//                    //pause all
-//                    stopService(Intent(this, DownloadService::class.java))
-//                    fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
-//                    adapter.notifyDataSetChanged()
-//                    fab.tag = "paused"
-//                } else if (fab.tag == "paused") {
-//                    //play all
-//                    startService(Intent(this, DownloadService::class.java))
-//                    fab.setImageResource(R.drawable.ic_pause_white_vector)
-//                    adapter.notifyDataSetChanged()
-//                    fab.tag = "playing"
-//                }
-//            }
-//        }
+        setRecyclerView()
     }
 
     private fun setRecyclerView() {
         adapter = GenericAdapter(items = dbHelper.getDownloadNovelNames() as ArrayList<String>, layoutResId = R.layout.listitem_download_queue_old, listener = this)
         recyclerView.setDefaultsNoAnimation(adapter)
-//        recyclerView.addItemDecoration(object : DividerItemDecoration(this, DividerItemDecoration.VERTICAL) {
-//
-//            override fun getItemOffsets(outRect: Rect?, view: View?, parent: RecyclerView?, state: RecyclerView.State?) {
-//                val position = parent?.getChildAdapterPosition(view)
-//                if (position == parent?.adapter?.itemCount?.minus(1)) {
-//                    outRect?.setEmpty()
-//                } else {
-//                    super.getItemOffsets(outRect, view, parent, state)
-//                }
-//            }
-//        })
         swipeRefreshLayout.isEnabled = false
     }
 
     @SuppressLint("SetTextI18n")
     override fun bind(item: String, itemView: View, position: Int) {
         val novel = dbHelper.getNovel(item)
-        if (novel?.imageUrl != null) {
+        if (!novel?.imageUrl.isNullOrBlank()) {
             Glide.with(this)
-                .load(novel.imageUrl?.getGlideUrl())
-                .apply(RequestOptions.circleCropTransform())
-                .into(itemView.novelImageView)
+                    .load(novel!!.imageUrl!!.getGlideUrl())
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(itemView.novelImageView)
         }
         itemView.novelTitleTextView.text = item
         //val downloadedPages = dbHelper.getDownloadedChapterCount(novel!!.id)
 
-
-        val isServiceRunning = Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME)
-
-        if (dbHelper.hasDownloadsInQueue(item) && isServiceRunning) {
+        if (dbHelper.hasDownloadsInQueue(item) && Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME)) {
             itemView.playPauseImage.setImageResource(R.drawable.ic_pause_white_vector)
             itemView.playPauseImage.tag = Download.STATUS_IN_QUEUE
-            val remainingDownloadsCount = dbHelper.getRemainingDownloadsCountForNovel(item)
-            itemView.novelProgressText.text = "${getString(R.string.download_in_queue)} - Remaining: $remainingDownloadsCount"
+            //val remainingDownloadsCount = dbHelper.getRemainingDownloadsCountForNovel(item)
+            itemView.novelProgressText.text = "Downloading: retrieving status…"
         } else {
             itemView.playPauseImage.setImageResource(R.drawable.ic_play_arrow_white_vector)
             itemView.playPauseImage.tag = Download.STATUS_PAUSED
@@ -115,24 +99,25 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         }
 
         itemView.playPauseImage.setOnClickListener {
-            when {
-                itemView.playPauseImage.tag == Download.STATUS_PAUSED -> {
+            when (itemView.playPauseImage.tag) {
+                Download.STATUS_PAUSED -> {
                     itemView.playPauseImage.setImageResource(R.drawable.ic_pause_white_vector)
                     itemView.playPauseImage.tag = Download.STATUS_IN_QUEUE
-                    dbHelper.updateDownloadStatus(Download.STATUS_IN_QUEUE, item)
-                    if (!Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME))
+                    dbHelper.updateDownloadStatusNovelName(Download.STATUS_IN_QUEUE, item)
+                    if (Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME)) {
+                        downloadNovelService?.handleNovelDownload(item, DownloadNovelService.ACTION_START)
+                    } else {
                         startDownloadNovelService(item)
-                    else {
-                        EventBus.getDefault().post(DownloadActionEvent(item, DownloadNovelService.ACTION_START))
+                        bindService()
                     }
                 }
-
-                itemView.playPauseImage.tag == Download.STATUS_IN_QUEUE -> {
+                Download.STATUS_IN_QUEUE -> {
                     itemView.playPauseImage.setImageResource(R.drawable.ic_play_arrow_white_vector)
                     itemView.playPauseImage.tag = Download.STATUS_PAUSED
-                    dbHelper.updateDownloadStatus(Download.STATUS_PAUSED, item)
+                    dbHelper.updateDownloadStatusNovelName(Download.STATUS_PAUSED, item)
                     itemView.novelProgressText.text = getString(R.string.download_paused)
-                    EventBus.getDefault().post(DownloadActionEvent(item, DownloadNovelService.ACTION_PAUSE))
+                    if (Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME))
+                        downloadNovelService?.handleNovelDownload(item, DownloadNovelService.ACTION_PAUSE)
                 }
             }
             //adapter.notifyDataSetChanged()
@@ -154,7 +139,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             val downloadEvent = payloads[0]
 
             if (downloadEvent is DownloadWebPageEvent) {
-                if (downloadEvent.download.novelName == item) {
+                if (downloadEvent.download.novelName == item && itemView.playPauseImage.tag != Download.STATUS_PAUSED) {
                     val remainingDownloadsCount = dbHelper.getRemainingDownloadsCountForNovel(item)
                     itemView.novelProgressText.text = "Remaining: $remainingDownloadsCount, Current: ${downloadEvent.download.chapter}"
                 }
@@ -164,12 +149,18 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     when (downloadEvent.type) {
                         EventType.PAUSED -> {
                             itemView.novelProgressText.text = getString(R.string.download_paused)
+                            itemView.playPauseImage.setImageResource(R.drawable.ic_play_arrow_white_vector)
+                            itemView.playPauseImage.tag = Download.STATUS_PAUSED
                         }
                         EventType.INSERT -> {
+                            itemView.playPauseImage.setImageResource(R.drawable.ic_pause_white_vector)
+                            itemView.playPauseImage.tag = Download.STATUS_IN_QUEUE
                             val remainingDownloadsCount = dbHelper.getRemainingDownloadsCountForNovel(item)
                             itemView.novelProgressText.text = "${getString(R.string.download_in_queue)} - Remaining: $remainingDownloadsCount"
                         }
                         EventType.RUNNING -> {
+                            itemView.playPauseImage.setImageResource(R.drawable.ic_pause_white_vector)
+                            itemView.playPauseImage.tag = Download.STATUS_IN_QUEUE
                             itemView.novelProgressText.text = "Collecting Novel Information…"
                         }
                     }
@@ -179,82 +170,91 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         }
     }
 
-    override fun onItemClick(item: String) {
-
+    override fun onItemClick(item: String, position: Int) {
+        //Do Nothing
     }
 
     private fun confirmDeleteDialog(novelName: String) {
         MaterialDialog.Builder(this)
-            .title(getString(R.string.confirm_remove))
-            .content(getString(R.string.confirm_remove_download_description))
-            .positiveText(R.string.remove)
-            .negativeText(R.string.cancel)
-            .onPositive { dialog, _ ->
-                run {
-                    dbHelper.deleteDownloads(novelName)
-                    adapter.removeItem(novelName)
-                    dialog.dismiss()
+                .title(getString(R.string.confirm_remove))
+                .content(getString(R.string.confirm_remove_download_description))
+                .positiveText(R.string.remove)
+                .negativeText(R.string.cancel)
+                .onPositive { dialog, _ ->
+                    run {
+                        dbHelper.deleteDownloads(novelName)
+                        adapter.removeItem(novelName)
+                        if (isServiceConnected && Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME))
+                            downloadNovelService?.handleNovelDownload(novelName, DownloadNovelService.ACTION_REMOVE)
+                        dialog.dismiss()
+                    }
                 }
-            }
-            .onNegative { dialog, _ ->
-                run {
-                    dialog.dismiss()
+                .onNegative { dialog, _ ->
+                    run {
+                        dialog.dismiss()
+                    }
                 }
-            }
-            .show()
+                .show()
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (item?.itemId == android.R.id.home) finish()
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) finish()
         return super.onOptionsItemSelected(item)
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onWebPageDownloadEvent(downloadWebPageEvent: DownloadWebPageEvent) {
-        if (downloadWebPageEvent.type == EventType.COMPLETE) {
+
+    @UiThread
+    override fun handleEvent(downloadWebPageEvent: DownloadWebPageEvent) {
+        recyclerView.post {
+            //if (downloadWebPageEvent.type == EventType.COMPLETE) {
             val index = adapter.items.indexOf(downloadWebPageEvent.download.novelName)
             adapter.notifyItemRangeChanged(index, 1, downloadWebPageEvent)
+            //}
         }
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onNovelDownloadEvent(downloadNovelEvent: DownloadNovelEvent) {
-
-        @Suppress("NON_EXHAUSTIVE_WHEN")
-        when (downloadNovelEvent.type) {
-            EventType.INSERT, EventType.RUNNING, EventType.PAUSED -> {
-                val index = adapter.items.indexOf(downloadNovelEvent.novelName)
-                adapter.notifyItemRangeChanged(index, 1, downloadNovelEvent)
-            }
-
-            EventType.DELETE -> {
-                adapter.removeItem(downloadNovelEvent.novelName)
+    @UiThread
+    override fun handleEvent(downloadNovelEvent: DownloadNovelEvent) {
+        recyclerView.post {
+            when (downloadNovelEvent.type) {
+                EventType.INSERT, EventType.RUNNING, EventType.PAUSED -> {
+                    val index = adapter.items.indexOf(downloadNovelEvent.novelName)
+                    adapter.notifyItemRangeChanged(index, 1, downloadNovelEvent)
+                }
+                EventType.DELETE -> {
+                    adapter.removeItem(downloadNovelEvent.novelName)
+                    if (isServiceConnected && Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME))
+                        downloadNovelService?.handleNovelDownload(downloadNovelEvent.novelName, DownloadNovelService.ACTION_REMOVE)
+                }
+                else -> {
+                    //Do Nothing
+                }
             }
         }
     }
-
-//    @Subscribe(threadMode = ThreadMode.MAIN)
-//    fun onChapterServiceEvent(serviceEvent: ServiceEvent) {
-//        if (serviceEvent.type == EventType.COMPLETE) {
-//            fab.setImageResource(R.drawable.ic_play_arrow_white_vector)
-//            adapter.notifyDataSetChanged()
-//            fab.tag = "paused"
-//        } else if (serviceEvent.type == EventType.RUNNING) {
-//            fab.setImageResource(R.drawable.ic_pause_white_vector)
-//            adapter.notifyDataSetChanged()
-//            fab.tag = "playing"
-//        }
-//    }
-
 
     override fun onStart() {
         super.onStart()
-        EventBus.getDefault().register(this)
+        // Bind to LocalService
+        val isServiceRunning = Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME)
+        if (isServiceRunning) {
+            bindService()
+        }
     }
 
     override fun onStop() {
-        EventBus.getDefault().unregister(this)
         super.onStop()
+        if (isServiceConnected) {
+            unbindService(mConnection)
+            isServiceConnected = false
+            downloadNovelService?.downloadListener = null
+        }
+    }
+
+    private fun bindService() {
+        Intent(this, DownloadNovelService::class.java).also { intent ->
+            bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
+        }
     }
 
 

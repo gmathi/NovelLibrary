@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:fancy="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,7 +8,7 @@
     tools:context="io.github.gmathi.novellibrary.activity.NavDrawerActivity"
     android:animateLayoutChanges="true">
 
-    <android.support.v7.widget.CardView
+    <androidx.cardview.widget.CardView
         android:id="@+id/statusCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -36,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/white"
                 android:textSize="14sp"
-                android:text="@string/sync_in_progress"
+                android:text="@string/auto_read_next_chapter_description"
                 android:gravity="center"
                 tools:ignore="SmallSp"/>
 
@@ -44,28 +42,28 @@
         </RelativeLayout>
 
 
-    </android.support.v7.widget.CardView>
+    </androidx.cardview.widget.CardView>
 
 
-    <com.nguyenhoanglam.progresslayout.ProgressLayout
+    <io.github.gmathi.novellibrary.util.view.ProgressLayout
         android:id="@+id/progressLayout"
         android:layout_below="@+id/statusCard"
         android:layout_alignWithParentIfMissing="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <android.support.v4.widget.SwipeRefreshLayout
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipeRefreshLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <android.support.v7.widget.RecyclerView
+            <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"/>
-        </android.support.v4.widget.SwipeRefreshLayout>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    </com.nguyenhoanglam.progresslayout.ProgressLayout>
+    </io.github.gmathi.novellibrary.util.view.ProgressLayout>
 
 
 </RelativeLayout>

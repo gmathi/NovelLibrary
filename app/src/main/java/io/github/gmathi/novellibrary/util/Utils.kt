@@ -1,39 +1,62 @@
 package io.github.gmathi.novellibrary.util
 
 import android.app.ActivityManager
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Context.ACTIVITY_SERVICE
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.VectorDrawable
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.util.TypedValue
+import androidx.annotation.DrawableRes
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.documentfile.provider.DocumentFile
+import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.model.Novel
+import io.github.gmathi.novellibrary.util.storage.createFileIfNotExists
+import io.github.gmathi.novellibrary.util.storage.getOrCreateDirectory
+import io.github.gmathi.novellibrary.util.storage.getOrCreateFile
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.network.sync.NovelSync
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.safety.Whitelist
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
 
 object Utils {
+
+    private const val TAG = "UTILS"
+    private const val BUFFER_SIZE = 16384
 
     //region color utils
     fun getThemeAccentColor(context: Context): Int {
         val typedValue = TypedValue()
         val a = context.obtainStyledAttributes(
-                typedValue.data,
-                intArrayOf(R.attr.colorAccent)
+            typedValue.data,
+            intArrayOf(R.attr.colorAccent)
         )
         val color = a.getColor(0, Color.CYAN)
         a.recycle()
@@ -44,8 +67,8 @@ object Utils {
     fun getThemePrimaryColor(context: Context): Int {
         val typedValue = TypedValue()
         val a = context.obtainStyledAttributes(
-                typedValue.data,
-                intArrayOf(R.attr.colorPrimary)
+            typedValue.data,
+            intArrayOf(R.attr.colorPrimary)
         )
         val color = a.getColor(0, Color.BLUE)
         a.recycle()
@@ -74,51 +97,12 @@ object Utils {
 
     //endregion
 
-    //region UtilLogs
-    fun debug(tag: String, message: String) {
-        if (BuildConfig.DEBUG) {
-            Log.d(tag, message)
-        }
-    }
-
-    fun info(tag: String, message: String) {
-        if (BuildConfig.DEBUG) {
-            Log.i(tag, message)
-        }
-    }
-
-    fun warning(tag: String, message: String) {
-        if (BuildConfig.DEBUG) {
-            Log.w(tag, message)
-        }
-    }
-
-    fun warning(tag: String, message: String, throwable: Throwable) {
-        if (BuildConfig.DEBUG) {
-            Log.w(tag, message, throwable)
-        }
-    }
-
-    fun error(tag: String, message: String) {
-        if (BuildConfig.DEBUG) {
-            Log.e(tag, message)
-        }
-    }
-
-    fun error(tag: String, message: String, throwable: Throwable) {
-        if (BuildConfig.DEBUG) {
-            Log.e(tag, message, throwable)
-        }
-    }
-
-
-    //endregion
 
     fun getHostDir(context: Context, url: String): File {
         val uri = Uri.parse(url)
         val path = context.filesDir
 
-        val dirName = uri.host.writableFileName()
+        val dirName = (uri.host ?: "NoHostNameFound").writableFileName()
         val hostDir = File(path, dirName)
         if (!hostDir.exists()) hostDir.mkdir()
 
@@ -141,6 +125,7 @@ object Utils {
         val novelDir = getNovelDir(hostDir, novel.name)
         novelDir.deleteRecursively()
         dbHelper.cleanupNovelData(novel)
+        NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncDeleteNovels(it.host)) it.removeNovel(novel) }
         broadcastNovelDelete(context, novel)
     }
 
@@ -167,28 +152,163 @@ object Utils {
     }
 
     @Throws(IOException::class)
-    fun copyFile(src: File, dst: File) {
-        val inChannel = FileInputStream(src).channel
-        val outChannel = FileOutputStream(dst).channel
-        try {
-            inChannel!!.transferTo(0, inChannel.size(), outChannel)
-        } finally {
-            inChannel?.close()
-            outChannel?.close()
+    fun copyFile(inputStream: InputStream, dst: File) {
+        inputStream.use {
+            FileOutputStream(dst).use { outStream ->
+                val buffer = ByteArray(BUFFER_SIZE)
+                var bytesRead: Int = inputStream.read(buffer)
+                while (bytesRead != -1) {
+                    outStream.write(buffer, 0, bytesRead)
+                    bytesRead = inputStream.read(buffer)
+                }
+            }
         }
     }
 
     @Throws(IOException::class)
-    fun copyFile(src: InputStream, dst: File) {
-        val outStream = FileOutputStream(dst)
-        val buffer = ByteArray(8 * 1024)
-        var bytesRead: Int = src.read(buffer)
-        while (bytesRead != -1) {
-            outStream.write(buffer, 0, bytesRead)
-            bytesRead = src.read(buffer)
+    fun copyFile(src: File, dst: File) {
+        copyFile(src.inputStream(), dst)
+    }
+
+    @Throws(IOException::class)
+    fun copyFile(contentResolver: ContentResolver, src: File, dst: DocumentFile) {
+        FileInputStream(src).use { inStream ->
+            contentResolver.openOutputStream(dst.uri)?.use { outStream ->
+                val buffer = ByteArray(BUFFER_SIZE)
+                var bytesRead = inStream.read(buffer)
+                while (bytesRead != -1) {
+                    outStream.write(buffer, 0, bytesRead)
+                    bytesRead = inStream.read(buffer)
+                }
+            }
         }
-        src.close()
-        outStream.close()
+
+    }
+
+    @Throws(IOException::class)
+    fun copyFile(contentResolver: ContentResolver, src: DocumentFile, dst: File) {
+        contentResolver.openInputStream(src.uri)?.use { inStream ->
+            FileOutputStream(dst).use { outStream ->
+                val buffer = ByteArray(BUFFER_SIZE)
+                var bytesRead = inStream.read(buffer)
+                while (bytesRead != -1) {
+                    outStream.write(buffer, 0, bytesRead)
+                    bytesRead = inStream.read(buffer)
+                }
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    fun recursiveCopy(src: File, dst: File) {
+        src.listFiles()?.forEach { file ->
+            if (file.isDirectory) {
+                val destDir = File(dst, file.name)
+                if (!destDir.exists()) destDir.mkdir()
+                recursiveCopy(file, destDir)
+            } else {
+                copyFile(file, File(dst, file.name))
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    fun recursiveCopy(contentResolver: ContentResolver, src: File, dst: DocumentFile) {
+        src.listFiles()?.forEach { file ->
+            if (file.isDirectory) {
+                val destDir = dst.getOrCreateDirectory(file.name)!!
+                recursiveCopy(contentResolver, file, destDir)
+            } else {
+                copyFile(contentResolver, file, dst.getOrCreateFile(src.name)!!)
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    fun recursiveCopy(contentResolver: ContentResolver, src: DocumentFile, dst: File) {
+        src.listFiles().forEach { file ->
+            val name = file.name
+            if (name != null) {
+                if (file.isDirectory) {
+                    val destDir = File(dst, name)
+                    recursiveCopy(contentResolver, file, destDir)
+                } else {
+                    copyFile(contentResolver, file, File(dst, name))
+                }
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    fun zip(contentResolver: ContentResolver, file: File, zip: DocumentFile, log: Boolean = false) {
+        ZipOutputStream(BufferedOutputStream(contentResolver.openOutputStream(zip.uri)!!)).use {
+            zip(file, it, log)
+        }
+    }
+
+    @Throws(IOException::class)
+    fun zip(file: File, outStream: ZipOutputStream, log: Boolean = false) {
+        val basePathLength = (file.parent?.length ?: file.path.lastIndexOf('/')) + 1
+        if (log) Log.i(TAG, "zip: file=${file.name}, basePathLength=$basePathLength")
+        if (file.isFile) {
+            zipFile(file, outStream, basePathLength, log)
+        } else {
+            zipDirectory(file, outStream, basePathLength, log)
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun zipFile(file: File, outStream: ZipOutputStream, basePathLength: Int, log: Boolean = false) {
+        BufferedInputStream(file.inputStream(), BUFFER_SIZE).use {
+            val entry = ZipEntry(file.path.substring(basePathLength))
+            if (log) Log.i(TAG, "zip: file=${file.name}, entry=${entry.name}")
+            entry.time = file.lastModified() // to keep modification time after unzipping
+            outStream.putNextEntry(entry)
+            val data = ByteArray(BUFFER_SIZE)
+            var count = it.read(data, 0, BUFFER_SIZE)
+            while (count != -1) {
+                outStream.write(data, 0, count)
+                count = it.read(data, 0, BUFFER_SIZE)
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun zipDirectory(dir: File, outStream: ZipOutputStream, basePathLength: Int, log: Boolean = false) {
+        dir.listFiles()?.forEach {
+            if (it.isFile) {
+                zipFile(it, outStream, basePathLength, log)
+            } else {
+                zipDirectory(it, outStream, basePathLength, log)
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    fun unzip(contentResolver: ContentResolver, uri: Uri, dir: File) {
+        contentResolver.openInputStream(uri)?.let {
+            val inputStream = ZipInputStream(BufferedInputStream(it))
+            var entry = inputStream.nextEntry
+            while (entry != null) {
+                if (entry.isDirectory) {
+                    val subDir = File(dir, entry.name)
+                    if (!subDir.exists())
+                        subDir.mkdirs()
+                } else {
+                    val file = File(dir, entry.name)
+                    file.createFileIfNotExists()
+                    file.outputStream().use {
+                        val data = ByteArray(BUFFER_SIZE)
+                        var count = inputStream.read(data, 0, BUFFER_SIZE)
+                        while (count != -1) {
+                            it.write(data, 0, count)
+                            count = inputStream.read(data, 0, BUFFER_SIZE)
+                        }
+                    }
+                }
+                entry = inputStream.nextEntry
+            }
+        }
     }
 
     /**
@@ -208,13 +328,13 @@ object Utils {
         if (dir.exists()) {
             var result: Long = 0
             val fileList = dir.listFiles()
-            for (i in fileList.indices) {
+            for (i in fileList!!.indices) {
                 // Recursive call if it's a directory
-                if (fileList[i].isDirectory) {
-                    result += getFolderSize(fileList[i])
+                result += if (fileList[i].isDirectory) {
+                    getFolderSize(fileList[i])
                 } else {
                     // Sum the file size in bytes
-                    result += fileList[i].length()
+                    fileList[i].length()
                 }
             }
             return result // return the file size
@@ -237,7 +357,13 @@ object Utils {
         return manager.getRunningServices(Integer.MAX_VALUE).any { serviceQualifiedName == it.service.className }
     }
 
-    fun dialogBuilder(activity: AppCompatActivity, title: String? = null, content: String? = null, iconRes: Int = R.drawable.ic_warning_white_vector, isProgress: Boolean = false): MaterialDialog.Builder {
+    fun dialogBuilder(
+        activity: AppCompatActivity,
+        title: String? = null,
+        content: String? = null,
+        iconRes: Int = R.drawable.ic_warning_white_vector,
+        isProgress: Boolean = false
+    ): MaterialDialog.Builder {
         val dialogBuilder = MaterialDialog.Builder(activity)
 
         if (title != null)
@@ -250,7 +376,7 @@ object Utils {
             dialogBuilder.content(content)
 
         dialogBuilder
-                .iconRes(iconRes)
+            .iconRes(iconRes)
 
         if (!isProgress)
             dialogBuilder.positiveText(activity.getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
@@ -258,7 +384,49 @@ object Utils {
         return dialogBuilder
     }
 
-    fun getCurrentFormattedDate() = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date())
+    fun getCurrentFormattedDate(): String = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date())
 
+    fun getBitmapFromDrawable(context: Context, @DrawableRes drawableId: Int): Bitmap {
+        val drawable = AppCompatResources.getDrawable(context, drawableId)
+
+        return if (drawable is BitmapDrawable) {
+            drawable.bitmap
+        } else if (drawable is VectorDrawableCompat || drawable is VectorDrawable) {
+            val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            drawable.setBounds(0, 0, canvas.width, canvas.height)
+            drawable.draw(canvas)
+
+            bitmap
+        } else {
+            throw IllegalArgumentException("unsupported drawable type")
+        }
+    }
+
+    //Unique Notification IDs for notifications
+    private class NotificationId {
+        companion object {
+            // First 1000 reserved for other notifications
+            private const val notificationIdStartFrom = 1000
+
+            @JvmStatic
+            internal val notificationIdCounter: AtomicInteger = AtomicInteger(notificationIdStartFrom)
+        }
+    }
+
+    fun getUniqueNotificationId() = NotificationId.notificationIdCounter.getAndIncrement()
+
+    fun measureTime(codeBlock: () -> Unit) {
+        val startTime = System.currentTimeMillis()
+        codeBlock()
+        val diff = (System.currentTimeMillis() - startTime) / 1000f
+        Logs.info("MeasuredTime", "$diff")
+    }
+
+    fun Document.getFormattedText(): String {
+        outputSettings(Document.OutputSettings().prettyPrint(false))
+        val htmlString: String = html()//.replace("\\\\n", "\n")
+        return Jsoup.clean(htmlString, "", Whitelist.none(), Document.OutputSettings().prettyPrint(false)).replace("&nbsp", "")
+    }
 
 }

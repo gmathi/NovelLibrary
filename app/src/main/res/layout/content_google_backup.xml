@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+<!--    <data>-->
+
+<!--        <variable-->
+<!--            name="vm"-->
+<!--            type="io.github.gmathi.novellibrary.viewmodel.GoogleBackupViewModel" />-->
+<!--    </data>-->
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        tools:context=".activity.settings.GoogleBackupActivity">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Last Backup Section -->
+
+<!--            <ImageView-->
+<!--                android:id="@+id/lastBackupIcon"-->
+<!--                android:layout_width="24dp"-->
+<!--                android:layout_height="24dp"-->
+<!--                android:layout_margin="16dp"-->
+<!--                android:contentDescription="@string/backup"-->
+<!--                app:layout_constraintStart_toStartOf="parent"-->
+<!--                app:layout_constraintTop_toTopOf="parent"-->
+<!--                app:srcCompat="@drawable/ic_backup_white_24dp" />-->
+
+<!--            <TextView-->
+<!--                android:id="@+id/lastBackupTitle"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_margin="16dp"-->
+<!--                android:gravity="bottom"-->
+<!--                android:text="Last Backup"-->
+<!--                android:textColor="@color/white"-->
+<!--                android:textSize="17sp"-->
+<!--                android:textStyle="bold"-->
+<!--                app:layout_constraintStart_toEndOf="@id/lastBackupIcon"-->
+<!--                app:layout_constraintTop_toTopOf="parent" />-->
+
+<!--            <TextView-->
+<!--                android:id="@+id/lastBackupSubtitle"-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="8dp"-->
+<!--                android:layout_marginEnd="16dp"-->
+<!--                android:text="Back up your novels and preferences to Google Drive. You can restore them when you reinstall Novel Library. Your novels will also backup to your phone's internal storage."-->
+<!--                android:textSize="14sp"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintStart_toStartOf="@id/lastBackupTitle"-->
+<!--                app:layout_constraintTop_toBottomOf="@id/lastBackupTitle" />-->
+
+<!--            <TextView-->
+<!--                android:id="@+id/lastBackupTimestamp"-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="16dp"-->
+<!--                android:layout_marginEnd="16dp"-->
+<!--                android:minHeight="48dp"-->
+<!--                android:text="@{vm.lastUpdatedTimestamp}"-->
+<!--                android:textColor="@color/white"-->
+<!--                android:textSize="15sp"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintStart_toStartOf="@id/lastBackupTitle"-->
+<!--                app:layout_constraintTop_toBottomOf="@id/lastBackupSubtitle"-->
+<!--                tools:text="Local: 1:45 PM\nGoogle Drive: 7:35 AM\nSize: 6.1 GB" />-->
+
+<!--            <Button-->
+<!--                android:id="@+id/backupButton"-->
+<!--                android:layout_width="100dp"-->
+<!--                android:layout_height="40dp"-->
+<!--                android:layout_marginTop="16dp"-->
+<!--                android:background="@drawable/background_transparent_with_border"-->
+<!--                android:backgroundTint="@color/colorAccent"-->
+<!--                android:text="@string/backup"-->
+<!--                android:visibility="visible"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintHorizontal_bias="0.0"-->
+<!--                app:layout_constraintStart_toStartOf="@id/lastBackupTitle"-->
+<!--                app:layout_constraintTop_toBottomOf="@id/lastBackupTimestamp" />-->
+
+<!--            <androidx.constraintlayout.widget.ConstraintLayout-->
+<!--                android:id="@+id/progressLayout"-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="16dp"-->
+<!--                android:visibility="invisible"-->
+<!--                app:layout_constraintBottom_toTopOf="@id/divider"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintStart_toStartOf="@id/lastBackupTitle"-->
+<!--                app:layout_constraintTop_toBottomOf="@id/lastBackupTimestamp"-->
+<!--                app:layout_constraintVertical_bias="0.0">-->
+
+<!--                <ImageButton-->
+<!--                    android:id="@+id/stopButton"-->
+<!--                    android:layout_width="24dp"-->
+<!--                    android:layout_height="24dp"-->
+<!--                    android:layout_marginEnd="16dp"-->
+<!--                    android:background="@color/full_transparent"-->
+<!--                    android:contentDescription="@string/stop"-->
+<!--                    app:layout_constraintEnd_toEndOf="parent"-->
+<!--                    app:layout_constraintTop_toTopOf="parent"-->
+<!--                    app:srcCompat="@drawable/ic_close_white_vector" />-->
+
+<!--                <ProgressBar-->
+<!--                    android:id="@+id/progressBar"-->
+<!--                    style="@android:style/Widget.DeviceDefault.ProgressBar.Horizontal"-->
+<!--                    android:layout_width="0dp"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginEnd="16dp"-->
+<!--                    android:indeterminate="true"-->
+<!--                    app:layout_constraintBottom_toBottomOf="@id/stopButton"-->
+<!--                    app:layout_constraintEnd_toStartOf="@id/stopButton"-->
+<!--                    app:layout_constraintStart_toStartOf="parent"-->
+<!--                    app:layout_constraintTop_toTopOf="@id/stopButton" />-->
+
+<!--                <TextView-->
+<!--                    android:id="@+id/backupStatusTextView"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginTop="4dp"-->
+<!--                    android:text="@{vm.backupStatus}"-->
+<!--                    android:textSize="12sp"-->
+<!--                    app:layout_constraintEnd_toEndOf="parent"-->
+<!--                    app:layout_constraintHorizontal_bias="0.0"-->
+<!--                    app:layout_constraintStart_toStartOf="parent"-->
+<!--                    app:layout_constraintTop_toBottomOf="@id/progressBar"-->
+<!--                    tools:text="Preparing data (6%)" />-->
+
+<!--            </androidx.constraintlayout.widget.ConstraintLayout>-->
+
+
+<!--            <View-->
+<!--                android:id="@+id/divider"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="1dp"-->
+<!--                android:layout_marginTop="24dp"-->
+<!--                android:layout_marginBottom="16dp"-->
+<!--                android:background="@color/gray"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintStart_toStartOf="parent"-->
+<!--                app:layout_constraintTop_toBottomOf="@id/backupButton" />-->
+
+<!--            <ImageView-->
+<!--                android:id="@+id/gdIcon"-->
+<!--                android:layout_width="24dp"-->
+<!--                android:layout_height="24dp"-->
+<!--                android:layout_margin="16dp"-->
+<!--                android:contentDescription="@string/backup"-->
+<!--                app:layout_constraintStart_toStartOf="parent"-->
+<!--                app:layout_constraintTop_toBottomOf="@id/divider"-->
+<!--                app:srcCompat="@drawable/ic_settings_white_vector" />-->
+
+<!--            <TextView-->
+<!--                android:id="@+id/gdTitle"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_margin="16dp"-->
+<!--                android:gravity="bottom"-->
+<!--                android:text="Google Drive Settings"-->
+<!--                android:textColor="@color/white"-->
+<!--                android:textSize="17sp"-->
+<!--                android:textStyle="bold"-->
+<!--                app:layout_constraintStart_toEndOf="@id/gdIcon"-->
+<!--                app:layout_constraintTop_toBottomOf="@id/divider" />-->
+
+<!--            <TextView-->
+<!--                android:id="@+id/gdSubtitle"-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="8dp"-->
+<!--                android:layout_marginEnd="16dp"-->
+<!--                android:text="Below are all the settings related to Google Drive back up. Tap on them to change them."-->
+<!--                android:textSize="14sp"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintStart_toStartOf="@id/gdTitle"-->
+<!--                app:layout_constraintTop_toBottomOf="@id/gdTitle" />-->
+
+<!--            <androidx.constraintlayout.widget.ConstraintLayout-->
+<!--                android:id="@+id/backupIntervalLayout"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="60dp"-->
+<!--                android:layout_marginTop="32dp"-->
+<!--                android:onClick="@{() -> vm.onBackupIntervalClicked()}"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintStart_toStartOf="parent"-->
+<!--                app:layout_constraintTop_toBottomOf="@id/gdSubtitle">-->
+
+<!--                <TextView-->
+<!--                    android:id="@+id/bilTitleTextView"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginStart="56dp"-->
+<!--                    android:layout_marginEnd="16dp"-->
+<!--                    android:gravity="bottom"-->
+<!--                    android:text="Back up to Google Drive"-->
+<!--                    android:textColor="@color/white"-->
+<!--                    android:textSize="17sp"-->
+<!--                    app:layout_constraintStart_toStartOf="parent"-->
+<!--                    app:layout_constraintTop_toTopOf="parent" />-->
+
+<!--                <TextView-->
+<!--                    android:id="@+id/backupIntervalTextView"-->
+<!--                    android:layout_width="0dp"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginTop="4dp"-->
+<!--                    android:layout_marginEnd="16dp"-->
+<!--                    android:text="@{vm.backupInterval}"-->
+<!--                    android:textSize="14sp"-->
+<!--                    app:layout_constraintEnd_toEndOf="parent"-->
+<!--                    app:layout_constraintStart_toStartOf="@id/bilTitleTextView"-->
+<!--                    app:layout_constraintTop_toBottomOf="@id/bilTitleTextView"-->
+<!--                    tools:text="Daily" />-->
+
+<!--            </androidx.constraintlayout.widget.ConstraintLayout>-->
+
+<!--            <androidx.constraintlayout.widget.ConstraintLayout-->
+<!--                android:id="@+id/GoogleAccountLayout"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="60dp"-->
+<!--                android:layout_marginTop="16dp"-->
+<!--                android:onClick="@{() -> vm.onGoogleAccountClicked()}"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintStart_toStartOf="parent"-->
+<!--                app:layout_constraintTop_toBottomOf="@id/backupIntervalLayout">-->
+
+<!--                <TextView-->
+<!--                    android:id="@+id/gaTitleTextView"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginStart="56dp"-->
+<!--                    android:layout_marginEnd="16dp"-->
+<!--                    android:gravity="bottom"-->
+<!--                    android:text="Google Account"-->
+<!--                    android:textColor="@color/white"-->
+<!--                    android:textSize="17sp"-->
+<!--                    app:layout_constraintStart_toStartOf="parent"-->
+<!--                    app:layout_constraintTop_toTopOf="parent" />-->
+
+<!--                <TextView-->
+<!--                    android:id="@+id/googleAccountTextView"-->
+<!--                    android:layout_width="0dp"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginTop="4dp"-->
+<!--                    android:layout_marginEnd="16dp"-->
+<!--                    android:text="@{vm.googleAccountEmail}"-->
+<!--                    android:textSize="14sp"-->
+<!--                    app:layout_constraintEnd_toEndOf="parent"-->
+<!--                    app:layout_constraintStart_toStartOf="@id/gaTitleTextView"-->
+<!--                    app:layout_constraintTop_toBottomOf="@id/gaTitleTextView"-->
+<!--                    tools:text="gmathi.developer@gmail.com" />-->
+
+<!--            </androidx.constraintlayout.widget.ConstraintLayout>-->
+
+<!--            <androidx.constraintlayout.widget.ConstraintLayout-->
+<!--                android:id="@+id/internetTypeLayout"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="60dp"-->
+<!--                android:layout_marginTop="16dp"-->
+<!--                android:onClick="@{() -> vm.onInternetTypeClicked()}"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintStart_toStartOf="parent"-->
+<!--                app:layout_constraintTop_toBottomOf="@id/GoogleAccountLayout">-->
+
+<!--                <TextView-->
+<!--                    android:id="@+id/itTitleTextView"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginStart="56dp"-->
+<!--                    android:layout_marginEnd="16dp"-->
+<!--                    android:gravity="bottom"-->
+<!--                    android:text="Back up over"-->
+<!--                    android:textColor="@color/white"-->
+<!--                    android:textSize="17sp"-->
+<!--                    app:layout_constraintStart_toStartOf="parent"-->
+<!--                    app:layout_constraintTop_toTopOf="parent" />-->
+
+<!--                <TextView-->
+<!--                    android:id="@+id/internetTypeTextView"-->
+<!--                    android:layout_width="0dp"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginTop="4dp"-->
+<!--                    android:layout_marginEnd="16dp"-->
+<!--                    android:text="@{vm.internetType}"-->
+<!--                    android:textSize="14sp"-->
+<!--                    app:layout_constraintEnd_toEndOf="parent"-->
+<!--                    app:layout_constraintStart_toStartOf="@id/itTitleTextView"-->
+<!--                    app:layout_constraintTop_toBottomOf="@id/itTitleTextView"-->
+<!--                    tools:text="Wi-Fi or cellular" />-->
+
+<!--            </androidx.constraintlayout.widget.ConstraintLayout>-->
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+</layout>

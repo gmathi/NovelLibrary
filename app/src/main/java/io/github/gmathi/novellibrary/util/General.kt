@@ -6,18 +6,20 @@ import android.content.res.AssetManager
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
 import android.widget.TextView
 import com.bumptech.glide.load.model.GlideUrl
-import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.adapter.GenericAdapterWithDragListener
-import io.github.gmathi.novellibrary.dataCenter
-import jp.wasabeef.recyclerview.animators.SlideInRightAnimator
 import com.bumptech.glide.load.model.LazyHeaders
+import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.util.view.SnappingLinearLayoutManager
+import jp.wasabeef.recyclerview.animators.SlideInRightAnimator
+import java.net.URL
 
 
 fun ViewGroup.inflate(layoutRes: Int): View {
@@ -25,11 +27,20 @@ fun ViewGroup.inflate(layoutRes: Int): View {
     return LayoutInflater.from(context).inflate(layoutRes, this, false)
 }
 
-fun String.addToSearchHistory() {
-    val list = dataCenter.loadSearchHistory()
-    if (!list.contains(this))
+fun String.addToNovelSearchHistory() {
+    val list = dataCenter.loadNovelSearchHistory()
+    if (!list.contains(this)) {
         list.add(0, this)
-    dataCenter.saveSearchHistory(list)
+        dataCenter.saveNovelSearchHistory(list)
+    }
+}
+
+fun String.addToLibrarySearchHistory() {
+    val list = dataCenter.loadLibrarySearchHistory()
+    if (!list.contains(this)) {
+        list.add(0, this)
+        dataCenter.saveLibrarySearchHistory(list)
+    }
 }
 
 fun String.writableFileName(): String {
@@ -40,9 +51,11 @@ fun String.writableFileName(): String {
 }
 
 fun String.getGlideUrl(): GlideUrl {
+    val url = URL(this)
+    val hostName = url.host.replace("www.", "").replace("m.", "").trim()
     val builder = LazyHeaders.Builder()
-            .addHeader("User-Agent", dataCenter.userAgent)
-            .addHeader("Cookie", dataCenter.cfCookiesString)
+            .addHeader("User-Agent", HostNames.USER_AGENT)
+            .addHeader("Cookie", dataCenter.getCFCookiesString(hostName))
 
     return GlideUrl(this, builder.build())
 }
@@ -65,39 +78,16 @@ fun <T> RecyclerView.setDefaults(adapter: GenericAdapter<T>): RecyclerView {
     return this
 }
 
-fun <T> RecyclerView.setDefaultsNoAnimation(adapter: GenericAdapter<T>): RecyclerView {
+fun RecyclerView.setDefaultsNoAnimation(adapter: RecyclerView.Adapter<*>): RecyclerView {
     this.setHasFixedSize(true)
     this.layoutManager = SnappingLinearLayoutManager(context)
     this.adapter = adapter
     return this
 }
-
-fun <T> RecyclerView.setDefaults(adapter: GenericAdapterWithDragListener<T>): RecyclerView {
-    val animator = SlideInRightAnimator(OvershootInterpolator(1f))
-    animator.addDuration = 1000
-    animator.removeDuration = 1000
-    animator.changeDuration = 0
-    animator.moveDuration = 200
-
-    this.setHasFixedSize(true)
-    this.layoutManager = SnappingLinearLayoutManager(context)
-    this.itemAnimator = animator
-    this.adapter = adapter
-
-    return this
-}
-
-
-fun <T> RecyclerView.setDefaultsNoAnimation(adapter: GenericAdapterWithDragListener<T>): RecyclerView {
-    this.setHasFixedSize(true)
-    this.layoutManager = SnappingLinearLayoutManager(context)
-    this.adapter = adapter
-    return this
-}
-
 
 fun Uri.getFileName(): String {
-    return (this.lastPathSegment + this.toString().substringAfter("?", "")).writableFileName()
+    return ((this.lastPathSegment
+            ?: "") + this.toString().substringAfter("?", "")).writableFileName()
 }
 
 fun ContextWrapper.sendBroadcast(extras: Bundle, action: String) {
@@ -124,5 +114,16 @@ fun TextView.setTypeface(style: Int): TextView {
 private fun String?.contains(chapter: String?): Boolean {
     return (this != null) && (chapter != null) && this.contains(chapter)
 }
+
+fun String.addPageNumberToUrl(pageNumber: Int, pageNumberExtension: String): String {
+    val url = URL(this)
+    return if (!url.query.isNullOrBlank()) {
+        "$this&$pageNumberExtension=$pageNumber"
+    } else {
+        "$this?$pageNumberExtension=$pageNumber"
+    }
+
+}
+
 
 

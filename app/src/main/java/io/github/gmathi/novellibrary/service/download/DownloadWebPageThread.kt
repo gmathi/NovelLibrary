@@ -3,23 +3,24 @@ package io.github.gmathi.novellibrary.service.download
 import android.content.Context
 import android.net.Uri
 import com.google.gson.Gson
-import io.github.gmathi.novellibrary.cleaner.HtmlHelper
+import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
 import io.github.gmathi.novellibrary.database.*
-import io.github.gmathi.novellibrary.model.Download
-import io.github.gmathi.novellibrary.model.DownloadWebPageEvent
-import io.github.gmathi.novellibrary.model.EventType
-import io.github.gmathi.novellibrary.model.WebPage
+import io.github.gmathi.novellibrary.model.database.Download
+import io.github.gmathi.novellibrary.model.database.WebPage
+import io.github.gmathi.novellibrary.model.database.WebPageSettings
+import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
+import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
+import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.writableFileName
-import org.greenrobot.eventbus.EventBus
-import org.jsoup.helper.StringUtil
 import org.jsoup.nodes.Document
 import java.io.File
 
 
-class DownloadWebPageThread(val context: Context, val download: Download, val dbHelper: DBHelper) : Thread() {
+class DownloadWebPageThread(val context: Context, val download: Download, val dbHelper: DBHelper, private val downloadListener: DownloadListener) : Thread(), DownloadListener {
 
     companion object {
         private const val TAG = "DownloadWebPageThread"
@@ -32,94 +33,106 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         try {
             if (isNetworkDown()) throw InterruptedException(Constants.NO_NETWORK)
 
-            val webPage = dbHelper.getWebPage(download.webPageId)!!
+            val webPageSettings = dbHelper.getWebPageSettings(download.webPageUrl)!!
+            val webPage = dbHelper.getWebPage(download.webPageUrl)!!
 
-            hostDir = Utils.getHostDir(context, webPage.url)
+            hostDir = Utils.getHostDir(context, webPageSettings.url)
             novelDir = Utils.getNovelDir(hostDir, download.novelName)
 
-            dbHelper.updateDownloadStatus(Download.STATUS_RUNNING, download.webPageId)
-            EventBus.getDefault().post(DownloadWebPageEvent(EventType.RUNNING, webPage.id, download))
+            dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_RUNNING, download.webPageUrl)
+            downloadListener.handleEvent(DownloadWebPageEvent(EventType.RUNNING, webPageSettings.url, download))
 
-            if (downloadChapter(webPage)) {
-                dbHelper.deleteDownload(download.webPageId)
-                EventBus.getDefault().post(DownloadWebPageEvent(EventType.COMPLETE, webPage.id, download))
+            val downloadComplete = downloadChapter(webPageSettings, webPage)
+            if (downloadComplete) {
+                dbHelper.deleteDownload(download.webPageUrl)
+                //downloadListener.handleEvent(DownloadWebPageEvent(EventType.COMPLETE, webPageSettings.url, download))
+            } else {
+                Logs.error(TAG, "Download did not complete!")
             }
 
         } catch (e: InterruptedException) {
-            Utils.error(TAG, "Interrupting the Thread: ${download.novelName}-${download.webPageId}, ${e.localizedMessage}")
+            Logs.error(TAG, "Interrupting the Thread: ${download.novelName}-${download.webPageUrl}, ${e.localizedMessage}")
         } catch (e: Exception) {
-            Utils.error(TAG, "This is really bad!!", e)
+            Logs.error(TAG, "This is really bad!!", e)
         }
 
     }
 
-    private fun downloadChapter(webPage: WebPage): Boolean {
+    private fun downloadChapter(webPageSettings: WebPageSettings, webPage: WebPage): Boolean {
         val doc: Document
         try {
-            doc = NovelApi.getDocumentWithUserAgent(webPage.url)
+            doc = NovelApi.getDocument(webPageSettings.url)
         } catch (e: Exception) {
-            Utils.error(TAG, "Error getting WebPage: ${webPage.url}")
-            e.printStackTrace()
+            Logs.error(TAG, "Error getting WebPage: ${webPageSettings.url}")
             return false
         }
 
         val uri = Uri.parse(doc.location())
-        if (!StringUtil.isBlank(uri.host)) {
+        if (!uri.host.isNullOrBlank()) {
 
-            val htmlHelper = HtmlHelper.getInstance(doc, uri.host)
-            htmlHelper.clean(doc, hostDir, novelDir)
-            webPage.title = htmlHelper.getTitle(doc)
-            val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPage.title!!.writableFileName())) ?: return false
-            webPage.filePath = file.path
-            webPage.redirectedUrl = doc.location()
+            val htmlHelper = HtmlCleaner.getInstance(doc, uri.host ?: doc.location())
+            htmlHelper.downloadResources(doc, hostDir, novelDir)
+            webPageSettings.title = htmlHelper.getTitle(doc)
+            val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName()))
+                ?: return false
+            webPageSettings.filePath = file.path
+            webPageSettings.redirectedUrl = doc.location()
 
+            // We need to clean up the document to get only valid linked URLS
+            htmlHelper.removeJS(doc)
+            htmlHelper.additionalProcessing(doc)
+            htmlHelper.setProperHrefUrls(doc)
+
+            // Now we extract other links from the cleaned doc
             val otherLinks = htmlHelper.getLinkedChapters(doc)
             if (otherLinks.isNotEmpty()) {
-                val otherWebPages = ArrayList<WebPage>()
-                otherLinks.mapNotNullTo(otherWebPages) { it -> downloadOtherChapterLinks(it, hostDir, novelDir) }
-                webPage.metaData[Constants.MD_OTHER_LINKED_WEB_PAGES] = Gson().toJson(otherWebPages)
+                val otherWebPages = ArrayList<WebPageSettings>()
+                otherLinks.mapNotNullTo(otherWebPages) { downloadOtherChapterLinks(it, webPage.novelId, hostDir, novelDir) }
+                webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = Gson().toJson(otherLinks)
+                otherWebPages.forEach {
+                    dbHelper.createWebPageSettings(it)
+                }
             }
 
-            if (webPage.metaData.containsKey(Constants.DOWNLOADING))
-                webPage.metaData.remove(Constants.DOWNLOADING)
-            val id = dbHelper.updateWebPage(webPage)
-            return (id.toInt() != -1)
+            if (webPageSettings.metadata.containsKey(Constants.DOWNLOADING))
+                webPageSettings.metadata.remove(Constants.DOWNLOADING)
+            dbHelper.updateWebPageSettings(webPageSettings)
+            return true
         }
         return false
     }
 
-    private fun downloadOtherChapterLinks(otherChapterLink: String, hostDir: File, novelDir: File): WebPage? {
+    private fun downloadOtherChapterLinks(otherChapterLink: String, novelId: Long, hostDir: File, novelDir: File): WebPageSettings? {
 
         val doc: Document
         try {
-            doc = NovelApi.getDocumentWithUserAgent(otherChapterLink)
+            doc = NovelApi.getDocument(otherChapterLink)
         } catch (e: Exception) {
-            Utils.error(TAG, "Error getting WebPage: $otherChapterLink")
+            Logs.error(TAG, "Error getting internal links: $otherChapterLink")
             e.printStackTrace()
             return null
         }
 
         val uri = Uri.parse(doc.location())
-        if (StringUtil.isBlank(uri.host)) return null
+        if (uri.host.isNullOrBlank()) return null
 
-        val otherWebPage = WebPage(otherChapterLink, doc.title())
-        val htmlHelper = HtmlHelper.getInstance(doc, uri.host)
-        htmlHelper.clean(doc, hostDir, novelDir)
+        val webPageSettings = WebPageSettings(otherChapterLink, novelId)
+        val htmlHelper = HtmlCleaner.getInstance(doc, uri.host ?: doc.location())
+        htmlHelper.downloadResources(doc, hostDir, novelDir)
 
-        otherWebPage.title = htmlHelper.getTitle(doc)
-        if (otherWebPage.title != null && otherWebPage.title == "") otherWebPage.title = doc.location()
+        webPageSettings.title = htmlHelper.getTitle(doc)
+        if (webPageSettings.title != null && webPageSettings.title == "") webPageSettings.title = doc.location()
 
-        otherWebPage.id = -2L
-
-        val file = htmlHelper.convertDocToFile(doc, File(novelDir, otherWebPage.title!!.writableFileName())) ?: return null
-        otherWebPage.filePath = file.path
-        otherWebPage.redirectedUrl = doc.location()
-        return otherWebPage
+        val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName()))
+            ?: return null
+        webPageSettings.filePath = file.path
+        webPageSettings.redirectedUrl = doc.location()
+        return webPageSettings
     }
 
 
     private fun onNoNetwork() {
-        Utils.error(TAG, Constants.NO_NETWORK)
+        Logs.info(TAG, Constants.NO_NETWORK)
     }
 
     private fun isNetworkDown(): Boolean {
@@ -130,4 +143,11 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         return false
     }
 
+    override fun handleEvent(downloadWebPageEvent: DownloadWebPageEvent) {
+        downloadListener.handleEvent(downloadWebPageEvent)
+    }
+
+    override fun handleEvent(downloadNovelEvent: DownloadNovelEvent) {
+        downloadListener.handleEvent(downloadNovelEvent)
+    }
 }
