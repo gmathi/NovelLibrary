@@ -1,4 +1,51 @@
 package io.github.gmathi.novellibrary.cleaner
 
-class ChrysanthemumgardenCleaner {
+import io.github.gmathi.novellibrary.dataCenter
+import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
+
+class ChrysanthemumgardenCleaner : HtmlCleaner() {
+    override fun additionalProcessing(doc: Document) {
+        val body = doc.body() ?: return;
+
+        body.getElementById("top-bar").remove();
+        body.getElementById("site-navigation").remove();
+        body.getElementById("masthead").remove();
+
+        body.getElementById("right-sidebar").remove();
+
+        body.getElementsByTag("footer").remove()
+
+        val content = body.getElementById("content") ?: return;
+        content.getElementsByClass("chrys-iklan")?.remove();
+        content.getElementsByClass("announcement")?.remove();
+
+        val primary = content.getElementById("primary") ?: return;
+        val main = primary.getElementById("main") ?: return;
+        // only remove first navigation
+        try {
+            main.getElementsByClass("navigation")?.first { it ->
+                it.hasClass("post-navigation")
+            }?.remove()
+        } catch (ex: NoSuchElementException) {}
+
+        // remove tables of contents
+        main.getElementsByClass("toc")?.remove()
+        main.getElementsByClass("post-author")?.remove()
+        main.getElementsByClass("related-novels")?.remove()
+        main.getElementsByClass("fixed-action-btn")?.forEach {
+            val floatingButton = it.getElementsByClass("btn-floating")
+            if (floatingButton != null && floatingButton.hasClass("btn-large")) {
+                floatingButton.remove()
+            }
+        }
+        
+        val comments = main.getElementById("comments") ?: return;
+        if (!dataCenter.showChapterComments) {
+            comments.remove()
+        } else {
+            // Remove "Post comment"
+            comments.getElementById("respond")?.remove()
+        }
+    }
 }
