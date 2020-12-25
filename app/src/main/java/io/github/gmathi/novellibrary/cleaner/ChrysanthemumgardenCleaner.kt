@@ -23,11 +23,10 @@ class ChrysanthemumgardenCleaner : HtmlCleaner() {
         val primary = content.getElementById("primary") ?: return;
         val main = primary.getElementById("main") ?: return;
         // only remove first navigation
-        try {
-            main.getElementsByClass("navigation")?.first { it ->
-                it.hasClass("post-navigation")
-            }?.remove()
-        } catch (ex: NoSuchElementException) {}
+        removeFirstDirectoryLinks(main)
+        if (!dataCenter.enableDirectionalLinks) {
+            removeFirstDirectoryLinks(main)
+        }
 
         // remove tables of contents
         main.getElementsByClass("toc")?.remove()
@@ -51,5 +50,13 @@ class ChrysanthemumgardenCleaner : HtmlCleaner() {
 
     override fun getTitle(doc: Document): String? {
         return doc.getElementsByClass("chapter-title")?.first()?.text() ?: super.getTitle(doc)
+    }
+    
+    private fun removeFirstDirectoryLinks(main: Element) {
+        try {
+            main.getElementsByClass("navigation")?.first { it ->
+                it.hasClass("post-navigation")
+            }?.remove()
+        } catch (ex: NoSuchElementException) {}
     }
 }
