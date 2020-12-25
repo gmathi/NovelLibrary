@@ -74,6 +74,7 @@ open class HtmlCleaner protected constructor() {
                 url.contains(HostNames.SCRIBBLE_HUB) -> return ScribbleHubCleaner()
                 url.contains(HostNames.NEOVEL) -> return NeovelCleaner()
                 url.contains(HostNames.ACTIVE_TRANSLATIONS) -> return ActiveTranslationsCleaner()
+                url.contains(HostNames.CHRYSANTHEMUMGARDEN) -> return ChrysanthemumgardenCleaner()
             }
 
             val body = doc.body()
