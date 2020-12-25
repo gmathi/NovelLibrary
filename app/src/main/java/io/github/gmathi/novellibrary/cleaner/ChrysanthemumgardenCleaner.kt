@@ -39,7 +39,7 @@ class ChrysanthemumgardenCleaner : HtmlCleaner() {
                 floatingButton.remove()
             }
         }
-        
+
         val comments = main.getElementById("comments") ?: return;
         if (!dataCenter.showChapterComments) {
             comments.remove()
@@ -47,5 +47,9 @@ class ChrysanthemumgardenCleaner : HtmlCleaner() {
             // Remove "Post comment"
             comments.getElementById("respond")?.remove()
         }
+    }
+
+    override fun getTitle(doc: Document): String? {
+        return doc.getElementsByClass("chapter-title")?.first()?.text() ?: super.getTitle(doc)
     }
 }
