@@ -33,7 +33,7 @@
     <string-array name="search_tab_titles">
         <item>Beliebt</item>
         <item>Höchstbewertet</item>
-        <item>Aktive</item>
+        <item>Aktiv</item>
     </string-array>
 
     <string name="title_activity_novel_details">Novel</string>
@@ -137,7 +137,7 @@
         "Spenden helfen bei der Entwicklung und Veröffentlichung neuer Funktionen."
         "Spenden sind über die GMail Anwendung an gmathi.developer@gmail.com möglich"
     </string>
-    <string name="app_exit">Nochmal Zurück um App zu beenden</string>
+    <string name="app_exit">Nochmal Zurück tippen um die App zu beenden</string>
     <string name="general">Allgemein</string>
     <string name="faster_downloads">Schnellere Downloads</string>
     <string name="faster_downloads_description">Sehr schnelle Downloads aber führt evtl. zu Abstürzen</string>
@@ -145,13 +145,13 @@
     <string name="first_screen_library_description">Falls ausgeschaltet, “Suche” als neuer Homescreen</string>
     <string name="clean_pages">Säubere Kapitel</string>
     <string name="clean_pages_description">Säubere Kapitel und entferne alles außer Text vor dem Laden.</string>
-    <string name="failed_to_load_url">Konnte Inhalte nicht laden!</string>
+    <string name="failed_to_load_url">Inhalte konnten nicht laden werden!</string>
     <string name="disable_javascript">Javascript abschalten</string>
     <string name="disable_javascript_description">Manche Websiten schalten Werbung wenn Javascript aktiv ist</string>
     <string name="donations_description_new">Ich bin froh, dass du spenden willst! Für jetzt, bitte verbreiten Sie das Wort und teilen Sie die App mit anderen Romanliebhabern!</string>
     <string name="language">Sprache</string>
     <string name="languages_supported">Unterstützte Sprachen</string>
-    <string name="download_chapters">Herunterladen von Kapiteln</string>
+    <string name="download_chapters">Kapitel Herunterladen</string>
     <string name="mark_read">Markieren</string>
     <string name="mark_unread">Ungelesen markieren</string>
     <string name="unread">Ungelesen</string>
@@ -159,13 +159,13 @@
     <string name="chapters_selected">%1$d Ausgewählt</string>
     <string name="okay">OK</string>
     <string name="confirm_action">Aktion bestätigen</string>
-    <string name="mark_chapters_unread_dialog_content">Markieren Sie die Kapitel ungelesen?</string>
-    <string name="mark_chapters_read_dialog_content">Markenkapitel lesen?</string>
+    <string name="mark_chapters_unread_dialog_content">Als ungelesen markieren?</string>
+    <string name="mark_chapters_read_dialog_content">Als gelesen markieren?</string>
     <string name="download_chapters_dialog_content">Kapitel herunterladen? \n Hinweis: Kapitel-Downloads können nicht pausiert / gestoppt werden</string>
     <string name="alert">Alert</string>
-    <string name="novel_not_in_library_dialog_content">Neu muss der Bibliothek hinzugefügt werden, bevor Kapitel einzeln heruntergeladen werden können</string>
-    <string name="download_all_chapters_dialog_content">Verwalten Sie neuartige Downloads mit dem Download-Manager. Laden Sie alle Kapitel?</string>
-    <string name="background_chapter_downloads">Hintergrund-Kapitel-Downloads wurde gestartet</string>
+    <string name="novel_not_in_library_dialog_content">Roman muss zu der Bibliothek hinzugefügt werden, bevor einzelne Kapitel heruntergeladen werden können</string>
+    <string name="download_all_chapters_dialog_content">Verwalten Sie neue Downloads mit dem Download-Manager. Alle Kapitel herunterladen?</string>
+    <string name="background_chapter_downloads">Kapitel-Downloads wurde im Hintergrund gestartet</string>
 
     <!-- v0.5 Strings -->
 
@@ -183,27 +183,27 @@
     <string name="new_chapters_notification_content_full">%1$d Romane mit insgesamt %2$d neuen Kapiteln. Klicken Sie zum Lesen!</string>
     <string name="new_chapters_notification_content_single">%1$d neue Kapitel</string>
     <string name="new_chapters_notification_title">Neue Kapitel verfügbar</string>    
-    <string name="sync_in_progress">Sync in progress</string>
+    <string name="sync_in_progress">Synchronisierung in Bearbeitung</string>
 
     <!-- v0.6 Strings -->
 
-    <string name="mentions">Mentionen</string>
+    <string name="mentions">Erwähnungen</string>
     <string name="select_all">Alles auswählen</string>
     <string name="clear_selection">Auswahl löschen</string>
-    <string name="download_novel">Herunterladen Novel</string>
+    <string name="download_novel">Herunterladene Romane</string>
     <string name="add_to_library_dialog_content">Der Roman muss der Bibliothek hinzugefügt werden, bevor Sie einzelne Kapitel herunterladen/markieren können. Möchten Sie diesen Roman - %s der Bibliothek hinzufügen?</string>
-    <string name="swipe_right_for_next_chapter">Left to Right Swipe</string>
-    <string name="swipe_right_for_next_chapter_description">Für nächstes Kapitel rechts abbiegen</string>
+    <string name="swipe_right_for_next_chapter">Von links nach rechts wischen</string>
+    <string name="swipe_right_for_next_chapter_description">Für das nächstes Kapitel nach rechts wischen</string>
     <string name="no_bookmark_found_dialog_title">Starten Sie das Lesen?</string>
-    <string name="no_bookmark_found_dialog_description">Sieht aus, als hättest du noch ‘%s’ noch nicht gelesen, warum fängst du jetzt nicht an?</string>
+    <string name="no_bookmark_found_dialog_description">Sieht aus, als hättest du ‘%s’ noch nicht gelesen, warum fängst du jetzt nicht an?</string>
     <string name="sync_interval">Synchronisierungsintervall</string>
     <string name="sync_interval_description">Überprüfen Sie auf neuartige Aktualisierungsintervalle</string>
 
     <!-- v0.6.2 Strings -->
 
-    <string name="clean">Reinigen</string>
+    <string name="clean">Bereinigen</string>
     <string name="reader">Leser</string>
-    <string name="reader_mode">Leser Mode</string>
+    <string name="reader_mode">Lesemodus</string>
     <string name="show_reader_scroll">"Scrollbar anzeigen "</string>
     <string name="show_reader_scroll_description">"Zeigt die vertikale Bildlaufleiste am rechten Bildschirmrand an, um den Verlauf des Kapitels zu verfolgen. "</string>
     <string name="show_comments_section">Kommentare anzeigen</string>
@@ -216,89 +216,89 @@
     <string name="volume_scroll_description">Verwenden Sie die Lautstärketaste, um beim Lesen nach oben / unten zu blättern</string>
     <string name="keep_screen_on">Halten Sie den Bildschirm an</string>
     <string name="keep_screen_on_description">Hält den Bildschirm bei, während du liest</string>
-    <string name="join_us_on_discord">Begleiten Sie uns auf Discord</string>
+    <string name="join_us_on_discord">Trete uns auf Discord bei</string>
     <string name="other">Andere</string>
     <string name="title_activity_recently_updated_novels">Kürzlich aktualisierte Romane</string>
     <string name="title_activity_recently_viewed_novels">Kürzlich angesehene Romane</string>
-    <string name="no_bookmark">No Bookmark!</string>
-    <string name="imported_list">Imported List</string>
+    <string name="no_bookmark">Kein Lesezeichen!</string>
+    <string name="imported_list">Importierte Lesezeichen</string>
 
-    <string name="already_in_library">[ Already In Library ]</string>
-    <string name="group_update_notification_text">Updated for the novels in your library</string>
-    <string name="confirm_remove_download_description">Do you want to remove the novel from downloads?</string>
-    <string name="reader_mode_description">Reader mode will be on permanently</string>
-    <string name="delete_chapters">Delete Chapters</string>
+    <string name="already_in_library">[ Bereits in der Bibliotek ]</string>
+    <string name="group_update_notification_text">Aktualisierte Romane deiner Bibliothek</string>
+    <string name="confirm_remove_download_description">Willst du den Roman von den Downloads entfernen?</string>
+    <string name="reader_mode_description">Lesemodus wird permanent eingeschaltet sein</string>
+    <string name="delete_chapters">Gelöschte Kapitel</string>
 
     <!-- v0.8 Strings -->
 
-    <string name="immersive_mode">Show Full Screen</string>
-    <string name="immersive_mode_description">Hide the system bars when reading</string>
-    <string name="title_reader">Reader Mode</string>
-    <string name="title_night">Night Mode</string>
-    <string name="title_fonts">Fonts</string>
-    <string name="title_fonts_size">Font Size</string>
-    <string name="title_report_page">Report Page</string>
-    <string name="title_open_in_browser">Open in Browser</string>
-    <string name="title_share_chapter">Share Chapter</string>
+    <string name="immersive_mode">Vollbildschirm</string>
+    <string name="immersive_mode_description">Beim Lesen Systemleiste ausblenden</string>
+    <string name="title_reader">Lesemodus</string>
+    <string name="title_night">Nachtmodus</string>
+    <string name="title_fonts">Schriftarten</string>
+    <string name="title_fonts_size">Schriftgröße</string>
+    <string name="title_report_page">Seite melden</string>
+    <string name="title_open_in_browser">Im Browser öffnen</string>
+    <string name="title_share_chapter">Kapitel teilen</string>
 <!--    <string name="skip_cloud_flare_string">Please wait 5~10 secs while we bypass cloud flare</string>-->
     <string name="title_java_script">JavaScript</string>
-    <string name="refresh_cloud_flare_cookies">Refresh CloudFlare Cookies</string>
-    <string name="merge_pages">Merge All Links To Single Page</string>
-    <string name="merge_pages_description">Merges all the web pages in to a single web page, so that the announcement posts are shown in the same screen</string>
-    <string name="title_merge_pages">Merge Pages</string>
+    <string name="refresh_cloud_flare_cookies">CloudFlare Cookies neuladen</string>
+    <string name="merge_pages">Alle Links zu einer Seite zusammenfügen</string>
+    <string name="merge_pages_description">Fügt alle Webseiten in einer einzige Webseite zusammen, sodass Mittelungen auf dem selbem Bildschrim angezeigt werden</string>
+    <string name="title_merge_pages">Seiten zusammenfügen</string>
     <string name="directional_links">Directional Links</string>
-    <string name="directional_links_description">Next Chapter &amp; Previous Chapter Links will be shown on the reader mode screen</string>
-    <string name="reader_mode_button_visibility">Reader Mode Button Visibility</string>
+    <string name="directional_links_description">Nächstes Kapitel &amp; Previous Chapter Links will be shown on the reader mode screen</string>
+    <string name="reader_mode_button_visibility">Sichtbarkeit des Lesemodus Knofps</string>
     <string name="reader_mode_button_visibility_description">The reader mode menu icon will be hidden, if this is enabled. You can also open reader mode menu by swiping from the far right edge of the screen</string>
-    <string name="cloud_flare_bypass_description">Please wait 5~15 secs while we check for CloudFlare…</string>
-    <string name="cloud_flare_bypass_failure_title">Cloudflare Bypass Failed</string>
-    <string name="cloud_flare_bypass_success">Cloudflare bypassed successfully</string>
-    <string name="backup_and_restore">Backup &amp; Restore</string>
-    <string name="internal_clear_data">Clear Cache &amp; Data</string>
-    <string name="internal_clear_data_description">Clears the cache, files and database (including the Auto-generated folders)</string>
+    <string name="cloud_flare_bypass_description">Bitte 5~15 Sekunden warten, während wir CloudFlare prüfen</string>
+    <string name="cloud_flare_bypass_failure_title">Cloudflare Bypass fehlgeschlagen</string>
+    <string name="cloud_flare_bypass_success">Cloudflare bypassed erfolgreich</string>
+    <string name="backup_and_restore">Sichern &amp; Wiederherstellen</string>
+    <string name="internal_clear_data">Zwischenspeicher &amp; Daten leeren</string>
+    <string name="internal_clear_data_description">Leert den Zwischenspeicher, Dateien und Datenbanken (eingeschloßen den Auto-generierten Ordnern)</string>
     <string name="enable_cloud_flare">Cloud Flare Cookies</string>
-    <string name="enable_cloud_flare_description">You need to restart the app, after you toggle this!</string>
-    <string name="preferences">Preferences (reader settings, e.t.c.)</string>
-    <string name="downloaded_files">Downloaded Chapters(Files)</string>
+    <string name="enable_cloud_flare_description">Du muss die App neustarten, wenn du dies umstellst!</string>
+    <string name="preferences">Einstellungen (Lese-Einstellungen, usw.)</string>
+    <string name="downloaded_files">Heruntergeladene Kapitel (Dateien)</string>
 
-    <string name="disable_notifications">Enable Notifications</string>
-    <string name="disable_notifications_description">Enables the hourly notifications when new chapter updates are available</string>
+    <string name="disable_notifications">Benachichtigungen aktivieren</string>
+    <string name="disable_notifications_description">Stündliche Benachitigungen aktivieren, wenn neue Kapitelaktualisierungen verfügbar sind</string>
 
-    <string name="title_novel_sections">Novel Sections</string>
-    <string name="add_novel_section">Add Novel Section</string>
+    <string name="title_novel_sections">Romangruppe</string>
+    <string name="add_novel_section">Romangruppe hinzufügen</string>
 
-    <string name="confirm_remove_description_novel_section">Novel Section will be removed and all the novels with be moved to currently reading</string>
-    <string name="rename">Rename</string>
-    <string name="add_novel_section_title">Add Novel Section</string>
-    <string name="add_novel_section_description">Enter the name for new Novel Section:</string>
-    <string name="novel_section_name">Novel Section Name</string>
-    <string name="novel_section_empty_message">Add \"Novel Sections\" &amp; categorize your novels</string>
-    <string name="novel_section_name_error">Novel Section name cannot be a existing one or empty</string>
-    <string name="assign_novel_section">Assign Novel Section</string>
-    <string name="move_up_down">Move Up/Down</string>
-    <string name="no_novel_sections_error">No Novel Sections Found!</string>
-    <string name="last_read_n_updated">Last Read: %1$s\nLast Updated: %2$s</string>
-    <string name="content_description_sources_or_all">Sources/All</string>
-    <string name="select_interval">Select Interval</string>
-    <string name="default_novel_section_name">Currently Reading</string>
-    <string name="simple_text_backup">Simple Text - Novel &amp; Novel Sections Backup</string>
-    <string name="title_read_aloud">Read Aloud</string>
-    <string name="group_download_notification_text">Downloads for the novels in your library</string>
-    <string name="stop">Stop</string>
-    <string name="pause">Pause</string>
+    <string name="confirm_remove_description_novel_section">Romangruppe wird entfernt und alle enthaltenen Romame werde zu momentan gelesen verschoben</string>
+    <string name="rename">Umbenennen</string>
+    <string name="add_novel_section_title">Romangruppe hinzufügen</string>
+    <string name="add_novel_section_description">Namen der neuen Romangruppe eingeben:</string>
+    <string name="novel_section_name">Romangruppenname</string>
+    <string name="novel_section_empty_message">Romangruppe hinzufügen &amp; deine Romane gruppieren</string>
+    <string name="novel_section_name_error">Romangruppenname darf nicht bereits existieren und nicht leer sein!</string>
+    <string name="assign_novel_section">Romangruppe zuordnen</string>
+    <string name="move_up_down">Nach unten/oben bewegen</string>
+    <string name="no_novel_sections_error">Keine Romangruppen gefunden!</string>
+    <string name="last_read_n_updated">Zuletzt gelesen: %1$s\nZuletzt aktualisiert: %2$s</string>
+    <string name="content_description_sources_or_all">Quelle/Alle</string>
+    <string name="select_interval">Interval auswählen</string>
+    <string name="default_novel_section_name">Momentan gelesen</string>
+    <string name="simple_text_backup">Einfacher Romantext &amp; Romangruppen Sicherung</string>
+    <string name="title_read_aloud">Vorlesen</string>
+    <string name="group_download_notification_text">Downloads für die Romane deiner Bibliothek</string>
+    <string name="stop">Stoppen</string>
+    <string name="pause">Pausieren</string>
     <string name="app_icon">AppIcon</string>
-    <string name="play">Play</string>
-    <string name="previous_chapter">Previous Chapter</string>
-    <string name="next_chapter">Next Chapter</string>
-    <string name="connection_error">Connection Error!</string>
+    <string name="play">Abspielen</string>
+    <string name="previous_chapter">Vorheriges Kapitel</string>
+    <string name="next_chapter">Nächstes Kapitel</string>
+    <string name="connection_error">Verbindungsfehler!</string>
 
     <!-- v0.9 Strings -->
 
     <string name="change_language">Language</string>
-    <string name="translated">Translated %1$d out of %2$d (≈%3$s%%)</string>
-    <string name="locale_system_default">System Default</string>
+    <string name="translated">%1$d übersetzt von %2$d (≈%3$s%%)</string>
+    <string name="locale_system_default">Systemvoreinstellung</string>
     <string name="locale_english">English</string>
-    <string name="locale_german">German</string>
+    <string name="locale_german">Deutsch</string>
     <string name="locale_indonesian">Indonesian</string>
     <string name="locale_portuguese">Portuguese</string>
     <string name="locale_spanish">Spanish</string>
@@ -307,67 +307,67 @@
     <string name="locale_Tagalog">Tagalog</string>
     <string name="locale_latin">Latin</string>
     <string name="locale_pirate">Pirate</string>
-    <string name="volume_scroll_length">Scroll Distance</string>
-    <string name="volume_scroll_length_description">Change the distance to scroll when using volume keys</string>
-    <string name="reverse">Reverse</string>
-    <string name="about_us_content">This project is an open-source project being developed with love for the novel reading community. If you would like to help out you can get in touch with us in discord!</string>
-    <string name="bug_report_content">Please use discord to report a bug.%1$s</string>
-    <string name="copy_to_clipboard">Copy to clipboard</string>
-    <string name="add_font">Add Font</string>
-    <string name="dont_show_again">Don\'t show again</string>
-    <string name="backup_hint">Choose a convenient location to save the backup ZIP file in</string>
-    <string name="restore_hint">Navigate to the location where your backup ZIP is and select it</string>
-    <string name="backup_frequency">Backup Frequency</string>
-    <string name="backup_frequency_description" translatable="false">Automatic backup frequency</string>
-    <string name="backup_frequency_manual">Manual</string>
-    <string name="backup_frequency_Daily">Daily</string>
-    <string name="backup_frequency_Weekly">Weekly</string>
-    <string name="backup_success">Backup Successful</string>
-    <string name="backup_fail">Backup Failed!</string>
-    <string name="restore_success">Restore Successful!</string>
-    <string name="restore_fail">Restore Failed!</string>
-    <string name="need_more_space">Not enough space left on the device! Please make enough space - %1$s and try again!</string>
-    <string name="backup_file_not_found">Couldn\'t find the backup file. Please choose a new destination</string>
-    <string name="eztracting_zip">Extracting the ZIP archive</string>
-    <string name="simple_text_restore">Simple Text - Novel &amp; Novel Sections Restore</string>
-    <string name="backup_and_restore_description">Backup &amp; Restore data to a ZIP archive</string>
-    <string name="backup_data">Backup Data</string>
-    <string name="backup_data_description">Backup the data into a ZIP archive</string>
-    <string name="restore_data">Restore Data</string>
-    <string name="restore_data_description">Restore data from a ZIP archive</string>
-    <string name="cloud_flare_check">CloudFlare Check</string>
-    <string name="title_more_settings">More Settings</string>
+    <string name="volume_scroll_length">Scrolldistanz</string>
+    <string name="volume_scroll_length_description">Ändere die Distanz, die gescrollt werden soll beim Benutzen der Lautstärkeknöpfe</string>
+    <string name="reverse">Umkehren</string>
+    <string name="about_us_content">Dieses Projekt ist ein Open-Source Projekt, erstellt mit Liebe von der Romanleser*in Community. Wenn du uns helfen möchtest, kontaktiere uns doch in Discord!</string>
+    <string name="bug_report_content">Bitte benutze Discord um einen Bug zu melden.%1$s</string>
+    <string name="copy_to_clipboard">Zur Zwischenablage kopieren</string>
+    <string name="add_font">Schriftart hinzufügen</string>
+    <string name="dont_show_again">Nicht noch einmal anzeigen</string>
+    <string name="backup_hint">Bitte wähle ein bequemen Dateipfad um deine Sicherungs-ZIP zu speichern</string>
+    <string name="restore_hint">Gehe zu dem Dateipfad wo deine Wiederhesrllungs-ZIP ist und wähle sie aus</string>
+    <string name="backup_frequency">Sicherungsintervall</string>
+    <string name="backup_frequency_description" translatable="false">Automatisches Sicherungsintervall</string>
+    <string name="backup_frequency_manual">Manuell</string>
+    <string name="backup_frequency_Daily">Täglich</string>
+    <string name="backup_frequency_Weekly">Wöchentlich</string>
+    <string name="backup_success">Sicherung erfolgreich</string>
+    <string name="backup_fail">Sicherung fehlgeschlagen!</string>
+    <string name="restore_success">Wiederherstellung erfolgreich!</string>
+    <string name="restore_fail">Wiederherstellung fehlgeschlagen!</string>
+    <string name="need_more_space">Es ist nicht genug Speicherplatz auf diesem Gerät vorhanden! Bitte mache ausreichend Platz - %1$s und versuche es nocheinmal!</string>
+    <string name="backup_file_not_found">Konnte Wiederherstellungsdatei nicht finden. Bitte lege ein neues Ziel fest</string>
+    <string name="eztracting_zip">ZIP Archiv wird extrahiert</string>
+    <string name="simple_text_restore">Einfacher Romantext &amp; Romangruppen Wiederherstellung</string>
+    <string name="backup_and_restore_description">Sichern &amp; Wiederherstellenden der Daten in einem ZIP Archiv</string>
+    <string name="backup_data">Daten sichern</string>
+    <string name="backup_data_description">Daten in ZIP Archiv sichern</string>
+    <string name="restore_data">Daten wiederherstellen</string>
+    <string name="restore_data_description">Daten aus ZIP Archiv wiederherstellen</string>
+    <string name="cloud_flare_check">CloudFlare prüfen</string>
+    <string name="title_more_settings">Mehr Einstellungen</string>
 
-    <string name="show_navbar_at_chapter_end">Show Navigation Bar At Chapter End</string>
-    <string name="show_navbar_at_chapter_end_description">Shows the navigation bar when reached the page end for phones without hardware navbar. Works only when Show Full Screen is on</string>
-    <string name="keep_text_color">Keep text color</string>
-    <string name="keep_text_color_description">Retains inlined text color styles on elements</string>
-    <string name="alternative_text_colors">Invert text colors</string>
-    <string name="alternative_text_colors_description">Inverts brightness on text colors to fit in more with dark theme of reader mode. Applies only when dark theme is enabled</string>
-    <string name="limit_image_width">Fit images</string>
-    <string name="limit_image_width_description">Enforces images maximum width to screen width. Avoids horizontal scroll appearing due to wide images</string>
-    <string name="cloud_flare_check_complete">Obtained CloudFlare clearance.</string>
-    <string name="loading">Loading…</string>
-    <string name="empty_chapters">This Novel is most likely copyrighted or pay-walled and that is the reason you don\'t see any chapters!!</string>
-    <string name="remove_favorite">Remove Favorite(s)</string>
-    <string name="mark_favorite">Mark Favorite(s)</string>
-    <string name="unfavorite_chapters_read_dialog_content">Remove chapters from favorites?</string>
-    <string name="favorite_chapters_read_dialog_content">Favorite chapters?</string>
-    <string name="day_mode_background_color">Day Mode: Background Color</string>
-    <string name="day_mode_text_color">Day Mode: Text Color</string>
-    <string name="night_mode_background_color">Night Mode: Background Color</string>
-    <string name="night_mode_text_color">Night Mode: Text Color</string>
-    <string name="reader_mode_colors">Reader Mode Theme</string>
-    <string name="reader_mode_colors_description">Change the Background and Text colors of both day and night mode</string>
+    <string name="show_navbar_at_chapter_end">Am Kapitelende Navigationsleiste anzeigen</string>
+    <string name="show_navbar_at_chapter_end_description">Zeigt Navigationsleiste wenn das Ende der Seite erreicht wurde bei Smartphones ohne Hardwarenavigationsleiste. Funktioniert nur wenn Vollbildmodus aktiv.</string>
+    <string name="keep_text_color">Textfarbe beibehalten</string>
+    <string name="keep_text_color_description">Behält inlined Textfarbenstile bei Elementen bei</string>
+    <string name="alternative_text_colors">Textfarbe invertieren</string>
+    <string name="alternative_text_colors_description">Invertiert Helligkeit von Textfarben um besser zum Nachtmodus zu passen. Funktioniert nur wenn Nachtmodus aktiv ist.</string>
+    <string name="limit_image_width">Bilder anpassen</string>
+    <string name="limit_image_width_description">Erzwingt eine Bildbereite die genauso lang ist wie die Bildschirmbreite. Verhindert horizontales scrollen wegen zu breiten Bildern</string>
+    <string name="cloud_flare_check_complete">CloudFlare Freigabe bekommen</string>
+    <string name="loading">Lädt…</string>
+    <string name="empty_chapters">Dieser Roman ist wahrscheinlich gecopyrighted oder pay-walled und somit kannst du keine Kapitel sehen!!</string>
+    <string name="remove_favorite">Favorite(n) entfernen</string>
+    <string name="mark_favorite">Favorite(n) makieren</string>
+    <string name="unfavorite_chapters_read_dialog_content">Kapitel von Favoriten entfernen?</string>
+    <string name="favorite_chapters_read_dialog_content">Kapitel favorisieren?</string>
+    <string name="day_mode_background_color">Tagmodus: Hintergrundfarbe</string>
+    <string name="day_mode_text_color">Tagmodus: Textfarbe</string>
+    <string name="night_mode_background_color">Nachtmodus: Hintergrundfarbe</string>
+    <string name="night_mode_text_color">Nachtmodus: Textfarbe</string>
+    <string name="reader_mode_colors">Darstellung des Lesemodus</string>
+    <string name="reader_mode_colors_description">Ändere die Hintergrund- und Textfarbe von Tag- und Nachtmodus</string>
     <string name="hex_color">Hex: #%1$s</string>
-    <string name="scrolling_text">Scrolling Text</string>
-    <string name="scrolling_text_description">Enable scrolling text on novel titles and other items where text is too large to fit on the screen</string>
-    <string name="auto_read_next_chapter">Auto Read Next Chapter</string>
-    <string name="auto_read_next_chapter_description">Automatically read the next chapter when the current chapter finishes in Read Aloud mode</string>
+    <string name="scrolling_text">Scrolle Text</string>
+    <string name="scrolling_text_description">Scrolltext aktivieren bei Romantiteln oder anderen Anzeigen, wo der Text zu groß ist um auf dem Bildschirm platzt zu haben</string>
+    <string name="auto_read_next_chapter">Automatisch nächste Kapitel lesen</string>
+    <string name="auto_read_next_chapter_description">Automatische nächstes Kapitel vorlesen, wenn das momentane Kapitel im Vorlesemodus fertig wurde</string>
 
     <!-- 0.16 -->
-    <string name="sync_fetching_chapter_counts">Obtaining chapter counts: %1$d / %2$d\n%3$s</string>
-    <string name="sync_fetching_chapter_list">Obtaining chapter lists: %1$d / %2$d\n%3$s</string>
+    <string name="sync_fetching_chapter_counts">Kapitelanzahl erhalten: %1$d / %2$d\n%3$s</string>
+    <string name="sync_fetching_chapter_list">Kapitelliasten erhalten: %1$d / %2$d\n%3$s</string>
 
     <string name="source_novel_updates">Novel-Updates</string>
     <string name="source_wln_updates">WLN-Updates</string>
@@ -375,51 +375,51 @@
     <string name="source_royalroad">RoyalRoad</string>
     <string name="source_novelfull">NovelFull</string>
 
-    <string name="logged_in">Logged in</string>
-    <string name="not_logged_in">Not logged in</string>
-    <string name="enabled">Enabled</string>
-    <string name="disabled">Disabled</string>
-    <string name="sync_cookies_not_found">Login cookies not found</string>
-    <string name="sync_cookies_found">Login cookies found</string>
-    <string name="confirm_forget_cookies">Forget Login</string>
-    <string name="confirm_forget_cookies_description">Delete login cookies and log out from the sync source?</string>
+    <string name="logged_in">Eingeloggt</string>
+    <string name="not_logged_in">Nicht eingeloggt</string>
+    <string name="enabled">Aktiviert</string>
+    <string name="disabled">Deaktiviert</string>
+    <string name="sync_cookies_not_found">Login Cookies nicht gefunden</string>
+    <string name="sync_cookies_found">Login Cookies gefunden</string>
+    <string name="confirm_forget_cookies">Login vergessen</string>
+    <string name="confirm_forget_cookies_description">Lösche Login Cookies und aus der Synchronisierungsquelle ausloggen</string>
     <string name="confirm_full_sync">@string/make_full_sync</string>
-    <string name="confirm_full_sync_description">Add all novels and sections from the app to the list on the source website?</string>
-    <string name="sync_batch_progress_title">Sync in progress: %1$d / %2$d</string>
-    <string name="sync_batch_progress">Adding novel: %1$s</string>
-    <string name="sync_batch_progress_bookmarks">Setting bookmark: %1$s</string>
-    <string name="sync_log_in_title">Sync: Log In</string>
-    <string name="sync_settings">Sync: Settings</string>
+    <string name="confirm_full_sync_description">Alle Romane und Gruppen der App zur Liste der Quellwebseite hinzufügen?</string>
+    <string name="sync_batch_progress_title">Synchronisierung in Bearbeitung: %1$d / %2$d</string>
+    <string name="sync_batch_progress">Roman hinzugefügt: %1$s</string>
+    <string name="sync_batch_progress_bookmarks">Lesezeichen gesetzt: %1$s</string>
+    <string name="sync_log_in_title">Synchronisierung: Eingeloggt</string>
+    <string name="sync_settings">Synchronisierung: Einstellungen</string>
 
-    <string name="enable_sync">Enable Sync</string>
+    <string name="enable_sync">Synchronisierung aktivieren</string>
     <string name="enable_sync_description">Synchronize novels from this source to the lists on the source website.</string>
-    <string name="sync_status">Sync Status</string>
+    <string name="sync_status">Synchronisierungsstatus</string>
     <string name="sync_status_description">%1$s, %2$s</string>
-    <string name="sync_log_in">Log In</string>
-    <string name="sync_log_in_description">Open browser to log in to the source website. Don\'t forget to hit the "Remember Me" checkbox!</string>
-    <string name="sync_add_novels">Synchronize new novels</string>
-    <string name="sync_add_novels_description">Novels added through app will be added to your list on the source website.</string>
-    <string name="sync_delete_novels">Synchronize deleted novels</string>
-    <string name="sync_delete_novels_description">Novels removed through app will be removed from your list on the source website.</string>
+    <string name="sync_log_in">Einloggen</string>
+    <string name="sync_log_in_description">Im Browser öffnen um sich auf der Quellwebseite anzumelden. Vergesse nicht die "Remember Me" Checkbox auszuwählen!</string>
+    <string name="sync_add_novels">Synchronisiere neue Romane</string>
+    <string name="sync_add_novels_description">Romane die durch die App hinzugefügt wurden, werden zu deiner Liste auf der Quellwebseite hinzugefügt.</string>
+    <string name="sync_delete_novels">Synchronisiere gelöschte Romane</string>
+    <string name="sync_delete_novels_description">Romane die durch die App gelöscht wurden, werden bei deiner Liste auf der Quellwebseite gelöscht.</string>
     <string name="sync_bookmarks">Synchronize bookmarks</string>
-    <string name="sync_bookmarks_description">Reading chapters in the app will synchronize reading bookmark on the source website.</string>
-    <string name="make_full_sync">Perform full sync</string>
-    <string name="make_full_sync_description">Add novels and sections from the app to your lists on the source website.</string>
-    <string name="sync_forget">Forget log in</string>
-    <string name="sync_forget_description">Delete the Login cookies from the device.</string>
+    <string name="sync_bookmarks_description">Kaptitel die in der App gelesen werden, wird dein Lesezeichen auf der Quellwebseite aktualisieren.</string>
+    <string name="make_full_sync">Vollständig synchronisieren</string>
+    <string name="make_full_sync_description">Romane und Gruppe von der App zu Listen der Quellwebseite hinzufügen.</string>
+    <string name="sync_forget">Login vergessen</string>
+    <string name="sync_forget_description">Login Cookies vom Gerät löschen.</string>
 
-    <string name="experimental_sync_disclaimer">Experimental feature!</string>
+    <string name="experimental_sync_disclaimer">Experimentelles Feature!</string>
     <string name="experimental_sync_description">
-        The sync feature lets you synchronize your app library with the source website.
-        Please keep in mind that this feature is experimental and currently only supports syncing from the app to the source website but not the other way around.
+        Das Sychronisierungsfeature erlaubt dir die App-Bibliothek mi einer Quellwebseite zu synchronisieren.
+        Bitte behalte jedoch im Kopf, dass dieses Feature experimentell ist und momentan nur die Synchronisierung der App zur Quellwebseite möglich ist, jedoch nicht andersherum.
     </string>
-    <string name="custom_query_lookups">Custom Reader Mode lookups</string>
-    <string name="custom_query_lookups_description">Advanced usage: Add your own selector query for unsupported websites in reader mode, enabling their support. (Refer JSOUP documentation for help)</string>
-    <string name="custom_query_lookups_edit">Adding your own selector query</string>
+    <string name="custom_query_lookups">Benutzerdefinierte Lesemodus Lookups</string>
+    <string name="custom_query_lookups_description">Forgeschrittene Benutzung: Füge deinen eigenen Query-Selector für nicht unterstützte Webseiten im Lesemodus hinzu um den Support zu aktivieren (Lese die JSOUP Dokumentation für mehr Hilfe).</string>
+    <string name="custom_query_lookups_edit">Füge deinen eigenen Query-Selector hinzu</string>
     <string name="custom_query_lookups_hint">div.chapter-contents</string>
-    <string name="information_cloudflare_bypass_failure">Failed to bypass Cloudflare</string>
-    <string name="information_webview_required">WebView is required for NovelLibrary</string>
-    <string name="information_webview_outdated">Please update the WebView app for better compatibility</string>
+    <string name="information_cloudflare_bypass_failure">Cloudflare Bypass fehlgeschlagen</string>
+    <string name="information_webview_required">WebView wird von NovelLibrary benötigt</string>
+    <string name="information_webview_outdated">Bitte aktualisiere die WebView App für bessere Kompatibilität</string>
 
-    <string name="source_not_installed">Source not installed: %1$s</string>
+    <string name="source_not_installed">Quelle nicht installiert: %1$s</string>
 </resources>
