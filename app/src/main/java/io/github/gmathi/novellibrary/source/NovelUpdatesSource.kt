@@ -23,7 +23,7 @@ import rx.Observable
 import rx.schedulers.Schedulers
 
 
-class NUSource : ParsedHttpSource() {
+class NovelUpdatesSource : ParsedHttpSource() {
 
     override val baseUrl: String
         get() = "https://${HostNames.NOVEL_UPDATES}"
@@ -37,8 +37,8 @@ class NUSource : ParsedHttpSource() {
     override val client: OkHttpClient = network.cloudflareClient
 
     override fun headersBuilder(): Headers.Builder = Headers.Builder()
-        .add("User-Agent", USER_AGENT)
-        .add("Referer", baseUrl)
+            .add("User-Agent", USER_AGENT)
+            .add("Referer", baseUrl)
 
     //region Search Novel
     override fun searchNovelsRequest(page: Int, query: String, filters: FilterList): Request {
@@ -47,7 +47,8 @@ class NUSource : ParsedHttpSource() {
     }
 
     override fun searchNovelsFromElement(element: Element): Novel {
-        val url = element.selectFirst("div.search_title > a")?.attr("abs:href") ?: throw Exception(INVALID_NOVEL)
+        val url = element.selectFirst("div.search_title > a")?.attr("abs:href")
+                ?: throw Exception(INVALID_NOVEL)
         val novel = Novel(url)
         element.selectFirst("div.search_title > a")?.text()?.let { novel.name = it }
         novel.imageUrl = element.selectFirst("div.search_img_nu > img[src]")?.attr("abs:src")
@@ -97,9 +98,9 @@ class NUSource : ParsedHttpSource() {
         val translatorSourcesMap = HashMap<String, String>()
         val observableList = translatorSources.map { fetchChapterListWithSources(novel, it) }
         val translatorSourceListOfChapterList = Observable
-            .from(observableList)
-            .flatMap { task -> task.observeOn(Schedulers.io()) }
-            .toList().awaitSingle()
+                .from(observableList)
+                .flatMap { task -> task.observeOn(Schedulers.io()) }
+                .toList().awaitSingle()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             translatorSourceListOfChapterList.parallelStream().forEach { translatorSourceOnlyChapterList ->
@@ -126,7 +127,8 @@ class NUSource : ParsedHttpSource() {
 
     private fun createTranslatorSourceMap(translatorSourceOnlyChapterList: List<Chapter>): HashMap<String, String> {
         if (translatorSourceOnlyChapterList.isEmpty()) return HashMap()
-        val translatorSourceName = translatorSourceOnlyChapterList.first().translatorSourceName ?: return HashMap()
+        val translatorSourceName = translatorSourceOnlyChapterList.first().translatorSourceName
+                ?: return HashMap()
         val map = HashMap<String, String>()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             translatorSourceOnlyChapterList.parallelStream().forEach {
@@ -152,9 +154,9 @@ class NUSource : ParsedHttpSource() {
         val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
         val novelUpdatesNovelId = novel.metadata["PostId"] ?: ""
         val formBody: RequestBody = FormBody.Builder()
-            .add("action", "nd_getchapters")
-            .add("mypostid", novelUpdatesNovelId)
-            .build()
+                .add("action", "nd_getchapters")
+                .add("mypostid", novelUpdatesNovelId)
+                .build()
         return POST(url, body = formBody)
     }
     //endregion
@@ -166,10 +168,10 @@ class NUSource : ParsedHttpSource() {
 
     private fun fetchTranslatorSourcesList(novel: Novel): Observable<List<TranslatorSource>> {
         return client.newCall(translatorSourcesRequest(novel))
-            .asObservableSuccess()
-            .map { response ->
-                translatorSourcesParse(response)
-            }
+                .asObservableSuccess()
+                .map { response ->
+                    translatorSourcesParse(response)
+                }
     }
 
     private fun translatorSourcesRequest(novel: Novel): Request {
@@ -177,10 +179,10 @@ class NUSource : ParsedHttpSource() {
         val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
         val novelUpdatesNovelId = novel.metadata["PostId"] ?: ""
         val formBody: RequestBody = FormBody.Builder()
-            .add("action", "nd_getgroupnovel")
-            .add("mypostid", novelUpdatesNovelId)
-            .add("mygrr", "0")
-            .build()
+                .add("action", "nd_getgroupnovel")
+                .add("mypostid", novelUpdatesNovelId)
+                .add("mygrr", "0")
+                .build()
         return POST(url, body = formBody)
     }
 
@@ -188,8 +190,8 @@ class NUSource : ParsedHttpSource() {
         val document = response.asJsoup()
         return document.select("div.checkbox").map { element ->
             TranslatorSource(
-                element.selectFirst("input.grp-filter-attr[value]").attr("value").toLong(),
-                element.text()
+                    element.selectFirst("input.grp-filter-attr[value]").attr("value").toLong(),
+                    element.text()
             )
         }
     }
@@ -203,10 +205,10 @@ class NUSource : ParsedHttpSource() {
 
     private fun fetchChapterListWithSources(novel: Novel, translatorSource: TranslatorSource?): Observable<List<Chapter>> {
         return client.newCall(chapterListWithSourcesRequest(novel, translatorSource))
-            .asObservableSuccess()
-            .map { response ->
-                chapterListParse(novel, response, translatorSource)
-            }
+                .asObservableSuccess()
+                .map { response ->
+                    chapterListParse(novel, response, translatorSource)
+                }
     }
 
     private fun chapterListWithSourcesRequest(novel: Novel, translatorSource: TranslatorSource?): Request {
@@ -214,9 +216,9 @@ class NUSource : ParsedHttpSource() {
         val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
         val novelUpdatesNovelId = novel.metadata["PostId"] ?: ""
         val formBodyBuilder = FormBody.Builder()
-            .add("action", "nd_getchapters")
-            .add("mypostid", novelUpdatesNovelId)
-            .add("mygrr", "0")
+                .add("action", "nd_getchapters")
+                .add("mypostid", novelUpdatesNovelId)
+                .add("mygrr", "0")
         translatorSource?.let { formBodyBuilder.add("mygrpfilter", it.id.toString()) }
         return POST(url, body = formBodyBuilder.build())
     }
@@ -241,10 +243,10 @@ class NUSource : ParsedHttpSource() {
 
     private fun fetchPopularNovels(rank: String, page: Int): Observable<NovelsPage> {
         return client.newCall(popularNovelsRequest(rank, page))
-            .asObservableSuccess()
-            .map { response ->
-                popularNovelsParse(response)
-            }
+                .asObservableSuccess()
+                .map { response ->
+                    popularNovelsParse(response)
+                }
     }
 
     private fun popularNovelsRequest(rank: String, page: Int): Request {

@@ -21,7 +21,7 @@ data class Novel(var url: String) : Parcelable, Serializable {
     /**
      * Internal Id from the source
      */
-    var novelId: String? = null
+    var externalNovelId: String? = null
 
     /**
      * Novel's cover art image url
@@ -129,7 +129,7 @@ data class Novel(var url: String) : Parcelable, Serializable {
     //Parcelable Implementation
     constructor(parcel: Parcel) : this(parcel.readString().toString()) {
         name = parcel.readString().toString()
-        novelId = parcel.readString()
+        externalNovelId = parcel.readString()
         imageUrl = parcel.readString()
         rating = parcel.readString()
         shortDescription = parcel.readString()
@@ -150,7 +150,7 @@ data class Novel(var url: String) : Parcelable, Serializable {
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(url)
         parcel.writeString(name)
-        parcel.writeString(novelId)
+        parcel.writeString(externalNovelId)
         parcel.writeString(imageUrl)
         parcel.writeString(rating)
         parcel.writeString(shortDescription)
@@ -191,7 +191,7 @@ data class Novel(var url: String) : Parcelable, Serializable {
 
         if (url != other.url) return false
         if (name != other.name) return false
-        if (novelId != other.novelId) return false
+        if (externalNovelId != other.externalNovelId) return false
         if (imageUrl != other.imageUrl) return false
         if (rating != other.rating) return false
         if (shortDescription != other.shortDescription) return false
@@ -214,7 +214,7 @@ data class Novel(var url: String) : Parcelable, Serializable {
     override fun hashCode(): Int {
         var result = url.hashCode()
         result = 31 * result + name.hashCode()
-        result = 31 * result + (novelId?.hashCode() ?: 0)
+        result = 31 * result + (externalNovelId?.hashCode() ?: 0)
         result = 31 * result + (imageUrl?.hashCode() ?: 0)
         result = 31 * result + (rating?.hashCode() ?: 0)
         result = 31 * result + (shortDescription?.hashCode() ?: 0)
@@ -234,7 +234,7 @@ data class Novel(var url: String) : Parcelable, Serializable {
     }
 
     override fun toString(): String {
-        return "Novel(url='$url', name='$name', novelId=$novelId, imageUrl=$imageUrl, rating=$rating, shortDescription=$shortDescription, longDescription=$longDescription, genres=$genres, authors=$authors, illustrator=$illustrator, chaptersCount=$chaptersCount, metadata=$metadata, imageFilePath=$imageFilePath, orderId=$orderId, newReleasesCount=$newReleasesCount, novelSectionId=$novelSectionId, id=$id, currentChapterUrl=$currentChapterUrl)"
+        return "Novel(url='$url', name='$name', novelId=$externalNovelId, imageUrl=$imageUrl, rating=$rating, shortDescription=$shortDescription, longDescription=$longDescription, genres=$genres, authors=$authors, illustrator=$illustrator, chaptersCount=$chaptersCount, metadata=$metadata, imageFilePath=$imageFilePath, orderId=$orderId, newReleasesCount=$newReleasesCount, novelSectionId=$novelSectionId, id=$id, currentChapterUrl=$currentChapterUrl)"
     }
 
 
