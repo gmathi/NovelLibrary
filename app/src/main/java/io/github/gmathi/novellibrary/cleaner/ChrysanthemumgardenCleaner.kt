@@ -51,12 +51,10 @@ class ChrysanthemumgardenCleaner : HtmlCleaner() {
     override fun getTitle(doc: Document): String? {
         return doc.getElementsByClass("chapter-title")?.first()?.text() ?: super.getTitle(doc)
     }
-    
+
     private fun removeFirstDirectoryLinks(main: Element) {
-        try {
-            main.getElementsByClass("navigation")?.first { it ->
-                it.hasClass("post-navigation")
-            }?.remove()
-        } catch (ex: NoSuchElementException) {}
+        main.getElementsByClass("navigation")?.firstOrNull { it ->
+            it.hasClass("post-navigation")
+        }?.remove()
     }
 }
