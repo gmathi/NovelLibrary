@@ -12,6 +12,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getAllNovels
+import io.github.gmathi.novellibrary.databinding.ActivityLibrarySearchBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
 import io.github.gmathi.novellibrary.util.system.startChaptersActivity
@@ -21,8 +22,6 @@ import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.view.SimpleAnimationListener
 import io.github.gmathi.novellibrary.util.view.SuggestionsBuilder
-import kotlinx.android.synthetic.main.activity_library_search.*
-import kotlinx.android.synthetic.main.content_recycler_view.*
 import kotlinx.android.synthetic.main.listitem_library.view.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
 import org.cryse.widget.persistentsearch.SearchItem
@@ -35,33 +34,37 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
 
     private var isDateSorted = false
     private var isTitleSorted = false
+    
+    private lateinit var binding: ActivityLibrarySearchBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_library_search)
+        
+        binding = ActivityLibrarySearchBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         setSearchView()
         setRecyclerView()
     }
 
     private fun setSearchView() {
         //searchView.setHomeButtonVisibility(View.GONE)
-        searchView.setHomeButtonListener(object : PersistentSearchView.HomeButtonListener {
+        binding.searchView.setHomeButtonListener(object : PersistentSearchView.HomeButtonListener {
             override fun onHomeButtonClick() {
                 hideSoftKeyboard()
                 finish()
             }
         })
 
-        searchView.setSuggestionBuilder(SuggestionsBuilder(dataCenter.loadLibrarySearchHistory()))
-        searchView.setSearchListener(object : PersistentSearchView.SearchListener {
+        binding.searchView.setSuggestionBuilder(SuggestionsBuilder(dataCenter.loadLibrarySearchHistory()))
+        binding.searchView.setSearchListener(object : PersistentSearchView.SearchListener {
 
             override fun onSearch(query: String?) {
                 query?.addToLibrarySearchHistory()
             }
 
             override fun onSearchEditOpened() {
-                searchViewBgTint.visibility = View.VISIBLE
-                searchViewBgTint
+                binding.searchViewBgTint.visibility = View.VISIBLE
+                binding.searchViewBgTint
                     .animate()
                     .alpha(1.0f)
                     .setDuration(300)
@@ -70,14 +73,14 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
             }
 
             override fun onSearchEditClosed() {
-                searchViewBgTint
+                binding.searchViewBgTint
                     .animate()
                     .alpha(0.0f)
                     .setDuration(300)
                     .setListener(object : SimpleAnimationListener() {
                         override fun onAnimationEnd(animation: Animator) {
                             super.onAnimationEnd(animation)
-                            searchViewBgTint.visibility = View.GONE
+                            binding.searchViewBgTint.visibility = View.GONE
                         }
                     })
                     .start()
@@ -101,8 +104,8 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
 
             override fun onSearchEditBackPressed(): Boolean {
                 //Toast.makeText(context, "onSearchEditBackPressed", Toast.LENGTH_SHORT).show()
-                if (searchView.searchOpen) {
-                    searchView.closeSearch()
+                if (binding.searchView.searchOpen) {
+                    binding.searchView.closeSearch()
                     return true
                 }
                 return false
@@ -112,7 +115,7 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
 
     private fun setRecyclerView() {
         adapter = GenericAdapter(items = ArrayList(allNovelsList), layoutResId = R.layout.listitem_library, listener = this, loadMoreListener = null)
-        recyclerView.setDefaults(adapter)
+        binding.contentRecyclerView.recyclerView.setDefaults(adapter)
     }
 
     private fun searchNovels(searchTerm: String?) {
