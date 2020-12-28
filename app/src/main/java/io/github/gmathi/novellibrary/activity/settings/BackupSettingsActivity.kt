@@ -203,7 +203,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         super.onDestroy()
     }
 
-    private fun showDialog(title: String? = null, content: String? = null, iconRes: Int = R.drawable.ic_warning_white_vector, isProgress: Boolean = false) {
+    private fun showDialog(title: String? = null, content: String? = null, iconRes: Int = R.drawable.ic_warning_white_vector) {
         if (confirmDialog != null && confirmDialog!!.isShowing)
             confirmDialog!!.dismiss()
 
@@ -212,17 +212,13 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         if (title != null)
             confirmDialogBuilder.title(getString(R.string.confirm_action))
 
-        if (isProgress)
-            confirmDialogBuilder.progress(true, 100)
-
         if (content != null)
             confirmDialogBuilder.content(content)
 
         confirmDialogBuilder
             .iconRes(iconRes)
 
-        if (!isProgress)
-            confirmDialogBuilder.positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
+        confirmDialogBuilder.positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
 
         confirmDialog = confirmDialogBuilder.build()
         confirmDialog?.show()
