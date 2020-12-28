@@ -22,6 +22,8 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <include layout="@layout/content_import_library"/>
+    <include
+        android:id="@+id/contentImportLibrary"
+        layout="@layout/content_import_library" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
