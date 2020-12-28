@@ -5,7 +5,6 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
-import androidx.lifecycle.observe
 import com.afollestad.materialdialogs.MaterialDialog
 import com.google.firebase.analytics.ktx.logEvent
 import io.github.gmathi.novellibrary.R
