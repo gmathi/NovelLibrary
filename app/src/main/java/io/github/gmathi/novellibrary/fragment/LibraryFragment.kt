@@ -31,6 +31,7 @@ import io.github.gmathi.novellibrary.network.getChapterCount
 import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
+import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
@@ -247,6 +248,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             menu.getItem(0).isVisible = (syncSnackbar == null)
         super.onPrepareOptionsMenu(menu)
     }
+    
+    fun isSyncing() = syncSnackbar != null
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
@@ -309,8 +312,20 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             var counter = 0
             novels.forEach {
                 try {
-                    syncSnackbarManager.updateTo(syncSnackbar!!.setMessage(getString(R.string.sync_fetching_chapter_counts, counter++, novels.count(), it.name)))
-                    syncSnackbarManager!!.setProgress(counter)
+                    launchUI {
+                        syncSnackbarManager.updateTo(
+                            syncSnackbar!!.setMessage(
+                                getString(
+                                    R.string.sync_fetching_chapter_counts,
+                                    counter++,
+                                    novels.count(),
+                                    it.name
+                                )
+                            )
+                        )
+                        syncSnackbarManager!!.setProgress(counter)
+                    }
+
                     val totalChapters = withContext(Dispatchers.IO) { NovelApi.getChapterCount(it) }
                     if (totalChapters != 0 && totalChapters > it.chaptersCount.toInt()) {
                         totalCountMap[it] = totalChapters
@@ -326,8 +341,20 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             syncSnackbarManager.updateTo(syncSnackbarManager.getLastShown()?.setProgressMax(totalCountMap.count())!!)
             totalCountMap.forEach {
                 val updatedNovel = it.key
-                syncSnackbarManager.updateTo(syncSnackbar!!.setMessage(getString(R.string.sync_fetching_chapter_list, counter++, totalCountMap.count(), updatedNovel.name)))
-                syncSnackbarManager.setProgress(counter)
+                counter++
+                launchUI {
+                    syncSnackbarManager.updateTo(
+                        syncSnackbar!!.setMessage(
+                            getString(
+                                R.string.sync_fetching_chapter_list,
+                                counter,
+                                totalCountMap.count(),
+                                updatedNovel.name
+                            )
+                        )
+                    )
+                    syncSnackbarManager.setProgress(counter)
+                }
                 updatedNovel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
                 dbHelper.updateNovelMetaData(updatedNovel)
                 dbHelper.updateChaptersAndReleasesCount(updatedNovel.id, it.value.toLong(), updatedNovel.newReleasesCount + (it.value - updatedNovel.chaptersCount))
@@ -350,8 +377,11 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             setData()
 
-            syncSnackbarManager.dismiss()
-            syncSnackbar = null
+            launchUI {
+                syncSnackbarManager.dismiss()
+                syncSnackbar = null
+            }
+
             activity?.invalidateOptionsMenu()
         }
     }
@@ -498,7 +528,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             setData()
         }
     }
-
+    
     override fun onDestroy() {
         super.onDestroy()
     }
