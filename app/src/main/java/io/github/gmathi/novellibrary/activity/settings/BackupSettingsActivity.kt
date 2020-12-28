@@ -20,14 +20,18 @@ import com.afollestad.materialdialogs.Theme
 import com.github.johnpersano.supertoasts.library.Style
 import com.github.johnpersano.supertoasts.library.SuperActivityToast
 import com.github.johnpersano.supertoasts.library.utils.PaletteUtils
+import com.tingyik90.snackprogressbar.SnackProgressBar
+import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
+import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
+import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.worker.BackupWorker
 import io.github.gmathi.novellibrary.worker.oneTimeBackupWorkRequest
@@ -377,27 +381,31 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             .positiveText(R.string.clear)
             .negativeText(R.string.cancel)
             .onPositive { dialog, _ ->
-                val progressDialog = MaterialDialog.Builder(this)
-                    .title(getString(R.string.clearing_data))
-                    .content(getString(R.string.please_wait))
-                    .progress(true, 0)
-                    .cancelable(false)
-                    .canceledOnTouchOutside(false)
-                    .show()
-                deleteFiles(progressDialog)
-                dialog.dismiss()
+                val snackProgressBarManager = Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this)
+                val snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_NORMAL,
+                    getString(R.string.clearing_data) + " - " + getString(R.string.please_wait))
+                launchUI {
+                    snackProgressBarManager.show(
+                        snackProgressBar,
+                        SnackProgressBarManager.LENGTH_INDEFINITE
+                    )
+                }
+                deleteFiles(snackProgressBarManager)
             }
             .onNegative { dialog, _ -> dialog.dismiss() }
             .show()
     }
 
-    private fun deleteFiles(dialog: MaterialDialog) {
+    private fun deleteFiles(dialog: SnackProgressBarManager) {
         try {
             deleteDir(cacheDir)
             deleteDir(filesDir)
             dbHelper.removeAll()
             dataCenter.saveNovelSearchHistory(ArrayList())
-            dialog.dismiss()
+
+            launchUI {
+                dialog.disable()
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
