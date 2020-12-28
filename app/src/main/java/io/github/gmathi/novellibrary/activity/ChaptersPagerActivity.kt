@@ -14,6 +14,8 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getTranslatorSource
 import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.database.updateNovel
+import io.github.gmathi.novellibrary.databinding.ActivityChaptersPagerBinding
+import io.github.gmathi.novellibrary.databinding.ContentChaptersPagerBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
@@ -25,8 +27,6 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.system.shareUrl
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel
-import kotlinx.android.synthetic.main.activity_chapters_pager.*
-import kotlinx.android.synthetic.main.content_chapters_pager.*
 import org.greenrobot.eventbus.EventBus
 import java.util.*
 import kotlin.collections.ArrayList
@@ -51,11 +51,14 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     private var progressMessage = "In Progress…"
     private var isSyncing = false
 
+    private lateinit var binding: ActivityChaptersPagerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_chapters_pager)
-        setSupportActionBar(toolbar)
+
+        binding = ActivityChaptersPagerBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val novel: Novel?
@@ -79,7 +82,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     }
 
     private fun addListeners() {
-        sourcesToggle.setOnClickListener {
+        binding.activityChaptersPager.sourcesToggle.setOnClickListener {
             if (Utils.isConnectedToNetwork(this)) {
                 vm.toggleSources()
             } else {
@@ -96,30 +99,30 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             when (newStatus) {
                 Constants.Status.START -> {
 //                    progressLayout.showLoading()
-                    progressLayout.showLoading(loadingText = getString(R.string.loading))
+                    binding.activityChaptersPager.progressLayout.showLoading(loadingText = getString(R.string.loading))
                 }
                 Constants.Status.EMPTY_DATA -> {
-                    progressLayout.showEmpty(resId = R.raw.monkey_logo, isLottieAnimation = true, emptyText = getString(R.string.empty_chapters))
+                    binding.activityChaptersPager.progressLayout.showEmpty(resId = R.raw.monkey_logo, isLottieAnimation = true, emptyText = getString(R.string.empty_chapters))
                 }
                 Constants.Status.NETWORK_ERROR -> {
-                    progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again), onClickListener = {
+                    binding.activityChaptersPager.progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again), onClickListener = {
                         vm.getData()
                     })
                 }
                 Constants.Status.NO_INTERNET -> {
-                    progressLayout.noInternetError({
+                    binding.activityChaptersPager.progressLayout.noInternetError({
                         vm.getData()
                     })
                 }
                 Constants.Status.DONE -> {
                     isSyncing = false
-                    progressLayout.showContent()
+                    binding.activityChaptersPager.progressLayout.showContent()
                     setViewPager()
 
                     //TODO: Recreate menu for those instance where thee chapters can be empty.
                 }
                 else -> {
-                    progressLayout.updateLoadingStatus(newStatus)
+                    binding.activityChaptersPager.progressLayout.updateLoadingStatus(newStatus)
                 }
             }
         }
@@ -161,9 +164,9 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         val titles = translatorSources.map { it.name }.toTypedArray()
 
         val navPageAdapter = GenericFragmentStatePagerAdapter(supportFragmentManager, titles, titles.size, ChaptersPageListener(vm.novel, translatorSources))
-        viewPager.offscreenPageLimit = 3
-        viewPager.adapter = navPageAdapter
-        tabStrip.setViewPager(viewPager)
+        binding.activityChaptersPager.viewPager.offscreenPageLimit = 3
+        binding.activityChaptersPager.viewPager.adapter = navPageAdapter
+        binding.activityChaptersPager.tabStrip.setViewPager(binding.activityChaptersPager.viewPager)
         scrollToBookmark()
     }
 
@@ -175,7 +178,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 ?: return@let
             val index = translatorSources.indexOf(currentSource)
             if (index != -1)
-                viewPager.currentItem = index
+                binding.activityChaptersPager.viewPager.currentItem = index
         }
     }
 
@@ -355,7 +358,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 })
             }
             R.id.action_select_interval -> {
-                val translatorSourceId = translatorSources[viewPager.currentItem].id
+                val translatorSourceId = translatorSources[binding.activityChaptersPager.viewPager.currentItem].id
                 if (translatorSourceId == -1L) {
                     val chaptersForSource = vm.chapters!!.sortedBy { it.orderId }
                     val selectedChaptersForSource = dataSet.sortedBy { it.orderId }
@@ -379,7 +382,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 }
             }
             R.id.action_select_all -> {
-                val translatorSourceId = translatorSources[viewPager.currentItem].id
+                val translatorSourceId = translatorSources[binding.activityChaptersPager.viewPager.currentItem].id
                 if (translatorSourceId == -1L) {
                     addToDataSet(webPages = vm.chapters!!)
                 } else {
@@ -388,7 +391,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceId, EventType.UPDATE))
             }
             R.id.action_clear_selection -> {
-                val translatorSourceId = translatorSources[viewPager.currentItem].id
+                val translatorSourceId = translatorSources[binding.activityChaptersPager.viewPager.currentItem].id
                 if (translatorSourceId == -1L) {
                     removeFromDataSet(webPages = vm.chapters!!)
                 } else {
