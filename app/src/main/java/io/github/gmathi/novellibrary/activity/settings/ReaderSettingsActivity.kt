@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.logEvent
 import io.github.gmathi.novellibrary.R
@@ -18,6 +19,7 @@ import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.FAC
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MAX
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MIN
+import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.util.system.startReaderBackgroundSettingsActivity
@@ -250,27 +252,23 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             .positiveText(R.string.clear)
             .negativeText(R.string.cancel)
             .onPositive { dialog, _ ->
-                val progressDialog = MaterialDialog.Builder(this)
-                    .title(getString(R.string.clearing_data))
-                    .content(getString(R.string.please_wait))
-                    .progress(true, 0)
-                    .cancelable(false)
-                    .canceledOnTouchOutside(false)
-                    .show()
-                deleteFiles(progressDialog)
+                val snackBar = Snackbar.make(findViewById(android.R.id.content),
+                    getString(R.string.clearing_data) +  " - " + getString(R.string.please_wait),
+                    Snackbar.LENGTH_INDEFINITE)
+                deleteFiles()
+                snackBar.dismiss()
                 dialog.dismiss()
             }
             .onNegative { dialog, _ -> dialog.dismiss() }
             .show()
     }
 
-    private fun deleteFiles(dialog: MaterialDialog) {
+    private fun deleteFiles() {
         try {
             deleteDir(cacheDir)
             deleteDir(filesDir)
             dbHelper.removeAll()
             dataCenter.saveNovelSearchHistory(ArrayList())
-            dialog.dismiss()
         } catch (e: Exception) {
             e.printStackTrace()
         }
