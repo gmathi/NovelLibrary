@@ -11,17 +11,16 @@ import io.github.gmathi.novellibrary.activity.NovelSectionsActivity
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.LibraryPageListener
 import io.github.gmathi.novellibrary.database.getAllNovelSections
-import io.github.gmathi.novellibrary.databinding.FragmentLibraryPagerBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.util.Constants
+import kotlinx.android.synthetic.main.content_library_pager.*
+import kotlinx.android.synthetic.main.fragment_library_pager.*
 
 
 class LibraryPagerFragment : BaseFragment() {
 
     private val novelSections: ArrayList<NovelSection> = ArrayList()
-    
-    private lateinit var binding: FragmentLibraryPagerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,14 +32,12 @@ class LibraryPagerFragment : BaseFragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        
-        binding = FragmentLibraryPagerBinding.inflate(layoutInflater)
-        binding.toolbar.title = getString(R.string.title_library)
-        (activity as NavDrawerActivity).setToolbar(binding.toolbar)
+        toolbar.title = getString(R.string.title_library)
+        (activity as NavDrawerActivity).setToolbar(toolbar)
 
         setViewPager()
 
-        binding.contentLibraryPager.novelSectionSettings.setOnClickListener {
+        novelSectionSettings.setOnClickListener {
             startActivityForResult(Intent(activity, NovelSectionsActivity::class.java), Constants.NOVEL_SECTIONS_ACT_REQ_CODE)
         }
 
@@ -60,9 +57,9 @@ class LibraryPagerFragment : BaseFragment() {
         })
 
         val navPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, LibraryPageListener(novelSections))
-        binding.contentLibraryPager.viewPager.offscreenPageLimit = 3
-        binding.contentLibraryPager.viewPager.adapter = navPageAdapter
-        binding.contentLibraryPager.tabStrip.setViewPager(binding.contentLibraryPager.viewPager)
+        viewPager.offscreenPageLimit = 3
+        viewPager.adapter = navPageAdapter
+        tabStrip.setViewPager(viewPager)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
