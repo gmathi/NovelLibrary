@@ -3,9 +3,12 @@ package io.github.gmathi.novellibrary.activity.settings
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
+import com.tingyik90.snackprogressbar.SnackProgressBar
+import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
@@ -15,8 +18,11 @@ import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.util.system.startSyncLoginActivity
 import io.github.gmathi.novellibrary.network.sync.NovelSync
+import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
+import io.github.gmathi.novellibrary.util.lang.launchIO
+import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.android.synthetic.main.activity_settings.*
 import kotlinx.android.synthetic.main.content_recycler_view.*
@@ -170,25 +176,66 @@ class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             }
         }
     }
+    
+    private var makeFullSyncInProgress = false
 
     private fun makeFullSync() {
-        val sections = dbHelper.getAllNovelSections()
-        val novels = dbHelper.getAllNovels().filter { it.url.contains(novelSync.host) }
-        val dialog = MaterialDialog.Builder(this)
-            .title(R.string.sync_in_progress)
-            .content(R.string.please_wait)
-            .progress(true, 1)
-            .show()
+        makeFullSyncInProgress = true
+        val view = findViewById<ViewGroup>(android.R.id.content)
+        view.isEnabled = false
+        val snackProgressBarManager = Utils.createSnackProgressBarManager(view, null)
+        val snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, getString(R.string.sync_in_progress) + " - " + getString(R.string.please_wait))
 
-        var counter = 0
-        val total = novels.count()
-        novelSync.batchAdd(novels, sections) { novelName ->
-            if (counter == total) {
-                dialog.dismiss()
-            } else {
-                dialog.setTitle(getString(R.string.sync_batch_progress_title, ++counter, total))
-                dialog.setContent(getString(R.string.sync_batch_progress, novelName))
+        launchUI {
+            snackProgressBarManager.show(
+                snackProgressBar,
+                SnackProgressBarManager.LENGTH_INDEFINITE
+            )
+        }
+
+        launchIO {
+            val sections = dbHelper.getAllNovelSections()
+            val novels = dbHelper.getAllNovels().filter { it.url.contains(novelSync.host) }
+
+            val total = novels.count()
+
+            launchUI {
+                snackProgressBarManager.updateTo(snackProgressBar.setProgressMax(total))
             }
+
+            var counter = 0
+            novelSync.batchAdd(novels, sections) { novelName ->
+                if (++counter == total) {
+                    launchUI {
+                        snackProgressBarManager.disable()
+                        view.isEnabled = true
+                        makeFullSyncInProgress = false
+                    }
+                } else {
+                    launchUI {
+                        try {
+                            snackProgressBarManager.updateTo(
+                                snackProgressBar.setMessage(
+                                    getString(
+                                        R.string.sync_batch_progress_title,
+                                        counter,
+                                        total
+                                    ) + " - " + getString(R.string.sync_batch_progress, novelName)
+                                )
+                            )
+                            snackProgressBarManager.setProgress(counter)
+                        } catch (ex: Exception) {
+                            // Could probably fail because snackProgressBarManager became invalid
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onBackPressed() {
+        if (!makeFullSyncInProgress) {
+            super.onBackPressed()
         }
     }
 
