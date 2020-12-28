@@ -7,7 +7,10 @@ import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
 import androidx.lifecycle.observe
 import com.afollestad.materialdialogs.MaterialDialog
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.analytics.ktx.logEvent
+import com.tingyik90.snackprogressbar.SnackProgressBar
+import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.ChaptersPageListener
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
@@ -46,12 +49,13 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     private var actionMode: ActionMode? = null
 
     private var confirmDialog: MaterialDialog? = null
-    private var progressDialog: MaterialDialog? = null
 
     private var maxProgress: Int = 0
     private var progressMessage = "In Progress…"
     private var isSyncing = false
 
+    private val snackProgressBarManager by lazy { Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this)}
+    private var snackProgressBar: SnackProgressBar? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,7 +69,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             val isProgressShowing = savedInstanceState.getBoolean("isProgressShowing", false)
             if (isProgressShowing) {
                 setProgressDialog(savedInstanceState.getString("progressMessage", "In Progress…"), savedInstanceState.getInt("maxProgress", 0))
-                progressDialog?.show()
+                showProgressDialog()
             }
             novel = savedInstanceState.getSerializable("novel") as? Novel
         } else {
@@ -129,15 +133,15 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             //Update Action mode actions status
             when (progress) {
                 Constants.Status.START -> {
-                    progressDialog?.show()
+                    showProgressDialog()
                 }
                 Constants.Status.DONE -> {
-                    progressDialog?.dismiss()
+                    snackProgressBar = null
+                    snackProgressBarManager.dismiss()
                     EventBus.getDefault().post(ChapterActionModeEvent(eventType = EventType.COMPLETE))
                 }
                 else -> {
-                    progressDialog?.setProgress(progress.toInt())
-                    //progressDialog?.setProgressNumberFormat(progress)
+                    setProgressDialogValue(progress.toInt())
                 }
             }
         }
@@ -480,14 +484,42 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             .onNegative { dialog, _ -> dialog.dismiss() }
             .show()
     }
+    
+    private fun showProgressDialog() {
+        if (snackProgressBar != null) {
+            snackProgressBarManager.show(snackProgressBar!!, SnackProgressBarManager.LENGTH_INDEFINITE)
+        }
+    }
 
     private fun setProgressDialog(message: String, maxProgress: Int) {
         progressMessage = message
         this.maxProgress = maxProgress
-        progressDialog = MaterialDialog.Builder(this@ChaptersPagerActivity)
-            .content(message)
-            .progress(false, maxProgress, true)
-            .cancelable(false).build()
+
+        if (snackProgressBar != null) {
+            snackProgressBar = null
+            snackProgressBarManager.dismissAll()
+        }
+
+        if (maxProgress == 0 || maxProgress > 10) {
+            snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, message)
+                .setProgressMax(maxProgress)
+        }
+        else {
+            showSnackbar(message)
+        }
+    }
+    
+    private fun setProgressDialogValue(progress: Int) {
+        if (snackProgressBar != null) {
+            snackProgressBarManager.setProgress(progress)
+        }
+    }
+    
+    private fun showSnackbar(message: String) {
+        val snackbar = Snackbar.make(findViewById(android.R.id.content),
+            message,
+            Snackbar.LENGTH_SHORT)
+        snackbar.show()
     }
     //endregion
 
@@ -495,7 +527,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         super.onSaveInstanceState(outState)
         outState.putInt("maxProgress", maxProgress)
         outState.putString("progressMessage", progressMessage)
-        outState.putBoolean("isProgressShowing", progressDialog?.isShowing ?: false)
+        outState.putBoolean("isProgressShowing", snackProgressBar != null)
         outState.putSerializable("novel", vm.novel)
     }
 
