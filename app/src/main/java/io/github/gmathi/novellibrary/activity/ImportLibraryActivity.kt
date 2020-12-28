@@ -11,6 +11,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
+import com.tingyik90.snackprogressbar.SnackProgressBar
+import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.getNovelByUrl
@@ -23,6 +25,7 @@ import io.github.gmathi.novellibrary.model.other.ImportListItem
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getNUNovelDetails
+import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
@@ -266,32 +269,32 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
 
 
     private fun startImport() {
-        val dialog = MaterialDialog.Builder(this)
-            .title("Importing…")
-            .content(R.string.please_wait)
-            .progress(false, updateSet.size, true)
-            .negativeText(R.string.cancel)
-            .cancelable(false)
-            .autoDismiss(false)
-            .onNegative { dialog, _ ->
-                run {
-                    job?.cancel()
-                    actionMode?.finish()
-                    adapter.notifyDataSetChanged()
-                    dialog.dismiss()
+        val snackProgressBarManager = Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this)
+        val snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, "Importing… - " + getString(R.string.please_wait))
+            .setAction(getString(R.string.cancel), object : SnackProgressBar.OnActionClickListener {
+                override fun onActionClick() {
+                    run {
+                        this@ImportLibraryActivity.job?.cancel()
+                        this@ImportLibraryActivity.actionMode?.finish()
+                        this@ImportLibraryActivity.adapter.notifyDataSetChanged()
+                        snackProgressBarManager.disable()
+                    }
                 }
-            }
-            .show()
+            })
+            .setProgressMax(updateSet.count())
+        snackProgressBarManager.show(snackProgressBar, SnackProgressBarManager.LENGTH_INDEFINITE)
+
         job = lifecycleScope.launch {
+            var progressCnt: Int = 0
             updateSet.asSequence().forEach {
-                dialog.setContent("Importing: ${it.novelName}")
+                snackProgressBarManager.updateTo(snackProgressBar.setMessage("Importing: ${it.novelName}"))
                 withContext(Dispatchers.IO) { importNovelToLibrary(it) }
                 it.isAlreadyInLibrary = true
-                dialog.incrementProgress(1)
+                snackProgressBarManager.setProgress(++progressCnt)
             }
             actionMode?.finish()
             adapter.notifyDataSetChanged()
-            dialog.dismiss()
+            snackProgressBarManager.disable()
         }
     }
 
