@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
+import android.view.LayoutInflater
 import android.view.View
 import android.view.View.*
 import android.view.WindowManager
@@ -17,6 +18,7 @@ import android.webkit.MimeTypeMap
 import android.webkit.WebView
 import android.widget.CompoundButton
 import androidx.core.content.ContextCompat
+import androidx.core.view.children
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -39,6 +41,7 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.databinding.ActivityReaderPagerBinding
 import io.github.gmathi.novellibrary.databinding.ItemOptionBinding
+import io.github.gmathi.novellibrary.databinding.MenuLeftDrawerBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
@@ -56,7 +59,6 @@ import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.Utils.getFormattedText
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
-import kotlinx.android.synthetic.main.menu_left_drawer.*
 import org.greenrobot.eventbus.EventBus
 import java.io.File
 import java.util.*
@@ -107,6 +109,7 @@ class ReaderDBPagerActivity :
     private var webPages: List<WebPage> = ArrayList()
     
     private lateinit var binding: ActivityReaderPagerBinding
+    private lateinit var bindingList: MenuLeftDrawerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -281,13 +284,16 @@ class ReaderDBPagerActivity :
     }
 
     private fun slideMenuSetup(savedInstanceState: Bundle?) {
-        slidingRootNav = SlidingRootNavBuilder(this)
+        val slidingRootNavBuilder = SlidingRootNavBuilder(this)
             .withMenuOpened(false)
             .withContentClickableWhenMenuOpened(true)
             .withSavedState(savedInstanceState)
             .withGravity(SlideGravity.RIGHT)
             .withMenuLayout(R.layout.menu_left_drawer)
-            .inject()
+        slidingRootNav = slidingRootNavBuilder.inject()
+
+        var view = slidingRootNav.layout.getChildAt(0)
+        bindingList = MenuLeftDrawerBinding.bind(view)
     }
 
     private fun slideMenuAdapterSetup() {
@@ -308,9 +314,10 @@ class ReaderDBPagerActivity :
             ) as List<DrawerItem<DrawerAdapter.ViewHolder>>
         )
         adapter.setListener(this)
-        list.isNestedScrollingEnabled = false
-        list.layoutManager = LinearLayoutManager(this)
-        list.adapter = adapter
+        
+        bindingList.list.isNestedScrollingEnabled = false
+        bindingList.list.layoutManager = LinearLayoutManager(this)
+        bindingList.list.adapter = adapter
     }
 
     private fun createItemFor(position: Int): DrawerItem<SimpleItem.ViewHolder> {
@@ -461,7 +468,7 @@ class ReaderDBPagerActivity :
                     dataCenter.readerMode = isChecked
                     if (isChecked && !dataCenter.javascriptDisabled)
                         dataCenter.javascriptDisabled = true
-                    list.adapter?.notifyItemRangeChanged(NIGHT_MODE, 2)
+                    bindingList.list.adapter?.notifyItemRangeChanged(NIGHT_MODE, 2)
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
                 }
                 NIGHT_MODE -> {
