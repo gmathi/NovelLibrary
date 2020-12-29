@@ -38,7 +38,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private var cloudFlareLoadingDialog: MaterialDialog? = null
     private var mAuth: FirebaseAuth? = null
     
-    private lateinit var binding: ActivityNavDrawerBinding
+    lateinit var binding: ActivityNavDrawerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
