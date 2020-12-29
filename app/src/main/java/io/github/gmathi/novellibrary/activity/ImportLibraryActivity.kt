@@ -28,7 +28,6 @@ import io.github.gmathi.novellibrary.network.getNUNovelDetails
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
-import kotlinx.android.synthetic.main.listitem_import_list.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch

@@ -13,6 +13,7 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.databinding.ActivityLibrarySearchBinding
+import io.github.gmathi.novellibrary.databinding.ListitemLibraryBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
 import io.github.gmathi.novellibrary.util.system.startChaptersActivity
@@ -22,7 +23,6 @@ import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.view.SimpleAnimationListener
 import io.github.gmathi.novellibrary.util.view.SuggestionsBuilder
-import kotlinx.android.synthetic.main.listitem_library.view.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
 import org.cryse.widget.persistentsearch.SearchItem
 
@@ -130,24 +130,25 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
     }
 
     override fun bind(item: Novel, itemView: View, position: Int) {
-        itemView.novelImageView.setImageResource(android.R.color.transparent)
+        val itemBinding = ListitemLibraryBinding.bind(itemView)
+        itemBinding.novelImageView.setImageResource(android.R.color.transparent)
 
         if (!item.imageUrl.isNullOrBlank()) {
             Glide.with(this)
                 .load(item.imageUrl?.getGlideUrl())
                 .apply(RequestOptions.circleCropTransform())
-                .into(itemView.novelImageView)
+                .into(itemBinding.novelImageView)
         }
 
-        itemView.novelTitleTextView.text = item.name
-        itemView.novelTitleTextView.isSelected = dataCenter.enableScrollingText
+        itemBinding.novelTitleTextView.text = item.name
+        itemBinding.novelTitleTextView.isSelected = dataCenter.enableScrollingText
 
         val lastRead = item.metadata[Constants.MetaDataKeys.LAST_READ_DATE] ?: "N/A"
         val lastUpdated = item.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] ?: "N/A"
 
-        itemView.lastOpenedDate.text = getString(R.string.last_read_n_updated, lastRead, lastUpdated)
+        itemBinding.lastOpenedDate.text = getString(R.string.last_read_n_updated, lastRead, lastUpdated)
 
-        itemView.popMenu.setOnClickListener {
+        itemBinding.popMenu.setOnClickListener {
             val popup = PopupMenu(this, it)
             popup.menuInflater.inflate(R.menu.menu_popup_novel, popup.menu)
             popup.menu.findItem(R.id.action_novel_remove).isVisible = false
@@ -167,7 +168,7 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
             popup.show()
         }
 
-        itemView.readChapterImage.setOnClickListener {
+        itemBinding.readChapterImage.setOnClickListener {
             startReader(item)
         }
     }
