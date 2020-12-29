@@ -12,15 +12,14 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.database.getAllNovels
+import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
+import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.util.system.startSyncLoginActivity
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
-import kotlinx.android.synthetic.main.activity_settings.*
-import kotlinx.android.synthetic.main.content_recycler_view.*
-import kotlinx.android.synthetic.main.listitem_title_subtitle_widget.view.*
 import java.util.ArrayList
 
 class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
@@ -45,17 +44,22 @@ class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private lateinit var settingsItemsDescriptions: ArrayList<String>
 
     private lateinit var novelSync: NovelSync
+    
+    private lateinit var binding: ActivitySettingsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
         val sync = NovelSync.getInstance(intent.getStringExtra("url")!!, true)
         if (sync == null) {
             finish()
             return
         }
         novelSync = sync
-        setContentView(R.layout.activity_settings)
-        setSupportActionBar(toolbar)
+        
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setRecyclerView()
     }
@@ -69,29 +73,30 @@ class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         settingsItems = ArrayList(resources.getStringArray(R.array.sync_options).asList())
         settingsItemsDescriptions = ArrayList(resources.getStringArray(R.array.sync_options_descriptions).asList())
         adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
-        recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
-        swipeRefreshLayout.isEnabled = false
+        binding.contentRecyclerView.recyclerView.setDefaults(adapter)
+        binding.contentRecyclerView.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
+        binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false
     }
 
     override fun bind(item: String, itemView: View, position: Int) {
-        itemView.blackOverlay.visibility = View.INVISIBLE
-        itemView.widgetChevron.visibility = View.INVISIBLE
-        itemView.widgetSwitch.visibility = View.INVISIBLE
-        itemView.currentValue.visibility = View.INVISIBLE
+        val itemBinding = ListitemTitleSubtitleWidgetBinding.bind(itemView)
+        itemBinding.blackOverlay.visibility = View.INVISIBLE
+        itemBinding.widgetChevron.visibility = View.INVISIBLE
+        itemBinding.widgetSwitch.visibility = View.INVISIBLE
+        itemBinding.currentValue.visibility = View.INVISIBLE
 
-        itemView.title.applyFont(assets).text = item
-        itemView.subtitle.applyFont(assets).text = settingsItemsDescriptions[position]
+        itemBinding.title.applyFont(assets).text = item
+        itemBinding.subtitle.applyFont(assets).text = settingsItemsDescriptions[position]
 
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
         else ContextCompat.getColor(this, android.R.color.transparent))
 
-        itemView.widgetSwitch.setOnCheckedChangeListener(null)
+        itemBinding.widgetSwitch.setOnCheckedChangeListener(null)
         when(position) {
             POSITION_ENABLE -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.getSyncEnabled(novelSync.host)
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, isChecked ->
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.getSyncEnabled(novelSync.host)
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, isChecked ->
                     dataCenter.setSyncEnabled(novelSync.host, isChecked)
 //                    if (isChecked) {
 //                        // TODO: Ask to perform full sync if logged in
@@ -99,42 +104,42 @@ class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 }
             }
             POSITION_STATUS -> {
-                itemView.widgetChevron.visibility = View.VISIBLE
+                itemBinding.widgetChevron.visibility = View.VISIBLE
                 if (novelSync.loggedIn()) {
-                    itemView.widgetChevron.setImageResource(R.drawable.ic_check_circle_white_vector)
-                    itemView.widgetChevron.imageTintList = ContextCompat.getColorStateList(this, R.color.colorStateGreen)
-                    itemView.subtitle.text = getString(R.string.logged_in)
+                    itemBinding.widgetChevron.setImageResource(R.drawable.ic_check_circle_white_vector)
+                    itemBinding.widgetChevron.imageTintList = ContextCompat.getColorStateList(this, R.color.colorStateGreen)
+                    itemBinding.subtitle.text = getString(R.string.logged_in)
                 } else {
-                    itemView.widgetChevron.setImageResource(R.drawable.ic_warning_white_vector)
-                    itemView.widgetChevron.imageTintList = ContextCompat.getColorStateList(this, R.color.colorStateOrange)
-                    itemView.subtitle.text = getString(R.string.not_logged_in)
+                    itemBinding.widgetChevron.setImageResource(R.drawable.ic_warning_white_vector)
+                    itemBinding.widgetChevron.imageTintList = ContextCompat.getColorStateList(this, R.color.colorStateOrange)
+                    itemBinding.subtitle.text = getString(R.string.not_logged_in)
                 }
             }
             POSITION_LOG_IN -> {
-                itemView.widgetChevron.visibility = View.VISIBLE
+                itemBinding.widgetChevron.visibility = View.VISIBLE
             }
             POSITION_ADD_NOVELS -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.getSyncAddNovels(novelSync.host)
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, isChecked -> dataCenter.setSyncAddNovels(novelSync.host, isChecked) }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.getSyncAddNovels(novelSync.host)
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, isChecked -> dataCenter.setSyncAddNovels(novelSync.host, isChecked) }
             }
             POSITION_DELETE_NOVELS -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.getSyncDeleteNovels(novelSync.host)
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, isChecked -> dataCenter.setSyncDeleteNovels(novelSync.host, isChecked) }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.getSyncDeleteNovels(novelSync.host)
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, isChecked -> dataCenter.setSyncDeleteNovels(novelSync.host, isChecked) }
             }
             POSITION_BOOKMARKS -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.getSyncBookmarks(novelSync.host)
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, isChecked -> dataCenter.setSyncBookmarks(novelSync.host, isChecked) }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.getSyncBookmarks(novelSync.host)
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, isChecked -> dataCenter.setSyncBookmarks(novelSync.host, isChecked) }
             }
             POSITION_MAKE_SYNC -> {
-                itemView.widgetChevron.visibility = View.VISIBLE
-                itemView.widgetChevron.setImageResource(R.drawable.ic_sync_white_vector)
+                itemBinding.widgetChevron.visibility = View.VISIBLE
+                itemBinding.widgetChevron.setImageResource(R.drawable.ic_sync_white_vector)
             }
             POSITION_FORGET -> {
-                itemView.widgetChevron.visibility = View.VISIBLE
-                itemView.widgetChevron.setImageResource(R.drawable.ic_delete_white_vector)
+                itemBinding.widgetChevron.visibility = View.VISIBLE
+                itemBinding.widgetChevron.setImageResource(R.drawable.ic_delete_white_vector)
             }
         }
     }
