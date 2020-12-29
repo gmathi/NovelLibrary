@@ -33,7 +33,7 @@ class SearchUrlActivity : BaseActivity() {
         }
 
         supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, replaceFrag, tag)
+            .replace(binding.contentSearchResults.fragmentContainer.id, replaceFrag, tag)
             .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
             .addToBackStack(tag)
             .commitAllowingStateLoss()
