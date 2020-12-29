@@ -53,6 +53,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     private var maxProgress: Int = 0
     private var progressMessage = "In Progress…"
     private var isSyncing = false
+    private var isChaptersProcessing = false
 
     private val snackProgressBarManager by lazy { Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this)}
     private var snackProgressBar: SnackProgressBar? = null
@@ -136,6 +137,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                     showProgressDialog()
                 }
                 Constants.Status.DONE -> {
+                    isChaptersProcessing = false
                     snackProgressBar = null
                     snackProgressBarManager.dismiss()
                     EventBus.getDefault().post(ChapterActionModeEvent(eventType = EventType.COMPLETE))
@@ -492,6 +494,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     }
 
     private fun setProgressDialog(message: String, maxProgress: Int) {
+        isChaptersProcessing = true
         progressMessage = message
         this.maxProgress = maxProgress
 
@@ -529,6 +532,14 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         outState.putString("progressMessage", progressMessage)
         outState.putBoolean("isProgressShowing", snackProgressBar != null)
         outState.putSerializable("novel", vm.novel)
+    }
+
+    override fun onBackPressed() {
+        if (isSyncing || isChaptersProcessing) {
+            return
+        }
+
+        super.onBackPressed()
     }
 
 }
