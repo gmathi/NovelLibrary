@@ -11,15 +11,14 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.databinding.ActivityLanguageBinding
+import io.github.gmathi.novellibrary.databinding.ListitemImageTitleSubtitleBinding
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.lang.LocaleManager.Companion.changeLocale
 import io.github.gmathi.novellibrary.util.lang.LocaleManager.Companion.translated
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
-import kotlinx.android.synthetic.main.activity_language.*
-import kotlinx.android.synthetic.main.content_recycler_view.*
-import kotlinx.android.synthetic.main.listitem_image_title_subtitle.view.*
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -47,6 +46,8 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     private val languagesMap = HashMap<String, String>()
     private val languagesImageResourceMap = HashMap<String, Int>()
+    
+    private lateinit var binding: ActivityLanguageBinding
 
     private fun getList(): ArrayList<String> {
         if (languagesMap.isEmpty()) {
@@ -89,8 +90,10 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_language)
-        setSupportActionBar(toolbar)
+        
+        binding = ActivityLanguageBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
 
         if (intent.hasExtra("changeLanguage")) {
             changeLanguage = intent.getBooleanExtra("changeLanguage", false)
@@ -108,15 +111,16 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private fun setRecyclerView() {
         val items = getList()
         adapter = GenericAdapter(items = items, layoutResId = R.layout.listitem_image_title_subtitle, listener = this)
-        recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
-        swipeRefreshLayout.isEnabled = false
+        binding.contentRecyclerView.recyclerView.setDefaults(adapter)
+        binding.contentRecyclerView.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
+        binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false
     }
 
     override fun bind(item: String, itemView: View, position: Int) {
-        itemView.subtitle.visibility = View.GONE
-        itemView.title.applyFont(assets).text = item
-        itemView.imageView.setImageResource(languagesImageResourceMap[item]!!)
+        val itemBinding = ListitemImageTitleSubtitleBinding.bind(itemView)
+        itemBinding.subtitle.visibility = View.GONE
+        itemBinding.title.applyFont(assets).text = item
+        itemBinding.imageView.setImageResource(languagesImageResourceMap[item]!!)
 
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
         else ContextCompat.getColor(this, android.R.color.transparent))
