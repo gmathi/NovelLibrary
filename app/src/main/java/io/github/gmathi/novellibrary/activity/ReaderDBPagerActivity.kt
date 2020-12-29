@@ -108,7 +108,7 @@ class ReaderDBPagerActivity :
     private var sourceId: Long = -1L
     private var webPages: List<WebPage> = ArrayList()
     
-    private lateinit var binding: ActivityReaderPagerBinding
+    lateinit var binding: ActivityReaderPagerBinding
     private lateinit var bindingList: MenuLeftDrawerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
