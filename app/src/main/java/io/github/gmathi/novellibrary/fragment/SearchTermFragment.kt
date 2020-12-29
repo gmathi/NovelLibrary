@@ -11,6 +11,8 @@ import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.databinding.ContentRecyclerViewBinding
+import io.github.gmathi.novellibrary.databinding.ListitemNovelBinding
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.network.*
@@ -20,8 +22,6 @@ import io.github.gmathi.novellibrary.util.getGlideUrl
 import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.util.system.isFragmentActive
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
-import kotlinx.android.synthetic.main.content_recycler_view.*
-import kotlinx.android.synthetic.main.listitem_novel.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -37,6 +37,8 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
     override val isPageLoading: AtomicBoolean = AtomicBoolean(false)
     private lateinit var searchTerm: String
     private lateinit var resultType: String
+    
+    private lateinit var binding: ContentRecyclerViewBinding
 
     companion object {
         private const val TAG = "SearchTermFragment"
@@ -59,7 +61,9 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.content_recycler_view, container, false)
+        val view = inflater.inflate(R.layout.content_recycler_view, container, false) ?: return null
+        binding = ContentRecyclerViewBinding.bind(view)
+        return view
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -79,14 +83,14 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
             }
         }
 
-        progressLayout.showLoading()
+        binding.progressLayout.showLoading()
         searchNovels()
     }
 
     private fun setRecyclerView() {
         adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_novel, listener = this, loadMoreListener = if (resultType != HostNames.WLN_UPDATES) this else null)
-        recyclerView.setDefaults(adapter)
-        swipeRefreshLayout.setOnRefreshListener { searchNovels() }
+        binding.recyclerView.setDefaults(adapter)
+        binding.swipeRefreshLayout.setOnRefreshListener { searchNovels() }
     }
 
     private fun searchNovels() {
@@ -94,8 +98,8 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
         lifecycleScope.launch search@{
 
             if (!Utils.isConnectedToNetwork(activity)) {
-                progressLayout.noInternetError(View.OnClickListener {
-                    progressLayout.showLoading()
+                binding.progressLayout.noInternetError(View.OnClickListener {
+                    binding.progressLayout.showLoading()
                     currentPageNumber = 1
                     searchNovels()
                 })
@@ -123,12 +127,12 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
                 if (isVisible && (!isDetached || !isRemoving)) {
                     loadSearchResults(results)
                     isPageLoading.lazySet(false)
-                    swipeRefreshLayout.isRefreshing = false
+                    binding.swipeRefreshLayout.isRefreshing = false
                 }
             } else {
-                if (isFragmentActive() && progressLayout != null)
-                    progressLayout.showError(errorText = getString(R.string.connection_error), buttonText = getString(R.string.try_again), onClickListener = View.OnClickListener {
-                        progressLayout.showLoading()
+                if (isFragmentActive() && binding.progressLayout != null)
+                    binding.progressLayout.showError(errorText = getString(R.string.connection_error), buttonText = getString(R.string.try_again), onClickListener = View.OnClickListener {
+                        binding.progressLayout.showLoading()
                         currentPageNumber = 1
                         searchNovels()
                     })
@@ -149,20 +153,20 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
         }
 
         if (adapter.items.isEmpty()) {
-            if (isFragmentActive() && progressLayout != null)
-                progressLayout.showEmpty(
+            if (isFragmentActive() && binding.progressLayout != null)
+                binding.progressLayout.showEmpty(
                     resId = R.raw.empty_search,
                     isLottieAnimation = true,
                     emptyText = "No Novels Found!",
                     buttonText = getString(R.string.try_again),
                     onClickListener = View.OnClickListener {
-                        progressLayout.showLoading()
+                        binding.progressLayout.showLoading()
                         currentPageNumber = 1
                         searchNovels()
                     })
         } else {
-            if (isFragmentActive() && progressLayout != null)
-                progressLayout.showContent()
+            if (isFragmentActive() && binding.progressLayout != null)
+                binding.progressLayout.showContent()
         }
     }
 
@@ -181,29 +185,30 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
     }
 
     override fun bind(item: Novel, itemView: View, position: Int) {
-        itemView.novelImageView.setImageResource(android.R.color.transparent)
+        val itemBinding = ListitemNovelBinding.bind(itemView)
+        itemBinding.novelImageView.setImageResource(android.R.color.transparent)
 
         if (!item.imageUrl.isNullOrBlank()) {
             Glide.with(this)
                 .load(item.imageUrl?.getGlideUrl())
                 .apply(RequestOptions.circleCropTransform())
-                .into(itemView.novelImageView)
+                .into(itemBinding.novelImageView)
         }
 
         //Other Data Fields
-        itemView.novelTitleTextView.text = item.name
-        itemView.novelTitleTextView.isSelected = dataCenter.enableScrollingText
+        itemBinding.novelTitleTextView.text = item.name
+        itemBinding.novelTitleTextView.isSelected = dataCenter.enableScrollingText
 
         if (item.rating != null && item.rating != "N/A") {
             var ratingText = "(N/A)"
             try {
                 val rating = item.rating!!.toFloat()
-                itemView.novelRatingBar.rating = rating
+                itemBinding.novelRatingBar.rating = rating
                 ratingText = "(" + String.format("%.1f", rating) + ")"
             } catch (e: Exception) {
                 Logs.warning(TAG, "Rating: " + item.rating, e)
             }
-            itemView.novelRatingText.text = ratingText
+            itemBinding.novelRatingText.text = ratingText
         }
     }
 
