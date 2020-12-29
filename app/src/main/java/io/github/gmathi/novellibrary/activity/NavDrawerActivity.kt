@@ -8,11 +8,14 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.lifecycleScope
 import com.afollestad.materialdialogs.MaterialDialog
 import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
+import com.tingyik90.snackprogressbar.SnackProgressBar
+import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
@@ -23,9 +26,12 @@ import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.lang.launchIO
+import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.system.*
 import kotlinx.android.synthetic.main.activity_nav_drawer.*
 import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
+import kotlinx.coroutines.launch
 import org.cryse.widget.persistentsearch.PersistentSearchView
 
 
@@ -33,8 +39,10 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
     private var snackBar: Snackbar? = null
     private var currentNavId: Int = R.id.nav_search
+    
+    private val snackProgressBarManager by lazy { Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this).setMessageMaxLines(3) };
+    private var cloudFlareLoadingSnack: SnackProgressBar? = null
 
-    private var cloudFlareLoadingDialog: MaterialDialog? = null
     private var mAuth: FirebaseAuth? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -101,29 +109,35 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun checkForCloudFlare() {
+        cloudFlareLoadingSnack = SnackProgressBar(SnackProgressBar.TYPE_CIRCULAR,
+            "If this is taking too long, You can skip and goto \"Settings\" -> \"CloudFlare Check\" to make the app work.")
+            .setAction("Skip", object: SnackProgressBar.OnActionClickListener {
+                override fun onActionClick() {
+                    loadFragment(currentNavId)
+                    showWhatsNewDialog()
+                    checkIntentForNotificationData()
+                }
+            })
+        lifecycleScope.launch {
+            snackProgressBarManager.show(
+                cloudFlareLoadingSnack!!,
+                SnackProgressBarManager.LENGTH_INDEFINITE
+            )
+            loadFragment(currentNavId)
+        }
 
-        cloudFlareLoadingDialog = Utils
-            .dialogBuilder(this@NavDrawerActivity, content = "If this is taking too long, You can skip and goto \"Settings\" -> \"CloudFlare Check\" to make the app work.", isProgress = true)
-            .cancelable(false)
-            .negativeText("Skip")
-            .onNegative { _, _ ->
-                loadFragment(currentNavId)
-                showWhatsNewDialog()
-                checkIntentForNotificationData()
-            }
-            .build()
-
-        cloudFlareLoadingDialog?.show()
-
-        CloudFlareByPasser.check(this, "novelupdates.com") { state ->
-
-            if (!isDestroyed) {
-                if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
-                    if (cloudFlareLoadingDialog?.isShowing == true) {
-                        loadFragment(currentNavId)
-                        showWhatsNewDialog()
-                        checkIntentForNotificationData()
-                        cloudFlareLoadingDialog?.dismiss()
+        launchIO {
+            CloudFlareByPasser.check(this@NavDrawerActivity, "novelupdates.com") { state ->
+                if (!isDestroyed) {
+                    if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
+                        if (cloudFlareLoadingSnack != null) {
+                            lifecycleScope.launch {
+                                showWhatsNewDialog()
+                                checkIntentForNotificationData()
+                                snackProgressBarManager.dismiss()
+                                cloudFlareLoadingSnack = null
+                            }
+                        }
                     }
                 }
             }
