@@ -18,6 +18,8 @@ import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
+import io.github.gmathi.novellibrary.databinding.ContentLibraryBinding
+import io.github.gmathi.novellibrary.databinding.ListitemLibraryBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
@@ -32,8 +34,6 @@ import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
-import kotlinx.android.synthetic.main.content_library.*
-import kotlinx.android.synthetic.main.listitem_library.view.*
 import kotlinx.coroutines.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -49,6 +49,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     private var lastDeletedId: Long = -1
     private var isSorted = false
     private var syncDialog: MaterialDialog? = null
+    
+    private lateinit var binding: ContentLibraryBinding
 
     companion object {
 
@@ -69,15 +71,18 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-        inflater.inflate(R.layout.content_library, container, false)
-
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val view = inflater.inflate(R.layout.content_library, container, false) ?: return null
+        binding = ContentLibraryBinding.bind(view)
+        return view
+    }
+    
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         novelSectionId = requireArguments().getLong(NOVEL_SECTION_ID)
 
         setRecyclerView()
-        progressLayout.showLoading()
+        binding.progressLayout.showLoading()
         setData()
     }
 
@@ -85,9 +90,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         adapter = GenericAdapter(ArrayList(), R.layout.listitem_library, this)
         val callback = SimpleItemTouchHelperCallback(this, longPressDragEnabled = true, itemViewSwipeEnabled = false)
         touchHelper = ItemTouchHelper(callback)
-        touchHelper.attachToRecyclerView(recyclerView)
-        recyclerView.setDefaults(adapter)
-        swipeRefreshLayout.setOnRefreshListener {
+        touchHelper.attachToRecyclerView(binding.recyclerView)
+        binding.recyclerView.setDefaults(adapter)
+        binding.swipeRefreshLayout.setOnRefreshListener {
             setData()
         }
     }
@@ -95,12 +100,12 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     private fun setData() {
         updateOrderIds()
         adapter.updateData(ArrayList(dbHelper.getAllNovels(novelSectionId)))
-        if (swipeRefreshLayout != null && progressLayout != null) {
-            swipeRefreshLayout.isRefreshing = false
-            progressLayout.showContent()
+        if (binding.swipeRefreshLayout != null && binding.progressLayout != null) {
+            binding.swipeRefreshLayout.isRefreshing = false
+            binding.progressLayout.showContent()
         }
         if (adapter.items.size == 0) {
-            progressLayout.showEmpty(
+            binding.progressLayout.showEmpty(
                 resId = R.raw.no_data_blob,
                 isLottieAnimation = true,
                 emptyText = "Your Library is empty!\nLet's start adding some from search screen…"
@@ -117,24 +122,25 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     override fun bind(item: Novel, itemView: View, position: Int) {
-        itemView.novelImageView.setImageResource(android.R.color.transparent)
+        val itemBinding = ListitemLibraryBinding.bind(itemView)
+        itemBinding.novelImageView.setImageResource(android.R.color.transparent)
 
         if (!item.imageUrl.isNullOrBlank()) {
             Glide.with(this)
                 .load(item.imageUrl?.getGlideUrl())
                 .apply(RequestOptions.circleCropTransform())
-                .into(itemView.novelImageView)
+                .into(itemBinding.novelImageView)
         }
 
-        itemView.novelTitleTextView.text = item.name
-        itemView.novelTitleTextView.isSelected = dataCenter.enableScrollingText
+        itemBinding.novelTitleTextView.text = item.name
+        itemBinding.novelTitleTextView.isSelected = dataCenter.enableScrollingText
 
         val lastRead = item.metadata[Constants.MetaDataKeys.LAST_READ_DATE] ?: "N/A"
         val lastUpdated = item.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] ?: "N/A"
 
-        itemView.lastOpenedDate.text = getString(R.string.last_read_n_updated, lastRead, lastUpdated)
+        itemBinding.lastOpenedDate.text = getString(R.string.last_read_n_updated, lastRead, lastUpdated)
 
-        itemView.popMenu.setOnClickListener {
+        itemBinding.popMenu.setOnClickListener {
             val popup = PopupMenu(requireActivity(), it)
             popup.menuInflater.inflate(R.menu.menu_popup_novel, popup.menu)
 
@@ -191,7 +197,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 //            false
 //        }
 
-        itemView.readChapterImage.setOnClickListener {
+        itemBinding.readChapterImage.setOnClickListener {
             startReader(item)
         }
 
@@ -201,21 +207,21 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             shape.cornerRadius = 99f
             activity?.let { ContextCompat.getColor(it, R.color.Black) }?.let { shape.setStroke(1, it) }
             activity?.let { ContextCompat.getColor(it, R.color.DarkRed) }?.let { shape.setColor(it) }
-            itemView.newChapterCount.background = shape
-            itemView.newChapterCount.applyFont(activity?.assets).text = item.newReleasesCount.toString()
-            itemView.newChapterCount.visibility = View.VISIBLE
+            itemBinding.newChapterCount.background = shape
+            itemBinding.newChapterCount.applyFont(activity?.assets).text = item.newReleasesCount.toString()
+            itemBinding.newChapterCount.visibility = View.VISIBLE
         } else {
-            itemView.newChapterCount.visibility = View.GONE
+            itemBinding.newChapterCount.visibility = View.GONE
         }
 
         if (item.currentChapterUrl != null) {
             val orderId = dbHelper.getWebPage(item.currentChapterUrl!!)?.orderId
             if (orderId != null) {
                 val progress = "${orderId + 1} / ${item.chaptersCount}"
-                itemView.novelProgressText.text = progress
+                itemBinding.novelProgressText.text = progress
             }
         } else {
-            itemView.novelProgressText.text = getString(R.string.no_bookmark)
+            itemBinding.novelProgressText.text = getString(R.string.no_bookmark)
         }
     }
 
