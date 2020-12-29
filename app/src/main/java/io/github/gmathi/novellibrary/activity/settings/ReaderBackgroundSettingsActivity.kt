@@ -11,12 +11,11 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
+import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
-import kotlinx.android.synthetic.main.activity_settings.*
-import kotlinx.android.synthetic.main.content_recycler_view.*
-import kotlinx.android.synthetic.main.listitem_title_subtitle_widget.view.*
 import okhttp3.internal.toHexString
 import java.util.*
 import kotlin.collections.ArrayList
@@ -35,11 +34,15 @@ class ReaderBackgroundSettingsActivity : BaseActivity(), GenericAdapter.Listener
     private lateinit var settingsItems: ArrayList<String>
 
     private var selectedPosition: Int = 0
+    
+    private lateinit var binding:ActivitySettingsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
-        setSupportActionBar(toolbar)
+        
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setRecyclerView()
     }
@@ -47,38 +50,39 @@ class ReaderBackgroundSettingsActivity : BaseActivity(), GenericAdapter.Listener
     private fun setRecyclerView() {
         settingsItems = ArrayList(resources.getStringArray(R.array.reader_background_color_options).asList())
         adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
-        recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
-        swipeRefreshLayout.isEnabled = false
+        binding.contentRecyclerView.recyclerView.setDefaults(adapter)
+        binding.contentRecyclerView.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
+        binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false
     }
 
     override fun bind(item: String, itemView: View, position: Int) {
+        val itemBinding = ListitemTitleSubtitleWidgetBinding.bind(itemView)
         //(itemView as ViewGroup).enabled(true)
-        itemView.blackOverlay.visibility = View.INVISIBLE
-        itemView.widgetChevron.visibility = View.INVISIBLE
-        itemView.widgetSwitch.visibility = View.INVISIBLE
-        itemView.currentValue.visibility = View.INVISIBLE
-        itemView.currentValue.text = ""
-        itemView.colorView.visibility = View.VISIBLE
+        itemBinding.blackOverlay.visibility = View.INVISIBLE
+        itemBinding.widgetChevron.visibility = View.INVISIBLE
+        itemBinding.widgetSwitch.visibility = View.INVISIBLE
+        itemBinding.currentValue.visibility = View.INVISIBLE
+        itemBinding.currentValue.text = ""
+        itemBinding.colorView.visibility = View.VISIBLE
 
-        itemView.title.applyFont(assets).text = item
-        val drawable = itemView.colorView.background as GradientDrawable
+        itemBinding.title.applyFont(assets).text = item
+        val drawable = itemBinding.colorView.background as GradientDrawable
 
         when (position) {
             POSITION_DAY_BACKGROUND -> {
-                itemView.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.dayModeBackgroundColor.toHexString().toUpperCase(Locale.ROOT))
+                itemBinding.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.dayModeBackgroundColor.toHexString().toUpperCase(Locale.ROOT))
                 drawable.setColor(dataCenter.dayModeBackgroundColor)
             }
             POSITION_DAY_TEXT -> {
-                itemView.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.dayModeTextColor.toHexString().toUpperCase(Locale.ROOT))
+                itemBinding.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.dayModeTextColor.toHexString().toUpperCase(Locale.ROOT))
                 drawable.setColor(dataCenter.dayModeTextColor)
             }
             POSITION_NIGHT_BACKGROUND -> {
-                itemView.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.nightModeBackgroundColor.toHexString().toUpperCase(Locale.ROOT))
+                itemBinding.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.nightModeBackgroundColor.toHexString().toUpperCase(Locale.ROOT))
                 drawable.setColor(dataCenter.nightModeBackgroundColor)
             }
             POSITION_NIGHT_TEXT -> {
-                itemView.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.nightModeTextColor.toHexString().toUpperCase(Locale.ROOT))
+                itemBinding.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.nightModeTextColor.toHexString().toUpperCase(Locale.ROOT))
                 drawable.setColor(dataCenter.nightModeTextColor)
             }
         }
