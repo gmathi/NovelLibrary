@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import android.view.MenuItem
+import androidx.fragment.app.commit
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.databinding.ActivitySearchResultsBinding
 import io.github.gmathi.novellibrary.fragment.SearchUrlFragment
@@ -32,11 +33,11 @@ class SearchUrlActivity : BaseActivity() {
             replaceFrag = existingFrag
         }
 
-        supportFragmentManager.beginTransaction()
-            .replace(binding.contentSearchResults.fragmentContainer.id, replaceFrag, tag)
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-            .addToBackStack(tag)
-            .commitAllowingStateLoss()
+        supportFragmentManager.commit(true) {
+            replace(binding.contentSearchResults.fragmentContainer.id, replaceFrag, tag)
+            setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+            addToBackStack(tag)
+        }
     }
 
     override fun onBackPressed() {
