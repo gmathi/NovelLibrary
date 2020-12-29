@@ -5,15 +5,19 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import android.view.MenuItem
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.databinding.ActivitySearchResultsBinding
 import io.github.gmathi.novellibrary.fragment.SearchUrlFragment
-import kotlinx.android.synthetic.main.activity_search_results.*
 
 class SearchUrlActivity : BaseActivity() {
+    
+    private lateinit var binding: ActivitySearchResultsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_search_results)
-        setSupportActionBar(toolbar)
+        
+        binding = ActivitySearchResultsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.title = "Search: ${intent.getStringExtra("title")}"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         val url = intent.getStringExtra("url") ?: return
