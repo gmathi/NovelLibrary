@@ -19,6 +19,8 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <include layout="@layout/content_chapters_pager"/>
+    <include
+        android:id="@+id/activityChaptersPager"
+        layout="@layout/content_chapters_pager" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

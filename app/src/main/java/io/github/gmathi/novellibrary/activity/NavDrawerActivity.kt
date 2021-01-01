@@ -4,10 +4,12 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import androidx.fragment.app.commit
 import com.afollestad.materialdialogs.MaterialDialog
 import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.navigation.NavigationView
@@ -16,6 +18,7 @@ import com.google.firebase.auth.FirebaseAuth
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.databinding.ActivityNavDrawerBinding
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.database.Novel
@@ -24,8 +27,6 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.system.*
-import kotlinx.android.synthetic.main.activity_nav_drawer.*
-import kotlinx.android.synthetic.main.app_bar_nav_drawer.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
 
 
@@ -36,12 +37,16 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
     private var cloudFlareLoadingDialog: MaterialDialog? = null
     private var mAuth: FirebaseAuth? = null
+    
+    lateinit var binding: ActivityNavDrawerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_nav_drawer)
+
+        binding = ActivityNavDrawerBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         mAuth = FirebaseAuth.getInstance()
-        navigationView.setNavigationItemSelectedListener(this)
+        binding.navigationView.setNavigationItemSelectedListener(this)
 
         //Initialize custom logging
         currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
@@ -53,7 +58,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             currentNavId = savedInstanceState.getInt("currentNavId")
         }
 
-        snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
+        snackBar = Snackbar.make(binding.appBarNavDrawer.navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
         if (Utils.isConnectedToNetwork(this)) {
             checkForCloudFlare()
@@ -131,8 +136,8 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START)
+        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
         } else {
             val existingSearchFrag = supportFragmentManager.findFragmentByTag(SearchFragment::class.toString())
             if (existingSearchFrag != null) {
@@ -146,7 +151,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             if (snackBar != null && snackBar!!.isShown)
                 finish()
             else {
-                if (snackBar == null) snackBar = Snackbar.make(navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
+                if (snackBar == null) snackBar = Snackbar.make(binding.appBarNavDrawer.navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
                 snackBar?.show()
             }
         }
@@ -154,14 +159,14 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            android.R.id.home -> drawerLayout.openDrawer(GravityCompat.START)
+            android.R.id.home -> binding.drawerLayout.openDrawer(GravityCompat.START)
         }
         return super.onOptionsItemSelected(item)
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         loadFragment(item.itemId)
-        drawerLayout.closeDrawer(GravityCompat.START)
+        binding.drawerLayout.closeDrawer(GravityCompat.START)
         return true
     }
 
@@ -194,11 +199,11 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun replaceFragment(fragment: Fragment, tag: String) {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.navFragmentContainer, fragment, tag)
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-            .addToBackStack(tag)
-            .commitAllowingStateLoss()
+        supportFragmentManager.commit(true) {
+            replace(binding.appBarNavDrawer.navFragmentContainer.id, fragment, tag)
+            setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+            addToBackStack(tag)
+        }
     }
 
     fun setToolbar(toolbar: Toolbar?) {

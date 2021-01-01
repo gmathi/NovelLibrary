@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
+import android.view.LayoutInflater
 import android.view.View
 import android.view.View.*
 import android.view.WindowManager
@@ -17,6 +18,7 @@ import android.webkit.MimeTypeMap
 import android.webkit.WebView
 import android.widget.CompoundButton
 import androidx.core.content.ContextCompat
+import androidx.core.view.children
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -37,6 +39,9 @@ import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.WebPageFragmentPageListener
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
+import io.github.gmathi.novellibrary.databinding.ActivityReaderPagerBinding
+import io.github.gmathi.novellibrary.databinding.ItemOptionBinding
+import io.github.gmathi.novellibrary.databinding.MenuLeftDrawerBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
@@ -54,9 +59,6 @@ import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.Utils.getFormattedText
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
-import kotlinx.android.synthetic.main.activity_reader_pager.*
-import kotlinx.android.synthetic.main.item_option.view.*
-import kotlinx.android.synthetic.main.menu_left_drawer.*
 import org.greenrobot.eventbus.EventBus
 import java.io.File
 import java.util.*
@@ -105,10 +107,15 @@ class ReaderDBPagerActivity :
 
     private var sourceId: Long = -1L
     private var webPages: List<WebPage> = ArrayList()
+    
+    lateinit var binding: ActivityReaderPagerBinding
+    private lateinit var bindingList: MenuLeftDrawerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_reader_pager)
+
+        binding = ActivityReaderPagerBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         if (dataCenter.keepScreenOn)
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -130,13 +137,13 @@ class ReaderDBPagerActivity :
             webPages = webPages.reversed()
 
         adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, webPages.size, WebPageFragmentPageListener(novel, webPages))
-        viewPager.addOnPageChangeListener(this)
-        viewPager.adapter = adapter
+        binding.viewPager.addOnPageChangeListener(this)
+        binding.viewPager.adapter = adapter
 
         //Set the current page to the bookmarked webPage
         novel.currentChapterUrl?.let { bookmarkUrl ->
             val index = webPages.indexOfFirst { it.url == bookmarkUrl }
-            if (index != -1) viewPager.currentItem = index
+            if (index != -1) binding.viewPager.currentItem = index
             if (index == 0) updateBookmark(webPages[0])
         }
 
@@ -145,13 +152,13 @@ class ReaderDBPagerActivity :
         screenIcons = loadScreenIcons()
         screenTitles = loadScreenTitles()
         slideMenuAdapterSetup()
-        menuNav.setOnClickListener {
+        binding.menuNav.setOnClickListener {
             toggleSlideRootNab()
         }
 
         // Easy access to open reader menu button
         if (!dataCenter.isReaderModeButtonVisible)
-            menuNav.visibility = INVISIBLE
+            binding.menuNav.visibility = INVISIBLE
     }
 
     private fun updateBookmark(webPage: WebPage) {
@@ -172,7 +179,7 @@ class ReaderDBPagerActivity :
         super.onWindowFocusChanged(hasFocus)
 
         if (hasFocus && dataCenter.enableImmersiveMode) {
-            main_content.fitsSystemWindows = false
+            binding.mainContent.fitsSystemWindows = false
             window.decorView.systemUiVisibility = Constants.IMMERSIVE_MODE_FLAGS
         }
     }
@@ -212,13 +219,13 @@ class ReaderDBPagerActivity :
     }
 
     private fun inBrowser() {
-        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
+        val url = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
         if (url != null)
             openInBrowser(url)
     }
 
     private fun share() {
-        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
+        val url = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
         if (url != null) {
             shareUrl(url)
         }
@@ -227,7 +234,7 @@ class ReaderDBPagerActivity :
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val action = event.action
         val keyCode = event.keyCode
-        val webView = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
+        val webView = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as WebPageDBFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
         return when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
@@ -255,7 +262,7 @@ class ReaderDBPagerActivity :
 
 
     override fun onBackPressed() {
-        val currentFrag = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment)
+        val currentFrag = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as WebPageDBFragment)
         when {
             currentFrag.history.isNotEmpty() -> currentFrag.goBack()
             //currentFrag.readerWebView.canGoBack() -> currentFrag.readerWebView.goBack()
@@ -270,20 +277,23 @@ class ReaderDBPagerActivity :
         return if (index == -1)
             false
         else {
-            viewPager.currentItem = index
+            binding.viewPager.currentItem = index
             updateBookmark(webPage)
             true
         }
     }
 
     private fun slideMenuSetup(savedInstanceState: Bundle?) {
-        slidingRootNav = SlidingRootNavBuilder(this)
+        val slidingRootNavBuilder = SlidingRootNavBuilder(this)
             .withMenuOpened(false)
             .withContentClickableWhenMenuOpened(true)
             .withSavedState(savedInstanceState)
             .withGravity(SlideGravity.RIGHT)
             .withMenuLayout(R.layout.menu_left_drawer)
-            .inject()
+        slidingRootNav = slidingRootNavBuilder.inject()
+
+        var view = slidingRootNav.layout.getChildAt(0)
+        bindingList = MenuLeftDrawerBinding.bind(view)
     }
 
     private fun slideMenuAdapterSetup() {
@@ -304,9 +314,10 @@ class ReaderDBPagerActivity :
             ) as List<DrawerItem<DrawerAdapter.ViewHolder>>
         )
         adapter.setListener(this)
-        list.isNestedScrollingEnabled = false
-        list.layoutManager = LinearLayoutManager(this)
-        list.adapter = adapter
+        
+        bindingList.list.isNestedScrollingEnabled = false
+        bindingList.list.layoutManager = LinearLayoutManager(this)
+        bindingList.list.adapter = adapter
     }
 
     private fun createItemFor(position: Int): DrawerItem<SimpleItem.ViewHolder> {
@@ -399,7 +410,7 @@ class ReaderDBPagerActivity :
             MORE_SETTINGS -> startReaderSettingsActivity()
             READ_ALOUD -> {
                 if (dataCenter.readerMode) {
-                    val webPageDBFragment = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as? WebPageDBFragment)
+                    val webPageDBFragment = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as? WebPageDBFragment)
                     val audioText = webPageDBFragment?.doc?.getFormattedText() ?: return
                     val title = webPageDBFragment.doc?.title() ?: ""
                     startTTSService(audioText, title, novel.id, sourceId)
@@ -422,40 +433,42 @@ class ReaderDBPagerActivity :
             itemView.visibility = VISIBLE
             itemView.layoutParams = RecyclerView.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
         }
+        
+        val itemBinding = ItemOptionBinding.bind(itemView)
 
-        itemView.title.text = item.title
-        itemView.icon.setImageDrawable(item.icon)
-        itemView.itemSwitch.setOnCheckedChangeListener(null)
+        itemBinding.title.text = item.title
+        itemBinding.icon.setImageDrawable(item.icon)
+        itemBinding.itemSwitch.setOnCheckedChangeListener(null)
 
         if (simpleItem.isSwitchOn() && position == READER_MODE) {
-            itemView.itemSwitch.visibility = VISIBLE
-            itemView.itemSwitch.isChecked = dataCenter.readerMode
+            itemBinding.itemSwitch.visibility = VISIBLE
+            itemBinding.itemSwitch.isChecked = dataCenter.readerMode
         } else if (simpleItem.isSwitchOn() && position == NIGHT_MODE) {
             if (!dataCenter.readerMode) {
                 itemView.visibility = GONE
                 itemView.layoutParams = RecyclerView.LayoutParams(0, 0)
             } else {
-                itemView.itemSwitch.visibility = VISIBLE
-                itemView.itemSwitch.isChecked = dataCenter.isDarkTheme
+                itemBinding.itemSwitch.visibility = VISIBLE
+                itemBinding.itemSwitch.isChecked = dataCenter.isDarkTheme
             }
         } else if (simpleItem.isSwitchOn() && position == JAVA_SCRIPT) {
             if (dataCenter.readerMode) {
                 itemView.visibility = GONE
                 itemView.layoutParams = RecyclerView.LayoutParams(0, 0)
             } else {
-                itemView.itemSwitch.visibility = VISIBLE
-                itemView.itemSwitch.isChecked = !dataCenter.javascriptDisabled
+                itemBinding.itemSwitch.visibility = VISIBLE
+                itemBinding.itemSwitch.isChecked = !dataCenter.javascriptDisabled
             }
         } else
-            itemView.itemSwitch.visibility = GONE
+            itemBinding.itemSwitch.visibility = GONE
 
-        itemView.itemSwitch.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
+        itemBinding.itemSwitch.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
             when (position) {
                 READER_MODE -> {
                     dataCenter.readerMode = isChecked
                     if (isChecked && !dataCenter.javascriptDisabled)
                         dataCenter.javascriptDisabled = true
-                    list.adapter?.notifyItemRangeChanged(NIGHT_MODE, 2)
+                    bindingList.list.adapter?.notifyItemRangeChanged(NIGHT_MODE, 2)
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
                 }
                 NIGHT_MODE -> {

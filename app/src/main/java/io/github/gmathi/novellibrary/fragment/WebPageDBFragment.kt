@@ -22,6 +22,7 @@ import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getWebPageSettings
 import io.github.gmathi.novellibrary.database.updateWebPageSettings
+import io.github.gmathi.novellibrary.databinding.FragmentReaderBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.dataFetchError
 import io.github.gmathi.novellibrary.extensions.noInternetError
@@ -37,8 +38,6 @@ import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.system.setDefaultSettings
-import kotlinx.android.synthetic.main.activity_reader_pager.*
-import kotlinx.android.synthetic.main.fragment_reader.*
 import kotlinx.coroutines.*
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.greenrobot.eventbus.EventBus
@@ -58,6 +57,8 @@ class WebPageDBFragment : BaseFragment() {
     var doc: Document? = null
     var history: ArrayList<WebPageSettings> = ArrayList()
     var job: Job? = null
+    
+    private lateinit var binding: FragmentReaderBinding
 
     companion object {
         private const val NOVEL_ID = "novelId"
@@ -73,8 +74,12 @@ class WebPageDBFragment : BaseFragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-        inflater.inflate(R.layout.fragment_reader, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val view = inflater.inflate(R.layout.fragment_reader, container, false) ?: return null
+        binding = FragmentReaderBinding.bind(view)
+        return view
+    }
+    
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -107,7 +112,7 @@ class WebPageDBFragment : BaseFragment() {
 
         // Load data from webPage into webView
         loadData()
-        swipeRefreshLayout.setOnRefreshListener { loadData(true) }
+        binding.swipeRefreshLayout.setOnRefreshListener { loadData(true) }
 
     }
 
@@ -116,7 +121,7 @@ class WebPageDBFragment : BaseFragment() {
         // Show the menu button on scroll
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
 
-        readerWebView.setOnScrollChangeListener listener@{ _, _, scrollY, _, oldScrollY ->
+        binding.readerWebView.setOnScrollChangeListener listener@{ _, _, scrollY, _, oldScrollY ->
             val activity: FragmentActivity
             try {
                 activity = requireActivity() //Check if activity is available.
@@ -125,14 +130,17 @@ class WebPageDBFragment : BaseFragment() {
             }
 
             if (dataCenter.isReaderModeButtonVisible) {
-                if (scrollY > oldScrollY && scrollY > 0) activity.menuNav.visibility = View.GONE
-                if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) activity.menuNav.visibility = View.VISIBLE
+                if (activity != null && activity is ReaderDBPagerActivity) {
+                    val activity = requireActivity() as ReaderDBPagerActivity
+                    if (scrollY > oldScrollY && scrollY > 0) activity.binding.menuNav.visibility = View.GONE
+                    if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) activity.binding.menuNav.visibility = View.VISIBLE
+                }
             }
             if (dataCenter.enableImmersiveMode && dataCenter.showNavbarAtChapterEnd) {
                 // Using deprecated WebView.scale due to WebViewClient.onScaleChanged being completely unreliable.
                 // New approach sometimes simply does not trigger, causing anything but online reader mode to break.
 
-                val height = readerWebView.contentHeight * readerWebView.scale - readerWebView.height - 10
+                val height = binding.readerWebView.contentHeight * binding.readerWebView.scale - binding.readerWebView.height - 10
                 activity.window.decorView.systemUiVisibility =
                     if (height > 0 && scrollY > height) Constants.IMMERSIVE_MODE_W_NAVBAR_FLAGS
                     else Constants.IMMERSIVE_MODE_FLAGS
@@ -146,8 +154,8 @@ class WebPageDBFragment : BaseFragment() {
                 if (activity != null) {
                     if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
                         Toast.makeText(activity, "Cloud Flare Bypassed", Toast.LENGTH_SHORT).show()
-                        readerWebView.loadUrl("about:blank")
-                        readerWebView.clearHistory()
+                        binding.readerWebView.loadUrl("about:blank")
+                        binding.readerWebView.clearHistory()
                         loadData()
                     }
                 }
@@ -156,13 +164,13 @@ class WebPageDBFragment : BaseFragment() {
 
     @SuppressLint("JavascriptInterface", "AddJavascriptInterface")
     private fun setWebView() {
-        readerWebView.setDefaultSettings()
-        readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
-        readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
-        readerWebView.settings.userAgentString = HostNames.USER_AGENT
-        readerWebView.setBackgroundColor(Color.argb(1, 0, 0, 0))
-        readerWebView.addJavascriptInterface(this, "HTMLOUT")
-        readerWebView.webViewClient = object : WebViewClient() {
+        binding.readerWebView.setDefaultSettings()
+        binding.readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
+        binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
+        binding.readerWebView.settings.userAgentString = HostNames.USER_AGENT
+        binding.readerWebView.setBackgroundColor(Color.argb(1, 0, 0, 0))
+        binding.readerWebView.addJavascriptInterface(this, "HTMLOUT")
+        binding.readerWebView.webViewClient = object : WebViewClient() {
             @Suppress("OverridingDeprecatedMember")
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                 //First page
@@ -221,7 +229,7 @@ class WebPageDBFragment : BaseFragment() {
     private fun loadData(liveFromWeb: Boolean = false) {
         doc = null
 
-        readerWebView.apply {
+        binding.readerWebView.apply {
             stopLoading()
             loadUrl("about:blank")
         }
@@ -242,7 +250,7 @@ class WebPageDBFragment : BaseFragment() {
             return
         }
 
-        swipeRefreshLayout.apply {
+        binding.swipeRefreshLayout.apply {
             isRefreshing = false
         }
 
@@ -258,12 +266,12 @@ class WebPageDBFragment : BaseFragment() {
     }
 
     private fun loadFromWeb() {
-        swipeRefreshLayout.isEnabled = true
+        binding.swipeRefreshLayout.isEnabled = true
 
         //Check Reader Mode
         if (!dataCenter.readerMode) {
-            swipeRefreshLayout.isRefreshing = false
-            readerWebView.loadUrl(webPage.url)
+            binding.swipeRefreshLayout.isRefreshing = false
+            binding.readerWebView.loadUrl(webPage.url)
 
         } else {
             //Download the page and clean it to make it readable!
@@ -275,13 +283,13 @@ class WebPageDBFragment : BaseFragment() {
     private fun loadCreatedDocument() {
         doc?.body()?.append("<p><a href=\"#\">*** Go to top of page ***</a></p>")
         webPageSettings.let {
-            readerWebView.loadDataWithBaseURL(
+            binding.readerWebView.loadDataWithBaseURL(
                 if (it.filePath != null) "$FILE_PROTOCOL${it.filePath}" else doc?.location(),
                 doc?.outerHtml() ?: "",
                 "text/html", "UTF-8", null
             )
             if (it.metadata.containsKey(Constants.MetaDataKeys.SCROLL_POSITION)) {
-                readerWebView.scrollTo(
+                binding.readerWebView.scrollTo(
                     0, (it.metadata[Constants.MetaDataKeys.SCROLL_POSITION]
                             )!!.toInt()
                 )
@@ -293,11 +301,11 @@ class WebPageDBFragment : BaseFragment() {
     private fun downloadWebPage(url: String?) {
         if (url == null) return
 
-        progressLayout.showLoading()
+        binding.progressLayout.showLoading()
 
         //If no network
         if (!Utils.isConnectedToNetwork(activity)) {
-            progressLayout.noInternetError {
+            binding.progressLayout.noInternetError {
                 downloadWebPage(url)
             }
             return
@@ -321,7 +329,7 @@ class WebPageDBFragment : BaseFragment() {
                 //If document fails to load and the fragment is still alive
                 if (doc == null) {
                     if (isResumed && !isRemoving && !isDetached)
-                        progressLayout.dataFetchError {
+                        binding.progressLayout.dataFetchError {
                             downloadWebPage(url)
                         }
                     return@download
@@ -387,14 +395,14 @@ class WebPageDBFragment : BaseFragment() {
                     else return@download
                 }
 
-                progressLayout.showContent()
-                swipeRefreshLayout.isRefreshing = false
+                binding.progressLayout.showContent()
+                binding.swipeRefreshLayout.isRefreshing = false
 
             } catch (e: Exception) {
 
                 e.printStackTrace()
                 if (isResumed && !isRemoving && !isDetached)
-                    progressLayout.dataFetchError {
+                    binding.progressLayout.dataFetchError {
                         downloadWebPage(url)
                     }
             }
@@ -402,7 +410,7 @@ class WebPageDBFragment : BaseFragment() {
     }
 
     private fun changeTextSize() {
-        val settings = readerWebView.settings
+        val settings = binding.readerWebView.settings
         settings.textZoom = (dataCenter.textSize + 50) * 2
     }
 
@@ -421,8 +429,8 @@ class WebPageDBFragment : BaseFragment() {
     @SuppressLint("SetJavaScriptEnabled")
     private fun cleanDocument(doc: Document) {
         try {
-            progressLayout.showLoading()
-            readerWebView.settings.javaScriptEnabled = true
+            binding.progressLayout.showLoading()
+            binding.readerWebView.settings.javaScriptEnabled = true
             val htmlHelper = HtmlCleaner.getInstance(doc)
             htmlHelper.removeJS(doc)
             htmlHelper.additionalProcessing(doc)
@@ -455,7 +463,7 @@ class WebPageDBFragment : BaseFragment() {
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
-            progressLayout.showContent()
+            binding.progressLayout.showContent()
         }
     }
 
@@ -492,16 +500,16 @@ class WebPageDBFragment : BaseFragment() {
                 applyTheme()
             }
             ReaderSettingsEvent.READER_MODE -> {
-                readerWebView.loadUrl("about:blank")
-                readerWebView.clearHistory()
-                readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
+                binding.readerWebView.loadUrl("about:blank")
+                binding.readerWebView.clearHistory()
+                binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
                 loadData()
             }
             ReaderSettingsEvent.TEXT_SIZE -> {
                 changeTextSize()
             }
             ReaderSettingsEvent.JAVA_SCRIPT -> {
-                readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
+                binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
                 loadData()
             }
             ReaderSettingsEvent.FONT -> {
@@ -514,7 +522,7 @@ class WebPageDBFragment : BaseFragment() {
         super.onPause()
         if (this::webPageSettings.isInitialized)
             webPageSettings.let {
-                it.metadata[Constants.MetaDataKeys.SCROLL_POSITION] = readerWebView.scrollY.toString()
+                it.metadata[Constants.MetaDataKeys.SCROLL_POSITION] = binding.readerWebView.scrollY.toString()
                 dbHelper.updateWebPageSettings(it)
             }
     }

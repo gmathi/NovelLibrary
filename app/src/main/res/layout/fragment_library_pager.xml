@@ -19,7 +19,9 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <include layout="@layout/content_library_pager"/>
+    <include
+        android:id="@+id/contentLibraryPager"
+        layout="@layout/content_library_pager" />
 
     <!--<com.github.clans.fab.FloatingActionMenu-->
     <!--android:id="@+id/fabMenu"-->

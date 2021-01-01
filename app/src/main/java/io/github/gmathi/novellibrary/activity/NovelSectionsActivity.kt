@@ -18,6 +18,8 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
+import io.github.gmathi.novellibrary.databinding.ActivityNovelSectionsBinding
+import io.github.gmathi.novellibrary.databinding.ListitemNovelSectionBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.FAC
 import io.github.gmathi.novellibrary.extensions.showEmpty
@@ -28,9 +30,6 @@ import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
 import io.github.gmathi.novellibrary.util.setDefaults
-import kotlinx.android.synthetic.main.activity_novel_sections.*
-import kotlinx.android.synthetic.main.content_recycler_view.*
-import kotlinx.android.synthetic.main.listitem_novel_section.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,14 +38,18 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
 
     lateinit var adapter: GenericAdapter<NovelSection>
     private lateinit var touchHelper: ItemTouchHelper
+    
+    private lateinit var binding: ActivityNovelSectionsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_novel_sections)
-        setSupportActionBar(toolbar)
+        
+        binding = ActivityNovelSectionsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setRecyclerView()
-        progressLayout.showLoading()
+        binding.contentRecyclerView.progressLayout.showLoading()
         setData()
     }
 
@@ -54,22 +57,22 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
         adapter = GenericAdapter(ArrayList(), R.layout.listitem_novel_section, this)
         val callback = SimpleItemTouchHelperCallback(this)
         touchHelper = ItemTouchHelper(callback)
-        touchHelper.attachToRecyclerView(recyclerView)
-        recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
-        swipeRefreshLayout.isEnabled = false
+        touchHelper.attachToRecyclerView(binding.contentRecyclerView.recyclerView)
+        binding.contentRecyclerView.recyclerView.setDefaults(adapter)
+        binding.contentRecyclerView.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
+        binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false
     }
 
     private fun setData() {
         updateOrderIds()
         val novelSections = dbHelper.getAllNovelSections()
         adapter.updateData(ArrayList(novelSections))
-        if (swipeRefreshLayout != null && progressLayout != null) {
-            swipeRefreshLayout.isRefreshing = false
-            progressLayout.showContent()
+        if (binding.contentRecyclerView.swipeRefreshLayout != null && binding.contentRecyclerView.progressLayout != null) {
+            binding.contentRecyclerView.swipeRefreshLayout.isRefreshing = false
+            binding.contentRecyclerView.progressLayout.showContent()
         }
         if (novelSections.isEmpty())
-            progressLayout.showEmpty(
+            binding.contentRecyclerView.progressLayout.showEmpty(
                 resId = R.drawable.ic_info_white_vector,
                 isLottieAnimation = false,
                 emptyText = getString(R.string.novel_section_empty_message),
@@ -89,19 +92,20 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
 
     @SuppressLint("ClickableViewAccessibility")
     override fun bind(item: NovelSection, itemView: View, position: Int) {
-        itemView.novelSectionTitle.text = item.name
+        val itemBinding = ListitemNovelSectionBinding.bind(itemView)
+        itemBinding.novelSectionTitle.text = item.name
 
-        itemView.reorderButton.setOnTouchListener { _, event ->
+        itemBinding.reorderButton.setOnTouchListener { _, event ->
             @Suppress("DEPRECATION")
             if (MotionEventCompat.getActionMasked(event) ==
                 MotionEvent.ACTION_DOWN
             ) {
-                touchHelper.startDrag(recyclerView.getChildViewHolder(itemView))
+                touchHelper.startDrag(binding.contentRecyclerView.recyclerView.getChildViewHolder(itemView))
             }
             false
         }
 
-        itemView.popMenu.setOnClickListener {
+        itemBinding.popMenu.setOnClickListener {
             val popup = PopupMenu(this@NovelSectionsActivity, it)
             popup.menuInflater.inflate(R.menu.menu_popup_novel_section, popup.menu)
 

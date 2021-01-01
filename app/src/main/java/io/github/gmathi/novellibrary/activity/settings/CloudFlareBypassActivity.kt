@@ -9,34 +9,38 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
+import io.github.gmathi.novellibrary.databinding.ActivityCloudflareBypassBinding
 import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.system.setDefaultSettings
-import kotlinx.android.synthetic.main.activity_cloudflare_bypass.*
 
 class CloudFlareBypassActivity : BaseActivity() {
 
     private var currentHost: String = ""
     private var closeTimer: CountDownTimer? = null
+    
+    private lateinit var binding: ActivityCloudflareBypassBinding
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_cloudflare_bypass)
-        setSupportActionBar(toolbar)
+        
+        binding = ActivityCloudflareBypassBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        checkDone.visibility = View.GONE
-        view.setDefaultSettings()
-        view.settings.javaScriptEnabled = true
-        view.settings.userAgentString = HostNames.USER_AGENT
-        view.webViewClient = object : WebViewClient() {
+        binding.checkDone.visibility = View.GONE
+        binding.view.setDefaultSettings()
+        binding.view.settings.javaScriptEnabled = true
+        binding.view.settings.userAgentString = HostNames.USER_AGENT
+        binding.view.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 val cookies = CookieManager.getInstance().getCookie(url)
                 if (cookies != null && cookies.contains("cf_clearance")) {
                     CloudFlareByPasser.saveCookies(currentHost)
                     //finish()
-                    checkState.visibility = View.GONE
-                    checkDone.visibility = View.VISIBLE
+                    binding.checkState.visibility = View.GONE
+                    binding.checkDone.visibility = View.VISIBLE
                     closeTimer = object: CountDownTimer(3000, 4000) {
                         override fun onTick(millisUntilFinished: Long) { }
 
@@ -59,7 +63,7 @@ class CloudFlareBypassActivity : BaseActivity() {
 
     private fun bypassHost(url: String) {
         currentHost = url
-        view.loadUrl("https://www.$url")
+        binding.view.loadUrl("https://www.$url")
     }
 
 }

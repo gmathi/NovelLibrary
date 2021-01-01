@@ -21,6 +21,8 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <include layout="@layout/content_copyright"/>
+    <include
+        android:id="@+id/contentCopyright"
+        layout="@layout/content_copyright" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
