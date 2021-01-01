@@ -10,15 +10,14 @@ import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.databinding.ActivityLibrariesUsedBinding
+import io.github.gmathi.novellibrary.databinding.ListitemSettingsBinding
 import io.github.gmathi.novellibrary.util.system.openInBrowser
 import io.github.gmathi.novellibrary.model.other.GenericJsonMappedModel
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
-import kotlinx.android.synthetic.main.activity_libraries_used.*
-import kotlinx.android.synthetic.main.content_recycler_view.*
-import kotlinx.android.synthetic.main.listitem_settings.view.*
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -27,11 +26,15 @@ class LibrariesUsedActivity : BaseActivity(), GenericAdapter.Listener<GenericJso
 
     lateinit var adapter: GenericAdapter<GenericJsonMappedModel>
     private lateinit var librariesUsed: ArrayList<GenericJsonMappedModel>
+    
+    private lateinit var binding: ActivityLibrariesUsedBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_libraries_used)
-        setSupportActionBar(toolbar)
+        
+        binding = ActivityLibrariesUsedBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         val libraries = getLibraryData()
         if (libraries == null) finish()
         librariesUsed = ArrayList(libraries!!.filter { it != null }.map { it!! })
@@ -58,14 +61,15 @@ class LibrariesUsedActivity : BaseActivity(), GenericAdapter.Listener<GenericJso
 
     private fun setRecyclerView() {
         adapter = GenericAdapter(items = librariesUsed, layoutResId = R.layout.listitem_settings, listener = this)
-        recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
-        swipeRefreshLayout.isEnabled = false
+        binding.contentRecyclerView.recyclerView.setDefaults(adapter)
+        binding.contentRecyclerView.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
+        binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false
     }
 
     override fun bind(item: GenericJsonMappedModel, itemView: View, position: Int) {
-        itemView.settingsTitle.applyFont(assets).text = item.name
-        itemView.chevron.visibility = if (!item.link.isNullOrBlank()) View.VISIBLE else View.INVISIBLE
+        val itemBinding = ListitemSettingsBinding.bind(itemView)
+        itemBinding.settingsTitle.applyFont(assets).text = item.name
+        itemBinding.chevron.visibility = if (!item.link.isNullOrBlank()) View.VISIBLE else View.INVISIBLE
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
         else ContextCompat.getColor(this, android.R.color.transparent))
     }

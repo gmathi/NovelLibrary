@@ -15,6 +15,8 @@ import io.github.gmathi.novellibrary.activity.ChaptersPagerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapterSelectTitleProvider
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.updateNovel
+import io.github.gmathi.novellibrary.databinding.FragmentSourceChaptersBinding
+import io.github.gmathi.novellibrary.databinding.ListitemChapterBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
@@ -29,8 +31,6 @@ import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.util.system.startWebViewActivity
-import kotlinx.android.synthetic.main.fragment_source_chapters.*
-import kotlinx.android.synthetic.main.listitem_chapter.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -59,27 +59,32 @@ class ChaptersFragment : BaseFragment(),
 
     private var sourceId: Long = -1L
     private var lastKnownRecyclerState: Parcelable? = null
+    
+    private lateinit var binding: FragmentSourceChaptersBinding
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-        inflater.inflate(R.layout.fragment_source_chapters, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val result = inflater.inflate(R.layout.fragment_source_chapters, container, false) ?: return null
+        binding = FragmentSourceChaptersBinding.bind(result)
+        return result
+    }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         novel = requireArguments().getSerializable(NOVEL) as Novel
         sourceId = requireArguments().getLong(SOURCE_ID)
 
-        progressLayout.showLoading()
+        binding.progressLayout.showLoading()
         setRecyclerView()
         setData()
     }
 
     private fun setRecyclerView() {
         adapter = GenericAdapterSelectTitleProvider(items = ArrayList(), layoutResId = R.layout.listitem_chapter, listener = this)
-        recyclerView.isVerticalScrollBarEnabled = true
-        recyclerView.setDefaultsNoAnimation(adapter)
-        this.context?.let { recyclerView.addItemDecoration(CustomDividerItemDecoration(it, DividerItemDecoration.VERTICAL)) }
-        fastScrollView.setRecyclerView(recyclerView)
-        swipeRefreshLayout.isEnabled = false
+        binding.recyclerView.isVerticalScrollBarEnabled = true
+        binding.recyclerView.setDefaultsNoAnimation(adapter)
+        this.context?.let { binding.recyclerView.addItemDecoration(CustomDividerItemDecoration(it, DividerItemDecoration.VERTICAL)) }
+        binding.fastScrollView.setRecyclerView(binding.recyclerView)
+        binding.swipeRefreshLayout.isEnabled = false
     }
 
     private fun setData(shouldScrollToBookmark: Boolean = true, shouldScrollToFirstUnread: Boolean = true) {
@@ -88,16 +93,16 @@ class ChaptersFragment : BaseFragment(),
             val chapters = (if (sourceId == -1L) chaptersPagerActivity.vm.chapters else chaptersPagerActivity.vm.chapters?.filter { it.translatorSourceId == sourceId }) ?: ArrayList<WebPage>()
             if (chapters.isNotEmpty()) {
                 adapter.updateData(if (novel.metadata["chapterOrder"] == "des") ArrayList(chapters.reversed()) else ArrayList(chapters))
-                progressLayout.showContent()
+                binding.progressLayout.showContent()
                 if (shouldScrollToBookmark)
                     scrollToBookmark()
                 else if (shouldScrollToFirstUnread)
                     scrollToFirstUnread(chaptersPagerActivity.vm.chapterSettings ?: throw Error("Invalid Chapter Settings"))
                 if (chaptersPagerActivity.dataSet.isNotEmpty()) {
-                    lastKnownRecyclerState?.let { recyclerView.layoutManager?.onRestoreInstanceState(it) }
+                    lastKnownRecyclerState?.let { binding.recyclerView.layoutManager?.onRestoreInstanceState(it) }
                 }
             } else
-                progressLayout.showEmpty(emptyText = "No Chapters Found!")
+                binding.progressLayout.showEmpty(emptyText = "No Chapters Found!")
         }
     }
 
@@ -105,7 +110,7 @@ class ChaptersFragment : BaseFragment(),
         if (novel.currentChapterUrl != null) {
             val index = adapter.items.indexOfFirst { it.url == novel.currentChapterUrl }
             if (index != -1)
-                recyclerView.scrollToPosition(index)
+                binding.recyclerView.scrollToPosition(index)
         }
     }
 
@@ -116,7 +121,7 @@ class ChaptersFragment : BaseFragment(),
             else
                 adapter.items.indexOfFirst { chapter -> chaptersSettings.firstOrNull { it.url == chapter.url && it.isRead == 0 } != null }
             if (index != -1)
-                recyclerView.scrollToPosition(index)
+                binding.recyclerView.scrollToPosition(index)
         }
     }
 
@@ -138,12 +143,13 @@ class ChaptersFragment : BaseFragment(),
 
     @SuppressLint("SetTextI18n")
     override fun bind(item: WebPage, itemView: View, position: Int) {
+        val itemBinding = ListitemChapterBinding.bind(itemView)
 
         val webPageSettings = (activity as? ChaptersPagerActivity)?.vm?.chapterSettings?.firstOrNull { it.url == item.url }
 
         if (webPageSettings?.filePath != null) {
-            itemView.availableOfflineImageView.visibility = View.VISIBLE
-            itemView.availableOfflineImageView.animation = null
+            itemBinding.availableOfflineImageView.visibility = View.VISIBLE
+            itemBinding.availableOfflineImageView.animation = null
         } else {
 //            if (Download.STATUS_IN_QUEUE.toString() == webPageSettings?.metadata[Constants.DOWNLOADING]) {
 //                if (item.id != -1L && DownloadService.chapters.contains(item)) {
@@ -156,35 +162,35 @@ class ChaptersFragment : BaseFragment(),
 //                    itemView.greenView.animation = null
 //                }
 //            } else
-            itemView.availableOfflineImageView.visibility = View.GONE
+            itemBinding.availableOfflineImageView.visibility = View.GONE
         }
 
-        itemView.isReadView.visibility = if (webPageSettings?.isRead == 1) View.VISIBLE else View.GONE
-        itemView.bookmarkView.visibility = if (item.url == novel.currentChapterUrl) View.VISIBLE else View.GONE
+        itemBinding.isReadView.visibility = if (webPageSettings?.isRead == 1) View.VISIBLE else View.GONE
+        itemBinding.bookmarkView.visibility = if (item.url == novel.currentChapterUrl) View.VISIBLE else View.GONE
 
-        itemView.chapterTitle.text = item.chapter
+        itemBinding.chapterTitle.text = item.chapter
 
         webPageSettings?.title?.let {
             if (it.contains(item.chapter))
-                itemView.chapterTitle.text = it
+                itemBinding.chapterTitle.text = it
             else
-                itemView.chapterTitle.text = "${item.chapter}: $it"
+                itemBinding.chapterTitle.text = "${item.chapter}: $it"
         }
 
-        itemView.chapterCheckBox.isChecked = (activity as? ChaptersPagerActivity)?.dataSet?.contains(item) ?: false
-        itemView.chapterCheckBox.tag = item
-        itemView.chapterCheckBox.setOnCheckedChangeListener(this@ChaptersFragment)
+        itemBinding.chapterCheckBox.isChecked = (activity as? ChaptersPagerActivity)?.dataSet?.contains(item) ?: false
+        itemBinding.chapterCheckBox.tag = item
+        itemBinding.chapterCheckBox.setOnCheckedChangeListener(this@ChaptersFragment)
 
 
         itemView.setOnLongClickListener {
-            itemView.chapterCheckBox.isChecked = true
+            itemBinding.chapterCheckBox.isChecked = true
             true
         }
 
         if (webPageSettings?.metadata?.get(Constants.MetaDataKeys.IS_FAVORITE)?.toBoolean() == true) {
-            itemView.favoriteView.visibility = View.VISIBLE
+            itemBinding.favoriteView.visibility = View.VISIBLE
         } else {
-            itemView.favoriteView.visibility = View.GONE
+            itemBinding.favoriteView.visibility = View.GONE
         }
     }
 
@@ -241,7 +247,7 @@ class ChaptersFragment : BaseFragment(),
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onChapterActionModeEvent(chapterActionModeEvent: ChapterActionModeEvent) {
         if (chapterActionModeEvent.eventType == EventType.COMPLETE || (chapterActionModeEvent.eventType == EventType.UPDATE && (chapterActionModeEvent.sourceId == sourceId || sourceId == -1L))) {
-            lastKnownRecyclerState = recyclerView.layoutManager?.onSaveInstanceState()
+            lastKnownRecyclerState = binding.recyclerView.layoutManager?.onSaveInstanceState()
             setData()
         }
     }

@@ -15,6 +15,8 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
+import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.FAC
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MAX
@@ -25,9 +27,6 @@ import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.util.system.startReaderBackgroundSettingsActivity
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
-import kotlinx.android.synthetic.main.activity_settings.*
-import kotlinx.android.synthetic.main.content_recycler_view.*
-import kotlinx.android.synthetic.main.listitem_title_subtitle_widget.view.*
 import java.io.File
 import kotlin.math.abs
 
@@ -59,11 +58,15 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     lateinit var adapter: GenericAdapter<String>
     private lateinit var settingsItems: ArrayList<String>
     private lateinit var settingsItemsDescription: ArrayList<String>
+    
+    private lateinit var binding: ActivitySettingsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
-        setSupportActionBar(toolbar)
+        
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setRecyclerView()
     }
@@ -72,27 +75,28 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         settingsItems = ArrayList(resources.getStringArray(R.array.reader_titles_list).asList())
         settingsItemsDescription = ArrayList(resources.getStringArray(R.array.reader_subtitles_list).asList())
         adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
-        recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
-        swipeRefreshLayout.isEnabled = false
+        binding.contentRecyclerView.recyclerView.setDefaults(adapter)
+        binding.contentRecyclerView.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
+        binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false
     }
 
     override fun bind(item: String, itemView: View, position: Int) {
+        val itemBinding = ListitemTitleSubtitleWidgetBinding.bind(itemView)
         //(itemView as ViewGroup).enabled(true)
-        itemView.blackOverlay.visibility = View.INVISIBLE
-        itemView.widgetChevron.visibility = View.INVISIBLE
-        itemView.widgetSwitch.visibility = View.INVISIBLE
-        itemView.currentValue.visibility = View.INVISIBLE
-        itemView.currentValue.text = ""
+        itemBinding.blackOverlay.visibility = View.INVISIBLE
+        itemBinding.widgetChevron.visibility = View.INVISIBLE
+        itemBinding.widgetSwitch.visibility = View.INVISIBLE
+        itemBinding.currentValue.visibility = View.INVISIBLE
+        itemBinding.currentValue.text = ""
 
-        itemView.title.applyFont(assets).text = item
-        itemView.subtitle.applyFont(assets).text = settingsItemsDescription[position]
-        itemView.widgetSwitch.setOnCheckedChangeListener(null)
+        itemBinding.title.applyFont(assets).text = item
+        itemBinding.subtitle.applyFont(assets).text = settingsItemsDescription[position]
+        itemBinding.widgetSwitch.setOnCheckedChangeListener(null)
         when (position) {
             POSITION_READER_MODE -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.readerMode
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.readerMode
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value ->
                     dataCenter.readerMode = value
                     if (value) {
                         dataCenter.javascriptDisabled = value
@@ -101,9 +105,9 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 }
             }
             POSITION_JAVASCRIPT_DISABLED -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.javascriptDisabled
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.javascriptDisabled
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value ->
                     dataCenter.javascriptDisabled = value
                     if (!value) {
                         dataCenter.readerMode = value
@@ -112,28 +116,28 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 }
             }
             POSITION_READER_MODE_THEME -> {
-                itemView.widgetChevron.visibility = View.VISIBLE
+                itemBinding.widgetChevron.visibility = View.VISIBLE
             }
 
             POSITION_JAP_SWIPE -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.japSwipe
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.japSwipe = value }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.japSwipe
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.japSwipe = value }
             }
             POSITION_SHOW_READER_SCROLL -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.showReaderScroll
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.showReaderScroll = value }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.showReaderScroll
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.showReaderScroll = value }
             }
             POSITION_SHOW_CHAPTER_COMMENTS -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.showChapterComments
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.showChapterComments = value }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.showChapterComments
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.showChapterComments = value }
             }
             POSITION_VOLUME_SCROLL -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.volumeScroll
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.volumeScroll
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value ->
                     dataCenter.volumeScroll = value
                     adapter.notifyDataSetChanged()
                 }
@@ -141,71 +145,71 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             POSITION_VOLUME_SCROLL_LENGTH -> {
                 val enable = dataCenter.volumeScroll
                 //itemView.enabled(enable)
-                itemView.blackOverlay.visibility =
+                itemBinding.blackOverlay.visibility =
                     if (enable)
                         View.INVISIBLE
                     else
                         View.VISIBLE
-                itemView.currentValue.visibility = View.VISIBLE
+                itemBinding.currentValue.visibility = View.VISIBLE
                 val value = dataCenter.scrollLength
-                itemView.currentValue.text = "${if (value < 0) resources.getString(R.string.reverse) else ""} ${abs(value)}"
+                itemBinding.currentValue.text = "${if (value < 0) resources.getString(R.string.reverse) else ""} ${abs(value)}"
                 if (enable)
                     itemView.setOnClickListener {
-                        changeScrollDistance(itemView.currentValue)
+                        changeScrollDistance(itemBinding.currentValue)
                     }
             }
             POSITION_KEEP_SCREEN_ON -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.keepScreenOn
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.keepScreenOn = value }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.keepScreenOn
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.keepScreenOn = value }
             }
             POSITION_ENABLE_IMMERSIVE_MODE -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.enableImmersiveMode
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableImmersiveMode = value }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.enableImmersiveMode
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableImmersiveMode = value }
             }
             POSITION_SHOW_NAVBAR_AT_CHAPTER_END -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.showNavbarAtChapterEnd
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.showNavbarAtChapterEnd = value }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.showNavbarAtChapterEnd
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.showNavbarAtChapterEnd = value }
             }
             POSITION_ENABLE_CLUSTER_PAGES -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.enableClusterPages
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableClusterPages = value }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.enableClusterPages
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableClusterPages = value }
             }
             POSITION_DIRECTIONAL_LINKS -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.enableDirectionalLinks
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableDirectionalLinks = value }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.enableDirectionalLinks
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableDirectionalLinks = value }
             }
             POSITION_READER_MODE_BUTTON_VISIBILITY -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.isReaderModeButtonVisible
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.isReaderModeButtonVisible = value }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.isReaderModeButtonVisible
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.isReaderModeButtonVisible = value }
             }
             POSITION_KEEP_TEXT_COLOR -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.keepTextColor
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.keepTextColor = value }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.keepTextColor
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.keepTextColor = value }
             }
             POSITION_ALTERNATIVE_TEXT_COLORS -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.alternativeTextColors
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.alternativeTextColors = value }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.alternativeTextColors
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.alternativeTextColors = value }
             }
             POSITION_LIMIT_IMAGE_WIDTH -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.limitImageWidth
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.limitImageWidth = value }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.limitImageWidth
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.limitImageWidth = value }
             }
             POSITION_AUTO_READ_NEXT_CHAPTER -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.readAloudNextChapter
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.readAloudNextChapter = value }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.readAloudNextChapter
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.readAloudNextChapter = value }
             }
             POSITION_CUSTOM_QUERY_LOOKUPS -> {
-                itemView.widgetChevron.visibility = View.VISIBLE
+                itemBinding.widgetChevron.visibility = View.VISIBLE
             }
         }
 

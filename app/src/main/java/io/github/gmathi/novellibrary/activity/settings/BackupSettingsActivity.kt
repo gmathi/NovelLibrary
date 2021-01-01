@@ -26,6 +26,8 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
+import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
 import io.github.gmathi.novellibrary.util.Utils
@@ -37,9 +39,6 @@ import io.github.gmathi.novellibrary.worker.BackupWorker
 import io.github.gmathi.novellibrary.worker.oneTimeBackupWorkRequest
 import io.github.gmathi.novellibrary.worker.oneTimeRestoreWorkRequest
 import io.github.gmathi.novellibrary.worker.periodicBackupWorkRequest
-import kotlinx.android.synthetic.main.activity_settings.*
-import kotlinx.android.synthetic.main.content_recycler_view.*
-import kotlinx.android.synthetic.main.listitem_title_subtitle_widget.view.*
 import java.io.File
 import java.util.*
 
@@ -70,11 +69,15 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private var files: Boolean = false
 
     private var workRequestId: UUID? = null
+    
+    private lateinit var binding: ActivitySettingsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
-        setSupportActionBar(toolbar)
+        
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setRecyclerView()
     }
@@ -84,9 +87,9 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         settingsItemsDescription = ArrayList(resources.getStringArray(R.array.backup_and_restore_subtitles_list).asList())
         setBackupFrequencyDescription()
         adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
-        recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
-        swipeRefreshLayout.isEnabled = false
+        binding.contentRecyclerView.recyclerView.setDefaults(adapter)
+        binding.contentRecyclerView.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
+        binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false
     }
 
     private fun setBackupFrequencyDescription(backupFrequency: Int = dataCenter.backupFrequency) {
@@ -103,15 +106,16 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     override fun bind(item: String, itemView: View, position: Int) {
-        itemView.widgetChevron.visibility = View.GONE
-        itemView.widgetSwitch.visibility = View.GONE
-        itemView.currentValue.visibility = View.GONE
-        itemView.widget.visibility = View.GONE
-        itemView.blackOverlay.visibility = View.GONE
+        val itemBinding = ListitemTitleSubtitleWidgetBinding.bind(itemView)
+        itemBinding.widgetChevron.visibility = View.GONE
+        itemBinding.widgetSwitch.visibility = View.GONE
+        itemBinding.currentValue.visibility = View.GONE
+        itemBinding.widget.visibility = View.GONE
+        itemBinding.blackOverlay.visibility = View.GONE
 
-        itemView.title.applyFont(assets).text = item
-        itemView.subtitle.applyFont(assets).text = settingsItemsDescription[position]
-        itemView.widgetSwitch.setOnCheckedChangeListener(null)
+        itemBinding.title.applyFont(assets).text = item
+        itemBinding.subtitle.applyFont(assets).text = settingsItemsDescription[position]
+        itemBinding.widgetSwitch.setOnCheckedChangeListener(null)
 
         itemView.setBackgroundColor(
             if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)

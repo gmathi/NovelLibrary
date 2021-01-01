@@ -4,17 +4,21 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.webkit.WebViewClient
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.databinding.ActivityWebViewBinding
 import io.github.gmathi.novellibrary.network.HostNames
-import kotlinx.android.synthetic.main.activity_web_view.*
 
 class WebViewActivity : BaseActivity() {
+    
+    private lateinit var binding: ActivityWebViewBinding
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_web_view)
+        
+        binding = ActivityWebViewBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        previewWebView.apply {
+        binding.previewWebView.apply {
             settings.apply {
                 javaScriptEnabled = true
                 userAgentString = HostNames.USER_AGENT

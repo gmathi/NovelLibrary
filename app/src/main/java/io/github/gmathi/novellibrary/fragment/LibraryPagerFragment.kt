@@ -11,33 +11,37 @@ import io.github.gmathi.novellibrary.activity.NovelSectionsActivity
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.LibraryPageListener
 import io.github.gmathi.novellibrary.database.getAllNovelSections
+import io.github.gmathi.novellibrary.databinding.FragmentLibraryPagerBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.util.Constants
-import kotlinx.android.synthetic.main.content_library_pager.*
-import kotlinx.android.synthetic.main.fragment_library_pager.*
 
 
 class LibraryPagerFragment : BaseFragment() {
 
     private val novelSections: ArrayList<NovelSection> = ArrayList()
+    
+    private lateinit var binding: FragmentLibraryPagerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-            inflater.inflate(R.layout.fragment_library_pager, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val view = inflater.inflate(R.layout.fragment_library_pager, container, false) ?: return null
+        binding = FragmentLibraryPagerBinding.bind(view)
+        return view
+    }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        toolbar.title = getString(R.string.title_library)
-        (activity as NavDrawerActivity).setToolbar(toolbar)
+        binding.toolbar.title = getString(R.string.title_library)
+        (activity as NavDrawerActivity).setToolbar(binding.toolbar)
 
         setViewPager()
 
-        novelSectionSettings.setOnClickListener {
+        binding.contentLibraryPager.novelSectionSettings.setOnClickListener {
             startActivityForResult(Intent(activity, NovelSectionsActivity::class.java), Constants.NOVEL_SECTIONS_ACT_REQ_CODE)
         }
 
@@ -57,9 +61,9 @@ class LibraryPagerFragment : BaseFragment() {
         })
 
         val navPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, LibraryPageListener(novelSections))
-        viewPager.offscreenPageLimit = 3
-        viewPager.adapter = navPageAdapter
-        tabStrip.setViewPager(viewPager)
+        binding.contentLibraryPager.viewPager.offscreenPageLimit = 3
+        binding.contentLibraryPager.viewPager.adapter = navPageAdapter
+        binding.contentLibraryPager.tabStrip.setViewPager(binding.contentLibraryPager.viewPager)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

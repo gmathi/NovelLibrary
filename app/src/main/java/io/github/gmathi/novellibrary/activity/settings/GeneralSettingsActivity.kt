@@ -9,6 +9,8 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
+import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
 import io.github.gmathi.novellibrary.util.system.startBackupSettingsActivity
 import io.github.gmathi.novellibrary.util.system.startLanguagesActivity
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
@@ -16,9 +18,6 @@ import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
-import kotlinx.android.synthetic.main.activity_settings.*
-import kotlinx.android.synthetic.main.content_recycler_view.*
-import kotlinx.android.synthetic.main.listitem_title_subtitle_widget.view.*
 import java.util.*
 
 class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
@@ -38,11 +37,14 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
     private lateinit var settingsItems: ArrayList<String>
     private lateinit var settingsItemsDescription: ArrayList<String>
 
+    private lateinit var binding: ActivitySettingsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
-        setSupportActionBar(toolbar)
+
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setRecyclerView()
     }
@@ -63,35 +65,36 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         settingsItemsDescription = items
 
         adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
-        recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
-        swipeRefreshLayout.isEnabled = false
+        binding.contentRecyclerView.recyclerView.setDefaults(adapter)
+        binding.contentRecyclerView.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
+        binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false
     }
 
     override fun bind(item: String, itemView: View, position: Int) {
-        itemView.widgetChevron.visibility = View.INVISIBLE
-        itemView.widgetSwitch.visibility = View.INVISIBLE
-        itemView.currentValue.visibility = View.INVISIBLE
-        itemView.blackOverlay.visibility = View.INVISIBLE
+        val itemBinding = ListitemTitleSubtitleWidgetBinding.bind(itemView)
+        itemBinding.widgetChevron.visibility = View.INVISIBLE
+        itemBinding.widgetSwitch.visibility = View.INVISIBLE
+        itemBinding.currentValue.visibility = View.INVISIBLE
+        itemBinding.blackOverlay.visibility = View.INVISIBLE
 
-        itemView.title.applyFont(assets).text = item
-        itemView.subtitle.applyFont(assets).text = settingsItemsDescription[position]
-        itemView.widgetSwitch.setOnCheckedChangeListener(null)
+        itemBinding.title.applyFont(assets).text = item
+        itemBinding.subtitle.applyFont(assets).text = settingsItemsDescription[position]
+        itemBinding.widgetSwitch.setOnCheckedChangeListener(null)
         when (position) {
             POSITION_LOAD_LIBRARY_SCREEN -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.loadLibraryScreen
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.loadLibraryScreen = value }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.loadLibraryScreen
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.loadLibraryScreen = value }
             }
 
             POSITION_BACKUP_AND_RESTORE, POSITION_LANGUAGES -> {
-                itemView.widgetChevron.visibility = View.VISIBLE
+                itemBinding.widgetChevron.visibility = View.VISIBLE
             }
 
             POSITION_ENABLE_NOTIFICATIONS -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.enableNotifications
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value ->
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.enableNotifications
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value ->
                     dataCenter.enableNotifications = value
                     if (value)
                         BackgroundNovelSyncTask.scheduleRepeat(applicationContext)
@@ -101,9 +104,9 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
             }
 
             POSITION_ENABLE_SCROLLING_TEXT -> {
-                itemView.widgetSwitch.visibility = View.VISIBLE
-                itemView.widgetSwitch.isChecked = dataCenter.enableScrollingText
-                itemView.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableScrollingText = value }
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.enableScrollingText
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableScrollingText = value }
             }
         }
 
