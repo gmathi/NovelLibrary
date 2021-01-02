@@ -10,7 +10,6 @@ import androidx.appcompat.view.ActionMode
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
-import com.afollestad.materialdialogs.MaterialDialog
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
@@ -38,6 +37,7 @@ import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.net.URL
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportListItem>, ActionMode.Callback {
@@ -47,6 +47,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
     private var updateSet: HashSet<ImportListItem> = HashSet()
     private var actionMode: ActionMode? = null
     private var job: Job? = null
+    private val isImporting: AtomicBoolean = AtomicBoolean(false)
 
     private lateinit var binding: ActivityImportLibraryBinding
 
@@ -273,6 +274,12 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
 
 
     private fun startImport() {
+        if (isImporting.get()) {
+            return
+        }
+
+        isImporting.set(true)
+        
         val snackProgressBarManager = Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this)
         val snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, "Importing… - " + getString(R.string.please_wait))
             .setAction(getString(R.string.cancel), object : SnackProgressBar.OnActionClickListener {
@@ -299,6 +306,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
             actionMode?.finish()
             adapter.notifyDataSetChanged()
             snackProgressBarManager.disable()
+            isImporting.set(false)
         }
     }
 
@@ -307,6 +315,13 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         novel.id = dbHelper.insertNovel(novel)
     }
 
+    override fun onBackPressed() {
+        if (isImporting.get()) {
+            return
+        }
+
+        super.onBackPressed()
+    }
 }
 
 
