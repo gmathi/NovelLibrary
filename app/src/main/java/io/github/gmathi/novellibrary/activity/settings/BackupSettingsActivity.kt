@@ -33,14 +33,18 @@ import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
+import io.github.gmathi.novellibrary.util.lang.launchIO
 import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.worker.BackupWorker
 import io.github.gmathi.novellibrary.worker.oneTimeBackupWorkRequest
 import io.github.gmathi.novellibrary.worker.oneTimeRestoreWorkRequest
 import io.github.gmathi.novellibrary.worker.periodicBackupWorkRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import java.io.File
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
@@ -69,6 +73,8 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private var files: Boolean = false
 
     private var workRequestId: UUID? = null
+    
+    private val isDeletingFiles = AtomicBoolean(false)
     
     private lateinit var binding: ActivitySettingsBinding
 
@@ -401,19 +407,23 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     private fun deleteFiles(dialog: SnackProgressBarManager) {
-        try {
-            deleteDir(cacheDir)
-            deleteDir(filesDir)
-            dbHelper.removeAll()
-            dataCenter.saveNovelSearchHistory(ArrayList())
+        launchIO {
+            isDeletingFiles.set(true)
+            try {
+                deleteDir(cacheDir)
+                deleteDir(filesDir)
+                dbHelper.removeAll()
+                dataCenter.saveNovelSearchHistory(ArrayList())
 
-            launchUI {
-                dialog.disable()
+                async(Dispatchers.Main) {
+                    dialog.disable()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                isDeletingFiles.set(false)
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
-
     }
 
     private fun deleteDir(dir: File?): Boolean {
@@ -428,5 +438,13 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         } else {
             false
         }
+    }
+
+    override fun onBackPressed() {
+        if (isDeletingFiles.get()) {
+            return
+        }
+
+        super.onBackPressed()
     }
 }
