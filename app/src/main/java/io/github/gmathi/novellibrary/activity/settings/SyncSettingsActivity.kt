@@ -26,6 +26,8 @@ import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.lang.launchIO
 import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.setDefaults
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import java.util.ArrayList
 
 class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
@@ -204,20 +206,20 @@ class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
             val total = novels.count()
 
-            launchUI {
+            async(Dispatchers.Main) {
                 snackProgressBarManager.updateTo(snackProgressBar.setProgressMax(total))
             }
 
             var counter = 0
             novelSync.batchAdd(novels, sections) { novelName ->
                 if (++counter == total) {
-                    launchUI {
+                    async(Dispatchers.Main) {
                         snackProgressBarManager.disable()
                         view.isEnabled = true
                         makeFullSyncInProgress = false
                     }
                 } else {
-                    launchUI {
+                    async(Dispatchers.Main) {
                         try {
                             snackProgressBarManager.updateTo(
                                 snackProgressBar.setMessage(
