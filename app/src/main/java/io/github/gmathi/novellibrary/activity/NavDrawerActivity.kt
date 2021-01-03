@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import com.afollestad.materialdialogs.MaterialDialog
 import androidx.fragment.app.commit
+import androidx.fragment.app.findFragment
 import androidx.lifecycle.lifecycleScope
 import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.navigation.NavigationView
@@ -20,8 +21,11 @@ import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
+import io.github.gmathi.novellibrary.adapter.LibraryPageListener
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.databinding.ActivityNavDrawerBinding
+import io.github.gmathi.novellibrary.fragment.LibraryFragment
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.database.Novel
@@ -165,6 +169,14 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 val searchView = existingSearchFrag.view?.findViewById<PersistentSearchView>(R.id.searchView)
                 if (searchView != null && (searchView.isEditing || searchView.isSearching)) {
                     (existingSearchFrag as SearchFragment).closeSearch()
+                    return
+                }
+            }
+            
+            val existingLibraryPagerFrag = supportFragmentManager.findFragmentByTag(LibraryPagerFragment::class.toString())
+            if (existingLibraryPagerFrag != null) {
+                val existingLibraryPagerFrag = existingLibraryPagerFrag as LibraryPagerFragment
+                if (existingLibraryPagerFrag.getLibraryFragment()?.isSyncing() == true) {
                     return
                 }
             }

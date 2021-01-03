@@ -254,7 +254,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         super.onPrepareOptionsMenu(menu)
     }
 
-    fun isSyncing() = syncSnackbar != null
+    fun isSyncing(): Boolean = syncSnackbar != null
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
@@ -299,12 +299,14 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             if (activity == null) return@syncing
 
-            if (syncSnackbar != null)
+            if (this@LibraryFragment.syncSnackbar != null)
                 syncSnackbarManager.dismiss()
 
-            syncSnackbar =  SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL,
-                    getString(R.string.sync_in_progress) + " - " + getString(R.string.please_wait))
-            syncSnackbarManager.show(syncSnackbar!!, SnackProgressBarManager.LENGTH_INDEFINITE)
+            withContext(Dispatchers.Main) {
+                this@LibraryFragment.syncSnackbar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL,
+                        getString(R.string.sync_in_progress) + " - " + getString(R.string.please_wait))
+                syncSnackbarManager.show(syncSnackbar!!, SnackProgressBarManager.LENGTH_INDEFINITE)
+            }
 
             activity?.invalidateOptionsMenu()
 
@@ -317,18 +319,18 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             var counter = 0
             novels.forEach {
                 try {
-                    launchUI {
-                        syncSnackbarManager.updateTo(
-                            syncSnackbar!!.setMessage(
+                    async(Dispatchers.Main) {
+                        syncSnackbar?.setMessage(
                                 getString(
-                                    R.string.sync_fetching_chapter_counts,
-                                    counter++,
-                                    novels.count(),
-                                    it.name
+                                        R.string.sync_fetching_chapter_counts,
+                                        counter++,
+                                        novels.count(),
+                                        it.name
                                 )
-                            )
-                        )
-                        syncSnackbarManager!!.setProgress(counter)
+                        )?.let { snackbar ->
+                            syncSnackbarManager.updateTo(snackbar)
+                            syncSnackbarManager.setProgress(counter)
+                        }
                     }
 
                     val totalChapters = withContext(Dispatchers.IO) { NovelApi.getChapterCount(it) }
@@ -347,7 +349,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             totalCountMap.forEach {
                 val updatedNovel = it.key
                 counter++
-                launchUI {
+                async (Dispatchers.Main) {
                     syncSnackbarManager.updateTo(
                         syncSnackbar!!.setMessage(
                             getString(
@@ -382,7 +384,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             setData()
 
-            launchUI {
+            async (Dispatchers.Main) {
                 syncSnackbarManager.dismiss()
                 syncSnackbar = null
             }
