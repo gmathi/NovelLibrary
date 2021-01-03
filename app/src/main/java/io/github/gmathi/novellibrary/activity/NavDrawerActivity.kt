@@ -34,6 +34,7 @@ import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.system.*
 import kotlinx.coroutines.launch
 import org.cryse.widget.persistentsearch.PersistentSearchView
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -43,6 +44,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
     private val snackProgressBarManager by lazy { Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this).setMessageMaxLines(3) };
     private var cloudFlareLoadingSnack: SnackProgressBar? = null
+    private val isCloudflareChecking = AtomicBoolean(false)
 
     private var mAuth: FirebaseAuth? = null
 
@@ -114,6 +116,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun checkForCloudFlare() {
+        isCloudflareChecking.set(true)
         cloudFlareLoadingSnack = SnackProgressBar(SnackProgressBar.TYPE_CIRCULAR,
             "If this is taking too long, You can skip and goto \"Settings\" -> \"CloudFlare Check\" to make the app work.")
             .setAction("Skip", object: SnackProgressBar.OnActionClickListener {
@@ -121,6 +124,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                     loadFragment(currentNavId)
                     showWhatsNewDialog()
                     checkIntentForNotificationData()
+                    isCloudflareChecking.set(false)
                 }
             })
         lifecycleScope.launch {
@@ -141,6 +145,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                                 checkIntentForNotificationData()
                                 snackProgressBarManager.dismiss()
                                 cloudFlareLoadingSnack = null
+                                isCloudflareChecking.set(false)
                             }
                         }
                     }
@@ -152,6 +157,8 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     override fun onBackPressed() {
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
+        } else if(isCloudflareChecking.get()) {
+            return
         } else {
             val existingSearchFrag = supportFragmentManager.findFragmentByTag(SearchFragment::class.toString())
             if (existingSearchFrag != null) {
