@@ -126,16 +126,11 @@ dependencies {
         exclude group: 'com.google.apis'
     })
 
-    //TODO: Need to update to new MaterialDialogs
-//    implementation 'com.afollestad.material-dialogs:core:3.3.0'
-//    implementation 'com.afollestad.material-dialogs:input:3.3.0'
-    implementation('com.afollestad.material-dialogs:core:0.9.6.0', {
-        exclude group: 'com.android.support'
-    })
-
-    implementation('com.afollestad.material-dialogs:commons:0.9.6.0', {
-        exclude group: 'com.android.support'
-    })
+    final material_dialogs_version = '3.3.0'
+    implementation "com.afollestad.material-dialogs:core:$material_dialogs_version"
+    implementation "com.afollestad.material-dialogs:input:$material_dialogs_version"
+    implementation "com.afollestad.material-dialogs:color:$material_dialogs_version"
+    implementation "com.afollestad.material-dialogs:lifecycle:$material_dialogs_version"
 
     implementation "com.google.android.gms:play-services-gcm:17.0.0"
     implementation "com.google.android.gms:play-services-drive:17.0.0"

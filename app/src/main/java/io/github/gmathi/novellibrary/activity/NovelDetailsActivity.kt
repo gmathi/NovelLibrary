@@ -21,7 +21,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.Theme
+import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
 import com.bumptech.glide.Glide
 import com.google.firebase.analytics.ktx.logEvent
 import com.google.gson.Gson
@@ -116,8 +116,12 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val clip: ClipData = ClipData.newPlainText("Error Message", errorMessage)
                 clipboard.setPrimaryClip(clip)
-                MaterialDialog.Builder(this@NovelDetailsActivity).title("Error!").content("The error message has been copied to clipboard. Please paste it and send it the developer in discord.")
-                    .show()
+                MaterialDialog(this@NovelDetailsActivity).show {
+                    title(text = "Error!")
+                    message(text = "The error message has been copied to clipboard. Please paste it and send it the developer in discord.")
+                    
+                    lifecycleOwner(this@NovelDetailsActivity)
+                }
                 if (novel.id == -1L)
                     binding.contentNovelDetails.progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again)) {
                         binding.contentNovelDetails.progressLayout.showLoading()
@@ -135,10 +139,12 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         binding.contentNovelDetails.novelDetailsName.isSelected = dataCenter.enableScrollingText
 
         val listener: View.OnClickListener = View.OnClickListener {
-            MaterialDialog.Builder(this)
-                .title("Novel Name")
-                .content(novel.name)
-                .build().show()
+            MaterialDialog(this).show {
+                title(text = "Novel Name")
+                message(text = novel.name)
+
+                lifecycleOwner(this@NovelDetailsActivity)
+            }
         }
         binding.contentNovelDetails.novelDetailsName.setOnClickListener(listener)
         binding.contentNovelDetails.novelDetailsNameInfo.setOnClickListener(listener)
@@ -309,16 +315,17 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun confirmNovelDelete() {
-        MaterialDialog.Builder(this)
-            .title(getString(R.string.confirm_remove))
-            .content(getString(R.string.confirm_remove_description_novel))
-            .positiveText(getString(R.string.remove))
-            .negativeText(getString(R.string.cancel))
-            .icon(ContextCompat.getDrawable(this, R.drawable.ic_delete_white_vector)!!)
-            .typeface("source_sans_pro_regular.ttf", "source_sans_pro_regular.ttf")
-            .theme(Theme.DARK)
-            .onPositive { _, _ -> deleteNovel() }
-            .show()
+        MaterialDialog(this).show {
+            icon(R.drawable.ic_delete_white_vector)
+            title(R.string.confirm_remove)
+            message(R.string.confirm_remove_description_novel)
+            positiveButton(R.string.remove) {
+                deleteNovel()
+            }
+            negativeButton(R.string.cancel)
+
+            lifecycleOwner(this@NovelDetailsActivity)
+        }
     }
 
     private fun deleteNovel() {

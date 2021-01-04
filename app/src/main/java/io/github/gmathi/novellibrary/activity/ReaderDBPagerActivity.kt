@@ -4,6 +4,7 @@ package io.github.gmathi.novellibrary.activity
 import android.animation.ObjectAnimator
 import android.app.Activity
 import android.content.Intent
+import android.content.res.Resources
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.os.Bundle
@@ -26,9 +27,13 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.MATCH_PARENT
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.WRAP_CONTENT
 import androidx.viewpager.widget.ViewPager
-import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.Theme
+import com.afollestad.materialdialogs.customview.customView
+import com.afollestad.materialdialogs.customview.getCustomView
+import com.afollestad.materialdialogs.list.checkItem
+import com.afollestad.materialdialogs.list.getItemSelector
+import com.afollestad.materialdialogs.list.listItems
+import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.google.firebase.analytics.ktx.logEvent
 import com.yarolegovich.slidingrootnav.SlideGravity
 import com.yarolegovich.slidingrootnav.SlidingRootNav
@@ -197,25 +202,26 @@ class ReaderDBPagerActivity :
     }
 
     private fun changeTextSize() {
-        val dialog = MaterialDialog.Builder(this)
-            .title(R.string.text_size)
-            .customView(R.layout.dialog_slider, true)
-            .build()
-        dialog.show()
+        val dialog = MaterialDialog(this).show {
+            title(R.string.text_size)
+            customView(R.layout.dialog_slider, scrollable = true)
 
-        dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setOnSeekBarChangedListener { _, progress ->
-            dataCenter.textSize = progress.toInt()
-            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
+            getCustomView()?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setOnSeekBarChangedListener { _, progress ->
+                dataCenter.textSize = progress.toInt()
+                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
+            }
+            getCustomView()?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setProgress(dataCenter.textSize.toDouble())
         }
-        dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setProgress(dataCenter.textSize.toDouble())
+
     }
 
     private fun reportPage() {
-        MaterialDialog.Builder(this)
-            .content("Please use discord to report a bug.")
-            .positiveText("Ok")
-            .onPositive { dialog, _ -> dialog.dismiss() }
-            .show()
+        MaterialDialog(this).show {
+            message(text = "Please use discord to report a bug.")
+            positiveButton(text = "Ok") {
+                it.dismiss()
+            }
+        }
     }
 
     private fun inBrowser() {
@@ -371,12 +377,9 @@ class ReaderDBPagerActivity :
 
                 var typeFace = createTypeface()
 
-                val dialog = MaterialDialog.Builder(this)
-                    .theme(Theme.DARK)
-                    .title(getString(R.string.title_fonts))
-                    .items(AVAILABLE_FONTS.keys)
-                    .alwaysCallSingleChoiceCallback()
-                    .itemsCallbackSingleChoice(AVAILABLE_FONTS.keys.indexOf(selectedFont)) { dialog, _, which, font ->
+                MaterialDialog(this).show {
+                    title(R.string.title_fonts)
+                    listItemsSingleChoice(items = AVAILABLE_FONTS.keys.toMutableList()) { dialog, which, font ->
                         if (which == 0) {
                             addFont()
                             dialog.dismiss()
@@ -385,23 +388,20 @@ class ReaderDBPagerActivity :
                             if (fontPath != null) {
                                 selectedFont = font.toString()
                                 typeFace = createTypeface(fontPath)
-                                dialog.setTypeface(dialog.titleView, typeFace)
+                                // Currently doesn't work
+                                //dialog.setTypeface(dialog.titleView, typeFace)
                             } else {
-                                dialog.selectedIndex = AVAILABLE_FONTS.keys.indexOf(selectedFont)
-                                dialog.notifyItemsChanged()
+                                dialog.checkItem(AVAILABLE_FONTS.keys.indexOf(selectedFont))
                             }
                         }
-                        true
                     }
-                    .onPositive { _, which ->
-                        if (which == DialogAction.POSITIVE) {
-                            dataCenter.fontPath = AVAILABLE_FONTS[selectedFont] ?: ""
-                            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
-                        }
+                    positiveButton(R.string.okay) {dialog ->
+                        dataCenter.fontPath = AVAILABLE_FONTS[selectedFont] ?: ""
+                        EventBus.getDefault()
+                            .post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
                     }
-                    .positiveText(R.string.okay)
-                    .show()
-                dialog.setTypeface(dialog.titleView, typeFace)
+                    negativeButton(R.string.cancel)
+                }
             }
             FONT_SIZE -> changeTextSize()
             REPORT_PAGE -> reportPage()

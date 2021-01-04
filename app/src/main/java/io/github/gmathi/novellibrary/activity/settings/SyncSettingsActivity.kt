@@ -157,28 +157,27 @@ class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             POSITION_LOG_IN -> startSyncLoginActivity(novelSync.getLoginURL(), novelSync.getCookieLookupRegex())
             POSITION_MAKE_SYNC -> {
                 if (novelSync.loggedIn()) {
-                    MaterialDialog.Builder(this)
-                        .title(R.string.confirm_full_sync)
-                        .content(R.string.confirm_full_sync_description)
-                        .positiveText(R.string.okay)
-                        .negativeText(R.string.cancel)
-                        .onPositive { _, _ -> makeFullSync() }
-                        .show()
+                    MaterialDialog(this).show {
+                        title(R.string.confirm_full_sync)
+                        message(R.string.confirm_full_sync_description)
+                        positiveButton(R.string.okay) {
+                            makeFullSync()
+                        }
+                        negativeButton(R.string.cancel)
+                    }
                 }
             }
             POSITION_FORGET -> {
                 if (novelSync.loggedIn()) {
-                    MaterialDialog.Builder(this)
-                        .title(R.string.confirm_forget_cookies)
-                        .content(R.string.confirm_forget_cookies_description)
-                        .positiveText(R.string.okay)
-                        .negativeText(R.string.cancel)
-                        .autoDismiss(true)
-                        .onPositive { _, _ ->
+                    MaterialDialog(this).show {
+                        title(R.string.confirm_forget_cookies)
+                        message(R.string.confirm_forget_cookies_description)
+                        positiveButton(R.string.okay) {
                             novelSync.forget()
                             adapter.notifyDataSetChanged()
                         }
-                        .show()
+                        negativeButton(R.string.cancel)
+                    }
                 }
             }
         }

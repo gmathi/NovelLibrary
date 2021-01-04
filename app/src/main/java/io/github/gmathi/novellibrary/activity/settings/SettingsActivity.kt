@@ -16,6 +16,7 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.input.input
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import io.github.gmathi.novellibrary.BuildConfig
@@ -120,36 +121,38 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         if (item.itemId == android.R.id.home) finish()
         if (item.itemId == R.id.action_report_page) {
             val systemInfo = systemInfo()
-            MaterialDialog.Builder(this)
-                    .content(getString(R.string.bug_report_content, "\n\n" + systemInfo))
-                    .positiveText(getString(R.string.okay))
-                    .neutralText(getString(R.string.copy_to_clipboard))
-                    .onPositive { dialog, _ -> dialog.dismiss() }
-                    .onNeutral { _, _ ->
-                        val clipboard: ClipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        val clip = ClipData.newPlainText("Debug-info", systemInfo)
-                        clipboard.setPrimaryClip(clip)
-                        Toast.makeText(this, "Debug-info copied to clipboard!", Toast.LENGTH_SHORT).show()
-                    }
-                    .autoDismiss(false)
-                    .show()
+            MaterialDialog(this).show {
+                message(R.string.bug_report_content, "\n\n" + systemInfo)
+                positiveButton(R.string.okay) {
+                    it.dismiss()
+                }
+                negativeButton(R.string.copy_to_clipboard) {
+                    val clipboard: ClipboardManager =
+                        getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = ClipData.newPlainText("Debug-info", systemInfo)
+                    clipboard.setPrimaryClip(clip)
+                    Toast.makeText(this@SettingsActivity, "Debug-info copied to clipboard!", Toast.LENGTH_SHORT)
+                        .show()
+                }
+                cancelable(false)
+            }
         }
         return super.onOptionsItemSelected(item)
     }
     //endregion
 
     private fun donateDeveloperDialog() {
-        MaterialDialog.Builder(this)
-                .title(getString(R.string.donate_developer))
-                .content(getString(R.string.donations_description_new))
-                .show()
+        MaterialDialog(this).show {
+            title(R.string.donate_developer)
+            message(R.string.donations_description_new)
+        }
     }
 
     private fun aboutUsDialog() {
-        MaterialDialog.Builder(this)
-                .title(getString(R.string.about_us))
-                .content(getString(R.string.about_us_content))
-                .show()
+        MaterialDialog(this).show {
+            title(R.string.about_us)
+            message(R.string.about_us_content)
+        }
     }
 
     private fun setEasterEgg() {
@@ -166,12 +169,13 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     private fun showCodeDialog() {
-        MaterialDialog.Builder(this)
-                .input("Oops no hints!!", "I love novels a lot is a true statement!!", true) { _, input ->
-                    checkCode(input.toString())
-                }.title("Enter Unlock Code")
-                .canceledOnTouchOutside(false)
-                .show()
+        MaterialDialog(this).show {
+            title(text = "Enter Unlock Code")
+            input(hint = "Oops no hints!!", prefill = "I love novels a lot is a true statement!!") { dialog, input ->
+                checkCode(input.toString())
+            }
+            cancelOnTouchOutside(false)
+        }
     }
 
     private fun checkCode(code: String) {

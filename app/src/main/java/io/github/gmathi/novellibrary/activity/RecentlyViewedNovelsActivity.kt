@@ -87,17 +87,20 @@ class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Nov
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) finish()
         if (item.itemId == R.id.action_clear)
-            MaterialDialog.Builder(this)
-                    .content("Are you sure you want to clear all the recently viewed novels list?")
-                    .positiveText("Yes")
-                    .onPositive { dialog, _ ->
-                        dbHelper.createOrUpdateLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY, "[]")
-                        adapter.updateData(ArrayList())
-                        dialog.dismiss()
-                    }
-                    .negativeText("No")
-                    .onNegative { dialog, _ -> dialog.dismiss() }
-                    .show()
+            MaterialDialog(this).show {
+                message(text = "Are you sure you want to clear all the recently viewed novels list?")
+                positiveButton(text = "Yes") { dialog ->
+                    dbHelper.createOrUpdateLargePreference(
+                        Constants.LargePreferenceKeys.RVN_HISTORY,
+                        "[]"
+                    )
+                    adapter.updateData(ArrayList())
+                    dialog.dismiss()
+                }
+                negativeButton(R.string.cancel) {
+                    it.dismiss()
+                }
+            }
         return super.onOptionsItemSelected(item)
     }
     //endregion

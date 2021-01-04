@@ -13,6 +13,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.input.input
+import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
 import com.google.firebase.analytics.ktx.logEvent
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
@@ -158,18 +160,21 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
     }
 
     private fun onItemRemove(position: Int) {
-        MaterialDialog.Builder(this)
-            .title(getString(R.string.confirm_remove))
-            .content(getString(R.string.confirm_remove_description_novel_section))
-            .positiveText(R.string.remove)
-            .negativeText(R.string.cancel)
-            .onPositive { dialog, _ ->
-                run {
+        MaterialDialog(this).show {
+            title(R.string.confirm_remove)
+            message(R.string.confirm_remove_description_novel_section)
+            positiveButton(R.string.remove) { dialog ->
+                this@NovelSectionsActivity.run {
                     val novelSection = adapter.items[position]
                     if (novelSection.id != -1L) {
                         dbHelper.getAllNovels(novelSection.id).forEach {
                             dbHelper.updateNovelSectionId(it.id, -1L)
-                            NovelSync.getInstance(it)?.applyAsync(lifecycleScope) { sync -> if (dataCenter.getSyncAddNovels(sync.host)) sync.updateNovel(it, null) }
+                            NovelSync.getInstance(it)?.applyAsync(lifecycleScope) { sync ->
+                                if (dataCenter.getSyncAddNovels(sync.host)) sync.updateNovel(
+                                    it,
+                                    null
+                                )
+                            }
                         }
                         dbHelper.deleteNovelSection(novelSection.id)
                     }
@@ -180,20 +185,20 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                     dialog.dismiss()
                 }
             }
-            .onNegative { dialog, _ ->
-                run {
+            negativeButton(R.string.cancel) { dialog ->
+                this@NovelSectionsActivity.run {
                     adapter.notifyDataSetChanged()
                     dialog.dismiss()
                 }
             }
-            .show()
+        }
     }
 
     private fun onItemRename(position: Int) {
         val novelSection = adapter.items[position]
-        MaterialDialog.Builder(this)
-            .title(getString(R.string.rename))
-            .input(getString(R.string.novel_section_name), novelSection.name) { dialog, input ->
+        MaterialDialog(this).show {
+            title(R.string.rename)
+            input(hintRes = R.string.novel_section_name, prefill = novelSection.name) { dialog, input ->
                 val newName = input.trim().toString()
                 if (newName.isNotBlank() && dbHelper.getNovelSection(newName) == null) {
                     dbHelper.updateNovelSectionName(novelSection.id, newName)
@@ -201,24 +206,37 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                     val oldName = novelSection.name
                     lifecycleScope.launch {
                         NovelSync.getAllInstances().forEach {
-                            withContext(Dispatchers.IO) { if (dataCenter.getSyncAddNovels(it.host)) it.renameSection(novelSection, oldName, newName) }
+                            withContext(Dispatchers.IO) {
+                                if (dataCenter.getSyncAddNovels(it.host)) it.renameSection(
+                                    novelSection,
+                                    oldName,
+                                    newName
+                                )
+                            }
                         }
                     }
                     firebaseAnalytics.logEvent(FAC.Event.RENAME_NOVEL_SECTION) {
                         param(FAC.Param.NOVEL_SECTION_NAME, newName)
                     }
                 } else {
-                    MaterialDialog.Builder(this@NovelSectionsActivity).content(getString(R.string.novel_section_name_error)).show()
+                    MaterialDialog(this@NovelSectionsActivity).show {
+                        message(R.string.novel_section_name_error)
+                        lifecycleOwner(this@NovelSectionsActivity)
+                    }
                 }
                 dialog.dismiss()
-            }.show()
+            }
+            positiveButton(R.string.okay)
+
+            lifecycleOwner(this@NovelSectionsActivity)
+        }
     }
 
     private fun addNovelSection() {
-        MaterialDialog.Builder(this)
-            .title(getString(R.string.add_novel_section_title))
-            .content(getString(R.string.add_novel_section_description))
-            .input(getString(R.string.novel_section_name), "") { dialog, input ->
+        MaterialDialog(this).show {
+            title(R.string.add_novel_section_title)
+            message(R.string.add_novel_section_description)
+            input(hintRes = R.string.novel_section_name) { dialog, input ->
                 val name = input.trim().toString()
                 if (name.isNotBlank() && dbHelper.getNovelSection(name) == null) {
                     dbHelper.createNovelSection(name)
@@ -227,10 +245,13 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                         param(FAC.Param.NOVEL_SECTION_NAME, name)
                     }
                 } else {
-                    MaterialDialog.Builder(this@NovelSectionsActivity).content(getString(R.string.novel_section_name_error)).show()
+                    MaterialDialog(this@NovelSectionsActivity).show {
+                        message(R.string.novel_section_name_error)
+                    }
                 }
                 dialog.dismiss()
-            }.show()
+            }
+        }
     }
 
     override fun onPause() {

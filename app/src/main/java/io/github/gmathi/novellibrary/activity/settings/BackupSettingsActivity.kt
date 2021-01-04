@@ -4,9 +4,11 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Range
 import android.view.MenuItem
 import android.view.View
 import android.webkit.MimeTypeMap
+import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -16,7 +18,8 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.Theme
+import com.afollestad.materialdialogs.list.listItemsMultiChoice
+import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.github.johnpersano.supertoasts.library.Style
 import com.github.johnpersano.supertoasts.library.SuperActivityToast
 import com.github.johnpersano.supertoasts.library.utils.PaletteUtils
@@ -135,29 +138,30 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 deleteFilesDialog()
 
             getString(R.string.backup_data) -> {
-                MaterialDialog.Builder(this)
-                    .title(item)
-                    .items(R.array.backup_and_restore_options)
-                    .itemsCallbackMultiChoice(arrayOf(0, 1, 2, 3)) { _, which, _ ->
+                MaterialDialog(this).show {
+                    title(text = item)
+                    listItemsMultiChoice(R.array.backup_and_restore_options, initialSelection = intArrayOf(0, 1, 2, 3)) { _, which, _ ->
                         if (which.isNotEmpty())
                             backupData(which.contains(0), which.contains(1), which.contains(2), which.contains(3))
-                        true
                     }
-                    .positiveText(R.string.okay)
-                    .show()
+                    positiveButton(R.string.okay)
+                }
             }
 
             getString(R.string.restore_data) -> {
-                MaterialDialog.Builder(this)
-                    .title(item)
-                    .items(R.array.backup_and_restore_options)
-                    .itemsCallbackMultiChoice(arrayOf(0, 1, 2, 3)) { _, which, _ ->
+                MaterialDialog(this).show {
+                    title(text = item)
+                    listItemsMultiChoice (R.array.backup_and_restore_options, initialSelection = intArrayOf(0, 1, 2, 3)) { _, which, _ ->
                         if (which.isNotEmpty())
-                            restoreData(which.contains(0), which.contains(1), which.contains(2), which.contains(3))
-                        true
+                            restoreData(
+                                which.contains(0),
+                                which.contains(1),
+                                which.contains(2),
+                                which.contains(3)
+                            )
                     }
-                    .positiveText(R.string.okay)
-                    .show()
+                    positiveButton(R.string.okay)
+                }
             }
 
             getString(R.string.backup_frequency) -> {
@@ -167,11 +171,9 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                         24 * 7 -> 2
                         else -> 0
                     }
-                MaterialDialog.Builder(this)
-                    .theme(Theme.DARK)
-                    .title(item)
-                    .items(R.array.backup_frequency_options)
-                    .itemsCallbackSingleChoice(selected) { _, _, which, _ ->
+                MaterialDialog(this).show {
+                    title(text = item)
+                    .listItemsSingleChoice(R.array.backup_frequency_options, initialSelection = selected)  { _, which, _ ->
                         var backupFrequency =
                             when (which) {
                                 1 -> 24
@@ -179,7 +181,8 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                                 else -> 0
                             }
                         if (dataCenter.backupFrequency != backupFrequency) {
-                            val workRequest = if (backupFrequency != 0) periodicBackupWorkRequest(backupFrequency) else null
+                            val workRequest =
+                                if (backupFrequency != 0) periodicBackupWorkRequest(backupFrequency) else null
                             WorkManager.getInstance(applicationContext).apply {
                                 if (workRequest == null) {
                                     backupFrequency = 0
@@ -196,10 +199,9 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                             setBackupFrequencyDescription(backupFrequency)
                             adapter.notifyItemChanged(BACKUP_FREQUENCY_LIST_INDEX)
                         }
-                        true
                     }
-                    .positiveText(R.string.okay)
-                    .show()
+                    positiveButton(R.string.okay)
+                }
             }
         }
     }
@@ -217,25 +219,25 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         super.onDestroy()
     }
 
-    private fun showDialog(title: String? = null, content: String? = null, iconRes: Int = R.drawable.ic_warning_white_vector) {
+    private fun showDialog(title: String? = null, content: String? = null, @DrawableRes iconRes: Int = R.drawable.ic_warning_white_vector) {
         if (confirmDialog != null && confirmDialog!!.isShowing)
             confirmDialog!!.dismiss()
 
-        val confirmDialogBuilder = MaterialDialog.Builder(this)
+        MaterialDialog(this).show {
+            if (title != null)
+                title(text = title)
+            else
+                title(R.string.confirm_action)
+            
+            if (content != null)
+                message(text =  content)
 
-        if (title != null)
-            confirmDialogBuilder.title(getString(R.string.confirm_action))
+            icon(iconRes)
 
-        if (content != null)
-            confirmDialogBuilder.content(content)
-
-        confirmDialogBuilder
-            .iconRes(iconRes)
-
-        confirmDialogBuilder.positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
-
-        confirmDialog = confirmDialogBuilder.build()
-        confirmDialog?.show()
+            positiveButton(R.string.okay) {
+                it.dismiss()
+            }
+        }
     }
 
     private val zipIntent: Intent
@@ -385,15 +387,16 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     private fun deleteFilesDialog() {
-        MaterialDialog.Builder(this)
-            .title(getString(R.string.clear_data))
-            .content(getString(R.string.clear_data_description))
-            .positiveText(R.string.clear)
-            .negativeText(R.string.cancel)
-            .onPositive { dialog, _ ->
-                val snackProgressBarManager = Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this)
-                val snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_NORMAL,
-                    getString(R.string.clearing_data) + " - " + getString(R.string.please_wait))
+        MaterialDialog(this).show {
+            title(R.string.clear_data)
+            message(R.string.clear_data_description)
+            positiveButton(R.string.clear) { dialog ->
+                val snackProgressBarManager =
+                    Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this@BackupSettingsActivity)
+                val snackProgressBar = SnackProgressBar(
+                    SnackProgressBar.TYPE_NORMAL,
+                    getString(R.string.clearing_data) + " - " + getString(R.string.please_wait)
+                )
                 launchUI {
                     snackProgressBarManager.show(
                         snackProgressBar,
@@ -402,8 +405,10 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 }
                 deleteFiles(snackProgressBarManager)
             }
-            .onNegative { dialog, _ -> dialog.dismiss() }
-            .show()
+            negativeButton(R.string.cancel) {
+                it.dismiss()
+            }
+        }
     }
 
     private fun deleteFiles(dialog: SnackProgressBarManager) {
