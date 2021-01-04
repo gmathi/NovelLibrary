@@ -27,6 +27,8 @@ import androidx.recyclerview.widget.RecyclerView.LayoutParams.MATCH_PARENT
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.WRAP_CONTENT
 import androidx.viewpager.widget.ViewPager
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.WhichButton
+import com.afollestad.materialdialogs.actions.setActionButtonEnabled
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
 import com.afollestad.materialdialogs.internal.main.DialogTitleLayout
@@ -488,6 +490,8 @@ class ReaderDBPagerActivity :
                                 it.setTypeface(typeFace, Typeface.NORMAL)
                             }
                         }
+
+                        setActionButtonEnabled(WhichButton.POSITIVE, true)
                     } else {
                         dialog.checkItem(AVAILABLE_FONTS.keys.indexOf(selectedFont))
                     }
