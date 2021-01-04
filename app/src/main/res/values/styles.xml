@@ -58,6 +58,12 @@
         <item name="android:navigationBarColor">@color/colorDarkKnight</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
+
+        <!-- Custom theme for Material Dialogs-->
+        <item name="md_color_title">@color/colorTextTitle_dark</item>
+        <item name="md_color_content">@color/colorTextContent_dark</item>
+        <item name="md_color_button_text">@color/colorAccent</item>
+        <item name="md_background_color">@color/colorDarkKnight</item>
     </style>
 
     <!-- User Theme application theme. -->
