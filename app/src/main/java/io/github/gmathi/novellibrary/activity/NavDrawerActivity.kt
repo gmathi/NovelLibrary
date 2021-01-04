@@ -9,16 +9,23 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
-import androidx.fragment.app.commit
 import com.afollestad.materialdialogs.MaterialDialog
+import androidx.fragment.app.commit
+import androidx.fragment.app.findFragment
+import androidx.lifecycle.lifecycleScope
 import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
+import com.tingyik90.snackprogressbar.SnackProgressBar
+import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
+import io.github.gmathi.novellibrary.adapter.LibraryPageListener
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.databinding.ActivityNavDrawerBinding
+import io.github.gmathi.novellibrary.fragment.LibraryFragment
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.database.Novel
@@ -26,8 +33,12 @@ import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.lang.launchIO
+import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.system.*
+import kotlinx.coroutines.launch
 import org.cryse.widget.persistentsearch.PersistentSearchView
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -35,9 +46,12 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private var snackBar: Snackbar? = null
     private var currentNavId: Int = R.id.nav_search
 
-    private var cloudFlareLoadingDialog: MaterialDialog? = null
+    private val snackProgressBarManager by lazy { Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this).setMessageMaxLines(3) };
+    private var cloudFlareLoadingSnack: SnackProgressBar? = null
+    private val isCloudflareChecking = AtomicBoolean(false)
+
     private var mAuth: FirebaseAuth? = null
-    
+
     lateinit var binding: ActivityNavDrawerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -106,29 +120,38 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun checkForCloudFlare() {
+        isCloudflareChecking.set(true)
+        cloudFlareLoadingSnack = SnackProgressBar(SnackProgressBar.TYPE_CIRCULAR,
+            "If this is taking too long, You can skip and goto \"Settings\" -> \"CloudFlare Check\" to make the app work.")
+            .setAction("Skip", object: SnackProgressBar.OnActionClickListener {
+                override fun onActionClick() {
+                    loadFragment(currentNavId)
+                    showWhatsNewDialog()
+                    checkIntentForNotificationData()
+                    isCloudflareChecking.set(false)
+                }
+            })
+        lifecycleScope.launch {
+            snackProgressBarManager.show(
+                cloudFlareLoadingSnack!!,
+                SnackProgressBarManager.LENGTH_INDEFINITE
+            )
+            loadFragment(currentNavId)
+        }
 
-        cloudFlareLoadingDialog = Utils
-            .dialogBuilder(this@NavDrawerActivity, content = "If this is taking too long, You can skip and goto \"Settings\" -> \"CloudFlare Check\" to make the app work.", isProgress = true)
-            .cancelable(false)
-            .negativeText("Skip")
-            .onNegative { _, _ ->
-                loadFragment(currentNavId)
-                showWhatsNewDialog()
-                checkIntentForNotificationData()
-            }
-            .build()
-
-        cloudFlareLoadingDialog?.show()
-
-        CloudFlareByPasser.check(this, "novelupdates.com") { state ->
-
-            if (!isDestroyed) {
-                if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
-                    if (cloudFlareLoadingDialog?.isShowing == true) {
-                        loadFragment(currentNavId)
-                        showWhatsNewDialog()
-                        checkIntentForNotificationData()
-                        cloudFlareLoadingDialog?.dismiss()
+        launchIO {
+            CloudFlareByPasser.check(this@NavDrawerActivity, "novelupdates.com") { state ->
+                if (!isDestroyed) {
+                    if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
+                        if (cloudFlareLoadingSnack != null) {
+                            lifecycleScope.launch {
+                                showWhatsNewDialog()
+                                checkIntentForNotificationData()
+                                snackProgressBarManager.dismiss()
+                                cloudFlareLoadingSnack = null
+                                isCloudflareChecking.set(false)
+                            }
+                        }
                     }
                 }
             }
@@ -138,12 +161,22 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     override fun onBackPressed() {
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
+        } else if(isCloudflareChecking.get()) {
+            return
         } else {
             val existingSearchFrag = supportFragmentManager.findFragmentByTag(SearchFragment::class.toString())
             if (existingSearchFrag != null) {
                 val searchView = existingSearchFrag.view?.findViewById<PersistentSearchView>(R.id.searchView)
                 if (searchView != null && (searchView.isEditing || searchView.isSearching)) {
                     (existingSearchFrag as SearchFragment).closeSearch()
+                    return
+                }
+            }
+            
+            val existingLibraryPagerFrag = supportFragmentManager.findFragmentByTag(LibraryPagerFragment::class.toString())
+            if (existingLibraryPagerFrag != null) {
+                val existingLibraryPagerFrag = existingLibraryPagerFrag as LibraryPagerFragment
+                if (existingLibraryPagerFrag.getLibraryFragment()?.isSyncing() == true) {
                     return
                 }
             }

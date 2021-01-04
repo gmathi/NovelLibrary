@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.adapter
 
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import io.github.gmathi.novellibrary.fragment.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.NovelSection
@@ -48,8 +49,14 @@ class WebPageFragmentPageListener(val novel: Novel, val webPages: List<WebPage>)
 }
 
 class LibraryPageListener(private val novelSections: ArrayList<NovelSection>) : GenericFragmentStatePagerAdapter.Listener {
+    private var currentFragment = HashMap<Int, Fragment>()
+    
+    fun getCurrentFragment(position: Int) = currentFragment[position]
+
     override fun getFragmentForItem(position: Int): Fragment {
-        return LibraryFragment.newInstance(novelSections[position].id)
+        val result = LibraryFragment.newInstance(novelSections[position].id)
+        currentFragment[position] = result
+        return result
     }
 }
 

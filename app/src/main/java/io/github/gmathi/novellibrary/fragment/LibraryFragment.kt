@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.tingyik90.snackprogressbar.SnackProgressBar
+import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
@@ -31,6 +33,7 @@ import io.github.gmathi.novellibrary.network.getChapterCount
 import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
+import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
@@ -48,8 +51,10 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     private var novelSectionId: Long = -1L
     private var lastDeletedId: Long = -1
     private var isSorted = false
-    private var syncDialog: MaterialDialog? = null
-    
+
+    private lateinit var syncSnackbarManager: SnackProgressBarManager
+    private var syncSnackbar: SnackProgressBar? = null
+
     private lateinit var binding: ContentLibraryBinding
 
     companion object {
@@ -73,10 +78,20 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.content_library, container, false) ?: return null
+
         binding = ContentLibraryBinding.bind(view)
+
+        syncSnackbarManager = SnackProgressBarManager(container!!, this)
+        syncSnackbarManager
+                .setViewToMove(container!!)
+                .setProgressBarColor(R.color.colorAccent)
+                .setBackgroundColor(SnackProgressBarManager.BACKGROUND_COLOR_DEFAULT)
+                .setTextSize(14f)
+                .setMessageMaxLines(2)
+
         return view
     }
-    
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         novelSectionId = requireArguments().getLong(NOVEL_SECTION_ID)
@@ -235,9 +250,11 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun onPrepareOptionsMenu(menu: Menu) {
         if (activity != null)
-            menu.getItem(0).isVisible = (syncDialog == null)
+            menu.getItem(0).isVisible = (syncSnackbar == null)
         super.onPrepareOptionsMenu(menu)
     }
+
+    fun isSyncing(): Boolean = syncSnackbar != null
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
@@ -282,26 +299,40 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             if (activity == null) return@syncing
 
-            if (syncDialog != null && syncDialog!!.isShowing)
-                syncDialog!!.hide()
+            if (this@LibraryFragment.syncSnackbar != null)
+                syncSnackbarManager.dismiss()
 
-            syncDialog = MaterialDialog.Builder(requireActivity())
-                .title(R.string.sync_in_progress)
-                .content(R.string.please_wait)
-                .progress(true, 0)
-                .cancelable(false)
-                .build()
+            withContext(Dispatchers.Main) {
+                this@LibraryFragment.syncSnackbar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL,
+                        getString(R.string.sync_in_progress) + " - " + getString(R.string.please_wait))
+                syncSnackbarManager.show(syncSnackbar!!, SnackProgressBarManager.LENGTH_INDEFINITE)
+            }
 
-            syncDialog!!.show()
             activity?.invalidateOptionsMenu()
 
             val totalCountMap: HashMap<Novel, Int> = HashMap()
 
             val novels = if (novel == null) dbHelper.getAllNovels(novelSectionId) else listOf(novel)
+
+            syncSnackbarManager.updateTo(syncSnackbar!!.setProgressMax(novels.count()))
+
             var counter = 0
             novels.forEach {
                 try {
-                    syncDialog!!.setContent(getString(R.string.sync_fetching_chapter_counts, counter++, novels.count(), it.name))
+                    async(Dispatchers.Main) {
+                        syncSnackbar?.setMessage(
+                                getString(
+                                        R.string.sync_fetching_chapter_counts,
+                                        counter++,
+                                        novels.count(),
+                                        it.name
+                                )
+                        )?.let { snackbar ->
+                            syncSnackbarManager.updateTo(snackbar)
+                            syncSnackbarManager.setProgress(counter)
+                        }
+                    }
+
                     val totalChapters = withContext(Dispatchers.IO) { NovelApi.getChapterCount(it) }
                     if (totalChapters != 0 && totalChapters > it.chaptersCount.toInt()) {
                         totalCountMap[it] = totalChapters
@@ -314,9 +345,23 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             //Update DB with new chapters
             counter = 0
+            syncSnackbarManager.updateTo(syncSnackbarManager.getLastShown()?.setProgressMax(totalCountMap.count())!!)
             totalCountMap.forEach {
                 val updatedNovel = it.key
-                syncDialog!!.setContent(getString(R.string.sync_fetching_chapter_list, counter++, totalCountMap.count(), updatedNovel.name))
+                counter++
+                async (Dispatchers.Main) {
+                    syncSnackbarManager.updateTo(
+                        syncSnackbar!!.setMessage(
+                            getString(
+                                R.string.sync_fetching_chapter_list,
+                                counter,
+                                totalCountMap.count(),
+                                updatedNovel.name
+                            )
+                        )
+                    )
+                    syncSnackbarManager.setProgress(counter)
+                }
                 updatedNovel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
                 dbHelper.updateNovelMetaData(updatedNovel)
                 dbHelper.updateChaptersAndReleasesCount(updatedNovel.id, it.value.toLong(), updatedNovel.newReleasesCount + (it.value - updatedNovel.chaptersCount))
@@ -339,8 +384,11 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             setData()
 
-            syncDialog!!.hide()
-            syncDialog = null
+            async (Dispatchers.Main) {
+                syncSnackbarManager.dismiss()
+                syncSnackbar = null
+            }
+
             activity?.invalidateOptionsMenu()
         }
     }

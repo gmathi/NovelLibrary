@@ -20,6 +20,8 @@ import com.afollestad.materialdialogs.Theme
 import com.github.johnpersano.supertoasts.library.Style
 import com.github.johnpersano.supertoasts.library.SuperActivityToast
 import com.github.johnpersano.supertoasts.library.utils.PaletteUtils
+import com.tingyik90.snackprogressbar.SnackProgressBar
+import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
@@ -28,15 +30,21 @@ import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
+import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
+import io.github.gmathi.novellibrary.util.lang.launchIO
+import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.worker.BackupWorker
 import io.github.gmathi.novellibrary.worker.oneTimeBackupWorkRequest
 import io.github.gmathi.novellibrary.worker.oneTimeRestoreWorkRequest
 import io.github.gmathi.novellibrary.worker.periodicBackupWorkRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import java.io.File
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
@@ -65,6 +73,8 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private var files: Boolean = false
 
     private var workRequestId: UUID? = null
+    
+    private val isDeletingFiles = AtomicBoolean(false)
     
     private lateinit var binding: ActivitySettingsBinding
 
@@ -207,7 +217,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         super.onDestroy()
     }
 
-    private fun showDialog(title: String? = null, content: String? = null, iconRes: Int = R.drawable.ic_warning_white_vector, isProgress: Boolean = false) {
+    private fun showDialog(title: String? = null, content: String? = null, iconRes: Int = R.drawable.ic_warning_white_vector) {
         if (confirmDialog != null && confirmDialog!!.isShowing)
             confirmDialog!!.dismiss()
 
@@ -216,17 +226,13 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         if (title != null)
             confirmDialogBuilder.title(getString(R.string.confirm_action))
 
-        if (isProgress)
-            confirmDialogBuilder.progress(true, 100)
-
         if (content != null)
             confirmDialogBuilder.content(content)
 
         confirmDialogBuilder
             .iconRes(iconRes)
 
-        if (!isProgress)
-            confirmDialogBuilder.positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
+        confirmDialogBuilder.positiveText(getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
 
         confirmDialog = confirmDialogBuilder.build()
         confirmDialog?.show()
@@ -385,31 +391,39 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             .positiveText(R.string.clear)
             .negativeText(R.string.cancel)
             .onPositive { dialog, _ ->
-                val progressDialog = MaterialDialog.Builder(this)
-                    .title(getString(R.string.clearing_data))
-                    .content(getString(R.string.please_wait))
-                    .progress(true, 0)
-                    .cancelable(false)
-                    .canceledOnTouchOutside(false)
-                    .show()
-                deleteFiles(progressDialog)
-                dialog.dismiss()
+                val snackProgressBarManager = Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this)
+                val snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_NORMAL,
+                    getString(R.string.clearing_data) + " - " + getString(R.string.please_wait))
+                launchUI {
+                    snackProgressBarManager.show(
+                        snackProgressBar,
+                        SnackProgressBarManager.LENGTH_INDEFINITE
+                    )
+                }
+                deleteFiles(snackProgressBarManager)
             }
             .onNegative { dialog, _ -> dialog.dismiss() }
             .show()
     }
 
-    private fun deleteFiles(dialog: MaterialDialog) {
-        try {
-            deleteDir(cacheDir)
-            deleteDir(filesDir)
-            dbHelper.removeAll()
-            dataCenter.saveNovelSearchHistory(ArrayList())
-            dialog.dismiss()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+    private fun deleteFiles(dialog: SnackProgressBarManager) {
+        launchIO {
+            isDeletingFiles.set(true)
+            try {
+                deleteDir(cacheDir)
+                deleteDir(filesDir)
+                dbHelper.removeAll()
+                dataCenter.saveNovelSearchHistory(ArrayList())
 
+                async(Dispatchers.Main) {
+                    dialog.disable()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                isDeletingFiles.set(false)
+            }
+        }
     }
 
     private fun deleteDir(dir: File?): Boolean {
@@ -424,5 +438,13 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         } else {
             false
         }
+    }
+
+    override fun onBackPressed() {
+        if (isDeletingFiles.get()) {
+            return
+        }
+
+        super.onBackPressed()
     }
 }

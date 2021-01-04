@@ -18,12 +18,15 @@ import android.os.Bundle
 import android.os.Environment
 import android.util.Log
 import android.util.TypedValue
+import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.documentfile.provider.DocumentFile
+import androidx.lifecycle.LifecycleOwner
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import com.afollestad.materialdialogs.MaterialDialog
+import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
@@ -341,6 +344,16 @@ object Utils {
         }
         return 0
     }
+    
+    fun createSnackProgressBarManager(view: View, lifecycleOwner: LifecycleOwner?): SnackProgressBarManager {
+        val result = SnackProgressBarManager(view, lifecycleOwner)
+        result
+            .setProgressBarColor(R.color.colorAccent)
+            .setBackgroundColor(SnackProgressBarManager.BACKGROUND_COLOR_DEFAULT)
+            .setTextSize(14f)
+            .setMessageMaxLines(2)
+        return result
+    }
 
     fun getDeviceInfo(): String {
         val sb = StringBuilder()
@@ -361,16 +374,12 @@ object Utils {
         activity: AppCompatActivity,
         title: String? = null,
         content: String? = null,
-        iconRes: Int = R.drawable.ic_warning_white_vector,
-        isProgress: Boolean = false
+        iconRes: Int = R.drawable.ic_warning_white_vector
     ): MaterialDialog.Builder {
         val dialogBuilder = MaterialDialog.Builder(activity)
 
         if (title != null)
             dialogBuilder.title(activity.getString(R.string.confirm_action))
-
-        if (isProgress)
-            dialogBuilder.progress(true, 100)
 
         if (content != null)
             dialogBuilder.content(content)
@@ -378,8 +387,7 @@ object Utils {
         dialogBuilder
             .iconRes(iconRes)
 
-        if (!isProgress)
-            dialogBuilder.positiveText(activity.getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
+        dialogBuilder.positiveText(activity.getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
 
         return dialogBuilder
     }
