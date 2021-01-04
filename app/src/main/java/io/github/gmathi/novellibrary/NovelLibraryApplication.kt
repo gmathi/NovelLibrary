@@ -6,15 +6,14 @@ import android.webkit.WebView
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationManagerCompat
 import androidx.multidex.MultiDexApplication
+import androidx.room.Room
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import io.github.gmathi.novellibrary.database.DBHelper
-import io.github.gmathi.novellibrary.database.deleteWebPageSettings
-import io.github.gmathi.novellibrary.database.deleteWebPages
+import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.model.other.SelectorQuery
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.MultiTrustManager
@@ -40,10 +39,16 @@ val dbHelper: DBHelper by lazy {
     NovelLibraryApplication.dbHelper!!
 }
 
+val db: AppDatabase by lazy {
+    NovelLibraryApplication.db
+}
+
 class NovelLibraryApplication : MultiDexApplication() {
     companion object {
         var dataCenter: DataCenter? = null
         var dbHelper: DBHelper? = null
+        lateinit var db: AppDatabase
+        lateinit var context: Context
 
         private const val TAG = "NovelLibraryApplication"
 
@@ -53,7 +58,16 @@ class NovelLibraryApplication : MultiDexApplication() {
     }
 
     override fun onCreate() {
+        context = applicationContext
+
         dataCenter = DataCenter(applicationContext)
+        
+        db = Room.databaseBuilder(applicationContext, AppDatabase::class.java, DBKeys.DATABASE_NAME)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
+                MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10)
+            .allowMainThreadQueries()
+            .build()
+
         dbHelper = DBHelper.getInstance(applicationContext)
         val date = Calendar.getInstance()
         if (date.get(Calendar.MONTH) == 4 && date.get(Calendar.DAY_OF_MONTH) == 1) {

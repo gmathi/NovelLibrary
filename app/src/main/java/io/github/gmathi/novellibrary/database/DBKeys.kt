@@ -12,9 +12,9 @@ object DBKeys {
     internal const val VER_NEW_RELEASES = 7
     internal const val VER_LARGE_PREFERENCE = 8
     internal const val VER_WEB_PAGE_SETTINGS = 9
+    internal const val VER_ROOM = 10
 
-
-    internal const val DATABASE_VERSION = VER_WEB_PAGE_SETTINGS
+    internal const val DATABASE_VERSION = VER_ROOM
 
 
     internal const val DATABASE_NAME = "bnr_db"

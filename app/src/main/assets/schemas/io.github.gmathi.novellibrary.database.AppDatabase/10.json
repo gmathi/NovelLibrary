@@ -1,0 +1,537 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 10,
+    "identityHash": "2b423c9a4ff728bfc1621ae05fc35e3f",
+    "entities": [
+      {
+        "tableName": "download",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`status` INTEGER NOT NULL, `metadata` TEXT NOT NULL DEFAULT '{}', `order_id` INTEGER NOT NULL, `web_page_url` TEXT NOT NULL, `name` TEXT NOT NULL, `chapter` TEXT NOT NULL, PRIMARY KEY(`web_page_url`))",
+        "fields": [
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "metadata",
+            "columnName": "metadata",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'{}'"
+          },
+          {
+            "fieldPath": "orderId",
+            "columnName": "order_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "webPageUrl",
+            "columnName": "web_page_url",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "novelName",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chapter",
+            "columnName": "chapter",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "web_page_url"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "genre",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "novel",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `image_url` TEXT, `rating` TEXT, `short_description` TEXT, `long_description` TEXT, `new_chapter_count` INTEGER NOT NULL, `metadata` TEXT NOT NULL DEFAULT '{}', `image_file_path` TEXT, `order_id` INTEGER NOT NULL, `chapter_count` INTEGER NOT NULL, `novel_section_id` INTEGER NOT NULL DEFAULT -1, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `current_web_page_url` TEXT, `url` TEXT NOT NULL, FOREIGN KEY(`current_web_page_url`) REFERENCES `web_page`(`url`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`novel_section_id`) REFERENCES `novel_section`(`id`) ON UPDATE NO ACTION ON DELETE SET DEFAULT )",
+        "fields": [
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "imageUrl",
+            "columnName": "image_url",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "rating",
+            "columnName": "rating",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "shortDescription",
+            "columnName": "short_description",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "longDescription",
+            "columnName": "long_description",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "chaptersCount",
+            "columnName": "new_chapter_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "metadata",
+            "columnName": "metadata",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'{}'"
+          },
+          {
+            "fieldPath": "imageFilePath",
+            "columnName": "image_file_path",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "orderId",
+            "columnName": "order_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "newReleasesCount",
+            "columnName": "chapter_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "novelSectionId",
+            "columnName": "novel_section_id",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "-1"
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentChapterUrl",
+            "columnName": "current_web_page_url",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [
+          {
+            "name": "index_novel_current_web_page_url",
+            "unique": false,
+            "columnNames": [
+              "current_web_page_url"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_novel_current_web_page_url` ON `${TABLE_NAME}` (`current_web_page_url`)"
+          },
+          {
+            "name": "index_novel_novel_section_id",
+            "unique": false,
+            "columnNames": [
+              "novel_section_id"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_novel_novel_section_id` ON `${TABLE_NAME}` (`novel_section_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "web_page",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "current_web_page_url"
+            ],
+            "referencedColumns": [
+              "url"
+            ]
+          },
+          {
+            "table": "novel_section",
+            "onDelete": "SET DEFAULT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "novel_section_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "novel_genre",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`novel_id` INTEGER NOT NULL, `genre_id` INTEGER NOT NULL, PRIMARY KEY(`novel_id`, `genre_id`), FOREIGN KEY(`novel_id`) REFERENCES `novel`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`genre_id`) REFERENCES `genre`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "novelId",
+            "columnName": "novel_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "genreId",
+            "columnName": "genre_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "novel_id",
+            "genre_id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [
+          {
+            "name": "index_novel_genre_novel_id",
+            "unique": false,
+            "columnNames": [
+              "novel_id"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_novel_genre_novel_id` ON `${TABLE_NAME}` (`novel_id`)"
+          },
+          {
+            "name": "index_novel_genre_genre_id",
+            "unique": false,
+            "columnNames": [
+              "genre_id"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_novel_genre_genre_id` ON `${TABLE_NAME}` (`genre_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "novel",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "novel_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "genre",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "genre_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "novel_section",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `order_id` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "orderId",
+            "columnName": "order_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "source",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "web_page",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`url` TEXT NOT NULL, `chapter` TEXT NOT NULL, `novel_id` INTEGER NOT NULL, `order_id` INTEGER NOT NULL, `source_id` INTEGER NOT NULL DEFAULT -1, PRIMARY KEY(`url`), FOREIGN KEY(`novel_id`) REFERENCES `novel`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`source_id`) REFERENCES `source`(`id`) ON UPDATE NO ACTION ON DELETE SET DEFAULT )",
+        "fields": [
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chapter",
+            "columnName": "chapter",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "novelId",
+            "columnName": "novel_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "orderId",
+            "columnName": "order_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "translatorSourceId",
+            "columnName": "source_id",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "-1"
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "url"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [
+          {
+            "name": "web_page",
+            "unique": true,
+            "columnNames": [
+              "url",
+              "novel_id"
+            ],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `web_page` ON `${TABLE_NAME}` (`url`, `novel_id`)"
+          },
+          {
+            "name": "index_web_page_novel_id",
+            "unique": false,
+            "columnNames": [
+              "novel_id"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_web_page_novel_id` ON `${TABLE_NAME}` (`novel_id`)"
+          },
+          {
+            "name": "index_web_page_source_id",
+            "unique": false,
+            "columnNames": [
+              "source_id"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_web_page_source_id` ON `${TABLE_NAME}` (`source_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "novel",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "novel_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "source",
+            "onDelete": "SET DEFAULT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "source_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "web_page_settings",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`title` TEXT, `is_read` INTEGER NOT NULL, `file_path` TEXT, `redirect_url` TEXT, `metadata` TEXT NOT NULL DEFAULT '{}', `url` TEXT NOT NULL, `novel_id` INTEGER NOT NULL, PRIMARY KEY(`url`), FOREIGN KEY(`novel_id`) REFERENCES `novel`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "isRead",
+            "columnName": "is_read",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "filePath",
+            "columnName": "file_path",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "redirectedUrl",
+            "columnName": "redirect_url",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "metadata",
+            "columnName": "metadata",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'{}'"
+          },
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "novelId",
+            "columnName": "novel_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "url"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [
+          {
+            "name": "web_page_settings_url_index",
+            "unique": true,
+            "columnNames": [
+              "url",
+              "novel_id"
+            ],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `web_page_settings_url_index` ON `${TABLE_NAME}` (`url`, `novel_id`)"
+          },
+          {
+            "name": "index_web_page_settings_novel_id",
+            "unique": false,
+            "columnNames": [
+              "novel_id"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_web_page_settings_novel_id` ON `${TABLE_NAME}` (`novel_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "novel",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "novel_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2b423c9a4ff728bfc1621ae05fc35e3f')"
+    ]
+  }
+}

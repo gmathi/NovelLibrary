@@ -24,6 +24,16 @@ android {
         versionName "0.16.beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += [
+                    "room.schemaLocation":"$projectDir/src/main/assets/schemas/".toString(),
+                    "room.incremental":"true",
+                    "room.expandProjection":"true"]
+            }
+        }
+
     }
 
     signingConfigs {
@@ -174,6 +184,12 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.1"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1'
+
+    def room_version = "2.2.6"
+    implementation "androidx.room:room-runtime:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
+    implementation "androidx.room:room-ktx:$room_version"
+    testImplementation "androidx.room:room-testing:$room_version"
 
     implementation 'com.github.tingyik90:snackprogressbar:6.4.2'
 

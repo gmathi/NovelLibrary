@@ -4,10 +4,25 @@ package io.github.gmathi.novellibrary.model.database
 
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.room.*
 import com.google.gson.annotations.SerializedName
+import io.github.gmathi.novellibrary.database.DBKeys
+import io.github.gmathi.novellibrary.model.other.NovelSectionEvent
 import java.io.Serializable
 
-data class Novel(var url: String) : Parcelable, Serializable {
+@Entity(tableName = DBKeys.TABLE_NOVEL,
+    foreignKeys = [ForeignKey(entity = WebPage::class,
+            parentColumns = [DBKeys.KEY_URL],
+            childColumns = [DBKeys.KEY_CURRENT_WEB_PAGE_URL],
+            onDelete = ForeignKey.SET_NULL),
+        ForeignKey(entity = NovelSection::class,
+            parentColumns = [DBKeys.KEY_ID],
+            childColumns = [DBKeys.KEY_NOVEL_SECTION_ID],
+            onDelete = ForeignKey.SET_DEFAULT)],
+    indices = [Index(value = [DBKeys.KEY_CURRENT_WEB_PAGE_URL]),
+               Index(value = [DBKeys.KEY_NOVEL_SECTION_ID])])
+data class Novel(@ColumnInfo(name = DBKeys.KEY_URL)
+                 var url: String) : Parcelable, Serializable {
 
     constructor(name: String?, url: String): this(url) {
         name?.let { this.name = name }
@@ -16,56 +31,67 @@ data class Novel(var url: String) : Parcelable, Serializable {
     /**
      * Name of the novel
      */
+    @ColumnInfo(name = DBKeys.KEY_NAME)
     var name: String = "Unknown - Not Found!"
 
     /**
      * Internal Id from the source
      */
+    @Ignore
     var externalNovelId: String? = null
 
     /**
      * Novel's cover art image url
      */
+    @ColumnInfo(name = DBKeys.KEY_IMAGE_URL)
     var imageUrl: String? = null
 
     /**
      * Rating of the novel in the decimal format and ranging between (min) 0.0 - 5.0 (max)
      */
+    @ColumnInfo(name = DBKeys.KEY_RATING)
     var rating: String? = null
 
     /**
      * Short description of the novel that is shown at a glance
      */
+    @ColumnInfo(name = DBKeys.KEY_SHORT_DESCRIPTION)
     var shortDescription: String? = null
 
     /**
      * Complete description of the novel
      */
+    @ColumnInfo(name = DBKeys.KEY_LONG_DESCRIPTION)
     var longDescription: String? = null
 
     /**
      * List of genres this novel belongs to
      */
+    @Ignore
     var genres: List<String>? = null
 
     /**
      * Author(s) of this novel
      */
+    @Ignore
     var authors: List<String>? = null
 
     /**
      * Illustrator(s) of this novel
      */
+    @Ignore
     var illustrator: List<String>? = null
 
     /**
      * Number of released chapters in this novel
      */
+    @ColumnInfo(name = DBKeys.KEY_CHAPTERS_COUNT)
     var chaptersCount: Long = 0L
 
     /**
      * More metadata of the novel
      */
+    @ColumnInfo(name = DBKeys.KEY_METADATA, typeAffinity = ColumnInfo.TEXT, defaultValue = "{}")
     @SerializedName("metaData") //This is support restoration from older backups.
     var metadata: HashMap<String, String?> = HashMap()
 
@@ -73,31 +99,39 @@ data class Novel(var url: String) : Parcelable, Serializable {
     /**
      * Local downloaded novel image file path
      */
+    @ColumnInfo(name = DBKeys.KEY_IMAGE_FILE_PATH)
     var imageFilePath: String? = null
 
     /**
      * Display order of the novel in the Library Screen
      */
+    @ColumnInfo(name = DBKeys.KEY_ORDER_ID)
     var orderId: Long = -1L
 
     /**
      * The red bubble that shows the number of new releases since the novel was last opened.
      */
+    @ColumnInfo(name = DBKeys.KEY_NEW_RELEASES_COUNT)
     var newReleasesCount = 0L
 
     /**
      * Novel Section Id for the novel section this belongs to.
      */
+    @ColumnInfo(name = DBKeys.KEY_NOVEL_SECTION_ID, defaultValue = "-1")
     var novelSectionId: Long = -1L
 
     /**
      * Database id for the novel. Default = -1L which means it is not in database.
+     * CAUTION: Set to 0 (not set) before inserting into database!!
      */
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = DBKeys.KEY_ID)
     var id: Long = -1L
 
     /**
      * The bookmark for the novel. This tracks the last chapter the user was reading.
      */
+    @ColumnInfo(name =DBKeys.KEY_CURRENT_WEB_PAGE_URL)
     @SerializedName("currentlyReading")
     var currentChapterUrl: String? = null
 

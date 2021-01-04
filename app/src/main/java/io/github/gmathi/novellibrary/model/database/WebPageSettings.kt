@@ -1,13 +1,33 @@
 package io.github.gmathi.novellibrary.model.database
 
+import androidx.room.*
+import io.github.gmathi.novellibrary.database.DBKeys
 import java.io.Serializable
 
-data class WebPageSettings(var url: String, var novelId: Long) : Serializable {
+@Entity(tableName = DBKeys.TABLE_WEB_PAGE_SETTINGS,
+    foreignKeys = [ForeignKey(entity = Novel::class,
+            parentColumns = [DBKeys.KEY_ID],
+            childColumns = [DBKeys.KEY_NOVEL_ID],
+            onDelete = ForeignKey.CASCADE)],
+    indices = [Index(name = DBKeys.INDEX_WEB_PAGE_SETTINGS,
+            value = [DBKeys.KEY_URL, DBKeys.KEY_NOVEL_ID],
+            unique = true),
+        Index(value = [DBKeys.KEY_NOVEL_ID])])
+data class WebPageSettings(@PrimaryKey
+                           @ColumnInfo(name = DBKeys.KEY_URL)
+                           var url: String,
+                           @ColumnInfo(name = DBKeys.KEY_NOVEL_ID)
+                           var novelId: Long) : Serializable {
 
+    @ColumnInfo(name = DBKeys.KEY_TITLE)
     var title: String? = null
+    @ColumnInfo(name = DBKeys.KEY_IS_READ)
     var isRead: Int = 0
+    @ColumnInfo(name = DBKeys.KEY_FILE_PATH)
     var filePath: String? = null
+    @ColumnInfo(name = DBKeys.KEY_REDIRECT_URL)
     var redirectedUrl: String? = null
+    @ColumnInfo(name = DBKeys.KEY_METADATA, typeAffinity = ColumnInfo.TEXT, defaultValue = "{}")
     var metadata: HashMap<String, String?> = HashMap()
 
     override fun equals(other: Any?): Boolean {
@@ -32,4 +52,7 @@ data class WebPageSettings(var url: String, var novelId: Long) : Serializable {
         return "WebPageSettings(url='$url', novelId=$novelId, title=$title, isRead=$isRead, filePath=$filePath, redirectedUrl=$redirectedUrl, metadata=$metadata)"
     }
 
+    fun setIsRead(isRead: Int) {
+        this.isRead = isRead
+    }
 }
