@@ -13,6 +13,8 @@ class Converters {
         
         @TypeConverter
         @JvmStatic fun fromString(str: String): HashMap<String, String> {
+            if (str.isEmpty() || str == "{}" || str == "'{}'")
+                return HashMap()
             return Gson().fromJson(str, object : TypeToken<HashMap<String, String>>() {}.type)
         }
     }
