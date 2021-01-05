@@ -10,6 +10,7 @@ import io.github.gmathi.novellibrary.NovelLibraryApplication
 import io.github.gmathi.novellibrary.model.other.GenericJsonMappedModel
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.IOException
@@ -169,6 +170,7 @@ val MIGRATION_9_10 = object : Migration(9, 10) {
         val schema = getSchema(endVersion)
         val tables = getDatabaseEntitiesFromSchema(schema)
         tables.forEach() {
+            Logs.debug("MIGRATION_9_10", "Upgrading table ${it.key}")
             MigrationTableHelper(db, it.value, it.key).apply() {
                 replaceTable()
             }
@@ -213,7 +215,8 @@ class MigrationTableHelper(val db: SupportSQLiteDatabase,
      * Creates new table (in standard configuration with 'new' prefix
      */
     fun createNewTable() {
-        db.execSQL(settings.getString("createSql"))
+        db.execSQL(settings.getString("createSql")
+                .replace("\${TABLE_NAME}", newTableName))
     }
     
     fun getColumns(): Map<String, JSONObject> {
@@ -252,6 +255,17 @@ class MigrationTableHelper(val db: SupportSQLiteDatabase,
         val columnName = column.getString("columnName")!!
         setIfNull(columnName, column.getString("defaultValue"))
     }
+    
+    fun createIndex(index: JSONObject) {
+        db.execSQL(index.getString("createSql")
+                .replace("\${TABLE_NAME}", tableName))
+    }
+    
+    fun createIndices(indices: JSONArray = settings.getJSONArray("indices")) {
+        for (i in 0 until indices.length()) {
+            createIndex(indices.getJSONObject(i))
+        }
+    }
 
     /**
      * Function createNewTable should have been executed before
@@ -281,6 +295,8 @@ class MigrationTableHelper(val db: SupportSQLiteDatabase,
         copyOldToNewTable(columns.map {
             it.value.getString("columnName")
         })
+        replaceOldTable()
+        createIndices()
     }
     
     fun addColumn(columnName: String) {
