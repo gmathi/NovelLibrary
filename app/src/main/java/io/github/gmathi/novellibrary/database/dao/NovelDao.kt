@@ -33,6 +33,9 @@ interface NovelDao {
     @Query("SELECT * FROM novel WHERE novel_section_id = :novelSectionId ORDER BY order_id ASC")
     fun findByNovelSection(novelSectionId: Long): List<Novel>
 
+    @Query("SELECT id FROM novel WHERE novel_section_id = :novelSectionId ORDER BY order_id ASC")
+    fun findIdsByNovelSection(novelSectionId: Long): List<Long>
+
     @Query("SELECT id FROM novel WHERE name = :name ORDER BY order_id ASC")
     fun findIdByName(name: String): Long?
 

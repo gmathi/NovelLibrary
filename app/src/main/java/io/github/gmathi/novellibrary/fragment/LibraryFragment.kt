@@ -34,6 +34,7 @@ import io.github.gmathi.novellibrary.network.getChapterCount
 import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
+import io.github.gmathi.novellibrary.util.lang.launchIO
 import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
@@ -138,71 +139,76 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     override fun bind(item: Novel, itemView: View, position: Int) {
-        val itemBinding = ListitemLibraryBinding.bind(itemView)
-        itemBinding.novelImageView.setImageResource(android.R.color.transparent)
+        lifecycleScope.launch {
+            val itemBinding = ListitemLibraryBinding.bind(itemView)
+            itemBinding.novelImageView.setImageResource(android.R.color.transparent)
 
-        if (!item.imageUrl.isNullOrBlank()) {
-            Glide.with(this)
-                .load(item.imageUrl?.getGlideUrl())
-                .apply(RequestOptions.circleCropTransform())
-                .into(itemBinding.novelImageView)
-        }
-
-        itemBinding.novelTitleTextView.text = item.name
-        itemBinding.novelTitleTextView.isSelected = dataCenter.enableScrollingText
-
-        val lastRead = item.metadata[Constants.MetaDataKeys.LAST_READ_DATE] ?: "N/A"
-        val lastUpdated = item.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] ?: "N/A"
-
-        itemBinding.lastOpenedDate.text = getString(R.string.last_read_n_updated, lastRead, lastUpdated)
-
-        itemBinding.popMenu.setOnClickListener {
-            val popup = PopupMenu(requireActivity(), it)
-            popup.menuInflater.inflate(R.menu.menu_popup_novel, popup.menu)
-
-            popup.setOnMenuItemClickListener { menuItem ->
-                when (menuItem.itemId) {
-                    R.id.action_novel_details -> {
-                        if (lastDeletedId != item.id)
-                            startNovelDetailsActivity(item, false)
-                        true
+            if (!item.imageUrl.isNullOrBlank()) {
+                async(Dispatchers.IO) {
+                    val glide = Glide.with(this@LibraryFragment)
+                            .load(item.imageUrl?.getGlideUrl())
+                            .apply(RequestOptions.circleCropTransform())
+                    withContext (Dispatchers.Main) {
+                        glide.into(itemBinding.novelImageView)
                     }
+                }
+            }
+
+            itemBinding.novelTitleTextView.text = item.name
+            itemBinding.novelTitleTextView.isSelected = dataCenter.enableScrollingText
+
+            val lastRead = item.metadata[Constants.MetaDataKeys.LAST_READ_DATE] ?: "N/A"
+            val lastUpdated = item.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] ?: "N/A"
+
+            itemBinding.lastOpenedDate.text = getString(R.string.last_read_n_updated, lastRead, lastUpdated)
+
+            itemBinding.popMenu.setOnClickListener {
+                val popup = PopupMenu(requireActivity(), it)
+                popup.menuInflater.inflate(R.menu.menu_popup_novel, popup.menu)
+
+                popup.setOnMenuItemClickListener { menuItem ->
+                    when (menuItem.itemId) {
+                        R.id.action_novel_details -> {
+                            if (lastDeletedId != item.id)
+                                startNovelDetailsActivity(item, false)
+                            true
+                        }
 //                    R.id.action_novel_reorder -> {
 //                        touchHelper.startDrag(recyclerView.getChildViewHolder(itemView))
 //                        true
 //                    }
-                    R.id.action_novel_assign_novel_section -> {
-                        showNovelSectionsList(position)
-                        true
-                    }
-                    R.id.action_reset_novel -> {
-                        if (Utils.isConnectedToNetwork(context)) {
-                            val novel: Novel = adapter.items[position]
-                            // We cannot block the main thread since we end up using Network methods later in dbHelper.resetNovel()
-                            // Instead of using async{} which is deprecated, we can use GlobalScope.Launch {} which uses the Kotlin Coroutines
-                            // We run resetNovel in GlobalScope, wait for it with .join() (which is why we need runBlocking{})
-                            // then we syncNovels() so that it shows in Library
-                            runBlocking {
-                                GlobalScope.launch { db.resetNovel(novel) }.join()
-                                setData()
-                            }
-                        } else {
-                            showAlertDialog(message = "You need to be connected to Internet to Hard Reset.")
+                        R.id.action_novel_assign_novel_section -> {
+                            showNovelSectionsList(position)
+                            true
                         }
-                        true
-                    }
-                    R.id.action_novel_remove -> {
-                        onItemDismiss(position)
-                        true
-                    }
+                        R.id.action_reset_novel -> {
+                            if (Utils.isConnectedToNetwork(context)) {
+                                val novel: Novel = adapter.items[position]
+                                // We cannot block the main thread since we end up using Network methods later in dbHelper.resetNovel()
+                                // Instead of using async{} which is deprecated, we can use GlobalScope.Launch {} which uses the Kotlin Coroutines
+                                // We run resetNovel in GlobalScope, wait for it with .join() (which is why we need runBlocking{})
+                                // then we syncNovels() so that it shows in Library
+                                runBlocking {
+                                    GlobalScope.launch { db.resetNovel(novel) }.join()
+                                    setData()
+                                }
+                            } else {
+                                showAlertDialog(message = "You need to be connected to Internet to Hard Reset.")
+                            }
+                            true
+                        }
+                        R.id.action_novel_remove -> {
+                            onItemDismiss(position)
+                            true
+                        }
 
-                    else -> {
-                        true
+                        else -> {
+                            true
+                        }
                     }
                 }
+                popup.show()
             }
-            popup.show()
-        }
 
 //        itemView.reorderButton.setOnTouchListener { _, event ->
 //            @Suppress("DEPRECATION")
@@ -213,31 +219,34 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 //            false
 //        }
 
-        itemBinding.readChapterImage.setOnClickListener {
-            startReader(item)
-        }
-
-
-        if (item.newReleasesCount != 0L) {
-            val shape = GradientDrawable()
-            shape.cornerRadius = 99f
-            activity?.let { ContextCompat.getColor(it, R.color.Black) }?.let { shape.setStroke(1, it) }
-            activity?.let { ContextCompat.getColor(it, R.color.DarkRed) }?.let { shape.setColor(it) }
-            itemBinding.newChapterCount.background = shape
-            itemBinding.newChapterCount.applyFont(activity?.assets).text = item.newReleasesCount.toString()
-            itemBinding.newChapterCount.visibility = View.VISIBLE
-        } else {
-            itemBinding.newChapterCount.visibility = View.GONE
-        }
-
-        if (item.currentChapterUrl != null) {
-            val orderId = db.webPageDao().findOneByUrl(item.currentChapterUrl!!)?.orderId
-            if (orderId != null) {
-                val progress = "${orderId + 1} / ${item.chaptersCount}"
-                itemBinding.novelProgressText.text = progress
+            itemBinding.readChapterImage.setOnClickListener {
+                startReader(item)
             }
-        } else {
-            itemBinding.novelProgressText.text = getString(R.string.no_bookmark)
+
+
+            async {
+                if (item.newReleasesCount != 0L) {
+                    val shape = GradientDrawable()
+                    shape.cornerRadius = 99f
+                    activity?.let { ContextCompat.getColor(it, R.color.Black) }?.let { shape.setStroke(1, it) }
+                    activity?.let { ContextCompat.getColor(it, R.color.DarkRed) }?.let { shape.setColor(it) }
+                    itemBinding.newChapterCount.background = shape
+                    itemBinding.newChapterCount.applyFont(activity?.assets).text = item.newReleasesCount.toString()
+                    itemBinding.newChapterCount.visibility = View.VISIBLE
+                } else {
+                    itemBinding.newChapterCount.visibility = View.GONE
+                }
+            }
+
+            if (item.currentChapterUrl != null) {
+                val orderId = db.webPageDao().findOneByUrl(item.currentChapterUrl!!)?.orderId
+                if (orderId != null) {
+                    val progress = "${orderId + 1} / ${item.chaptersCount}"
+                    itemBinding.novelProgressText.text = progress
+                }
+            } else {
+                itemBinding.novelProgressText.text = getString(R.string.no_bookmark)
+            }
         }
     }
 
@@ -404,7 +413,12 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun onResume() {
         super.onResume()
-        adapter.updateData(ArrayList(db.novelDao().findByNovelSection(novelSectionId)))
+        launchIO {
+            val novels = ArrayList(db.novelDao().findByNovelSection(novelSectionId))
+            launchUI {
+                adapter.updateData(novels)
+            }
+        }
     }
 
     override fun onPause() {
