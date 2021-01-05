@@ -248,13 +248,14 @@ fun AppCompatActivity.startDownloadNovelService(novelName: String) {
     startService(serviceIntent)
 }
 
-fun AppCompatActivity.startTTSService(audioText: String, title: String, novelId: Long, sourceId: Long) {
+fun AppCompatActivity.startTTSService(audioText: String, title: String, novelId: Long, sourceId: Long, chapterIndex: Int = 0) {
     val serviceIntent = Intent(this, TTSService::class.java)
     val bundle = Bundle()
     bundle.putString(TTSService.AUDIO_TEXT_KEY, audioText)
     bundle.putString(TTSService.TITLE, title)
     bundle.putLong(TTSService.NOVEL_ID, novelId)
     bundle.putLong(TTSService.SOURCE_ID, sourceId)
+    bundle.putInt(TTSService.CHAPTER_INDEX, chapterIndex)
     serviceIntent.putExtras(bundle)
     startService(serviceIntent)
 }
