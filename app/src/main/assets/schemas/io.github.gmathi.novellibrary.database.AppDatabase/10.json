@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 10,
-    "identityHash": "27f2f954bef5e68ece4561caf15c258c",
+    "identityHash": "7183391f9f6d4e6b6631c9cc4f5ca09f",
     "entities": [
       {
         "tableName": "download",
@@ -83,7 +83,7 @@
       },
       {
         "tableName": "novel",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `image_url` TEXT, `rating` TEXT, `short_description` TEXT, `long_description` TEXT, `new_chapter_count` INTEGER NOT NULL, `metadata` TEXT NOT NULL DEFAULT '{}', `image_file_path` TEXT, `order_id` INTEGER NOT NULL, `chapter_count` INTEGER NOT NULL, `novel_section_id` INTEGER NOT NULL DEFAULT -1, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `current_web_page_url` TEXT, `url` TEXT NOT NULL, FOREIGN KEY(`current_web_page_url`) REFERENCES `web_page`(`url`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`novel_section_id`) REFERENCES `novel_section`(`id`) ON UPDATE NO ACTION ON DELETE SET DEFAULT )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `image_url` TEXT, `rating` TEXT, `short_description` TEXT, `long_description` TEXT, `new_chapter_count` INTEGER NOT NULL, `metadata` TEXT NOT NULL DEFAULT '{}', `image_file_path` TEXT, `order_id` INTEGER NOT NULL, `chapter_count` INTEGER NOT NULL, `novel_section_id` INTEGER NOT NULL DEFAULT -1, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `current_web_page_url` TEXT, `url` TEXT NOT NULL, FOREIGN KEY(`novel_section_id`) REFERENCES `novel_section`(`id`) ON UPDATE NO ACTION ON DELETE SET DEFAULT )",
         "fields": [
           {
             "fieldPath": "name",
@@ -197,17 +197,6 @@
           }
         ],
         "foreignKeys": [
-          {
-            "table": "web_page",
-            "onDelete": "SET NULL",
-            "onUpdate": "NO ACTION",
-            "columns": [
-              "current_web_page_url"
-            ],
-            "referencedColumns": [
-              "url"
-            ]
-          },
           {
             "table": "novel_section",
             "onDelete": "SET DEFAULT",
@@ -557,7 +546,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '27f2f954bef5e68ece4561caf15c258c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7183391f9f6d4e6b6631c9cc4f5ca09f')"
     ]
   }
 }

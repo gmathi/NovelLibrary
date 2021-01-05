@@ -11,11 +11,7 @@ import io.github.gmathi.novellibrary.model.other.NovelSectionEvent
 import java.io.Serializable
 
 @Entity(tableName = DBKeys.TABLE_NOVEL,
-    foreignKeys = [ForeignKey(entity = WebPage::class,
-            parentColumns = [DBKeys.KEY_URL],
-            childColumns = [DBKeys.KEY_CURRENT_WEB_PAGE_URL],
-            onDelete = ForeignKey.SET_NULL),
-        ForeignKey(entity = NovelSection::class,
+    foreignKeys = [ForeignKey(entity = NovelSection::class,
             parentColumns = [DBKeys.KEY_ID],
             childColumns = [DBKeys.KEY_NOVEL_SECTION_ID],
             onDelete = ForeignKey.SET_DEFAULT)],
