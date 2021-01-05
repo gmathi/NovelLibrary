@@ -167,6 +167,7 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                 //Restore Databases
                 if (shouldRestoreDatabase && backupDBsDir.exists() && backupDBsDir.isDirectory) {
                     // Force write all queries & close database
+                    db.clearAllTables()
                     db.novelDao().checkpoint(SimpleSQLiteQuery("pragma wal_checkpoint(full)"))
                     db.close()
 
@@ -179,6 +180,7 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                     db = AppDatabase.createInstance(applicationContext)
                     db.insertDefaults()
                     db.novelDao().checkpoint(SimpleSQLiteQuery("pragma wal_checkpoint(full)"))
+                    Thread.sleep(1000 * 2)
                 }
                 nm.updateProgress(8)
 
