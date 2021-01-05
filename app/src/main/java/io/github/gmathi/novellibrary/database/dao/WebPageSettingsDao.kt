@@ -14,7 +14,10 @@ interface WebPageSettingsDao {
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertOrReplace(webPageSettings: WebPageSettings)
-    
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insertOrIgnore(webPageSettings: WebPageSettings)
+
     @Update
     fun update(webPageSettings: WebPageSettings)
     

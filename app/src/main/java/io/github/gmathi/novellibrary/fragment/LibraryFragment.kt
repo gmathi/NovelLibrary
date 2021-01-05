@@ -394,10 +394,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     //TODO: Handle Empty State
                     val chapters = withContext(Dispatchers.IO) { NovelApi.getChapterUrls(updatedNovel) } ?: ArrayList()
                     for (i in 0 until chapters.size) {
-                        if (db.webPageDao().findOneByUrl(chapters[i].url) == null)
-                            db.webPageDao().insert(chapters[i])
-                        if (db.webPageSettingsDao().findOneByUrl(chapters[i].url) == null)
-                            db.webPageSettingsDao().insert(WebPageSettings(chapters[i].url, updatedNovel.id))
+                        db.webPageDao().insertOrIgnore(chapters[i])
+                        db.webPageSettingsDao().insertOrIgnore(WebPageSettings(chapters[i].url, updatedNovel.id))
                     }
 
                 } catch (e: Exception) {

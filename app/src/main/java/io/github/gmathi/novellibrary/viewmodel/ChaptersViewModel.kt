@@ -157,8 +157,8 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
 
         for (i in 0 until chaptersCount) {
             loadingStatus.postValue("Caching Chapters: $i/$chaptersCount")
-            db.webPageDao().insert(chaptersList[i])
-            db.webPageSettingsDao().insert(WebPageSettings(chaptersList[i].url, novel.id))
+            db.webPageDao().insertOrReplace(chaptersList[i])
+            db.webPageSettingsDao().insertOrReplace(WebPageSettings(chaptersList[i].url, novel.id))
         }
         chapters = ArrayList<WebPage>(db.webPageDao().findByNovelId(novel.id))
         chapterSettings = ArrayList<WebPageSettings>(db.webPageSettingsDao().findByNovelId(novel.id))
