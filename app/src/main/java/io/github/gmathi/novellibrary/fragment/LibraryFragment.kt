@@ -505,7 +505,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 positiveButton(R.string.remove) { dialog ->
                     this@LibraryFragment.run {
                         val novel = adapter.items[viewHolderPosition]
-                        Utils.deleteNovel(it, novel.id)
+                        launchIO {
+                            Utils.deleteNovel(it, novel.id)
+                        }
                         adapter.onItemDismiss(viewHolderPosition)
                         dialog.dismiss()
                     }
