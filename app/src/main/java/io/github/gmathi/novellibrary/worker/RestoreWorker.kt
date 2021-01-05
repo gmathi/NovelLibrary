@@ -179,6 +179,8 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                     }
 
                     db = AppDatabase.createInstance(applicationContext)
+                    db.insertDefaults()
+                    db.novelDao().checkpoint(SimpleSQLiteQuery("pragma wal_checkpoint(full)"))
                 }
                 nm.updateProgress(8)
 
