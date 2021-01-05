@@ -360,7 +360,6 @@ fun NovelApi.getNeovelChapterUrls(novel: Novel): ArrayList<WebPage>? {
         val response = OkHttpClient().newCall(request).execute()
         val jsonString = response.body?.string() ?: return chapters
         val jsonArray = JsonParser.parseString(jsonString)?.asJsonArray ?: return chapters
-
         val sortedChaptersArray = jsonArray.sortedWith(object : Comparator<JsonElement> {
             override fun compare(element1: JsonElement?, element2: JsonElement?): Int {
                 val j1Volume = element1?.asJsonObject?.get("chapterVolume")?.asFloat ?: return -1

@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.database
 import android.content.ContentValues
 import android.database.Cursor
 import android.database.DatabaseUtils
+import android.text.TextUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.database.Download
@@ -45,9 +46,9 @@ fun DBHelper.getDownload(webPageUrl: String): Download? {
 
 private fun getDownload(cursor: Cursor): Download {
     val download = Download(
-        webPageUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_WEB_PAGE_URL)),
-        novelName = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME)),
-        chapter = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER))
+            webPageUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_WEB_PAGE_URL)),
+            novelName = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME)),
+            chapter = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER))
     )
     download.status = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_STATUS))
     download.orderId = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
@@ -160,6 +161,21 @@ fun DBHelper.hasDownloadsInQueue(novelName: String): Boolean {
 fun DBHelper.getRemainingDownloadsCountForNovel(novelName: String): Int {
     val selectQuery = "SELECT COUNT(*) FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NAME} = ?"
     return DatabaseUtils.longForQuery(this.readableDatabase, selectQuery, arrayOf(novelName)).toInt()
+}
+
+fun DBHelper.getAllDownloadsForNovel(novelName: String, downloadUrls: List<String>): List<Download> {
+    val list = ArrayList<Download>()
+    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NAME} = ? AND ${DBKeys.KEY_WEB_PAGE_URL} IN (${TextUtils.join(",", Collections.nCopies(downloadUrls.count(), "?"))})"
+    val cursor = this.readableDatabase.rawQuery(selectQuery, arrayOf(novelName) + downloadUrls.toTypedArray())
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(getDownload(cursor))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+    }
+    return list
 }
 
 

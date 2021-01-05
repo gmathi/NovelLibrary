@@ -170,7 +170,7 @@ class ReaderDBPagerActivity :
         NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, webPage) }
         val webPageSettings = dbHelper.getWebPageSettings(webPage.url)
         if (webPageSettings != null) {
-            dbHelper.updateWebPageSettingsReadStatus(webPageSettings.url, 1, webPageSettings.metadata)
+            dbHelper.updateWebPageSettingsReadStatus(webPageSettings, markRead = true)
         }
     }
 

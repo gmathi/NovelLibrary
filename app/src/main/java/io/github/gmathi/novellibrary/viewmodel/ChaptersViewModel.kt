@@ -188,8 +188,8 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
                     callback?.let { it() }
                 }
                 DELETE_DOWNLOADS -> deleteDownloadedChapters(webPages)
-                MARK_READ -> updateReadStatus(webPages, 1)
-                MARK_UNREAD -> updateReadStatus(webPages, 0)
+                MARK_READ -> updateReadStatus(webPages, markRead = true)
+                MARK_UNREAD -> updateReadStatus(webPages, markRead = false)
                 MARK_FAVORITE -> updateFavoriteStatus(webPages, true)
                 REMOVE_FAVORITE -> updateFavoriteStatus(webPages, false)
             }
@@ -247,16 +247,23 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         }
     }
 
-    private suspend fun updateReadStatus(webPages: ArrayList<WebPage>, readStatus: Int) = withContext(Dispatchers.IO) {
+    private suspend fun updateReadStatus(webPages: ArrayList<WebPage>, markRead: Boolean) = withContext(Dispatchers.IO) {
         var counter = 0
         val chapters = ArrayList(webPages)
-        chapters.forEach { webPage ->
-            withContext(Dispatchers.IO) sub@{
-                val chaptersSettingsList = chapterSettings ?: return@sub
-                val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@sub
-                dbHelper.updateWebPageSettingsReadStatus(webPageSettings.url, readStatus, HashMap(webPageSettings.metadata))
-                actionModeProgress.postValue(counter++.toString())
+        val chaptersSettingsList = chapterSettings ?: return@withContext
+        val writableDatabase = dbHelper.writableDatabase
+        writableDatabase.beginTransaction()
+        try {
+            chapters.forEach { webPage ->
+                withContext(Dispatchers.IO) sub@{
+                    val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@sub
+                    dbHelper.updateWebPageSettingsReadStatus(webPageSettings, markRead, writableDatabase)
+                    actionModeProgress.postValue(counter++.toString())
+                }
             }
+            writableDatabase.setTransactionSuccessful()
+        } finally {
+            writableDatabase.endTransaction()
         }
         chapterSettings = dbHelper.getAllWebPageSettings(novel.id)
     }
@@ -264,14 +271,21 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     private suspend fun updateFavoriteStatus(webPages: ArrayList<WebPage>, favoriteStatus: Boolean) = withContext(Dispatchers.IO) {
         var counter = 0
         val chapters = ArrayList(webPages)
-        chapters.forEach { webPage ->
-            withContext(Dispatchers.IO) sub@{
-                val chaptersSettingsList = chapterSettings ?: return@sub
-                val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@sub
-                webPageSettings.metadata[Constants.MetaDataKeys.IS_FAVORITE] = favoriteStatus.toString()
-                dbHelper.updateWebPageSettings(webPageSettings)
-                actionModeProgress.postValue(counter++.toString())
+        val chaptersSettingsList = chapterSettings ?: return@withContext
+        val writableDatabase = dbHelper.writableDatabase
+        writableDatabase.beginTransaction()
+        try {
+            chapters.forEach { webPage ->
+                withContext(Dispatchers.IO) sub@{
+                    val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@sub
+                    webPageSettings.metadata[Constants.MetaDataKeys.IS_FAVORITE] = favoriteStatus.toString()
+                    dbHelper.updateWebPageSettings(webPageSettings, writableDatabase)
+                    actionModeProgress.postValue(counter++.toString())
+                }
             }
+            writableDatabase.setTransactionSuccessful()
+        } finally {
+            writableDatabase.endTransaction()
         }
     }
 
