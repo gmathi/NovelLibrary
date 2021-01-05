@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.database.dao
 
 import androidx.room.*
+import androidx.sqlite.db.SupportSQLiteQuery
 import io.github.gmathi.novellibrary.database.DBKeys
 import io.github.gmathi.novellibrary.model.database.Novel
 
@@ -50,4 +51,7 @@ interface NovelDao {
 
     @Query("SELECT * FROM novel ORDER BY order_id ASC")
     fun getAll(): List<Novel>
+
+    @RawQuery
+    fun checkpoint(supportSQLiteQuery: SupportSQLiteQuery): Int
 }

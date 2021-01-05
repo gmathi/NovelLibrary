@@ -36,14 +36,11 @@ val dataCenter: DataCenter by lazy {
     NovelLibraryApplication.dataCenter!!
 }
 
-val db: AppDatabase by lazy {
-    NovelLibraryApplication.db
-}
+lateinit var db: AppDatabase
 
 class NovelLibraryApplication : MultiDexApplication() {
     companion object {
         var dataCenter: DataCenter? = null
-        lateinit var db: AppDatabase
         lateinit var context: Context
 
         private const val TAG = "NovelLibraryApplication"
@@ -57,11 +54,7 @@ class NovelLibraryApplication : MultiDexApplication() {
 
         dataCenter = DataCenter(applicationContext)
         
-        db = Room.databaseBuilder(applicationContext, AppDatabase::class.java, DBKeys.DATABASE_NAME)
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
-                MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10)
-            .allowMainThreadQueries()
-            .build()
+        db = AppDatabase.createInstance(applicationContext)
 
         val date = Calendar.getInstance()
         if (date.get(Calendar.MONTH) == 4 && date.get(Calendar.DAY_OF_MONTH) == 1) {

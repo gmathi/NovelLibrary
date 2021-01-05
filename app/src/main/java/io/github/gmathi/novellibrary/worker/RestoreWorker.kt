@@ -9,6 +9,7 @@ import android.text.format.Formatter
 import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
@@ -16,6 +17,7 @@ import androidx.work.workDataOf
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.database.AppDatabase
 import io.github.gmathi.novellibrary.database.createNovel
 import io.github.gmathi.novellibrary.database.createNovelSection
 import io.github.gmathi.novellibrary.db
@@ -166,11 +168,17 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
 
                 //Restore Databases
                 if (shouldRestoreDatabase && backupDBsDir.exists() && backupDBsDir.isDirectory) {
+                    // Force write all queries & close database
+                    db.novelDao().checkpoint(SimpleSQLiteQuery("pragma wal_checkpoint(full)"))
+                    db.close()
+
                     if (!currentDBsDir.exists()) currentDBsDir.mkdir()
                     nm.updateProgress(6) { setContentText(getString(R.string.title_library)) }
                     backupDBsDir.listFiles()?.forEach {
                         Utils.copyFile(it, File(currentDBsDir, it.name))
                     }
+
+                    db = AppDatabase.createInstance(applicationContext)
                 }
                 nm.updateProgress(8)
 
