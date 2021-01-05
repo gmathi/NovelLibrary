@@ -16,7 +16,8 @@ import io.github.gmathi.novellibrary.database.createOrUpdateLargePreference
 import io.github.gmathi.novellibrary.database.getLargePreference
 import io.github.gmathi.novellibrary.databinding.ActivityRecentlyViewedNovelsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemNovelBinding
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.db
+import io.github.gmathi.novellibrary.model.database.LargePreference
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.Constants
@@ -90,10 +91,11 @@ class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Nov
             MaterialDialog(this).show {
                 message(text = "Are you sure you want to clear all the recently viewed novels list?")
                 positiveButton(text = "Yes") { dialog ->
-                    dbHelper.createOrUpdateLargePreference(
+                    
+                    db.largePreferenceDao().insertOrReplace(LargePreference(
                         Constants.LargePreferenceKeys.RVN_HISTORY,
                         "[]"
-                    )
+                    ))
                     adapter.updateData(ArrayList())
                     dialog.dismiss()
                 }
@@ -107,7 +109,7 @@ class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Nov
 
     override fun onResume() {
         super.onResume()
-        val history = dbHelper.getLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY) ?: "[]"
+        val history = db.largePreferenceDao().findOneByName(Constants.LargePreferenceKeys.RVN_HISTORY)?.value ?: "[]"
         val historyList: java.util.ArrayList<Novel> = Gson().fromJson(history, object : TypeToken<java.util.ArrayList<Novel>>() {}.type)
         adapter.updateData(ArrayList(historyList.asReversed()))
     }

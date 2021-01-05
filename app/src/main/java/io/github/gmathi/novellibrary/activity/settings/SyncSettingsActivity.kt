@@ -13,11 +13,9 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.getAllNovelSections
-import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.util.system.startSyncLoginActivity
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Utils
@@ -200,8 +198,8 @@ class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         }
 
         launchIO {
-            val sections = dbHelper.getAllNovelSections()
-            val novels = dbHelper.getAllNovels().filter { it.url.contains(novelSync.host) }
+            val sections = db.novelSectionDao().getAll()
+            val novels = db.novelDao().getAll().filter { it.url.contains(novelSync.host) }
 
             val total = novels.count()
 

@@ -22,11 +22,10 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.extensions.FAC
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MAX
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MIN
-import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.util.system.startReaderBackgroundSettingsActivity
@@ -278,7 +277,8 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         try {
             deleteDir(cacheDir)
             deleteDir(filesDir)
-            dbHelper.removeAll()
+            db.clearAllTables()
+            db.insertDefaults()
             dataCenter.saveNovelSearchHistory(ArrayList())
         } catch (e: Exception) {
             e.printStackTrace()

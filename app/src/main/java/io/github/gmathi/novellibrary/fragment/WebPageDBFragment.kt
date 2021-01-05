@@ -23,7 +23,7 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getWebPageSettings
 import io.github.gmathi.novellibrary.database.updateWebPageSettings
 import io.github.gmathi.novellibrary.databinding.FragmentReaderBinding
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.extensions.dataFetchError
 import io.github.gmathi.novellibrary.extensions.noInternetError
 import io.github.gmathi.novellibrary.extensions.showLoading
@@ -101,7 +101,7 @@ class WebPageDBFragment : BaseFragment() {
         } else {
 
             val argWebPage = requireArguments().getSerializable(WEB_PAGE) as? WebPage
-            val argWebPageSettings: WebPageSettings? = argWebPage?.let { dbHelper.getWebPageSettings(argWebPage.url) }
+            val argWebPageSettings: WebPageSettings? = argWebPage?.let { db.webPageSettingsDao().findOneByUrl(argWebPage.url) }
             if (argWebPage == null || argWebPageSettings == null) {
                 activity.finish()
                 return
@@ -443,7 +443,7 @@ class WebPageDBFragment : BaseFragment() {
                     val links: ArrayList<String> =
                         Gson().fromJson(webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES_SETTINGS], object : TypeToken<java.util.ArrayList<String>>() {}.type)
                     links.forEach {
-                        val tempWebPageSettings = dbHelper.getWebPageSettings(it)!!
+                        val tempWebPageSettings = db.webPageSettingsDao().findOneByUrl(it)!!
                         val internalFilePath = "$FILE_PROTOCOL${tempWebPageSettings.filePath}"
                         val input = File(internalFilePath.substring(7))
 
@@ -479,7 +479,7 @@ class WebPageDBFragment : BaseFragment() {
         if (webPageSettings.metadata.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
             val links: ArrayList<String> = Gson().fromJson(webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<String>>() {}.type)
             links.forEach {
-                val tempWebPageSettings = dbHelper.getWebPageSettings(it) ?: return@forEach
+                val tempWebPageSettings = db.webPageSettingsDao().findOneByUrl(it) ?: return@forEach
                 if (it == url || (tempWebPageSettings.redirectedUrl != null && tempWebPageSettings.redirectedUrl == url)) {
                     history.add(tempWebPageSettings)
                     webPageSettings = tempWebPageSettings
@@ -523,7 +523,7 @@ class WebPageDBFragment : BaseFragment() {
         if (this::webPageSettings.isInitialized)
             webPageSettings.let {
                 it.metadata[Constants.MetaDataKeys.SCROLL_POSITION] = binding.readerWebView.scrollY.toString()
-                dbHelper.updateWebPageSettings(it)
+                db.webPageSettingsDao().update(it)
             }
     }
 

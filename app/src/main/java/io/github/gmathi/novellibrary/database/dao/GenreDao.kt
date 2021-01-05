@@ -25,7 +25,7 @@ interface GenreDao {
     fun findOneById(id: Long): Genre?
     
     @Query("SELECT * FROM genre WHERE name IS NOT NULL AND name = :name")
-    fun findOneByName(name: String): List<Genre>
+    fun findOneByName(name: String): Genre?
     
     @Query("SELECT group_concat(g.name) FROM novel_genre ng, genre g WHERE ng.genre_id = g.id AND ng.novel_id = :novelId GROUP BY ng.novel_id")
     fun findGenreNamesByNovel(novelId: Long): List<String?>

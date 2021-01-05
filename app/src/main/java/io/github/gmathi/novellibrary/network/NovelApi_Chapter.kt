@@ -5,10 +5,9 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.reflect.TypeToken
-import io.github.gmathi.novellibrary.database.createTranslatorSource
-import io.github.gmathi.novellibrary.database.getTranslatorSource
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.TranslatorSource
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.network.NovelApi.getDocument
 import io.github.gmathi.novellibrary.network.NovelApi.getDocumentWithFormData
@@ -90,7 +89,7 @@ fun NovelApi.getWLNUChapterUrls(novel: Novel): ArrayList<WebPage>? {
         }
         val sourcesMap: HashMap<String, Long> = HashMap()
         sources.forEach { source ->
-            val sourceId = dbHelper.createTranslatorSource(source)
+            val sourceId = db.translatorSourceDao().insert(TranslatorSource(0L, source))
             sourcesMap[source] = sourceId
         }
 
@@ -195,7 +194,7 @@ private fun getNUALLChapterUrlsForSource(novel: Novel, sourceId: Int? = null, so
     val sourceMap = HashMap<String, Long>()
 
     try {
-        val dbSourceId = dbHelper.getTranslatorSource(sourceName)?.id ?: -1L
+        val dbSourceId = db.translatorSourceDao().findOneByName(sourceName)?.id ?: -1L
         if (!novel.metadata.containsKey("PostId")) throw Exception("No PostId Found!")
 
         val novelUpdatesNovelId = novel.metadata["PostId"] ?: ""
@@ -234,7 +233,7 @@ private fun getNUChapterUrlsWithSources(novel: Novel): ArrayList<HashMap<String,
 
         val doc = getDocumentWithFormData(url, formData)
         doc.select("div.checkbox")?.forEach {
-            dbHelper.createTranslatorSource(it.text())
+            db.translatorSourceDao().insert(TranslatorSource(0L, it.text()))
             val tempSourceMap = getNUALLChapterUrlsForSource(
                 novel,
                 it.selectFirst("input.grp-filter-attr[value]").attr("value").toInt(),

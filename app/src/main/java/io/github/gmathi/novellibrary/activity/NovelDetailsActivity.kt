@@ -30,8 +30,9 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.databinding.ActivityNovelDetailsBinding
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.extensions.*
+import io.github.gmathi.novellibrary.model.database.LargePreference
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getNovelDetails
@@ -83,7 +84,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun getNovelInfoDB() {
-        val dbNovel = dbHelper.getNovel(novel.name)
+        val dbNovel = db.novelDao().findOneByName(novel.name)
         if (dbNovel != null) {
             novel.copyFrom(dbNovel)
         }
@@ -106,7 +107,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 val downloadedNovel = withContext(Dispatchers.IO) { NovelApi.getNovelDetails(novel.url) }
                 novel.copyFrom(downloadedNovel)
                 addNovelToHistory()
-                if (novel.id != -1L) withContext(Dispatchers.IO) { dbHelper.updateNovel(novel) }
+                if (novel.id != -1L) withContext(Dispatchers.IO) { db.novelDao().update(novel) }
                 setupViews()
                 binding.contentNovelDetails.progressLayout.showContent()
                 binding.contentNovelDetails.swipeRefreshLayout.isRefreshing = false
@@ -228,7 +229,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
     private fun addNovelToDB() {
         if (novel.id == -1L) {
-            novel.id = dbHelper.insertNovel(novel)
+            novel.id = db.insertNovel(novel)
             NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncAddNovels(it.host)) it.addNovel(novel, null) }
             firebaseAnalytics.logEvent(FAC.Event.ADD_NOVEL) {
                 param(FAC.Param.NOVEL_NAME, novel.name)
@@ -359,7 +360,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
     private fun addNovelToHistory() {
         try {
-            var history = dbHelper.getLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY)
+            var history = db.largePreferenceDao().findOneByName(Constants.LargePreferenceKeys.RVN_HISTORY)?.value
                 ?: "[]"
             var historyList: ArrayList<Novel> = Gson().fromJson(history, object : TypeToken<ArrayList<Novel>>() {}.type)
             Logs.info(TAG, "Novel Search History Size: ${historyList.size}")
@@ -368,10 +369,10 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 historyList = ArrayList(historyList.take(99))
             historyList.add(novel)
             history = Gson().toJson(historyList)
-            dbHelper.createOrUpdateLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY, history)
+            db.largePreferenceDao().insertOrReplace(LargePreference(Constants.LargePreferenceKeys.RVN_HISTORY, history))
         } catch (e: Exception) {
             Logs.error(TAG, "Error adding novel to history. Resetting the history", e)
-            dbHelper.deleteLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY)
+            db.largePreferenceDao().deleteByName(Constants.LargePreferenceKeys.RVN_HISTORY)
         }
     }
 }

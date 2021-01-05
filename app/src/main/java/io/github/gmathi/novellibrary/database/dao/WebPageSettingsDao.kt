@@ -24,6 +24,9 @@ interface WebPageSettingsDao {
     @Query("DELETE FROM web_page_settings WHERE novel_id = :novelId")
     fun deleteByNovelId(novelId: Long)
 
+    @Query("DELETE FROM web_page_settings WHERE url = :url")
+    fun deleteByUrl(url: String)
+
     @Query("SELECT * FROM web_page_settings WHERE url = :url")
     fun findOneByUrl(url: String): WebPageSettings?
     

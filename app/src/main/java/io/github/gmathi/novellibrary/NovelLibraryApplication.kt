@@ -36,10 +36,6 @@ val dataCenter: DataCenter by lazy {
     NovelLibraryApplication.dataCenter!!
 }
 
-val dbHelper: DBHelper by lazy {
-    NovelLibraryApplication.dbHelper!!
-}
-
 val db: AppDatabase by lazy {
     NovelLibraryApplication.db
 }
@@ -47,14 +43,12 @@ val db: AppDatabase by lazy {
 class NovelLibraryApplication : MultiDexApplication() {
     companion object {
         var dataCenter: DataCenter? = null
-        var dbHelper: DBHelper? = null
         lateinit var db: AppDatabase
         lateinit var context: Context
 
         private const val TAG = "NovelLibraryApplication"
 
         fun refreshDBHelper(context: Context) {
-            dbHelper = DBHelper.refreshInstance(context)
         }
     }
 
@@ -69,7 +63,6 @@ class NovelLibraryApplication : MultiDexApplication() {
             .allowMainThreadQueries()
             .build()
 
-        dbHelper = DBHelper.getInstance(applicationContext)
         val date = Calendar.getInstance()
         if (date.get(Calendar.MONTH) == 4 && date.get(Calendar.DAY_OF_MONTH) == 1) {
             if (!dataCenter?.fooled!!) {

@@ -30,12 +30,12 @@ interface NovelDao {
     @Query("SELECT * FROM novel WHERE name = :name")
     fun findOneByName(name: String): Novel?
 
-    @Query("SELECT * FROM novel WHERE novel_section_id = :novelSectionId")
+    @Query("SELECT * FROM novel WHERE novel_section_id = :novelSectionId ORDER BY order_id ASC")
     fun findByNovelSection(novelSectionId: Long): List<Novel>
 
-    @Query("SELECT id FROM novel WHERE name = :name")
+    @Query("SELECT id FROM novel WHERE name = :name ORDER BY order_id ASC")
     fun findIdByName(name: String): Long?
 
-    @Query("SELECT * FROM novel")
+    @Query("SELECT * FROM novel ORDER BY order_id ASC")
     fun getAll(): List<Novel>
 }

@@ -30,8 +30,7 @@ import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.getNovel
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.util.storage.createFileIfNotExists
 import io.github.gmathi.novellibrary.util.storage.getOrCreateDirectory
 import io.github.gmathi.novellibrary.util.storage.getOrCreateFile
@@ -119,7 +118,7 @@ object Utils {
     }
 
     fun deleteNovel(context: Context, novelId: Long) {
-        deleteNovel(context, dbHelper.getNovel(novelId))
+        deleteNovel(context, db.novelDao().findOneById(novelId))
     }
 
     private fun deleteNovel(context: Context, novel: Novel?) {
@@ -127,7 +126,7 @@ object Utils {
         val hostDir = getHostDir(context, novel.url)
         val novelDir = getNovelDir(hostDir, novel.name)
         novelDir.deleteRecursively()
-        dbHelper.cleanupNovelData(novel)
+        db.cleanupNovel(novel)
         NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncDeleteNovels(it.host)) it.removeNovel(novel) }
         broadcastNovelDelete(context, novel)
     }

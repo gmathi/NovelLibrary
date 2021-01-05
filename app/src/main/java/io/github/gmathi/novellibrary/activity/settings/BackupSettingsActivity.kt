@@ -31,7 +31,7 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
@@ -417,7 +417,8 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             try {
                 deleteDir(cacheDir)
                 deleteDir(filesDir)
-                dbHelper.removeAll()
+                db.clearAllTables()
+                db.insertDefaults()
                 dataCenter.saveNovelSearchHistory(ArrayList())
 
                 async(Dispatchers.Main) {

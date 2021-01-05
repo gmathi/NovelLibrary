@@ -15,10 +15,9 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ChaptersPagerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapterSelectTitleProvider
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.databinding.FragmentSourceChaptersBinding
 import io.github.gmathi.novellibrary.databinding.ListitemChapterBinding
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
@@ -135,7 +134,7 @@ class ChaptersFragment : BaseFragment(),
     override fun onItemClick(item: WebPage, position: Int) {
         if (novel.id != -1L) {
             novel.currentChapterUrl = item.url
-            dbHelper.updateNovel(novel)
+            db.novelDao().update(novel)
             NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, item) }
             startReaderDBPagerActivity(novel, sourceId)
         } else

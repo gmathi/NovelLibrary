@@ -16,6 +16,9 @@ interface NovelGenreDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertOrReplace(novelGenre: NovelGenre)
     
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insertOrIgnore(novelGenre: NovelGenre)
+    
     @Update
     fun update(novelGenre: NovelGenre)
     

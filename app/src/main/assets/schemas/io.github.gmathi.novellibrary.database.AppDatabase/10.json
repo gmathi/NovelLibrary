@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 10,
-    "identityHash": "ce3ecbca2ab6e1b8176abea09458e6b3",
+    "identityHash": "27f2f954bef5e68ece4561caf15c258c",
     "entities": [
       {
         "tableName": "download",
@@ -526,12 +526,38 @@
             ]
           }
         ]
+      },
+      {
+        "tableName": "large_preference",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `value` TEXT NOT NULL, PRIMARY KEY(`name`))",
+        "fields": [
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "value",
+            "columnName": "value",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "name"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ce3ecbca2ab6e1b8176abea09458e6b3')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '27f2f954bef5e68ece4561caf15c258c')"
     ]
   }
 }

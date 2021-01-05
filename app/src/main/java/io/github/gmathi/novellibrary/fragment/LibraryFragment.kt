@@ -23,7 +23,7 @@ import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.databinding.ContentLibraryBinding
 import io.github.gmathi.novellibrary.databinding.ListitemLibraryBinding
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
@@ -115,7 +115,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun setData() {
         updateOrderIds()
-        adapter.updateData(ArrayList(dbHelper.getAllNovels(novelSectionId)))
+        adapter.updateData(ArrayList(db.novelDao().findByNovelSection(novelSectionId)))
         if (binding.swipeRefreshLayout != null && binding.progressLayout != null) {
             binding.swipeRefreshLayout.isRefreshing = false
             binding.progressLayout.showContent()
@@ -183,7 +183,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                             // We run resetNovel in GlobalScope, wait for it with .join() (which is why we need runBlocking{})
                             // then we syncNovels() so that it shows in Library
                             runBlocking {
-                                GlobalScope.launch { dbHelper.resetNovel(novel) }.join()
+                                GlobalScope.launch { db.resetNovel(novel) }.join()
                                 setData()
                             }
                         } else {
@@ -231,7 +231,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         }
 
         if (item.currentChapterUrl != null) {
-            val orderId = dbHelper.getWebPage(item.currentChapterUrl!!)?.orderId
+            val orderId = db.webPageDao().findOneByUrl(item.currentChapterUrl!!)?.orderId
             if (orderId != null) {
                 val progress = "${orderId + 1} / ${item.chaptersCount}"
                 itemBinding.novelProgressText.text = progress
@@ -313,7 +313,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             val totalCountMap: HashMap<Novel, Int> = HashMap()
 
-            val novels = if (novel == null) dbHelper.getAllNovels(novelSectionId) else listOf(novel)
+            val novels = if (novel == null) db.novelDao().findByNovelSection(novelSectionId) else listOf(novel)
 
             syncSnackbarManager.updateTo(syncSnackbar!!.setProgressMax(novels.count()))
 
@@ -364,17 +364,18 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     syncSnackbarManager.setProgress(counter)
                 }
                 updatedNovel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
-                dbHelper.updateNovelMetaData(updatedNovel)
-                dbHelper.updateChaptersAndReleasesCount(updatedNovel.id, it.value.toLong(), updatedNovel.newReleasesCount + (it.value - updatedNovel.chaptersCount))
+                updatedNovel.chaptersCount = it.value.toLong()
+                updatedNovel.newReleasesCount += (it.value - updatedNovel.chaptersCount)
+                db.novelDao().update(updatedNovel)
 
                 try {
                     //TODO: Handle Empty State
                     val chapters = withContext(Dispatchers.IO) { NovelApi.getChapterUrls(updatedNovel) } ?: ArrayList()
                     for (i in 0 until chapters.size) {
-                        if (dbHelper.getWebPage(chapters[i].url) == null)
-                            dbHelper.createWebPage(chapters[i])
-                        if (dbHelper.getWebPageSettings(chapters[i].url) == null)
-                            dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, updatedNovel.id))
+                        if (db.webPageDao().findOneByUrl(chapters[i].url) == null)
+                            db.webPageDao().insert(chapters[i])
+                        if (db.webPageSettingsDao().findOneByUrl(chapters[i].url) == null)
+                            db.webPageSettingsDao().insert(WebPageSettings(chapters[i].url, updatedNovel.id))
                     }
 
                 } catch (e: Exception) {
@@ -403,7 +404,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun onResume() {
         super.onResume()
-        adapter.updateData(ArrayList(dbHelper.getAllNovels(novelSectionId)))
+        adapter.updateData(ArrayList(db.novelDao().findByNovelSection(novelSectionId)))
     }
 
     override fun onPause() {
@@ -423,7 +424,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun startReader(novel: Novel) {
         if (novel.currentChapterUrl != null) {
-            dbHelper.updateNewReleasesCount(novel.id, 0L)
+            novel.newReleasesCount = 0L
+            db.novelDao().update(novel)
             (activity as? AppCompatActivity)?.startReaderDBPagerActivity(novel)
         } else {
             (activity as? AppCompatActivity)?.let {
@@ -498,12 +500,14 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     private fun updateOrderIds() {
         if (adapter.items.isNotEmpty())
             for (i in 0 until adapter.items.size) {
-                dbHelper.updateNovelOrderId(adapter.items[i].id, i.toLong())
+                val novel = adapter.items[i]
+                novel.orderId = i.toLong()
+                db.novelDao().update(novel)
             }
     }
 
     private fun showNovelSectionsList(position: Int) {
-        val novelSections = ArrayList(dbHelper.getAllNovelSections())
+        val novelSections = ArrayList(db.novelSectionDao().getAll())
         if (novelSections.isEmpty()) {
             MaterialDialog(requireActivity()).show {
                 message(R.string.no_novel_sections_error)
@@ -524,7 +528,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     id = novelSections[which - 1].id
 
                 val novel = adapter.items[position]
-                dbHelper.updateNovelSectionId(novel.id, id)
+                novel.novelSectionId = id
+                db.novelDao().update(novel)
                 EventBus.getDefault().post(NovelSectionEvent(id))
                 NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) {
                     if (dataCenter.getSyncAddNovels(it.host)) it.updateNovel(

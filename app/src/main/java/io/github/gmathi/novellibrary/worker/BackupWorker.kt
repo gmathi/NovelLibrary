@@ -16,7 +16,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.database.getAllNovels
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.util.storage.notNullAndExists
 import io.github.gmathi.novellibrary.util.system.NotificationReceiver
 import io.github.gmathi.novellibrary.util.view.ProgressNotificationManager
@@ -114,8 +114,8 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
 
                         // Backup To TextFile
                         if (shouldSimpleTextBackup) {
-                            val novelsArray = dbHelper.getAllNovels()
-                            val novelSectionsArray = dbHelper.getAllNovelSections()
+                            val novelsArray = db.novelDao().getAll()
+                            val novelSectionsArray = db.novelSectionDao().getAll()
                             val map = HashMap<String, Any>()
                             map["novels"] = novelsArray
                             map["novelSections"] = novelSectionsArray

@@ -48,7 +48,7 @@ import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.databinding.ActivityReaderPagerBinding
 import io.github.gmathi.novellibrary.databinding.ItemOptionBinding
 import io.github.gmathi.novellibrary.databinding.MenuLeftDrawerBinding
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.model.database.Novel
@@ -139,7 +139,7 @@ class ReaderDBPagerActivity :
             novel = tempNovel
 
         //Get all WebPages & set view pager
-        webPages = dbHelper.getAllWebPages(novel.id, sourceId)
+        webPages = db.webPageDao().findByNovelAndSourceId(novel.id, sourceId)
         if (dataCenter.japSwipe)
             webPages = webPages.reversed()
 
@@ -173,11 +173,13 @@ class ReaderDBPagerActivity :
             param(FAC.Param.NOVEL_NAME, novel.name)
             param(FAC.Param.NOVEL_URL, novel.url)
         }
-        dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, webPage.url)
+        novel.currentChapterUrl = webPage.url
+        db.novelDao().update(novel)
         NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, webPage) }
-        val webPageSettings = dbHelper.getWebPageSettings(webPage.url)
+        val webPageSettings = db.webPageSettingsDao().findOneByUrl(webPage.url)
         if (webPageSettings != null) {
-            dbHelper.updateWebPageSettingsReadStatus(webPageSettings.url, 1, webPageSettings.metadata)
+            webPageSettings.isRead = 1
+            db.updateWebPageSettingsReadStatus(webPageSettings)
         }
     }
 
@@ -279,9 +281,9 @@ class ReaderDBPagerActivity :
     }
 
     fun checkUrl(url: String): Boolean {
-        val webPageSettings = dbHelper.getWebPageSettingsByRedirectedUrl(url) ?: return false
-        val webPage = dbHelper.getWebPage(webPageSettings.url) ?: return false
-        val index = dbHelper.getAllWebPages(novel.id, sourceId).indexOf(webPage)
+        val webPageSettings = db.webPageSettingsDao().findOneByRedirectUrl(url) ?: return false
+        val webPage = db.webPageDao().findOneByUrl(webPageSettings.url) ?: return false
+        val index = db.webPageDao().findByNovelAndSourceId(novel.id, sourceId).indexOf(webPage)
         return if (index == -1)
             false
         else {
@@ -574,7 +576,7 @@ class ReaderDBPagerActivity :
     override fun onResume() {
         super.onResume()
         novel.metadata[Constants.MetaDataKeys.LAST_READ_DATE] = Utils.getCurrentFormattedDate()
-        dbHelper.updateNovelMetaData(novel)
+        db.novelDao().update(novel)
         firebaseAnalytics.logEvent(FAC.Event.OPEN_NOVEL) {
             param(FAC.Param.NOVEL_NAME, novel.name)
             param(FAC.Param.NOVEL_URL, novel.url)

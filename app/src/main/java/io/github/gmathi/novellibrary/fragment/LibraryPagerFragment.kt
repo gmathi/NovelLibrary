@@ -12,7 +12,7 @@ import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.LibraryPageListener
 import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.databinding.FragmentLibraryPagerBinding
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
@@ -55,7 +55,7 @@ class LibraryPagerFragment : BaseFragment() {
         //We Manually add this because we want it to be static and the name to be change in different languages
         novelSections.clear()
         novelSections.add(NovelSection(-1L, getString(R.string.default_novel_section_name)))
-        novelSections.addAll(dbHelper.getAllNovelSections())
+        novelSections.addAll(db.novelSectionDao().getAll())
 
         val titles = Array(novelSections.size, init = {
             novelSections[it].name!!

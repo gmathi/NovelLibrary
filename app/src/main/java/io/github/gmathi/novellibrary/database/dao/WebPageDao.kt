@@ -24,10 +24,13 @@ interface WebPageDao {
     @Query("DELETE FROM web_page WHERE novel_id = :novelId")
     fun deleteByNovelId(novelId: Long)
 
+    @Query("DELETE FROM web_page WHERE url = :url")
+    fun deleteByUrl(url: String)
+
     @Query("SELECT * FROM web_page WHERE novel_id = :novelId ORDER BY order_id ASC")
     fun findByNovelId(novelId: Long): List<WebPage>
 
-    @Query("SELECT * FROM web_page WHERE novel_id = :novelId AND source_id = :sourceId ORDER BY order_id ASC")
+    @Query("SELECT * FROM web_page WHERE novel_id = :novelId AND (:sourceId = -1 OR source_id = :sourceId) ORDER BY order_id ASC")
     fun findByNovelAndSourceId(novelId: Long, sourceId: Long): List<WebPage>
 
     @Query("SELECT * FROM web_page WHERE url = :url")

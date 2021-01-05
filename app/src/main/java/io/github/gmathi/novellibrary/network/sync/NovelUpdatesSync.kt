@@ -1,7 +1,7 @@
 package io.github.gmathi.novellibrary.network.sync
 
 import io.github.gmathi.novellibrary.database.getWebPage
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.model.database.WebPage
@@ -99,7 +99,7 @@ class NovelUpdatesSync : NovelSync() {
                     progress?.let { it(novel.name) }
                     withContext(Dispatchers.IO) { NovelApi.getString(UPDATE_NOVEL_URL.format(novel.metadata["PostId"], categoryMap[novel.novelSectionId] ?: 0, "move"), ignoreHttpErrors = false) }
                     novel.currentChapterUrl?.let {
-                        withContext(Dispatchers.IO) { setBookmark(novel, dbHelper.getWebPage(it) ?: return@withContext) }
+                        withContext(Dispatchers.IO) { setBookmark(novel, db.webPageDao().findOneByUrl(it) ?: return@withContext) }
                     }
                 } catch (e: IOException) {
                     return@runBlocking

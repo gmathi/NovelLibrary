@@ -22,7 +22,7 @@ import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.databinding.ActivityChaptersPagerBinding
 import io.github.gmathi.novellibrary.databinding.ContentChaptersPagerBinding
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.TranslatorSource
@@ -166,9 +166,9 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
         if (vm.showSources) {
             val sourceIds = chapters.distinctBy { it.translatorSourceId }.map { it.translatorSourceId }
-            sourceIds.forEach { sourceId -> dbHelper.getTranslatorSource(sourceId)?.let { translatorSources.add(it) } }
+            sourceIds.forEach { sourceId -> db.translatorSourceDao().findOneById(sourceId)?.let { translatorSources.add(it) } }
         } else {
-            dbHelper.getTranslatorSource(-1L)?.let { translatorSources.add(it) }
+            db.translatorSourceDao().findOneById(-1L)?.let { translatorSources.add(it) }
         }
 
         val titles = translatorSources.map { it.name }.toTypedArray()
@@ -183,7 +183,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
     private fun scrollToBookmark() {
         vm.novel.currentChapterUrl?.let { currentChapterUrl ->
-            val currentBookmarkWebPage = dbHelper.getWebPage(currentChapterUrl) ?: return@let
+            val currentBookmarkWebPage = db.webPageDao().findOneByUrl(currentChapterUrl) ?: return@let
             val currentSource = translatorSources.firstOrNull { it.id == currentBookmarkWebPage.translatorSourceId }
                 ?: return@let
             val index = translatorSources.indexOf(currentSource)
@@ -256,7 +256,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                     vm.novel.metadata["chapterOrder"] = "des"
                 EventBus.getDefault().post(ChapterActionModeEvent(eventType = EventType.COMPLETE))
                 if (vm.novel.id != -1L)
-                    dbHelper.updateNovel(vm.novel)
+                    db.novelDao().update(vm.novel)
                 return true
             }
         }
