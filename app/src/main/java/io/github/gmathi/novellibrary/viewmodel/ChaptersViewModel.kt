@@ -140,24 +140,35 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     private suspend fun addToDB(forceUpdate: Boolean) = withContext(Dispatchers.IO) {
         loadingStatus.postValue("Adding/Updating Cache…")
 
-        if (forceUpdate) {
-            //Delete the current data
-            dbHelper.deleteWebPages(novel.id)
-            chapters?.forEach { dbHelper.deleteWebPage(it.url) }
+        //Start transaction for faster insertions
+        val writableDatabase = dbHelper.writableDatabase
+        try {
+            writableDatabase.beginTransaction()
+            if (forceUpdate) {
+                //Delete the current data
+                dbHelper.deleteWebPages(novel.id, writableDatabase)
+                chapters?.forEach { dbHelper.deleteWebPage(it.url, writableDatabase) }
 
-            // We will not delete chapter settings so as to not delete the downloaded chapters file location.
-            // dbHelper.deleteWebPageSettings(novel.id)
+                // We will not delete chapter settings so as to not delete the downloaded chapters file location.
+                // dbHelper.deleteWebPageSettings(novel.id)
+            }
+
+            val chaptersList = chapters ?: return@withContext
+            val chaptersCount = chaptersList.size
+            dbHelper.updateChaptersCount(novel.id, chaptersCount.toLong(), writableDatabase)
+
+
+            for (i in 0 until chaptersCount) {
+                loadingStatus.postValue("Caching Chapters: $i/$chaptersCount")
+                dbHelper.createWebPage(chaptersList[i], writableDatabase)
+                dbHelper.createWebPageSettings(WebPageSettings(chaptersList[i].url, novel.id), writableDatabase)
+            }
+            writableDatabase.setTransactionSuccessful()
+        } finally {
+            writableDatabase.endTransaction()
         }
+        //End Transaction
 
-        val chaptersList = chapters ?: return@withContext
-        val chaptersCount = chaptersList.size
-        dbHelper.updateChaptersCount(novel.id, chaptersCount.toLong())
-
-        for (i in 0 until chaptersCount) {
-            loadingStatus.postValue("Caching Chapters: $i/$chaptersCount")
-            dbHelper.createWebPage(chaptersList[i])
-            dbHelper.createWebPageSettings(WebPageSettings(chaptersList[i].url, novel.id))
-        }
         chapters = dbHelper.getAllWebPages(novel.id)
         chapterSettings = dbHelper.getAllWebPageSettings(novel.id)
     }
@@ -237,13 +248,20 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
 
     private suspend fun addChaptersToDownloadQueue(webPages: List<WebPage>) = withContext(Dispatchers.IO) {
         var counter = 0
-        webPages.forEach {
-            withContext(Dispatchers.IO) {
-                val download = Download(it.url, novel.name, it.chapter)
-                download.orderId = it.orderId.toInt()
-                dbHelper.createDownload(download)
-                actionModeProgress.postValue(counter++.toString())
+        val writableDatabase = dbHelper.writableDatabase
+        writableDatabase.beginTransaction()
+        try {
+            webPages.forEach {
+                withContext(Dispatchers.IO) {
+                    val download = Download(it.url, novel.name, it.chapter)
+                    download.orderId = it.orderId.toInt()
+                    dbHelper.createDownload(download, writableDatabase)
+                    actionModeProgress.postValue(counter++.toString())
+                }
             }
+            writableDatabase.setTransactionSuccessful()
+        } finally {
+            writableDatabase.endTransaction()
         }
     }
 

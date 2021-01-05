@@ -30,7 +30,8 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
     override fun doWork(): Result {
         val dbHelper = DBHelper.getInstance(context)
 
-        //android.os.Debug.waitForDebugger()
+        // Enable the below line only in debug mode for triggering breakpoints
+        // android.os.Debug.waitForDebugger()
 
         try {
             if (Utils.isConnectedToNetwork(context))
@@ -67,16 +68,24 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
         if (totalCountMap.isEmpty()) return
 
         //Update DB with new chapters
-        totalCountMap.forEach {
-            val novel = it.key
-            novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
-            dbHelper.updateNovelMetaData(novel)
-            dbHelper.updateChaptersAndReleasesCount(
-                novel.id,
-                it.value.toLong(),
-                novel.newReleasesCount + (it.value - novel.chaptersCount)
-            )
-            updateChapters(novel, dbHelper)
+        val writableDatabase = dbHelper.writableDatabase
+        try {
+            writableDatabase.beginTransaction()
+            totalCountMap.forEach {
+                val novel = it.key
+                novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
+                dbHelper.updateNovelMetaData(novel, writableDatabase)
+                dbHelper.updateChaptersAndReleasesCount(
+                    novel.id,
+                    it.value.toLong(),
+                    novel.newReleasesCount + (it.value - novel.chaptersCount),
+                    writableDatabase
+                )
+                updateChapters(novel, dbHelper)
+            }
+            writableDatabase.setTransactionSuccessful()
+        } finally {
+            writableDatabase.endTransaction()
         }
 
         val novelsList: ArrayList<Novel> = ArrayList()
@@ -106,18 +115,24 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
      * Download latest chapters from network
      */
     private fun updateChapters(novel: Novel, dbHelper: DBHelper) {
+        val writableDatabase = dbHelper.writableDatabase
         try {
             //TODO: Handle Empty State
             val chapters = NovelApi.getChapterUrls(novel) ?: ArrayList()
+
+            //Start transaction for faster insertions
+            writableDatabase.beginTransaction()
             for (i in 0 until chapters.size) {
-                if (dbHelper.getWebPage(chapters[i].url) == null)
-                    dbHelper.createWebPage(chapters[i])
-                if (dbHelper.getWebPageSettings(chapters[i].url) == null)
-                    dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
+                dbHelper.createWebPage(chapters[i], writableDatabase)
+                dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id), writableDatabase)
             }
+            writableDatabase.setTransactionSuccessful()
+            //End Transaction
 
         } catch (e: Exception) {
             Logs.error(TAG, "Novel: $novel", e)
+        } finally {
+            writableDatabase.endTransaction()
         }
     }
 
@@ -130,14 +145,14 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
         private const val TAG = "BackgroundNovelSyncTask"
         private const val UPDATE_NOTIFICATION_GROUP = "updateNotificationGroup"
         private var NOTIFICATION_ID = 0
-        
+
         private fun createSyncConstraints() =
             Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .setRequiresCharging(false)
                 .setRequiresBatteryNotLow(true)
                 .build()
-        
+
         fun scheduleRepeat(context: Context) {
             cancelAll(context)
             //in this method, single Repeating task is scheduled (the target service that will be called is MyTaskService.class)

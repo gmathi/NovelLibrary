@@ -2,15 +2,17 @@ package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
 import android.database.Cursor
+import android.database.sqlite.SQLiteDatabase
 import io.github.gmathi.novellibrary.model.database.WebPage
 
 
 //private const val LOG = "WebPageHelper"
 
-fun DBHelper.createWebPage(webPage: WebPage): Boolean {
+fun DBHelper.createWebPage(webPage: WebPage, db: SQLiteDatabase? = null): Boolean {
+    val writableDatabase = db ?: this.writableDatabase
     //Check 1st
     val selectQuery = "SELECT * FROM ${DBKeys.TABLE_WEB_PAGE} WHERE ${DBKeys.KEY_URL} = ? LIMIT 1"
-    val cursor = this.readableDatabase.rawQuery(selectQuery, arrayOf(webPage.url))
+    val cursor = writableDatabase.rawQuery(selectQuery, arrayOf(webPage.url))
     val recordExists = cursor != null && cursor.count > 0
     cursor.close()
     if (recordExists)
@@ -22,7 +24,7 @@ fun DBHelper.createWebPage(webPage: WebPage): Boolean {
     values.put(DBKeys.KEY_NOVEL_ID, webPage.novelId)
     values.put(DBKeys.KEY_ORDER_ID, webPage.orderId)
     values.put(DBKeys.KEY_SOURCE_ID, webPage.translatorSourceId)
-    return this.writableDatabase.insert(DBKeys.TABLE_WEB_PAGE, null, values) != -1L
+    return writableDatabase.insert(DBKeys.TABLE_WEB_PAGE, null, values) != -1L
 }
 
 fun DBHelper.getWebPage(url: String): WebPage? {
@@ -73,12 +75,14 @@ fun DBHelper.getAllWebPages(novelId: Long, sourceId: Long): List<WebPage> {
     return list
 }
 
-fun DBHelper.deleteWebPages(novelId: Long) {
-    this.writableDatabase.delete(DBKeys.TABLE_WEB_PAGE, DBKeys.KEY_NOVEL_ID + " = ?", arrayOf(novelId.toString()))
+fun DBHelper.deleteWebPages(novelId: Long, db: SQLiteDatabase? = null) {
+    val writableDatabase = db?:this.writableDatabase
+    writableDatabase.delete(DBKeys.TABLE_WEB_PAGE, DBKeys.KEY_NOVEL_ID + " = ?", arrayOf(novelId.toString()))
 }
 
-fun DBHelper.deleteWebPage(url: String) {
-    this.writableDatabase.delete(DBKeys.TABLE_WEB_PAGE, "${DBKeys.KEY_URL} = ?", arrayOf(url))
+fun DBHelper.deleteWebPage(url: String, db: SQLiteDatabase? = null) {
+    val writableDatabase = db?:this.writableDatabase
+    writableDatabase.delete(DBKeys.TABLE_WEB_PAGE, "${DBKeys.KEY_URL} = ?", arrayOf(url))
 }
 
 private fun getWebPageFromCursor(cursor: Cursor): WebPage {

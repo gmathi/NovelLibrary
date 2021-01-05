@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.database
 import android.content.ContentValues
 import android.database.Cursor
 import android.database.DatabaseUtils
+import android.database.sqlite.SQLiteDatabase
 import android.text.TextUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -13,10 +14,11 @@ import kotlin.collections.HashMap
 
 //private const val LOG = "DownloadHelper"
 
-fun DBHelper.createDownload(download: Download) {
+fun DBHelper.createDownload(download: Download, db: SQLiteDatabase? = null) {
+    val writableDatabase = db ?: this.writableDatabase
     //Check 1st
     val selectQuery = "SELECT * FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_WEB_PAGE_URL} = ?"
-    val cursor = this.readableDatabase.rawQuery(selectQuery, arrayOf(download.webPageUrl))
+    val cursor = writableDatabase.rawQuery(selectQuery, arrayOf(download.webPageUrl))
     val recordExists = cursor != null && cursor.count > 0
     cursor.close()
     if (recordExists)
@@ -29,7 +31,7 @@ fun DBHelper.createDownload(download: Download) {
     values.put(DBKeys.KEY_STATUS, Download.STATUS_PAUSED)
     values.put(DBKeys.KEY_ORDER_ID, download.orderId)
     values.put(DBKeys.KEY_METADATA, Gson().toJson(HashMap<String, String?>()))
-    this.writableDatabase.insert(DBKeys.TABLE_DOWNLOAD, null, values)
+    writableDatabase.insert(DBKeys.TABLE_DOWNLOAD, null, values)
 }
 
 fun DBHelper.getDownload(webPageUrl: String): Download? {
@@ -46,9 +48,9 @@ fun DBHelper.getDownload(webPageUrl: String): Download? {
 
 private fun getDownload(cursor: Cursor): Download {
     val download = Download(
-            webPageUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_WEB_PAGE_URL)),
-            novelName = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME)),
-            chapter = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER))
+        webPageUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_WEB_PAGE_URL)),
+        novelName = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME)),
+        chapter = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER))
     )
     download.status = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_STATUS))
     download.orderId = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
