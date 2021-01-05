@@ -68,7 +68,7 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
         if (totalCountMap.isEmpty()) return
 
         //Update DB with new chapters
-        try {
+        db.runInTransaction {
             totalCountMap.forEach {
                 val novel = it.key
                 novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
@@ -77,7 +77,6 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
                 db.novelDao().update(novel)
                 updateChapters(novel, db)
 		    }
-        } finally {
         }
 
         val novelsList: ArrayList<Novel> = ArrayList()
@@ -112,9 +111,11 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
             val chapters = NovelApi.getChapterUrls(novel) ?: ArrayList()
 
             //Start transaction for faster insertions
-            for (i in 0 until chapters.size) {
-                db.webPageDao().insertOrIgnore(chapters[i])
-                db.webPageSettingsDao().insertOrIgnore(WebPageSettings(chapters[i].url, novel.id))
+            db.runInTransaction {
+                for (i in 0 until chapters.size) {
+                    db.webPageDao().insertOrIgnore(chapters[i])
+                    db.webPageSettingsDao().insertOrIgnore(WebPageSettings(chapters[i].url, novel.id))
+                }
             }
             //End Transaction
 

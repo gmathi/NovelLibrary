@@ -20,7 +20,10 @@ interface WebPageDao {
 
     @Update
     fun update(webPage: WebPage)
-    
+
+    @Delete
+    fun deleteAll(webPages: ArrayList<WebPage>)
+
     @Delete
     fun delete(webPage: WebPage)
 
@@ -47,4 +50,10 @@ interface WebPageDao {
 
     @Query("SELECT * FROM web_page")
     fun getAll(): List<WebPage>
+    
+    @Transaction
+    fun deleteByNovelOrWebPages(novelId: Long, webPages: ArrayList<WebPage>) {
+        deleteByNovelId(novelId)
+        deleteAll(webPages)
+    }
 }
