@@ -16,6 +16,12 @@ interface NovelDao {
     fun insertOrReplace(novel: Novel): Long
     
     @Update
+    fun updateAll(vararg novels: Novel)
+
+    @Update
+    fun updateAll(novels: ArrayList<Novel>)
+
+    @Update
     fun update(novel: Novel)
     
     @Delete

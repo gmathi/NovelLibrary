@@ -512,12 +512,16 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     private fun updateOrderIds() {
-        if (adapter.items.isNotEmpty())
+        if (adapter.items.isNotEmpty()) {
             for (i in 0 until adapter.items.size) {
                 val novel = adapter.items[i]
                 novel.orderId = i.toLong()
-                db.novelDao().update(novel)
             }
+
+            launchIO {
+                db.novelDao().updateAll(adapter.items)
+            }
+        }
     }
 
     private fun showNovelSectionsList(position: Int) {
