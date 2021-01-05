@@ -11,6 +11,7 @@ import androidx.annotation.UiThread
 import android.view.MenuItem
 import android.view.View
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
@@ -180,26 +181,26 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<String>, 
     }
 
     private fun confirmDeleteDialog(novelName: String) {
-        MaterialDialog.Builder(this)
-                .title(getString(R.string.confirm_remove))
-                .content(getString(R.string.confirm_remove_download_description))
-                .positiveText(R.string.remove)
-                .negativeText(R.string.cancel)
-                .onPositive { dialog, _ ->
-                    run {
-                        dbHelper.deleteDownloads(novelName)
-                        adapter.removeItem(novelName)
-                        if (isServiceConnected && Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME))
-                            downloadNovelService?.handleNovelDownload(novelName, DownloadNovelService.ACTION_REMOVE)
-                        dialog.dismiss()
-                    }
+        MaterialDialog(this).show {
+            title(R.string.confirm_remove)
+            message(R.string.confirm_remove_download_description)
+            positiveButton(R.string.remove) { dialog ->
+                this@NovelDownloadsActivity.run {
+                    dbHelper.deleteDownloads(novelName)
+                    adapter.removeItem(novelName)
+                    if (isServiceConnected && Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME))
+                        downloadNovelService?.handleNovelDownload(novelName, DownloadNovelService.ACTION_REMOVE)
+                    dialog.dismiss()
                 }
-                .onNegative { dialog, _ ->
-                    run {
-                        dialog.dismiss()
-                    }
+            }
+            negativeButton(R.string.cancel) { dialog ->
+                this@NovelDownloadsActivity.run {
+                    dialog.dismiss()
                 }
-                .show()
+            }
+
+            lifecycleOwner(this@NovelDownloadsActivity)
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

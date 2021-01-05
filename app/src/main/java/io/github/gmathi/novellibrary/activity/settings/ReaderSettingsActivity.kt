@@ -8,6 +8,11 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.callbacks.onDismiss
+import com.afollestad.materialdialogs.customview.customView
+import com.afollestad.materialdialogs.customview.getCustomView
+import com.afollestad.materialdialogs.input.getInputField
+import com.afollestad.materialdialogs.input.input
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.logEvent
@@ -226,19 +231,19 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         if (position == POSITION_READER_MODE_THEME) {
             startReaderBackgroundSettingsActivity()
         } else if (position == POSITION_CUSTOM_QUERY_LOOKUPS) {
-            MaterialDialog.Builder(this)
-                .title(getString(R.string.custom_query_lookups_edit))
-                .inputType(InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_CLASS_TEXT)
-                .input(getString(R.string.custom_query_lookups_hint), dataCenter.userSpecifiedSelectorQueries) { _, _ -> }
-                .positiveText(getString(R.string.fui_button_text_save))
-                .negativeText(getString(R.string.cancel))
-                .onPositive { widget, _ ->
-                    dataCenter.userSpecifiedSelectorQueries = widget.inputEditText?.text.toString()
+            MaterialDialog(this).show {
+                title(R.string.custom_query_lookups_edit)
+                input(hintRes = R.string.custom_query_lookups_hint,
+                    prefill = dataCenter.userSpecifiedSelectorQueries,
+                    inputType = InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_CLASS_TEXT)
+                positiveButton(R.string.fui_button_text_save) { widget ->
+                    dataCenter.userSpecifiedSelectorQueries = widget.getInputField()?.text.toString()
                     firebaseAnalytics.logEvent(FAC.Event.SELECTOR_QUERY) {
-                        param(FirebaseAnalytics.Param.VALUE, widget.inputEditText?.text.toString())
+                        param(FirebaseAnalytics.Param.VALUE, widget.getInputField()?.text.toString())
                     }
                 }
-                .show()
+                negativeButton(R.string.cancel)
+            }
         }
     }
 
@@ -250,21 +255,23 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     //region Delete Files
     private fun deleteFilesDialog() {
-        MaterialDialog.Builder(this)
-            .title(getString(R.string.clear_data))
-            .content(getString(R.string.clear_data_description))
-            .positiveText(R.string.clear)
-            .negativeText(R.string.cancel)
-            .onPositive { dialog, _ ->
-                val snackBar = Snackbar.make(findViewById(android.R.id.content),
-                    getString(R.string.clearing_data) +  " - " + getString(R.string.please_wait),
-                    Snackbar.LENGTH_INDEFINITE)
+        MaterialDialog(this).show {
+            title(R.string.clear_data)
+            message(R.string.clear_data_description)
+            positiveButton(R.string.clear) { dialog ->
+                val snackBar = Snackbar.make(
+                    findViewById(android.R.id.content),
+                    getString(R.string.clearing_data) + " - " + getString(R.string.please_wait),
+                    Snackbar.LENGTH_INDEFINITE
+                )
                 deleteFiles()
                 snackBar.dismiss()
                 dialog.dismiss()
             }
-            .onNegative { dialog, _ -> dialog.dismiss() }
-            .show()
+            negativeButton(R.string.cancel) { dialog ->
+                dialog.dismiss()
+            }
+        }
     }
 
     private fun deleteFiles() {
@@ -297,21 +304,22 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private fun changeScrollDistance(textView: TextView) {
         var value = dataCenter.scrollLength
 
-        val dialog = MaterialDialog.Builder(this)
-            .title(R.string.volume_scroll_length)
-            .customView(R.layout.dialog_slider, true)
-            .dismissListener { dataCenter.scrollLength = value }
-            .build()
-        dialog.show()
+        val dialog = MaterialDialog(this).show {
+            title(R.string.volume_scroll_length)
+            customView(R.layout.dialog_slider, scrollable = true)
+            onDismiss {
+                dataCenter.scrollLength = value
+            }
+        }
 
-        val seekBar = dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)
-        seekBar?.notifyWhileDragging = true
-        seekBar?.setOnSeekBarChangedListener { _, progress ->
+        val seekBar = dialog.getCustomView()?.findViewById<TwoWaySeekBar>(R.id.seekBar) ?: return
+        seekBar.notifyWhileDragging = true
+        seekBar.setOnSeekBarChangedListener { _, progress ->
             value = progress.toInt()
             textView.text = "${if (value < 0) resources.getString(R.string.reverse) else ""} ${abs(value)}"
         }
-        seekBar?.setAbsoluteMinMaxValue(VOLUME_SCROLL_LENGTH_MIN.toDouble(), VOLUME_SCROLL_LENGTH_MAX.toDouble())
-        seekBar?.setProgress(dataCenter.scrollLength.toDouble())
+        seekBar.setAbsoluteMinMaxValue(VOLUME_SCROLL_LENGTH_MIN.toDouble(), VOLUME_SCROLL_LENGTH_MAX.toDouble())
+        seekBar.setProgress(dataCenter.scrollLength.toDouble())
     }
 
 }

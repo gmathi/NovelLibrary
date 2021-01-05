@@ -374,22 +374,18 @@ object Utils {
         activity: AppCompatActivity,
         title: String? = null,
         content: String? = null,
-        iconRes: Int = R.drawable.ic_warning_white_vector
-    ): MaterialDialog.Builder {
-        val dialogBuilder = MaterialDialog.Builder(activity)
-
+        @DrawableRes iconRes: Int = R.drawable.ic_warning_white_vector
+    ) = MaterialDialog(activity).show {
         if (title != null)
-            dialogBuilder.title(activity.getString(R.string.confirm_action))
+            title(text = title)
+        else
+            title(R.string.confirm_action)
 
-        if (content != null)
-            dialogBuilder.content(content)
+        message(text = content)
 
-        dialogBuilder
-            .iconRes(iconRes)
+        icon(iconRes)
 
-        dialogBuilder.positiveText(activity.getString(R.string.okay)).onPositive { dialog, _ -> dialog.dismiss() }
-
-        return dialogBuilder
+        positiveButton(R.string.okay)
     }
 
     fun getCurrentFormattedDate(): String = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date())

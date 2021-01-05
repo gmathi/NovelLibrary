@@ -6,6 +6,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
@@ -177,15 +178,19 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
         if (novel.currentChapterUrl != null) {
             startReaderDBPagerActivity(novel)
         } else {
-            val confirmDialog = this.let {
-                MaterialDialog.Builder(it)
-                    .title(getString(R.string.no_bookmark_found_dialog_title))
-                    .content(getString(R.string.no_bookmark_found_dialog_description, novel.name))
-                    .positiveText(getString(R.string.okay))
-                    .negativeText(R.string.cancel)
-                    .onPositive { dialog, _ -> it.startChaptersActivity(novel, false); dialog.dismiss() }
+           this.let {
+                MaterialDialog(this).show {
+                    title(R.string.no_bookmark_found_dialog_title)
+                    message(text = getString(R.string.no_bookmark_found_dialog_description, novel.name))
+                    positiveButton(R.string.okay) { dialog ->
+                        it.startChaptersActivity(novel, false)
+                        dialog.dismiss()
+                    }
+                    negativeButton(R.string.cancel)
+
+                    lifecycleOwner(this@LibrarySearchActivity)
+                }
             }
-            confirmDialog!!.show()
         }
     }
 

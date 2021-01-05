@@ -5,7 +5,10 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
+import com.afollestad.materialdialogs.DialogCallback
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
+import com.google.android.material.datepicker.MaterialTextInputPicker
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.analytics.ktx.logEvent
 import com.tingyik90.snackprogressbar.SnackProgressBar
@@ -92,7 +95,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             if (Utils.isConnectedToNetwork(this)) {
                 vm.toggleSources()
             } else {
-                confirmDialog("You need to have internet connection to do this!", { dialog, _ ->
+                confirmDialog("You need to have internet connection to do this!", { dialog ->
                     dialog.dismiss()
                 })
             }
@@ -215,7 +218,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 return true
             }
             R.id.action_download -> {
-                confirmDialog(getString(R.string.download_all_chapters_dialog_content), { dialog, _ ->
+                confirmDialog(getString(R.string.download_all_chapters_dialog_content), { dialog ->
                     val publisher = vm.novel.metadata["English Publisher"]
                     val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true) ?: false
                     if (dataCenter.disableWuxiaDownloads && isWuxiaChapterPresent) {
@@ -301,7 +304,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.action_unread -> {
-                confirmDialog(getString(R.string.mark_chapters_unread_dialog_content), { dialog, _ ->
+                confirmDialog(getString(R.string.mark_chapters_unread_dialog_content), { dialog ->
                     setProgressDialog("Marking chapters as unread…", dataSet.size)
                     vm.updateChapters(ArrayList(dataSet), ChaptersViewModel.Action.MARK_UNREAD)
                     dialog.dismiss()
@@ -309,7 +312,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 })
             }
             R.id.action_read -> {
-                confirmDialog(getString(R.string.mark_chapters_read_dialog_content), { dialog, _ ->
+                confirmDialog(getString(R.string.mark_chapters_read_dialog_content), { dialog ->
                     setProgressDialog("Marking chapters as read…", dataSet.size)
                     vm.updateChapters(ArrayList(dataSet), ChaptersViewModel.Action.MARK_READ)
                     dialog.dismiss()
@@ -317,7 +320,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 })
             }
             R.id.action_unfav -> {
-                confirmDialog(getString(R.string.unfavorite_chapters_read_dialog_content), { dialog, _ ->
+                confirmDialog(getString(R.string.unfavorite_chapters_read_dialog_content), { dialog ->
                     setProgressDialog("Removing chapters from favorites…", dataSet.size)
                     vm.updateChapters(ArrayList(dataSet), ChaptersViewModel.Action.REMOVE_FAVORITE)
                     dialog.dismiss()
@@ -325,7 +328,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 })
             }
             R.id.action_fav -> {
-                confirmDialog(getString(R.string.favorite_chapters_read_dialog_content), { dialog, _ ->
+                confirmDialog(getString(R.string.favorite_chapters_read_dialog_content), { dialog ->
                     setProgressDialog("Marking chapters as favorites…", dataSet.size)
                     vm.updateChapters(ArrayList(dataSet), ChaptersViewModel.Action.MARK_FAVORITE)
                     dialog.dismiss()
@@ -335,7 +338,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
 
             R.id.action_download -> {
-                confirmDialog(getString(R.string.download_chapters_dialog_content), { dialog, _ ->
+                confirmDialog(getString(R.string.download_chapters_dialog_content), { dialog ->
                     if (vm.novel.id == -1L) {
                         dialog.dismiss()
                         showNotInLibraryDialog()
@@ -439,34 +442,28 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     //endregion
 
     //region Dialogs
-    fun confirmDialog(content: String, positiveCallback: MaterialDialog.SingleButtonCallback, negativeCallback: MaterialDialog.SingleButtonCallback? = null) {
+    fun confirmDialog(content: String, positiveCallback: DialogCallback, negativeCallback: DialogCallback? = null) {
         if (confirmDialog == null || !confirmDialog!!.isShowing) {
-            val dialogBuilder = MaterialDialog.Builder(this)
-                .title(getString(R.string.confirm_action))
-                .content(content)
-                .positiveText(getString(R.string.okay))
-                .negativeText(R.string.cancel)
-                .onPositive(positiveCallback)
+            MaterialDialog(this).show {
+                title(R.string.confirm_action)
+                message(text = content)
+                positiveButton(R.string.okay, click = positiveCallback)
+                negativeButton(R.string.cancel, click = negativeCallback)
 
-            if (negativeCallback != null) {
-                dialogBuilder.onNegative(negativeCallback)
-            } else {
-                dialogBuilder.onNegative { dialog, _ -> dialog.dismiss() }
+                lifecycleOwner(this@ChaptersPagerActivity)
             }
-
-            confirmDialog = dialogBuilder.build()
-            confirmDialog?.show()
         }
     }
 
     private fun showAlertDialog(message: String) {
-        MaterialDialog.Builder(this)
-            .iconRes(R.drawable.ic_warning_white_vector)
-            .title(getString(R.string.alert))
-            .content(message)
-            .positiveText(getString(R.string.okay))
-            .onPositive { dialog, _ -> dialog.dismiss() }
-            .show()
+        MaterialDialog(this).show {
+            icon(R.drawable.ic_warning_white_vector)
+            title(R.string.alert)
+            positiveButton(R.string.okay) {
+                it.dismiss()
+            }
+            lifecycleOwner(this@ChaptersPagerActivity)
+        }
     }
 
     private fun showNotInLibraryDialog() {
@@ -479,15 +476,19 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
     private fun manageDownloadsDialog() {
         //startDownloadNovelService(vm.novel.name)
-        MaterialDialog.Builder(this)
-            .iconRes(R.drawable.ic_info_white_vector)
-            .title(getString(R.string.manage_downloads))
-            .content("Novel downloads can be managed by navigating to \"Downloads\" through the navigation drawer menu. Please start the download manually!!")
-            .positiveText(getString(R.string.take_me_there))
-            .negativeText(getString(R.string.okay))
-            .onPositive { dialog, _ -> dialog.dismiss(); setResult(Constants.OPEN_DOWNLOADS_RES_CODE); finish() }
-            .onNegative { dialog, _ -> dialog.dismiss() }
-            .show()
+        MaterialDialog(this).show {
+            icon(R.drawable.ic_info_white_vector)
+            title(R.string.manage_downloads)
+            message(R.string.manage_downloads_dialog_content)
+            positiveButton(R.string.take_me_there) {
+                it.dismiss()
+                setResult(Constants.OPEN_DOWNLOADS_RES_CODE)
+                finish()
+            }
+            negativeButton(R.string.okay) {
+                it.dismiss()
+            }
+        }
     }
 
     private fun showProgressDialog() {

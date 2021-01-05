@@ -10,15 +10,15 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
-import android.view.LayoutInflater
 import android.view.View
 import android.view.View.*
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.webkit.MimeTypeMap
 import android.webkit.WebView
 import android.widget.CompoundButton
+import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.core.view.children
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -26,9 +26,15 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.MATCH_PARENT
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.WRAP_CONTENT
 import androidx.viewpager.widget.ViewPager
-import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.Theme
+import com.afollestad.materialdialogs.WhichButton
+import com.afollestad.materialdialogs.actions.setActionButtonEnabled
+import com.afollestad.materialdialogs.customview.customView
+import com.afollestad.materialdialogs.customview.getCustomView
+import com.afollestad.materialdialogs.internal.main.DialogTitleLayout
+import com.afollestad.materialdialogs.list.checkItem
+import com.afollestad.materialdialogs.list.listItemsSingleChoice
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.analytics.ktx.logEvent
 import com.yarolegovich.slidingrootnav.SlideGravity
 import com.yarolegovich.slidingrootnav.SlidingRootNav
@@ -57,6 +63,7 @@ import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.Utils.getFormattedText
+import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
 import org.greenrobot.eventbus.EventBus
@@ -197,25 +204,26 @@ class ReaderDBPagerActivity :
     }
 
     private fun changeTextSize() {
-        val dialog = MaterialDialog.Builder(this)
-            .title(R.string.text_size)
-            .customView(R.layout.dialog_slider, true)
-            .build()
-        dialog.show()
+        val dialog = MaterialDialog(this).show {
+            title(R.string.text_size)
+            customView(R.layout.dialog_slider, scrollable = true)
 
-        dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setOnSeekBarChangedListener { _, progress ->
-            dataCenter.textSize = progress.toInt()
-            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
+            getCustomView()?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setOnSeekBarChangedListener { _, progress ->
+                dataCenter.textSize = progress.toInt()
+                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
+            }
+            getCustomView()?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setProgress(dataCenter.textSize.toDouble())
         }
-        dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setProgress(dataCenter.textSize.toDouble())
+
     }
 
     private fun reportPage() {
-        MaterialDialog.Builder(this)
-            .content("Please use discord to report a bug.")
-            .positiveText("Ok")
-            .onPositive { dialog, _ -> dialog.dismiss() }
-            .show()
+        MaterialDialog(this).show {
+            message(text = "Please use discord to report a bug.")
+            positiveButton(text = "Ok") {
+                it.dismiss()
+            }
+        }
     }
 
     private fun inBrowser() {
@@ -361,48 +369,7 @@ class ReaderDBPagerActivity :
     override fun onItemSelected(position: Int) {
         slidingRootNav.closeMenu()
         when (position) {
-            FONTS -> {
-                if (AVAILABLE_FONTS.isEmpty())
-                    getAvailableFonts()
-
-                var selectedFont = dataCenter.fontPath.substringAfterLast('/')
-                    .substringBeforeLast('.')
-                    .replace('_', ' ')
-
-                var typeFace = createTypeface()
-
-                val dialog = MaterialDialog.Builder(this)
-                    .theme(Theme.DARK)
-                    .title(getString(R.string.title_fonts))
-                    .items(AVAILABLE_FONTS.keys)
-                    .alwaysCallSingleChoiceCallback()
-                    .itemsCallbackSingleChoice(AVAILABLE_FONTS.keys.indexOf(selectedFont)) { dialog, _, which, font ->
-                        if (which == 0) {
-                            addFont()
-                            dialog.dismiss()
-                        } else {
-                            val fontPath = AVAILABLE_FONTS[font.toString()]
-                            if (fontPath != null) {
-                                selectedFont = font.toString()
-                                typeFace = createTypeface(fontPath)
-                                dialog.setTypeface(dialog.titleView, typeFace)
-                            } else {
-                                dialog.selectedIndex = AVAILABLE_FONTS.keys.indexOf(selectedFont)
-                                dialog.notifyItemsChanged()
-                            }
-                        }
-                        true
-                    }
-                    .onPositive { _, which ->
-                        if (which == DialogAction.POSITIVE) {
-                            dataCenter.fontPath = AVAILABLE_FONTS[selectedFont] ?: ""
-                            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
-                        }
-                    }
-                    .positiveText(R.string.okay)
-                    .show()
-                dialog.setTypeface(dialog.titleView, typeFace)
-            }
+            FONTS -> changeFontStyle()
             FONT_SIZE -> changeTextSize()
             REPORT_PAGE -> reportPage()
             OPEN_IN_BROWSER -> inBrowser()
@@ -482,6 +449,60 @@ class ReaderDBPagerActivity :
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCRIPT))
                 }
             }
+        }
+    }
+    
+    private fun changeFontStyle() {
+        if (AVAILABLE_FONTS.isEmpty())
+            getAvailableFonts()
+
+        var selectedFont = dataCenter.fontPath.substringAfterLast('/')
+            .substringBeforeLast('.')
+            .replace('_', ' ')
+
+        var typeFace = createTypeface()
+        
+        MaterialDialog(this).show {
+            title(R.string.title_fonts)
+
+            val exampleText = TextView(this@ReaderDBPagerActivity)
+            exampleText.textAlignment = TEXT_ALIGNMENT_CENTER
+            exampleText.text = getString(R.string.title_fonts)
+            exampleText.textSize = 24F
+            exampleText.setTypeface(typeFace, Typeface.NORMAL)
+            customView(view = exampleText)
+
+            listItemsSingleChoice(items = AVAILABLE_FONTS.keys.toMutableList(), waitForPositiveButton = false) { dialog, which, font ->
+                if (which == 0) {
+                    addFont()
+                    dialog.dismiss()
+                } else {
+                    Logs.debug("ReaderDBPagerActivity", "font $which $font")
+                    val fontPath = AVAILABLE_FONTS[font.toString()]
+                    if (fontPath != null) {
+                        selectedFont = font.toString()
+                        typeFace = createTypeface(fontPath)
+                        // Currently doesn't work
+                        //dialog.setTypeface(dialog.titleView, typeFace)
+                        getCustomView()?.let { 
+                            launchUI {
+                                val it = it as TextView
+                                it.setTypeface(typeFace, Typeface.NORMAL)
+                            }
+                        }
+
+                        setActionButtonEnabled(WhichButton.POSITIVE, true)
+                    } else {
+                        dialog.checkItem(AVAILABLE_FONTS.keys.indexOf(selectedFont))
+                    }
+                }
+            }
+            positiveButton(R.string.okay) { _ ->
+                dataCenter.fontPath = AVAILABLE_FONTS[selectedFont] ?: ""
+                EventBus.getDefault()
+                    .post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+            }
+            negativeButton(R.string.cancel)
         }
     }
 

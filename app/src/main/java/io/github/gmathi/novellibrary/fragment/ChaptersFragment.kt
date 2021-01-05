@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
+import com.afollestad.materialdialogs.DialogCallback
 import com.afollestad.materialdialogs.MaterialDialog
 import com.hanks.library.AnimateCheckBox
 import io.github.gmathi.novellibrary.R
@@ -201,12 +202,12 @@ class ChaptersFragment : BaseFragment(),
         // If Novel is not in Library
         if (novel.id == -1L) {
             if (isChecked)
-                chaptersPagerActivity.confirmDialog(getString(R.string.add_to_library_dialog_content, novel.name), MaterialDialog.SingleButtonCallback { dialog, _ ->
+                chaptersPagerActivity.confirmDialog(getString(R.string.add_to_library_dialog_content, novel.name), { dialog ->
                     chaptersPagerActivity.vm.addNovelToLibrary()
                     chaptersPagerActivity.invalidateOptionsMenu()
                     chaptersPagerActivity.addToDataSet(webPage)
                     dialog.dismiss()
-                }, MaterialDialog.SingleButtonCallback { dialog, _ ->
+                }, { dialog ->
                     chaptersPagerActivity.removeFromDataSet(webPage)
                     adapter.notifyDataSetChanged()
                     dialog.dismiss()

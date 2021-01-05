@@ -92,13 +92,13 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
-            MaterialDialog.Builder(this)
-                .title("\uD83C\uDF89 What's New 0.16.beta!")
-                .content(
+            MaterialDialog(this).show {
+                title(text = "\uD83C\uDF89 What's New 0.16.beta!")
+                message(text =
 
-                        "✨️ New Source - \"Neovel\"\n" +
-                                "✨️ Add your own selector query for websites not yet discovered/supported. (Refer to \"Jsoup Selectors\" for more info)\n" +
-                                "✨ Detailed Sync Status so you know the progress!\n" +
+                    "✨️ New Source - \"Neovel\"\n" +
+                            "✨️ Add your own selector query for websites not yet discovered/supported. (Refer to \"Jsoup Selectors\" for more info)\n" +
+                            "✨ Detailed Sync Status so you know the progress!\n" +
                             "✨ Add support for <abbr> and footnotes Keep IDs by default\n" +
 //                            "⚠️ Fix - No Novels/Chapters loading issue due to ssl errors\n" +
 //                            "⚠️ Fix - ActiveTranslations will work in reader mode\n" +
@@ -112,9 +112,8 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 //                            "\uD83D\uDEE0  Experimental - Added Hard Reset to Novel Popup menu to reset the novel." +
                             ""
                 )
-                .positiveText("Ok")
-                .onPositive { dialog, _ -> dialog.dismiss() }
-                .show()
+                positiveButton(text = "Ok")
+            }
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
     }
