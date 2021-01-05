@@ -237,7 +237,7 @@ class MigrationTableHelper(val db: SupportSQLiteDatabase,
      * @see setDefaultColumnValuesIfNull
      */
     fun setIfNull(columnName: String, value: Any) {
-        db.execSQL("UPDATE $tableName SET $columnName = ? WHERE $columnName IS NOT NULL", arrayOf(value))
+        db.execSQL("UPDATE $tableName SET $columnName = ? WHERE $columnName IS NULL", arrayOf(value))
     }
 
     /**
