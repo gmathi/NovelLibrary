@@ -39,6 +39,6 @@ interface WebPageDao {
     @Query("SELECT * FROM web_page WHERE novel_id = :novelId AND source_id = :sourceId ORDER BY order_id LIMIT :offset, 1")
     fun findOneByNovelAndSourceIdOffset(novelId: Long, sourceId: Long, offset: Int): WebPage?
 
-    @Query("SELECT * FROM web_page_settings")
+    @Query("SELECT * FROM web_page")
     fun getAll(): List<WebPage>
 }
