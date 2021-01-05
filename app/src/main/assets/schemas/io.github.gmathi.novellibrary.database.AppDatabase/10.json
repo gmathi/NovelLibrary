@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 10,
-    "identityHash": "7183391f9f6d4e6b6631c9cc4f5ca09f",
+    "identityHash": "ba25e6b4180e7ed7c0e6efc7d7e7b889",
     "entities": [
       {
         "tableName": "download",
@@ -380,12 +380,12 @@
         "indices": [
           {
             "name": "web_page_url_novel_id_index",
-            "unique": true,
+            "unique": false,
             "columnNames": [
               "url",
               "novel_id"
             ],
-            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `web_page_url_novel_id_index` ON `${TABLE_NAME}` (`url`, `novel_id`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `web_page_url_novel_id_index` ON `${TABLE_NAME}` (`url`, `novel_id`)"
           },
           {
             "name": "index_web_page_novel_id",
@@ -486,12 +486,12 @@
         "indices": [
           {
             "name": "web_page_settings_url_index",
-            "unique": true,
+            "unique": false,
             "columnNames": [
               "url",
               "novel_id"
             ],
-            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `web_page_settings_url_index` ON `${TABLE_NAME}` (`url`, `novel_id`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `web_page_settings_url_index` ON `${TABLE_NAME}` (`url`, `novel_id`)"
           },
           {
             "name": "index_web_page_settings_novel_id",
@@ -546,7 +546,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7183391f9f6d4e6b6631c9cc4f5ca09f')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ba25e6b4180e7ed7c0e6efc7d7e7b889')"
     ]
   }
 }

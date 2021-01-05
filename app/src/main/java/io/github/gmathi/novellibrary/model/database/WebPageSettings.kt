@@ -10,8 +10,7 @@ import java.io.Serializable
             childColumns = [DBKeys.KEY_NOVEL_ID],
             onDelete = ForeignKey.CASCADE)],
     indices = [Index(name = DBKeys.INDEX_WEB_PAGE_SETTINGS,
-            value = [DBKeys.KEY_URL, DBKeys.KEY_NOVEL_ID],
-            unique = true),
+            value = [DBKeys.KEY_URL, DBKeys.KEY_NOVEL_ID]),
         Index(value = [DBKeys.KEY_NOVEL_ID])])
 data class WebPageSettings(@PrimaryKey
                            @ColumnInfo(name = DBKeys.KEY_URL)
