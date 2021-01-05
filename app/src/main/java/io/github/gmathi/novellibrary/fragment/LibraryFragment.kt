@@ -374,7 +374,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 updatedNovel.newReleasesCount += (it.value - updatedNovel.chaptersCount)
                 updatedNovel.chaptersCount = it.value.toLong()
                 dbHelper.updateNovelMetaData(updatedNovel)
-                dbHelper.updateChaptersAndReleasesCount(updatedNovel.id, updatedNovel.newReleasesCount, updatedNovel.chaptersCount)
+                dbHelper.updateChaptersAndReleasesCount(updatedNovel.id, updatedNovel.chaptersCount, updatedNovel.newReleasesCount)
 
                 async(Dispatchers.Main) {
                     adapter.items.indexOfFirst { novel ->
@@ -390,15 +390,15 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                         //TODO: Handle Empty State
                         val chapters = withContext(Dispatchers.IO) { NovelApi.getChapterUrls(updatedNovel) } ?: ArrayList()
                         for (i in 0 until chapters.size) {
-                            if (dbHelper.getWebPage(chapters[i].url) == null)
-                                dbHelper.createWebPage(chapters[i])
-                            if (dbHelper.getWebPageSettings(chapters[i].url) == null)
-                                dbHelper.createWebPageSettings(
-                                    WebPageSettings(
-                                        chapters[i].url,
-                                        updatedNovel.id
+                            dbHelper.writableDatabase.runTransaction { writableDatabase ->
+                                if (dbHelper.getWebPage(chapters[i].url) == null)
+                                    dbHelper.createWebPage(chapters[i], writableDatabase)
+                                if (dbHelper.getWebPageSettings(chapters[i].url) == null)
+                                    dbHelper.createWebPageSettings(
+                                            WebPageSettings(chapters[i].url, updatedNovel.id),
+                                            writableDatabase
                                     )
-                                )
+                            }
                         }
                         true
                     })
