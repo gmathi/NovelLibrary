@@ -50,7 +50,8 @@ open class HtmlCleaner protected constructor() {
             SelectorQuery("div.text-formatting"),
             SelectorQuery("article.single__contents"),
             //SelectorQuery("article.story-part"),
-            SelectorQuery("div#chapter"),
+            SelectorQuery("div#chapter"), // HostedNovel
+            SelectorQuery("div.chapter"), //HostedNovel
             //TODO: Xiaxia novel, needs more analysis to fix pre-formatting (jsoup not supporting)
             SelectorQuery("section#StoryContent"),
             SelectorQuery("div.content-container"),
