@@ -100,7 +100,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
         setRecyclerView()
         binding.progressLayout.showLoading()
-        setData()
+        setData(true)
     }
 
     private fun setRecyclerView() {
@@ -110,26 +110,33 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         touchHelper.attachToRecyclerView(binding.recyclerView)
         binding.recyclerView.setDefaults(adapter)
         binding.swipeRefreshLayout.setOnRefreshListener {
-            setData()
+            setData(true)
         }
     }
 
-    private fun setData() {
+    private fun setData(forceUpdate: Boolean = false) {
         updateOrderIds()
-        adapter.updateData(ArrayList(db.novelDao().findByNovelSection(novelSectionId)))
-        if (binding.swipeRefreshLayout != null && binding.progressLayout != null) {
-            binding.swipeRefreshLayout.isRefreshing = false
-            binding.progressLayout.showContent()
+        if (db.novelDao().countByNovelSection(novelSectionId) != adapter.items.size || forceUpdate) {
+            // Update from database
+            lifecycleScope.launch {
+                adapter.updateData(withContext(Dispatchers.IO) { ArrayList(db.novelDao().findByNovelSection(novelSectionId)) })
+                if (binding.swipeRefreshLayout != null && binding.progressLayout != null) {
+                    binding.swipeRefreshLayout.isRefreshing = false
+                    binding.progressLayout.showContent()
+                }
+                if (adapter.items.size == 0) {
+                    binding.progressLayout.showEmpty(
+                        resId = R.raw.no_data_blob,
+                        isLottieAnimation = true,
+                        emptyText = "Your Library is empty!\nLet's start adding some from search screen…"
+                    )
+                }
+            }
         }
-        if (adapter.items.size == 0) {
-            binding.progressLayout.showEmpty(
-                resId = R.raw.no_data_blob,
-                isLottieAnimation = true,
-                emptyText = "Your Library is empty!\nLet's start adding some from search screen…"
-            )
+        else {
+            adapter.updateData(adapter.items)
         }
     }
-
 
     //region Adapter Listener Methods - onItemClick(), viewBinder()
 
@@ -190,7 +197,10 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                                 // then we syncNovels() so that it shows in Library
                                 runBlocking {
                                     GlobalScope.launch { db.resetNovel(novel) }.join()
-                                    setData()
+                                    db.novelDao().findOneById(novel.id)?.let { novel ->
+                                        adapter.items[position] = novel
+                                        adapter.updateItem(novel)
+                                    }
                                 }
                             } else {
                                 showAlertDialog(message = "You need to be connected to Internet to Hard Reset.")
@@ -243,6 +253,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 if (orderId != null) {
                     val progress = "${orderId + 1} / ${item.chaptersCount}"
                     itemBinding.novelProgressText.text = progress
+                }
+                else {
+                    itemBinding.novelProgressText.text = ""
                 }
             } else {
                 itemBinding.novelProgressText.text = getString(R.string.no_bookmark)
@@ -393,7 +406,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 }
             }
 
-            setData()
+            setData(true)
 
             async (Dispatchers.Main) {
                 syncSnackbarManager.dismiss()
@@ -478,7 +491,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             }
             return
         } else if (requestCode == Constants.READER_ACT_REQ_CODE || requestCode == Constants.NOVEL_DETAILS_RES_CODE) {
-            setData()
+            setData(true)
         } else {
             super.onActivityResult(requestCode, resultCode, data)
         }
@@ -546,6 +559,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     id = novelSections[which - 1].id
 
                 val novel = adapter.items[position]
+                if (novel.novelSectionId == id) return@listItems // Should not happen
+
                 novel.novelSectionId = id
                 db.novelDao().update(novel)
                 EventBus.getDefault().post(NovelSectionEvent(id))
@@ -554,7 +569,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                         novel,
                         novelSections.firstOrNull { section -> section.id == id })
                 }
-                setData()
+                adapter.removeItemAt(position)
             }
         }
     }
@@ -562,7 +577,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onNovelSectionEvent(novelSectionEvent: NovelSectionEvent) {
         if (novelSectionEvent.novelSectionId == novelSectionId) {
-            setData()
+            setData(true)
         }
     }
 

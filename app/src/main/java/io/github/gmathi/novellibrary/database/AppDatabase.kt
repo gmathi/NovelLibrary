@@ -29,8 +29,8 @@ abstract class AppDatabase : RoomDatabase() {
      * @param novel Novel to insert into database
      */
     fun insertNovel(novel: Novel): Long {
-        assert(novel.id == -1L || novel.id == 0L)
-        novel.id = 0
+        if(novel.id == -1L)
+            novel.id = 0
 
         val id = novelDao().insert(novel)
         novel.genres?.forEach {
