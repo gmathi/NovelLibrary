@@ -17,9 +17,6 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.ChaptersPageListener
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.getTranslatorSource
-import io.github.gmathi.novellibrary.database.getWebPage
-import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.databinding.ActivityChaptersPagerBinding
 import io.github.gmathi.novellibrary.databinding.ContentChaptersPagerBinding
 import io.github.gmathi.novellibrary.db

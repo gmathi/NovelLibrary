@@ -2,9 +2,6 @@ package io.github.gmathi.novellibrary.service.download
 
 import android.content.Context
 import io.github.gmathi.novellibrary.database.AppDatabase
-import io.github.gmathi.novellibrary.database.DBHelper
-import io.github.gmathi.novellibrary.database.getDownloadItemInQueue
-import io.github.gmathi.novellibrary.database.getRemainingDownloadsCountForNovel
 import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
 import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.other.EventType

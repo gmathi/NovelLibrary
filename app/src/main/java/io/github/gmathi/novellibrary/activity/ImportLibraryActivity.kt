@@ -14,8 +14,6 @@ import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.database.getNovelByUrl
-import io.github.gmathi.novellibrary.database.insertNovel
 import io.github.gmathi.novellibrary.databinding.ActivityImportLibraryBinding
 import io.github.gmathi.novellibrary.databinding.ListitemImportListBinding
 import io.github.gmathi.novellibrary.db

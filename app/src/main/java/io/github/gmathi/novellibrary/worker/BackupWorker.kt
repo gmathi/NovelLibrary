@@ -14,8 +14,6 @@ import androidx.work.*
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.getAllNovelSections
-import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.util.storage.notNullAndExists
 import io.github.gmathi.novellibrary.util.system.NotificationReceiver

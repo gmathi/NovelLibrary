@@ -12,7 +12,6 @@ import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.databinding.ActivityLibrarySearchBinding
 import io.github.gmathi.novellibrary.databinding.ListitemLibraryBinding
 import io.github.gmathi.novellibrary.db

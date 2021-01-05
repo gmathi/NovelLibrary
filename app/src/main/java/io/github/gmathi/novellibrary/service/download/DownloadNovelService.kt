@@ -14,8 +14,6 @@ import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.database.AppDatabase
-import io.github.gmathi.novellibrary.database.DBHelper
-import io.github.gmathi.novellibrary.database.updateDownloadStatus
 import io.github.gmathi.novellibrary.model.database.Download
 import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
 import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent

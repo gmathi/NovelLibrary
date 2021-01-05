@@ -10,7 +10,6 @@ import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.activity.NovelSectionsActivity
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.LibraryPageListener
-import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.databinding.FragmentLibraryPagerBinding
 import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.model.database.NovelSection

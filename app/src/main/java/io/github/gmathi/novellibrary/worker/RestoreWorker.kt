@@ -18,8 +18,6 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.AppDatabase
-import io.github.gmathi.novellibrary.database.createNovel
-import io.github.gmathi.novellibrary.database.createNovelSection
 import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.NovelSection

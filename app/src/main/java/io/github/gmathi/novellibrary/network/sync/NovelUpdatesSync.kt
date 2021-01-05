@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.network.sync
 
-import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.NovelSection

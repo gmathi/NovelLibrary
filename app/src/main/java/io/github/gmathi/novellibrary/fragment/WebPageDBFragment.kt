@@ -20,8 +20,6 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ReaderDBPagerActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
 import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.getWebPageSettings
-import io.github.gmathi.novellibrary.database.updateWebPageSettings
 import io.github.gmathi.novellibrary.databinding.FragmentReaderBinding
 import io.github.gmathi.novellibrary.db
 import io.github.gmathi.novellibrary.extensions.dataFetchError
