@@ -182,14 +182,14 @@ fun getSchema(version: Int): JSONObject {
     val reader: BufferedReader
     val stringBuilder = StringBuilder()
     try {
-        val filename = "io.github.gmathi.novellibrary.database.AppDatabase/$version.json"
+        val filename = "schemas/io.github.gmathi.novellibrary.database.AppDatabase/$version.json"
         reader = BufferedReader(InputStreamReader(NovelLibraryApplication.context.assets.open(filename)))
         var mLine = reader.readLine()
         while (mLine != null) {
             stringBuilder.append(mLine)
             mLine = reader.readLine()
         }
-        return Gson().fromJson(stringBuilder.toString(), object : TypeToken<ArrayList<GenericJsonMappedModel>>() {}.type)
+        return JSONObject(stringBuilder.toString())
     } catch (e: IOException) {
         Logs.error("ContributionsActivity", e.localizedMessage, e)
         throw RuntimeException("Excepted database schema file")

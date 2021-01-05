@@ -13,7 +13,7 @@ import java.io.Serializable
             parentColumns = [DBKeys.KEY_ID],
             childColumns = [DBKeys.KEY_SOURCE_ID],
             onDelete = ForeignKey.SET_DEFAULT)],
-    indices = [Index(name = DBKeys.TABLE_WEB_PAGE,
+    indices = [Index(name = DBKeys.INDEX_WEB_PAGE,
             value = [DBKeys.KEY_URL, DBKeys.KEY_NOVEL_ID],
             unique = true),
         Index(value = [DBKeys.KEY_NOVEL_ID]),
