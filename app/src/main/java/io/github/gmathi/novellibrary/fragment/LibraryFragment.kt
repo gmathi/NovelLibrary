@@ -234,18 +234,16 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             }
 
 
-            async {
-                if (item.newReleasesCount != 0L) {
-                    val shape = GradientDrawable()
-                    shape.cornerRadius = 99f
-                    activity?.let { ContextCompat.getColor(it, R.color.Black) }?.let { shape.setStroke(1, it) }
-                    activity?.let { ContextCompat.getColor(it, R.color.DarkRed) }?.let { shape.setColor(it) }
-                    itemBinding.newChapterCount.background = shape
-                    itemBinding.newChapterCount.applyFont(activity?.assets).text = item.newReleasesCount.toString()
-                    itemBinding.newChapterCount.visibility = View.VISIBLE
-                } else {
-                    itemBinding.newChapterCount.visibility = View.GONE
-                }
+            if (item.newReleasesCount != 0L) {
+                val shape = GradientDrawable()
+                shape.cornerRadius = 99f
+                activity?.let { ContextCompat.getColor(it, R.color.Black) }?.let { shape.setStroke(1, it) }
+                activity?.let { ContextCompat.getColor(it, R.color.DarkRed) }?.let { shape.setColor(it) }
+                itemBinding.newChapterCount.background = shape
+                itemBinding.newChapterCount.applyFont(activity?.assets).text = item.newReleasesCount.toString()
+                itemBinding.newChapterCount.visibility = View.VISIBLE
+            } else {
+                itemBinding.newChapterCount.visibility = View.GONE
             }
 
             if (item.currentChapterUrl != null) {
@@ -389,8 +387,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     syncSnackbarManager.setProgress(counter)
                 }
                 updatedNovel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
+                updatedNovel.newReleasesCount += (it.value.toLong() - updatedNovel.chaptersCount)
                 updatedNovel.chaptersCount = it.value.toLong()
-                updatedNovel.newReleasesCount += (it.value - updatedNovel.chaptersCount)
                 db.novelDao().update(updatedNovel)
 
                 try {
@@ -406,10 +404,18 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     Logs.error(TAG, "Novel: $it", e)
                     return@forEach
                 }
+
+                async(Dispatchers.Main) {
+                    adapter.items.indexOfFirst { adapterNovel ->
+                        adapterNovel.id == updatedNovel.id
+                    }.let { index ->
+                        if (index != -1)
+                            adapter.updateItemAt(index, updatedNovel)
+                    }
+                }
             }
 
             async (Dispatchers.Main) {
-                setData(true)
                 syncSnackbarManager.dismiss()
                 syncSnackbar = null
                 activity?.invalidateOptionsMenu()
