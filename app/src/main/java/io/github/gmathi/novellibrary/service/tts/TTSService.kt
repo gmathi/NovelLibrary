@@ -68,7 +68,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     private lateinit var mediaController: MediaControllerCompat
     private lateinit var ttsNotificationBuilder: TTSNotificationBuilder
     private lateinit var notificationManager: NotificationManagerCompat
-    private lateinit var dbHelper: DBHelper
+    private lateinit var db: AppDatabase
 
     private var blockingJob: Job? = null
     private var novel: Novel? = null
@@ -115,7 +115,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         ttsNotificationBuilder = TTSNotificationBuilder(this, pendingIntents)
         notificationManager = NotificationManagerCompat.from(this)
 
-        dbHelper = DBHelper.getInstance(this)
+        db = AppDatabase.createInstance(this)
 
         tts = TextToSpeech(this, this)
         tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
@@ -151,7 +151,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
 
         //If called from activity
         val novelId = intent?.extras?.getLong(NOVEL_ID, -1L) ?: -1L
-        novel = dbHelper.getNovel(novelId)
+        novel = db.novelDao().findOneById(novelId)
         novel?.let { setChapterIndex(it) }
 
         audioText = intent?.extras?.getString(AUDIO_TEXT_KEY, null) ?: ""
@@ -365,20 +365,20 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     //Helper functions
     private fun setChapterIndex(novel: Novel) {
         val webPage = if (novel.currentChapterUrl != null)
-            dbHelper.getWebPage(novel.currentChapterUrl!!)
+            db.webPageDao().findOneByUrl(novel.currentChapterUrl!!)
         else
-            dbHelper.getWebPage(novel.id, sourceId, 0)
+            db.webPageDao().findOneByNovelAndSourceIdOffset(novel.id, sourceId, 0)
         if (webPage?.url == null) return
-        chapterIndex = dbHelper.getAllWebPages(novel.id, sourceId).indexOfFirst { it.url == webPage.url }
+        chapterIndex = db.webPageDao().findByNovelAndSourceId(novel.id, sourceId).indexOfFirst { it.url == webPage.url }
     }
 
     private fun setAudioText() {
-        val webPage = dbHelper.getWebPage(novel!!.id, sourceId, chapterIndex) ?: return
+        val webPage = db.webPageDao().findOneByNovelAndSourceIdOffset(novel!!.id, sourceId, chapterIndex) ?: return
         title = webPage.chapter
         metadataCompat.displaySubtitle = title
         mediaSession.setMetadata(metadataCompat.build())
 
-        val webPageSettings = dbHelper.getWebPageSettings(webPage.url) ?: return
+        val webPageSettings = db.webPageSettingsDao().findOneByUrl(webPage.url) ?: return
         if (webPageSettings.filePath != null) {
             audioText = loadFromFile(webPageSettings) ?: return
             startReading()
