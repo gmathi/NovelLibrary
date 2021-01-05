@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.service.download
 
 import android.content.Context
+import io.github.gmathi.novellibrary.database.AppDatabase
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.getDownloadItemInQueue
 import io.github.gmathi.novellibrary.database.getRemainingDownloadsCountForNovel
@@ -15,7 +16,7 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
 
-class DownloadNovelThread(val context: Context, val novelName: String, val dbHelper: DBHelper, private val downloadListener: DownloadListener) : Thread(), DownloadListener {
+class DownloadNovelThread(val context: Context, val novelName: String, val db: AppDatabase, private val downloadListener: DownloadListener) : Thread(), DownloadListener {
 
     private var threadPool: ThreadPoolExecutor? = null
 
@@ -25,7 +26,7 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
 
     override fun run() {
         try {
-            var download = dbHelper.getDownloadItemInQueue(novelName)
+            var download = db.downloadDao().findOneByNovelNameAndStatus(novelName)
             threadPool = Executors.newFixedThreadPool(10) as ThreadPoolExecutor
 //            val fasterDownloads = DataCenter(context).experimentalDownload
 
@@ -35,7 +36,7 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
 
 //                if (!fasterDownloads)
                 // .get at the end makes it a synchronous task
-                threadPool?.submit(DownloadWebPageThread(context, download, dbHelper, this@DownloadNovelThread))?.get()
+                threadPool?.submit(DownloadWebPageThread(context, download, db, this@DownloadNovelThread))?.get()
 //                else
                 // Put all in at the same time - TODO:// Problem with multitasking when adding 1000+ chapters at the same time. Need to streamline it for multitasking
 //                    threadPool?.submit(DownloadWebPageThread(context, download, dbHelper, this@DownloadNovelThread))
@@ -45,7 +46,7 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
                     threadPool?.shutdownNow(); return
                 }
 
-                download = dbHelper.getDownloadItemInQueue(novelName)
+                download = db.downloadDao().findOneByNovelNameAndStatus(novelName)
             }
 
             threadPool?.shutdown()
@@ -59,7 +60,7 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
 //                        }
 //                }
 
-                if (dbHelper.getRemainingDownloadsCountForNovel(novelName) == 0)
+                if (db.downloadDao().countByNovelNameAndStatus(novelName) == 0L)
                     downloadListener.handleEvent(DownloadNovelEvent(EventType.DELETE, novelName))
                 else
                     downloadListener.handleEvent(DownloadNovelEvent(EventType.PAUSED, novelName))

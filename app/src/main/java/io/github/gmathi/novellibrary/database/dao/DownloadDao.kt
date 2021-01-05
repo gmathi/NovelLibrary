@@ -23,12 +23,21 @@ interface DownloadDao {
     
     @Update
     fun update(download: Download)
+
+    @Query("UPDATE download SET status = :status")
+    fun updateStatus(status: Int)
     
     @Query("UPDATE download SET status = :status WHERE name = :novelName")
     fun updateStatusByNovelName(novelName: String, status: Int)
     
     @Query("SELECT * FROM download WHERE web_page_url = :url")
     fun findOneByWebPageUrl(url: String): Download?
+
+    @Query("SELECT * FROM download WHERE status = :status LIMIT 1")
+    fun findOneByStatus(status: Int = Download.STATUS_IN_QUEUE): Download?
+
+    @Query("SELECT * FROM download WHERE name = :novelName AND status = :status LIMIT 1")
+    fun findOneByNovelNameAndStatus(novelName: String, status: Int = Download.STATUS_IN_QUEUE): Download?
 
     @Query("SELECT * FROM download WHERE name = :novelName")
     fun findByNovelName(novelName: String): List<Download>

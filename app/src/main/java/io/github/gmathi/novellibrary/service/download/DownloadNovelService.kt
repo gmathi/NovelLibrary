@@ -13,6 +13,7 @@ import androidx.core.app.NotificationManagerCompat
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
+import io.github.gmathi.novellibrary.database.AppDatabase
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.updateDownloadStatus
 import io.github.gmathi.novellibrary.model.database.Download
@@ -33,7 +34,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
     private val futures = ArrayList<Future<Any>>()
 
     private lateinit var threadPool: ThreadPoolExecutor
-    private lateinit var dbHelper: DBHelper
+    private lateinit var db: AppDatabase
 
     //static components
     companion object {
@@ -65,7 +66,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
     override fun onCreate() {
         super.onCreate()
         Logs.debug(TAG, "onCreate")
-        dbHelper = DBHelper.getInstance(this)
+        db = AppDatabase.createInstance(this)
         threadPool = Executors.newFixedThreadPool(MAX_PARALLEL_DOWNLOADS) as ThreadPoolExecutor
     }
 
@@ -96,7 +97,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
         Logs.debug(TAG, "onHandleIntent")
 
         val novelName = intent?.getStringExtra(NOVEL_NAME) ?: return
-        val downloadNovelThread = DownloadNovelThread(this, novelName, dbHelper, this@DownloadNovelService)
+        val downloadNovelThread = DownloadNovelThread(this, novelName, db, this@DownloadNovelService)
         threadListMap[novelName] = downloadNovelThread
         startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "${getString(R.string.downloading)}: $novelName"))
         if (threadPool.isTerminating || threadPool.isShutdown)
@@ -121,7 +122,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
                 return
             }
 
-            downloadNovelThread = DownloadNovelThread(this, novelName, dbHelper, this@DownloadNovelService)
+            downloadNovelThread = DownloadNovelThread(this, novelName, db, this@DownloadNovelService)
             threadListMap[novelName] = downloadNovelThread
             if (threadPool.isTerminating || threadPool.isShutdown)
                 threadPool = Executors.newFixedThreadPool(MAX_PARALLEL_DOWNLOADS) as ThreadPoolExecutor
@@ -169,7 +170,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
     //Called on bound (Activity) & background service
     override fun onDestroy() {
         Logs.debug(TAG, "onDestroy")
-        dbHelper.updateDownloadStatus(Download.STATUS_PAUSED)
+        db.downloadDao().updateStatus(Download.STATUS_PAUSED)
         stopForeground(true)
         super.onDestroy()
     }

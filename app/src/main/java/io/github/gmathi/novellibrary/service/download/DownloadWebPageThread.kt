@@ -20,7 +20,7 @@ import org.jsoup.nodes.Document
 import java.io.File
 
 
-class DownloadWebPageThread(val context: Context, val download: Download, val dbHelper: DBHelper, private val downloadListener: DownloadListener) : Thread(), DownloadListener {
+class DownloadWebPageThread(val context: Context, val download: Download, val db: AppDatabase, private val downloadListener: DownloadListener) : Thread(), DownloadListener {
 
     companion object {
         private const val TAG = "DownloadWebPageThread"
@@ -33,18 +33,19 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         try {
             if (isNetworkDown()) throw InterruptedException(Constants.NO_NETWORK)
 
-            val webPageSettings = dbHelper.getWebPageSettings(download.webPageUrl)!!
-            val webPage = dbHelper.getWebPage(download.webPageUrl)!!
+            val webPageSettings = db.webPageSettingsDao().findOneByUrl(download.webPageUrl)!!
+            val webPage = db.webPageDao().findOneByUrl(download.webPageUrl)!!
 
             hostDir = Utils.getHostDir(context, webPageSettings.url)
             novelDir = Utils.getNovelDir(hostDir, download.novelName)
 
-            dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_RUNNING, download.webPageUrl)
+            download.status = Download.STATUS_RUNNING
+            db.downloadDao().update(download)
             downloadListener.handleEvent(DownloadWebPageEvent(EventType.RUNNING, webPageSettings.url, download))
 
             val downloadComplete = downloadChapter(webPageSettings, webPage)
             if (downloadComplete) {
-                dbHelper.deleteDownload(download.webPageUrl)
+                db.downloadDao().delete(download)
                 //downloadListener.handleEvent(DownloadWebPageEvent(EventType.COMPLETE, webPageSettings.url, download))
             } else {
                 Logs.error(TAG, "Download did not complete!")
@@ -90,13 +91,13 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
                 otherLinks.mapNotNullTo(otherWebPages) { downloadOtherChapterLinks(it, webPage.novelId, hostDir, novelDir) }
                 webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = Gson().toJson(otherLinks)
                 otherWebPages.forEach {
-                    dbHelper.createWebPageSettings(it)
+                    db.webPageSettingsDao().insertOrIgnore(it)
                 }
             }
 
             if (webPageSettings.metadata.containsKey(Constants.DOWNLOADING))
                 webPageSettings.metadata.remove(Constants.DOWNLOADING)
-            dbHelper.updateWebPageSettings(webPageSettings)
+            db.webPageSettingsDao().update(webPageSettings)
             return true
         }
         return false
