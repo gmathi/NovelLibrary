@@ -78,9 +78,9 @@ class NovelLibraryApplication : MultiDexApplication() {
 
         //Stray webPages to be deleted
         launchIO {
+            db.insertDefaults()
             db.webPageDao().deleteByNovelId(-1L)
             db.webPageSettingsDao().deleteByNovelId(-1L)
-            db.insertDefaults()
         }
 
 //        dataCenter?.isDeveloper = true
