@@ -229,7 +229,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
     private fun addNovelToDB() {
         if (novel.id == -1L) {
-            novel.id = db.insertNovel(novel)
+            novel.id = db.novelDao().insertNovel(novel)
             NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncAddNovels(it.host)) it.addNovel(novel, null) }
             firebaseAnalytics.logEvent(FAC.Event.ADD_NOVEL) {
                 param(FAC.Param.NOVEL_NAME, novel.name)

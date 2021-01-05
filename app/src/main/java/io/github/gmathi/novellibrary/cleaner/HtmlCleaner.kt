@@ -56,7 +56,8 @@ open class HtmlCleaner protected constructor() {
             SelectorQuery("div.content-container"),
             SelectorQuery("article.article-content"),
             SelectorQuery("div.page-content"),
-            SelectorQuery("div.legacy-journal") // Sample: deviantart journals (NU group: darksilencer)
+            SelectorQuery("div.legacy-journal"), // Sample: deviantart journals (NU group: darksilencer)
+            SelectorQuery("article.entry-content") //GitHub
         )
 
         private const val TAG = "HtmlHelper"

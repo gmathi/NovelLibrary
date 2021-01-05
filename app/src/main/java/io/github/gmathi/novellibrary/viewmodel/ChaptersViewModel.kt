@@ -141,25 +141,31 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     private suspend fun addToDB(forceUpdate: Boolean) = withContext(Dispatchers.IO) {
         loadingStatus.postValue("Adding/Updating Cache…")
 
-        if (forceUpdate) {
-            //Delete the current data
-            db.webPageDao().deleteByNovelId(novel.id)
-            chapters?.forEach { db.webPageDao().deleteByUrl(it.url) }
+        //Start transaction for faster insertions
+        try {
+            if (forceUpdate) {
+                //Delete the current data
+                db.webPageDao().deleteByNovelId(novel.id)
+                chapters?.forEach { db.webPageDao().deleteByUrl(it.url) }
 
-            // We will not delete chapter settings so as to not delete the downloaded chapters file location.
-            // dbHelper.deleteWebPageSettings(novel.id)
-        }
+                // We will not delete chapter settings so as to not delete the downloaded chapters file location.
+                // dbHelper.deleteWebPageSettings(novel.id)
+            }
 
         val chaptersList = chapters ?: return@withContext
         val chaptersCount = chaptersList.size
         novel.chaptersCount = chaptersCount.toLong()
         db.novelDao().update(novel)
 
-        for (i in 0 until chaptersCount) {
-            loadingStatus.postValue("Caching Chapters: $i/$chaptersCount")
-            db.webPageDao().insertOrReplace(chaptersList[i])
-            db.webPageSettingsDao().insertOrReplace(WebPageSettings(chaptersList[i].url, novel.id))
+            for (i in 0 until chaptersCount) {
+                loadingStatus.postValue("Caching Chapters: $i/$chaptersCount")
+                db.webPageDao().insertOrReplace(chaptersList[i])
+                db.webPageSettingsDao().insertOrReplace(WebPageSettings(chaptersList[i].url, novel.id))
+            }
+        } finally {
         }
+        //End Transaction
+
         chapters = ArrayList<WebPage>(db.webPageDao().findByNovelId(novel.id))
         chapterSettings = ArrayList<WebPageSettings>(db.webPageSettingsDao().findByNovelId(novel.id))
     }
@@ -167,7 +173,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     fun addNovelToLibrary() {
         if (novel.id != -1L) return
         loadingStatus.value = Constants.Status.START
-        novel.id = db.insertNovel(novel)
+        novel.id = db.novelDao().insertNovel(novel)
         NovelSync.getInstance(novel)?.applyAsync(viewModelScope) { if (dataCenter.getSyncAddNovels(it.host)) it.addNovel(novel) }
         //There is a chance that the above insertion might fail
         if (novel.id == -1L) return
@@ -190,8 +196,8 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
                     callback?.let { it() }
                 }
                 DELETE_DOWNLOADS -> deleteDownloadedChapters(webPages)
-                MARK_READ -> updateReadStatus(webPages, 1)
-                MARK_UNREAD -> updateReadStatus(webPages, 0)
+                MARK_READ -> updateReadStatus(webPages,true)
+                MARK_UNREAD -> updateReadStatus(webPages, false)
                 MARK_FAVORITE -> updateFavoriteStatus(webPages, true)
                 REMOVE_FAVORITE -> updateFavoriteStatus(webPages, false)
             }
@@ -239,27 +245,33 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
 
     private suspend fun addChaptersToDownloadQueue(webPages: List<WebPage>) = withContext(Dispatchers.IO) {
         var counter = 0
-        webPages.forEach {
-            withContext(Dispatchers.IO) {
-                val download = Download(it.url, novel.name, it.chapter)
-                download.orderId = it.orderId.toInt()
-                db.downloadDao().insert(download)
-                actionModeProgress.postValue(counter++.toString())
+        try {
+            webPages.forEach {
+                withContext(Dispatchers.IO) {
+                    val download = Download(it.url, novel.name, it.chapter)
+                    download.orderId = it.orderId.toInt()
+                    db.downloadDao().insert(download)
+                    actionModeProgress.postValue(counter++.toString())
+                }
             }
+        } finally {
         }
     }
 
-    private suspend fun updateReadStatus(webPages: ArrayList<WebPage>, readStatus: Int) = withContext(Dispatchers.IO) {
+    private suspend fun updateReadStatus(webPages: ArrayList<WebPage>, readStatus: Boolean) = withContext(Dispatchers.IO) {
         var counter = 0
         val chapters = ArrayList(webPages)
-        chapters.forEach { webPage ->
-            withContext(Dispatchers.IO) sub@{
-                val chaptersSettingsList = chapterSettings ?: return@sub
-                val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@sub
-                webPageSettings.isRead = readStatus
-                db.updateWebPageSettingsReadStatus(webPageSettings)
-                actionModeProgress.postValue(counter++.toString())
+        try {
+            chapters.forEach { webPage ->
+                withContext(Dispatchers.IO) sub@{
+                    val chaptersSettingsList = chapterSettings ?: return@sub
+                    val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@sub
+                    webPageSettings.isRead = if (readStatus) 1 else 0
+                    db.webPageSettingsDao().updateWebPageSettingsReadStatus(webPageSettings)
+                    actionModeProgress.postValue(counter++.toString())
+                }
             }
+        } finally {
         }
         chapterSettings = ArrayList(db.webPageSettingsDao().findByNovelId(novel.id))
     }
@@ -267,14 +279,17 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     private suspend fun updateFavoriteStatus(webPages: ArrayList<WebPage>, favoriteStatus: Boolean) = withContext(Dispatchers.IO) {
         var counter = 0
         val chapters = ArrayList(webPages)
-        chapters.forEach { webPage ->
-            withContext(Dispatchers.IO) sub@{
-                val chaptersSettingsList = chapterSettings ?: return@sub
-                val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@sub
-                webPageSettings.metadata[Constants.MetaDataKeys.IS_FAVORITE] = favoriteStatus.toString()
-                db.webPageSettingsDao().update(webPageSettings)
-                actionModeProgress.postValue(counter++.toString())
+        val chaptersSettingsList = chapterSettings ?: return@withContext
+        try {
+            chapters.forEach { webPage ->
+                withContext(Dispatchers.IO) sub@{
+                    val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@sub
+                    webPageSettings.metadata[Constants.MetaDataKeys.IS_FAVORITE] = favoriteStatus.toString()
+                    db.webPageSettingsDao().update(webPageSettings)
+                    actionModeProgress.postValue(counter++.toString())
+                }
             }
+        } finally {
         }
     }
 

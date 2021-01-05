@@ -196,7 +196,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                                 // We run resetNovel in GlobalScope, wait for it with .join() (which is why we need runBlocking{})
                                 // then we syncNovels() so that it shows in Library
                                 runBlocking {
-                                    GlobalScope.launch { db.resetNovel(novel) }.join()
+                                    GlobalScope.launch { db.novelDao().resetNovel(novel) }.join()
                                     db.novelDao().findOneById(novel.id)?.let { novel ->
                                         adapter.items[position] = novel
                                         adapter.updateItem(novel)

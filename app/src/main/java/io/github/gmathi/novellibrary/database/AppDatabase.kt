@@ -37,49 +37,10 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun largePreferenceDao(): LargePreferenceDao
 
     /**
-     * Helper for inserting novels. Sets novel.id to 0 so the ID can be automatically generated
-     * @param novel Novel to insert into database
-     */
-    fun insertNovel(novel: Novel): Long {
-        if(novel.id == -1L)
-            novel.id = 0
-
-        val id = novelDao().insert(novel)
-        novel.genres?.forEach {
-            val genreId = genreDao().findOneByName(it)?.id ?: genreDao().insert(Genre(0, it))
-            novelGenreDao().insertOrIgnore(NovelGenre(id, genreId))
-        }
-        return id
-    }
-    
-    fun cleanupNovel(novel: Novel) {
-        novelDao().delete(novel) // Deletes web_page, web_page_settings, novel_genre
-        // because cascading foreign key property
-        downloadDao().deleteByNovelName(novel.name)
-    }
-
-    fun resetNovel(novel: Novel) {
-        cleanupNovel(novel)
-        
-        val newNovel = NovelApi.getNovelDetails(novel.url)
-        newNovel?.novelSectionId = novel.novelSectionId
-        newNovel?.orderId = novel.orderId
-        if (newNovel != null) insertNovel(novel)
-    }
-
-    /**
      * Populate database with default required entries
      */
     fun insertDefaults() {
         translatorSourceDao().insertOrIgnore(TranslatorSource(-1L, "All"))
         novelSectionDao().insertOrIgnore(NovelSection(-1L, "Currently Reading"))
-    }
-    
-    fun updateWebPageSettingsReadStatus(webPageSettings: WebPageSettings) {
-        if (webPageSettings.isRead == 0) {
-            webPageSettings.metadata.remove(Constants.MetaDataKeys.SCROLL_POSITION)
-        }
-
-        webPageSettingsDao().update(webPageSettings)
     }
 }

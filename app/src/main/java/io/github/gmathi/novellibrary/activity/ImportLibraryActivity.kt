@@ -310,7 +310,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
 
     private fun importNovelToLibrary(importListItem: ImportListItem) {
         val novel = NovelApi.getNUNovelDetails(importListItem.novelUrl!!) ?: return
-        novel.id = db.insertNovel(novel)
+        novel.id = db.novelDao().insertNovel(novel)
     }
 
     override fun onBackPressed() {

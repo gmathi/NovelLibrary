@@ -179,7 +179,7 @@ class ReaderDBPagerActivity :
         val webPageSettings = db.webPageSettingsDao().findOneByUrl(webPage.url)
         if (webPageSettings != null) {
             webPageSettings.isRead = 1
-            db.updateWebPageSettingsReadStatus(webPageSettings)
+            db.webPageSettingsDao().updateWebPageSettingsReadStatus(webPageSettings)
         }
     }
 

@@ -159,7 +159,7 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                         novel.novelSectionId =
                             newIdMap[oldIdMap[novelJson.getLong("novelSectionId")]]
                                 ?: -1L
-                        db.insertNovel(novel)
+                        db.novelDao().insertNovel(novel)
                     }
                 }
                 nm.updateProgress(4)

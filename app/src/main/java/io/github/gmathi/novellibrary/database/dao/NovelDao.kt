@@ -3,7 +3,12 @@ package io.github.gmathi.novellibrary.database.dao
 import androidx.room.*
 import androidx.sqlite.db.SupportSQLiteQuery
 import io.github.gmathi.novellibrary.database.DBKeys
+import io.github.gmathi.novellibrary.db
+import io.github.gmathi.novellibrary.model.database.Genre
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.NovelGenre
+import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.network.getNovelDetails
 
 @Dao
 interface NovelDao {
@@ -54,4 +59,38 @@ interface NovelDao {
 
     @RawQuery
     fun checkpoint(supportSQLiteQuery: SupportSQLiteQuery): Int
+
+    /**
+     * Helper for inserting novels. Sets novel.id to 0 so the ID can be automatically generated
+     * @param novel Novel to insert into database
+     */
+    @Transaction
+    fun insertNovel(novel: Novel): Long {
+        if(novel.id == -1L)
+            novel.id = 0
+
+        val id = insert(novel)
+        novel.genres?.forEach {
+            val genreId = db.genreDao().findOneByName(it)?.id ?: db.genreDao().insert(Genre(0, it))
+            db.novelGenreDao().insertOrIgnore(NovelGenre(id, genreId))
+        }
+        return id
+    }
+
+    @Transaction
+    fun cleanupNovel(novel: Novel) {
+        delete(novel) // Deletes web_page, web_page_settings, novel_genre
+        // because cascading foreign key property
+        db.downloadDao().deleteByNovelName(novel.name)
+    }
+
+    @Transaction
+    fun resetNovel(novel: Novel) {
+        cleanupNovel(novel)
+
+        val newNovel = NovelApi.getNovelDetails(novel.url)
+        newNovel?.novelSectionId = novel.novelSectionId
+        newNovel?.orderId = novel.orderId
+        if (newNovel != null) insertNovel(novel)
+    }
 }

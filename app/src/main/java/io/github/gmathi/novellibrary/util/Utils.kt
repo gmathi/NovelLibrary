@@ -126,7 +126,7 @@ object Utils {
         val hostDir = getHostDir(context, novel.url)
         val novelDir = getNovelDir(hostDir, novel.name)
         novelDir.deleteRecursively()
-        db.cleanupNovel(novel)
+        db.novelDao().cleanupNovel(novel)
         NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncDeleteNovels(it.host)) it.removeNovel(novel) }
         broadcastNovelDelete(context, novel)
     }

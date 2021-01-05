@@ -30,7 +30,8 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
     override fun doWork(): Result {
         val db = AppDatabase.createInstance(context)
 
-        //android.os.Debug.waitForDebugger()
+        // Enable the below line only in debug mode for triggering breakpoints
+        // android.os.Debug.waitForDebugger()
 
         try {
             if (Utils.isConnectedToNetwork(context))
@@ -67,13 +68,16 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
         if (totalCountMap.isEmpty()) return
 
         //Update DB with new chapters
-        totalCountMap.forEach {
-            val novel = it.key
-            novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
-            novel.chaptersCount = it.value.toLong()
-            novel.newReleasesCount += it.value - novel.chaptersCount
-            db.novelDao().update(novel)
-            updateChapters(novel, db)
+        try {
+            totalCountMap.forEach {
+                val novel = it.key
+                novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
+                novel.chaptersCount = it.value.toLong()
+                novel.newReleasesCount += it.value - novel.chaptersCount
+                db.novelDao().update(novel)
+                updateChapters(novel, db)
+		    }
+        } finally {
         }
 
         val novelsList: ArrayList<Novel> = ArrayList()
@@ -106,13 +110,17 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
         try {
             //TODO: Handle Empty State
             val chapters = NovelApi.getChapterUrls(novel) ?: ArrayList()
+
+            //Start transaction for faster insertions
             for (i in 0 until chapters.size) {
                 db.webPageDao().insertOrIgnore(chapters[i])
                 db.webPageSettingsDao().insertOrIgnore(WebPageSettings(chapters[i].url, novel.id))
             }
+            //End Transaction
 
         } catch (e: Exception) {
             Logs.error(TAG, "Novel: $novel", e)
+        } finally {
         }
     }
 
@@ -125,14 +133,14 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
         private const val TAG = "BackgroundNovelSyncTask"
         private const val UPDATE_NOTIFICATION_GROUP = "updateNotificationGroup"
         private var NOTIFICATION_ID = 0
-        
+
         private fun createSyncConstraints() =
             Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .setRequiresCharging(false)
                 .setRequiresBatteryNotLow(true)
                 .build()
-        
+
         fun scheduleRepeat(context: Context) {
             cancelAll(context)
             //in this method, single Repeating task is scheduled (the target service that will be called is MyTaskService.class)
