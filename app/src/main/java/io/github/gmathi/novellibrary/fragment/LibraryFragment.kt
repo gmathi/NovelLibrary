@@ -318,7 +318,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun syncNovels(novel: Novel? = null) {
         //activity.startSyncService()
-        lifecycleScope.launch syncing@{
+        lifecycleScope.launch(Dispatchers.IO) syncing@{
 
             if (activity == null) return@syncing
 
@@ -329,15 +329,16 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 this@LibraryFragment.syncSnackbar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL,
                         getString(R.string.sync_in_progress) + " - " + getString(R.string.please_wait))
                 syncSnackbarManager.show(syncSnackbar!!, SnackProgressBarManager.LENGTH_INDEFINITE)
+                activity?.invalidateOptionsMenu()
             }
-
-            activity?.invalidateOptionsMenu()
 
             val totalCountMap: HashMap<Novel, Int> = HashMap()
 
             val novels = if (novel == null) db.novelDao().findByNovelSection(novelSectionId) else listOf(novel)
 
-            syncSnackbarManager.updateTo(syncSnackbar!!.setProgressMax(novels.count()))
+            async(Dispatchers.Main) {
+                syncSnackbarManager.updateTo(syncSnackbar!!.setProgressMax(novels.count()))
+            }
 
             var counter = 0
             novels.forEach {
@@ -356,7 +357,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                         }
                     }
 
-                    val totalChapters = withContext(Dispatchers.IO) { NovelApi.getChapterCount(it) }
+                    val totalChapters =  NovelApi.getChapterCount(it)
                     if (totalChapters != 0 && totalChapters > it.chaptersCount.toInt()) {
                         totalCountMap[it] = totalChapters
                     }
@@ -368,7 +369,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             //Update DB with new chapters
             counter = 0
-            syncSnackbarManager.updateTo(syncSnackbarManager.getLastShown()?.setProgressMax(totalCountMap.count())!!)
+            async(Dispatchers.Main) {
+                syncSnackbarManager.updateTo(syncSnackbarManager.getLastShown()?.setProgressMax(totalCountMap.count())!!)
+            }
             totalCountMap.forEach {
                 val updatedNovel = it.key
                 counter++
@@ -392,26 +395,25 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
                 try {
                     //TODO: Handle Empty State
-                    val chapters = withContext(Dispatchers.IO) { NovelApi.getChapterUrls(updatedNovel) } ?: ArrayList()
-                    for (i in 0 until chapters.size) {
-                        db.webPageDao().insertOrIgnore(chapters[i])
-                        db.webPageSettingsDao().insertOrIgnore(WebPageSettings(chapters[i].url, updatedNovel.id))
+                    val chapters =  NovelApi.getChapterUrls(updatedNovel) ?: ArrayList()
+                    db.runInTransaction {
+                        for (i in 0 until chapters.size) {
+                            db.webPageDao().insertOrIgnore(chapters[i])
+                            db.webPageSettingsDao().insertOrIgnore(WebPageSettings(chapters[i].url, updatedNovel.id))
+                        }
                     }
-
                 } catch (e: Exception) {
                     Logs.error(TAG, "Novel: $it", e)
                     return@forEach
                 }
             }
 
-            setData(true)
-
             async (Dispatchers.Main) {
+                setData(true)
                 syncSnackbarManager.dismiss()
                 syncSnackbar = null
+                activity?.invalidateOptionsMenu()
             }
-
-            activity?.invalidateOptionsMenu()
         }
     }
 
@@ -531,9 +533,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 novel.orderId = i.toLong()
             }
 
-            launchIO {
-                db.novelDao().updateAll(adapter.items)
-            }
+            db.novelDao().updateAll(adapter.items)
         }
     }
 
