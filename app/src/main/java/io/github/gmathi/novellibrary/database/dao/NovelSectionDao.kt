@@ -11,6 +11,9 @@ interface NovelSectionDao {
     
     @Insert
     fun insert(novelSection: NovelSection): Long
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insertOrIgnore(novelSection: NovelSection): Long
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertOrReplace(novelSection: NovelSection)

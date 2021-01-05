@@ -60,6 +60,7 @@ abstract class AppDatabase : RoomDatabase() {
      */
     fun insertDefaults() {
         translatorSourceDao().insertOrIgnore(TranslatorSource(-1L, "All"))
+        novelSectionDao().insertOrIgnore(NovelSection(-1L, "Currently Reading"))
     }
     
     fun updateWebPageSettingsReadStatus(webPageSettings: WebPageSettings) {
