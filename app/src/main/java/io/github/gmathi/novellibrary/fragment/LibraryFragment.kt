@@ -43,6 +43,10 @@ import kotlinx.coroutines.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
+import kotlin.random.Random
 
 
 class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleItemTouchListener {
@@ -339,33 +343,43 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             }
 
             var counter = 0
+            val waitList = LinkedList<Deferred<Boolean>>()
             novels.forEach {
                 try {
-                    async(Dispatchers.Main) {
-                        syncSnackbar?.setMessage(
-                                getString(
-                                        R.string.sync_fetching_chapter_counts,
-                                        counter++,
-                                        novels.count(),
-                                        it.name
-                                )
-                        )?.let { snackbar ->
-                            syncSnackbarManager.updateTo(snackbar)
-                            syncSnackbarManager.setProgress(counter)
+                    waitList.add(async {
+                        val totalChapters = NovelApi.getChapterCount(it)
+                        if (totalChapters != 0 && totalChapters > it.chaptersCount.toInt()) {
+                            totalCountMap[it] = totalChapters
                         }
-                    }
 
-                    val totalChapters =  NovelApi.getChapterCount(it)
-                    if (totalChapters != 0 && totalChapters > it.chaptersCount.toInt()) {
-                        totalCountMap[it] = totalChapters
-                    }
+                        async(Dispatchers.Main) {
+                            syncSnackbar?.setMessage(
+                                    getString(
+                                            R.string.sync_fetching_chapter_counts,
+                                            counter++,
+                                            novels.count(),
+                                            it.name
+                                    )
+                            )?.let { snackbar ->
+                                syncSnackbarManager.updateTo(snackbar)
+                                syncSnackbarManager.setProgress(counter)
+                            }
+                        }
+
+                        true
+                    })
+
+                    Thread.sleep(50L + Random.nextLong() % 20L)
                 } catch (e: Exception) {
                     Logs.error(TAG, "Novel: $it", e)
                     return@forEach
                 }
             }
+            
+            waitList.awaitAll()
 
             //Update DB with new chapters
+            waitList.clear()
             counter = 0
             async(Dispatchers.Main) {
                 syncSnackbarManager.updateTo(syncSnackbarManager.getLastShown()?.setProgressMax(totalCountMap.count())!!)
@@ -393,13 +407,16 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
                 try {
                     //TODO: Handle Empty State
-                    val chapters =  NovelApi.getChapterUrls(updatedNovel) ?: ArrayList()
-                    db.runInTransaction {
-                        for (i in 0 until chapters.size) {
-                            db.webPageDao().insertOrIgnore(chapters[i])
-                            db.webPageSettingsDao().insertOrIgnore(WebPageSettings(chapters[i].url, updatedNovel.id))
+                    waitList.add(async {
+                        val chapters = NovelApi.getChapterUrls(updatedNovel) ?: ArrayList()
+                        db.runInTransaction {
+                            for (i in 0 until chapters.size) {
+                                db.webPageDao().insertOrIgnore(chapters[i])
+                                db.webPageSettingsDao().insertOrIgnore(WebPageSettings(chapters[i].url, updatedNovel.id))
+                            }
                         }
-                    }
+                        true
+                    })
                 } catch (e: Exception) {
                     Logs.error(TAG, "Novel: $it", e)
                     return@forEach
@@ -413,6 +430,10 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                             adapter.updateItemAt(index, updatedNovel)
                     }
                 }
+            }
+
+            waitList.forEach {
+                    awaitAll(it)
             }
 
             async (Dispatchers.Main) {
