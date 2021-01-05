@@ -30,6 +30,6 @@ interface NovelSectionDao {
     @Query("SELECT * FROM novel_section WHERE name = :name")
     fun findOneByName(name: String): NovelSection?
 
-    @Query("SELECT * FROM novel_section ORDER BY order_id ASC")
+    @Query("SELECT * FROM novel_section WHERE id <> - 1 ORDER BY order_id ASC")
     fun getAll(): List<NovelSection>
 }
