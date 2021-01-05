@@ -173,6 +173,9 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
 
                     if (!currentDBsDir.exists()) currentDBsDir.mkdir()
                     nm.updateProgress(6) { setContentText(getString(R.string.title_library)) }
+                    currentDBsDir.listFiles().forEach {
+                        it.delete()
+                    }
                     backupDBsDir.listFiles()?.forEach {
                         Utils.copyFile(it, File(currentDBsDir, it.name))
                     }
@@ -180,7 +183,6 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                     db = AppDatabase.createInstance(applicationContext)
                     db.insertDefaults()
                     db.novelDao().checkpoint(SimpleSQLiteQuery("pragma wal_checkpoint(full)"))
-                    Thread.sleep(1000 * 2)
                 }
                 nm.updateProgress(8)
 
