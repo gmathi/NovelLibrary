@@ -12,6 +12,9 @@ interface TranslatorSourceDao {
     @Insert
     fun insert(translatorSource: TranslatorSource): Long
     
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insertOrIgnore(translatorSource: TranslatorSource): Long
+    
     @Update
     fun update(translatorSource: TranslatorSource)
     

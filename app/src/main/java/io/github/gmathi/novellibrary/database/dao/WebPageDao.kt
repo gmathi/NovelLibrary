@@ -17,6 +17,12 @@ interface WebPageDao {
     
     @Update
     fun update(webPage: WebPage)
+    
+    @Delete
+    fun delete(webPage: WebPage)
+
+    @Query("DELETE FROM web_page WHERE novel_id = :novelId")
+    fun deleteByNovelId(novelId: Long)
 
     @Query("SELECT * FROM web_page WHERE novel_id = :novelId ORDER BY order_id ASC")
     fun findByNovelId(novelId: Long): List<WebPage>

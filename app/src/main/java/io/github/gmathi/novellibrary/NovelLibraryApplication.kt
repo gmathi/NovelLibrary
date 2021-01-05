@@ -22,6 +22,7 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.lang.LocaleManager
+import io.github.gmathi.novellibrary.util.lang.launchIO
 import java.io.File
 import java.security.KeyManagementException
 import java.security.NoSuchAlgorithmException
@@ -83,8 +84,11 @@ class NovelLibraryApplication : MultiDexApplication() {
         }
 
         //Stray webPages to be deleted
-        dbHelper?.deleteWebPages(-1L)
-        dbHelper?.deleteWebPageSettings(-1L)
+        launchIO {
+            db.webPageDao().deleteByNovelId(-1L)
+            db.webPageSettingsDao().deleteByNovelId(-1L)
+            db.insertDefaults()
+        }
 
 //        dataCenter?.isDeveloper = true
 //        dataCenter?.lockRoyalRoad = false

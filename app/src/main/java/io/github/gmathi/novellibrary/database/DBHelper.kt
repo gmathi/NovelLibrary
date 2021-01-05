@@ -49,7 +49,6 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
     }
 
     private fun insertDefaultValues(db: SQLiteDatabase) {
-        db.execSQL("INSERT INTO ${DBKeys.TABLE_SOURCE} (${DBKeys.KEY_ID}, ${DBKeys.KEY_NAME}) VALUES (-1, 'All')")
     }
 
 
