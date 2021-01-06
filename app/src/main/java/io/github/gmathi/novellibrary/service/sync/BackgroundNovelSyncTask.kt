@@ -68,24 +68,14 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
         if (totalCountMap.isEmpty()) return
 
         //Update DB with new chapters
-        val writableDatabase = dbHelper.writableDatabase
-        try {
-            writableDatabase.beginTransaction()
+        dbHelper.writableDatabase.runTransaction { writableDatabase ->
             totalCountMap.forEach {
                 val novel = it.key
                 novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
                 dbHelper.updateNovelMetaData(novel, writableDatabase)
-                dbHelper.updateChaptersAndReleasesCount(
-                    novel.id,
-                    it.value.toLong(),
-                    novel.newReleasesCount + (it.value - novel.chaptersCount),
-                    writableDatabase
-                )
+                dbHelper.updateChaptersAndReleasesCount(novel.id, it.value.toLong(), novel.newReleasesCount + (it.value - novel.chaptersCount), writableDatabase)
                 updateChapters(novel, dbHelper)
             }
-            writableDatabase.setTransactionSuccessful()
-        } finally {
-            writableDatabase.endTransaction()
         }
 
         val novelsList: ArrayList<Novel> = ArrayList()
@@ -115,24 +105,17 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
      * Download latest chapters from network
      */
     private fun updateChapters(novel: Novel, dbHelper: DBHelper) {
-        val writableDatabase = dbHelper.writableDatabase
+        //TODO: Handle Empty State
+        val chapters = NovelApi.getChapterUrls(novel) ?: ArrayList()
         try {
-            //TODO: Handle Empty State
-            val chapters = NovelApi.getChapterUrls(novel) ?: ArrayList()
-
-            //Start transaction for faster insertions
-            writableDatabase.beginTransaction()
-            for (i in 0 until chapters.size) {
-                dbHelper.createWebPage(chapters[i], writableDatabase)
-                dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id), writableDatabase)
+            dbHelper.writableDatabase.runTransaction { writableDatabase ->
+                for (i in 0 until chapters.size) {
+                    dbHelper.createWebPage(chapters[i], writableDatabase)
+                    dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id), writableDatabase)
+                }
             }
-            writableDatabase.setTransactionSuccessful()
-            //End Transaction
-
         } catch (e: Exception) {
             Logs.error(TAG, "Novel: $novel", e)
-        } finally {
-            writableDatabase.endTransaction()
         }
     }
 

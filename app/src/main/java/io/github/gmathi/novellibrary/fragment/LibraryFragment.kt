@@ -34,7 +34,6 @@ import io.github.gmathi.novellibrary.network.getChapterCount
 import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
-import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
@@ -88,11 +87,11 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
         syncSnackbarManager = SnackProgressBarManager(container!!, this)
         syncSnackbarManager
-                .setViewToMove(container!!)
-                .setProgressBarColor(R.color.colorAccent)
-                .setBackgroundColor(SnackProgressBarManager.BACKGROUND_COLOR_DEFAULT)
-                .setTextSize(14f)
-                .setMessageMaxLines(2)
+            .setViewToMove(container!!)
+            .setProgressBarColor(R.color.colorAccent)
+            .setBackgroundColor(SnackProgressBarManager.BACKGROUND_COLOR_DEFAULT)
+            .setTextSize(14f)
+            .setMessageMaxLines(2)
 
         return view
     }
@@ -304,12 +303,13 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             if (activity == null) return@syncing
 
-            if (this@LibraryFragment.syncSnackbar != null)
-                syncSnackbarManager.dismiss()
-
             withContext(Dispatchers.Main) {
-                this@LibraryFragment.syncSnackbar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL,
-                        getString(R.string.sync_in_progress) + " - " + getString(R.string.please_wait))
+                if (this@LibraryFragment.syncSnackbar != null)
+                    syncSnackbarManager.dismiss()
+                this@LibraryFragment.syncSnackbar = SnackProgressBar(
+                    SnackProgressBar.TYPE_HORIZONTAL,
+                    getString(R.string.sync_in_progress) + " - " + getString(R.string.please_wait)
+                )
                 syncSnackbarManager.show(syncSnackbar!!, SnackProgressBarManager.LENGTH_INDEFINITE)
                 activity?.invalidateOptionsMenu()
             }
@@ -337,10 +337,14 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
                     async(Dispatchers.Main) {
                         syncSnackbar?.let { snackbar ->
-                            syncSnackbarManager.updateTo(snackbar.setMessage(
-                                getString(
-                                    R.string.sync_fetching_chapter_counts,
-                                    counter++, novels.count(), it.name)))
+                            syncSnackbarManager.updateTo(
+                                snackbar.setMessage(
+                                    getString(
+                                        R.string.sync_fetching_chapter_counts,
+                                        counter++, novels.count(), it.name
+                                    )
+                                )
+                            )
                             syncSnackbarManager.setProgress(counter)
                         }
                     }
@@ -351,7 +355,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     return@forEach
                 }
             }
-            
+
             waitList.awaitAll()
 
             //Update DB with new chapters
@@ -361,11 +365,16 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             totalCountMap.forEach {
                 val updatedNovel = it.key
                 counter++
-                async (Dispatchers.Main) {
+                async(Dispatchers.Main) {
                     syncSnackbar?.let { progressBar ->
-                        syncSnackbarManager.updateTo(progressBar.setMessage(getString(
+                        syncSnackbarManager.updateTo(
+                            progressBar.setMessage(
+                                getString(
                                     R.string.sync_fetching_chapter_list,
-                                    counter, totalCountMap.count(), updatedNovel.name)))
+                                    counter, totalCountMap.count(), updatedNovel.name
+                                )
+                            )
+                        )
                         syncSnackbarManager.setProgress(counter)
                     }
                 }
@@ -391,13 +400,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                         val chapters = withContext(Dispatchers.IO) { NovelApi.getChapterUrls(updatedNovel) } ?: ArrayList()
                         for (i in 0 until chapters.size) {
                             dbHelper.writableDatabase.runTransaction { writableDatabase ->
-                                if (dbHelper.getWebPage(chapters[i].url) == null)
-                                    dbHelper.createWebPage(chapters[i], writableDatabase)
-                                if (dbHelper.getWebPageSettings(chapters[i].url) == null)
-                                    dbHelper.createWebPageSettings(
-                                            WebPageSettings(chapters[i].url, updatedNovel.id),
-                                            writableDatabase
-                                    )
+                                dbHelper.createWebPage(chapters[i], writableDatabase)
+                                dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, updatedNovel.id), writableDatabase)
                             }
                         }
                         true
@@ -411,7 +415,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             waitList.awaitAll()
 
-            async (Dispatchers.Main) {
+            async(Dispatchers.Main) {
                 syncSnackbarManager.dismiss()
                 syncSnackbar = null
             }

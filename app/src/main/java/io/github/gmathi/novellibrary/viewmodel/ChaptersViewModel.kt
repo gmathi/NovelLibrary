@@ -140,10 +140,9 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     private suspend fun addToDB(forceUpdate: Boolean) = withContext(Dispatchers.IO) {
         loadingStatus.postValue("Adding/Updating Cache…")
 
-        //Start transaction for faster insertions
-        val writableDatabase = dbHelper.writableDatabase
-        try {
-            writableDatabase.beginTransaction()
+        //DB transaction for faster insertions
+        dbHelper.writableDatabase.runTransaction { writableDatabase ->
+
             if (forceUpdate) {
                 //Delete the current data
                 dbHelper.deleteWebPages(novel.id, writableDatabase)
@@ -153,7 +152,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
                 // dbHelper.deleteWebPageSettings(novel.id)
             }
 
-            val chaptersList = chapters ?: return@withContext
+            val chaptersList = chapters ?: return@runTransaction
             val chaptersCount = chaptersList.size
             dbHelper.updateChaptersCount(novel.id, chaptersCount.toLong(), writableDatabase)
 
@@ -163,11 +162,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
                 dbHelper.createWebPage(chaptersList[i], writableDatabase)
                 dbHelper.createWebPageSettings(WebPageSettings(chaptersList[i].url, novel.id), writableDatabase)
             }
-            writableDatabase.setTransactionSuccessful()
-        } finally {
-            writableDatabase.endTransaction()
         }
-        //End Transaction
 
         chapters = dbHelper.getAllWebPages(novel.id)
         chapterSettings = dbHelper.getAllWebPageSettings(novel.id)
@@ -248,20 +243,13 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
 
     private suspend fun addChaptersToDownloadQueue(webPages: List<WebPage>) = withContext(Dispatchers.IO) {
         var counter = 0
-        val writableDatabase = dbHelper.writableDatabase
-        writableDatabase.beginTransaction()
-        try {
+        dbHelper.writableDatabase.runTransaction { writableDatabase ->
             webPages.forEach {
-                withContext(Dispatchers.IO) {
-                    val download = Download(it.url, novel.name, it.chapter)
-                    download.orderId = it.orderId.toInt()
-                    dbHelper.createDownload(download, writableDatabase)
-                    actionModeProgress.postValue(counter++.toString())
-                }
+                val download = Download(it.url, novel.name, it.chapter)
+                download.orderId = it.orderId.toInt()
+                dbHelper.createDownload(download, writableDatabase)
+                actionModeProgress.postValue(counter++.toString())
             }
-            writableDatabase.setTransactionSuccessful()
-        } finally {
-            writableDatabase.endTransaction()
         }
     }
 
@@ -269,19 +257,12 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         var counter = 0
         val chapters = ArrayList(webPages)
         val chaptersSettingsList = chapterSettings ?: return@withContext
-        val writableDatabase = dbHelper.writableDatabase
-        writableDatabase.beginTransaction()
-        try {
+        dbHelper.writableDatabase.runTransaction { writableDatabase ->
             chapters.forEach { webPage ->
-                withContext(Dispatchers.IO) sub@{
-                    val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@sub
-                    dbHelper.updateWebPageSettingsReadStatus(webPageSettings, markRead, writableDatabase)
-                    actionModeProgress.postValue(counter++.toString())
-                }
+                val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@runTransaction
+                dbHelper.updateWebPageSettingsReadStatus(webPageSettings, markRead, writableDatabase)
+                actionModeProgress.postValue(counter++.toString())
             }
-            writableDatabase.setTransactionSuccessful()
-        } finally {
-            writableDatabase.endTransaction()
         }
         chapterSettings = dbHelper.getAllWebPageSettings(novel.id)
     }
@@ -290,20 +271,13 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         var counter = 0
         val chapters = ArrayList(webPages)
         val chaptersSettingsList = chapterSettings ?: return@withContext
-        val writableDatabase = dbHelper.writableDatabase
-        writableDatabase.beginTransaction()
-        try {
+        dbHelper.writableDatabase.runTransaction { writableDatabase ->
             chapters.forEach { webPage ->
-                withContext(Dispatchers.IO) sub@{
-                    val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@sub
-                    webPageSettings.metadata[Constants.MetaDataKeys.IS_FAVORITE] = favoriteStatus.toString()
-                    dbHelper.updateWebPageSettings(webPageSettings, writableDatabase)
-                    actionModeProgress.postValue(counter++.toString())
-                }
+                val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@runTransaction
+                webPageSettings.metadata[Constants.MetaDataKeys.IS_FAVORITE] = favoriteStatus.toString()
+                dbHelper.updateWebPageSettings(webPageSettings, writableDatabase)
+                actionModeProgress.postValue(counter++.toString())
             }
-            writableDatabase.setTransactionSuccessful()
-        } finally {
-            writableDatabase.endTransaction()
         }
     }
 
