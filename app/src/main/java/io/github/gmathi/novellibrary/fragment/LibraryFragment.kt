@@ -42,6 +42,10 @@ import kotlinx.coroutines.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
+import kotlin.random.Random
 
 
 class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleItemTouchListener {
@@ -296,7 +300,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun syncNovels(novel: Novel? = null) {
         //activity.startSyncService()
-        lifecycleScope.launch syncing@{
+        lifecycleScope.launch(Dispatchers.IO) syncing@{
 
             if (activity == null) return@syncing
 
@@ -307,75 +311,97 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 this@LibraryFragment.syncSnackbar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL,
                         getString(R.string.sync_in_progress) + " - " + getString(R.string.please_wait))
                 syncSnackbarManager.show(syncSnackbar!!, SnackProgressBarManager.LENGTH_INDEFINITE)
+                activity?.invalidateOptionsMenu()
             }
-
-            activity?.invalidateOptionsMenu()
 
             val totalCountMap: HashMap<Novel, Int> = HashMap()
 
             val novels = if (novel == null) dbHelper.getAllNovels(novelSectionId) else listOf(novel)
 
-            syncSnackbarManager.updateTo(syncSnackbar!!.setProgressMax(novels.count()))
+            async(Dispatchers.Main) {
+                syncSnackbarManager.updateTo(syncSnackbar!!.setProgressMax(novels.count()))
+            }
 
             var counter = 0
+            var waitList = LinkedList<Deferred<Boolean>>()
             novels.forEach {
                 try {
+                    waitList.add(async {
+                        val totalChapters =
+                            withContext(Dispatchers.IO) { NovelApi.getChapterCount(it) }
+                        if (totalChapters != 0 && totalChapters > it.chaptersCount.toInt()) {
+                            totalCountMap[it] = totalChapters
+                        }
+                        true
+                    })
+
                     async(Dispatchers.Main) {
-                        syncSnackbar?.setMessage(
+                        syncSnackbar?.let { snackbar ->
+                            syncSnackbarManager.updateTo(snackbar.setMessage(
                                 getString(
-                                        R.string.sync_fetching_chapter_counts,
-                                        counter++,
-                                        novels.count(),
-                                        it.name
-                                )
-                        )?.let { snackbar ->
-                            syncSnackbarManager.updateTo(snackbar)
+                                    R.string.sync_fetching_chapter_counts,
+                                    counter++, novels.count(), it.name)))
                             syncSnackbarManager.setProgress(counter)
                         }
                     }
 
-                    val totalChapters = withContext(Dispatchers.IO) { NovelApi.getChapterCount(it) }
-                    if (totalChapters != 0 && totalChapters > it.chaptersCount.toInt()) {
-                        totalCountMap[it] = totalChapters
-                    }
+                    Thread.sleep(50L + Random.nextLong() % 20L)
                 } catch (e: Exception) {
                     Logs.error(TAG, "Novel: $it", e)
                     return@forEach
                 }
             }
+            
+            waitList.awaitAll()
 
             //Update DB with new chapters
+            waitList.clear()
             counter = 0
             syncSnackbarManager.updateTo(syncSnackbarManager.getLastShown()?.setProgressMax(totalCountMap.count())!!)
             totalCountMap.forEach {
                 val updatedNovel = it.key
                 counter++
                 async (Dispatchers.Main) {
-                    syncSnackbarManager.updateTo(
-                        syncSnackbar!!.setMessage(
-                            getString(
-                                R.string.sync_fetching_chapter_list,
-                                counter,
-                                totalCountMap.count(),
-                                updatedNovel.name
-                            )
-                        )
-                    )
-                    syncSnackbarManager.setProgress(counter)
+                    syncSnackbar?.let { progressBar ->
+                        syncSnackbarManager.updateTo(progressBar.setMessage(getString(
+                                    R.string.sync_fetching_chapter_list,
+                                    counter, totalCountMap.count(), updatedNovel.name)))
+                        syncSnackbarManager.setProgress(counter)
+                    }
                 }
+
                 updatedNovel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
+                updatedNovel.newReleasesCount += (it.value - updatedNovel.chaptersCount)
+                updatedNovel.chaptersCount = it.value.toLong()
                 dbHelper.updateNovelMetaData(updatedNovel)
-                dbHelper.updateChaptersAndReleasesCount(updatedNovel.id, it.value.toLong(), updatedNovel.newReleasesCount + (it.value - updatedNovel.chaptersCount))
+                dbHelper.updateChaptersAndReleasesCount(updatedNovel.id, updatedNovel.chaptersCount, updatedNovel.newReleasesCount)
+
+                async(Dispatchers.Main) {
+                    adapter.items.indexOfFirst { novel ->
+                        novel.id == updatedNovel.id
+                    }.let { index ->
+                        if (index != -1)
+                            adapter.updateItemAt(index, updatedNovel)
+                    }
+                }
 
                 try {
-                    //TODO: Handle Empty State
-                    val chapters = withContext(Dispatchers.IO) { NovelApi.getChapterUrls(updatedNovel) } ?: ArrayList()
-                    for (i in 0 until chapters.size) {
-                        if (dbHelper.getWebPage(chapters[i].url) == null)
-                            dbHelper.createWebPage(chapters[i])
-                        if (dbHelper.getWebPageSettings(chapters[i].url) == null)
-                            dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, updatedNovel.id))
-                    }
+                    waitList.add(async {
+                        //TODO: Handle Empty State
+                        val chapters = withContext(Dispatchers.IO) { NovelApi.getChapterUrls(updatedNovel) } ?: ArrayList()
+                        for (i in 0 until chapters.size) {
+                            dbHelper.writableDatabase.runTransaction { writableDatabase ->
+                                if (dbHelper.getWebPage(chapters[i].url) == null)
+                                    dbHelper.createWebPage(chapters[i], writableDatabase)
+                                if (dbHelper.getWebPageSettings(chapters[i].url) == null)
+                                    dbHelper.createWebPageSettings(
+                                            WebPageSettings(chapters[i].url, updatedNovel.id),
+                                            writableDatabase
+                                    )
+                            }
+                        }
+                        true
+                    })
 
                 } catch (e: Exception) {
                     Logs.error(TAG, "Novel: $it", e)
@@ -383,7 +409,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 }
             }
 
-            setData()
+            waitList.awaitAll()
 
             async (Dispatchers.Main) {
                 syncSnackbarManager.dismiss()

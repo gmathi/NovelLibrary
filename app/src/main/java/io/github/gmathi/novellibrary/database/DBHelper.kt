@@ -241,3 +241,12 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
     }
 }
 
+fun SQLiteDatabase.runTransaction(fn: (SQLiteDatabase) -> Unit) {
+    try {
+        this.beginTransaction()
+        fn(this)
+        this.setTransactionSuccessful()
+    } finally {
+        this.endTransaction()
+    }
+}
