@@ -7,26 +7,31 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
+import io.github.gmathi.novellibrary.databinding.ActivitySyncLoginBinding
 import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.system.setDefaultSettings
-import kotlinx.android.synthetic.main.activity_sync_login.*
 import java.net.URL
 
 class SyncLoginActivity : BaseActivity() {
+    
+    private lateinit var binding: ActivitySyncLoginBinding
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_sync_login)
-        setSupportActionBar(toolbar)
+        
+        binding = ActivitySyncLoginBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        confirm.setOnClickListener { finish() }
+        binding.confirm.setOnClickListener { finish() }
 
         val url = intent.getStringExtra("url") ?: return
         val host = URL(url).host
         CloudFlareByPasser.clearCookies(host)
-        view.setDefaultSettings()
-        view.apply {
+        binding.view.setDefaultSettings()
+        binding.view.apply {
             settings.apply {
                 @SuppressLint("SetJavaScriptEnabled")
                 javaScriptEnabled = true
@@ -37,11 +42,11 @@ class SyncLoginActivity : BaseActivity() {
                 override fun onPageFinished(view: WebView?, url: String?) {
                     if (CloudFlareByPasser.saveLoginCookies(host, lookup!!)) {
                         //finish()
-                        cookieStatus.text = getString(R.string.sync_cookies_found)
-                        cookieStatus.isChecked = true
+                        binding.cookieStatus.text = getString(R.string.sync_cookies_found)
+                        binding.cookieStatus.isChecked = true
                     } else {
-                        cookieStatus.text = getString(R.string.sync_cookies_not_found)
-                        cookieStatus.isChecked = false
+                        binding.cookieStatus.text = getString(R.string.sync_cookies_not_found)
+                        binding.cookieStatus.isChecked = false
                     }
                 }
             }

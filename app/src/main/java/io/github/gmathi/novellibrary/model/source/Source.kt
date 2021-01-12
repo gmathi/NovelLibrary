@@ -1,7 +1,7 @@
 package io.github.gmathi.novellibrary.model.source
 
-import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.Chapter
+import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.lang.awaitSingle
 import rx.Observable
 
@@ -28,6 +28,17 @@ interface Source {
     fun fetchNovelDetails(novel: Novel): Observable<Novel>
 
     /**
+     * [1.x API] Get all the available chapters for a novel.
+     */
+    suspend fun getNovelDetails(novel: Novel): Novel {
+        val downloadedNovel = fetchNovelDetails(novel).awaitSingle()
+        if (downloadedNovel.chaptersCount == 0L) {
+            downloadedNovel.chaptersCount = getChapterList(novel).count().toLong()
+        }
+        return novel
+    }
+
+    /**
      * Returns an observable with all the available chapters for a novel.
      *
      * @param novel the novel to update.
@@ -35,10 +46,11 @@ interface Source {
     fun fetchChapterList(novel: Novel): Observable<List<Chapter>>
 
     /**
-     * [1.x API] Get all the available chapters for a manga.
+     * [1.x API] Get all the available chapters for a novel.
      */
     suspend fun getChapterList(novel: Novel): List<Chapter> {
         return fetchChapterList(novel).awaitSingle()
     }
+
 
 }

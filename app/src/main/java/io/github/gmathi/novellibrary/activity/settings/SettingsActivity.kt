@@ -16,6 +16,7 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.input.input
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import io.github.gmathi.novellibrary.BuildConfig
@@ -23,13 +24,12 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
+import io.github.gmathi.novellibrary.databinding.ListitemSettingsBinding
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.util.system.*
-import kotlinx.android.synthetic.main.activity_settings.*
-import kotlinx.android.synthetic.main.content_recycler_view.*
-import kotlinx.android.synthetic.main.listitem_settings.view.*
 import nl.dionsegijn.konfetti.models.Shape
 import nl.dionsegijn.konfetti.models.Size
 
@@ -54,14 +54,18 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private var leftButtonCounter = 0
 
     private val remoteConfig = FirebaseRemoteConfig.getInstance()
+    
+    private lateinit var binding: ActivitySettingsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
-        setSupportActionBar(toolbar)
+        
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         @SuppressLint("SetTextI18n")
-        versionTextView.text = "Version: ${BuildConfig.VERSION_NAME}_${BuildConfig.VERSION_CODE}"
+        binding.versionTextView.text = "Version: ${BuildConfig.VERSION_NAME}_${BuildConfig.VERSION_CODE}"
         setRemoteConfig()
         setRecyclerView()
         setEasterEgg()
@@ -82,14 +86,15 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private fun setRecyclerView() {
         settingsItems = ArrayList(resources.getStringArray(R.array.settings_list).asList())
         adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_settings, listener = this)
-        recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
-        swipeRefreshLayout.isEnabled = false
+        binding.contentRecyclerView.recyclerView.setDefaults(adapter)
+        binding.contentRecyclerView.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
+        binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false
     }
 
     override fun bind(item: String, itemView: View, position: Int) {
-        itemView.settingsTitle.applyFont(assets).text = item
-        itemView.chevron.visibility = if (position < 4) View.VISIBLE else View.INVISIBLE
+        val itemBinding = ListitemSettingsBinding.bind(itemView)
+        itemBinding.settingsTitle.applyFont(assets).text = item
+        itemBinding.chevron.visibility = if (position < 4) View.VISIBLE else View.INVISIBLE
         itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
         else ContextCompat.getColor(this, android.R.color.transparent))
     }
@@ -116,58 +121,61 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         if (item.itemId == android.R.id.home) finish()
         if (item.itemId == R.id.action_report_page) {
             val systemInfo = systemInfo()
-            MaterialDialog.Builder(this)
-                    .content(getString(R.string.bug_report_content, "\n\n" + systemInfo))
-                    .positiveText(getString(R.string.okay))
-                    .neutralText(getString(R.string.copy_to_clipboard))
-                    .onPositive { dialog, _ -> dialog.dismiss() }
-                    .onNeutral { _, _ ->
-                        val clipboard: ClipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        val clip = ClipData.newPlainText("Debug-info", systemInfo)
-                        clipboard.setPrimaryClip(clip)
-                        Toast.makeText(this, "Debug-info copied to clipboard!", Toast.LENGTH_SHORT).show()
-                    }
-                    .autoDismiss(false)
-                    .show()
+            MaterialDialog(this).show {
+                message(R.string.bug_report_content, "\n\n" + systemInfo)
+                positiveButton(R.string.okay) {
+                    it.dismiss()
+                }
+                negativeButton(R.string.copy_to_clipboard) {
+                    val clipboard: ClipboardManager =
+                        getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = ClipData.newPlainText("Debug-info", systemInfo)
+                    clipboard.setPrimaryClip(clip)
+                    Toast.makeText(this@SettingsActivity, "Debug-info copied to clipboard!", Toast.LENGTH_SHORT)
+                        .show()
+                }
+                cancelable(false)
+            }
         }
         return super.onOptionsItemSelected(item)
     }
     //endregion
 
     private fun donateDeveloperDialog() {
-        MaterialDialog.Builder(this)
-                .title(getString(R.string.donate_developer))
-                .content(getString(R.string.donations_description_new))
-                .show()
+        MaterialDialog(this).show {
+            title(R.string.donate_developer)
+            message(R.string.donations_description_new)
+        }
     }
 
     private fun aboutUsDialog() {
-        MaterialDialog.Builder(this)
-                .title(getString(R.string.about_us))
-                .content(getString(R.string.about_us_content))
-                .show()
+        MaterialDialog(this).show {
+            title(R.string.about_us)
+            message(R.string.about_us_content)
+        }
     }
 
     private fun setEasterEgg() {
-        hiddenRightButton.setOnClickListener { rightButtonCounter++; checkUnlockStatus() }
-        hiddenLeftButton.setOnClickListener { leftButtonCounter++; checkUnlockStatus() }
+        binding.hiddenRightButton.setOnClickListener { rightButtonCounter++; checkUnlockStatus() }
+        binding.hiddenLeftButton.setOnClickListener { leftButtonCounter++; checkUnlockStatus() }
     }
 
     private fun checkUnlockStatus() {
         if (rightButtonCounter >= 5 && leftButtonCounter >= 5) {
-            hiddenRightButton.visibility = View.GONE
-            hiddenLeftButton.visibility = View.GONE
+            binding.hiddenRightButton.visibility = View.GONE
+            binding.hiddenLeftButton.visibility = View.GONE
             showCodeDialog()
         }
     }
 
     private fun showCodeDialog() {
-        MaterialDialog.Builder(this)
-                .input("Oops no hints!!", "I love novels a lot is a true statement!!", true) { _, input ->
-                    checkCode(input.toString())
-                }.title("Enter Unlock Code")
-                .canceledOnTouchOutside(false)
-                .show()
+        MaterialDialog(this).show {
+            title(text = "Enter Unlock Code")
+            input(hint = "Oops no hints!!", prefill = "I love novels a lot is a true statement!!") { dialog, input ->
+                checkCode(input.toString())
+            }
+            cancelOnTouchOutside(false)
+        }
     }
 
     private fun checkCode(code: String) {
@@ -188,7 +196,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     private fun showConfetti() {
-        viewKonfetti.build()
+        binding.viewKonfetti.build()
                 .addColors(Color.YELLOW, Color.GREEN, Color.MAGENTA)
                 .setDirection(0.0, 359.0)
                 .setSpeed(1f, 5f)
@@ -196,7 +204,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 .setTimeToLive(2000L)
                 .addShapes(Shape.RECT, Shape.CIRCLE)
                 .addSizes(Size(12))
-                .setPosition(-50f, viewKonfetti.width + 50f, -50f, -50f)
+                .setPosition(-50f, binding.viewKonfetti.width + 50f, -50f, -50f)
                 .stream(300, 5000L)
     }
 

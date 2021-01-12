@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
 import android.database.Cursor
+import android.database.sqlite.SQLiteDatabase
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.database.Novel
@@ -203,27 +204,30 @@ fun DBHelper.updateNewReleasesCount(novelId: Long, newReleasesCount: Long) {
     this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
 }
 
-fun DBHelper.updateNovelMetaData(novel: Novel) {
+fun DBHelper.updateNovelMetaData(novel: Novel, db: SQLiteDatabase? = null) {
+    val writableDatabase = db ?: this.writableDatabase
     val values = ContentValues()
     values.put(DBKeys.KEY_METADATA, Gson().toJson(novel.metadata))
-    this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novel.id.toString())).toLong()
+    writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novel.id.toString())).toLong()
 }
 
-fun DBHelper.updateChaptersAndReleasesCount(novelId: Long, totalChaptersCount: Long, newReleasesCount: Long) {
+fun DBHelper.updateChaptersAndReleasesCount(novelId: Long, totalChaptersCount: Long, newReleasesCount: Long, db: SQLiteDatabase? = null) {
+    val writableDatabase = db ?: this.writableDatabase
     val values = ContentValues()
     values.put(DBKeys.KEY_CHAPTERS_COUNT, totalChaptersCount)
     values.put(DBKeys.KEY_NEW_RELEASES_COUNT, newReleasesCount)
-    this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
+    writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
 }
 
 fun DBHelper.deleteNovel(id: Long) {
     this.writableDatabase.delete(DBKeys.TABLE_NOVEL, DBKeys.KEY_ID + " = ?", arrayOf(id.toString()))
 }
 
-fun DBHelper.updateChaptersCount(novelId: Long, chaptersCount: Long) {
+fun DBHelper.updateChaptersCount(novelId: Long, chaptersCount: Long, db: SQLiteDatabase? = null) {
+    val writableDatabase = db?:this.writableDatabase
     val values = ContentValues()
     values.put(DBKeys.KEY_CHAPTERS_COUNT, chaptersCount)
-    this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
+    writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
 }
 
 
@@ -233,7 +237,7 @@ suspend fun DBHelper.resetNovel(novel: Novel) = coroutineScope {
 
     // Notice: Cannot run getNovelDetails on MainThread
     val newNovel = NovelApi.getNovelDetails(novel.url)
-    newNovel?.novelSectionId =  novel.novelSectionId
+    newNovel?.novelSectionId = novel.novelSectionId
     newNovel?.orderId = novel.orderId
     if (newNovel != null) insertNovel(newNovel)
 }

@@ -11,7 +11,7 @@ import android.os.Bundle
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.google.android.gms.gcm.*
+import androidx.work.*
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.database.*
@@ -23,23 +23,23 @@ import io.github.gmathi.novellibrary.network.getChapterUrls
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
+import java.util.concurrent.TimeUnit
 
+class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : Worker(context, params) {
 
-class BackgroundNovelSyncTask : GcmTaskService() {
-
-    override fun onRunTask(taskParams: TaskParams): Int {
-        val context = this@BackgroundNovelSyncTask
+    override fun doWork(): Result {
         val dbHelper = DBHelper.getInstance(context)
 
-        //android.os.Debug.waitForDebugger()
+        // Enable the below line only in debug mode for triggering breakpoints
+        // android.os.Debug.waitForDebugger()
 
         try {
             if (Utils.isConnectedToNetwork(context))
                 startNovelsSync(dbHelper)
         } catch (e: Exception) {
-            return GcmNetworkManager.RESULT_RESCHEDULE
+            return Result.retry()
         }
-        return GcmNetworkManager.RESULT_SUCCESS
+        return Result.success()
     }
 
     private fun startNovelsSync(dbHelper: DBHelper) {
@@ -68,16 +68,14 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         if (totalCountMap.isEmpty()) return
 
         //Update DB with new chapters
-        totalCountMap.forEach {
-            val novel = it.key
-            novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
-            dbHelper.updateNovelMetaData(novel)
-            dbHelper.updateChaptersAndReleasesCount(
-                novel.id,
-                it.value.toLong(),
-                novel.newReleasesCount + (it.value - novel.chaptersCount)
-            )
-            updateChapters(novel, dbHelper)
+        dbHelper.writableDatabase.runTransaction { writableDatabase ->
+            totalCountMap.forEach {
+                val novel = it.key
+                novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
+                dbHelper.updateNovelMetaData(novel, writableDatabase)
+                dbHelper.updateChaptersAndReleasesCount(novel.id, it.value.toLong(), novel.newReleasesCount + (it.value - novel.chaptersCount), writableDatabase)
+                updateChapters(novel, dbHelper)
+            }
         }
 
         val novelsList: ArrayList<Novel> = ArrayList()
@@ -86,7 +84,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
             novelsList.add(novel)
         }
 
-        val novelDetailsIntent = Intent(this, NavDrawerActivity::class.java)
+        val novelDetailsIntent = Intent(this.context, NavDrawerActivity::class.java)
         novelDetailsIntent.action = Constants.Action.MAIN_ACTION
         novelDetailsIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val novelDetailsBundle = Bundle()
@@ -107,16 +105,15 @@ class BackgroundNovelSyncTask : GcmTaskService() {
      * Download latest chapters from network
      */
     private fun updateChapters(novel: Novel, dbHelper: DBHelper) {
+        //TODO: Handle Empty State
+        val chapters = NovelApi.getChapterUrls(novel) ?: ArrayList()
         try {
-            //TODO: Handle Empty State
-            val chapters = NovelApi.getChapterUrls(novel) ?: ArrayList()
-            for (i in 0 until chapters.size) {
-                if (dbHelper.getWebPage(chapters[i].url) == null)
-                    dbHelper.createWebPage(chapters[i])
-                if (dbHelper.getWebPageSettings(chapters[i].url) == null)
-                    dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id))
+            dbHelper.writableDatabase.runTransaction { writableDatabase ->
+                for (i in 0 until chapters.size) {
+                    dbHelper.createWebPage(chapters[i], writableDatabase)
+                    dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id), writableDatabase)
+                }
             }
-
         } catch (e: Exception) {
             Logs.error(TAG, "Novel: $novel", e)
         }
@@ -132,30 +129,24 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         private const val UPDATE_NOTIFICATION_GROUP = "updateNotificationGroup"
         private var NOTIFICATION_ID = 0
 
+        private fun createSyncConstraints() =
+            Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .setRequiresCharging(false)
+                .setRequiresBatteryNotLow(true)
+                .build()
+
         fun scheduleRepeat(context: Context) {
             cancelAll(context)
             //in this method, single Repeating task is scheduled (the target service that will be called is MyTaskService.class)
             try {
-                val periodic = PeriodicTask.Builder()
-                    //specify target service - must extend GcmTaskService
-                    .setService(thisClass)
-                    //repeat every 60*60 seconds = 1hr
-                    // .setPeriod(5)
-                    .setPeriod(60 * 60)
-                    //specify how much earlier the task can be executed (in seconds)
-                    //.setFlex(60*60)
-                    //tag that is unique to this task (can be used to cancel task)
-                    .setTag(TAG)
-                    //whether the task persists after device reboot
-                    .setPersisted(true)
-                    //if another task with same tag is already scheduled, replace it with this task
-                    .setUpdateCurrent(true)
-                    //set required network state, this line is optional
-                    .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
-                    //request that charging must be connected, this line is optional
-                    .setRequiresCharging(false)
+                val constraints = createSyncConstraints()
+                val periodicTask = PeriodicWorkRequestBuilder<BackgroundNovelSyncTask>(1, TimeUnit.HOURS)
+                    .setConstraints(constraints)
+                    .addTag(TAG)
                     .build()
-                GcmNetworkManager.getInstance(context).schedule(periodic)
+                WorkManager.getInstance(context).enqueue(periodicTask)
+
                 Logs.debug(TAG, "repeating task scheduled")
             } catch (e: Exception) {
                 Logs.error(TAG, "scheduling failed", e)
@@ -164,9 +155,8 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         }
 
         fun cancelAll(context: Context) {
-            GcmNetworkManager
-                .getInstance(context)
-                .cancelAllTasks(thisClass)
+            WorkManager.getInstance(context)
+                .cancelAllWorkByTag(TAG)
         }
 
     }
@@ -175,25 +165,25 @@ class BackgroundNovelSyncTask : GcmTaskService() {
         if (NOTIFICATION_ID == 0) {
             NOTIFICATION_ID = Utils.getUniqueNotificationId()
         }
-        val notificationManager = NotificationManagerCompat.from(this)
+        val notificationManager = NotificationManagerCompat.from(context)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notificationManager.createNotificationChannel(
                 NotificationChannel(
-                    getString(R.string.new_chapters_notification_channel_id),
-                    getString(R.string.new_chapters_notification_channel_name),
+                    context.getString(R.string.new_chapters_notification_channel_id),
+                    context.getString(R.string.new_chapters_notification_channel_name),
                     NotificationManager.IMPORTANCE_DEFAULT
                 ).apply {
-                    description = getString(R.string.new_chapters_notification_channel_description)
+                    description = context.getString(R.string.new_chapters_notification_channel_description)
                 })
         }
 
-        val first = createNotificationBuilder(getString(R.string.app_name), getString(R.string.group_update_notification_text), contentIntent)
+        val first = createNotificationBuilder(context.getString(R.string.app_name), context.getString(R.string.group_update_notification_text), contentIntent)
         first.setGroupSummary(true).setGroup(UPDATE_NOTIFICATION_GROUP)
         notificationManager.notify(NOTIFICATION_ID, first.build())
 
         novelsList.forEach { novel ->
             val notificationBuilder =
-                createNotificationBuilder(novel.name, getString(R.string.new_chapters_notification_content_single, novel.newReleasesCount.toInt()), createNovelDetailsPendingIntent(novel))
+                createNotificationBuilder(novel.name, context.getString(R.string.new_chapters_notification_content_single, novel.newReleasesCount.toInt()), createNovelDetailsPendingIntent(novel))
             notificationBuilder.setGroup(UPDATE_NOTIFICATION_GROUP)
             notificationManager.notify((NOTIFICATION_ID + novel.id + 1).toInt(), notificationBuilder.build())
         }
@@ -202,7 +192,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
 
     private fun createNotificationBuilder(title: String, message: String, contentIntent: PendingIntent): NotificationCompat.Builder {
         val largeIcon = BitmapFactory.decodeResource(applicationContext.resources, R.drawable.ic_library_add_white_vector)
-        val mBuilder = NotificationCompat.Builder(this, getString(R.string.new_chapters_notification_channel_id))
+        val mBuilder = NotificationCompat.Builder(context, context.getString(R.string.new_chapters_notification_channel_id))
             .setContentTitle(title)
             .setContentText(message)
             .setLargeIcon(largeIcon)
@@ -217,7 +207,7 @@ class BackgroundNovelSyncTask : GcmTaskService() {
     }
 
     private fun createNovelDetailsPendingIntent(novel: Novel): PendingIntent {
-        val novelDetailsIntent = Intent(this, NavDrawerActivity::class.java)
+        val novelDetailsIntent = Intent(context, NavDrawerActivity::class.java)
         novelDetailsIntent.action = Constants.Action.MAIN_ACTION
         novelDetailsIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val novelDetailsBundle = Bundle()

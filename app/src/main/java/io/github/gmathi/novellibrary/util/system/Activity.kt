@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.R
@@ -247,24 +248,26 @@ fun AppCompatActivity.startDownloadNovelService(novelName: String) {
     startService(serviceIntent)
 }
 
-fun AppCompatActivity.startTTSService(audioText: String, title: String, novelId: Long, sourceId: Long) {
+fun AppCompatActivity.startTTSService(audioText: String, title: String, novelId: Long, sourceId: Long, chapterIndex: Int = 0) {
     val serviceIntent = Intent(this, TTSService::class.java)
     val bundle = Bundle()
     bundle.putString(TTSService.AUDIO_TEXT_KEY, audioText)
     bundle.putString(TTSService.TITLE, title)
     bundle.putLong(TTSService.NOVEL_ID, novelId)
     bundle.putLong(TTSService.SOURCE_ID, sourceId)
+    bundle.putInt(TTSService.CHAPTER_INDEX, chapterIndex)
     serviceIntent.putExtras(bundle)
     startService(serviceIntent)
 }
 
-fun Activity.showAlertDialog(title: String? = null, message: String? = null, icon: Int = R.drawable.ic_warning_white_vector) {
+fun Activity.showAlertDialog(title: String? = null, message: String? = null, @DrawableRes icon: Int = R.drawable.ic_warning_white_vector) {
     if (title.isNullOrBlank() && message.isNullOrBlank()) return
-    val builder = MaterialDialog.Builder(this).iconRes(icon)
-    title?.let { builder.title(it) }
-    message?.let { builder.content(it) }
-    builder.positiveText(R.string.okay).onPositive { dialog, _ -> dialog.dismiss() }
-    builder.show()
+    val builder = MaterialDialog(this).show {
+        icon(icon)
+        title?.let { title(text = it) }
+        message?.let { message(text = it) }
+        positiveButton(R.string.okay)
+    }
 }
 
 /**

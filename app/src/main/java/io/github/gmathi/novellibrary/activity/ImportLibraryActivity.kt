@@ -10,11 +10,14 @@ import androidx.appcompat.view.ActionMode
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
-import com.afollestad.materialdialogs.MaterialDialog
+import com.tingyik90.snackprogressbar.SnackProgressBar
+import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.getNovelByUrl
 import io.github.gmathi.novellibrary.database.insertNovel
+import io.github.gmathi.novellibrary.databinding.ActivityImportLibraryBinding
+import io.github.gmathi.novellibrary.databinding.ListitemImportListBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.showEmpty
 import io.github.gmathi.novellibrary.extensions.showError
@@ -23,12 +26,10 @@ import io.github.gmathi.novellibrary.model.other.ImportListItem
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NovelApi
 import io.github.gmathi.novellibrary.network.getNUNovelDetails
+import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
-import kotlinx.android.synthetic.main.activity_import_library.*
-import kotlinx.android.synthetic.main.content_import_library.*
-import kotlinx.android.synthetic.main.listitem_import_list.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -36,6 +37,7 @@ import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.net.URL
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportListItem>, ActionMode.Callback {
@@ -45,12 +47,17 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
     private var updateSet: HashSet<ImportListItem> = HashSet()
     private var actionMode: ActionMode? = null
     private var job: Job? = null
+    private val isImporting: AtomicBoolean = AtomicBoolean(false)
 
+    private lateinit var binding: ActivityImportLibraryBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_import_library)
-        setSupportActionBar(toolbar)
+        
+        binding = ActivityImportLibraryBinding.inflate(layoutInflater)
+        
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setRecyclerView()
 
@@ -59,7 +66,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         if (intent.action == Intent.ACTION_VIEW || intent.action == Intent.ACTION_SEND) {
             val url = if (intent.action == Intent.ACTION_VIEW) intent.data!!.toString()
             else intent.getStringExtra(Intent.EXTRA_TEXT)
-            readingListUrlEditText.setText(url)
+            binding.contentImportLibrary.readingListUrlEditText.setText(url)
             getNovelsFromUrl()
             adapter.notifyDataSetChanged()
         }
@@ -68,35 +75,35 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
 //        getNovelsFromUrl()
 //        adapter.notifyDataSetChanged()
 
-        importCardButton.setOnClickListener {
+        binding.contentImportLibrary.importCardButton.setOnClickListener {
             getNovelsFromUrl()
             adapter.notifyDataSetChanged()
         }
 
-        headerLayout.visibility = View.GONE
+        binding.contentImportLibrary.headerLayout.visibility = View.GONE
 
-        headerLayout.setOnClickListener {
-            if (importUrlLayout.visibility == View.GONE) {
-                importUrlLayout.visibility = View.VISIBLE
-                upButton.setImageDrawable(ContextCompat.getDrawable(this@ImportLibraryActivity, R.drawable.ic_arrow_drop_up_white_vector))
+        binding.contentImportLibrary.headerLayout.setOnClickListener {
+            if (binding.contentImportLibrary.importUrlLayout.visibility == View.GONE) {
+                binding.contentImportLibrary.importUrlLayout.visibility = View.VISIBLE
+                binding.contentImportLibrary.upButton.setImageDrawable(ContextCompat.getDrawable(this@ImportLibraryActivity, R.drawable.ic_arrow_drop_up_white_vector))
             } else {
-                importUrlLayout.visibility = View.GONE
-                upButton.setImageDrawable(ContextCompat.getDrawable(this@ImportLibraryActivity, R.drawable.ic_arrow_drop_down_white_vector))
+                binding.contentImportLibrary.importUrlLayout.visibility = View.GONE
+                binding.contentImportLibrary.upButton.setImageDrawable(ContextCompat.getDrawable(this@ImportLibraryActivity, R.drawable.ic_arrow_drop_down_white_vector))
             }
         }
     }
 
     private fun setRecyclerView() {
         adapter = GenericAdapter(items = importList, layoutResId = R.layout.listitem_import_list, listener = this)
-        recyclerView.setDefaultsNoAnimation(adapter)
-        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
-        progressLayout.showEmpty(resId = R.raw.no_data_blob, emptyText = "Add a URL to see your reading list here", isLottieAnimation = true)
+        binding.contentImportLibrary.recyclerView.setDefaultsNoAnimation(adapter)
+        binding.contentImportLibrary.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
+        binding.contentImportLibrary.progressLayout.showEmpty(resId = R.raw.no_data_blob, emptyText = "Add a URL to see your reading list here", isLottieAnimation = true)
     }
 
     private fun getNovelsFromUrl() {
         lifecycleScope.launch {
             try {
-                progressLayout.showLoading()
+                binding.contentImportLibrary.progressLayout.showLoading()
                 val url = getUrl() ?: return@launch
                 val userId = getUserIdFromUrl(url)
                 val adminUrl = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
@@ -128,10 +135,10 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
                         importItem.isAlreadyInLibrary = dbHelper.getNovelByUrl(importItem.novelUrl!!) != null
                         importItem
                     }
-                    progressLayout.showContent()
-                    headerLayout.visibility = View.VISIBLE
+                    binding.contentImportLibrary.progressLayout.showContent()
+                    binding.contentImportLibrary.headerLayout.visibility = View.VISIBLE
                 } else {
-                    progressLayout.showError(errorText = "No Novels found!", buttonText = getString(R.string.try_again), onClickListener = {
+                    binding.contentImportLibrary.progressLayout.showError(errorText = "No Novels found!", buttonText = getString(R.string.try_again), onClickListener = {
                         getNovelsFromUrl()
                     })
                 }
@@ -147,7 +154,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
     }
 
     private fun getUrl(): String? {
-        val url = readingListUrlEditText?.text?.toString() ?: return null
+        val url = binding.contentImportLibrary.readingListUrlEditText?.text?.toString() ?: return null
         return try {
             val uri = Uri.parse(url) ?: return null
             if (uri.scheme!!.startsWith("http") && uri.host!!.contains(HostNames.NOVEL_UPDATES))
@@ -162,12 +169,13 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
 
 
     override fun bind(item: ImportListItem, itemView: View, position: Int) {
-        itemView.title.applyFont(assets).text = item.novelName
-        itemView.subtitle.applyFont(assets).text = item.currentlyReading
+        val binding = ListitemImportListBinding.bind(itemView)
+        binding.title.applyFont(assets).text = item.novelName
+        binding.subtitle.applyFont(assets).text = item.currentlyReading
 
-        itemView.checkbox.setOnCheckedChangeListener(null)
-        itemView.checkbox.isChecked = updateSet.contains(item)
-        itemView.checkbox.setOnCheckedChangeListener { _, isChecked ->
+        binding.checkbox.setOnCheckedChangeListener(null)
+        binding.checkbox.isChecked = updateSet.contains(item)
+        binding.checkbox.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked)
                 addToUpdateSet(item)
             else
@@ -175,12 +183,12 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         }
 
         if (item.isAlreadyInLibrary) {
-            itemView.checkbox.visibility = View.GONE
-            itemView.title.setTextColor(ContextCompat.getColor(this@ImportLibraryActivity, R.color.Lime))
-            itemView.subtitle.applyFont(assets).text = getString(R.string.already_in_library)
+            binding.checkbox.visibility = View.GONE
+            binding.title.setTextColor(ContextCompat.getColor(this@ImportLibraryActivity, R.color.Lime))
+            binding.subtitle.applyFont(assets).text = getString(R.string.already_in_library)
         } else {
-            itemView.title.setTextColor(ContextCompat.getColor(this@ImportLibraryActivity, R.color.White))
-            itemView.checkbox.visibility = View.VISIBLE
+            binding.title.setTextColor(ContextCompat.getColor(this@ImportLibraryActivity, R.color.White))
+            binding.checkbox.visibility = View.VISIBLE
         }
 
         itemView.setBackgroundColor(
@@ -266,32 +274,39 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
 
 
     private fun startImport() {
-        val dialog = MaterialDialog.Builder(this)
-            .title("Importing…")
-            .content(R.string.please_wait)
-            .progress(false, updateSet.size, true)
-            .negativeText(R.string.cancel)
-            .cancelable(false)
-            .autoDismiss(false)
-            .onNegative { dialog, _ ->
-                run {
-                    job?.cancel()
-                    actionMode?.finish()
-                    adapter.notifyDataSetChanged()
-                    dialog.dismiss()
+        if (isImporting.get()) {
+            return
+        }
+
+        isImporting.set(true)
+        
+        val snackProgressBarManager = Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this)
+        val snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, "Importing… - " + getString(R.string.please_wait))
+            .setAction(getString(R.string.cancel), object : SnackProgressBar.OnActionClickListener {
+                override fun onActionClick() {
+                    run {
+                        this@ImportLibraryActivity.job?.cancel()
+                        this@ImportLibraryActivity.actionMode?.finish()
+                        this@ImportLibraryActivity.adapter.notifyDataSetChanged()
+                        snackProgressBarManager.disable()
+                    }
                 }
-            }
-            .show()
+            })
+            .setProgressMax(updateSet.count())
+        snackProgressBarManager.show(snackProgressBar, SnackProgressBarManager.LENGTH_INDEFINITE)
+
         job = lifecycleScope.launch {
+            var progressCnt: Int = 0
             updateSet.asSequence().forEach {
-                dialog.setContent("Importing: ${it.novelName}")
+                snackProgressBarManager.updateTo(snackProgressBar.setMessage("Importing: ${it.novelName}"))
                 withContext(Dispatchers.IO) { importNovelToLibrary(it) }
                 it.isAlreadyInLibrary = true
-                dialog.incrementProgress(1)
+                snackProgressBarManager.setProgress(++progressCnt)
             }
             actionMode?.finish()
             adapter.notifyDataSetChanged()
-            dialog.dismiss()
+            snackProgressBarManager.disable()
+            isImporting.set(false)
         }
     }
 
@@ -300,6 +315,13 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         novel.id = dbHelper.insertNovel(novel)
     }
 
+    override fun onBackPressed() {
+        if (isImporting.get()) {
+            return
+        }
+
+        super.onBackPressed()
+    }
 }
 
 

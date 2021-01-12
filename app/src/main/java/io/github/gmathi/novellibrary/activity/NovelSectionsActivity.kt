@@ -13,11 +13,15 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.input.input
+import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
 import com.google.firebase.analytics.ktx.logEvent
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
+import io.github.gmathi.novellibrary.databinding.ActivityNovelSectionsBinding
+import io.github.gmathi.novellibrary.databinding.ListitemNovelSectionBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.FAC
 import io.github.gmathi.novellibrary.extensions.showEmpty
@@ -28,9 +32,6 @@ import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
 import io.github.gmathi.novellibrary.util.setDefaults
-import kotlinx.android.synthetic.main.activity_novel_sections.*
-import kotlinx.android.synthetic.main.content_recycler_view.*
-import kotlinx.android.synthetic.main.listitem_novel_section.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,14 +40,18 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
 
     lateinit var adapter: GenericAdapter<NovelSection>
     private lateinit var touchHelper: ItemTouchHelper
+    
+    private lateinit var binding: ActivityNovelSectionsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_novel_sections)
-        setSupportActionBar(toolbar)
+        
+        binding = ActivityNovelSectionsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setRecyclerView()
-        progressLayout.showLoading()
+        binding.contentRecyclerView.progressLayout.showLoading()
         setData()
     }
 
@@ -54,22 +59,22 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
         adapter = GenericAdapter(ArrayList(), R.layout.listitem_novel_section, this)
         val callback = SimpleItemTouchHelperCallback(this)
         touchHelper = ItemTouchHelper(callback)
-        touchHelper.attachToRecyclerView(recyclerView)
-        recyclerView.setDefaults(adapter)
-        recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
-        swipeRefreshLayout.isEnabled = false
+        touchHelper.attachToRecyclerView(binding.contentRecyclerView.recyclerView)
+        binding.contentRecyclerView.recyclerView.setDefaults(adapter)
+        binding.contentRecyclerView.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
+        binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false
     }
 
     private fun setData() {
         updateOrderIds()
         val novelSections = dbHelper.getAllNovelSections()
         adapter.updateData(ArrayList(novelSections))
-        if (swipeRefreshLayout != null && progressLayout != null) {
-            swipeRefreshLayout.isRefreshing = false
-            progressLayout.showContent()
+        if (binding.contentRecyclerView.swipeRefreshLayout != null && binding.contentRecyclerView.progressLayout != null) {
+            binding.contentRecyclerView.swipeRefreshLayout.isRefreshing = false
+            binding.contentRecyclerView.progressLayout.showContent()
         }
         if (novelSections.isEmpty())
-            progressLayout.showEmpty(
+            binding.contentRecyclerView.progressLayout.showEmpty(
                 resId = R.drawable.ic_info_white_vector,
                 isLottieAnimation = false,
                 emptyText = getString(R.string.novel_section_empty_message),
@@ -89,19 +94,20 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
 
     @SuppressLint("ClickableViewAccessibility")
     override fun bind(item: NovelSection, itemView: View, position: Int) {
-        itemView.novelSectionTitle.text = item.name
+        val itemBinding = ListitemNovelSectionBinding.bind(itemView)
+        itemBinding.novelSectionTitle.text = item.name
 
-        itemView.reorderButton.setOnTouchListener { _, event ->
+        itemBinding.reorderButton.setOnTouchListener { _, event ->
             @Suppress("DEPRECATION")
             if (MotionEventCompat.getActionMasked(event) ==
                 MotionEvent.ACTION_DOWN
             ) {
-                touchHelper.startDrag(recyclerView.getChildViewHolder(itemView))
+                touchHelper.startDrag(binding.contentRecyclerView.recyclerView.getChildViewHolder(itemView))
             }
             false
         }
 
-        itemView.popMenu.setOnClickListener {
+        itemBinding.popMenu.setOnClickListener {
             val popup = PopupMenu(this@NovelSectionsActivity, it)
             popup.menuInflater.inflate(R.menu.menu_popup_novel_section, popup.menu)
 
@@ -154,18 +160,21 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
     }
 
     private fun onItemRemove(position: Int) {
-        MaterialDialog.Builder(this)
-            .title(getString(R.string.confirm_remove))
-            .content(getString(R.string.confirm_remove_description_novel_section))
-            .positiveText(R.string.remove)
-            .negativeText(R.string.cancel)
-            .onPositive { dialog, _ ->
-                run {
+        MaterialDialog(this).show {
+            title(R.string.confirm_remove)
+            message(R.string.confirm_remove_description_novel_section)
+            positiveButton(R.string.remove) { dialog ->
+                this@NovelSectionsActivity.run {
                     val novelSection = adapter.items[position]
                     if (novelSection.id != -1L) {
                         dbHelper.getAllNovels(novelSection.id).forEach {
                             dbHelper.updateNovelSectionId(it.id, -1L)
-                            NovelSync.getInstance(it)?.applyAsync(lifecycleScope) { sync -> if (dataCenter.getSyncAddNovels(sync.host)) sync.updateNovel(it, null) }
+                            NovelSync.getInstance(it)?.applyAsync(lifecycleScope) { sync ->
+                                if (dataCenter.getSyncAddNovels(sync.host)) sync.updateNovel(
+                                    it,
+                                    null
+                                )
+                            }
                         }
                         dbHelper.deleteNovelSection(novelSection.id)
                     }
@@ -176,20 +185,20 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                     dialog.dismiss()
                 }
             }
-            .onNegative { dialog, _ ->
-                run {
+            negativeButton(R.string.cancel) { dialog ->
+                this@NovelSectionsActivity.run {
                     adapter.notifyDataSetChanged()
                     dialog.dismiss()
                 }
             }
-            .show()
+        }
     }
 
     private fun onItemRename(position: Int) {
         val novelSection = adapter.items[position]
-        MaterialDialog.Builder(this)
-            .title(getString(R.string.rename))
-            .input(getString(R.string.novel_section_name), novelSection.name) { dialog, input ->
+        MaterialDialog(this).show {
+            title(R.string.rename)
+            input(hintRes = R.string.novel_section_name, prefill = novelSection.name) { dialog, input ->
                 val newName = input.trim().toString()
                 if (newName.isNotBlank() && dbHelper.getNovelSection(newName) == null) {
                     dbHelper.updateNovelSectionName(novelSection.id, newName)
@@ -197,24 +206,37 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                     val oldName = novelSection.name
                     lifecycleScope.launch {
                         NovelSync.getAllInstances().forEach {
-                            withContext(Dispatchers.IO) { if (dataCenter.getSyncAddNovels(it.host)) it.renameSection(novelSection, oldName, newName) }
+                            withContext(Dispatchers.IO) {
+                                if (dataCenter.getSyncAddNovels(it.host)) it.renameSection(
+                                    novelSection,
+                                    oldName,
+                                    newName
+                                )
+                            }
                         }
                     }
                     firebaseAnalytics.logEvent(FAC.Event.RENAME_NOVEL_SECTION) {
                         param(FAC.Param.NOVEL_SECTION_NAME, newName)
                     }
                 } else {
-                    MaterialDialog.Builder(this@NovelSectionsActivity).content(getString(R.string.novel_section_name_error)).show()
+                    MaterialDialog(this@NovelSectionsActivity).show {
+                        message(R.string.novel_section_name_error)
+                        lifecycleOwner(this@NovelSectionsActivity)
+                    }
                 }
                 dialog.dismiss()
-            }.show()
+            }
+            positiveButton(R.string.okay)
+
+            lifecycleOwner(this@NovelSectionsActivity)
+        }
     }
 
     private fun addNovelSection() {
-        MaterialDialog.Builder(this)
-            .title(getString(R.string.add_novel_section_title))
-            .content(getString(R.string.add_novel_section_description))
-            .input(getString(R.string.novel_section_name), "") { dialog, input ->
+        MaterialDialog(this).show {
+            title(R.string.add_novel_section_title)
+            message(R.string.add_novel_section_description)
+            input(hintRes = R.string.novel_section_name) { dialog, input ->
                 val name = input.trim().toString()
                 if (name.isNotBlank() && dbHelper.getNovelSection(name) == null) {
                     dbHelper.createNovelSection(name)
@@ -223,10 +245,13 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                         param(FAC.Param.NOVEL_SECTION_NAME, name)
                     }
                 } else {
-                    MaterialDialog.Builder(this@NovelSectionsActivity).content(getString(R.string.novel_section_name_error)).show()
+                    MaterialDialog(this@NovelSectionsActivity).show {
+                        message(R.string.novel_section_name_error)
+                    }
                 }
                 dialog.dismiss()
-            }.show()
+            }
+        }
     }
 
     override fun onPause() {

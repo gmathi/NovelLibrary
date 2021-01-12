@@ -140,24 +140,30 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     private suspend fun addToDB(forceUpdate: Boolean) = withContext(Dispatchers.IO) {
         loadingStatus.postValue("Adding/Updating Cache…")
 
-        if (forceUpdate) {
-            //Delete the current data
-            dbHelper.deleteWebPages(novel.id)
-            chapters?.forEach { dbHelper.deleteWebPage(it.url) }
+        //DB transaction for faster insertions
+        dbHelper.writableDatabase.runTransaction { writableDatabase ->
 
-            // We will not delete chapter settings so as to not delete the downloaded chapters file location.
-            // dbHelper.deleteWebPageSettings(novel.id)
+            if (forceUpdate) {
+                //Delete the current data
+                dbHelper.deleteWebPages(novel.id, writableDatabase)
+                chapters?.forEach { dbHelper.deleteWebPage(it.url, writableDatabase) }
+
+                // We will not delete chapter settings so as to not delete the downloaded chapters file location.
+                // dbHelper.deleteWebPageSettings(novel.id)
+            }
+
+            val chaptersList = chapters ?: return@runTransaction
+            val chaptersCount = chaptersList.size
+            dbHelper.updateChaptersCount(novel.id, chaptersCount.toLong(), writableDatabase)
+
+
+            for (i in 0 until chaptersCount) {
+                loadingStatus.postValue("Caching Chapters: $i/$chaptersCount")
+                dbHelper.createWebPage(chaptersList[i], writableDatabase)
+                dbHelper.createWebPageSettings(WebPageSettings(chaptersList[i].url, novel.id), writableDatabase)
+            }
         }
 
-        val chaptersList = chapters ?: return@withContext
-        val chaptersCount = chaptersList.size
-        dbHelper.updateChaptersCount(novel.id, chaptersCount.toLong())
-
-        for (i in 0 until chaptersCount) {
-            loadingStatus.postValue("Caching Chapters: $i/$chaptersCount")
-            dbHelper.createWebPage(chaptersList[i])
-            dbHelper.createWebPageSettings(WebPageSettings(chaptersList[i].url, novel.id))
-        }
         chapters = dbHelper.getAllWebPages(novel.id)
         chapterSettings = dbHelper.getAllWebPageSettings(novel.id)
     }
@@ -188,8 +194,8 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
                     callback?.let { it() }
                 }
                 DELETE_DOWNLOADS -> deleteDownloadedChapters(webPages)
-                MARK_READ -> updateReadStatus(webPages, 1)
-                MARK_UNREAD -> updateReadStatus(webPages, 0)
+                MARK_READ -> updateReadStatus(webPages, markRead = true)
+                MARK_UNREAD -> updateReadStatus(webPages, markRead = false)
                 MARK_FAVORITE -> updateFavoriteStatus(webPages, true)
                 REMOVE_FAVORITE -> updateFavoriteStatus(webPages, false)
             }
@@ -237,24 +243,24 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
 
     private suspend fun addChaptersToDownloadQueue(webPages: List<WebPage>) = withContext(Dispatchers.IO) {
         var counter = 0
-        webPages.forEach {
-            withContext(Dispatchers.IO) {
+        dbHelper.writableDatabase.runTransaction { writableDatabase ->
+            webPages.forEach {
                 val download = Download(it.url, novel.name, it.chapter)
                 download.orderId = it.orderId.toInt()
-                dbHelper.createDownload(download)
+                dbHelper.createDownload(download, writableDatabase)
                 actionModeProgress.postValue(counter++.toString())
             }
         }
     }
 
-    private suspend fun updateReadStatus(webPages: ArrayList<WebPage>, readStatus: Int) = withContext(Dispatchers.IO) {
+    private suspend fun updateReadStatus(webPages: ArrayList<WebPage>, markRead: Boolean) = withContext(Dispatchers.IO) {
         var counter = 0
         val chapters = ArrayList(webPages)
-        chapters.forEach { webPage ->
-            withContext(Dispatchers.IO) sub@{
-                val chaptersSettingsList = chapterSettings ?: return@sub
-                val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@sub
-                dbHelper.updateWebPageSettingsReadStatus(webPageSettings.url, readStatus, HashMap(webPageSettings.metadata))
+        val chaptersSettingsList = chapterSettings ?: return@withContext
+        dbHelper.writableDatabase.runTransaction { writableDatabase ->
+            chapters.forEach { webPage ->
+                val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@runTransaction
+                dbHelper.updateWebPageSettingsReadStatus(webPageSettings, markRead, writableDatabase)
                 actionModeProgress.postValue(counter++.toString())
             }
         }
@@ -264,12 +270,12 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     private suspend fun updateFavoriteStatus(webPages: ArrayList<WebPage>, favoriteStatus: Boolean) = withContext(Dispatchers.IO) {
         var counter = 0
         val chapters = ArrayList(webPages)
-        chapters.forEach { webPage ->
-            withContext(Dispatchers.IO) sub@{
-                val chaptersSettingsList = chapterSettings ?: return@sub
-                val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@sub
+        val chaptersSettingsList = chapterSettings ?: return@withContext
+        dbHelper.writableDatabase.runTransaction { writableDatabase ->
+            chapters.forEach { webPage ->
+                val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@runTransaction
                 webPageSettings.metadata[Constants.MetaDataKeys.IS_FAVORITE] = favoriteStatus.toString()
-                dbHelper.updateWebPageSettings(webPageSettings)
+                dbHelper.updateWebPageSettings(webPageSettings, writableDatabase)
                 actionModeProgress.postValue(counter++.toString())
             }
         }

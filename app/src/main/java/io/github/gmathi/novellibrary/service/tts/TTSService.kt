@@ -54,6 +54,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         const val TITLE = "title"
         const val NOVEL_ID = "novelId"
         const val SOURCE_ID = "sourceId"
+        const val CHAPTER_INDEX = "chapterIndex"
 
         const val ACTION_STOP = "actionStop"
         const val ACTION_PAUSE = "actionPause"
@@ -156,6 +157,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         audioText = intent?.extras?.getString(AUDIO_TEXT_KEY, null) ?: ""
         title = intent?.extras?.getString(TITLE, null) ?: ""
         sourceId = intent?.extras?.getLong(SOURCE_ID, 0L) ?: 0L
+        chapterIndex = intent?.extras?.getInt(CHAPTER_INDEX, 0) ?: 0
 
         metadataCompat.displayTitle = novel?.name ?: "Novel Name Not Found"
         metadataCompat.displaySubtitle = title

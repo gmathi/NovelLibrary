@@ -3,6 +3,8 @@ package io.github.gmathi.novellibrary.database
 import android.content.ContentValues
 import android.database.Cursor
 import android.database.DatabaseUtils
+import android.database.sqlite.SQLiteDatabase
+import android.text.TextUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.database.Download
@@ -12,10 +14,11 @@ import kotlin.collections.HashMap
 
 //private const val LOG = "DownloadHelper"
 
-fun DBHelper.createDownload(download: Download) {
+fun DBHelper.createDownload(download: Download, db: SQLiteDatabase? = null) {
+    val writableDatabase = db ?: this.writableDatabase
     //Check 1st
     val selectQuery = "SELECT * FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_WEB_PAGE_URL} = ?"
-    val cursor = this.readableDatabase.rawQuery(selectQuery, arrayOf(download.webPageUrl))
+    val cursor = writableDatabase.rawQuery(selectQuery, arrayOf(download.webPageUrl))
     val recordExists = cursor != null && cursor.count > 0
     cursor.close()
     if (recordExists)
@@ -28,7 +31,7 @@ fun DBHelper.createDownload(download: Download) {
     values.put(DBKeys.KEY_STATUS, Download.STATUS_PAUSED)
     values.put(DBKeys.KEY_ORDER_ID, download.orderId)
     values.put(DBKeys.KEY_METADATA, Gson().toJson(HashMap<String, String?>()))
-    this.writableDatabase.insert(DBKeys.TABLE_DOWNLOAD, null, values)
+    writableDatabase.insert(DBKeys.TABLE_DOWNLOAD, null, values)
 }
 
 fun DBHelper.getDownload(webPageUrl: String): Download? {
@@ -160,6 +163,21 @@ fun DBHelper.hasDownloadsInQueue(novelName: String): Boolean {
 fun DBHelper.getRemainingDownloadsCountForNovel(novelName: String): Int {
     val selectQuery = "SELECT COUNT(*) FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NAME} = ?"
     return DatabaseUtils.longForQuery(this.readableDatabase, selectQuery, arrayOf(novelName)).toInt()
+}
+
+fun DBHelper.getAllDownloadsForNovel(novelName: String, downloadUrls: List<String>): List<Download> {
+    val list = ArrayList<Download>()
+    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NAME} = ? AND ${DBKeys.KEY_WEB_PAGE_URL} IN (${TextUtils.join(",", Collections.nCopies(downloadUrls.count(), "?"))})"
+    val cursor = this.readableDatabase.rawQuery(selectQuery, arrayOf(novelName) + downloadUrls.toTypedArray())
+    if (cursor != null) {
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(getDownload(cursor))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+    }
+    return list
 }
 
 

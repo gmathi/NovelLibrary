@@ -12,10 +12,12 @@ import android.os.Looper
 import android.view.KeyEvent
 import android.view.View
 import android.view.View.*
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.webkit.MimeTypeMap
 import android.webkit.WebView
 import android.widget.CompoundButton
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.lifecycleScope
@@ -24,9 +26,15 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.MATCH_PARENT
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.WRAP_CONTENT
 import androidx.viewpager.widget.ViewPager
-import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.Theme
+import com.afollestad.materialdialogs.WhichButton
+import com.afollestad.materialdialogs.actions.setActionButtonEnabled
+import com.afollestad.materialdialogs.customview.customView
+import com.afollestad.materialdialogs.customview.getCustomView
+import com.afollestad.materialdialogs.internal.main.DialogTitleLayout
+import com.afollestad.materialdialogs.list.checkItem
+import com.afollestad.materialdialogs.list.listItemsSingleChoice
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.analytics.ktx.logEvent
 import com.yarolegovich.slidingrootnav.SlideGravity
 import com.yarolegovich.slidingrootnav.SlidingRootNav
@@ -37,6 +45,9 @@ import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.WebPageFragmentPageListener
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
+import io.github.gmathi.novellibrary.databinding.ActivityReaderPagerBinding
+import io.github.gmathi.novellibrary.databinding.ItemOptionBinding
+import io.github.gmathi.novellibrary.databinding.MenuLeftDrawerBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
@@ -52,11 +63,9 @@ import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.Utils.getFormattedText
+import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
-import kotlinx.android.synthetic.main.activity_reader_pager.*
-import kotlinx.android.synthetic.main.item_option.view.*
-import kotlinx.android.synthetic.main.menu_left_drawer.*
 import org.greenrobot.eventbus.EventBus
 import java.io.File
 import java.util.*
@@ -105,10 +114,15 @@ class ReaderDBPagerActivity :
 
     private var sourceId: Long = -1L
     private var webPages: List<WebPage> = ArrayList()
+    
+    lateinit var binding: ActivityReaderPagerBinding
+    private lateinit var bindingList: MenuLeftDrawerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_reader_pager)
+
+        binding = ActivityReaderPagerBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         if (dataCenter.keepScreenOn)
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -130,13 +144,13 @@ class ReaderDBPagerActivity :
             webPages = webPages.reversed()
 
         adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, webPages.size, WebPageFragmentPageListener(novel, webPages))
-        viewPager.addOnPageChangeListener(this)
-        viewPager.adapter = adapter
+        binding.viewPager.addOnPageChangeListener(this)
+        binding.viewPager.adapter = adapter
 
         //Set the current page to the bookmarked webPage
         novel.currentChapterUrl?.let { bookmarkUrl ->
             val index = webPages.indexOfFirst { it.url == bookmarkUrl }
-            if (index != -1) viewPager.currentItem = index
+            if (index != -1) binding.viewPager.currentItem = index
             if (index == 0) updateBookmark(webPages[0])
         }
 
@@ -145,13 +159,13 @@ class ReaderDBPagerActivity :
         screenIcons = loadScreenIcons()
         screenTitles = loadScreenTitles()
         slideMenuAdapterSetup()
-        menuNav.setOnClickListener {
+        binding.menuNav.setOnClickListener {
             toggleSlideRootNab()
         }
 
         // Easy access to open reader menu button
         if (!dataCenter.isReaderModeButtonVisible)
-            menuNav.visibility = INVISIBLE
+            binding.menuNav.visibility = INVISIBLE
     }
 
     private fun updateBookmark(webPage: WebPage) {
@@ -163,7 +177,7 @@ class ReaderDBPagerActivity :
         NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, webPage) }
         val webPageSettings = dbHelper.getWebPageSettings(webPage.url)
         if (webPageSettings != null) {
-            dbHelper.updateWebPageSettingsReadStatus(webPageSettings.url, 1, webPageSettings.metadata)
+            dbHelper.updateWebPageSettingsReadStatus(webPageSettings, markRead = true)
         }
     }
 
@@ -172,7 +186,7 @@ class ReaderDBPagerActivity :
         super.onWindowFocusChanged(hasFocus)
 
         if (hasFocus && dataCenter.enableImmersiveMode) {
-            main_content.fitsSystemWindows = false
+            binding.mainContent.fitsSystemWindows = false
             window.decorView.systemUiVisibility = Constants.IMMERSIVE_MODE_FLAGS
         }
     }
@@ -190,35 +204,36 @@ class ReaderDBPagerActivity :
     }
 
     private fun changeTextSize() {
-        val dialog = MaterialDialog.Builder(this)
-            .title(R.string.text_size)
-            .customView(R.layout.dialog_slider, true)
-            .build()
-        dialog.show()
+        val dialog = MaterialDialog(this).show {
+            title(R.string.text_size)
+            customView(R.layout.dialog_slider, scrollable = true)
 
-        dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setOnSeekBarChangedListener { _, progress ->
-            dataCenter.textSize = progress.toInt()
-            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
+            getCustomView()?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setOnSeekBarChangedListener { _, progress ->
+                dataCenter.textSize = progress.toInt()
+                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
+            }
+            getCustomView()?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setProgress(dataCenter.textSize.toDouble())
         }
-        dialog.customView?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setProgress(dataCenter.textSize.toDouble())
+
     }
 
     private fun reportPage() {
-        MaterialDialog.Builder(this)
-            .content("Please use discord to report a bug.")
-            .positiveText("Ok")
-            .onPositive { dialog, _ -> dialog.dismiss() }
-            .show()
+        MaterialDialog(this).show {
+            message(text = "Please use discord to report a bug.")
+            positiveButton(text = "Ok") {
+                it.dismiss()
+            }
+        }
     }
 
     private fun inBrowser() {
-        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
+        val url = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
         if (url != null)
             openInBrowser(url)
     }
 
     private fun share() {
-        val url = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
+        val url = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
         if (url != null) {
             shareUrl(url)
         }
@@ -227,7 +242,7 @@ class ReaderDBPagerActivity :
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val action = event.action
         val keyCode = event.keyCode
-        val webView = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
+        val webView = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as WebPageDBFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
         return when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
@@ -255,7 +270,7 @@ class ReaderDBPagerActivity :
 
 
     override fun onBackPressed() {
-        val currentFrag = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as WebPageDBFragment)
+        val currentFrag = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as WebPageDBFragment)
         when {
             currentFrag.history.isNotEmpty() -> currentFrag.goBack()
             //currentFrag.readerWebView.canGoBack() -> currentFrag.readerWebView.goBack()
@@ -270,20 +285,23 @@ class ReaderDBPagerActivity :
         return if (index == -1)
             false
         else {
-            viewPager.currentItem = index
+            binding.viewPager.currentItem = index
             updateBookmark(webPage)
             true
         }
     }
 
     private fun slideMenuSetup(savedInstanceState: Bundle?) {
-        slidingRootNav = SlidingRootNavBuilder(this)
+        val slidingRootNavBuilder = SlidingRootNavBuilder(this)
             .withMenuOpened(false)
             .withContentClickableWhenMenuOpened(true)
             .withSavedState(savedInstanceState)
             .withGravity(SlideGravity.RIGHT)
             .withMenuLayout(R.layout.menu_left_drawer)
-            .inject()
+        slidingRootNav = slidingRootNavBuilder.inject()
+
+        var view = slidingRootNav.layout.getChildAt(0)
+        bindingList = MenuLeftDrawerBinding.bind(view)
     }
 
     private fun slideMenuAdapterSetup() {
@@ -304,9 +322,10 @@ class ReaderDBPagerActivity :
             ) as List<DrawerItem<DrawerAdapter.ViewHolder>>
         )
         adapter.setListener(this)
-        list.isNestedScrollingEnabled = false
-        list.layoutManager = LinearLayoutManager(this)
-        list.adapter = adapter
+        
+        bindingList.list.isNestedScrollingEnabled = false
+        bindingList.list.layoutManager = LinearLayoutManager(this)
+        bindingList.list.adapter = adapter
     }
 
     private fun createItemFor(position: Int): DrawerItem<SimpleItem.ViewHolder> {
@@ -350,48 +369,7 @@ class ReaderDBPagerActivity :
     override fun onItemSelected(position: Int) {
         slidingRootNav.closeMenu()
         when (position) {
-            FONTS -> {
-                if (AVAILABLE_FONTS.isEmpty())
-                    getAvailableFonts()
-
-                var selectedFont = dataCenter.fontPath.substringAfterLast('/')
-                    .substringBeforeLast('.')
-                    .replace('_', ' ')
-
-                var typeFace = createTypeface()
-
-                val dialog = MaterialDialog.Builder(this)
-                    .theme(Theme.DARK)
-                    .title(getString(R.string.title_fonts))
-                    .items(AVAILABLE_FONTS.keys)
-                    .alwaysCallSingleChoiceCallback()
-                    .itemsCallbackSingleChoice(AVAILABLE_FONTS.keys.indexOf(selectedFont)) { dialog, _, which, font ->
-                        if (which == 0) {
-                            addFont()
-                            dialog.dismiss()
-                        } else {
-                            val fontPath = AVAILABLE_FONTS[font.toString()]
-                            if (fontPath != null) {
-                                selectedFont = font.toString()
-                                typeFace = createTypeface(fontPath)
-                                dialog.setTypeface(dialog.titleView, typeFace)
-                            } else {
-                                dialog.selectedIndex = AVAILABLE_FONTS.keys.indexOf(selectedFont)
-                                dialog.notifyItemsChanged()
-                            }
-                        }
-                        true
-                    }
-                    .onPositive { _, which ->
-                        if (which == DialogAction.POSITIVE) {
-                            dataCenter.fontPath = AVAILABLE_FONTS[selectedFont] ?: ""
-                            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
-                        }
-                    }
-                    .positiveText(R.string.okay)
-                    .show()
-                dialog.setTypeface(dialog.titleView, typeFace)
-            }
+            FONTS -> changeFontStyle()
             FONT_SIZE -> changeTextSize()
             REPORT_PAGE -> reportPage()
             OPEN_IN_BROWSER -> inBrowser()
@@ -399,10 +377,12 @@ class ReaderDBPagerActivity :
             MORE_SETTINGS -> startReaderSettingsActivity()
             READ_ALOUD -> {
                 if (dataCenter.readerMode) {
-                    val webPageDBFragment = (viewPager.adapter?.instantiateItem(viewPager, viewPager.currentItem) as? WebPageDBFragment)
+                    val webPageDBFragment = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as? WebPageDBFragment)
                     val audioText = webPageDBFragment?.doc?.getFormattedText() ?: return
                     val title = webPageDBFragment.doc?.title() ?: ""
-                    startTTSService(audioText, title, novel.id, sourceId)
+                    val chapterIndex = (if (dataCenter.japSwipe) webPages.reversed() else webPages).indexOf(webPages[binding.viewPager.currentItem])
+
+                    startTTSService(audioText, title, novel.id, sourceId, chapterIndex)
                     firebaseAnalytics.logEvent(FAC.Event.LISTEN_NOVEL) {
                         param(FAC.Param.NOVEL_NAME, novel.name)
                         param(FAC.Param.NOVEL_URL, novel.url)
@@ -422,40 +402,42 @@ class ReaderDBPagerActivity :
             itemView.visibility = VISIBLE
             itemView.layoutParams = RecyclerView.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
         }
+        
+        val itemBinding = ItemOptionBinding.bind(itemView)
 
-        itemView.title.text = item.title
-        itemView.icon.setImageDrawable(item.icon)
-        itemView.itemSwitch.setOnCheckedChangeListener(null)
+        itemBinding.title.text = item.title
+        itemBinding.icon.setImageDrawable(item.icon)
+        itemBinding.itemSwitch.setOnCheckedChangeListener(null)
 
         if (simpleItem.isSwitchOn() && position == READER_MODE) {
-            itemView.itemSwitch.visibility = VISIBLE
-            itemView.itemSwitch.isChecked = dataCenter.readerMode
+            itemBinding.itemSwitch.visibility = VISIBLE
+            itemBinding.itemSwitch.isChecked = dataCenter.readerMode
         } else if (simpleItem.isSwitchOn() && position == NIGHT_MODE) {
             if (!dataCenter.readerMode) {
                 itemView.visibility = GONE
                 itemView.layoutParams = RecyclerView.LayoutParams(0, 0)
             } else {
-                itemView.itemSwitch.visibility = VISIBLE
-                itemView.itemSwitch.isChecked = dataCenter.isDarkTheme
+                itemBinding.itemSwitch.visibility = VISIBLE
+                itemBinding.itemSwitch.isChecked = dataCenter.isDarkTheme
             }
         } else if (simpleItem.isSwitchOn() && position == JAVA_SCRIPT) {
             if (dataCenter.readerMode) {
                 itemView.visibility = GONE
                 itemView.layoutParams = RecyclerView.LayoutParams(0, 0)
             } else {
-                itemView.itemSwitch.visibility = VISIBLE
-                itemView.itemSwitch.isChecked = !dataCenter.javascriptDisabled
+                itemBinding.itemSwitch.visibility = VISIBLE
+                itemBinding.itemSwitch.isChecked = !dataCenter.javascriptDisabled
             }
         } else
-            itemView.itemSwitch.visibility = GONE
+            itemBinding.itemSwitch.visibility = GONE
 
-        itemView.itemSwitch.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
+        itemBinding.itemSwitch.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
             when (position) {
                 READER_MODE -> {
                     dataCenter.readerMode = isChecked
                     if (isChecked && !dataCenter.javascriptDisabled)
                         dataCenter.javascriptDisabled = true
-                    list.adapter?.notifyItemRangeChanged(NIGHT_MODE, 2)
+                    bindingList.list.adapter?.notifyItemRangeChanged(NIGHT_MODE, 2)
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
                 }
                 NIGHT_MODE -> {
@@ -469,6 +451,60 @@ class ReaderDBPagerActivity :
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCRIPT))
                 }
             }
+        }
+    }
+    
+    private fun changeFontStyle() {
+        if (AVAILABLE_FONTS.isEmpty())
+            getAvailableFonts()
+
+        var selectedFont = dataCenter.fontPath.substringAfterLast('/')
+            .substringBeforeLast('.')
+            .replace('_', ' ')
+
+        var typeFace = createTypeface()
+        
+        MaterialDialog(this).show {
+            title(R.string.title_fonts)
+
+            val exampleText = TextView(this@ReaderDBPagerActivity)
+            exampleText.textAlignment = TEXT_ALIGNMENT_CENTER
+            exampleText.text = getString(R.string.title_fonts)
+            exampleText.textSize = 24F
+            exampleText.setTypeface(typeFace, Typeface.NORMAL)
+            customView(view = exampleText)
+
+            listItemsSingleChoice(items = AVAILABLE_FONTS.keys.toMutableList(), waitForPositiveButton = false) { dialog, which, font ->
+                if (which == 0) {
+                    addFont()
+                    dialog.dismiss()
+                } else {
+                    Logs.debug("ReaderDBPagerActivity", "font $which $font")
+                    val fontPath = AVAILABLE_FONTS[font.toString()]
+                    if (fontPath != null) {
+                        selectedFont = font.toString()
+                        typeFace = createTypeface(fontPath)
+                        // Currently doesn't work
+                        //dialog.setTypeface(dialog.titleView, typeFace)
+                        getCustomView()?.let { 
+                            launchUI {
+                                val it = it as TextView
+                                it.setTypeface(typeFace, Typeface.NORMAL)
+                            }
+                        }
+
+                        setActionButtonEnabled(WhichButton.POSITIVE, true)
+                    } else {
+                        dialog.checkItem(AVAILABLE_FONTS.keys.indexOf(selectedFont))
+                    }
+                }
+            }
+            positiveButton(R.string.okay) { _ ->
+                dataCenter.fontPath = AVAILABLE_FONTS[selectedFont] ?: ""
+                EventBus.getDefault()
+                    .post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+            }
+            negativeButton(R.string.cancel)
         }
     }
 

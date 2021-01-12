@@ -4,18 +4,21 @@ import android.os.Bundle
 import android.view.MenuItem
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
+import io.github.gmathi.novellibrary.databinding.ActivityCopyrightBinding
 import io.github.gmathi.novellibrary.util.applyFont
-import kotlinx.android.synthetic.main.activity_copyright.*
-import kotlinx.android.synthetic.main.content_copyright.*
 
 class CopyrightActivity : BaseActivity() {
+    
+    private lateinit var binding: ActivityCopyrightBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_copyright)
-        setSupportActionBar(toolbar)
+        
+        binding = ActivityCopyrightBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        copyrightContentTextView.applyFont(assets)
+        binding.contentCopyright.copyrightContentTextView.applyFont(assets)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

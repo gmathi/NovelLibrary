@@ -6,12 +6,15 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getAllNovels
+import io.github.gmathi.novellibrary.databinding.ActivityLibrarySearchBinding
+import io.github.gmathi.novellibrary.databinding.ListitemLibraryBinding
 import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
 import io.github.gmathi.novellibrary.util.system.startChaptersActivity
@@ -21,9 +24,6 @@ import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.view.SimpleAnimationListener
 import io.github.gmathi.novellibrary.util.view.SuggestionsBuilder
-import kotlinx.android.synthetic.main.activity_library_search.*
-import kotlinx.android.synthetic.main.content_recycler_view.*
-import kotlinx.android.synthetic.main.listitem_library.view.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
 import org.cryse.widget.persistentsearch.SearchItem
 
@@ -35,33 +35,37 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
 
     private var isDateSorted = false
     private var isTitleSorted = false
+    
+    private lateinit var binding: ActivityLibrarySearchBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_library_search)
+        
+        binding = ActivityLibrarySearchBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         setSearchView()
         setRecyclerView()
     }
 
     private fun setSearchView() {
         //searchView.setHomeButtonVisibility(View.GONE)
-        searchView.setHomeButtonListener(object : PersistentSearchView.HomeButtonListener {
+        binding.searchView.setHomeButtonListener(object : PersistentSearchView.HomeButtonListener {
             override fun onHomeButtonClick() {
                 hideSoftKeyboard()
                 finish()
             }
         })
 
-        searchView.setSuggestionBuilder(SuggestionsBuilder(dataCenter.loadLibrarySearchHistory()))
-        searchView.setSearchListener(object : PersistentSearchView.SearchListener {
+        binding.searchView.setSuggestionBuilder(SuggestionsBuilder(dataCenter.loadLibrarySearchHistory()))
+        binding.searchView.setSearchListener(object : PersistentSearchView.SearchListener {
 
             override fun onSearch(query: String?) {
                 query?.addToLibrarySearchHistory()
             }
 
             override fun onSearchEditOpened() {
-                searchViewBgTint.visibility = View.VISIBLE
-                searchViewBgTint
+                binding.searchViewBgTint.visibility = View.VISIBLE
+                binding.searchViewBgTint
                     .animate()
                     .alpha(1.0f)
                     .setDuration(300)
@@ -70,14 +74,14 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
             }
 
             override fun onSearchEditClosed() {
-                searchViewBgTint
+                binding.searchViewBgTint
                     .animate()
                     .alpha(0.0f)
                     .setDuration(300)
                     .setListener(object : SimpleAnimationListener() {
                         override fun onAnimationEnd(animation: Animator) {
                             super.onAnimationEnd(animation)
-                            searchViewBgTint.visibility = View.GONE
+                            binding.searchViewBgTint.visibility = View.GONE
                         }
                     })
                     .start()
@@ -101,8 +105,8 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
 
             override fun onSearchEditBackPressed(): Boolean {
                 //Toast.makeText(context, "onSearchEditBackPressed", Toast.LENGTH_SHORT).show()
-                if (searchView.searchOpen) {
-                    searchView.closeSearch()
+                if (binding.searchView.searchOpen) {
+                    binding.searchView.closeSearch()
                     return true
                 }
                 return false
@@ -112,7 +116,7 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
 
     private fun setRecyclerView() {
         adapter = GenericAdapter(items = ArrayList(allNovelsList), layoutResId = R.layout.listitem_library, listener = this, loadMoreListener = null)
-        recyclerView.setDefaults(adapter)
+        binding.contentRecyclerView.recyclerView.setDefaults(adapter)
     }
 
     private fun searchNovels(searchTerm: String?) {
@@ -127,24 +131,25 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
     }
 
     override fun bind(item: Novel, itemView: View, position: Int) {
-        itemView.novelImageView.setImageResource(android.R.color.transparent)
+        val itemBinding = ListitemLibraryBinding.bind(itemView)
+        itemBinding.novelImageView.setImageResource(android.R.color.transparent)
 
         if (!item.imageUrl.isNullOrBlank()) {
             Glide.with(this)
                 .load(item.imageUrl?.getGlideUrl())
                 .apply(RequestOptions.circleCropTransform())
-                .into(itemView.novelImageView)
+                .into(itemBinding.novelImageView)
         }
 
-        itemView.novelTitleTextView.text = item.name
-        itemView.novelTitleTextView.isSelected = dataCenter.enableScrollingText
+        itemBinding.novelTitleTextView.text = item.name
+        itemBinding.novelTitleTextView.isSelected = dataCenter.enableScrollingText
 
         val lastRead = item.metadata[Constants.MetaDataKeys.LAST_READ_DATE] ?: "N/A"
         val lastUpdated = item.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] ?: "N/A"
 
-        itemView.lastOpenedDate.text = getString(R.string.last_read_n_updated, lastRead, lastUpdated)
+        itemBinding.lastOpenedDate.text = getString(R.string.last_read_n_updated, lastRead, lastUpdated)
 
-        itemView.popMenu.setOnClickListener {
+        itemBinding.popMenu.setOnClickListener {
             val popup = PopupMenu(this, it)
             popup.menuInflater.inflate(R.menu.menu_popup_novel, popup.menu)
             popup.menu.findItem(R.id.action_novel_remove).isVisible = false
@@ -164,7 +169,7 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
             popup.show()
         }
 
-        itemView.readChapterImage.setOnClickListener {
+        itemBinding.readChapterImage.setOnClickListener {
             startReader(item)
         }
     }
@@ -173,15 +178,19 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
         if (novel.currentChapterUrl != null) {
             startReaderDBPagerActivity(novel)
         } else {
-            val confirmDialog = this.let {
-                MaterialDialog.Builder(it)
-                    .title(getString(R.string.no_bookmark_found_dialog_title))
-                    .content(getString(R.string.no_bookmark_found_dialog_description, novel.name))
-                    .positiveText(getString(R.string.okay))
-                    .negativeText(R.string.cancel)
-                    .onPositive { dialog, _ -> it.startChaptersActivity(novel, false); dialog.dismiss() }
+           this.let {
+                MaterialDialog(this).show {
+                    title(R.string.no_bookmark_found_dialog_title)
+                    message(text = getString(R.string.no_bookmark_found_dialog_description, novel.name))
+                    positiveButton(R.string.okay) { dialog ->
+                        it.startChaptersActivity(novel, false)
+                        dialog.dismiss()
+                    }
+                    negativeButton(R.string.cancel)
+
+                    lifecycleOwner(this@LibrarySearchActivity)
+                }
             }
-            confirmDialog!!.show()
         }
     }
 

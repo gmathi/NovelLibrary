@@ -50,13 +50,15 @@ open class HtmlCleaner protected constructor() {
             SelectorQuery("div.text-formatting"),
             SelectorQuery("article.single__contents"),
             //SelectorQuery("article.story-part"),
-            SelectorQuery("div#chapter"),
+            SelectorQuery("div#chapter"), // HostedNovel
+            SelectorQuery("div.chapter"), //HostedNovel
             //TODO: Xiaxia novel, needs more analysis to fix pre-formatting (jsoup not supporting)
             SelectorQuery("section#StoryContent"),
             SelectorQuery("div.content-container"),
             SelectorQuery("article.article-content"),
             SelectorQuery("div.page-content"),
-            SelectorQuery("div.legacy-journal") // Sample: deviantart journals (NU group: darksilencer)
+            SelectorQuery("div.legacy-journal"), // Sample: deviantart journals (NU group: darksilencer)
+            SelectorQuery("article.entry-content") //GitHub
         )
 
         private const val TAG = "HtmlHelper"
@@ -74,6 +76,7 @@ open class HtmlCleaner protected constructor() {
                 url.contains(HostNames.SCRIBBLE_HUB) -> return ScribbleHubCleaner()
                 url.contains(HostNames.NEOVEL) -> return NeovelCleaner()
                 url.contains(HostNames.ACTIVE_TRANSLATIONS) -> return ActiveTranslationsCleaner()
+                url.contains(HostNames.CHRYSANTHEMUMGARDEN) -> return ChrysanthemumgardenCleaner()
             }
 
             val body = doc.body()
@@ -231,7 +234,7 @@ open class HtmlCleaner protected constructor() {
         return file
     }
 
-    fun getTitle(doc: Document): String? = doc.head().getElementsByTag("title").text()
+    open fun getTitle(doc: Document): String? = doc.head().getElementsByTag("title").text()
 
     open fun toggleTheme(isDark: Boolean, doc: Document): Document = toggleThemeDefault(isDark, doc)
 
@@ -632,5 +635,4 @@ open class HtmlCleaner protected constructor() {
     private fun invertColor(red: Long, green: Long, blue: Long, alpha: Long): String {
         return invertColor(red / 255.0, green / 255.0, blue / 255.0, alpha / 255.0)
     }
-
 }
