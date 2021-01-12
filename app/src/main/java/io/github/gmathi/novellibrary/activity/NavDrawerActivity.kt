@@ -96,13 +96,13 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 title(text = "\uD83C\uDF89 What's New 0.16.beta!")
                 message(text =
 
-                    "✨️ New Source - \"Neovel\"\n" +
-                            "✨️ Add your own selector query for websites not yet discovered/supported. (Refer to \"Jsoup Selectors\" for more info)\n" +
-                            "✨ Detailed Sync Status so you know the progress!\n" +
-                            "✨ Add support for <abbr> and footnotes Keep IDs by default\n" +
-//                            "⚠️ Fix - No Novels/Chapters loading issue due to ssl errors\n" +
-//                            "⚠️ Fix - ActiveTranslations will work in reader mode\n" +
-//                            "⚠️ Fix - Read Aloud bug for Wuxia novels\n" +
+                    "✨️ Internal Structural Changes - Faster Processing!\n" +
+                            "✨️ Support GitHub\n" +
+                            "✨ UI Changes - New SnackBar!\n" +
+                            "✨ Font Style Preview!\n" +
+                            "⚠️ Fix - Hosted novels offline downloads announcement page\n" +
+                            "⚠️ Fix - Positive button of Font style changer wasn't allowed\n" +
+                            "⚠️ Fix - Read Aloud bug going back to 1st chapter\n" +
                             "\uD83D\uDEE0️ Other major/minor bug fixes.\n" +
 //                            "\uD83D\uDEE0 Support for 3 more translation sites in reader mode.\n" +
 //                            "\uD83D\uDEE0 Discord link updated.\n" +
