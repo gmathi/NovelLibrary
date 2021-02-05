@@ -361,7 +361,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             //Update DB with new chapters
             waitList.clear()
             counter = 0
-            syncSnackbarManager.updateTo(syncSnackbarManager.getLastShown()?.setProgressMax(totalCountMap.count())!!)
+            withContext(Dispatchers.Main) {
+                syncSnackbarManager.updateTo(syncSnackbarManager.getLastShown()?.setProgressMax(totalCountMap.count())!!)
+            }
             totalCountMap.forEach {
                 val updatedNovel = it.key
                 counter++
