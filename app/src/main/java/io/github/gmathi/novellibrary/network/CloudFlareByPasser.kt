@@ -12,6 +12,7 @@ import androidx.annotation.RequiresApi
 import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.system.setDefaultSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -27,57 +28,73 @@ object CloudFlareByPasser {
 
     @SuppressLint("SetJavaScriptEnabled")
     fun check(context: Context, hostName: String = HostNames.NOVEL_UPDATES, callback: (state: State) -> Unit) {
-        if (isNeeded(hostName)) {
-            callback.invoke(State.CREATING)
-            Logs.error(TAG, "is needed")
-            clearCookies(hostName)
+        launchUI {
+            if (isNeeded(hostName)) {
+                callback.invoke(State.CREATING)
+                Logs.error(TAG, "is needed")
+                clearCookies(hostName)
 
-            val webView = WebView(context)
-            webView.setDefaultSettings()
-            webView.apply {
-                settings.javaScriptEnabled = true
-                settings.userAgentString = HostNames.USER_AGENT
+                val webView = WebView(context)
+                webView.setDefaultSettings()
+                webView.apply {
+                    settings.javaScriptEnabled = true
+                    settings.userAgentString = HostNames.USER_AGENT
 
-                webViewClient = object : WebViewClient() {
+                    webViewClient = object : WebViewClient() {
 
-                    @Suppress("OverridingDeprecatedMember")
-                    override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                        Log.d(TAG, "Override $url")
-                        if (url.toString() == "https://www.$hostName/") {
-                            Log.d(TAG, "Cookies: " + CookieManager.getInstance().getCookie("https://www.$hostName/"))
-                            if (saveCookies(hostName)) {
-                                callback.invoke(State.CREATED)
+                        @Suppress("OverridingDeprecatedMember")
+                        override fun shouldOverrideUrlLoading(
+                            view: WebView?,
+                            url: String?
+                        ): Boolean {
+                            Log.d(TAG, "Override $url")
+                            if (url.toString() == "https://www.$hostName/") {
+                                Log.d(
+                                    TAG,
+                                    "Cookies: " + CookieManager.getInstance()
+                                        .getCookie("https://www.$hostName/")
+                                )
+                                if (saveCookies(hostName)) {
+                                    callback.invoke(State.CREATED)
+                                }
                             }
+                            return false
                         }
-                        return false
-                    }
 
-                    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-                    override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                        Log.d(TAG, "Override ${request?.url}")
-                        if (request?.url.toString() == "https://www.$hostName/") {
-                            Log.d(TAG, "Cookies: " + CookieManager.getInstance().getCookie("https://www.$hostName/"))
-                            if (saveCookies(hostName)) {
-                                callback.invoke(State.CREATED)
+                        @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+                        override fun shouldOverrideUrlLoading(
+                            view: WebView?,
+                            request: WebResourceRequest?
+                        ): Boolean {
+                            Log.d(TAG, "Override ${request?.url}")
+                            if (request?.url.toString() == "https://www.$hostName/") {
+                                Log.d(
+                                    TAG,
+                                    "Cookies: " + CookieManager.getInstance()
+                                        .getCookie("https://www.$hostName/")
+                                )
+                                if (saveCookies(hostName)) {
+                                    callback.invoke(State.CREATED)
+                                }
                             }
+                            return false
                         }
-                        return false
-                    }
 
-                    override fun onPageFinished(view: WebView?, url: String?) {
-                        val cookies = CookieManager.getInstance().getCookie(url)
-                        if (cookies != null && cookies.contains("cf_clearance")) {
-                            if (saveCookies(hostName)) {
-                                callback.invoke(State.CREATED)
+                        override fun onPageFinished(view: WebView?, url: String?) {
+                            val cookies = CookieManager.getInstance().getCookie(url)
+                            if (cookies != null && cookies.contains("cf_clearance")) {
+                                if (saveCookies(hostName)) {
+                                    callback.invoke(State.CREATED)
+                                }
                             }
                         }
                     }
                 }
+                webView.loadUrl("https://www.$hostName")
+            } else {
+                callback.invoke(State.UNNEEDED)
+                Log.i(TAG, "Not needed")
             }
-            webView.loadUrl("https://www.$hostName")
-        } else {
-            callback.invoke(State.UNNEEDED)
-            Log.i(TAG, "Not needed")
         }
     }
 
