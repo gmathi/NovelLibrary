@@ -28,6 +28,7 @@ import io.github.gmathi.novellibrary.extensions.showEmpty
 import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.network.sync.NovelSync
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
@@ -35,6 +36,7 @@ import io.github.gmathi.novellibrary.util.setDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.lang.Exception
 
 class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSection>, SimpleItemTouchListener {
 
@@ -182,8 +184,12 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                         db.novelSectionDao().delete(novelSection)
                     }
                     setData()
-                    firebaseAnalytics.logEvent(FAC.Event.REMOVE_NOVEL_SECTION) {
-                        param(FAC.Param.NOVEL_SECTION_NAME, novelSection.name ?: "N/A")
+                    try {
+                        firebaseAnalytics.logEvent(FAC.Event.REMOVE_NOVEL_SECTION) {
+                            param(FAC.Param.NOVEL_SECTION_NAME, novelSection.name ?: "N/A")
+                        }
+                    } catch (ex: Exception) {
+                        Logs.error(this::class.simpleName, ex.message)
                     }
                     dialog.dismiss()
                 }

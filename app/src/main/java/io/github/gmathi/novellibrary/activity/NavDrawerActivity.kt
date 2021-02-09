@@ -46,7 +46,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private var snackBar: Snackbar? = null
     private var currentNavId: Int = R.id.nav_search
 
-    private val snackProgressBarManager by lazy { Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this).setMessageMaxLines(3) };
+    private val snackProgressBarManager by lazy { Utils.createSnackProgressBarManager(binding.appBarNavDrawer.navFragmentContainer, this).setMessageMaxLines(3) };
     private var cloudFlareLoadingSnack: SnackProgressBar? = null
     private val isCloudflareChecking = AtomicBoolean(false)
 
@@ -138,18 +138,16 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             loadFragment(currentNavId)
         }
 
-        launchIO {
-            CloudFlareByPasser.check(this@NavDrawerActivity, "novelupdates.com") { state ->
-                if (!isDestroyed) {
-                    if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
-                        if (cloudFlareLoadingSnack != null) {
-                            lifecycleScope.launch {
-                                showWhatsNewDialog()
-                                checkIntentForNotificationData()
-                                snackProgressBarManager.dismiss()
-                                cloudFlareLoadingSnack = null
-                                isCloudflareChecking.set(false)
-                            }
+        CloudFlareByPasser.check(this@NavDrawerActivity, "novelupdates.com") { state ->
+            if (!isDestroyed) {
+                if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
+                    if (cloudFlareLoadingSnack != null) {
+                        lifecycleScope.launch {
+                            showWhatsNewDialog()
+                            checkIntentForNotificationData()
+                            snackProgressBarManager.dismiss()
+                            cloudFlareLoadingSnack = null
+                            isCloudflareChecking.set(false)
                         }
                     }
                 }
