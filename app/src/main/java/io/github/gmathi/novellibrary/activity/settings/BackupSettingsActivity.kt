@@ -79,6 +79,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private var workRequestId: UUID? = null
     
     private val isDeletingFiles = AtomicBoolean(false)
+    private val isBackup = AtomicBoolean(false)
     
     private lateinit var binding: ActivitySettingsBinding
 
@@ -371,9 +372,15 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 if (workRequest != null) {
                     val workManager = WorkManager.getInstance(applicationContext)
                     workManager.enqueue(workRequest)
+                    isBackup.set(true)
+                    binding.contentRecyclerView.progressLayout.isEnabled = false
+
                     val observable = workManager.getWorkInfoByIdLiveData(workRequest.id)
                     observable.observe(this, Observer { info ->
                         if (info != null && arrayOf(State.SUCCEEDED, State.FAILED, State.CANCELLED).contains(info.state)) {
+                            isBackup.set(false)
+                            binding.contentRecyclerView.progressLayout.isEnabled = true
+
                             @Suppress("NON_EXHAUSTIVE_WHEN")
                             when (info.state) {
                                 State.SUCCEEDED -> showDialog(iconRes = R.drawable.ic_check_circle_white_vector, content = info.outputData.getString(WORK_KEY_RESULT))
@@ -448,7 +455,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     override fun onBackPressed() {
-        if (isDeletingFiles.get()) {
+        if (isDeletingFiles.get() || isBackup.get()) {
             return
         }
 
