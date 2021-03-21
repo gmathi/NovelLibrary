@@ -1,12 +1,13 @@
 package io.github.gmathi.novellibrary.source
 
-import io.github.gmathi.novellibrary.model.database.Chapter
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.other.NovelsPage
 import io.github.gmathi.novellibrary.model.source.filter.FilterList
 import io.github.gmathi.novellibrary.model.source.online.ParsedHttpSource
 import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_EXTERNAL_ID
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_IMPLEMENTATION
 import io.github.gmathi.novellibrary.util.network.asJsoup
@@ -16,10 +17,13 @@ import okhttp3.Request
 import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import java.net.URLEncoder
 
 
 class NovelFullSource : ParsedHttpSource() {
 
+    override val id: Long
+        get() = Constants.SourceId.NOVEL_FULL
     override val baseUrl: String
         get() = "https://${HostNames.NOVEL_FULL}"
     override val lang: String
@@ -29,15 +33,17 @@ class NovelFullSource : ParsedHttpSource() {
     override val name: String
         get() = "Novel Full"
 
-    override val client: OkHttpClient = network.cloudflareClient
+    override val client: OkHttpClient
+        get() = network.cloudflareClient
 
     override fun headersBuilder(): Headers.Builder = Headers.Builder()
-            .add("User-Agent", USER_AGENT)
-            .add("Referer", baseUrl)
+        .add("User-Agent", USER_AGENT)
+        .add("Referer", baseUrl)
 
     //region Search Novel
     override fun searchNovelsRequest(page: Int, query: String, filters: FilterList): Request {
-        val url = "$baseUrl/search?keyword=${query.replace(" ", "+")}&page=$page"
+        val encodedQuery = URLEncoder.encode(query, "UTF-8")
+        val url = "$baseUrl/search?keyword=${encodedQuery.replace(" ", "+")}&page=$page"
         return GET(url, headers)
     }
 
@@ -56,7 +62,7 @@ class NovelFullSource : ParsedHttpSource() {
     }
 
     override fun searchNovelsFromElement(element: Element): Novel {
-        val novel = Novel(element.select("h3.truyen-title").text(), element.select("h3.truyen-title").select("a[href]").attr("abs:href"))
+        val novel = Novel(element.select("h3.truyen-title").text(), element.select("h3.truyen-title").select("a[href]").attr("abs:href"), this.id)
         novel.imageUrl = element.select("img.cover").attr("abs:src")
         return novel
     }
@@ -90,10 +96,10 @@ class NovelFullSource : ParsedHttpSource() {
 
 
     override fun chapterListSelector() = "select.chapter_jump option"
-    override fun chapterFromElement(element: Element): Chapter {
+    override fun chapterFromElement(element: Element): WebPage {
         val url = "https://${HostNames.NOVEL_FULL}${element.attr("value")}"
         val name = element.text()
-        return Chapter(url, name)
+        return WebPage(url, name)
     }
 
     override fun chapterListRequest(novel: Novel): Request {

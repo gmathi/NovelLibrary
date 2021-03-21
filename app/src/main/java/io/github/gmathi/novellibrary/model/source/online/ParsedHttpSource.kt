@@ -1,8 +1,7 @@
-
 package io.github.gmathi.novellibrary.model.source.online
 
 import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.model.database.Chapter
+import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.other.NovelsPage
 import io.github.gmathi.novellibrary.util.network.asJsoup
 import okhttp3.Response
@@ -53,7 +52,6 @@ abstract class ParsedHttpSource : HttpSource() {
     protected abstract fun popularNovelNextPageSelector(): String?
 
 
-
     /**
      * Parses the response from the site and returns a [NovelsPage] object.
      *
@@ -91,7 +89,6 @@ abstract class ParsedHttpSource : HttpSource() {
      * there's no next page.
      */
     protected abstract fun searchNovelsNextPageSelector(): String?
-
 
 
     /**
@@ -133,7 +130,6 @@ abstract class ParsedHttpSource : HttpSource() {
     protected abstract fun latestUpdatesNextPageSelector(): String?
 
 
-
     /**
      * Parses the response from the site and returns the details of a novel.
      *
@@ -151,13 +147,12 @@ abstract class ParsedHttpSource : HttpSource() {
     protected abstract fun novelDetailsParse(novel: Novel, document: Document): Novel
 
 
-
     /**
      * Parses the response from the site and returns a list of chapters.
      *
      * @param response the response from the site.
      */
-    override fun chapterListParse(novel: Novel, response: Response): List<Chapter> {
+    override fun chapterListParse(novel: Novel, response: Response): List<WebPage> {
         val document = response.asJsoup()
         return document.select(chapterListSelector()).mapIndexed { index, element ->
             val chapter = chapterFromElement(element)
@@ -177,6 +172,6 @@ abstract class ParsedHttpSource : HttpSource() {
      *
      * @param element an element obtained from [chapterListSelector].
      */
-    protected abstract fun chapterFromElement(element: Element): Chapter
+    protected abstract fun chapterFromElement(element: Element): WebPage
 }
 

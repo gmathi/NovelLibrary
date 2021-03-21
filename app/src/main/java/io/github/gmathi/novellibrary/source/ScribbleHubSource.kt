@@ -1,22 +1,26 @@
 package io.github.gmathi.novellibrary.source
 
-import io.github.gmathi.novellibrary.model.database.Chapter
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.source.filter.FilterList
 import io.github.gmathi.novellibrary.model.source.online.ParsedHttpSource
 import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.POST
-import io.github.gmathi.novellibrary.util.Exceptions.MISSING_EXTERNAL_ID
+import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Exceptions
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_IMPLEMENTATION
 import io.github.gmathi.novellibrary.util.network.asJsoup
 import okhttp3.*
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import java.net.URLEncoder
 
 
 class ScribbleHubSource : ParsedHttpSource() {
 
+    override val id: Long
+        get() = Constants.SourceId.SCRIBBLE_HUB
     override val baseUrl: String
         get() = "https://www.${HostNames.SCRIBBLE_HUB}"
     override val lang: String
@@ -26,23 +30,25 @@ class ScribbleHubSource : ParsedHttpSource() {
     override val name: String
         get() = "Scribble Hub"
 
-    override val client: OkHttpClient = network.cloudflareClient
+    override val client: OkHttpClient
+        get() = network.cloudflareClient
 
     override fun headersBuilder(): Headers.Builder = Headers.Builder()
-            .add("User-Agent", USER_AGENT)
-            .add("Referer", baseUrl)
+        .add("User-Agent", USER_AGENT)
+        .add("Referer", baseUrl)
 
     //region Search Novel
     override fun searchNovelsRequest(page: Int, query: String, filters: FilterList): Request {
-        val url = "$baseUrl/?s=${query.replace(" ", "+")}&post_type=fictionposts&paged=$page"
+        val encodedQuery = URLEncoder.encode(query, "UTF-8")
+        val url = "$baseUrl/?s=${encodedQuery.replace(" ", "+")}&post_type=fictionposts&paged=$page"
         return GET(url, headers)
     }
 
     override fun searchNovelsFromElement(element: Element): Novel {
         val urlElement = element.select("div.search_title > a[href]")
-        val novel = Novel(urlElement.text(), urlElement.attr("abs:href"))
+        val novel = Novel(urlElement.text(), urlElement.attr("abs:href"), id)
         novel.imageUrl = element.select("div.search_img > img[src]").attr("abs:src")
-        novel.rating = element.select("div.search_img").select("span.search_ratings").text().replace("(", "").replace(")", "")
+        novel.rating = element.select("div.search_img").select("div.search_ratings").text().replace("(", "").replace(")", "")
         return novel
     }
 
@@ -78,9 +84,9 @@ class ScribbleHubSource : ParsedHttpSource() {
 
 
     override fun chapterListSelector() = "a[href]"
-    override fun chapterFromElement(element: Element) = Chapter(element.attr("abs:href"), element.attr("title"))
+    override fun chapterFromElement(element: Element) = WebPage(element.attr("abs:href"), element.attr("title"))
 
-    override fun chapterListParse(novel: Novel, response: Response): List<Chapter> {
+    override fun chapterListParse(novel: Novel, response: Response): List<WebPage> {
         val document = response.asJsoup()
         return document.select(chapterListSelector()).reversed().mapIndexed { index, element ->
             val chapter = chapterFromElement(element)
@@ -91,14 +97,14 @@ class ScribbleHubSource : ParsedHttpSource() {
     }
 
     override fun chapterListRequest(novel: Novel): Request {
-        val id = novel.externalNovelId ?: throw Exception(MISSING_EXTERNAL_ID)
+        val scribbleNovelId = novel.externalNovelId ?: novel.metadata["PostId"] ?: throw Exception(Exceptions.INVALID_NOVEL)
         val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
         val formBody: RequestBody = FormBody.Builder()
-                .add("action", "wi_gettocchp")
-                .add("strSID", id)
-                .add("strmypostid", "0")
-                .add("strFic", "yes")
-                .build()
+            .add("action", "wi_gettocchp")
+            .add("strSID", scribbleNovelId)
+            .add("strmypostid", "0")
+            .add("strFic", "yes")
+            .build()
         return POST(url, body = formBody)
     }
 

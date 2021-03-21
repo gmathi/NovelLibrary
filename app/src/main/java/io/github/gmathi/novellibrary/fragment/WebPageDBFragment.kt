@@ -11,7 +11,6 @@ import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
@@ -19,24 +18,20 @@ import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ReaderDBPagerActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getWebPageSettings
 import io.github.gmathi.novellibrary.database.updateWebPageSettings
 import io.github.gmathi.novellibrary.databinding.FragmentReaderBinding
-import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.dataFetchError
 import io.github.gmathi.novellibrary.extensions.noInternetError
 import io.github.gmathi.novellibrary.extensions.showLoading
-import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
-import io.github.gmathi.novellibrary.network.CloudFlareByPasser
+import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.system.setDefaultSettings
 import kotlinx.coroutines.*
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -46,7 +41,6 @@ import org.greenrobot.eventbus.ThreadMode
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
-import java.net.URL
 
 
 class WebPageDBFragment : BaseFragment() {
@@ -57,7 +51,7 @@ class WebPageDBFragment : BaseFragment() {
     var doc: Document? = null
     var history: ArrayList<WebPageSettings> = ArrayList()
     var job: Job? = null
-    
+
     private lateinit var binding: FragmentReaderBinding
 
     companion object {
@@ -79,7 +73,7 @@ class WebPageDBFragment : BaseFragment() {
         binding = FragmentReaderBinding.bind(view)
         return view
     }
-    
+
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -130,8 +124,7 @@ class WebPageDBFragment : BaseFragment() {
             }
 
             if (dataCenter.isReaderModeButtonVisible) {
-                if (activity != null && activity is ReaderDBPagerActivity) {
-                    val activity = requireActivity() as ReaderDBPagerActivity
+                if (activity is ReaderDBPagerActivity) {
                     if (scrollY > oldScrollY && scrollY > 0) activity.binding.menuNav.visibility = View.GONE
                     if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) activity.binding.menuNav.visibility = View.VISIBLE
                 }
@@ -148,19 +141,19 @@ class WebPageDBFragment : BaseFragment() {
         }
     }
 
-    private fun checkForCloudFlare() {
-        if (activity != null)
-            CloudFlareByPasser.check(requireActivity(), "novelupdates.com") { state ->
-                if (activity != null) {
-                    if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
-                        Toast.makeText(activity, "Cloud Flare Bypassed", Toast.LENGTH_SHORT).show()
-                        binding.readerWebView.loadUrl("about:blank")
-                        binding.readerWebView.clearHistory()
-                        loadData()
-                    }
-                }
-            }
-    }
+//    private fun checkForCloudFlare() {
+//        if (activity != null)
+//            CloudFlareByPasser.check(requireActivity(), "novelupdates.com") { state ->
+//                if (activity != null) {
+//                    if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
+//                        Toast.makeText(activity, "Cloud Flare Bypassed", Toast.LENGTH_SHORT).show()
+//                        binding.readerWebView.loadUrl("about:blank")
+//                        binding.readerWebView.clearHistory()
+//                        loadData()
+//                    }
+//                }
+//            }
+//    }
 
     @SuppressLint("JavascriptInterface", "AddJavascriptInterface")
     private fun setWebView() {
@@ -178,8 +171,8 @@ class WebPageDBFragment : BaseFragment() {
                     return true
                 }
 
-                if (url == "abc://retry_internal")
-                    checkForCloudFlare()
+//                if (url == "abc://retry_internal")
+//                    checkForCloudFlare()
 
                 //Add current page to history, if it was not already added or if the history is empty
 //                if (history.isEmpty()) history.add(webPage!!)
@@ -208,7 +201,7 @@ class WebPageDBFragment : BaseFragment() {
                 Logs.debug("WebViewDBFragment", "${Uri.parse(url).host}: All the cookiesMap in a string: $cookies")
 
                 if (url != "about:blank" && cookies != null && cookies.contains("cfduid") && cookies.contains("cf_clearance")) {
-                    CloudFlareByPasser.saveCookies(URL(url))
+//                    CloudFlareByPasser.saveCookies(URL(url))
                 }
 
                 webPageSettings.let {
@@ -304,7 +297,7 @@ class WebPageDBFragment : BaseFragment() {
         binding.progressLayout.showLoading()
 
         //If no network
-        if (!Utils.isConnectedToNetwork(activity)) {
+        if (!networkHelper.isConnectedToNetwork()) {
             binding.progressLayout.noInternetError {
                 downloadWebPage(url)
             }
@@ -314,12 +307,12 @@ class WebPageDBFragment : BaseFragment() {
         job = lifecycleScope.launch download@{
             try {
 
-                doc = withContext(Dispatchers.IO) { NovelApi.getDocument(url) }
+                doc = withContext(Dispatchers.IO) { WebPageDocumentFetcher.document(url) }
 
                 if (doc != null) {
 
                     if (doc!!.location().contains("rssbook") && doc!!.location().contains(HostNames.QIDIAN)) {
-                        doc = withContext(Dispatchers.IO) { NovelApi.getDocument(doc!!.location().replace("rssbook", "book")) }
+                        doc = withContext(Dispatchers.IO) { WebPageDocumentFetcher.document(doc!!.location().replace("rssbook", "book")) }
                     }
 //                    if (doc!!.location().contains("/nu/") && doc!!.location().contains(HostNames.FLYING_LINES)) {
 //                        doc = withContext(Dispatchers.IO) { NovelApi.getDocumentWithUserAgent(doc!!.location().replace("/nu/", "/chapter/")) }
@@ -378,7 +371,7 @@ class WebPageDBFragment : BaseFragment() {
                                 // Check if URL is from chapter provider, only download from same domain
                                 val urlDomain = getUrlDomain(linkedUrl)
                                 if (urlDomain == baseUrlDomain) {
-                                    val otherDoc = withContext(Dispatchers.IO) { NovelApi.getDocument(linkedUrl) }
+                                    val otherDoc = withContext(Dispatchers.IO) { WebPageDocumentFetcher.document(linkedUrl) }
                                     val helper = HtmlCleaner.getInstance(otherDoc)
                                     helper.removeJS(otherDoc)
                                     helper.additionalProcessing(otherDoc)

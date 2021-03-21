@@ -13,22 +13,23 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.work.*
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.database.getAllNovels
-import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.util.storage.notNullAndExists
-import io.github.gmathi.novellibrary.util.system.NotificationReceiver
-import io.github.gmathi.novellibrary.util.view.ProgressNotificationManager
 import io.github.gmathi.novellibrary.util.Constants.DATABASES_DIR
 import io.github.gmathi.novellibrary.util.Constants.DATA_SUBFOLDER
 import io.github.gmathi.novellibrary.util.Constants.FILES_DIR
 import io.github.gmathi.novellibrary.util.Constants.SHARED_PREFS_DIR
 import io.github.gmathi.novellibrary.util.Constants.SIMPLE_NOVEL_BACKUP_FILE_NAME
 import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
+import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.storage.notNullAndExists
+import io.github.gmathi.novellibrary.util.system.NotificationReceiver
+import io.github.gmathi.novellibrary.util.view.ProgressNotificationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import uy.kohesive.injekt.injectLazy
 import java.io.*
 import java.util.zip.ZipOutputStream
 
@@ -45,18 +46,21 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
         const val UNIQUE_WORK_NAME = "backup_work"
     }
 
-    // region Context wrapper (to improve readability)
-    private fun getString(@StringRes resId: Int, vararg formatArgs: Any): String =
-        if (formatArgs.isEmpty())
-            applicationContext.getString(resId)
-        else
-            applicationContext.getString(resId, formatArgs)
+    private val dbHelper: DBHelper by injectLazy()
+    private val dataCenter: DataCenter by injectLazy()
 
     private val contentResolver
         get() = applicationContext.contentResolver
 
     private val cacheDir
         get() = applicationContext.cacheDir
+
+    // region Context wrapper (to improve readability)
+    private fun getString(@StringRes resId: Int, vararg formatArgs: Any): String =
+        if (formatArgs.isEmpty())
+            applicationContext.getString(resId)
+        else
+            applicationContext.getString(resId, formatArgs)
 
     private fun sendBroadcast(intent: Intent) =
         applicationContext.sendBroadcast(intent)

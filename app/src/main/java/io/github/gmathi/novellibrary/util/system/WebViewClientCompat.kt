@@ -2,11 +2,7 @@ package io.github.gmathi.novellibrary.util.system
 
 import android.annotation.TargetApi
 import android.os.Build
-import android.webkit.WebResourceError
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.*
 
 @Suppress("OverridingDeprecatedMember")
 abstract class WebViewClientCompat : WebViewClient() {

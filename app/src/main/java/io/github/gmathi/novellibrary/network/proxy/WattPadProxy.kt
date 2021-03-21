@@ -1,18 +1,14 @@
 package io.github.gmathi.novellibrary.network.proxy
 
-import org.jsoup.Connection
+import okhttp3.Response
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
 class WattPadProxy : BaseProxyHelper() {
 
-    companion object {
-
-    }
-
     @ExperimentalStdlibApi
-    override fun document(res: Connection.Response): Document {
-        val doc = res.parse()
+    override fun document(response: Response): Document {
+        val doc = super.document(response)
 
         // Get second half URL
         val urlRegex = """^[ \n\t]*window\.prefetched *= *\{".+?":\{"data":\{.*?"text_url":\{"text":"([^"]+?)"""".toRegex()
@@ -31,7 +27,6 @@ class WattPadProxy : BaseProxyHelper() {
             contentElem.append(secondHalfContent)
         } else
             contentElem.append("<br/><p><b>ERROR: Failed to load second half of chapter.</b></p>")
-
         return doc
     }
 

@@ -1,24 +1,20 @@
 package io.github.gmathi.novellibrary.fragment
 
+//import io.github.gmathi.novellibrary.network.sync.NovelSync
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
-import com.afollestad.materialdialogs.DialogCallback
-import com.afollestad.materialdialogs.MaterialDialog
 import com.hanks.library.AnimateCheckBox
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ChaptersPagerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapterSelectTitleProvider
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.databinding.FragmentSourceChaptersBinding
 import io.github.gmathi.novellibrary.databinding.ListitemChapterBinding
-import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
@@ -26,12 +22,12 @@ import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.other.ChapterActionModeEvent
 import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.other.EventType
-import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.util.Constants.ALL_TRANSLATOR_SOURCES
 import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
 import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.util.system.startWebViewActivity
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -43,12 +39,12 @@ class ChaptersFragment : BaseFragment(),
     companion object {
 
         private const val NOVEL = "novel"
-        private const val SOURCE_ID = "sourceId"
+        private const val TRANSLATOR_SOURCE_NAME = "translatorSourceName"
 
-        fun newInstance(novel: Novel, sourceId: Long): ChaptersFragment {
+        fun newInstance(novel: Novel, translatorSourceName: String): ChaptersFragment {
             val bundle = Bundle()
-            bundle.putSerializable(NOVEL, novel)
-            bundle.putLong(SOURCE_ID, sourceId)
+            bundle.putParcelable(NOVEL, novel)
+            bundle.putString(TRANSLATOR_SOURCE_NAME, translatorSourceName)
             val fragment = ChaptersFragment()
             fragment.arguments = bundle
             return fragment
@@ -56,11 +52,11 @@ class ChaptersFragment : BaseFragment(),
     }
 
     lateinit var novel: Novel
+    private lateinit var translatorSourceName: String
     lateinit var adapter: GenericAdapterSelectTitleProvider<WebPage>
 
-    private var sourceId: Long = -1L
     private var lastKnownRecyclerState: Parcelable? = null
-    
+
     private lateinit var binding: FragmentSourceChaptersBinding
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -71,9 +67,8 @@ class ChaptersFragment : BaseFragment(),
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        novel = requireArguments().getSerializable(NOVEL) as Novel
-        sourceId = requireArguments().getLong(SOURCE_ID)
-
+        novel = requireArguments().getParcelable<Novel>(NOVEL) as Novel
+        translatorSourceName = requireArguments().getString(TRANSLATOR_SOURCE_NAME) ?: ALL_TRANSLATOR_SOURCES
         binding.progressLayout.showLoading()
         setRecyclerView()
         setData()
@@ -89,17 +84,23 @@ class ChaptersFragment : BaseFragment(),
     }
 
     private fun setData(shouldScrollToBookmark: Boolean = true, shouldScrollToFirstUnread: Boolean = true) {
-        val chaptersPagerActivity = activity as? ChaptersPagerActivity
-        if (chaptersPagerActivity != null) {
-            val chapters = (if (sourceId == -1L) chaptersPagerActivity.vm.chapters else chaptersPagerActivity.vm.chapters?.filter { it.translatorSourceId == sourceId }) ?: ArrayList<WebPage>()
+        (activity as? ChaptersPagerActivity)?.let { activity ->
+
+            val chapters = (
+                    if (translatorSourceName == ALL_TRANSLATOR_SOURCES)
+                        activity.vm.chapters
+                    else
+                        activity.vm.chapters?.filter { it.translatorSourceName == translatorSourceName }
+                    ) ?: ArrayList()
+
             if (chapters.isNotEmpty()) {
                 adapter.updateData(if (novel.metadata["chapterOrder"] == "des") ArrayList(chapters.reversed()) else ArrayList(chapters))
                 binding.progressLayout.showContent()
                 if (shouldScrollToBookmark)
                     scrollToBookmark()
                 else if (shouldScrollToFirstUnread)
-                    scrollToFirstUnread(chaptersPagerActivity.vm.chapterSettings ?: throw Error("Invalid Chapter Settings"))
-                if (chaptersPagerActivity.dataSet.isNotEmpty()) {
+                    scrollToFirstUnread(activity.vm.chapterSettings ?: throw Error("Invalid Chapter Settings"))
+                if (activity.dataSet.isNotEmpty()) {
                     lastKnownRecyclerState?.let { binding.recyclerView.layoutManager?.onRestoreInstanceState(it) }
                 }
             } else
@@ -118,9 +119,9 @@ class ChaptersFragment : BaseFragment(),
     private fun scrollToFirstUnread(chaptersSettings: ArrayList<WebPageSettings>) {
         if (novel.currentChapterUrl != null) {
             val index = if (novel.metadata["chapterOrder"] == "des")
-                adapter.items.indexOfLast { chapter -> chaptersSettings.firstOrNull { it.url == chapter.url && it.isRead == 0 } != null }
+                adapter.items.indexOfLast { chapter -> chaptersSettings.firstOrNull { it.url == chapter.url && !it.isRead } != null }
             else
-                adapter.items.indexOfFirst { chapter -> chaptersSettings.firstOrNull { it.url == chapter.url && it.isRead == 0 } != null }
+                adapter.items.indexOfFirst { chapter -> chaptersSettings.firstOrNull { it.url == chapter.url && !it.isRead } != null }
             if (index != -1)
                 binding.recyclerView.scrollToPosition(index)
         }
@@ -129,15 +130,15 @@ class ChaptersFragment : BaseFragment(),
     //region Adapter Listener Methods - onItemClick(), viewBinder()
 
     override fun getSectionTitle(position: Int): String {
-        return adapter.items[position].chapter
+        return adapter.items[position].chapterName
     }
 
     override fun onItemClick(item: WebPage, position: Int) {
         if (novel.id != -1L) {
             novel.currentChapterUrl = item.url
             dbHelper.updateNovel(novel)
-            NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, item) }
-            startReaderDBPagerActivity(novel, sourceId)
+//            NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, item) }
+            startReaderDBPagerActivity(novel, translatorSourceName)
         } else
             startWebViewActivity(item.url)
     }
@@ -166,16 +167,16 @@ class ChaptersFragment : BaseFragment(),
             itemBinding.availableOfflineImageView.visibility = View.GONE
         }
 
-        itemBinding.isReadView.visibility = if (webPageSettings?.isRead == 1) View.VISIBLE else View.GONE
+        itemBinding.isReadView.visibility = if (webPageSettings?.isRead == true) View.VISIBLE else View.GONE
         itemBinding.bookmarkView.visibility = if (item.url == novel.currentChapterUrl) View.VISIBLE else View.GONE
 
-        itemBinding.chapterTitle.text = item.chapter
+        itemBinding.chapterTitle.text = item.chapterName
 
         webPageSettings?.title?.let {
-            if (it.contains(item.chapter))
+            if (it.contains(item.chapterName))
                 itemBinding.chapterTitle.text = it
             else
-                itemBinding.chapterTitle.text = "${item.chapter}: $it"
+                itemBinding.chapterTitle.text = "${item.chapterName}: $it"
         }
 
         itemBinding.chapterCheckBox.isChecked = (activity as? ChaptersPagerActivity)?.dataSet?.contains(item) ?: false
@@ -209,10 +210,9 @@ class ChaptersFragment : BaseFragment(),
                     dialog.dismiss()
                 }, { dialog ->
                     chaptersPagerActivity.removeFromDataSet(webPage)
-                    adapter.notifyDataSetChanged()
+                    adapter.notifyItemChanged(adapter.items.indexOf(webPage))
                     dialog.dismiss()
                 })
-
         }
 
         //If Novel is already in library
@@ -247,7 +247,7 @@ class ChaptersFragment : BaseFragment(),
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onChapterActionModeEvent(chapterActionModeEvent: ChapterActionModeEvent) {
-        if (chapterActionModeEvent.eventType == EventType.COMPLETE || (chapterActionModeEvent.eventType == EventType.UPDATE && (chapterActionModeEvent.sourceId == sourceId || sourceId == -1L))) {
+        if (chapterActionModeEvent.eventType == EventType.COMPLETE || (chapterActionModeEvent.eventType == EventType.UPDATE && (chapterActionModeEvent.translatorSourceName == translatorSourceName || translatorSourceName == ALL_TRANSLATOR_SOURCES))) {
             lastKnownRecyclerState = binding.recyclerView.layoutManager?.onSaveInstanceState()
             setData()
         }

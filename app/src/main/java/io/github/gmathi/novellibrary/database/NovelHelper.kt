@@ -7,10 +7,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.NovelGenre
-import io.github.gmathi.novellibrary.network.NovelApi
-import io.github.gmathi.novellibrary.network.getNovelDetails
 import io.github.gmathi.novellibrary.util.Logs
-import kotlinx.coroutines.coroutineScope
 import java.util.*
 
 private const val LOG = "NovelHelper"
@@ -25,18 +22,20 @@ fun DBHelper.insertNovel(novel: Novel): Long {
 }
 
 fun DBHelper.createNovel(novel: Novel): Long {
-    val novelId = getNovelId(novel.name)
+    val novelId = getNovelId(novel.url)
     if (novelId != -1L) return novelId
 
     val db = this.writableDatabase
     val values = ContentValues()
     values.put(DBKeys.KEY_NAME, novel.name)
     values.put(DBKeys.KEY_URL, novel.url)
+    values.put(DBKeys.KEY_SOURCE_ID, novel.sourceId)
     values.put(DBKeys.KEY_METADATA, Gson().toJson(novel.metadata))
     values.put(DBKeys.KEY_IMAGE_URL, novel.imageUrl)
     values.put(DBKeys.KEY_RATING, novel.rating)
     values.put(DBKeys.KEY_SHORT_DESCRIPTION, novel.shortDescription)
     values.put(DBKeys.KEY_LONG_DESCRIPTION, novel.longDescription)
+    values.put(DBKeys.KEY_EXTERNAL_NOVEL_ID, novel.externalNovelId)
     values.put(DBKeys.KEY_IMAGE_FILE_PATH, novel.imageFilePath)
     values.put(DBKeys.KEY_NEW_RELEASES_COUNT, novel.newReleasesCount)
     values.put(DBKeys.KEY_CHAPTERS_COUNT, novel.chaptersCount)
@@ -44,11 +43,6 @@ fun DBHelper.createNovel(novel: Novel): Long {
     values.put(DBKeys.KEY_NOVEL_SECTION_ID, novel.novelSectionId)
 
     return db.insert(DBKeys.TABLE_NOVEL, null, values)
-}
-
-fun DBHelper.getNovel(novelName: String): Novel? {
-    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_NOVEL} WHERE ${DBKeys.KEY_NAME} = ?"
-    return getNovelFromQuery(selectQuery, arrayOf(novelName))
 }
 
 fun DBHelper.getNovelByUrl(novelUrl: String): Novel? {
@@ -77,13 +71,14 @@ fun DBHelper.getNovelFromQuery(selectQuery: String, selectionArgs: Array<String>
 }
 
 fun getNovelFromCursor(cursor: Cursor): Novel {
-    val novel = Novel(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME)), cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL)))
+    val novel = Novel(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME)), cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL)), cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_SOURCE_ID)))
     novel.id = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ID))
     novel.metadata = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
     novel.imageUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_IMAGE_URL))
     novel.rating = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_RATING))
     novel.shortDescription = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_SHORT_DESCRIPTION))
     novel.longDescription = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_LONG_DESCRIPTION))
+    novel.externalNovelId = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_EXTERNAL_NOVEL_ID))
     novel.imageFilePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_IMAGE_FILE_PATH))
     novel.newReleasesCount = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NEW_RELEASES_COUNT))
     novel.chaptersCount = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_CHAPTERS_COUNT))
@@ -128,10 +123,10 @@ fun DBHelper.getAllNovels(novelSectionId: Long): List<Novel> {
     return list
 }
 
-fun DBHelper.getNovelId(novelName: String): Long {
+fun DBHelper.getNovelId(novelUrl: String): Long {
     var id = -1L
-    val selectQuery = "SELECT id FROM ${DBKeys.TABLE_NOVEL} WHERE ${DBKeys.KEY_NAME} = ?"
-    val cursor = this.readableDatabase.rawQuery(selectQuery, arrayOf(novelName))
+    val selectQuery = "SELECT id FROM ${DBKeys.TABLE_NOVEL} WHERE ${DBKeys.KEY_URL} = ?"
+    val cursor = this.readableDatabase.rawQuery(selectQuery, arrayOf(novelUrl))
     if (cursor != null) {
         if (cursor.moveToFirst()) {
             id = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ID))
@@ -157,6 +152,7 @@ fun DBHelper.updateNovel(novel: Novel): Long {
         values.put(DBKeys.KEY_CHAPTERS_COUNT, novel.chaptersCount)
 
     values.put(DBKeys.KEY_LONG_DESCRIPTION, novel.longDescription)
+    values.put(DBKeys.KEY_EXTERNAL_NOVEL_ID, novel.externalNovelId)
     if (novel.imageFilePath != null)
         values.put(DBKeys.KEY_IMAGE_FILE_PATH, novel.imageFilePath)
     if (novel.currentChapterUrl != null)
@@ -224,20 +220,20 @@ fun DBHelper.deleteNovel(id: Long) {
 }
 
 fun DBHelper.updateChaptersCount(novelId: Long, chaptersCount: Long, db: SQLiteDatabase? = null) {
-    val writableDatabase = db?:this.writableDatabase
+    val writableDatabase = db ?: this.writableDatabase
     val values = ContentValues()
     values.put(DBKeys.KEY_CHAPTERS_COUNT, chaptersCount)
     writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
 }
 
 
-suspend fun DBHelper.resetNovel(novel: Novel) = coroutineScope {
-    // Completely delete all novel data and start fresh. Hard reset mode ;p
-    cleanupNovelData(novel)
-
-    // Notice: Cannot run getNovelDetails on MainThread
-    val newNovel = NovelApi.getNovelDetails(novel.url)
-    newNovel?.novelSectionId = novel.novelSectionId
-    newNovel?.orderId = novel.orderId
-    if (newNovel != null) insertNovel(newNovel)
-}
+//suspend fun DBHelper.resetNovel(novel: Novel) = coroutineScope {
+//    // Completely delete all novel data and start fresh. Hard reset mode ;p
+//    cleanupNovelData(novel)
+//
+//    // Notice: Cannot run getNovelDetails on MainThread
+//    val newNovel = NovelApi.getNovelDetails(novel.url)
+//    newNovel?.novelSectionId = novel.novelSectionId
+//    newNovel?.orderId = novel.orderId
+//    if (newNovel != null) insertNovel(newNovel)
+//}

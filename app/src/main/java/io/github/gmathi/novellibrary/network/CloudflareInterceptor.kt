@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.network
+package io.github.gmathi.novellibrary.network
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -9,10 +9,9 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.Toast
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.system.*
-import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor

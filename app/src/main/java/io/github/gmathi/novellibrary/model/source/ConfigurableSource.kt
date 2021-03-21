@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibray.source
+package io.github.gmathi.novellibrary.model.source
 
 import androidx.preference.PreferenceScreen
 

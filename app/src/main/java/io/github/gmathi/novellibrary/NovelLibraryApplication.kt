@@ -18,11 +18,14 @@ import io.github.gmathi.novellibrary.database.deleteWebPages
 import io.github.gmathi.novellibrary.model.other.SelectorQuery
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.MultiTrustManager
-import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.lang.LocaleManager
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.InjektScope
+import uy.kohesive.injekt.injectLazy
+import uy.kohesive.injekt.registry.default.DefaultRegistrar
 import java.io.File
 import java.security.KeyManagementException
 import java.security.NoSuchAlgorithmException
@@ -32,63 +35,27 @@ import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 
 
-val dataCenter: DataCenter by lazy {
-    NovelLibraryApplication.dataCenter!!
-}
-
-val dbHelper: DBHelper by lazy {
-    NovelLibraryApplication.dbHelper!!
-}
-
 class NovelLibraryApplication : MultiDexApplication() {
     companion object {
-        var dataCenter: DataCenter? = null
-        var dbHelper: DBHelper? = null
-
         private const val TAG = "NovelLibraryApplication"
-
-        fun refreshDBHelper(context: Context) {
-            dbHelper = DBHelper.refreshInstance(context)
-        }
     }
 
     override fun onCreate() {
-        dataCenter = DataCenter(applicationContext)
-        dbHelper = DBHelper.getInstance(applicationContext)
-        val date = Calendar.getInstance()
-        if (date.get(Calendar.MONTH) == 4 && date.get(Calendar.DAY_OF_MONTH) == 1) {
-            if (!dataCenter?.fooled!!) {
-                dataCenter?.language = "pa"
-                dataCenter?.fooled = true
-            }
-        } else dataCenter?.fooled = false
         super.onCreate()
 
-        if (dataCenter?.hasAlreadyDeletedOldChannels == false) {
-            deleteOldNotificationChannels()
-        }
-
-        //Stray webPages to be deleted
-        dbHelper?.deleteWebPages(-1L)
-        dbHelper?.deleteWebPageSettings(-1L)
-
-//        dataCenter?.isDeveloper = true
-//        dataCenter?.lockRoyalRoad = false
-//
-        try {
-            HostNames.hostNamesList = dataCenter!!.getVerifiedHosts()
-            HostNames.defaultHostNamesList.forEach {
-                HostNames.addHost(it)
-            }
-        } catch (e: Exception) {
-            Logs.error(TAG, "Set the HostNames.hostNamesList from dataCenter", e)
-        }
+        Injekt = InjektScope(DefaultRegistrar())
+        Injekt.importModule(AppModule(this))
 
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
+        cleanupDatabase()
 
         val imagesDir = File(filesDir, "images")
         if (!imagesDir.exists())
             imagesDir.mkdir()
+
+        val dataCenter: DataCenter by injectLazy()
+
+        setPreferences(dataCenter)
 
         try {
             enableSSLSocket()
@@ -104,18 +71,29 @@ class NovelLibraryApplication : MultiDexApplication() {
             WebView.setWebContentsDebuggingEnabled(true)
         }
 
-        if (dataCenter!!.enableNotifications)
-            startSyncService()
-
-        setRemoteConfig()
+        setRemoteConfig(dataCenter)
     }
 
-    @Deprecated("This method deletes old notification channels. Assuming that all users updated and run the app at least once, this method should be removed!")
-    private fun deleteOldNotificationChannels() {
-        val notificationManager = NotificationManagerCompat.from(applicationContext)
-        notificationManager.deleteNotificationChannel("default")
-        notificationManager.deleteNotificationChannel("io.github.gmathi.novellibrary.service.tts.NOW_PLAYING")
-        dataCenter?.hasAlreadyDeletedOldChannels = true
+    private fun cleanupDatabase() {
+        val dbHelper: DBHelper by injectLazy()
+
+        //Stray webPages to be deleted
+        dbHelper.deleteWebPages(-1L)
+        dbHelper.deleteWebPageSettings(-1L)
+    }
+
+    private fun setPreferences(dataCenter: DataCenter) {
+        dataCenter.fooled = false
+        if (!dataCenter.hasAlreadyDeletedOldChannels) {
+            val notificationManager = NotificationManagerCompat.from(applicationContext)
+            notificationManager.deleteNotificationChannel("default")
+            notificationManager.deleteNotificationChannel("io.github.gmathi.novellibrary.service.tts.NOW_PLAYING")
+            dataCenter.hasAlreadyDeletedOldChannels = true
+        }
+        HostNames.hostNamesList = dataCenter.getVerifiedHosts()
+        HostNames.defaultHostNamesList.forEach {
+            HostNames.addHost(it)
+        }
     }
 
     @Throws(KeyManagementException::class, NoSuchAlgorithmException::class)
@@ -137,12 +115,7 @@ class NovelLibraryApplication : MultiDexApplication() {
             Logs.error("SecurityException", "Google Play Services not available.")
         } catch (e: Exception) {
             Logs.error("Exception", "Other Exception: ${e.localizedMessage}", e)
-
         }
-    }
-
-    private fun startSyncService() {
-        BackgroundNovelSyncTask.scheduleRepeat(applicationContext)
     }
 
     override fun attachBaseContext(base: Context) {
@@ -154,7 +127,7 @@ class NovelLibraryApplication : MultiDexApplication() {
         LocaleManager.updateContextLocale(this)
     }
 
-    fun setRemoteConfig() {
+    private fun setRemoteConfig(dataCenter: DataCenter) {
         try {
             val remoteConfig = FirebaseRemoteConfig.getInstance()
             remoteConfig.setConfigSettingsAsync(FirebaseRemoteConfigSettings.Builder().build())
@@ -162,9 +135,9 @@ class NovelLibraryApplication : MultiDexApplication() {
             defaults[Constants.RemoteConfig.SELECTOR_QUERIES] = "[]"
             remoteConfig.setDefaultsAsync(defaults)
             remoteConfig.fetchAndActivate().addOnCompleteListener {
-                dataCenter?.htmlCleanerSelectorQueries = Gson().fromJson(remoteConfig.getString(Constants.RemoteConfig.SELECTOR_QUERIES), object : TypeToken<ArrayList<SelectorQuery>>() {}.type)
+                dataCenter.htmlCleanerSelectorQueries = Gson().fromJson(remoteConfig.getString(Constants.RemoteConfig.SELECTOR_QUERIES), object : TypeToken<ArrayList<SelectorQuery>>() {}.type)
             }
-        } catch(ex: Exception) {
+        } catch (ex: Exception) {
             Logs.error("NovelLibraryApplication", "Failed fetching remote query configuration from firebase")
         }
     }

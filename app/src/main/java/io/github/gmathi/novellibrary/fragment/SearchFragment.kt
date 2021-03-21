@@ -14,16 +14,13 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.NavPageListener
 import io.github.gmathi.novellibrary.adapter.SearchResultsListener
-import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.databinding.ActivityImportLibraryBinding
-import io.github.gmathi.novellibrary.databinding.ActivityNavDrawerBinding
 import io.github.gmathi.novellibrary.databinding.FragmentSearchBinding
 import io.github.gmathi.novellibrary.extensions.FAC
 import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.util.view.SimpleAnimationListener
-import io.github.gmathi.novellibrary.util.view.SuggestionsBuilder
 import io.github.gmathi.novellibrary.util.addToNovelSearchHistory
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
+import io.github.gmathi.novellibrary.util.view.SimpleAnimationListener
+import io.github.gmathi.novellibrary.util.view.SuggestionsBuilder
 import org.cryse.widget.persistentsearch.PersistentSearchView
 import org.cryse.widget.persistentsearch.SearchItem
 
@@ -33,7 +30,7 @@ class SearchFragment : BaseFragment() {
     lateinit var adapter: GenericAdapter<Novel>
     var searchMode: Boolean = false
     private var searchTerm: String? = null
-    
+
     private lateinit var binding: FragmentSearchBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,7 +79,7 @@ class SearchFragment : BaseFragment() {
         binding.searchView.setHomeButtonListener {
             hideSoftKeyboard()
             if (activity != null && activity is NavDrawerActivity) {
-                (requireActivity() as NavDrawerActivity).binding.drawerLayout?.openDrawer(GravityCompat.START)
+                (requireActivity() as NavDrawerActivity).binding.drawerLayout.openDrawer(GravityCompat.START)
             }
         }
 
@@ -162,21 +159,18 @@ class SearchFragment : BaseFragment() {
 
         val titles = ArrayList<String>()
         titles.add("Novel-Updates")
-        if (!dataCenter.lockRoyalRoad || dataCenter.isDeveloper)
+        //if (!dataCenter.lockRoyalRoad || dataCenter.isDeveloper)
             titles.add("RoyalRoad")
-        if (!dataCenter.lockNovelFull || dataCenter.isDeveloper)
+        //if (!dataCenter.lockNovelFull || dataCenter.isDeveloper)
             titles.add("NovelFull")
-        if (!dataCenter.lockScribble || dataCenter.isDeveloper)
+        //if (!dataCenter.lockScribble || dataCenter.isDeveloper)
             titles.add("ScribbleHub")
         titles.add("WLN-Updates")
         titles.add("LNMTL")
         titles.add("Neovel")
 
-        val searchPageAdapter: GenericFragmentStatePagerAdapter
-        searchPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles.toTypedArray(), titles.size, SearchResultsListener(searchTerm, titles))
-
         binding.viewPager.offscreenPageLimit = 2
-        binding.viewPager.adapter = searchPageAdapter
+        binding.viewPager.adapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles.toTypedArray(), titles.size, SearchResultsListener(searchTerm, titles))
         binding.tabStrip.setViewPager(binding.viewPager)
     }
 

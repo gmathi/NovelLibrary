@@ -1,20 +1,22 @@
 package io.github.gmathi.novellibrary.network
 
 import android.content.Context
-import eu.kanade.tachiyomi.network.CloudflareInterceptor
+import android.net.ConnectivityManager
 import io.github.gmathi.novellibrary.BuildConfig
-import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.util.DataCenter
 import okhttp3.Cache
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.dnsoverhttps.DnsOverHttps
 import okhttp3.logging.HttpLoggingInterceptor
+import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 
-class NetworkHelper(context: Context) {
+class NetworkHelper(private val context: Context) {
 
+    private val dataCenter: DataCenter by injectLazy()
     private val cacheDir = File(context.cacheDir, "network_cache")
     private val cacheSize = 5L * 1024 * 1024 // 5 MiB
     val cookieManager = AndroidCookieJar()
@@ -63,4 +65,14 @@ class NetworkHelper(context: Context) {
             .addInterceptor(CloudflareInterceptor(context))
             .build()
     }
+
+    /**
+     * returns - True - if there is connection to the internet
+     */
+    fun isConnectedToNetwork(): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
+        val netInfo = connectivityManager?.activeNetworkInfo
+        return netInfo != null && netInfo.isConnected
+    }
+
 }

@@ -7,9 +7,9 @@ import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
-data class Novel(var url: String) : Parcelable, Serializable {
+data class Novel(var url: String, var sourceId: Long) : Parcelable, Serializable {
 
-    constructor(name: String?, url: String): this(url) {
+    constructor(name: String?, url: String, sourceId: Long) : this(url, sourceId) {
         name?.let { this.name = name }
     }
 
@@ -19,7 +19,7 @@ data class Novel(var url: String) : Parcelable, Serializable {
     var name: String = "Unknown - Not Found!"
 
     /**
-     * Internal Id from the source
+     * External Id from the source
      */
     var externalNovelId: String? = null
 
@@ -101,33 +101,10 @@ data class Novel(var url: String) : Parcelable, Serializable {
     @SerializedName("currentlyReading")
     var currentChapterUrl: String? = null
 
-
-    // Other Helper functions
-    fun copyFrom(otherNovel: Novel?) {
-        if (otherNovel != null) {
-            id = if (otherNovel.id != -1L) otherNovel.id else id
-            url = otherNovel.url
-            name = otherNovel.name
-            genres = if (otherNovel.genres != null) otherNovel.genres else genres
-            rating = if (otherNovel.rating != null) otherNovel.rating else rating
-            imageUrl = if (otherNovel.imageUrl != null) otherNovel.imageUrl else imageUrl
-            imageFilePath = if (otherNovel.imageFilePath != null) otherNovel.imageFilePath else imageFilePath
-            longDescription = if (otherNovel.longDescription != null) otherNovel.longDescription else longDescription
-            shortDescription = if (otherNovel.shortDescription != null) otherNovel.shortDescription else shortDescription
-            currentChapterUrl = if (otherNovel.currentChapterUrl != null) otherNovel.currentChapterUrl else currentChapterUrl
-            newReleasesCount = if (otherNovel.newReleasesCount != 0L) otherNovel.newReleasesCount else newReleasesCount
-            chaptersCount = if (otherNovel.chaptersCount != 0L) otherNovel.chaptersCount else chaptersCount
-            orderId = if (otherNovel.orderId != -1L) otherNovel.orderId else orderId
-            novelSectionId = if (otherNovel.novelSectionId != -1L) otherNovel.novelSectionId else novelSectionId
-
-            otherNovel.metadata.keys.forEach { key ->
-                metadata[key] = otherNovel.metadata[key]
-            }
-        }
-    }
-
-    //Parcelable Implementation
-    constructor(parcel: Parcel) : this(parcel.readString().toString()) {
+    constructor(parcel: Parcel) : this(
+        parcel.readString().toString(),
+        parcel.readLong()
+    ) {
         name = parcel.readString().toString()
         externalNovelId = parcel.readString()
         imageUrl = parcel.readString()
@@ -149,6 +126,7 @@ data class Novel(var url: String) : Parcelable, Serializable {
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(url)
+        parcel.writeLong(sourceId)
         parcel.writeString(name)
         parcel.writeString(externalNovelId)
         parcel.writeString(imageUrl)
@@ -172,17 +150,6 @@ data class Novel(var url: String) : Parcelable, Serializable {
         return 0
     }
 
-    companion object CREATOR : Parcelable.Creator<Novel> {
-        override fun createFromParcel(parcel: Parcel): Novel {
-            return Novel(parcel)
-        }
-
-        override fun newArray(size: Int): Array<Novel?> {
-            return arrayOfNulls(size)
-        }
-    }
-
-    // Other Methods
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -190,6 +157,7 @@ data class Novel(var url: String) : Parcelable, Serializable {
         other as Novel
 
         if (url != other.url) return false
+        if (sourceId != other.sourceId) return false
         if (name != other.name) return false
         if (externalNovelId != other.externalNovelId) return false
         if (imageUrl != other.imageUrl) return false
@@ -213,6 +181,7 @@ data class Novel(var url: String) : Parcelable, Serializable {
 
     override fun hashCode(): Int {
         var result = url.hashCode()
+        result = 31 * result + sourceId.hashCode()
         result = 31 * result + name.hashCode()
         result = 31 * result + (externalNovelId?.hashCode() ?: 0)
         result = 31 * result + (imageUrl?.hashCode() ?: 0)
@@ -234,8 +203,23 @@ data class Novel(var url: String) : Parcelable, Serializable {
     }
 
     override fun toString(): String {
-        return "Novel(url='$url', name='$name', novelId=$externalNovelId, imageUrl=$imageUrl, rating=$rating, shortDescription=$shortDescription, longDescription=$longDescription, genres=$genres, authors=$authors, illustrator=$illustrator, chaptersCount=$chaptersCount, metadata=$metadata, imageFilePath=$imageFilePath, orderId=$orderId, newReleasesCount=$newReleasesCount, novelSectionId=$novelSectionId, id=$id, currentChapterUrl=$currentChapterUrl)"
+        return "Novel(url='$url', sourceId=$sourceId, name='$name', externalNovelId=$externalNovelId, imageUrl=$imageUrl, rating=$rating, shortDescription=$shortDescription, longDescription=$longDescription, genres=$genres, authors=$authors, illustrator=$illustrator, chaptersCount=$chaptersCount, metadata=$metadata, imageFilePath=$imageFilePath, orderId=$orderId, newReleasesCount=$newReleasesCount, novelSectionId=$novelSectionId, id=$id, currentChapterUrl=$currentChapterUrl)"
     }
+
+
+    companion object CREATOR : Parcelable.Creator<Novel> {
+        override fun createFromParcel(parcel: Parcel): Novel {
+            return Novel(parcel)
+        }
+
+        override fun newArray(size: Int): Array<Novel?> {
+            return arrayOfNulls(size)
+        }
+    }
+
+
+
+
 
 
 }

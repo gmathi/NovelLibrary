@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.cleaner
 
-import io.github.gmathi.novellibrary.dataCenter
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
@@ -45,9 +44,9 @@ class BakaTsukiCleaner : HtmlCleaner() {
     private fun removeDirectionalLinks(contentElement: Element?) {
         contentElement?.getElementsByTag("a")?.filter {
             it.text().contains("Previous Chapter", ignoreCase = true)
-                || it.text().contains("Next Chapter", ignoreCase = true)
-                || it.text().contains("Project Page", ignoreCase = true)
-                || it.text().contains("Index", ignoreCase = true)
+                    || it.text().contains("Next Chapter", ignoreCase = true)
+                    || it.text().contains("Project Page", ignoreCase = true)
+                    || it.text().contains("Index", ignoreCase = true)
 
         }?.forEach { it?.remove() }
         contentElement?.getElementsByTag("table")?.lastOrNull()?.remove()

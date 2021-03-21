@@ -1,21 +1,25 @@
 package io.github.gmathi.novellibrary.source
 
-import io.github.gmathi.novellibrary.model.database.Chapter
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.source.filter.FilterList
 import io.github.gmathi.novellibrary.model.source.online.ParsedHttpSource
 import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_IMPLEMENTATION
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import java.net.URLEncoder
 
 
 class RoyalRoadSource : ParsedHttpSource() {
 
+    override val id: Long
+        get() = Constants.SourceId.ROYAL_ROAD
     override val baseUrl: String
         get() = "https://www.${HostNames.ROYAL_ROAD}"
     override val lang: String
@@ -25,31 +29,34 @@ class RoyalRoadSource : ParsedHttpSource() {
     override val name: String
         get() = "Royal Road"
 
-    override val client: OkHttpClient = network.cloudflareClient
+    override val client: OkHttpClient
+        get() = network.cloudflareClient
 
     override fun headersBuilder(): Headers.Builder = Headers.Builder()
-            .add("User-Agent", USER_AGENT)
-            .add("Referer", baseUrl)
+        .add("User-Agent", USER_AGENT)
+        .add("Referer", baseUrl)
 
     //region Search Novel
     override fun searchNovelsRequest(page: Int, query: String, filters: FilterList): Request {
-        val url = "$baseUrl/fictions/search?title=${query.replace(" ", "+")}&page=$page"
+        val encodedQuery = URLEncoder.encode(query, "UTF-8")
+        val url = "$baseUrl/fictions/search?title=${encodedQuery.replace(" ", "+")}&page=$page"
         return GET(url, headers)
     }
 
     override fun searchNovelsFromElement(element: Element): Novel {
-        val urlElement = element.selectFirst("a[href]")
-        val novel = Novel(urlElement.text(), urlElement.attr("abs:href"))
+        val titleElement = element.selectFirst(".fiction-title > a[href]")
+        val novel = Novel(titleElement.text(), titleElement.attr("abs:href"), id)
         novel.imageUrl = element.selectFirst("img[src]")?.attr("abs:src")
         novel.metadata["Author(s)"] = element.selectFirst("span.author")?.text()?.substring(3)
         if (novel.metadata["Author(s)"] == null && novel.imageUrl?.startsWith("https://www.royalroadcdn.com/") == true)
-            novel.metadata["Author(s)"] = novel.imageUrl?.substring(29, novel.imageUrl?.indexOf('/', 29)
-                    ?: 0)
+            novel.metadata["Author(s)"] = novel.imageUrl?.substring(
+                29, novel.imageUrl?.indexOf('/', 29)
+                    ?: 0
+            )
         novel.rating = element.selectFirst("span.star[title]").attr("title")
         novel.longDescription = element.selectFirst("div.fiction-description")?.text()
-                ?: element.selectFirst("div.margin-top-10.col-xs-12")?.text()
+            ?: element.selectFirst("div.margin-top-10.col-xs-12")?.text()
         novel.shortDescription = novel.longDescription?.split("\n")?.firstOrNull()
-        novel.chaptersCount = element.selectFirst("span:contains(Chapters").text().replace(" Chapters", "").toInt().toLong()
         return novel
     }
 
@@ -73,7 +80,7 @@ class RoyalRoadSource : ParsedHttpSource() {
 
     //region Chapters
     override fun chapterListSelector() = "table#chapters a[href]"
-    override fun chapterFromElement(element: Element) = Chapter(element.absUrl("href"), element.text())
+    override fun chapterFromElement(element: Element) = WebPage(element.absUrl("href"), element.text())
 
     override fun chapterListRequest(novel: Novel): Request {
         return GET(novel.url, headers = headers)

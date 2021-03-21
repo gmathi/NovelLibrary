@@ -6,7 +6,6 @@ import android.app.Service
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.speech.tts.TextToSpeech
@@ -22,23 +21,26 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.WebPageSettings
+import io.github.gmathi.novellibrary.network.GET
+import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.service.tts.TTSNotificationBuilder.Companion.TTS_NOTIFICATION_ID
+import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
+import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.util.Utils.getFormattedText
+import io.github.gmathi.novellibrary.util.getGlideUrl
 import io.github.gmathi.novellibrary.util.lang.albumArt
 import io.github.gmathi.novellibrary.util.lang.displaySubtitle
 import io.github.gmathi.novellibrary.util.lang.displayTitle
-import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.model.database.WebPageSettings
-import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.network.NovelApi
-import io.github.gmathi.novellibrary.service.tts.TTSNotificationBuilder.Companion.TTS_NOTIFICATION_ID
-import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
-import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.Utils.getFormattedText
-import io.github.gmathi.novellibrary.util.getGlideUrl
+import io.github.gmathi.novellibrary.util.network.asJsoup
 import kotlinx.coroutines.*
+import okhttp3.OkHttpClient
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
@@ -53,7 +55,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         const val AUDIO_TEXT_KEY = "audioTextKey"
         const val TITLE = "title"
         const val NOVEL_ID = "novelId"
-        const val SOURCE_ID = "sourceId"
+        const val TRANSLATOR_SOURCE_NAME = "translatorSourceName"
         const val CHAPTER_INDEX = "chapterIndex"
 
         const val ACTION_STOP = "actionStop"
@@ -62,6 +64,11 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         const val ACTION_NEXT = "actionNext"
         const val ACTION_PREVIOUS = "actionPrevious"
     }
+
+    private val dataCenter: DataCenter by injectLazy()
+    private val networkHelper: NetworkHelper by injectLazy()
+    private val client: OkHttpClient
+        get() = networkHelper.cloudflareClient
 
     private lateinit var tts: TextToSpeech
     private lateinit var mediaSession: MediaSessionCompat
@@ -72,7 +79,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
 
     private var blockingJob: Job? = null
     private var novel: Novel? = null
-    private var sourceId: Long = 0L
+    private var translatorSourceName: String? = null
     private var audioText: String? = null
     private var title: String? = null
     private var chapterIndex: Int = 0
@@ -156,13 +163,13 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
 
         audioText = intent?.extras?.getString(AUDIO_TEXT_KEY, null) ?: ""
         title = intent?.extras?.getString(TITLE, null) ?: ""
-        sourceId = intent?.extras?.getLong(SOURCE_ID, 0L) ?: 0L
+        translatorSourceName = intent?.extras?.getString(TRANSLATOR_SOURCE_NAME)
         chapterIndex = intent?.extras?.getInt(CHAPTER_INDEX, 0) ?: 0
 
         metadataCompat.displayTitle = novel?.name ?: "Novel Name Not Found"
         metadataCompat.displaySubtitle = title
 
-        if (!novel?.imageUrl.isNullOrBlank() && Utils.isConnectedToNetwork(this)) {
+        if (!novel?.imageUrl.isNullOrBlank() && networkHelper.isConnectedToNetwork()) {
             Glide.with(this).asBitmap().load(novel!!.imageUrl!!.getGlideUrl()).into(object : CustomTarget<Bitmap>() {
                 override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
                     metadataCompat.albumArt = resource
@@ -290,11 +297,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     private fun sendToTTS(text: String, queueMode: Int, utteranceId: String = "DO_NOTHING") {
         val params = Bundle()
         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId) // Define if you need it
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            tts.speak(text, queueMode, params, utteranceId)
-        } else {
-            tts.speak(text, queueMode, null)
-        }
+        tts.speak(text, queueMode, params, utteranceId)
     }
 
     @SuppressLint("UnspecifiedImmutableFlag")
@@ -367,14 +370,14 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         val webPage = if (novel.currentChapterUrl != null)
             dbHelper.getWebPage(novel.currentChapterUrl!!)
         else
-            dbHelper.getWebPage(novel.id, sourceId, 0)
+            dbHelper.getWebPage(novel.id, translatorSourceName, 0)
         if (webPage?.url == null) return
-        chapterIndex = dbHelper.getAllWebPages(novel.id, sourceId).indexOfFirst { it.url == webPage.url }
+        chapterIndex = dbHelper.getAllWebPages(novel.id, translatorSourceName).indexOfFirst { it.url == webPage.url }
     }
 
     private fun setAudioText() {
-        val webPage = dbHelper.getWebPage(novel!!.id, sourceId, chapterIndex) ?: return
-        title = webPage.chapter
+        val webPage = dbHelper.getWebPage(novel!!.id, translatorSourceName, chapterIndex) ?: return
+        title = webPage.chapterName
         metadataCompat.displaySubtitle = title
         mediaSession.setMetadata(metadataCompat.build())
 
@@ -404,9 +407,9 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         blockingJob?.cancel()
         blockingJob = GlobalScope.launch {
             try {
-                var doc = withContext(Dispatchers.IO) { NovelApi.getDocument(webPageSettings.url) }
+                var doc = withContext(Dispatchers.IO) { getWebPageDocument(webPageSettings.url) }
                 if (doc.location().contains("rssbook") && doc.location().contains(HostNames.QIDIAN)) {
-                    doc = withContext(Dispatchers.IO) { NovelApi.getDocument(doc.location().replace("rssbook", "book")) }
+                    doc = withContext(Dispatchers.IO) { getWebPageDocument(doc.location().replace("rssbook", "book")) }
                 }
                 audioText = cleanDocumentText(doc)
                 title = doc.title()
@@ -418,6 +421,10 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
                 Toast.makeText(this@TTSService, "Unable to read chapter", Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    private fun getWebPageDocument(url: String): Document {
+        return client.newCall(GET(url)).execute().asJsoup()
     }
 
     private fun cleanDocumentText(doc: Document): String {

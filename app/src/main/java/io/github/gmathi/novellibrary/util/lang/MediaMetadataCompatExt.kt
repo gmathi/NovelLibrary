@@ -16,6 +16,7 @@
 
 
 @file:Suppress("unused")
+
 package io.github.gmathi.novellibrary.util.lang
 
 

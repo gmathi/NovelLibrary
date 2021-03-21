@@ -1,21 +1,20 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.os.Bundle
+import android.view.MenuItem
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
-import android.view.MenuItem
 import androidx.fragment.app.commit
-import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.databinding.ActivitySearchResultsBinding
 import io.github.gmathi.novellibrary.fragment.SearchUrlFragment
 
 class SearchUrlActivity : BaseActivity() {
-    
+
     private lateinit var binding: ActivitySearchResultsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         binding = ActivitySearchResultsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
@@ -23,10 +22,10 @@ class SearchUrlActivity : BaseActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         val url = intent.getStringExtra("url") ?: return
         val fragment = SearchUrlFragment.newInstance(url)
-        replaceFragment(fragment, "SearchUrlFragment")
+        replaceFragment(fragment)
     }
 
-    private fun replaceFragment(fragment: Fragment, tag: String) {
+    private fun replaceFragment(fragment: Fragment, tag: String = "SearchUrlFragment") {
         val existingFrag = supportFragmentManager.findFragmentByTag(tag)
         var replaceFrag = fragment
         if (existingFrag != null) {

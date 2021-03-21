@@ -8,6 +8,7 @@ import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.model.database.TranslatorSource
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.util.Constants
 
 //region Fragment Page Listeners
 
@@ -18,30 +19,34 @@ import io.github.gmathi.novellibrary.network.HostNames
 class NavPageListener : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment {
         return when (position) {
-            0 -> SearchUrlFragment.newInstance("https://www.novelupdates.com/series-ranking/?rank=popmonth")
-            1 -> SearchUrlFragment.newInstance("https://www.novelupdates.com/series-ranking/?rank=popular")
-            else -> SearchUrlFragment.newInstance("https://www.novelupdates.com/series-ranking/?rank=sixmonths")
+            0 -> SearchUrlFragment.newInstance("popmonth")
+            1 -> SearchUrlFragment.newInstance("popular")
+            else -> SearchUrlFragment.newInstance("sixmonths")
         }
     }
 }
 
 class SearchResultsListener(private val searchTerms: String, private val tabNames: ArrayList<String>) : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment {
-        if (position >= tabNames.size) return SearchTermFragment.newInstance(searchTerms, HostNames.WLN_UPDATES)
+
+        //This should not be triggered, but just in case
+        if (position >= tabNames.size) return SearchTermFragment.newInstance(searchTerms, Constants.SourceId.WLN_UPDATES)
+
+        //This returns the expected sourceId fragment for the matching titles
         return when (tabNames[position]) {
-            "Novel-Updates" -> SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_UPDATES)
-            "RoyalRoad" -> SearchTermFragment.newInstance(searchTerms, HostNames.ROYAL_ROAD)
-            "NovelFull" -> SearchTermFragment.newInstance(searchTerms, HostNames.NOVEL_FULL)
-            "ScribbleHub" -> SearchTermFragment.newInstance(searchTerms, HostNames.SCRIBBLE_HUB)
-            "LNMTL" -> SearchTermFragment.newInstance(searchTerms, HostNames.LNMTL)
-            "Neovel" -> SearchTermFragment.newInstance(searchTerms, HostNames.NEOVEL)
-            else -> SearchTermFragment.newInstance(searchTerms, HostNames.WLN_UPDATES)
+            "Novel-Updates" -> SearchTermFragment.newInstance(searchTerms, Constants.SourceId.NOVEL_UPDATES)
+            "RoyalRoad" -> SearchTermFragment.newInstance(searchTerms, Constants.SourceId.ROYAL_ROAD)
+            "NovelFull" -> SearchTermFragment.newInstance(searchTerms, Constants.SourceId.NOVEL_FULL)
+            "ScribbleHub" -> SearchTermFragment.newInstance(searchTerms, Constants.SourceId.SCRIBBLE_HUB)
+            "LNMTL" -> SearchTermFragment.newInstance(searchTerms, Constants.SourceId.LNMTL)
+            "Neovel" -> SearchTermFragment.newInstance(searchTerms, Constants.SourceId.NEOVEL)
+            else -> SearchTermFragment.newInstance(searchTerms, Constants.SourceId.WLN_UPDATES)
         }
     }
 }
 
 
-class WebPageFragmentPageListener(val novel: Novel, val webPages: List<WebPage>) : GenericFragmentStatePagerAdapter.Listener {
+class WebPageFragmentPageListener(val novel: Novel, private val webPages: List<WebPage>) : GenericFragmentStatePagerAdapter.Listener {
 
     override fun getFragmentForItem(position: Int): Fragment {
         return WebPageDBFragment.newInstance(novel.id, webPages[position])
@@ -60,9 +65,9 @@ class LibraryPageListener(private val novelSections: ArrayList<NovelSection>) : 
     }
 }
 
-class ChaptersPageListener(private val novel: Novel, private val translatorSources: ArrayList<TranslatorSource>) : GenericFragmentStatePagerAdapter.Listener {
+class ChaptersPageListener(private val novel: Novel, private val translatorSourceNames: ArrayList<String>) : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment {
-        return ChaptersFragment.newInstance(novel, translatorSources[position].id)
+        return ChaptersFragment.newInstance(novel, translatorSourceNames[position])
     }
 }
 //endregion

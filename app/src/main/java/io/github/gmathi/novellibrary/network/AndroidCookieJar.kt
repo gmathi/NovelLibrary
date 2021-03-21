@@ -11,7 +11,6 @@ class AndroidCookieJar : CookieJar {
 
     override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
         val urlString = url.toString()
-
         cookies.forEach { manager.setCookie(urlString, it.toString()) }
     }
 

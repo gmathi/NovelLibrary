@@ -14,6 +14,7 @@ import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.database.DBHelper
+import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.updateDownloadStatus
 import io.github.gmathi.novellibrary.model.database.Download
 import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
@@ -29,7 +30,7 @@ import java.util.concurrent.ThreadPoolExecutor
 
 class DownloadNovelService : IntentService(TAG), DownloadListener {
 
-    private var threadListMap = HashMap<String, DownloadNovelThread?>()
+    private var threadListMap = HashMap<Long, DownloadNovelThread?>()
     private val futures = ArrayList<Future<Any>>()
 
     private lateinit var threadPool: ThreadPoolExecutor
@@ -45,7 +46,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
         @JvmStatic
         val DOWNLOAD_NOTIFICATION_ID = Utils.getUniqueNotificationId()
 
-        const val NOVEL_NAME = "name"
+        const val NOVEL_ID = "novel_id"
         const val ACTION_START = "action_start"
         const val ACTION_PAUSE = "action_pause"
         const val ACTION_REMOVE = "action_remove"
@@ -95,10 +96,12 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
     override fun onHandleIntent(intent: Intent?) {
         Logs.debug(TAG, "onHandleIntent")
 
-        val novelName = intent?.getStringExtra(NOVEL_NAME) ?: return
-        val downloadNovelThread = DownloadNovelThread(this, novelName, dbHelper, this@DownloadNovelService)
-        threadListMap[novelName] = downloadNovelThread
-        startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "${getString(R.string.downloading)}: $novelName"))
+        val novelId = intent?.getLongExtra(NOVEL_ID, -1L) ?: return
+        val novel = dbHelper.getNovel(novelId) ?: return
+
+        val downloadNovelThread = DownloadNovelThread(this, novel.id, dbHelper, this@DownloadNovelService)
+        threadListMap[novelId] = downloadNovelThread
+        startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "${getString(R.string.downloading)}: ${novel.name}"))
         if (threadPool.isTerminating || threadPool.isShutdown)
             threadPool = Executors.newFixedThreadPool(MAX_PARALLEL_DOWNLOADS) as ThreadPoolExecutor
         futures.add(threadPool.submit(downloadNovelThread, null as Any?))
@@ -111,38 +114,38 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
     }
 
 
-    fun handleNovelDownload(novelName: String, action: String) {
+    fun handleNovelDownload(novelId: Long, action: String) {
         Logs.debug(TAG, "handleNovelDownload")
 
         //android.os.Debug.waitForDebugger()
         if (action == ACTION_START) {
-            var downloadNovelThread = threadListMap[novelName]
+            var downloadNovelThread = threadListMap[novelId]
             if (downloadNovelThread != null && downloadNovelThread.isAlive) {
                 return
             }
 
-            downloadNovelThread = DownloadNovelThread(this, novelName, dbHelper, this@DownloadNovelService)
-            threadListMap[novelName] = downloadNovelThread
+            downloadNovelThread = DownloadNovelThread(this, novelId, dbHelper, this@DownloadNovelService)
+            threadListMap[novelId] = downloadNovelThread
             if (threadPool.isTerminating || threadPool.isShutdown)
                 threadPool = Executors.newFixedThreadPool(MAX_PARALLEL_DOWNLOADS) as ThreadPoolExecutor
             futures.add(threadPool.submit(downloadNovelThread, null as Any?))
 
             if (futures.size > 5)
-                downloadListener?.handleEvent(DownloadNovelEvent(EventType.INSERT, novelName))
+                downloadListener?.handleEvent(DownloadNovelEvent(EventType.INSERT, novelId))
             else
-                downloadListener?.handleEvent(DownloadNovelEvent(EventType.RUNNING, novelName))
+                downloadListener?.handleEvent(DownloadNovelEvent(EventType.RUNNING, novelId))
 
             startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "${getString(R.string.downloading)}: " + threadListMap.keys.joinToString(", ")))
 
         } else if (action == ACTION_PAUSE || action == ACTION_REMOVE) {
-            val downloadNovelThread = threadListMap[novelName]
+            val downloadNovelThread = threadListMap[novelId]
             if (downloadNovelThread != null && downloadNovelThread.isAlive) {
                 downloadNovelThread.interrupt()
             }
             threadPool.remove(downloadNovelThread)
             threadPool.purge()
-            threadListMap[novelName] = null
-            threadListMap.remove(novelName)
+            threadListMap[novelId] = null
+            threadListMap.remove(novelId)
 
             if (threadListMap.isEmpty()) {
                 stopForeground(true)
@@ -180,7 +183,7 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
 
     override fun handleEvent(downloadNovelEvent: DownloadNovelEvent) {
         if (downloadNovelEvent.type == EventType.COMPLETE || downloadNovelEvent.type == EventType.DELETE) {
-            threadListMap.remove(downloadNovelEvent.novelName)
+            threadListMap.remove(downloadNovelEvent.novelId)
             if (threadListMap.isNotEmpty())
                 startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "${getString(R.string.downloading)}: " + threadListMap.keys.joinToString(", ")))
             else

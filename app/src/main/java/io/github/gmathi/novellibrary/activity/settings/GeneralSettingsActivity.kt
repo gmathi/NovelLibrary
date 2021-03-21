@@ -8,16 +8,15 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
-import io.github.gmathi.novellibrary.util.system.startBackupSettingsActivity
-import io.github.gmathi.novellibrary.util.system.startLanguagesActivity
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
-import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.util.system.startBackupSettingsActivity
+import io.github.gmathi.novellibrary.util.system.startLanguagesActivity
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import java.util.*
 
 class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
@@ -110,8 +109,10 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
             }
         }
 
-        itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
-        else ContextCompat.getColor(this, android.R.color.transparent))
+        itemView.setBackgroundColor(
+            if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
+            else ContextCompat.getColor(this, android.R.color.transparent)
+        )
     }
 
     override fun onItemClick(item: String, position: Int) {

@@ -11,30 +11,29 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.createOrUpdateLargePreference
 import io.github.gmathi.novellibrary.database.getLargePreference
 import io.github.gmathi.novellibrary.databinding.ActivityRecentlyViewedNovelsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemNovelBinding
-import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 
 class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
     lateinit var adapter: GenericAdapter<Novel>
+
     companion object {
         private const val TAG = "RecentlyViewedNovelsActivity"
     }
-    
+
     private lateinit var binding: ActivityRecentlyViewedNovelsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         binding = ActivityRecentlyViewedNovelsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
@@ -52,9 +51,9 @@ class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Nov
         itemBinding.novelImageView.setImageResource(android.R.color.transparent)
         if (!item.imageUrl.isNullOrBlank()) {
             Glide.with(this)
-                    .load(item.imageUrl)
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(itemBinding.novelImageView)
+                .load(item.imageUrl)
+                .apply(RequestOptions.circleCropTransform())
+                .into(itemBinding.novelImageView)
         }
 
         //Other Data Fields

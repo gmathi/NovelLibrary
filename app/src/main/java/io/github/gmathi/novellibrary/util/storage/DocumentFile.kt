@@ -4,7 +4,7 @@ import androidx.documentfile.provider.DocumentFile
 
 fun DocumentFile.getOrCreateDirectory(displayName: String): DocumentFile? {
     return (findFile(displayName)
-            ?: createDirectory(displayName))
+        ?: createDirectory(displayName))
 }
 
 fun DocumentFile.getOrCreateFile(displayName: String): DocumentFile? {
@@ -13,7 +13,7 @@ fun DocumentFile.getOrCreateFile(displayName: String): DocumentFile? {
 
 fun DocumentFile.getOrCreateFile(mimeType: String, displayName: String): DocumentFile? {
     return (findFile(displayName)
-            ?: createFile(mimeType, displayName))
+        ?: createFile(mimeType, displayName))
 }
 
 fun DocumentFile?.notNullAndExists(): Boolean =

@@ -111,7 +111,7 @@
 //            }
 //            getChapters(forceUpdate = forceUpdate)
 //
-//            if (chapters == null && !Utils.isConnectedToNetwork(context)) {
+//            if (chapters == null && !networkHelper.isConnectedToNetwork()) {
 //                loadingStatus.postValue(Constants.Status.NO_INTERNET)
 //                return@launch
 //            }

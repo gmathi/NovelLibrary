@@ -3,7 +3,6 @@ package io.github.gmathi.novellibrary.activity
 import android.animation.Animator
 import android.os.Bundle
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
@@ -11,36 +10,32 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.databinding.ActivityLibrarySearchBinding
 import io.github.gmathi.novellibrary.databinding.ListitemLibraryBinding
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
 import io.github.gmathi.novellibrary.util.system.startChaptersActivity
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
-import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.view.SimpleAnimationListener
 import io.github.gmathi.novellibrary.util.view.SuggestionsBuilder
 import org.cryse.widget.persistentsearch.PersistentSearchView
 import org.cryse.widget.persistentsearch.SearchItem
 
-class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel> {
+class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
     lateinit var adapter: GenericAdapter<Novel>
-
     private val allNovelsList: List<Novel> = dbHelper.getAllNovels()
-
     private var isDateSorted = false
     private var isTitleSorted = false
-    
+
     private lateinit var binding: ActivityLibrarySearchBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         binding = ActivityLibrarySearchBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSearchView()
@@ -178,7 +173,7 @@ class LibrarySearchActivity : AppCompatActivity(), GenericAdapter.Listener<Novel
         if (novel.currentChapterUrl != null) {
             startReaderDBPagerActivity(novel)
         } else {
-           this.let {
+            this.let {
                 MaterialDialog(this).show {
                     title(R.string.no_bookmark_found_dialog_title)
                     message(text = getString(R.string.no_bookmark_found_dialog_description, novel.name))

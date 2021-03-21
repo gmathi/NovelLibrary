@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.adapter
 
+import android.annotation.SuppressLint
 import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
@@ -67,6 +68,7 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
         fun loadMore()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun updateData(newItems: ArrayList<T>) {
         //Empty Current List --> Add All
         if (items.size == 0) {
@@ -90,7 +92,7 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
 
     fun addItems(newItems: ArrayList<T>) {
         items.addAll(newItems)
-        notifyDataSetChanged()
+        notifyItemRangeInserted(items.size - newItems.size, items.size)
     }
 
     fun addItems(newItems: List<T>) {
@@ -127,6 +129,12 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
         }
     }
 
+    fun removeAllItems() {
+        val range = items.size
+        items.clear()
+        notifyItemRangeRemoved(0, range)
+    }
+
     @Suppress("unused")
     fun insertItem(item: T, position: Int = -1) {
         val index = items.indexOf(item)
@@ -138,7 +146,7 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
 
     fun onItemDismiss(position: Int) {
         items.removeAt(position)
-        notifyDataSetChanged()
+        notifyItemRemoved(position)
     }
 
     fun onItemMove(fromPosition: Int, toPosition: Int): Boolean {

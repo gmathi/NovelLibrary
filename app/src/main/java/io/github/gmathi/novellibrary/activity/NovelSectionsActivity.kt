@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
+//import io.github.gmathi.novellibrary.network.sync.NovelSync
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.Menu
@@ -18,34 +19,29 @@ import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
 import com.google.firebase.analytics.ktx.logEvent
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.databinding.ActivityNovelSectionsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemNovelSectionBinding
-import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.FAC
 import io.github.gmathi.novellibrary.extensions.showEmpty
 import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.model.database.NovelSection
-import io.github.gmathi.novellibrary.network.sync.NovelSync
+import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
-import io.github.gmathi.novellibrary.util.setDefaults
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSection>, SimpleItemTouchListener {
 
     lateinit var adapter: GenericAdapter<NovelSection>
     private lateinit var touchHelper: ItemTouchHelper
-    
+
     private lateinit var binding: ActivityNovelSectionsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         binding = ActivityNovelSectionsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
@@ -69,19 +65,17 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
         updateOrderIds()
         val novelSections = dbHelper.getAllNovelSections()
         adapter.updateData(ArrayList(novelSections))
-        if (binding.contentRecyclerView.swipeRefreshLayout != null && binding.contentRecyclerView.progressLayout != null) {
-            binding.contentRecyclerView.swipeRefreshLayout.isRefreshing = false
-            binding.contentRecyclerView.progressLayout.showContent()
-        }
+        binding.contentRecyclerView.swipeRefreshLayout.isRefreshing = false
+        binding.contentRecyclerView.progressLayout.showContent()
         if (novelSections.isEmpty())
             binding.contentRecyclerView.progressLayout.showEmpty(
                 resId = R.drawable.ic_info_white_vector,
                 isLottieAnimation = false,
                 emptyText = getString(R.string.novel_section_empty_message),
-                buttonText = getString(R.string.add_novel_section),
-                onClickListener = View.OnClickListener {
-                    addNovelSection()
-                })
+                buttonText = getString(R.string.add_novel_section)
+            ) {
+                addNovelSection()
+            }
     }
 
     private fun updateOrderIds() {
@@ -159,6 +153,7 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
         onItemRemove(viewHolderPosition)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun onItemRemove(position: Int) {
         MaterialDialog(this).show {
             title(R.string.confirm_remove)
@@ -169,12 +164,12 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                     if (novelSection.id != -1L) {
                         dbHelper.getAllNovels(novelSection.id).forEach {
                             dbHelper.updateNovelSectionId(it.id, -1L)
-                            NovelSync.getInstance(it)?.applyAsync(lifecycleScope) { sync ->
-                                if (dataCenter.getSyncAddNovels(sync.host)) sync.updateNovel(
-                                    it,
-                                    null
-                                )
-                            }
+//                            NovelSync.getInstance(it)?.applyAsync(lifecycleScope) { sync ->
+//                                if (dataCenter.getSyncAddNovels(sync.host)) sync.updateNovel(
+//                                    it,
+//                                    null
+//                                )
+//                            }
                         }
                         dbHelper.deleteNovelSection(novelSection.id)
                     }
@@ -203,17 +198,17 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                 if (newName.isNotBlank() && dbHelper.getNovelSection(newName) == null) {
                     dbHelper.updateNovelSectionName(novelSection.id, newName)
                     setData()
-                    val oldName = novelSection.name
+//                    val oldName = novelSection.name
                     lifecycleScope.launch {
-                        NovelSync.getAllInstances().forEach {
-                            withContext(Dispatchers.IO) {
-                                if (dataCenter.getSyncAddNovels(it.host)) it.renameSection(
-                                    novelSection,
-                                    oldName,
-                                    newName
-                                )
-                            }
-                        }
+//                        NovelSync.getAllInstances().forEach {
+//                            withContext(Dispatchers.IO) {
+//                                if (dataCenter.getSyncAddNovels(it.host)) it.renameSection(
+//                                    novelSection,
+//                                    oldName,
+//                                    newName
+//                                )
+//                            }
+//                        }
                     }
                     firebaseAnalytics.logEvent(FAC.Event.RENAME_NOVEL_SECTION) {
                         param(FAC.Param.NOVEL_SECTION_NAME, newName)

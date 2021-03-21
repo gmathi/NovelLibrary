@@ -1,13 +1,14 @@
 package io.github.gmathi.novellibrary.source
 
 import com.google.gson.JsonParser
-import io.github.gmathi.novellibrary.model.database.Chapter
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.other.NovelsPage
 import io.github.gmathi.novellibrary.model.source.filter.FilterList
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.NEOVEL_API_URL
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_IMPLEMENTATION
 import io.github.gmathi.novellibrary.util.Exceptions.NETWORK_ERROR
@@ -22,7 +23,8 @@ import okhttp3.Response
 
 class NeovelSource : HttpSource() {
 
-
+    override val id: Long
+        get() = Constants.SourceId.NEOVEL
     override val baseUrl: String
         get() = NEOVEL_API_URL
     override val lang: String
@@ -32,8 +34,6 @@ class NeovelSource : HttpSource() {
     override val name: String
         get() = "Neovel"
 
-    override val client: OkHttpClient = network.client
-
     override fun headersBuilder(): Headers.Builder = Headers.Builder()
         .add("User-Agent", USER_AGENT)
         .add("Referer", baseUrl)
@@ -41,7 +41,7 @@ class NeovelSource : HttpSource() {
     //region Search Novel
     override fun searchNovelsRequest(page: Int, query: String, filters: FilterList): Request {
         val url =
-            baseUrl + "V2/books/search?language=ALL&filter=0&name=${query.encodeBase64ToString()}&sort=6&page=0&onlyOffline=true&genreIds=0&genreCombining=0&tagIds=0&tagCombining=0&minChapterCount=0&maxChapterCount=4000"
+            baseUrl + "V2/books/search?language=ALL&filter=0&name=${query.encodeBase64ToString()}&sort=6&page=${page - 1}&onlyOffline=true&genreIds=0&genreCombining=0&tagIds=0&tagCombining=0&minChapterCount=0&maxChapterCount=4000"
         return GET(url, headers = headers)
     }
 
@@ -54,7 +54,7 @@ class NeovelSource : HttpSource() {
             val resultObject = result.asJsonObject
             val id = resultObject["id"].asInt.toString()
             val novelUrl = baseUrl + "V1/book/details?bookId=$id&language=EN"
-            val novel = Novel(novelUrl)
+            val novel = Novel(novelUrl, this.id)
             resultObject["name"].asJsonNullFreeString?.let { novel.name = it }
             novel.imageUrl = baseUrl + "V2/book/image?bookId=$id&oldApp=false"
             novel.metadata["id"] = id
@@ -78,6 +78,8 @@ class NeovelSource : HttpSource() {
         novel.longDescription = rootJsonObject.get("bookDescription")?.asString
         novel.rating = rootJsonObject["rating"].asFloat.toString()
         novel.chaptersCount = rootJsonObject["nbrReleases"].asLong
+        novel.externalNovelId = id
+        novel.metadata["id"] = id
 
         //If local fetch copy is empty, then get it from network
         if (neovelGenres == null) {
@@ -117,14 +119,14 @@ class NeovelSource : HttpSource() {
         return GET(url, headers)
     }
 
-    override fun chapterListParse(novel: Novel, response: Response): List<Chapter> {
+    override fun chapterListParse(novel: Novel, response: Response): List<WebPage> {
         val jsonString = response.body?.string() ?: throw Exception(NETWORK_ERROR)
         val rootJsonObject = JsonParser.parseString(jsonString)?.asJsonObject?.getAsJsonObject("data")
             ?: throw Exception(NETWORK_ERROR)
         val releasesArray = rootJsonObject.getAsJsonArray("releases")
 
         var orderId = 0L
-        val chapters = ArrayList<Chapter>()
+        val chapters = ArrayList<WebPage>()
         releasesArray.reversed().asSequence().forEach { release ->
             val releaseObject = release.asJsonObject
             val chapterNumber = releaseObject["chapter"].covertJsonNull?.asInt?.toString() ?: ""
@@ -135,7 +137,7 @@ class NeovelSource : HttpSource() {
 
             url?.let {
                 val chapterName = arrayListOf(chapterNumber, fragment, postFix).filter { name -> name.isNotBlank() }.joinToString(" - ")
-                val chapter = Chapter(it, chapterName)
+                val chapter = WebPage(it, chapterName)
                 chapter.orderId = orderId++
                 chapter.novelId = novel.id
                 chapter.translatorSourceName = sourceName

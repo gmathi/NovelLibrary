@@ -1,9 +1,10 @@
 package io.github.gmathi.novellibrary.util.view
 
-import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 
-class SimpleItemTouchHelperCallback(private val listener: SimpleItemTouchListener, private val longPressDragEnabled: Boolean = true, private val itemViewSwipeEnabled: Boolean = true) : ItemTouchHelper.Callback() {
+class SimpleItemTouchHelperCallback(private val listener: SimpleItemTouchListener, private val longPressDragEnabled: Boolean = true, private val itemViewSwipeEnabled: Boolean = true) :
+    ItemTouchHelper.Callback() {
 
     override fun isLongPressDragEnabled(): Boolean {
         return longPressDragEnabled
@@ -19,8 +20,10 @@ class SimpleItemTouchHelperCallback(private val listener: SimpleItemTouchListene
         return makeMovementFlags(dragFlags, swipeFlags)
     }
 
-    override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
-                        target: RecyclerView.ViewHolder): Boolean {
+    override fun onMove(
+        recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
+        target: RecyclerView.ViewHolder
+    ): Boolean {
         listener.onItemMove(viewHolder.adapterPosition, target.adapterPosition)
         return true
     }
@@ -29,8 +32,10 @@ class SimpleItemTouchHelperCallback(private val listener: SimpleItemTouchListene
         listener.onItemDismiss(viewHolder.adapterPosition)
     }
 
-    override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?,
-                                   actionState: Int) {
+    override fun onSelectedChanged(
+        viewHolder: RecyclerView.ViewHolder?,
+        actionState: Int
+    ) {
         // We only want the active item
         if (actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
             if (viewHolder is ItemTouchHelperViewHolder) {
@@ -42,8 +47,10 @@ class SimpleItemTouchHelperCallback(private val listener: SimpleItemTouchListene
         super.onSelectedChanged(viewHolder, actionState)
     }
 
-    override fun clearView(recyclerView: RecyclerView,
-                           viewHolder: RecyclerView.ViewHolder) {
+    override fun clearView(
+        recyclerView: RecyclerView,
+        viewHolder: RecyclerView.ViewHolder
+    ) {
         super.clearView(recyclerView, viewHolder)
 
         if (viewHolder is ItemTouchHelperViewHolder) {

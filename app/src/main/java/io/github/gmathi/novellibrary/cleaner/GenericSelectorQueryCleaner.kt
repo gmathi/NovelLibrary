@@ -1,11 +1,12 @@
 package io.github.gmathi.novellibrary.cleaner
 
-import io.github.gmathi.novellibrary.dataCenter
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 
-class GenericSelectorQueryCleaner(private val url: String, private val query: String, private val appendTitle: Boolean = true,
-                                  override var keepContentStyle: Boolean = false, override var keepContentIds: Boolean = true, override var keepContentClasses: Boolean = false) : HtmlCleaner() {
+class GenericSelectorQueryCleaner(
+    private val url: String, private val query: String, private val appendTitle: Boolean = true,
+    override var keepContentStyle: Boolean = false, override var keepContentIds: Boolean = true, override var keepContentClasses: Boolean = false
+) : HtmlCleaner() {
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc)
@@ -34,7 +35,7 @@ class GenericSelectorQueryCleaner(private val url: String, private val query: St
 
     }
 
-    fun websiteSpecificFixes(contentElement : Elements) {
+    fun websiteSpecificFixes(contentElement: Elements) {
         //Fix for volarenovels.com
         if (url.contains("volarenovels.com")) {
             val elements = contentElement.select("[id*=announcement]")

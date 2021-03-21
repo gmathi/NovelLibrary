@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.util.system
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -39,7 +40,7 @@ fun AppCompatActivity.hideSoftKeyboard() {
 }
 
 fun AppCompatActivity.toast(message: String) {
-    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    Toast.makeText(this, message, Toast.LENGTH_LONG).show()
 }
 
 fun AppCompatActivity.snackBar(view: View, message: String) {
@@ -157,35 +158,35 @@ fun AppCompatActivity.startContributionsActivity() {
     startActivity(intent)
 }
 
-fun AppCompatActivity.startCloudFlareBypassActivity(hostName: String) {
-    val intent = Intent(this, CloudFlareBypassActivity::class.java)
-    val bundle = Bundle()
-    bundle.putString("host", hostName)
-    intent.putExtras(bundle)
-    startActivity(intent)
-}
+//fun AppCompatActivity.startCloudFlareBypassActivity(hostName: String) {
+//    val intent = Intent(this, CloudFlareBypassActivity::class.java)
+//    val bundle = Bundle()
+//    bundle.putString("host", hostName)
+//    intent.putExtras(bundle)
+//    startActivity(intent)
+//}
 
-fun AppCompatActivity.startSyncSettingsSelectionActivity() {
-    val intent = Intent(this, SyncSettingsSelectionActivity::class.java)
-    startActivity(intent)
-}
+//fun AppCompatActivity.startSyncSettingsSelectionActivity() {
+//    val intent = Intent(this, SyncSettingsSelectionActivity::class.java)
+//    startActivity(intent)
+//}
 
-fun AppCompatActivity.startSyncSettingsActivity(url: String) {
-    val intent = Intent(this, SyncSettingsActivity::class.java)
-    val bundle = Bundle()
-    bundle.putString("url", url)
-    intent.putExtras(bundle)
-    startActivity(intent)
-}
+//fun AppCompatActivity.startSyncSettingsActivity(url: String) {
+//    val intent = Intent(this, SyncSettingsActivity::class.java)
+//    val bundle = Bundle()
+//    bundle.putString("url", url)
+//    intent.putExtras(bundle)
+//    startActivity(intent)
+//}
 
-fun AppCompatActivity.startSyncLoginActivity(url: String, lookup: String) {
-    val intent = Intent(this, SyncLoginActivity::class.java)
-    val bundle = Bundle()
-    bundle.putString("url", url)
-    bundle.putString("lookup", lookup)
-    intent.putExtras(bundle)
-    startActivity(intent)
-}
+//fun AppCompatActivity.startSyncLoginActivity(url: String, lookup: String) {
+//    val intent = Intent(this, SyncLoginActivity::class.java)
+//    val bundle = Bundle()
+//    bundle.putString("url", url)
+//    bundle.putString("lookup", lookup)
+//    intent.putExtras(bundle)
+//    startActivity(intent)
+//}
 
 fun AppCompatActivity.startImportLibraryActivity() {
     startActivityForResult(Intent(this, ImportLibraryActivity::class.java), Constants.IMPORT_LIBRARY_ACT_REQ_CODE)
@@ -206,7 +207,7 @@ fun AppCompatActivity.startNovelDownloadsActivity() {
 fun AppCompatActivity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean = false) {
     val intent = Intent(this, NovelDetailsActivity::class.java)
     val bundle = Bundle()
-    bundle.putSerializable("novel", novel)
+    bundle.putParcelable("novel", novel)
     if (jumpToReader)
         bundle.putBoolean(Constants.JUMP, true)
     intent.putExtras(bundle)
@@ -216,8 +217,11 @@ fun AppCompatActivity.startNovelDetailsActivity(novel: Novel, jumpToReader: Bool
 
 fun AppCompatActivity.openInBrowser(url: String) {
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-    if (intent.resolveActivity(packageManager) != null)
+    try {
         startActivity(intent)
+    } catch (ex: ActivityNotFoundException) {
+        this.toast("No Application Found!")
+    }
 }
 
 fun AppCompatActivity.sendEmail(email: String, subject: String, body: String) {
@@ -227,8 +231,11 @@ fun AppCompatActivity.sendEmail(email: String, subject: String, body: String) {
     val emailIntent = Intent(Intent.ACTION_VIEW)
     emailIntent.data = Uri.parse(mailTo)
 
-    if (emailIntent.resolveActivity(packageManager) != null)
+    try {
         startActivity(emailIntent)
+    } catch (ex: ActivityNotFoundException) {
+        this.toast("No Application Found!")
+    }
 }
 
 fun AppCompatActivity.shareUrl(url: String) {
@@ -236,25 +243,30 @@ fun AppCompatActivity.shareUrl(url: String) {
     i.type = "text/plain"
     i.putExtra(Intent.EXTRA_SUBJECT, "Sharing URL")
     i.putExtra(Intent.EXTRA_TEXT, url)
-    if (i.resolveActivity(packageManager) != null)
+    try {
         startActivity(Intent.createChooser(i, "Share URL(s)"))
+    } catch (ex: ActivityNotFoundException) {
+        this.toast("No Application Found!")
+    }
 }
 
-fun AppCompatActivity.startDownloadNovelService(novelName: String) {
+fun AppCompatActivity.startDownloadNovelService(novelId: Long) {
     val serviceIntent = Intent(this, DownloadNovelService::class.java)
     val bundle = Bundle()
-    bundle.putString(DownloadNovelService.NOVEL_NAME, novelName)
+    bundle.putLong(DownloadNovelService.NOVEL_ID, novelId)
     serviceIntent.putExtras(bundle)
     startService(serviceIntent)
 }
 
-fun AppCompatActivity.startTTSService(audioText: String, title: String, novelId: Long, sourceId: Long, chapterIndex: Int = 0) {
+fun AppCompatActivity.startTTSService(audioText: String, title: String, novelId: Long, translatorSourceName: String?, chapterIndex: Int = 0) {
     val serviceIntent = Intent(this, TTSService::class.java)
     val bundle = Bundle()
     bundle.putString(TTSService.AUDIO_TEXT_KEY, audioText)
     bundle.putString(TTSService.TITLE, title)
     bundle.putLong(TTSService.NOVEL_ID, novelId)
-    bundle.putLong(TTSService.SOURCE_ID, sourceId)
+    if (translatorSourceName != null) {
+        bundle.putString(TTSService.TRANSLATOR_SOURCE_NAME, translatorSourceName)
+    }
     bundle.putInt(TTSService.CHAPTER_INDEX, chapterIndex)
     serviceIntent.putExtras(bundle)
     startService(serviceIntent)

@@ -8,7 +8,6 @@ import androidx.appcompat.view.ActionMode
 import com.afollestad.materialdialogs.DialogCallback
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
-import com.google.android.material.datepicker.MaterialTextInputPicker
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.analytics.ktx.logEvent
 import com.tingyik90.snackprogressbar.SnackProgressBar
@@ -16,20 +15,16 @@ import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.ChaptersPageListener
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
-import io.github.gmathi.novellibrary.dataCenter
-import io.github.gmathi.novellibrary.database.getTranslatorSource
 import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.databinding.ActivityChaptersPagerBinding
-import io.github.gmathi.novellibrary.databinding.ContentChaptersPagerBinding
-import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.model.database.TranslatorSource
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.other.ChapterActionModeEvent
 import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Constants.ALL_TRANSLATOR_SOURCES
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.system.shareUrl
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel
@@ -47,7 +42,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     val vm: ChaptersViewModel by viewModels()
 
     var dataSet: HashSet<WebPage> = HashSet()
-    private val translatorSources: ArrayList<TranslatorSource> = ArrayList()
+    private val translatorSourceNames: ArrayList<String> = ArrayList()
     private var actionMode: ActionMode? = null
 
     private var confirmDialog: MaterialDialog? = null
@@ -57,7 +52,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     private var isSyncing = false
     private var isChaptersProcessing = false
 
-    private val snackProgressBarManager by lazy { Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this)}
+    private val snackProgressBarManager by lazy { Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this) }
     private var snackProgressBar: SnackProgressBar? = null
 
     private lateinit var binding: ActivityChaptersPagerBinding
@@ -78,9 +73,9 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 setProgressDialog(savedInstanceState.getString("progressMessage", "In Progress…"), savedInstanceState.getInt("maxProgress", 0))
                 showProgressDialog()
             }
-            novel = savedInstanceState.getSerializable("novel") as? Novel
+            novel = savedInstanceState.getParcelable("novel")
         } else {
-            novel = intent.getSerializableExtra("novel") as? Novel
+            novel = intent.getParcelableExtra("novel")
         }
 
         if (novel == null) return
@@ -92,7 +87,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
     private fun addListeners() {
         binding.activityChaptersPager.sourcesToggle.setOnClickListener {
-            if (Utils.isConnectedToNetwork(this)) {
+            if (networkHelper.isConnectedToNetwork()) {
                 vm.toggleSources()
             } else {
                 confirmDialog("You need to have internet connection to do this!", { dialog ->
@@ -107,28 +102,27 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             //Update loading status
             when (newStatus) {
                 Constants.Status.START -> {
-//                    progressLayout.showLoading()
                     binding.activityChaptersPager.progressLayout.showLoading(loadingText = getString(R.string.loading))
                 }
                 Constants.Status.EMPTY_DATA -> {
                     binding.activityChaptersPager.progressLayout.showEmpty(resId = R.raw.monkey_logo, isLottieAnimation = true, emptyText = getString(R.string.empty_chapters))
                 }
                 Constants.Status.NETWORK_ERROR -> {
-                    binding.activityChaptersPager.progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again), onClickListener = {
+                    binding.activityChaptersPager.progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again)) {
                         vm.getData()
-                    })
+                    }
                 }
                 Constants.Status.NO_INTERNET -> {
-                    binding.activityChaptersPager.progressLayout.noInternetError({
+                    binding.activityChaptersPager.progressLayout.noInternetError {
                         vm.getData()
-                    })
+                    }
                 }
                 Constants.Status.DONE -> {
                     isSyncing = false
                     binding.activityChaptersPager.progressLayout.showContent()
                     setViewPager()
 
-                    //TODO: Recreate menu for those instance where thee chapters can be empty.
+                    //TODO: Recreate menu for those instance where the chapters can be empty.
                 }
                 else -> {
                     binding.activityChaptersPager.progressLayout.updateLoadingStatus(newStatus)
@@ -161,19 +155,18 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         while (supportFragmentManager.backStackEntryCount > 0)
             supportFragmentManager.popBackStack()
 
-        translatorSources.clear()
+        translatorSourceNames.clear()
         val chapters = vm.chapters ?: throw Error("Chapters cannot be null")
+        val sourcesList = chapters.distinctBy { it.translatorSourceName }.mapNotNull { it.translatorSourceName }
 
-        if (vm.showSources) {
-            val sourceIds = chapters.distinctBy { it.translatorSourceId }.map { it.translatorSourceId }
-            sourceIds.forEach { sourceId -> dbHelper.getTranslatorSource(sourceId)?.let { translatorSources.add(it) } }
+        if (vm.showSources && sourcesList.isNotEmpty()) {
+            translatorSourceNames.addAll(sourcesList)
         } else {
-            dbHelper.getTranslatorSource(-1L)?.let { translatorSources.add(it) }
+            translatorSourceNames.addAll(listOf(ALL_TRANSLATOR_SOURCES))
         }
 
-        val titles = translatorSources.map { it.name }.toTypedArray()
-
-        val navPageAdapter = GenericFragmentStatePagerAdapter(supportFragmentManager, titles, titles.size, ChaptersPageListener(vm.novel, translatorSources))
+        val navPageAdapter =
+            GenericFragmentStatePagerAdapter(supportFragmentManager, translatorSourceNames.toTypedArray(), translatorSourceNames.size, ChaptersPageListener(vm.novel, translatorSourceNames))
         binding.activityChaptersPager.viewPager.offscreenPageLimit = 3
         binding.activityChaptersPager.viewPager.adapter = navPageAdapter
         binding.activityChaptersPager.tabStrip.setViewPager(binding.activityChaptersPager.viewPager)
@@ -184,9 +177,9 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     private fun scrollToBookmark() {
         vm.novel.currentChapterUrl?.let { currentChapterUrl ->
             val currentBookmarkWebPage = dbHelper.getWebPage(currentChapterUrl) ?: return@let
-            val currentSource = translatorSources.firstOrNull { it.id == currentBookmarkWebPage.translatorSourceId }
+            val currentSource = translatorSourceNames.firstOrNull { it == currentBookmarkWebPage.translatorSourceName }
                 ?: return@let
-            val index = translatorSources.indexOf(currentSource)
+            val index = translatorSourceNames.indexOf(currentSource)
             if (index != -1)
                 binding.activityChaptersPager.viewPager.currentItem = index
         }
@@ -368,8 +361,8 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                 })
             }
             R.id.action_select_interval -> {
-                val translatorSourceId = translatorSources[binding.activityChaptersPager.viewPager.currentItem].id
-                if (translatorSourceId == -1L) {
+                val translatorSourceName = translatorSourceNames[binding.activityChaptersPager.viewPager.currentItem]
+                if (translatorSourceName == ALL_TRANSLATOR_SOURCES) {
                     val chaptersForSource = vm.chapters!!.sortedBy { it.orderId }
                     val selectedChaptersForSource = dataSet.sortedBy { it.orderId }
                     if (selectedChaptersForSource.size > 1) {
@@ -377,38 +370,38 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                         val lastIndex = chaptersForSource.indexOf(selectedChaptersForSource.last())
                         val subList = chaptersForSource.subList(firstIndex, lastIndex)
                         addToDataSet(subList)
-                        EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceId, EventType.UPDATE))
+                        EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceName, EventType.UPDATE))
                     }
                 } else {
-                    val chaptersForSource = vm.chapters!!.filter { it.translatorSourceId == translatorSourceId }.sortedBy { it.orderId }
-                    val selectedChaptersForSource = dataSet.filter { it.translatorSourceId == translatorSourceId }.sortedBy { it.orderId }
+                    val chaptersForSource = vm.chapters!!.filter { it.translatorSourceName == translatorSourceName }.sortedBy { it.orderId }
+                    val selectedChaptersForSource = dataSet.filter { it.translatorSourceName == translatorSourceName }.sortedBy { it.orderId }
                     if (selectedChaptersForSource.size > 1) {
                         val firstIndex = chaptersForSource.indexOf(selectedChaptersForSource.first())
                         val lastIndex = chaptersForSource.indexOf(selectedChaptersForSource.last())
                         val subList = chaptersForSource.subList(firstIndex, lastIndex)
                         addToDataSet(subList)
-                        EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceId, EventType.UPDATE))
+                        EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceName, EventType.UPDATE))
                     }
                 }
             }
             R.id.action_select_all -> {
-                val translatorSourceId = translatorSources[binding.activityChaptersPager.viewPager.currentItem].id
-                if (translatorSourceId == -1L) {
+                val translatorSourceName = translatorSourceNames[binding.activityChaptersPager.viewPager.currentItem]
+                if (translatorSourceName == ALL_TRANSLATOR_SOURCES) {
                     addToDataSet(webPages = vm.chapters!!)
                 } else {
-                    addToDataSet(webPages = vm.chapters!!.filter { it.translatorSourceId == translatorSourceId })
+                    addToDataSet(webPages = vm.chapters!!.filter { it.translatorSourceName == translatorSourceName })
                 }
-                EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceId, EventType.UPDATE))
+                EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceName, EventType.UPDATE))
             }
             R.id.action_clear_selection -> {
-                val translatorSourceId = translatorSources[binding.activityChaptersPager.viewPager.currentItem].id
-                if (translatorSourceId == -1L) {
+                val translatorSourceName = translatorSourceNames[binding.activityChaptersPager.viewPager.currentItem]
+                if (translatorSourceName == ALL_TRANSLATOR_SOURCES) {
                     removeFromDataSet(webPages = vm.chapters!!)
                 } else {
-                    removeFromDataSet(webPages = vm.chapters!!.filter { it.translatorSourceId == translatorSourceId })
+                    removeFromDataSet(webPages = vm.chapters!!.filter { it.translatorSourceName == translatorSourceName })
                 }
-                removeFromDataSet(webPages = vm.chapters!!.filter { it.translatorSourceId == translatorSourceId })
-                EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceId, EventType.UPDATE))
+                removeFromDataSet(webPages = vm.chapters!!.filter { it.translatorSourceName == translatorSourceName })
+                EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceName, EventType.UPDATE))
             }
             R.id.action_share_chapter -> {
                 val urls = dataSet.joinToString(separator = ", ") { it.url }
@@ -455,7 +448,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         }
     }
 
-    private fun showAlertDialog(message: String) {
+    private fun showAlertDialog() {
         MaterialDialog(this).show {
             icon(R.drawable.ic_warning_white_vector)
             title(R.string.alert)
@@ -467,11 +460,11 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     }
 
     private fun showNotInLibraryDialog() {
-        showAlertDialog(getString(R.string.novel_not_in_library_dialog_content))
+        showAlertDialog()
     }
 
     private fun showWuxiaWorldDownloadDialog() {
-        showAlertDialog("Downloads are not supported for WuxiaWorld content. Please use their app for downloads/offline reading WuxiaWorld novels.")
+        showAlertDialog()
     }
 
     private fun manageDownloadsDialog() {
@@ -510,8 +503,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         if (maxProgress == 0 || maxProgress > 10) {
             snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, message)
                 .setProgressMax(maxProgress)
-        }
-        else {
+        } else {
             showSnackbar(message)
         }
     }
@@ -523,9 +515,11 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     }
 
     private fun showSnackbar(message: String) {
-        val snackbar = Snackbar.make(findViewById(android.R.id.content),
+        val snackbar = Snackbar.make(
+            findViewById(android.R.id.content),
             message,
-            Snackbar.LENGTH_SHORT)
+            Snackbar.LENGTH_SHORT
+        )
         snackbar.show()
     }
     //endregion
@@ -535,14 +529,13 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         outState.putInt("maxProgress", maxProgress)
         outState.putString("progressMessage", progressMessage)
         outState.putBoolean("isProgressShowing", snackProgressBar != null)
-        outState.putSerializable("novel", vm.novel)
+        outState.putParcelable("novel", vm.novel)
     }
 
     override fun onBackPressed() {
         if (isSyncing || isChaptersProcessing) {
             return
         }
-
         super.onBackPressed()
     }
 

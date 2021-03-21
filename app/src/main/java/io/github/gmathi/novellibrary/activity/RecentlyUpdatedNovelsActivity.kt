@@ -13,15 +13,15 @@ import io.github.gmathi.novellibrary.databinding.ActivityRecentlyUpdatedNovelsBi
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleBinding
 import io.github.gmathi.novellibrary.extensions.noInternetError
 import io.github.gmathi.novellibrary.extensions.showLoading
-import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.RecentlyUpdatedItem
-import io.github.gmathi.novellibrary.network.NovelApi
-import io.github.gmathi.novellibrary.network.getRecentlyUpdatedNovels
-import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
+import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -54,7 +54,7 @@ class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Re
 
     private fun getRecentlyUpdatedNovels() {
         lifecycleScope.launch {
-            if (!Utils.isConnectedToNetwork(this@RecentlyUpdatedNovelsActivity)) {
+            if (!networkHelper.isConnectedToNetwork()) {
                 if (adapter.items.isEmpty())
                     binding.contentRecyclerView.progressLayout.noInternetError {
                         binding.contentRecyclerView.progressLayout.showLoading()
@@ -63,12 +63,36 @@ class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Re
                 return@launch
             }
 
-            val items = withContext(Dispatchers.IO) { NovelApi.getRecentlyUpdatedNovels() } ?: return@launch
+            val items = withContext(Dispatchers.IO) { fetchRecentlyUpdatedNovels() } ?: return@launch
             adapter.updateData(items)
             binding.contentRecyclerView.progressLayout.showContent()
             binding.contentRecyclerView.swipeRefreshLayout.isRefreshing = false
 
         }
+    }
+
+    private fun fetchRecentlyUpdatedNovels(): ArrayList<RecentlyUpdatedItem>? {
+        var searchResults: ArrayList<RecentlyUpdatedItem>? = null
+        try {
+            searchResults = ArrayList()
+            val document = WebPageDocumentFetcher.document("https://www.novelupdates.com/")
+            val elements = document.body()?.getElementsByTag("td")?.filter { it.className().contains("sid") }
+            if (elements != null)
+                for (element in elements) {
+                    val item = RecentlyUpdatedItem()
+                    item.novelUrl = element.selectFirst("a[href]")?.attr("abs:href")
+                    item.novelName = element.selectFirst("a[title]")?.attr("title")
+                    item.chapterName = element.selectFirst("a.chp-release")?.text()
+                    item.publisherName = element.selectFirst("span.mob_group > a")?.attr("title")
+
+                    searchResults.add(item)
+                }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return searchResults
+
     }
 
     @SuppressLint("SetTextI18n")
@@ -87,7 +111,7 @@ class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Re
 
     override fun onItemClick(item: RecentlyUpdatedItem, position: Int) {
         if (item.novelName != null && item.novelUrl != null) {
-            startNovelDetailsActivity(Novel(item.novelName!!, item.novelUrl!!))
+            startNovelDetailsActivity(Novel(item.novelName!!, item.novelUrl!!, Constants.SourceId.NOVEL_UPDATES))
         }
     }
 

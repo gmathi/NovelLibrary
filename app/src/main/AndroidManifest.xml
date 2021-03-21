@@ -134,11 +134,11 @@
             android:label="@string/title_activity_copyright"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
-        <activity
-            android:name=".activity.settings.CloudFlareBypassActivity"
-            android:label="@string/cloud_flare_check"
-            android:screenOrientation="fullUser"
-            android:theme="@style/DarkTheme_DarkSide" />
+<!--        <activity-->
+<!--            android:name=".activity.settings.CloudFlareBypassActivity"-->
+<!--            android:label="@string/cloud_flare_check"-->
+<!--            android:screenOrientation="fullUser"-->
+<!--            android:theme="@style/DarkTheme_DarkSide" />-->
         <activity
             android:name=".activity.SearchUrlActivity"
             android:label="@string/title_activity_search_results"
@@ -164,21 +164,21 @@
             android:label="@string/title_activity_mention_settings"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
-        <activity
-            android:name=".activity.settings.SyncSettingsSelectionActivity"
-            android:label="@string/title_activity_sync_selection_settings"
-            android:screenOrientation="fullUser"
-            android:theme="@style/DarkTheme_DarkSide" />
-        <activity
-            android:name=".activity.settings.SyncSettingsActivity"
-            android:label="@string/title_activity_sync_settings"
-            android:screenOrientation="fullUser"
-            android:theme="@style/DarkTheme_DarkSide" />
-        <activity
-            android:name=".activity.settings.SyncLoginActivity"
-            android:label="@string/title_activity_sync_login"
-            android:screenOrientation="fullUser"
-            android:theme="@style/DarkTheme_DarkSide" />
+<!--        <activity-->
+<!--            android:name=".activity.settings.SyncSettingsSelectionActivity"-->
+<!--            android:label="@string/title_activity_sync_selection_settings"-->
+<!--            android:screenOrientation="fullUser"-->
+<!--            android:theme="@style/DarkTheme_DarkSide" />-->
+<!--        <activity-->
+<!--            android:name=".activity.settings.SyncSettingsActivity"-->
+<!--            android:label="@string/title_activity_sync_settings"-->
+<!--            android:screenOrientation="fullUser"-->
+<!--            android:theme="@style/DarkTheme_DarkSide" />-->
+<!--        <activity-->
+<!--            android:name=".activity.settings.SyncLoginActivity"-->
+<!--            android:label="@string/title_activity_sync_login"-->
+<!--            android:screenOrientation="fullUser"-->
+<!--            android:theme="@style/DarkTheme_DarkSide" />-->
         <activity
             android:name=".activity.settings.LanguageActivity"
             android:label="@string/title_activity_language"

@@ -1,11 +1,7 @@
 package io.github.gmathi.novellibrary.network
 
 import kotlinx.coroutines.suspendCancellableCoroutine
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
+import okhttp3.*
 import rx.Observable
 import rx.Producer
 import rx.Subscription

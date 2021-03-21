@@ -1,16 +1,22 @@
 package io.github.gmathi.novellibrary.network.proxy
 
-import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.network.HostNames
-import org.jsoup.Connection
-import org.jsoup.Jsoup
+import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import org.jsoup.nodes.Document
-import java.net.URL
+import uy.kohesive.injekt.injectLazy
 
 /**
  * @see io.github.gmathi.novellibrary.network.NovelApi.getDocumentWithParams
  */
 open class BaseProxyHelper {
+
+    val networkHelper: NetworkHelper by injectLazy()
+    val client: OkHttpClient
+        get() = networkHelper.cloudflareClient
 
     companion object {
         fun getInstance(url: String): BaseProxyHelper? = when {
@@ -22,20 +28,7 @@ open class BaseProxyHelper {
     }
 
     /** Connection used when requesting document. */
-    open fun connect(url: String): Connection =
-        Jsoup.connect(url).referrer(url)
-            .cookies(CloudFlareByPasser.getCookieMap(URL(url)))
-            .ignoreHttpErrors(true)
-            .timeout(30000)
-            .ignoreContentType(true)
-            .userAgent(HostNames.USER_AGENT)
-            .followRedirects(false)
-
-    /** Data to use for parsing */
-    open fun body(res: Connection.Response): String = res.body()
-
-    /** Modify document after requesting */
-    open fun document(res: Connection.Response): Document = res.parse()
-
-    open fun document(body: String, res: Connection.Response): Document = Jsoup.parse(body)
+    open fun request(url: String): Request = WebPageDocumentFetcher.request(url)
+    open fun connect(request: Request): Response = WebPageDocumentFetcher.connect(request)
+    open fun document(response: Response): Document = WebPageDocumentFetcher.document(response)
 }

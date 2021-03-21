@@ -7,20 +7,17 @@ import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.model.other.SelectorQuery
 import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
+import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
-import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.getFileName
-import io.github.gmathi.novellibrary.util.writableFileName
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.HttpStatusException
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.io.FileOutputStream
 import java.math.BigDecimal
@@ -32,7 +29,7 @@ open class HtmlCleaner protected constructor() {
 
     companion object {
 
-        val defaultSelectorQueries = listOf(
+        private val defaultSelectorQueries = listOf(
             SelectorQuery("div.chapter-content"),
             SelectorQuery("div.entry-content"),
             SelectorQuery("div.elementor-widget-theme-post-content", appendTitleHeader = false),
@@ -91,6 +88,7 @@ open class HtmlCleaner protected constructor() {
         }
 
         private fun getSelectorQueries(): List<SelectorQuery> {
+            val dataCenter: DataCenter by injectLazy()
             var htmlCleanerSelectorQueries = dataCenter.htmlCleanerSelectorQueries
             if (htmlCleanerSelectorQueries.isNullOrEmpty()) htmlCleanerSelectorQueries = ArrayList(defaultSelectorQueries)
             val userSpecifiedSelectorQueries = dataCenter.userSpecifiedSelectorQueries
@@ -101,6 +99,7 @@ open class HtmlCleaner protected constructor() {
         }
     }
 
+    val dataCenter: DataCenter by injectLazy()
     open var keepContentStyle = false
     open var keepContentIds = true
     open var keepContentClasses = false
@@ -135,7 +134,7 @@ open class HtmlCleaner protected constructor() {
     open fun downloadCSS(doc: Document, downloadDir: File) {
         val elements = doc.head().getElementsByTag("link").filter { element -> element.hasAttr("rel") && element.attr("rel") == "stylesheet" }
         for (element in elements) {
-            val cssFile = downloadFile(element, downloadDir)
+            val cssFile = downloadOtherFiles(element, downloadDir)
             if (cssFile != null) {
                 element.removeAttr("href")
                 element.attr("href", "../" + cssFile.name)
@@ -150,7 +149,7 @@ open class HtmlCleaner protected constructor() {
 
     }
 
-    open fun downloadFile(element: Element, dir: File, retryCount: Int = 0): File? {
+    open fun downloadOtherFiles(element: Element, dir: File, retryCount: Int = 0): File? {
         val uri = Uri.parse(element.absUrl("href"))
         val file: File
         val doc: Document
@@ -158,12 +157,12 @@ open class HtmlCleaner protected constructor() {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: $uri")
             val fileName = uri.getFileName()
             file = File(dir, fileName)
-            doc = NovelApi.getDocument(uri.toString(), ignoreHttpErrors = false, useProxy = false)
+            doc = WebPageDocumentFetcher.document(uri.toString(), useProxy = false)
         } catch (e: Exception) {
             when (e) {
                 is SocketException -> {
                     // Let's try this one more time
-                    if (retryCount == 0) return downloadFile(element, dir, retryCount = 1)
+                    if (retryCount == 0) return downloadOtherFiles(element, dir, retryCount = 1)
                 }
                 is HttpStatusException -> {
                     //Do Nothing

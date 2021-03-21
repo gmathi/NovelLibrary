@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.Constants
 
 class DBHelper
@@ -144,12 +145,71 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
 
         if (version == DBKeys.VER_WEB_PAGE_SETTINGS) {
 
+            // Adds new column for the novel id which will be used instead of novel name.
+            db.execSQL("ALTER TABLE ${DBKeys.TABLE_DOWNLOAD} ADD COLUMN ${DBKeys.KEY_NOVEL_ID} INTEGER")
+            db.execSQL("UPDATE ${DBKeys.TABLE_DOWNLOAD} SET ${DBKeys.KEY_NOVEL_ID} = (SELECT ${DBKeys.KEY_ID} FROM ${DBKeys.TABLE_NOVEL} WHERE  ${DBKeys.TABLE_NOVEL}.${DBKeys.KEY_NAME} = ${DBKeys.TABLE_DOWNLOAD}.${DBKeys.KEY_NAME})")
 
-            //version = DBKeys.VER_WEB_PAGE_SETTINGS
+            // Sets the external ids for the novels. This is currently stored in metadata.
+            db.execSQL("ALTER TABLE ${DBKeys.TABLE_NOVEL} ADD COLUMN ${DBKeys.KEY_EXTERNAL_NOVEL_ID} TEXT")
+            db.execSQL("ALTER TABLE ${DBKeys.TABLE_NOVEL} ADD COLUMN ${DBKeys.KEY_SOURCE_ID} INTEGER")
+
+            //Set the source id for all the novels
+            updateNovelsWithSourceId(db)
+
+            // Deprecate the sourceId and start using translatorSourceName in table `web_page`
+            db.execSQL("ALTER TABLE ${DBKeys.TABLE_WEB_PAGE} ADD COLUMN ${DBKeys.KEY_TRANSLATOR_SOURCE_NAME} TEXT")
+            db.execSQL("UPDATE ${DBKeys.TABLE_WEB_PAGE} SET ${DBKeys.KEY_TRANSLATOR_SOURCE_NAME} = (SELECT ${DBKeys.TABLE_SOURCE}.${DBKeys.KEY_NAME} FROM ${DBKeys.TABLE_SOURCE} WHERE  ${DBKeys.TABLE_SOURCE}.${DBKeys.KEY_ID} = ${DBKeys.TABLE_WEB_PAGE}.${DBKeys.KEY_SOURCE_ID})")
+
+            version = DBKeys.VER_SOURCES_REFACTOR
         }
+
+//        if (version == DBKeys.VER_SOURCES_REFACTOR) {
+//
+//
+//            //version = DBKeys.VER_SOURCES_REFACTOR
+//        }
 
 
     }
+
+    /**
+     * Update the existing database novels with sourceIds
+     */
+    private fun updateNovelsWithSourceId(db: SQLiteDatabase) {
+        val selectQuery = "SELECT * FROM ${DBKeys.TABLE_NOVEL}"
+        val cursor = db.rawQuery(selectQuery, null)
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    val novelUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL))
+                    val novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ID))
+                    val sourceId = getSourceId(novelUrl)
+                    val values = ContentValues()
+                    values.put(DBKeys.KEY_SOURCE_ID, sourceId)
+                    db.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
+                } while (cursor.moveToNext())
+            }
+            cursor.close()
+        }
+    }
+
+    /**
+     * Get the sourceId for the novel based on the novel URL
+     */
+    fun getSourceId(novelUrl: String): Long {
+        return when {
+            novelUrl.contains(HostNames.NOVEL_UPDATES) -> Constants.SourceId.NOVEL_UPDATES
+            novelUrl.contains(HostNames.ROYAL_ROAD) -> Constants.SourceId.ROYAL_ROAD
+            novelUrl.contains(HostNames.ROYAL_ROAD_OLD) -> Constants.SourceId.ROYAL_ROAD
+            novelUrl.contains(HostNames.WLN_UPDATES) -> Constants.SourceId.WLN_UPDATES
+            novelUrl.contains(HostNames.NEOVEL) -> Constants.SourceId.NEOVEL
+            novelUrl.contains(HostNames.SCRIBBLE_HUB) -> Constants.SourceId.SCRIBBLE_HUB
+            novelUrl.contains(HostNames.LNMTL) -> Constants.SourceId.LNMTL
+            novelUrl.contains(HostNames.NOVEL_FULL) -> Constants.SourceId.NOVEL_FULL
+            else -> 0L // 0L is considered a invalid source.
+        }
+    }
+
 
     private fun copyDataToDownloads(db: SQLiteDatabase) {
         val selectQuery =
@@ -237,7 +297,7 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         deleteWebPages(novel.id)
         deleteWebPageSettings(novel.id)
         deleteNovelGenre(novel.id)
-        deleteDownloads(novel.name)
+        deleteDownloads(novel.id)
     }
 }
 

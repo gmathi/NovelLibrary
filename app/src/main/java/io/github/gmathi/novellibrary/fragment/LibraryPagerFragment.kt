@@ -12,16 +12,14 @@ import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.LibraryPageListener
 import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.databinding.FragmentLibraryPagerBinding
-import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.Logs
 
 
 class LibraryPagerFragment : BaseFragment() {
 
     private val novelSections: ArrayList<NovelSection> = ArrayList()
-    
+
     private lateinit var binding: FragmentLibraryPagerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,13 +58,13 @@ class LibraryPagerFragment : BaseFragment() {
         val titles = Array(novelSections.size, init = {
             novelSections[it].name!!
         })
-        
+
         val navPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, LibraryPageListener(novelSections))
         binding.contentLibraryPager.viewPager.offscreenPageLimit = 3
         binding.contentLibraryPager.viewPager.adapter = navPageAdapter
         binding.contentLibraryPager.tabStrip.setViewPager(binding.contentLibraryPager.viewPager)
     }
-    
+
     fun getLibraryFragment(): LibraryFragment? {
         val viewPager = (binding.contentLibraryPager.viewPager.adapter as? GenericFragmentStatePagerAdapter) ?: return null
         val listener = (viewPager.listener as? LibraryPageListener) ?: return null

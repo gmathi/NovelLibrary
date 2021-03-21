@@ -6,28 +6,26 @@ import android.content.res.AssetManager
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
-import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
 import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.model.LazyHeaders
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.view.SnappingLinearLayoutManager
 import jp.wasabeef.recyclerview.animators.SlideInRightAnimator
+import uy.kohesive.injekt.injectLazy
 import java.net.URL
 
 
-fun ViewGroup.inflate(layoutRes: Int): View {
-    //view.layoutParams = RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT)
-    return LayoutInflater.from(context).inflate(layoutRes, this, false)
-}
+fun ViewGroup.inflate(layoutRes: Int): View = LayoutInflater.from(context).inflate(layoutRes, this, false)
 
 fun String.addToNovelSearchHistory() {
+    val dataCenter: DataCenter by injectLazy()
     val list = dataCenter.loadNovelSearchHistory()
     if (!list.contains(this)) {
         list.add(0, this)
@@ -36,6 +34,7 @@ fun String.addToNovelSearchHistory() {
 }
 
 fun String.addToLibrarySearchHistory() {
+    val dataCenter: DataCenter by injectLazy()
     val list = dataCenter.loadLibrarySearchHistory()
     if (!list.contains(this)) {
         list.add(0, this)
@@ -51,11 +50,12 @@ fun String.writableFileName(): String {
 }
 
 fun String.getGlideUrl(): GlideUrl {
+    val dataCenter: DataCenter by injectLazy()
     val url = URL(this)
     val hostName = url.host.replace("www.", "").replace("m.", "").trim()
     val builder = LazyHeaders.Builder()
-            .addHeader("User-Agent", HostNames.USER_AGENT)
-            .addHeader("Cookie", dataCenter.getCFCookiesString(hostName))
+        .addHeader("User-Agent", HostNames.USER_AGENT)
+        .addHeader("Cookie", dataCenter.getCFCookiesString(hostName))
 
     return GlideUrl(this, builder.build())
 }
@@ -87,7 +87,7 @@ fun RecyclerView.setDefaultsNoAnimation(adapter: RecyclerView.Adapter<*>): Recyc
 
 fun Uri.getFileName(): String {
     return ((this.lastPathSegment
-            ?: "") + this.toString().substringAfter("?", "")).writableFileName()
+        ?: "") + this.toString().substringAfter("?", "")).writableFileName()
 }
 
 fun ContextWrapper.sendBroadcast(extras: Bundle, action: String) {

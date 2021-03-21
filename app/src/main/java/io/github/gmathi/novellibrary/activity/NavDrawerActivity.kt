@@ -4,39 +4,27 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
-import android.view.View
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
-import com.afollestad.materialdialogs.MaterialDialog
 import androidx.fragment.app.commit
-import androidx.fragment.app.findFragment
-import androidx.lifecycle.lifecycleScope
+import com.afollestad.materialdialogs.MaterialDialog
 import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.tingyik90.snackprogressbar.SnackProgressBar
-import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
-import io.github.gmathi.novellibrary.adapter.LibraryPageListener
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.databinding.ActivityNavDrawerBinding
-import io.github.gmathi.novellibrary.fragment.LibraryFragment
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.lang.launchIO
-import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.system.*
-import kotlinx.coroutines.launch
 import org.cryse.widget.persistentsearch.PersistentSearchView
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -74,13 +62,9 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
         snackBar = Snackbar.make(binding.appBarNavDrawer.navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
-        if (Utils.isConnectedToNetwork(this)) {
-            checkForCloudFlare()
-        } else {
-            checkIntentForNotificationData()
-            loadFragment(currentNavId)
-            showWhatsNewDialog()
-        }
+        checkIntentForNotificationData()
+        loadFragment(currentNavId)
+        showWhatsNewDialog()
         currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
 
         if (intent.hasExtra("showDownloads")) {
@@ -94,7 +78,8 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog(this).show {
                 title(text = "\uD83C\uDF89 What's New 0.16.beta!")
-                message(text =
+                message(
+                    text =
 
                     "✨️ Internal Structural Changes - Faster Processing!\n" +
                             "✨️ Support GitHub\n" +
@@ -118,49 +103,51 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    private fun checkForCloudFlare() {
-        isCloudflareChecking.set(true)
-        cloudFlareLoadingSnack = SnackProgressBar(SnackProgressBar.TYPE_CIRCULAR,
-            "If this is taking too long, You can skip and goto \"Settings\" -> \"CloudFlare Check\" to make the app work.")
-            .setAction("Skip", object: SnackProgressBar.OnActionClickListener {
-                override fun onActionClick() {
-                    loadFragment(currentNavId)
-                    showWhatsNewDialog()
-                    checkIntentForNotificationData()
-                    isCloudflareChecking.set(false)
-                }
-            })
-        lifecycleScope.launch {
-            snackProgressBarManager.show(
-                cloudFlareLoadingSnack!!,
-                SnackProgressBarManager.LENGTH_INDEFINITE
-            )
-            loadFragment(currentNavId)
-        }
-
-        launchIO {
-            CloudFlareByPasser.check(this@NavDrawerActivity, "novelupdates.com") { state ->
-                if (!isDestroyed) {
-                    if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
-                        if (cloudFlareLoadingSnack != null) {
-                            lifecycleScope.launch {
-                                showWhatsNewDialog()
-                                checkIntentForNotificationData()
-                                snackProgressBarManager.dismiss()
-                                cloudFlareLoadingSnack = null
-                                isCloudflareChecking.set(false)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+//    private fun checkForCloudFlare() {
+//        isCloudflareChecking.set(true)
+//        cloudFlareLoadingSnack = SnackProgressBar(
+//            SnackProgressBar.TYPE_CIRCULAR,
+//            "If this is taking too long, You can skip and goto \"Settings\" -> \"CloudFlare Check\" to make the app work."
+//        )
+//            .setAction("Skip", object : SnackProgressBar.OnActionClickListener {
+//                override fun onActionClick() {
+//                    loadFragment(currentNavId)
+//                    showWhatsNewDialog()
+//                    checkIntentForNotificationData()
+//                    isCloudflareChecking.set(false)
+//                }
+//            })
+//        lifecycleScope.launch {
+//            snackProgressBarManager.show(
+//                cloudFlareLoadingSnack!!,
+//                SnackProgressBarManager.LENGTH_INDEFINITE
+//            )
+//            loadFragment(currentNavId)
+//        }
+//
+//        launchIO {
+//            CloudFlareByPasser.check(this@NavDrawerActivity, "novelupdates.com") { state ->
+//                if (!isDestroyed) {
+//                    if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
+//                        if (cloudFlareLoadingSnack != null) {
+//                            lifecycleScope.launch {
+//                                showWhatsNewDialog()
+//                                checkIntentForNotificationData()
+//                                snackProgressBarManager.dismiss()
+//                                cloudFlareLoadingSnack = null
+//                                isCloudflareChecking.set(false)
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     override fun onBackPressed() {
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
-        } else if(isCloudflareChecking.get()) {
+        } else if (isCloudflareChecking.get()) {
             return
         } else {
             val existingSearchFrag = supportFragmentManager.findFragmentByTag(SearchFragment::class.toString())
@@ -171,11 +158,9 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                     return
                 }
             }
-            
-            val existingLibraryPagerFrag = supportFragmentManager.findFragmentByTag(LibraryPagerFragment::class.toString())
-            if (existingLibraryPagerFrag != null) {
-                val existingLibraryPagerFrag = existingLibraryPagerFrag as LibraryPagerFragment
-                if (existingLibraryPagerFrag.getLibraryFragment()?.isSyncing() == true) {
+
+            (supportFragmentManager.findFragmentByTag(LibraryPagerFragment::class.toString()) as? LibraryPagerFragment)?.let {
+                if (it.getLibraryFragment()?.isSyncing() == true) {
                     return
                 }
             }
@@ -183,7 +168,8 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             if (snackBar != null && snackBar!!.isShown)
                 finish()
             else {
-                if (snackBar == null) snackBar = Snackbar.make(binding.appBarNavDrawer.navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
+                if (snackBar == null)
+                    snackBar = Snackbar.make(binding.appBarNavDrawer.navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
                 snackBar?.show()
             }
         }
@@ -280,10 +266,5 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         super.onSaveInstanceState(outState)
         outState.putInt("currentNavId", currentNavId)
     }
-
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
 
 }

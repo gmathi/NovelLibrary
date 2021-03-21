@@ -21,11 +21,11 @@ fun Fragment.isFragmentActive(): Boolean {
     return activity != null && isResumed && !isRemoving && !isDetached
 }
 
-fun Fragment.startReaderDBPagerActivity(novel: Novel, sourceId: Long) {
+fun Fragment.startReaderDBPagerActivity(novel: Novel, translatorSourceName: String) {
     val intent = Intent(context, ReaderDBPagerActivity::class.java)
     val bundle = Bundle()
-    bundle.putSerializable("novel", novel)
-    bundle.putLong("sourceId", sourceId)
+    bundle.putParcelable("novel", novel)
+    bundle.putString("translatorSourceName", translatorSourceName)
     intent.putExtras(bundle)
     startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
 }
@@ -33,7 +33,7 @@ fun Fragment.startReaderDBPagerActivity(novel: Novel, sourceId: Long) {
 fun Fragment.startWebViewActivity(url: String) {
     val intent = Intent(context, WebViewActivity::class.java)
     val bundle = Bundle()
-    bundle.putSerializable("url", url)
+    bundle.putString("url", url)
     intent.putExtras(bundle)
     startActivity(intent)
 }

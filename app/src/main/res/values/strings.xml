@@ -57,7 +57,7 @@
         <item>@string/sync</item>
         <item>@string/donate_developer</item>
         <item>@string/about_us</item>
-        <item>@string/cloud_flare_check</item>
+<!--        <item>@string/cloud_flare_check</item>-->
     </string-array>
 
     <string-array name="sync_list" translatable="false">

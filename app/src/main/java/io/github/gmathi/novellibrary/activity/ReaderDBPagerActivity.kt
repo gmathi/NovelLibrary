@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.activity
 
 
+//import io.github.gmathi.novellibrary.network.sync.NovelSync
 import android.animation.ObjectAnimator
 import android.app.Activity
 import android.content.Intent
@@ -12,7 +13,6 @@ import android.os.Looper
 import android.view.KeyEvent
 import android.view.View
 import android.view.View.*
-import android.view.ViewGroup
 import android.view.WindowManager
 import android.webkit.MimeTypeMap
 import android.webkit.WebView
@@ -20,7 +20,6 @@ import android.widget.CompoundButton
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.MATCH_PARENT
@@ -31,10 +30,8 @@ import com.afollestad.materialdialogs.WhichButton
 import com.afollestad.materialdialogs.actions.setActionButtonEnabled
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
-import com.afollestad.materialdialogs.internal.main.DialogTitleLayout
 import com.afollestad.materialdialogs.list.checkItem
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
-import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.analytics.ktx.logEvent
 import com.yarolegovich.slidingrootnav.SlideGravity
 import com.yarolegovich.slidingrootnav.SlidingRootNav
@@ -43,12 +40,10 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.DrawerAdapter
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.WebPageFragmentPageListener
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.databinding.ActivityReaderPagerBinding
 import io.github.gmathi.novellibrary.databinding.ItemOptionBinding
 import io.github.gmathi.novellibrary.databinding.MenuLeftDrawerBinding
-import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.model.database.Novel
@@ -57,7 +52,6 @@ import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.model.ui.DrawerItem
 import io.github.gmathi.novellibrary.model.ui.ReaderMenu
 import io.github.gmathi.novellibrary.model.ui.SimpleItem
-import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
 import io.github.gmathi.novellibrary.util.Logs
@@ -112,9 +106,9 @@ class ReaderDBPagerActivity :
     private lateinit var novel: Novel
     private lateinit var adapter: GenericFragmentStatePagerAdapter
 
-    private var sourceId: Long = -1L
+    private var translatorSourceName: String? = null
     private var webPages: List<WebPage> = ArrayList()
-    
+
     lateinit var binding: ActivityReaderPagerBinding
     private lateinit var bindingList: MenuLeftDrawerBinding
 
@@ -128,8 +122,10 @@ class ReaderDBPagerActivity :
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         //Read Intent Extras
-        sourceId = intent.getLongExtra("sourceId", -1L)
-        val tempNovel = intent.getSerializableExtra("novel") as Novel?
+        translatorSourceName = intent.getStringExtra("translatorSourceName")
+        if (translatorSourceName == Constants.ALL_TRANSLATOR_SOURCES) translatorSourceName = null
+
+        val tempNovel = intent.getParcelableExtra("novel") as Novel?
 
         //Check if it is Valid Novel
         if (tempNovel == null || tempNovel.chaptersCount.toInt() == 0) {
@@ -139,7 +135,7 @@ class ReaderDBPagerActivity :
             novel = tempNovel
 
         //Get all WebPages & set view pager
-        webPages = dbHelper.getAllWebPages(novel.id, sourceId)
+        webPages = dbHelper.getAllWebPages(novel.id, translatorSourceName)
         if (dataCenter.japSwipe)
             webPages = webPages.reversed()
 
@@ -174,7 +170,7 @@ class ReaderDBPagerActivity :
             param(FAC.Param.NOVEL_URL, novel.url)
         }
         dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, webPage.url)
-        NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, webPage) }
+//        NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, webPage) }
         val webPageSettings = dbHelper.getWebPageSettings(webPage.url)
         if (webPageSettings != null) {
             dbHelper.updateWebPageSettingsReadStatus(webPageSettings, markRead = true)
@@ -281,7 +277,7 @@ class ReaderDBPagerActivity :
     fun checkUrl(url: String): Boolean {
         val webPageSettings = dbHelper.getWebPageSettingsByRedirectedUrl(url) ?: return false
         val webPage = dbHelper.getWebPage(webPageSettings.url) ?: return false
-        val index = dbHelper.getAllWebPages(novel.id, sourceId).indexOf(webPage)
+        val index = dbHelper.getAllWebPages(novel.id, translatorSourceName).indexOf(webPage)
         return if (index == -1)
             false
         else {
@@ -300,7 +296,7 @@ class ReaderDBPagerActivity :
             .withMenuLayout(R.layout.menu_left_drawer)
         slidingRootNav = slidingRootNavBuilder.inject()
 
-        var view = slidingRootNav.layout.getChildAt(0)
+        val view = slidingRootNav.layout.getChildAt(0)
         bindingList = MenuLeftDrawerBinding.bind(view)
     }
 
@@ -322,7 +318,7 @@ class ReaderDBPagerActivity :
             ) as List<DrawerItem<DrawerAdapter.ViewHolder>>
         )
         adapter.setListener(this)
-        
+
         bindingList.list.isNestedScrollingEnabled = false
         bindingList.list.layoutManager = LinearLayoutManager(this)
         bindingList.list.adapter = adapter
@@ -382,7 +378,7 @@ class ReaderDBPagerActivity :
                     val title = webPageDBFragment.doc?.title() ?: ""
                     val chapterIndex = (if (dataCenter.japSwipe) webPages.reversed() else webPages).indexOf(webPages[binding.viewPager.currentItem])
 
-                    startTTSService(audioText, title, novel.id, sourceId, chapterIndex)
+                    startTTSService(audioText, title, novel.id, translatorSourceName, chapterIndex)
                     firebaseAnalytics.logEvent(FAC.Event.LISTEN_NOVEL) {
                         param(FAC.Param.NOVEL_NAME, novel.name)
                         param(FAC.Param.NOVEL_URL, novel.url)
@@ -402,7 +398,7 @@ class ReaderDBPagerActivity :
             itemView.visibility = VISIBLE
             itemView.layoutParams = RecyclerView.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
         }
-        
+
         val itemBinding = ItemOptionBinding.bind(itemView)
 
         itemBinding.title.text = item.title
@@ -453,7 +449,7 @@ class ReaderDBPagerActivity :
             }
         }
     }
-    
+
     private fun changeFontStyle() {
         if (AVAILABLE_FONTS.isEmpty())
             getAvailableFonts()
@@ -463,7 +459,7 @@ class ReaderDBPagerActivity :
             .replace('_', ' ')
 
         var typeFace = createTypeface()
-        
+
         MaterialDialog(this).show {
             title(R.string.title_fonts)
 
@@ -486,7 +482,7 @@ class ReaderDBPagerActivity :
                         typeFace = createTypeface(fontPath)
                         // Currently doesn't work
                         //dialog.setTypeface(dialog.titleView, typeFace)
-                        getCustomView()?.let { 
+                        getCustomView()?.let {
                             launchUI {
                                 val it = it as TextView
                                 it.setTypeface(typeFace, Typeface.NORMAL)

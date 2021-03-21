@@ -4,17 +4,16 @@ import android.content.Context
 import androidx.lifecycle.*
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
-import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.database.Download
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
-import io.github.gmathi.novellibrary.network.NovelApi
-import io.github.gmathi.novellibrary.network.getChapterUrls
-import io.github.gmathi.novellibrary.network.sync.NovelSync
+import io.github.gmathi.novellibrary.model.source.SourceManager
+import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.util.Exceptions.MISSING_SOURCE_ID
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel.Action.*
@@ -22,6 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uy.kohesive.injekt.injectLazy
 import java.io.File
 
 class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), LifecycleObserver {
@@ -39,7 +39,10 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         state.set(KEY_NOVEL, novel)
     }
 
-    lateinit var context: Context
+    private val dbHelper: DBHelper by injectLazy()
+    private val dataCenter: DataCenter by injectLazy()
+    private val sourceManager: SourceManager by injectLazy()
+    private val networkHelper: NetworkHelper by injectLazy()
 
     var chapters: ArrayList<WebPage>? = null
     var chapterSettings: ArrayList<WebPageSettings>? = null
@@ -52,7 +55,6 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     fun init(novel: Novel, lifecycleOwner: LifecycleOwner, context: Context) {
         setNovel(novel)
         lifecycleOwner.lifecycle.addObserver(this)
-        this.context = context
         this.showSources = novel.metadata[Constants.MetaDataKeys.SHOW_SOURCES]?.toBoolean() ?: false
     }
 
@@ -67,7 +69,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             }
             getChapters(forceUpdate = forceUpdate)
 
-            if (chapters == null && !Utils.isConnectedToNetwork(context)) {
+            if (chapters == null && !networkHelper.isConnectedToNetwork()) {
                 loadingStatus.postValue(Constants.Status.NO_INTERNET)
                 return@launch
             }
@@ -98,7 +100,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             novel.metadata[Constants.MetaDataKeys.SHOW_SOURCES] = showSources.toString()
             withContext(Dispatchers.IO) { dbHelper.updateNovelMetaData(novel) }
         }
-        getData(true)
+        loadingStatus.postValue(Constants.Status.DONE)
     }
 
     private suspend fun getChapters(forceUpdate: Boolean) = withContext(Dispatchers.IO) {
@@ -129,7 +131,8 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             else
                 loadingStatus.postValue("Downloading Chapters…")
 
-            this@ChaptersViewModel.chapters = NovelApi.getChapterUrls(novel, showSources)
+            val source = sourceManager.get(novel.sourceId) ?: throw Exception(MISSING_SOURCE_ID)
+            this@ChaptersViewModel.chapters = ArrayList(source.getChapterList(novel))
             return@withContext
 
         } catch (e: Exception) {
@@ -172,7 +175,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         if (novel.id != -1L) return
         loadingStatus.value = Constants.Status.START
         novel.id = dbHelper.insertNovel(novel)
-        NovelSync.getInstance(novel)?.applyAsync(viewModelScope) { if (dataCenter.getSyncAddNovels(it.host)) it.addNovel(novel) }
+//        NovelSync.getInstance(novel)?.applyAsync(viewModelScope) { if (dataCenter.getSyncAddNovels(it.host)) it.addNovel(novel) }
         //There is a chance that the above insertion might fail
         if (novel.id == -1L) return
         chapters?.forEach { it.novelId = novel.id }
@@ -245,7 +248,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         var counter = 0
         dbHelper.writableDatabase.runTransaction { writableDatabase ->
             webPages.forEach {
-                val download = Download(it.url, novel.name, it.chapter)
+                val download = Download(it.url, novel.name, novel.id, it.chapterName)
                 download.orderId = it.orderId.toInt()
                 dbHelper.createDownload(download, writableDatabase)
                 actionModeProgress.postValue(counter++.toString())
@@ -301,5 +304,6 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     enum class Action {
         ADD_DOWNLOADS, DELETE_DOWNLOADS, MARK_READ, MARK_UNREAD, MARK_FAVORITE, REMOVE_FAVORITE
     }
+
 
 }

@@ -23,13 +23,12 @@ import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemSettingsBinding
-import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.applyFont
 import io.github.gmathi.novellibrary.util.setDefaults
 import io.github.gmathi.novellibrary.util.system.*
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import nl.dionsegijn.konfetti.models.Shape
 import nl.dionsegijn.konfetti.models.Size
 
@@ -54,12 +53,12 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private var leftButtonCounter = 0
 
     private val remoteConfig = FirebaseRemoteConfig.getInstance()
-    
+
     private lateinit var binding: ActivitySettingsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
@@ -95,8 +94,10 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         val itemBinding = ListitemSettingsBinding.bind(itemView)
         itemBinding.settingsTitle.applyFont(assets).text = item
         itemBinding.chevron.visibility = if (position < 4) View.VISIBLE else View.INVISIBLE
-        itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
-        else ContextCompat.getColor(this, android.R.color.transparent))
+        itemView.setBackgroundColor(
+            if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
+            else ContextCompat.getColor(this, android.R.color.transparent)
+        )
     }
 
     override fun onItemClick(item: String, position: Int) {
@@ -104,10 +105,10 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             getString(R.string.general) -> startGeneralSettingsActivity()
             getString(R.string.reader) -> startReaderSettingsActivity()
             getString(R.string.mentions) -> startMentionSettingsActivity()
-            getString(R.string.sync) -> startSyncSettingsSelectionActivity()
+            getString(R.string.sync) -> underConstructionDialog()//startSyncSettingsSelectionActivity()
             getString(R.string.donate_developer) -> donateDeveloperDialog()
             getString(R.string.about_us) -> aboutUsDialog()
-            getString(R.string.cloud_flare_check) -> startCloudFlareBypassActivity("novelupdates.com")
+            //getString(R.string.cloud_flare_check) -> underConstructionDialog()//startCloudFlareBypassActivity("novelupdates.com")
         }
     }
 
@@ -155,6 +156,14 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         }
     }
 
+    private fun underConstructionDialog() {
+        MaterialDialog(this).show {
+            //title(R.string.about_us)
+            message(text  = "Under Re-construction!")
+        }
+    }
+
+
     private fun setEasterEgg() {
         binding.hiddenRightButton.setOnClickListener { rightButtonCounter++; checkUnlockStatus() }
         binding.hiddenLeftButton.setOnClickListener { leftButtonCounter++; checkUnlockStatus() }
@@ -197,29 +206,28 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     private fun showConfetti() {
         binding.viewKonfetti.build()
-                .addColors(Color.YELLOW, Color.GREEN, Color.MAGENTA)
-                .setDirection(0.0, 359.0)
-                .setSpeed(1f, 5f)
-                .setFadeOutEnabled(true)
-                .setTimeToLive(2000L)
-                .addShapes(Shape.RECT, Shape.CIRCLE)
-                .addSizes(Size(12))
-                .setPosition(-50f, binding.viewKonfetti.width + 50f, -50f, -50f)
-                .stream(300, 5000L)
+            .addColors(Color.YELLOW, Color.GREEN, Color.MAGENTA)
+            .setDirection(0.0, 359.0)
+            .setSpeed(1f, 5f)
+            .setFadeOutEnabled(true)
+            .setTimeToLive(2000L)
+            .addShapes(Shape.RECT, Shape.CIRCLE)
+            .addSizes(Size(12))
+            .setPosition(-50f, binding.viewKonfetti.width + 50f, -50f, -50f)
+            .stream(300, 5000L)
     }
 
     private fun systemInfo(): String {
         val displayMetrics = DisplayMetrics()
         windowManager.defaultDisplay.getMetrics(displayMetrics)
         val builder = StringBuilder("Debug-info:")
-                .append("\n\tApp Version: ").append(BuildConfig.VERSION_NAME).append('_').append(BuildConfig.VERSION_CODE)
-                .append("\n\tOS Version: ").append(System.getProperty("os.version")).append('(').append(Build.VERSION.INCREMENTAL).append(')')
-                .append("\n\tOS API Level: ").append(Build.VERSION.SDK_INT).append('(').append(Build.VERSION.CODENAME).append(')')
-                .append("\n\tManufacturer: ").append(Build.MANUFACTURER)
-                .append("\n\tDevice: ").append(Build.DEVICE)
-                .append("\n\tModel (and Product): ").append(Build.MODEL).append(" (").append(Build.PRODUCT).append(')')
-                .append("\n\tDisplay: ").append(displayMetrics.widthPixels).append('x').append(displayMetrics.heightPixels)
+            .append("\n\tApp Version: ").append(BuildConfig.VERSION_NAME).append('_').append(BuildConfig.VERSION_CODE)
+            .append("\n\tOS Version: ").append(System.getProperty("os.version")).append('(').append(Build.VERSION.INCREMENTAL).append(')')
+            .append("\n\tOS API Level: ").append(Build.VERSION.SDK_INT).append('(').append(Build.VERSION.CODENAME).append(')')
+            .append("\n\tManufacturer: ").append(Build.MANUFACTURER)
+            .append("\n\tDevice: ").append(Build.DEVICE)
+            .append("\n\tModel (and Product): ").append(Build.MODEL).append(" (").append(Build.PRODUCT).append(')')
+            .append("\n\tDisplay: ").append(displayMetrics.widthPixels).append('x').append(displayMetrics.heightPixels)
         return builder.toString()
     }
-
 }
