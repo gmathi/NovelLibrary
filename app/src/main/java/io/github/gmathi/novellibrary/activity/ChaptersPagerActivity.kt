@@ -459,6 +459,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         MaterialDialog(this).show {
             icon(R.drawable.ic_warning_white_vector)
             title(R.string.alert)
+            message(text = message)
             positiveButton(R.string.okay) {
                 it.dismiss()
             }
