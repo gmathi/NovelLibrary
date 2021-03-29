@@ -99,10 +99,30 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 if (novel.id != -1L) withContext(Dispatchers.IO) { dbHelper.updateNovel(novel) }
                 addNovelToHistory()
                 setupViews()
+                contentBinding.swipeRefreshLayout.isRefreshing = false
                 contentBinding.progressLayout.showContent()
+
             } catch (e: Exception) {
-                if (e.message == Exceptions.MISSING_SOURCE_ID) {
+                if (e.message?.contains(Exceptions.MISSING_SOURCE_ID) == true) {
                     toast("Missing Novel Source Id. Please re-add the novel")
+                    return@launch
+                }
+
+                if (e.message?.contains(getString(R.string.information_cloudflare_bypass_failure)) == true
+                    || e.message?.contains("HTTP error 503") == true) {
+                    resolveCloudflare(novel.url) { success, _, errorMessage ->
+                        if (success) {
+                            toast("Cloudflare Success")
+                            getNovelInfo()
+                        } else {
+                            toast("Cloudflare Failed")
+                            contentBinding.progressLayout.showError(errorText = errorMessage ?: getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again)) {
+                                contentBinding.progressLayout.showLoading()
+                                getNovelInfo()
+                            }
+                            contentBinding.swipeRefreshLayout.isRefreshing = false
+                        }
+                    }
                     return@launch
                 }
 
@@ -115,8 +135,6 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                         getNovelInfo()
                     }
                 }
-
-            } finally {
                 contentBinding.swipeRefreshLayout.isRefreshing = false
             }
         }

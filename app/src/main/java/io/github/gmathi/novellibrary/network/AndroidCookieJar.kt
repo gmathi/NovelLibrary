@@ -4,6 +4,7 @@ import android.webkit.CookieManager
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
+import java.net.HttpCookie
 
 class AndroidCookieJar : CookieJar {
 
@@ -13,6 +14,11 @@ class AndroidCookieJar : CookieJar {
         val urlString = url.toString()
         cookies.forEach { manager.setCookie(urlString, it.toString()) }
     }
+
+    fun saveFromResponse(urlString: String, cookiesStrings: List<String>) {
+        cookiesStrings.forEach { manager.setCookie(urlString, it) }
+    }
+
 
     override fun loadForRequest(url: HttpUrl): List<Cookie> {
         return get(url)
@@ -49,4 +55,7 @@ class AndroidCookieJar : CookieJar {
     fun removeAll() {
         manager.removeAllCookies {}
     }
+
+
+
 }

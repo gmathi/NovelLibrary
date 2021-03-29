@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.webkit.CookieManager
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.Toast
@@ -50,7 +51,14 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
         initWebView
 
-        val response = chain.proceed(originalRequest)
+        val response = if (originalRequest.headers["Cookie"] == null) {
+            val cookie = CookieManager.getInstance().getCookie(originalRequest.url.toString())
+            val authorized = originalRequest.newBuilder()
+                .addHeader("Cookie", cookie)
+                .build();
+            chain.proceed(authorized);
+        } else
+            chain.proceed(originalRequest)
 
         // Check if Cloudflare anti-bot is on
         if (response.code != 503 || response.header("Server") !in SERVER_CHECK) {
@@ -64,6 +72,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
                 .firstOrNull { it.name == "cf_clearance" }
             resolveWithWebView(originalRequest, oldCookie)
 
+            //resolveWithCloudFlareLib(originalRequest, oldCookie)
             return chain.proceed(originalRequest)
         } catch (e: Exception) {
             // Because OkHttp's enqueue only handles IOExceptions, wrap the exception so that
@@ -167,6 +176,6 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
     companion object {
         private val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare")
-        private val COOKIE_NAMES = listOf("__cfduid", "cf_clearance")
+        private val COOKIE_NAMES = listOf("cf_clearance")
     }
 }

@@ -20,8 +20,8 @@ android {
         minSdkVersion 21
         targetSdkVersion 30
         multiDexEnabled true
-        versionCode 96
-        versionName "0.17.beta"
+        versionCode 97
+        versionName "0.18.beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -190,6 +190,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth-ktx'
     implementation 'com.google.firebase:firebase-analytics-ktx'
 
+    implementation 'com.zhkrb.cloudflare-scrape-android:scrape-webview:0.0.4'
 }
 
 task countTranslations {
