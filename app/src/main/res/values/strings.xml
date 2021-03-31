@@ -695,10 +695,10 @@
 
     <string name="source_not_installed">Source not installed: %1$s</string>
 
-    <string name="show_chapters_left_badge">Show chapters left badge</string>
+    <string name="show_chapters_left_badge">Show remaining chapters in badge</string>
     <string name="show_chapters_left_badge_description">
-        Instead of displaying a number of new chapters since the last time novel was read - badge will show the number of chapters left from the bookmark to the last chapter.
-        Badge color will be shown in red if there are new chapters since last time novel was read, otherwise color is dim.
+        Instead of showing the number of new chapters, show the chapters remaining based on the last chapter read.
+        The badge being red will still mean that there\'s a new chapter.
     </string>
 
 </resources>
