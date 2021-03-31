@@ -62,6 +62,8 @@ class DataCenter(context: Context) {
         private const val DISABLE_WUXIA_DOWNLOADS = "disableWuxiaDownloads"
         private const val HAS_ALREADY_DELETED_OLD_CHANNELS = "hasAlreadyDeletedOldChannels"
         private const val LOGIN_COOKIES_STRING = "loginCookiesString"
+        private const val CUSTOM_QUERY_LOOKUPS = "customQueryLookups"
+        private const val SHOW_CHAPTERS_LEFT_BADGE = "showChaptersLeftBadge"
         private const val USER_SPECIFIED_SELECTOR_QUERIES = "userSpecifiedSelectorQueries"
 
         //Backup
@@ -268,6 +270,10 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(HAS_ALREADY_DELETED_OLD_CHANNELS, false)
         set(value) = prefs.edit().putBoolean(HAS_ALREADY_DELETED_OLD_CHANNELS, value).apply()
 
+
+    var showChaptersLeftBadge: Boolean
+        get() = prefs.getBoolean(SHOW_CHAPTERS_LEFT_BADGE, false)
+        set(value) = prefs.edit().putBoolean(SHOW_CHAPTERS_LEFT_BADGE, value).apply()
 
     // Verified HostNames management
 

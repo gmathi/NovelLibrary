@@ -29,6 +29,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         private const val POSITION_ENABLE_NOTIFICATIONS = 2
         private const val POSITION_LANGUAGES = 3
         private const val POSITION_ENABLE_SCROLLING_TEXT = 4
+        private const val POSITION_SHOW_CHAPTERS_LEFT_BADGE = 5
 
     }
 
@@ -106,6 +107,12 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemBinding.widgetSwitch.visibility = View.VISIBLE
                 itemBinding.widgetSwitch.isChecked = dataCenter.enableScrollingText
                 itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableScrollingText = value }
+            }
+
+            POSITION_SHOW_CHAPTERS_LEFT_BADGE -> {
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.showChaptersLeftBadge
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, isChecked -> dataCenter.showChaptersLeftBadge = isChecked }
             }
         }
 

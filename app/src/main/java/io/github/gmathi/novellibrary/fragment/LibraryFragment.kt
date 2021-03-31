@@ -215,23 +215,37 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             startReader(item)
         }
 
+        val bookmarkOrderId = if (item.currentChapterUrl != null) {
+            dbHelper.getWebPage(item.currentChapterUrl!!)?.orderId
+        } else null
 
-        if (item.newReleasesCount != 0L) {
+        val badgeCount = if (dataCenter.showChaptersLeftBadge) {
+            if (bookmarkOrderId == null) item.chaptersCount
+            else item.chaptersCount - bookmarkOrderId - 1;
+        } else item.newReleasesCount
+
+        if (badgeCount != 0L) {
             val shape = GradientDrawable()
             shape.cornerRadius = 99f
-            activity?.let { ContextCompat.getColor(it, R.color.Black) }?.let { shape.setStroke(1, it) }
-            activity?.let { ContextCompat.getColor(it, R.color.DarkRed) }?.let { shape.setColor(it) }
+            activity?.let {
+                shape.setStroke(1, ContextCompat.getColor(it, R.color.Black))
+                // Even if we want to see only chapters left - paint badge in red if there are new chapters
+                // since last time novel was open.
+                if (item.newReleasesCount == 0L)
+                    shape.setColor(ContextCompat.getColor(it, R.color.Gray))
+                else
+                    shape.setColor(ContextCompat.getColor(it, R.color.DarkRed))
+            }
             itemBinding.newChapterCount.background = shape
-            itemBinding.newChapterCount.applyFont(activity?.assets).text = item.newReleasesCount.toString()
+            itemBinding.newChapterCount.applyFont(activity?.assets).text = badgeCount.toString()
             itemBinding.newChapterCount.visibility = View.VISIBLE
         } else {
             itemBinding.newChapterCount.visibility = View.GONE
         }
 
         if (item.currentChapterUrl != null) {
-            val orderId = dbHelper.getWebPage(item.currentChapterUrl!!)?.orderId
-            if (orderId != null) {
-                val progress = "${orderId + 1} / ${item.chaptersCount}"
+            if (bookmarkOrderId != null) {
+                val progress = "${bookmarkOrderId + 1} / ${item.chaptersCount}"
                 itemBinding.novelProgressText.text = progress
             }
         } else {

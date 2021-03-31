@@ -111,6 +111,7 @@
         <item>@string/disable_notifications</item>
         <item>@string/change_language</item>
         <item>@string/scrolling_text</item>
+        <item>@string/show_chapters_left_badge</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
@@ -120,6 +121,7 @@
         <item>@string/disable_notifications_description</item>
         <item>@string/locale_system_default</item>
         <item>@string/scrolling_text_description</item>
+        <item>@string/show_chapters_left_badge_description</item>
     </string-array>
 
     <string-array name="backup_and_restore_titles_list" translatable="false">
@@ -692,5 +694,11 @@
     <string name="information_webview_outdated">Please update the WebView app for better compatibility</string>
 
     <string name="source_not_installed">Source not installed: %1$s</string>
+
+    <string name="show_chapters_left_badge">Show chapters left badge</string>
+    <string name="show_chapters_left_badge_description">
+        Instead of displaying a number of new chapters since the last time novel was read - badge will show the number of chapters left from the bookmark to the last chapter.
+        Badge color will be shown in red if there are new chapters since last time novel was read, otherwise color is dim.
+    </string>
 
 </resources>
