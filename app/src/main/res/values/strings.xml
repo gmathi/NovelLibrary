@@ -111,6 +111,7 @@
         <item>@string/disable_notifications</item>
         <item>@string/change_language</item>
         <item>@string/scrolling_text</item>
+        <item>@string/show_chapters_left_badge</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
@@ -120,6 +121,7 @@
         <item>@string/disable_notifications_description</item>
         <item>@string/locale_system_default</item>
         <item>@string/scrolling_text_description</item>
+        <item>@string/show_chapters_left_badge_description</item>
     </string-array>
 
     <string-array name="backup_and_restore_titles_list" translatable="false">
@@ -692,5 +694,11 @@
     <string name="information_webview_outdated">Please update the WebView app for better compatibility</string>
 
     <string name="source_not_installed">Source not installed: %1$s</string>
+
+    <string name="show_chapters_left_badge">Show remaining chapters in badge</string>
+    <string name="show_chapters_left_badge_description">
+        Instead of showing the number of new chapters, show the chapters remaining based on the last chapter read.
+        The badge being red will still mean that there\'s a new chapter.
+    </string>
 
 </resources>
