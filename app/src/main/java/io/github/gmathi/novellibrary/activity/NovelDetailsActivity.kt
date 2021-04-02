@@ -111,7 +111,8 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 }
 
                 if (e.message?.contains(getString(R.string.information_cloudflare_bypass_failure)) == true
-                    || e.message?.contains("HTTP error 503") == true  && retryCounter < 2) {
+                    || e.message?.contains("HTTP error 503") == true && retryCounter < 2
+                ) {
                     resolveCloudflare(novel.url) { success, _, errorMessage ->
                         if (success) {
                             toast("Cloudflare Success")
@@ -130,7 +131,8 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 }
 
                 //Copy the error to clipboard
-                Utils.copyErrorToClipboard(e, this@NovelDetailsActivity)
+                if (!isDestroyed && !isFinishing)
+                    Utils.copyErrorToClipboard(e, this@NovelDetailsActivity)
 
                 if (novel.id == -1L) {
                     contentBinding.progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again)) {

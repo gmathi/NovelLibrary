@@ -92,7 +92,7 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
 
     fun addItems(newItems: ArrayList<T>) {
         items.addAll(newItems)
-        notifyItemRangeInserted(items.size - newItems.size, items.size)
+        notifyDataSetChanged()//notifyItemRangeInserted(items.size - newItems.size, items.size)
     }
 
     fun addItems(newItems: List<T>) {

@@ -82,11 +82,13 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
         syncSnackBarManager = SnackProgressBarManager(container!!, this)
         syncSnackBarManager
-            .setViewToMove(container!!)
+            .setViewToMove(container)
             .setProgressBarColor(R.color.colorAccent)
             .setBackgroundColor(SnackProgressBarManager.BACKGROUND_COLOR_DEFAULT)
             .setTextSize(14f)
             .setMessageMaxLines(2)
+            .setOverlayLayoutColor(R.color.colorDarkKnight)
+            .setOverlayLayoutAlpha(0.8F)
 
         return view
     }
@@ -114,10 +116,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     private fun setData() {
         updateOrderIds()
         adapter.updateData(ArrayList(dbHelper.getAllNovels(novelSectionId)))
-        if (binding.swipeRefreshLayout != null && binding.progressLayout != null) {
-            binding.swipeRefreshLayout.isRefreshing = false
-            binding.progressLayout.showContent()
-        }
+        binding.swipeRefreshLayout.isRefreshing = false
+        binding.progressLayout.showContent()
         if (adapter.items.size == 0) {
             binding.progressLayout.showEmpty(
                 resId = R.raw.no_data_blob,
@@ -325,42 +325,37 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             val totalChaptersMap: HashMap<Novel, ArrayList<WebPage>> = HashMap()
             val novels = if (novel == null) dbHelper.getAllNovels(novelSectionId) else listOf(novel)
 
-            async(Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
                 syncSnackBarManager.updateTo(syncSnackBar!!.setProgressMax(novels.count()))
             }
 
             var counter = 0
-            var waitList = LinkedList<Deferred<Boolean>>()
+            val waitList = LinkedList<Deferred<Boolean>>()
             novels.forEach {
-                try {
-                    waitList.add(async {
+
+                waitList.add(async {
+                    try {
+
                         val totalChapters = withContext(Dispatchers.IO) { sourceManager.get(it.sourceId)?.getChapterList(it) } ?: ArrayList<WebPage>()
                         if (totalChapters.isNotEmpty() && totalChapters.size > it.chaptersCount.toInt()) {
                             totalCountMap[it] = totalChapters.size
                             totalChaptersMap[it] = ArrayList(totalChapters)
                         }
-                        true
-                    })
 
-                    async(Dispatchers.Main) {
-                        syncSnackBar?.let { snackbar ->
-                            syncSnackBarManager.updateTo(
-                                snackbar.setMessage(
-                                    getString(
-                                        R.string.sync_fetching_chapter_counts,
-                                        counter++, novels.count(), it.name
-                                    )
-                                )
-                            )
-                            syncSnackBarManager.setProgress(counter)
+                        withContext(Dispatchers.Main) {
+                            syncSnackBar?.let { snackBar ->
+                                syncSnackBarManager.updateTo(snackBar.setMessage(getString(R.string.sync_done_fetching_chapters, it.name, (novels.count() - counter++))))
+                                syncSnackBarManager.setProgress(counter)
+                            }
                         }
-                    }
 
-                    Thread.sleep(50L + Random.nextLong() % 20L)
-                } catch (e: Exception) {
-                    Logs.error(TAG, "Novel: $it", e)
-                    return@forEach
-                }
+
+                    } catch (e: Exception) {
+                        Logs.error(TAG, "Novel: $it", e)
+                    } finally {
+                    }
+                    true
+                })
             }
 
             waitList.awaitAll()
@@ -371,12 +366,13 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             withContext(Dispatchers.Main) {
                 syncSnackBarManager.updateTo(syncSnackBarManager.getLastShown()?.setProgressMax(totalChaptersMap.count())!!)
             }
+
             totalChaptersMap.forEach {
                 val novelToUpdate = it.key
                 val chapters = it.value
 
                 counter++
-                async(Dispatchers.Main) {
+                withContext(Dispatchers.Main) {
                     syncSnackBar?.let { progressBar ->
                         syncSnackBarManager.updateTo(
                             progressBar.setMessage(
@@ -396,7 +392,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 dbHelper.updateNovelMetaData(novelToUpdate)
                 dbHelper.updateChaptersAndReleasesCount(novelToUpdate.id, chapters.size.toLong(), novelToUpdate.newReleasesCount + (chapters.size - novelToUpdate.chaptersCount))
 
-                async(Dispatchers.Main) {
+                withContext(Dispatchers.Main) {
                     adapter.items.indexOfFirst { novel ->
                         novel.id == novelToUpdate.id
                     }.let { index ->
@@ -424,7 +420,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             waitList.awaitAll()
 
-            async(Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
                 syncSnackBarManager.dismiss()
                 syncSnackBar = null
             }

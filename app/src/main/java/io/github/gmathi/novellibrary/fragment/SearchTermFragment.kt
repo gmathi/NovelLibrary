@@ -31,7 +31,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
 
     override var currentPageNumber: Int = 1
-    override val preloadCount: Int = 50
+    override val preloadCount: Int = 25
     override val isPageLoading: AtomicBoolean = AtomicBoolean(false)
     private lateinit var searchTerm: String
     private var sourceId: Long = 0L

@@ -1,22 +1,25 @@
 package io.github.gmathi.novellibrary.source
 
+import com.google.gson.Gson
 import com.google.gson.JsonParser
+import com.google.gson.annotations.SerializedName
+import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.other.NovelsPage
+import io.github.gmathi.novellibrary.model.other.SelectorQuery
 import io.github.gmathi.novellibrary.model.source.filter.FilterList
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.NEOVEL_API_URL
+import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_IMPLEMENTATION
 import io.github.gmathi.novellibrary.util.Exceptions.NETWORK_ERROR
 import io.github.gmathi.novellibrary.util.lang.asJsonNullFreeString
-import io.github.gmathi.novellibrary.util.lang.covertJsonNull
 import io.github.gmathi.novellibrary.util.system.encodeBase64ToString
 import okhttp3.Headers
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 
@@ -120,30 +123,31 @@ class NeovelSource : HttpSource() {
     }
 
     override fun chapterListParse(novel: Novel, response: Response): List<WebPage> {
+
+
         val jsonString = response.body?.string() ?: throw Exception(NETWORK_ERROR)
-        val rootJsonObject = JsonParser.parseString(jsonString)?.asJsonObject?.getAsJsonObject("data")
+        val releasesArray = JsonParser.parseString(jsonString)?.asJsonArray
             ?: throw Exception(NETWORK_ERROR)
-        val releasesArray = rootJsonObject.getAsJsonArray("releases")
 
         var orderId = 0L
         val chapters = ArrayList<WebPage>()
-        releasesArray.reversed().asSequence().forEach { release ->
-            val releaseObject = release.asJsonObject
-            val chapterNumber = releaseObject["chapter"].covertJsonNull?.asInt?.toString() ?: ""
-            val fragment = releaseObject["fragment"].covertJsonNull?.asInt?.toString() ?: ""
-            val postFix = releaseObject["postfix"].asJsonNullFreeString ?: ""
-            val url = releaseObject["srcurl"].asJsonNullFreeString
-            val sourceName = releaseObject["tlgroup"].covertJsonNull?.asJsonObject?.get("name")?.asJsonNullFreeString
+        val neovelChaptersArray =  Gson().fromJson(releasesArray.toString(), Array<NeovelChapter>::class.java)
 
-            url?.let {
-                val chapterName = arrayListOf(chapterNumber, fragment, postFix).filter { name -> name.isNotBlank() }.joinToString(" - ")
-                val chapter = WebPage(it, chapterName)
-                chapter.orderId = orderId++
-                chapter.novelId = novel.id
-                chapter.translatorSourceName = sourceName
-                chapters.add(chapter)
-            }
+        neovelChaptersArray.sortedWith(Comparator<NeovelChapter> { o1, o2 ->
+            val volumeDifference = (o1.chapterVolume * 100).toInt() - (o2.chapterVolume * 100).toInt()
+            if (volumeDifference != 0) volumeDifference //returns the volume difference
+            val chapterDifference = (o1.chapterNumber * 100).toInt() - (o2.chapterNumber * 100).toInt()
+            chapterDifference //else returns the chapter difference
+        }).forEach {
+            val url = "${baseUrl}read/${it.bookId}/${it.language}/${it.chapterId}"
+            val chapterName = arrayListOf(it.chapterVolume, it.chapterNumber, it.chapterName ?: "").filter { name -> name.toString().isNotBlank() }.joinToString(" - ")
+            val chapter = WebPage(url, chapterName)
+            chapter.orderId = orderId++
+            chapter.novelId = novel.id
+            chapter.translatorSourceName = it.websiteName
+            chapters.add(chapter)
         }
+
         return chapters
     }
     //endregion
@@ -203,4 +207,22 @@ class NeovelSource : HttpSource() {
         private var neovelGenres: HashMap<Int, String>? = null
         private var neovelTags: HashMap<Int, String>? = null
     }
+
+    private class NeovelChapter(
+        @SerializedName("chapterId") val chapterId: Long,
+        @SerializedName("bookId") val bookId: Long,
+        @SerializedName("chapterName")  val chapterName: String?,
+        @SerializedName("chapterVolume") val chapterVolume: Double,
+        @SerializedName("chapterNumber") val chapterNumber: Double,
+        @SerializedName("chapterUrl") val chapterUrl: String?,
+        @SerializedName("trueUrl") val trueUrl: String?,
+        @SerializedName("websiteName") val websiteName: String?,
+        @SerializedName("postDate") val postDate: String?,
+        @SerializedName("downloadable") val downloadable: Boolean,
+        @SerializedName("language") val language: String?,
+        @SerializedName("alreadyRead") val alreadyRead: Boolean,
+        @SerializedName("state") val state: Long,
+        @SerializedName("premiumAccess") val premiumAccess: Boolean
+    )
+
 }

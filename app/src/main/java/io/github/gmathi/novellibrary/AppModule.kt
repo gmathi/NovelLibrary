@@ -5,8 +5,10 @@ import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.DataCenter
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.api.*
 
 class AppModule(val app: Application) : InjektModule {
@@ -22,7 +24,7 @@ class AppModule(val app: Application) : InjektModule {
         GlobalScope.launch { get<DBHelper>() }
         GlobalScope.launch { get<DataCenter>() }
         GlobalScope.launch { get<NetworkHelper>() }
-        GlobalScope.launch { get<SourceManager>() }
+        GlobalScope.launch { withContext(Dispatchers.IO) { get<SourceManager>() } }
 
     }
 }

@@ -182,7 +182,6 @@ class LNMTLSource : HttpSource() {
         getNovelsLNMTL()
     }
 
-    @Suppress("unused")
     private class LNMTLNovelJson(
         @SerializedName("id") val id: Int,
         @SerializedName("name") val name: String,

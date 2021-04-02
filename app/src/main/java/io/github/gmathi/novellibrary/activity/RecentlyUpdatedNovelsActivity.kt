@@ -76,23 +76,21 @@ class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Re
         try {
             searchResults = ArrayList()
             val document = WebPageDocumentFetcher.document("https://www.novelupdates.com/")
-            val elements = document.body()?.getElementsByTag("td")?.filter { it.className().contains("sid") }
-            if (elements != null)
-                for (element in elements) {
+            document.body().select("table#mytable > tbody > tr")?.forEach { element ->
+                val aHrefElements = element.select("a[title]")
+                if (aHrefElements != null && aHrefElements.size == 3) {
                     val item = RecentlyUpdatedItem()
                     item.novelUrl = element.selectFirst("a[href]")?.attr("abs:href")
                     item.novelName = element.selectFirst("a[title]")?.attr("title")
                     item.chapterName = element.selectFirst("a.chp-release")?.text()
-                    item.publisherName = element.selectFirst("span.mob_group > a")?.attr("title")
-
+                    item.publisherName = aHrefElements[2].attr("title")
                     searchResults.add(item)
                 }
-
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
         return searchResults
-
     }
 
     @SuppressLint("SetTextI18n")

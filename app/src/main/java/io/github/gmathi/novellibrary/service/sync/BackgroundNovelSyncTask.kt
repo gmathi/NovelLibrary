@@ -57,7 +57,7 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
             Logs.debug(TAG, "start novel sync")
             val totalCountMap: HashMap<Novel, Int> = HashMap()
             val totalChaptersMap: HashMap<Novel, ArrayList<WebPage>> = HashMap()
-            val sourceManager = SourceManager(context)
+            val sourceManager = withContext(Dispatchers.IO) { SourceManager(context) }
             val novels = dbHelper.getAllNovels()
             novels.forEach {
                 try {
