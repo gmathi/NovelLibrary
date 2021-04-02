@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/NovelLibrary.iml" filepath="$PROJECT_DIR$/.idea/modules/NovelLibrary.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/NovelLibrary.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/NovelLibrary.app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/StudioProjects.NovelLibrary.iml" filepath="$PROJECT_DIR$/.idea/modules/StudioProjects.NovelLibrary.iml" />
     </modules>
   </component>
 </project>

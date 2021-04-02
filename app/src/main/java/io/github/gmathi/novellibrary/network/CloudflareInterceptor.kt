@@ -51,8 +51,8 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
         initWebView
 
-        val response = if (originalRequest.headers["Cookie"] == null) {
-            val cookie = CookieManager.getInstance().getCookie(originalRequest.url.toString())
+        val cookie = CookieManager.getInstance().getCookie(originalRequest.url.toString()) ?: ""
+        val response = if (originalRequest.headers["Cookie"] == null && cookie.isNotEmpty()) {
             val authorized = originalRequest.newBuilder()
                 .addHeader("Cookie", cookie)
                 .build();

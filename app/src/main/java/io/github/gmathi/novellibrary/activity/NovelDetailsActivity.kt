@@ -50,6 +50,8 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     private lateinit var binding: ActivityNovelDetailsBinding
     private lateinit var contentBinding: ContentNovelDetailsBinding
 
+    private var retryCounter = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityNovelDetailsBinding.inflate(layoutInflater)
@@ -101,7 +103,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 setupViews()
                 contentBinding.swipeRefreshLayout.isRefreshing = false
                 contentBinding.progressLayout.showContent()
-
+                retryCounter = 0
             } catch (e: Exception) {
                 if (e.message?.contains(Exceptions.MISSING_SOURCE_ID) == true) {
                     toast("Missing Novel Source Id. Please re-add the novel")
@@ -109,10 +111,11 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 }
 
                 if (e.message?.contains(getString(R.string.information_cloudflare_bypass_failure)) == true
-                    || e.message?.contains("HTTP error 503") == true) {
+                    || e.message?.contains("HTTP error 503") == true  && retryCounter < 2) {
                     resolveCloudflare(novel.url) { success, _, errorMessage ->
                         if (success) {
                             toast("Cloudflare Success")
+                            retryCounter++
                             getNovelInfo()
                         } else {
                             toast("Cloudflare Failed")

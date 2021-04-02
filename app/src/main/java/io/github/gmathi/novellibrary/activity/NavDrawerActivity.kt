@@ -42,10 +42,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private var snackBar: Snackbar? = null
     private var currentNavId: Int = R.id.nav_search
 
-    private val snackProgressBarManager by lazy { Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this).setMessageMaxLines(3) };
-    private var cloudFlareLoadingSnack: SnackProgressBar? = null
-    private val isCloudflareChecking = AtomicBoolean(false)
-
     private var mAuth: FirebaseAuth? = null
 
     lateinit var binding: ActivityNavDrawerBinding
@@ -92,7 +88,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 //                            "✨️ Support GitHub\n" +
 //                            "✨ UI Changes - New SnackBar!\n" +
 //                            "✨ Font Style Preview!\n" +
-//                            "⚠️ Fix - Hosted novels offline downloads announcement page\n" +
+                            "⚠️ OLD Backups are not compatible!\n" +
 //                            "⚠️ Fix - Hosted novels offline downloads announcement page\n" +
 //                            "⚠️ Fix - Positive button of Font style changer wasn't allowed\n" +
                             "❌️ Broken - Novel Sync\n" +
@@ -155,8 +151,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     override fun onBackPressed() {
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
-        } else if (isCloudflareChecking.get()) {
-            return
         } else {
             val existingSearchFrag = supportFragmentManager.findFragmentByTag(SearchFragment::class.toString())
             if (existingSearchFrag != null) {
