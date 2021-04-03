@@ -35,6 +35,8 @@ class LNMTLSource : HttpSource() {
     override val name: String
         get() = "LNMTL"
 
+    var shouldFetchNovels = false
+
     override fun headersBuilder(): Headers.Builder = Headers.Builder()
         .add("User-Agent", USER_AGENT)
         .add("Referer", baseUrl)
@@ -42,6 +44,9 @@ class LNMTLSource : HttpSource() {
     //region Search Novel
 
     override fun fetchSearchNovels(page: Int, query: String, filters: FilterList): Observable<NovelsPage> {
+        if (shouldFetchNovels)
+            getNovelsLNMTL()
+
         val encodedQuery = URLEncoder.encode(query, "UTF-8")
         val searchResults = novelsLNMTL?.filter { it.name.contains(encodedQuery, true) } ?: ArrayList()
         val novelsPage = NovelsPage(searchResults, hasNextPage = false)
@@ -133,6 +138,13 @@ class LNMTLSource : HttpSource() {
     private fun getNovelsLNMTL() {
         if (novelsLNMTL != null)
             return
+
+        if (!network.isConnectedToNetwork()) {
+            this.shouldFetchNovels = true
+            return
+        }
+
+        this.shouldFetchNovels = false
 
         val request = GET(baseUrl)
         val response = client.newCall(request).execute()
