@@ -191,20 +191,61 @@ open class HtmlCleaner protected constructor() {
     }
 
     open fun downloadImages(doc: Document, novelDir: File) {
-        val elements = doc.getElementsByTag("img").filter { element -> element.hasAttr("src") }
+        val elements = doc.getElementsByTag("img")
         for (element in elements) {
             val imageFile = getImageFile(element, novelDir)
             if (imageFile != null) {
                 if (!imageFile.exists())
                     downloadImage(element, imageFile)
-                element.removeAttr("src")
+                cleanImageTag(element)
                 element.attr("src", "./${imageFile.name}")
             }
         }
     }
 
+    open fun getImageUrl(element: Element): String? {
+        return when {
+            element.hasAttr("data-orig-file") -> element.absUrl("data-orig-file")
+            element.hasAttr("data-large-file") -> element.absUrl("data-large-file")
+            element.hasAttr("lazy-src") -> element.absUrl("lazy-src")
+            element.hasAttr("src") -> element.absUrl("src")
+            element.hasAttr("data-lazy-src") -> element.absUrl("data-lazy-src")
+            element.hasAttr("data-medium-file") -> element.absUrl("data-medium-file")
+            element.hasAttr("data-small-file") -> element.absUrl("data-small-file")
+            element.hasAttr("data-srcset") -> {
+                // Parse highest possible resolution
+                val src = element.attr("data-srcset").substringAfterLast(',').trim().substringBeforeLast(' ')
+                element.attr("_srcset", src)
+                val ret = element.absUrl("_srcset")
+                element.removeAttr("_srcset")
+                ret
+            }
+            element.hasAttr("srcset") -> {
+                // Parse highest possible resolution
+                val src = element.attr("srcset").substringAfterLast(',').trim().substringBeforeLast(' ')
+                element.attr("_srcset", src)
+                val ret = element.absUrl("_srcset")
+                element.removeAttr("_srcset")
+                ret
+            }
+            else -> null
+        }
+    }
+
+    open fun cleanImageTag(element: Element) {
+        element.removeAttr("data-orig-file")
+        element.removeAttr("data-large-file")
+        element.removeAttr("lazy-src")
+        element.removeAttr("src")
+        element.removeAttr("data-lazy-src")
+        element.removeAttr("data-medium-file")
+        element.removeAttr("data-small-file")
+        element.removeAttr("data-srcset")
+        element.removeAttr("srcset")
+    }
+
     open fun getImageFile(element: Element, dir: File): File? {
-        val uri = Uri.parse(element.absUrl("src"))
+        val uri = Uri.parse(getImageUrl(element) ?: return null)
         val file: File
         try {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: $uri")
@@ -218,7 +259,7 @@ open class HtmlCleaner protected constructor() {
     }
 
     open fun downloadImage(element: Element, file: File): File? {
-        val uri = Uri.parse(element.absUrl("src"))
+        val uri = Uri.parse(getImageUrl(element) ?: return null)
         if (uri.toString().contains("uploads/avatars")) return null
         try {
             val response = Jsoup.connect(uri.toString()).userAgent(HostNames.USER_AGENT).ignoreContentType(true).execute()
@@ -490,6 +531,14 @@ open class HtmlCleaner protected constructor() {
 
         if (!keepContentIds && contentElement.hasAttr("id"))
             contentElement.removeAttr("id")
+
+        // Fix images that use data- and lazy-src attributes to load
+        if (contentElement.tagName() == "img") {
+            contentElement.attr("src", getImageUrl(contentElement))
+            // Some websites use srcset to "hide" images from scrapers, and sometimes those images are links to actual chapter.
+            // Example: lazytranslations use a 1x1 gif image to hide them.
+            contentElement.removeAttr("srcset")
+        }
 
         if (keepContentStyle) {
             return
