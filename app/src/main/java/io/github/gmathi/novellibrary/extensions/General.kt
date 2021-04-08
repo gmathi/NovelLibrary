@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
+import android.webkit.CookieManager
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.load.model.GlideUrl
@@ -53,9 +54,10 @@ fun String.getGlideUrl(): GlideUrl {
     val dataCenter: DataCenter by injectLazy()
     val url = URL(this)
     val hostName = url.host.replace("www.", "").replace("m.", "").trim()
+
     val builder = LazyHeaders.Builder()
         .addHeader("User-Agent", HostNames.USER_AGENT)
-        .addHeader("Cookie", dataCenter.getCFCookiesString(hostName))
+        .addHeader("Cookie", CookieManager.getInstance().getCookie(this) ?: dataCenter.getCFCookiesString(hostName))
 
     return GlideUrl(this, builder.build())
 }
