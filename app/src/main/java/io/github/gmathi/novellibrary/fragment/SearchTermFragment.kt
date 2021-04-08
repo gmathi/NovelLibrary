@@ -181,6 +181,11 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
         itemBinding.novelTitleTextView.text = item.name
         itemBinding.novelTitleTextView.isSelected = dataCenter.enableScrollingText
 
+        if (item.metadata.containsKey("Language")) {
+            itemBinding.novelLanguageText.text = item.metadata["Language"]
+            itemBinding.novelLanguageText.visibility = View.VISIBLE
+        }
+
         if (item.rating != null && item.rating != "N/A") {
             var ratingText = "(N/A)"
             try {

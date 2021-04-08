@@ -164,6 +164,11 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
         itemBinding.novelTitleTextView.text = item.name
         itemBinding.novelTitleTextView.isSelected = dataCenter.enableScrollingText
 
+        if (item.metadata.containsKey("Language")) {
+            itemBinding.novelLanguageText.text = item.metadata["Language"]
+            itemBinding.novelLanguageText.visibility = View.VISIBLE
+        }
+
         if (item.rating != null) {
             var ratingText = "(N/A)"
             try {
