@@ -60,8 +60,8 @@ class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Nov
         itemBinding.novelTitleTextView.text = item.name
         itemBinding.novelTitleTextView.isSelected = dataCenter.enableScrollingText
 
-        if (item.metadata.containsKey("Language")) {
-            itemBinding.novelLanguageText.text = item.metadata["Language"]
+        if (item.metadata.containsKey("OriginMarker")) {
+            itemBinding.novelLanguageText.text = item.metadata["OriginMarker"]
             itemBinding.novelLanguageText.visibility = View.VISIBLE
         }
 

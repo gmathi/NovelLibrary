@@ -59,7 +59,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
         element.selectFirst("div.search_title > a")?.text()?.let { novel.name = it }
         novel.imageUrl = element.selectFirst("div.search_img_nu img[src]")?.attr("abs:src")
         val originText = element.select("div.search_ratings>span").text()
-        if (!originText.isNullOrEmpty()) novel.metadata["Language"] = originText
+        if (!originText.isNullOrEmpty()) novel.metadata["OriginMarker"] = originText
         val ratingText = element.select("div.search_ratings").text()
         if (ratingText.contains("(")) {
             novel.rating = ratingText.split("(")[1].trim().replace("(", "").replace(")", "")
@@ -273,7 +273,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
         element.selectFirst("div.search_title > a")?.text()?.let { novel.name = it }
         novel.imageUrl = element.selectFirst("div.search_img_nu img[src]")?.attr("abs:src")
         val originText = element.select("div.search_ratings>span").text()
-        if (!originText.isNullOrEmpty()) novel.metadata["Language"] = originText
+        if (!originText.isNullOrEmpty()) novel.metadata["OriginMarker"] = originText
         val ratingText = element.select("div.search_ratings").text()
         if (ratingText.contains("(")) {
             novel.rating = ratingText.split("(")[1].trim().replace("(", "").replace(")", "")
