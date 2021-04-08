@@ -57,7 +57,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
             ?: throw Exception(INVALID_NOVEL)
         val novel = Novel(url, id)
         element.selectFirst("div.search_title > a")?.text()?.let { novel.name = it }
-        novel.imageUrl = element.selectFirst("div.search_img_nu > img[src]")?.attr("abs:src")
+        novel.imageUrl = element.selectFirst("div.search_img_nu img[src]")?.attr("abs:src")
         val ratingText = element.select("div.search_ratings").text()
         if (ratingText.contains("(")) {
             novel.rating = ratingText.split("(")[1].trim().replace("(", "").replace(")", "")
@@ -73,7 +73,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
     //region Novel Details
     override fun novelDetailsParse(novel: Novel, document: Document): Novel {
         document.selectFirst(".seriestitlenu")?.text()?.let { novel.name = it }
-        novel.imageUrl = document.selectFirst(".seriesimg > img[src]")?.attr("abs:src")
+        novel.imageUrl = document.selectFirst(".seriesimg > img[src],.serieseditimg > img[src]")?.attr("abs:src")
         novel.longDescription = document.body().selectFirst("#editdescription")?.text()
         novel.rating = document.body().selectFirst("span.uvotes")?.text()?.substring(1, 4)
         novel.genres = document.body().selectFirst("#seriesgenre")?.children()?.map { it.text() }
@@ -269,7 +269,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
         val novelUrl = element.selectFirst("div.search_title > a")?.attr("abs:href") ?: throw Exception(INVALID_NOVEL)
         val novel = Novel(novelUrl, id)
         element.selectFirst("div.search_title > a")?.text()?.let { novel.name = it }
-        novel.imageUrl = element.selectFirst("div.search_img_nu > img[src]")?.attr("abs:src")
+        novel.imageUrl = element.selectFirst("div.search_img_nu img[src]")?.attr("abs:src")
         val ratingText = element.select("div.search_ratings").text()
         if (ratingText.contains("(")) {
             novel.rating = ratingText.split("(")[1].trim().replace("(", "").replace(")", "")
