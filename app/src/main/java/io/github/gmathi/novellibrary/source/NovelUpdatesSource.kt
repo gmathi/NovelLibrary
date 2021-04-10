@@ -103,9 +103,13 @@ class NovelUpdatesSource : ParsedHttpSource() {
 
         return novel
     }
-//endregion
+    //endregion
 
     //region Chapters
+    suspend fun getUnsortedChapterList(novel: Novel): List<WebPage> {
+        return getChapterListForSource(novel, null)
+    }
+
     override suspend fun getChapterList(novel: Novel): List<WebPage> {
         val translatorSources = getTranslatorSourcesList(novel)
         val allChapters = getChapterListForSource(novel, null)

@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.model.source
 
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
+import io.github.gmathi.novellibrary.source.NovelUpdatesSource
 import io.github.gmathi.novellibrary.util.lang.awaitSingle
 import rx.Observable
 
@@ -33,7 +34,12 @@ interface Source {
     suspend fun getNovelDetails(novel: Novel): Novel {
         val downloadedNovel = fetchNovelDetails(novel).awaitSingle()
         if (downloadedNovel.chaptersCount == 0L) {
-            downloadedNovel.chaptersCount = getChapterList(novel).count().toLong()
+            downloadedNovel.chaptersCount =
+                if (this is NovelUpdatesSource)
+                    getUnsortedChapterList(novel).count().toLong()
+                else
+                    getChapterList(novel).count().toLong()
+
         }
         return novel
     }

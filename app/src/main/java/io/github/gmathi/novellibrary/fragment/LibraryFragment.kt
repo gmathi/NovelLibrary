@@ -30,6 +30,7 @@ import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.other.NovelEvent
 import io.github.gmathi.novellibrary.model.other.NovelSectionEvent
 import io.github.gmathi.novellibrary.network.sync.NovelSync
+import io.github.gmathi.novellibrary.source.NovelUpdatesSource
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
@@ -336,10 +337,15 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 waitList.add(async {
                     try {
 
-                        val totalChapters = withContext(Dispatchers.IO) { sourceManager.get(it.sourceId)?.getChapterList(it) } ?: ArrayList<WebPage>()
+                        val totalChapters = withContext(Dispatchers.IO) {
+                            val source = sourceManager.get(it.sourceId)
+                            if (source is NovelUpdatesSource)
+                                source.getUnsortedChapterList(it)
+                            else
+                                source?.getChapterList(it)
+                        } ?: ArrayList()
                         if (totalChapters.isNotEmpty() && totalChapters.size > it.chaptersCount.toInt()) {
                             totalCountMap[it] = totalChapters.size
-                            totalChaptersMap[it] = ArrayList(totalChapters)
                         }
 
                         withContext(Dispatchers.Main) {
@@ -367,9 +373,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 syncSnackBarManager.updateTo(syncSnackBarManager.getLastShown()?.setProgressMax(totalChaptersMap.count())!!)
             }
 
-            totalChaptersMap.forEach {
+            totalCountMap.forEach {
                 val novelToUpdate = it.key
-                val chapters = it.value
 
                 counter++
                 withContext(Dispatchers.Main) {
@@ -386,6 +391,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     }
                 }
 
+                val chapters = withContext(Dispatchers.IO) { sourceManager.get(novelToUpdate.sourceId)?.getChapterList(novelToUpdate) } ?: ArrayList()
                 novelToUpdate.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
                 novelToUpdate.newReleasesCount += (chapters.size - novelToUpdate.chaptersCount)
                 novelToUpdate.chaptersCount = chapters.size.toLong()
@@ -403,7 +409,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
                 try {
                     waitList.add(async {
-                        for (i in 0 until chapters.size) {
+                        for (i in chapters.indices) {
                             dbHelper.writableDatabase.runTransaction { writableDatabase ->
                                 dbHelper.createWebPage(chapters[i], writableDatabase)
                                 dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novelToUpdate.id), writableDatabase)
