@@ -6,7 +6,6 @@ import android.content.Context.ACTIVITY_SERVICE
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.VectorDrawable
 import android.net.Uri
@@ -14,7 +13,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
-import android.util.TypedValue
 import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
@@ -29,8 +27,9 @@ import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.getNovel
+import io.github.gmathi.novellibrary.extensions.writableFileName
 import io.github.gmathi.novellibrary.model.database.Novel
-//import io.github.gmathi.novellibrary.network.sync.NovelSync
+import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.storage.createFileIfNotExists
 import io.github.gmathi.novellibrary.util.storage.getOrCreateDirectory
 import io.github.gmathi.novellibrary.util.storage.getOrCreateFile
@@ -84,7 +83,7 @@ object Utils {
         val novelDir = getNovelDir(hostDir, novel.name)
         novelDir.deleteRecursively()
         dbHelper.cleanupNovelData(novel)
-//        NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncDeleteNovels(it.host)) it.removeNovel(novel) }
+        NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncDeleteNovels(it.host)) it.removeNovel(novel) }
         broadcastNovelDelete(context, novel)
     }
 

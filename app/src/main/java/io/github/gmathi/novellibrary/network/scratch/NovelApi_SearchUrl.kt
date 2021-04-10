@@ -1,7 +1,7 @@
 package io.github.gmathi.novellibrary.network.scratch//package io.github.gmathi.novellibrary.network
 //
 //import io.github.gmathi.novellibrary.model.database.Novel
-//import io.github.gmathi.novellibrary.util.addPageNumberToUrl
+//import io.github.gmathi.novellibrary.extensions.addPageNumberToUrl
 //
 //fun NovelApi.searchUrl(url: String, pageNumber: Int): ArrayList<Novel>? {
 //    try {

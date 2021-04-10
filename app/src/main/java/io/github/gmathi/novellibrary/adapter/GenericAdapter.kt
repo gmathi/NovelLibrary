@@ -5,7 +5,7 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.util.inflate
+import io.github.gmathi.novellibrary.extensions.inflate
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.collections.ArrayList

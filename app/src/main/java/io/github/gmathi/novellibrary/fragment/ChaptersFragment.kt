@@ -1,12 +1,12 @@
 package io.github.gmathi.novellibrary.fragment
 
-//import io.github.gmathi.novellibrary.network.sync.NovelSync
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.hanks.library.AnimateCheckBox
 import io.github.gmathi.novellibrary.R
@@ -22,9 +22,10 @@ import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.other.ChapterActionModeEvent
 import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.other.EventType
+import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.ALL_TRANSLATOR_SOURCES
-import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
+import io.github.gmathi.novellibrary.extensions.setDefaultsNoAnimation
 import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.util.system.startWebViewActivity
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
@@ -137,7 +138,7 @@ class ChaptersFragment : BaseFragment(),
         if (novel.id != -1L) {
             novel.currentChapterUrl = item.url
             dbHelper.updateNovel(novel)
-//            NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, item) }
+            NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, item) }
             startReaderDBPagerActivity(novel, translatorSourceName)
         } else
             startWebViewActivity(item.url)

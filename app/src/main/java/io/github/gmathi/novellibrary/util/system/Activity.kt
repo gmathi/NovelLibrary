@@ -58,16 +58,6 @@ fun AppCompatActivity.startChaptersActivity(novel: Novel, jumpToReader: Boolean 
     startActivityForResult(intent, Constants.CHAPTER_ACT_REQ_CODE)
 }
 
-//fun Activity.startOldChaptersActivity(novel: Novel, jumpToReader: Boolean = false) {
-//    val intent = Intent(this, OldChaptersActivity::class.java)
-//    val bundle = Bundle()
-//    bundle.putSerializable("novel", novel)
-//    if (jumpToReader)
-//        bundle.putBoolean(Constants.JUMP, true)
-//    intent.putExtras(bundle)
-//    startActivityForResult(intent, Constants.CHAPTER_ACT_REQ_CODE)
-//}
-
 fun AppCompatActivity.startMetadataActivity(novel: Novel) {
     val intent = Intent(this, MetaDataActivity::class.java)
     val bundle = Bundle()
@@ -166,27 +156,27 @@ fun AppCompatActivity.startContributionsActivity() {
 //    startActivity(intent)
 //}
 
-//fun AppCompatActivity.startSyncSettingsSelectionActivity() {
-//    val intent = Intent(this, SyncSettingsSelectionActivity::class.java)
-//    startActivity(intent)
-//}
+fun AppCompatActivity.startSyncSettingsSelectionActivity() {
+    val intent = Intent(this, SyncSettingsSelectionActivity::class.java)
+    startActivity(intent)
+}
 
-//fun AppCompatActivity.startSyncSettingsActivity(url: String) {
-//    val intent = Intent(this, SyncSettingsActivity::class.java)
-//    val bundle = Bundle()
-//    bundle.putString("url", url)
-//    intent.putExtras(bundle)
-//    startActivity(intent)
-//}
+fun AppCompatActivity.startSyncSettingsActivity(url: String) {
+    val intent = Intent(this, SyncSettingsActivity::class.java)
+    val bundle = Bundle()
+    bundle.putString("url", url)
+    intent.putExtras(bundle)
+    startActivity(intent)
+}
 
-//fun AppCompatActivity.startSyncLoginActivity(url: String, lookup: String) {
-//    val intent = Intent(this, SyncLoginActivity::class.java)
-//    val bundle = Bundle()
-//    bundle.putString("url", url)
-//    bundle.putString("lookup", lookup)
-//    intent.putExtras(bundle)
-//    startActivity(intent)
-//}
+fun AppCompatActivity.startSyncLoginActivity(url: String, lookup: String) {
+    val intent = Intent(this, SyncLoginActivity::class.java)
+    val bundle = Bundle()
+    bundle.putString("url", url)
+    bundle.putString("lookup", lookup)
+    intent.putExtras(bundle)
+    startActivity(intent)
+}
 
 fun AppCompatActivity.startImportLibraryActivity() {
     startActivityForResult(Intent(this, ImportLibraryActivity::class.java), Constants.IMPORT_LIBRARY_ACT_REQ_CODE)

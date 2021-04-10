@@ -16,7 +16,7 @@ import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.writableFileName
+import io.github.gmathi.novellibrary.extensions.writableFileName
 import org.jsoup.nodes.Document
 import java.io.File
 

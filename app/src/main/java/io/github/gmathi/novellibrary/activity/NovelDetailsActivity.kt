@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.activity
 
-//import io.github.gmathi.novellibrary.network.sync.NovelSync
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
@@ -30,6 +29,7 @@ import io.github.gmathi.novellibrary.databinding.ActivityNovelDetailsBinding
 import io.github.gmathi.novellibrary.databinding.ContentNovelDetailsBinding
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.*
@@ -243,7 +243,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     private fun addNovelToDB() {
         if (novel.id == -1L) {
             novel.id = dbHelper.insertNovel(novel)
-//            NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncAddNovels(it.host)) it.addNovel(novel, null) }
+            NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncAddNovels(it.host)) it.addNovel(novel, null) }
             firebaseAnalytics.logEvent(FAC.Event.ADD_NOVEL) {
                 param(FAC.Param.NOVEL_NAME, novel.name)
                 param(FAC.Param.NOVEL_URL, novel.url)

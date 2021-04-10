@@ -29,6 +29,7 @@ import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.other.NovelEvent
 import io.github.gmathi.novellibrary.model.other.NovelSectionEvent
+import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
@@ -39,7 +40,6 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.random.Random
 
 
 class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleItemTouchListener {
@@ -560,11 +560,11 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 val novel = adapter.items[position]
                 dbHelper.updateNovelSectionId(novel.id, id)
                 EventBus.getDefault().post(NovelSectionEvent(id))
-//                NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) {
-//                    if (dataCenter.getSyncAddNovels(it.host)) it.updateNovel(
-//                        novel,
-//                        novelSections.firstOrNull { section -> section.id == id })
-//                }
+                NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) {
+                    if (dataCenter.getSyncAddNovels(it.host)) it.updateNovel(
+                        novel,
+                        novelSections.firstOrNull { section -> section.id == id })
+                }
                 setData()
             }
         }

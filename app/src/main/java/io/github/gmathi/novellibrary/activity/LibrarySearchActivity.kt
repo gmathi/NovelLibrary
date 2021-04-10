@@ -13,6 +13,9 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.databinding.ActivityLibrarySearchBinding
 import io.github.gmathi.novellibrary.databinding.ListitemLibraryBinding
+import io.github.gmathi.novellibrary.extensions.addToLibrarySearchHistory
+import io.github.gmathi.novellibrary.extensions.getGlideUrl
+import io.github.gmathi.novellibrary.extensions.setDefaults
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard

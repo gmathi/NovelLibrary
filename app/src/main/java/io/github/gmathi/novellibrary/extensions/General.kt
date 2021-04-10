@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.util
+package io.github.gmathi.novellibrary.extensions
 
 import android.content.ContextWrapper
 import android.content.Intent
@@ -17,6 +17,7 @@ import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.model.LazyHeaders
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.view.SnappingLinearLayoutManager
 import jp.wasabeef.recyclerview.animators.SlideInRightAnimator
 import uy.kohesive.injekt.injectLazy
@@ -54,10 +55,9 @@ fun String.getGlideUrl(): GlideUrl {
     val dataCenter: DataCenter by injectLazy()
     val url = URL(this)
     val hostName = url.host.replace("www.", "").replace("m.", "").trim()
-
     val builder = LazyHeaders.Builder()
         .addHeader("User-Agent", HostNames.USER_AGENT)
-        .addHeader("Cookie", CookieManager.getInstance().getCookie(this) ?: dataCenter.getCFCookiesString(hostName))
+        .addHeader("Cookie", CookieManager.getInstance().getCookie(this) ?: CookieManager.getInstance().getCookie(".$hostName") ?: "")
 
     return GlideUrl(this, builder.build())
 }

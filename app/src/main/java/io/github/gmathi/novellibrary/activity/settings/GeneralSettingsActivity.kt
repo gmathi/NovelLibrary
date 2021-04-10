@@ -12,8 +12,8 @@ import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
-import io.github.gmathi.novellibrary.util.applyFont
-import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.extensions.applyFont
+import io.github.gmathi.novellibrary.extensions.setDefaults
 import io.github.gmathi.novellibrary.util.system.startBackupSettingsActivity
 import io.github.gmathi.novellibrary.util.system.startLanguagesActivity
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration

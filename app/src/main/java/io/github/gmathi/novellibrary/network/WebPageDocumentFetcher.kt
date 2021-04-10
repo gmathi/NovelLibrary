@@ -15,6 +15,7 @@ import java.io.IOException
 import java.util.regex.Pattern
 import javax.net.ssl.SSLPeerUnverifiedException
 
+@Suppress("unused")
 object WebPageDocumentFetcher {
 
     private val dataCenter: DataCenter by injectLazy()
@@ -24,16 +25,10 @@ object WebPageDocumentFetcher {
     private val client: OkHttpClient
         get() = networkHelper.cloudflareClient
 
-    fun document(url: String, useProxy: Boolean = true): Document {
-        var proxy: BaseProxyHelper? = null
-        if (useProxy) {
-            proxy = BaseProxyHelper.getInstance(url)
-        }
-
+    private fun response(url: String, proxy: BaseProxyHelper?): Response {
         try {
             val request = proxy?.request(url) ?: request(url)
-            val response = proxy?.connect(request) ?: connect(request)
-            return proxy?.document(response) ?: document(response)
+            return proxy?.connect(request) ?: connect(request)
         } catch (e: SSLPeerUnverifiedException) {
             val p = Pattern.compile("Hostname\\s(.*?)\\snot", Pattern.DOTALL or Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE or Pattern.MULTILINE) // Regex for the value of the key
             val m = p.matcher(e.localizedMessage ?: "")
@@ -57,6 +52,24 @@ object WebPageDocumentFetcher {
         }
     }
 
+    fun document(url: String, useProxy: Boolean = true): Document {
+        var proxy: BaseProxyHelper? = null
+        if (useProxy) {
+            proxy = BaseProxyHelper.getInstance(url)
+        }
+        val response = response(url, proxy)
+        return proxy?.document(response) ?: document(response)
+    }
+
+//    private fun string(url: String, useProxy: Boolean = true): String? {
+//        var proxy: BaseProxyHelper? = null
+//        if (useProxy) {
+//            proxy = BaseProxyHelper.getInstance(url)
+//        }
+//        val response = response(url, proxy)
+//        return proxy?.string(response) ?: string(response)
+//    }
+
     fun connect(request: Request): Response {
         return client.newCall(request).execute()
     }
@@ -64,6 +77,10 @@ object WebPageDocumentFetcher {
     fun document(response: Response): Document {
         return response.asJsoup()
     }
+
+//    private fun string(response: Response): String? {
+//        return response.body?.string()
+//    }
 
     fun request(url: String): Request = GET(url)
 

@@ -13,7 +13,7 @@ package io.github.gmathi.novellibrary.network.scratch//package io.github.gmathi.
 //import javax.net.ssl.SSLPeerUnverifiedException
 //
 //
-//object NovelApi {
+//object NovelApi {``1
 //
 //    @Throws(Exception::class)
 //    fun getDocument(url: String, ignoreHttpErrors: Boolean = true, useProxy: Boolean = true): Document {

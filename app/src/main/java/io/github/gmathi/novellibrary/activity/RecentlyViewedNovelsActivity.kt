@@ -18,7 +18,7 @@ import io.github.gmathi.novellibrary.databinding.ListitemNovelBinding
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.extensions.setDefaults
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 
 class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Novel> {

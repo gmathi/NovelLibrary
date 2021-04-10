@@ -31,7 +31,7 @@ import io.github.gmathi.novellibrary.service.tts.TTSNotificationBuilder.Companio
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Utils.getFormattedText
-import io.github.gmathi.novellibrary.util.getGlideUrl
+import io.github.gmathi.novellibrary.extensions.getGlideUrl
 import io.github.gmathi.novellibrary.util.lang.albumArt
 import io.github.gmathi.novellibrary.util.lang.displaySubtitle
 import io.github.gmathi.novellibrary.util.lang.displayTitle

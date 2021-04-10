@@ -1,6 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
-//import io.github.gmathi.novellibrary.network.sync.NovelSync
+import io.github.gmathi.novellibrary.network.sync.NovelSync
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.Menu
@@ -26,11 +26,13 @@ import io.github.gmathi.novellibrary.extensions.FAC
 import io.github.gmathi.novellibrary.extensions.showEmpty
 import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.model.database.NovelSection
-import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.extensions.setDefaults
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSection>, SimpleItemTouchListener {
 
@@ -164,12 +166,12 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                     if (novelSection.id != -1L) {
                         dbHelper.getAllNovels(novelSection.id).forEach {
                             dbHelper.updateNovelSectionId(it.id, -1L)
-//                            NovelSync.getInstance(it)?.applyAsync(lifecycleScope) { sync ->
-//                                if (dataCenter.getSyncAddNovels(sync.host)) sync.updateNovel(
-//                                    it,
-//                                    null
-//                                )
-//                            }
+                            NovelSync.getInstance(it)?.applyAsync(lifecycleScope) { sync ->
+                                if (dataCenter.getSyncAddNovels(sync.host)) sync.updateNovel(
+                                    it,
+                                    null
+                                )
+                            }
                         }
                         dbHelper.deleteNovelSection(novelSection.id)
                     }
@@ -198,17 +200,17 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                 if (newName.isNotBlank() && dbHelper.getNovelSection(newName) == null) {
                     dbHelper.updateNovelSectionName(novelSection.id, newName)
                     setData()
-//                    val oldName = novelSection.name
+                    val oldName = novelSection.name
                     lifecycleScope.launch {
-//                        NovelSync.getAllInstances().forEach {
-//                            withContext(Dispatchers.IO) {
-//                                if (dataCenter.getSyncAddNovels(it.host)) it.renameSection(
-//                                    novelSection,
-//                                    oldName,
-//                                    newName
-//                                )
-//                            }
-//                        }
+                        NovelSync.getAllInstances().forEach {
+                            withContext(Dispatchers.IO) {
+                                if (dataCenter.getSyncAddNovels(it.host)) it.renameSection(
+                                    novelSection,
+                                    oldName,
+                                    newName
+                                )
+                            }
+                        }
                     }
                     firebaseAnalytics.logEvent(FAC.Event.RENAME_NOVEL_SECTION) {
                         param(FAC.Param.NOVEL_SECTION_NAME, newName)

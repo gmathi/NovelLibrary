@@ -14,8 +14,8 @@ import io.github.gmathi.novellibrary.databinding.ContentRecyclerViewBinding
 import io.github.gmathi.novellibrary.databinding.ListitemNovelBinding
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.other.NovelsPage
 import io.github.gmathi.novellibrary.model.source.CatalogueSource
-import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.*
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_SOURCE_ID
@@ -106,10 +106,10 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
             }
 
             try {
-                val source = sourceManager.get(sourceId) as? CatalogueSource ?: throw Exception(MISSING_SOURCE_ID + ": $sourceId")
+                val source = sourceManager.get(sourceId) as? CatalogueSource ?: throw Exception("$MISSING_SOURCE_ID: $sourceId")
                 val novelsPage = withContext(Dispatchers.IO) { source.getSearchNovels(currentPageNumber, searchTerm) }
                 if (isFragmentActive()) {
-                    loadSearchResults(ArrayList(novelsPage.novels))
+                    loadSearchResults(novelsPage)
                     isPageLoading.lazySet(false)
                 }
 
@@ -129,7 +129,10 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
         }
     }
 
-    private fun loadSearchResults(results: ArrayList<Novel>) {
+    private fun loadSearchResults(novelsPage: NovelsPage) {
+        val results: ArrayList<Novel>  = ArrayList(novelsPage.novels)
+        if (!novelsPage.hasNextPage) adapter.loadMoreListener = null
+
         if (results.isNotEmpty() && !adapter.items.containsAll(results)) {
             if (currentPageNumber == 1) {
                 adapter.updateData(results)

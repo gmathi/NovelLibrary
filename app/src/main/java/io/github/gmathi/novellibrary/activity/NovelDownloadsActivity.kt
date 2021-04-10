@@ -26,8 +26,8 @@ import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.service.download.DownloadListener
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.getGlideUrl
-import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
+import io.github.gmathi.novellibrary.extensions.getGlideUrl
+import io.github.gmathi.novellibrary.extensions.setDefaultsNoAnimation
 import io.github.gmathi.novellibrary.util.system.startDownloadNovelService
 
 

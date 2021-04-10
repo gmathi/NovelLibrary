@@ -1,7 +1,7 @@
 package io.github.gmathi.novellibrary.activity
 
 
-//import io.github.gmathi.novellibrary.network.sync.NovelSync
+import io.github.gmathi.novellibrary.network.sync.NovelSync
 import android.animation.ObjectAnimator
 import android.app.Activity
 import android.content.Intent
@@ -20,6 +20,7 @@ import android.widget.CompoundButton
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.MATCH_PARENT
@@ -170,7 +171,7 @@ class ReaderDBPagerActivity :
             param(FAC.Param.NOVEL_URL, novel.url)
         }
         dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, webPage.url)
-//        NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, webPage) }
+        NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, webPage) }
         val webPageSettings = dbHelper.getWebPageSettings(webPage.url)
         if (webPageSettings != null) {
             dbHelper.updateWebPageSettingsReadStatus(webPageSettings, markRead = true)

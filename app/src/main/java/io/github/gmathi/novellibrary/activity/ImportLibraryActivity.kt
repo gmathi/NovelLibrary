@@ -27,8 +27,8 @@ import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.network.POST
 import io.github.gmathi.novellibrary.util.Exceptions.NETWORK_ERROR
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.applyFont
-import io.github.gmathi.novellibrary.util.setDefaultsNoAnimation
+import io.github.gmathi.novellibrary.extensions.applyFont
+import io.github.gmathi.novellibrary.extensions.setDefaultsNoAnimation
 import io.github.gmathi.novellibrary.util.system.toast
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import kotlinx.coroutines.Dispatchers

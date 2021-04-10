@@ -98,7 +98,7 @@ class ScribbleHubSource : ParsedHttpSource() {
 
     override fun chapterListRequest(novel: Novel): Request {
         val scribbleNovelId = novel.externalNovelId ?: novel.metadata["PostId"] ?: throw Exception(Exceptions.INVALID_NOVEL)
-        val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
+        val url = "https://www.scribblehub.com/wp-admin/admin-ajax.php"
         val formBody: RequestBody = FormBody.Builder()
             .add("action", "wi_gettocchp")
             .add("strSID", scribbleNovelId)

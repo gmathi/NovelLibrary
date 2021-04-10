@@ -4,7 +4,7 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
 import com.futuremind.recyclerviewfastscroll.SectionTitleProvider
-import io.github.gmathi.novellibrary.util.inflate
+import io.github.gmathi.novellibrary.extensions.inflate
 import java.util.*
 
 class GenericAdapterSelectTitleProvider<T>(val items: ArrayList<T>, val layoutResId: Int, val listener: Listener<T>) : RecyclerView.Adapter<GenericAdapterSelectTitleProvider.ViewHolder<T>>(), SectionTitleProvider {
