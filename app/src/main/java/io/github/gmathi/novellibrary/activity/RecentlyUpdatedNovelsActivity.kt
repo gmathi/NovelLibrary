@@ -75,7 +75,7 @@ class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Re
         try {
             searchResults = ArrayList()
             val document = WebPageDocumentFetcher.document("https://www.novelupdates.com/")
-            document.body().select("table#mytable > tbody > tr")?.forEach { element ->
+            document.body().select("table#myTable > tbody > tr")?.forEach { element ->
                 val aHrefElements = element.select("a[title]")
                 if (aHrefElements != null && aHrefElements.size == 3) {
                     val item = RecentlyUpdatedItem()
