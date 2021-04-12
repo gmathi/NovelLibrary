@@ -337,15 +337,18 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 waitList.add(async {
                     try {
 
-                        val totalChapters = withContext(Dispatchers.IO) {
+                        val newChaptersList = withContext(Dispatchers.IO) {
                             val source = sourceManager.get(it.sourceId)
                             if (source is NovelUpdatesSource)
                                 source.getUnsortedChapterList(it)
                             else
                                 source?.getChapterList(it)
                         } ?: ArrayList()
-                        if (totalChapters.isNotEmpty() && totalChapters.size > it.chaptersCount.toInt()) {
-                            totalCountMap[it] = totalChapters.size
+                        val currentChaptersHashCode = dbHelper.getAllWebPages(it.id).sumOf { it.hashCode() }
+                        val newChaptersHashCode = newChaptersList.sumOf { it.hashCode() }
+                        if (newChaptersList.isNotEmpty() && newChaptersHashCode != currentChaptersHashCode) {
+                            totalCountMap[it] = newChaptersList.size
+                            totalChaptersMap[it] = ArrayList(newChaptersList)
                         }
 
                         withContext(Dispatchers.Main) {
@@ -373,9 +376,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 syncSnackBarManager.updateTo(syncSnackBarManager.getLastShown()?.setProgressMax(totalChaptersMap.count())!!)
             }
 
-            totalCountMap.forEach {
+            totalChaptersMap.forEach {
                 val novelToUpdate = it.key
-
+                var chapters = it.value
                 counter++
                 withContext(Dispatchers.Main) {
                     syncSnackBar?.let { progressBar ->
@@ -391,7 +394,11 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     }
                 }
 
-                val chapters = withContext(Dispatchers.IO) { sourceManager.get(novelToUpdate.sourceId)?.getChapterList(novelToUpdate) } ?: ArrayList()
+                // We re-fetch the chapters in-case of NovelUpdates so that we also retrieve the translator information.
+                if (novelToUpdate.sourceId == Constants.SourceId.NOVEL_UPDATES) {
+                    chapters = ArrayList(withContext(Dispatchers.IO) { sourceManager.get(novelToUpdate.sourceId)?.getChapterList(novelToUpdate) } ?: emptyList())
+                }
+
                 novelToUpdate.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
                 novelToUpdate.newReleasesCount += (chapters.size - novelToUpdate.chaptersCount)
                 novelToUpdate.chaptersCount = chapters.size.toLong()

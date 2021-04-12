@@ -31,16 +31,19 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
     override var currentPageNumber: Int = 1
     override val preloadCount: Int = 50
     override val isPageLoading: AtomicBoolean = AtomicBoolean(false)
-    private lateinit var rank: String
+
+    private var rank: String? = null
+    private var url: String? = null
 
     private lateinit var binding: ContentRecyclerViewBinding
 
     companion object {
         private const val TAG = "SearchUrlFragment"
 
-        fun newInstance(rank: String): SearchUrlFragment {
+        fun newInstance(rank: String?, url: String?): SearchUrlFragment {
             val bundle = Bundle()
             bundle.putString("rank", rank)
+            bundle.putString("url", url)
             val fragment = SearchUrlFragment()
             fragment.arguments = bundle
             return fragment
@@ -63,7 +66,9 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         //(activity as AppCompatActivity).setSupportActionBar(null)
-        rank = arguments?.getString("rank")!!
+        rank = arguments?.getString("rank")
+        url = arguments?.getString("url")
+
         setRecyclerView()
 
         if (savedInstanceState != null) {
@@ -97,7 +102,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
                 return@search
             }
             try {
-                val novelsPage = withContext(Dispatchers.IO) { NovelUpdatesSource().getPopularNovels(rank, currentPageNumber) }
+                val novelsPage = withContext(Dispatchers.IO) { NovelUpdatesSource().getPopularNovels(rank, url, currentPageNumber) }
                 if (isFragmentActive()) {
                     loadSearchResults(ArrayList(novelsPage.novels))
                     isPageLoading.lazySet(false)

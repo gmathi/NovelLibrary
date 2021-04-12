@@ -15,6 +15,7 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Exceptions.INVALID_NOVEL
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_IMPLEMENTATION
 import io.github.gmathi.novellibrary.extensions.addPageNumberToUrl
+import io.github.gmathi.novellibrary.util.Exceptions
 import io.github.gmathi.novellibrary.util.lang.awaitSingle
 import io.github.gmathi.novellibrary.util.network.asJsoup
 import okhttp3.*
@@ -252,21 +253,27 @@ class NovelUpdatesSource : ParsedHttpSource() {
     //endregion
 
     //region Popular Novels by Rank
-    suspend fun getPopularNovels(rank: String, page: Int): NovelsPage {
-        return fetchPopularNovels(rank, page).awaitSingle()
+    suspend fun getPopularNovels(rank: String?, url: String?, page: Int): NovelsPage {
+        return fetchPopularNovels(rank, url, page).awaitSingle()
     }
 
-    private fun fetchPopularNovels(rank: String, page: Int): Observable<NovelsPage> {
-        return client.newCall(popularNovelsRequest(rank, page))
+    private fun fetchPopularNovels(rank: String?, url: String?, page: Int): Observable<NovelsPage> {
+        return client.newCall(popularNovelsRequest(rank, url, page))
             .asObservableSuccess()
             .map { response ->
                 popularNovelsParse(response)
             }
     }
 
-    private fun popularNovelsRequest(rank: String, page: Int): Request {
-        val url = "$baseUrl/series-ranking/?rank=$rank".addPageNumberToUrl(page, "pg")
-        return GET(url, headers)
+    private fun popularNovelsRequest(rank: String?, url: String?, page: Int): Request {
+        rank?.let {
+            val requestUrl = "$baseUrl/series-ranking/?rank=$rank".addPageNumberToUrl(page, "pg")
+            return GET(requestUrl, headers)
+        }
+        url?.let {
+            return GET(url.addPageNumberToUrl(page, "pg"), headers)
+        }
+        throw Exception(Exceptions.MISSING_IMPLEMENTATION)
     }
 
     override fun popularNovelsSelector(): String = "div.search_main_box_nu"

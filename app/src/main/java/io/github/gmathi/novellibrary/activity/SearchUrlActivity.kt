@@ -21,7 +21,7 @@ class SearchUrlActivity : BaseActivity() {
         supportActionBar?.title = "Search: ${intent.getStringExtra("title")}"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         val url = intent.getStringExtra("url") ?: return
-        val fragment = SearchUrlFragment.newInstance(url)
+        val fragment = SearchUrlFragment.newInstance(rank = null, url = url)
         replaceFragment(fragment)
     }
 

@@ -19,9 +19,9 @@ import io.github.gmathi.novellibrary.util.Constants
 class NavPageListener : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment {
         return when (position) {
-            0 -> SearchUrlFragment.newInstance("popmonth")
-            1 -> SearchUrlFragment.newInstance("popular")
-            else -> SearchUrlFragment.newInstance("sixmonths")
+            0 -> SearchUrlFragment.newInstance("popmonth", null)
+            1 -> SearchUrlFragment.newInstance("popular", null)
+            else -> SearchUrlFragment.newInstance("sixmonths", null)
         }
     }
 }

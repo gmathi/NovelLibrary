@@ -73,9 +73,6 @@ data class WebPage(var url: String, var chapterName: String) : Parcelable, Seria
     override fun hashCode(): Int {
         var result = url.hashCode()
         result = 31 * result + chapterName.hashCode()
-        result = 31 * result + novelId.hashCode()
-        result = 31 * result + orderId.hashCode()
-        result = 31 * result + translatorSourceName.hashCode()
         return result
     }
 

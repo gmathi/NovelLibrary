@@ -59,15 +59,17 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
             val totalChaptersMap: HashMap<Novel, ArrayList<WebPage>> = HashMap()
             val sourceManager = withContext(Dispatchers.IO) { SourceManager(context) }
             val novels = dbHelper.getAllNovels()
-            novels.forEach {
+            novels.forEach { novel ->
                 try {
-                    val totalChapters = withContext(Dispatchers.IO) { sourceManager.get(it.sourceId)?.getChapterList(it) } ?: ArrayList()
-                    if (totalChapters.isNotEmpty() && totalChapters.size > it.chaptersCount.toInt()) {
-                        totalCountMap[it] = totalChapters.size
-                        totalChaptersMap[it] = ArrayList(totalChapters)
+                    val newChaptersList = withContext(Dispatchers.IO) { sourceManager.get(novel.sourceId)?.getChapterList(novel) } ?: ArrayList()
+                    val currentChaptersHashCode = dbHelper.getAllWebPages(novel.id).sumOf { it.hashCode() }
+                    val newChaptersHashCode =  newChaptersList.sumOf { it.hashCode() }
+                    if (newChaptersList.isNotEmpty() && newChaptersHashCode != currentChaptersHashCode) {
+                        totalCountMap[novel] = newChaptersList.size
+                        totalChaptersMap[novel] = ArrayList(newChaptersList)
                     }
                 } catch (e: Exception) {
-                    Logs.error(TAG, "Novel: $it", e)
+                    Logs.error(TAG, "Novel: $novel", e)
                     return@forEach
                 }
             }

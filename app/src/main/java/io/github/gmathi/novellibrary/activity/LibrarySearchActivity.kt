@@ -115,6 +115,9 @@ class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
     private fun setRecyclerView() {
         adapter = GenericAdapter(items = ArrayList(allNovelsList), layoutResId = R.layout.listitem_library, listener = this, loadMoreListener = null)
         binding.contentRecyclerView.recyclerView.setDefaults(adapter)
+        binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false
+        binding.contentRecyclerView.swipeRefreshLayout.isRefreshing = false
+
     }
 
     private fun searchNovels(searchTerm: String?) {
