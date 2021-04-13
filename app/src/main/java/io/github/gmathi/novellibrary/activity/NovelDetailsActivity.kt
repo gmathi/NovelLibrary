@@ -65,6 +65,9 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = novel.name
 
+        //check for novel in database
+        dbHelper.getNovelByUrl(novel.url)?.let { novel.id = it.id }
+
         if (novel.id != -1L && !networkHelper.isConnectedToNetwork()) {
             setupViews()
         } else {
