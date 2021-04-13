@@ -534,12 +534,21 @@ open class HtmlCleaner protected constructor() {
         if (!keepContentIds && contentElement.hasAttr("id"))
             contentElement.removeAttr("id")
 
-        // Fix images that use data- and lazy-src attributes to load
-        if (contentElement.tagName() == "img") {
-            contentElement.attr("src", getImageUrl(contentElement))
-            // Some websites use srcset to "hide" images from scrapers, and sometimes those images are links to actual chapter.
-            // Example: lazytranslations use a 1x1 gif image to hide them.
-            contentElement.removeAttr("srcset")
+        when (contentElement.tagName()) {
+            "img" -> {
+                // Fix images that use data- and lazy-src attributes to load
+                contentElement.attr("src", getImageUrl(contentElement))
+                // Some websites use srcset to "hide" images from scrapers, and sometimes those images are links to actual chapter.
+                // Example: lazytranslations use a 1x1 gif image to hide them.
+                contentElement.removeAttr("srcset")
+            }
+            "div", "span" -> {
+                // Clean up "Advertisements" divs that contain nothing else.
+                if (contentElement.childrenSize()==0 && contentElement.ownText().equals("Advertisements", true)) {
+                    contentElement.remove()
+                    return
+                }
+            }
         }
 
         if (keepContentStyle) {
