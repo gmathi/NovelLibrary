@@ -16,6 +16,7 @@ import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.getNovelByUrl
+import io.github.gmathi.novellibrary.database.insertNovel
 import io.github.gmathi.novellibrary.databinding.ActivityImportLibraryBinding
 import io.github.gmathi.novellibrary.databinding.ListitemImportListBinding
 import io.github.gmathi.novellibrary.extensions.showEmpty
@@ -29,6 +30,8 @@ import io.github.gmathi.novellibrary.util.Exceptions.NETWORK_ERROR
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.extensions.applyFont
 import io.github.gmathi.novellibrary.extensions.setDefaultsNoAnimation
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.system.toast
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import kotlinx.coroutines.Dispatchers
@@ -79,9 +82,9 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
             getNovelsFromUrl()
         }
 
-//        readingListUrlEditText.setText("https://www.novelupdates.com/user/87290/goa_naidu2010/?rl=1")
-//        getNovelsFromUrl()
-//        adapter.notifyDataSetChanged()
+        binding.contentImportLibrary.readingListUrlEditText.setText("https://www.novelupdates.com/user/87290/goa_naidu2010/?rl=1")
+        getNovelsFromUrl()
+        adapter.notifyDataSetChanged()
 
         binding.contentImportLibrary.importCardButton.setOnClickListener {
             getNovelsFromUrl()
@@ -159,7 +162,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
             .add("intUserID", userId)
             .add("isMobile", "yes")
             .build()
-        val request = POST(url, body = formBody)
+        val request = POST(adminUrl, body = formBody)
         return client.newCall(request).execute().body?.string()
     }
 
@@ -328,8 +331,9 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         }
     }
 
-    private fun importNovelToLibrary(importListItem: ImportListItem) {
-//        NovelApi.getNUNovelDetails(importListItem.novelUrl)?.let { dbHelper.insertNovel(it) }
+    private suspend fun importNovelToLibrary(importListItem: ImportListItem) {
+        val novel = Novel(importListItem.novelName, importListItem.novelUrl, Constants.SourceId.NOVEL_UPDATES)
+        sourceManager.get(Constants.SourceId.NOVEL_UPDATES)?.getNovelDetails(novel)?.let { dbHelper.insertNovel(it) }
     }
 
     override fun onBackPressed() {

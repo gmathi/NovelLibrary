@@ -125,6 +125,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 isLottieAnimation = true,
                 emptyText = "Your Library is empty!\nLet's start adding some from search screen…"
             )
+        } else {
+            binding.progressLayout.showContent()
         }
     }
 
@@ -451,7 +453,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun onResume() {
         super.onResume()
-        adapter.updateData(ArrayList(dbHelper.getAllNovels(novelSectionId)))
+        setData()
     }
 
     override fun onPause() {
