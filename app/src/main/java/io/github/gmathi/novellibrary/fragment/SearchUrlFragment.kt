@@ -109,18 +109,24 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
                     binding.swipeRefreshLayout.isRefreshing = false
                 }
             } catch (e: Exception) {
-                if (isFragmentActive())
-                    binding.progressLayout.showError(errorText = getString(R.string.connection_error), buttonText = getString(R.string.try_again)) {
+                if (isFragmentActive()) {
+                    var errorText = getString(R.string.connection_error)
+                    val isCloudFlareError = (e.localizedMessage?.contains("503") == true || e.localizedMessage?.contains("cloudflare", ignoreCase = true) == true)
+                    if (isCloudFlareError) {
+                        errorText = getString(R.string.connection_error_cloudflare)
+                    }
+
+                    binding.progressLayout.showError(errorText = errorText, buttonText = getString(R.string.try_again)) {
                         binding.progressLayout.showLoading()
                         currentPageNumber = 1
                         searchNovels()
                     }
+                }
             }
         }
     }
 
     private fun loadSearchResults(results: ArrayList<Novel>) {
-
         if (results.isNotEmpty() && !adapter.items.containsAll(results)) {
             if (currentPageNumber == 1) {
                 adapter.updateData(results)
@@ -133,12 +139,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
 
         if (adapter.items.isEmpty()) {
             if (isFragmentActive())
-                binding.progressLayout.showEmpty(
-                    resId = R.raw.empty_search,
-                    isLottieAnimation = true,
-                    emptyText = "No Novels Found!",
-                    buttonText = getString(R.string.try_again)
-                ) {
+                binding.progressLayout.showEmpty(resId = R.raw.empty_search, isLottieAnimation = true, emptyText = "No Novels Found!", buttonText = getString(R.string.try_again)) {
                     binding.progressLayout.showLoading()
                     currentPageNumber = 1
                     searchNovels()

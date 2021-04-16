@@ -402,24 +402,28 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 }
 
                 novelToUpdate.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
-                novelToUpdate.newReleasesCount += (chapters.size - novelToUpdate.chaptersCount)
+
+                var newChaptersCount = chapters.size - novelToUpdate.chaptersCount
+                if (newChaptersCount <= 0) { //Check if the chapters were deleted or updated.
+                    newChaptersCount = 0
+                }
+                val newReleasesCount = novelToUpdate.newReleasesCount + newChaptersCount
                 novelToUpdate.chaptersCount = chapters.size.toLong()
+                novelToUpdate.newReleasesCount = newReleasesCount
                 dbHelper.updateNovelMetaData(novelToUpdate)
-                dbHelper.updateChaptersAndReleasesCount(novelToUpdate.id, chapters.size.toLong(), novelToUpdate.newReleasesCount + (chapters.size - novelToUpdate.chaptersCount))
+                dbHelper.updateChaptersAndReleasesCount(novelToUpdate.id, chapters.size.toLong(), newReleasesCount)
 
                 withContext(Dispatchers.Main) {
-                    adapter.items.indexOfFirst { novel ->
-                        novel.id == novelToUpdate.id
-                    }.let { index ->
-                        if (index != -1)
-                            adapter.updateItemAt(index, novelToUpdate)
+                    adapter.items.indexOfFirst { novel -> novel.id == novelToUpdate.id }.let { index ->
+                        if (index != -1) adapter.updateItemAt(index, novelToUpdate)
                     }
                 }
 
                 try {
                     waitList.add(async {
-                        for (i in chapters.indices) {
-                            dbHelper.writableDatabase.runTransaction { writableDatabase ->
+                        dbHelper.writableDatabase.runTransaction { writableDatabase ->
+                            dbHelper.deleteWebPages(novelToUpdate.id, writableDatabase)
+                            for (i in chapters.indices) {
                                 dbHelper.createWebPage(chapters[i], writableDatabase)
                                 dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novelToUpdate.id), writableDatabase)
                             }
@@ -557,6 +561,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             MaterialDialog(requireActivity()).show {
                 message(R.string.no_novel_sections_error)
             }
+            return
         }
         novelSections.firstOrNull { it.id == novelSectionId }?.let { novelSections.remove(it) }
         val novelSectionsNames = ArrayList(novelSections.map { it.name ?: "" })

@@ -704,4 +704,11 @@
     <string name="sync_done_fetching_chapters">Completed checking: %1$s\nRemaining Novels to check: %2$d</string>
     <string name="sync_done_updating_chapters">Completed updating: %1$s\nRemaining Novels to update: %2$d</string>
 
+    <string name="connection_error_cloudflare">
+        This error is due to cloudflare. Try NovelSync in Settings.
+        If that doesn\'t help, try a VPN connection.
+        Join discord, if you need any assistance.
+    </string>
+
+
 </resources>

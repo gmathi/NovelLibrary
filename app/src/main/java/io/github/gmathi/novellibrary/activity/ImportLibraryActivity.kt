@@ -82,9 +82,10 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
             getNovelsFromUrl()
         }
 
-        binding.contentImportLibrary.readingListUrlEditText.setText("https://www.novelupdates.com/user/87290/goa_naidu2010/?rl=1")
-        getNovelsFromUrl()
-        adapter.notifyDataSetChanged()
+// Test Only
+//        binding.contentImportLibrary.readingListUrlEditText.setText("https://www.novelupdates.com/user/87290/goa_naidu2010/?rl=1")
+//        getNovelsFromUrl()
+//        adapter.notifyDataSetChanged()
 
         binding.contentImportLibrary.importCardButton.setOnClickListener {
             getNovelsFromUrl()

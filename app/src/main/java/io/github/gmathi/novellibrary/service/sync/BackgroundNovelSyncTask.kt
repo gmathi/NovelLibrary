@@ -29,7 +29,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
-class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : Worker(context, params) {
+class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
+    Worker(context, params) {
 
     override fun doWork(): Result {
         val dbHelper = DBHelper.getInstance(context)
@@ -61,9 +62,12 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
             val novels = dbHelper.getAllNovels()
             novels.forEach { novel ->
                 try {
-                    val newChaptersList = withContext(Dispatchers.IO) { sourceManager.get(novel.sourceId)?.getChapterList(novel) } ?: ArrayList()
-                    val currentChaptersHashCode = dbHelper.getAllWebPages(novel.id).sumOf { it.hashCode() }
-                    val newChaptersHashCode =  newChaptersList.sumOf { it.hashCode() }
+                    val newChaptersList = withContext(Dispatchers.IO) {
+                        sourceManager.get(novel.sourceId)?.getChapterList(novel)
+                    } ?: ArrayList()
+                    val currentChaptersHashCode =
+                        dbHelper.getAllWebPages(novel.id).sumOf { it.hashCode() }
+                    val newChaptersHashCode = newChaptersList.sumOf { it.hashCode() }
                     if (newChaptersList.isNotEmpty() && newChaptersHashCode != currentChaptersHashCode) {
                         totalCountMap[novel] = newChaptersList.size
                         totalChaptersMap[novel] = ArrayList(newChaptersList)
@@ -80,14 +84,24 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
             totalChaptersMap.forEach {
                 val novel = it.key
                 val chapters = it.value
-                novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
+                novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] =
+                    Utils.getCurrentFormattedDate()
 
                 dbHelper.writableDatabase.runTransaction { writableDatabase ->
                     dbHelper.updateNovelMetaData(novel, writableDatabase)
-                    dbHelper.updateChaptersAndReleasesCount(novel.id, chapters.size.toLong(), novel.newReleasesCount + (chapters.size - novel.chaptersCount), writableDatabase)
+                    var newChaptersCount = chapters.size - novel.chaptersCount
+                    if (newChaptersCount <= 0) { //Check if the chapters were deleted or updated.
+                        newChaptersCount = 0
+                    }
+                    val newReleasesCount = novel.newReleasesCount + newChaptersCount
+                    dbHelper.updateChaptersAndReleasesCount(novel.id, chapters.size.toLong(), newReleasesCount, writableDatabase)
+                    dbHelper.deleteWebPages(novel.id, writableDatabase)
                     for (i in 0 until chapters.size) {
                         dbHelper.createWebPage(chapters[i], writableDatabase)
-                        dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id), writableDatabase)
+                        dbHelper.createWebPageSettings(
+                            WebPageSettings(chapters[i].url, novel.id),
+                            writableDatabase
+                        )
                     }
                 }
             }
@@ -95,12 +109,14 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
             val novelsList: ArrayList<Novel> = ArrayList()
             totalCountMap.forEach {
                 val novel = dbHelper.getNovel(it.key.id)!!
-                novelsList.add(novel)
+                if (novel.newReleasesCount > 0)
+                    novelsList.add(novel)
             }
 
             val novelDetailsIntent = Intent(context, NavDrawerActivity::class.java)
             novelDetailsIntent.action = Constants.Action.MAIN_ACTION
-            novelDetailsIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            novelDetailsIntent.flags =
+                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             val novelDetailsBundle = Bundle()
             novelDetailsBundle.putInt("currentNavId", R.id.nav_library)
             novelDetailsIntent.putExtras(novelDetailsBundle)
@@ -135,10 +151,11 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
             //in this method, single Repeating task is scheduled (the target service that will be called is MyTaskService.class)
             try {
                 val constraints = createSyncConstraints()
-                val periodicTask = PeriodicWorkRequestBuilder<BackgroundNovelSyncTask>(1, TimeUnit.HOURS)
-                    .setConstraints(constraints)
-                    .addTag(TAG)
-                    .build()
+                val periodicTask =
+                    PeriodicWorkRequestBuilder<BackgroundNovelSyncTask>(1, TimeUnit.HOURS)
+                        .setConstraints(constraints)
+                        .addTag(TAG)
+                        .build()
                 WorkManager.getInstance(context).enqueue(periodicTask)
 
                 Logs.debug(TAG, "repeating task scheduled")
@@ -155,7 +172,10 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
 
     }
 
-    private fun showBundledNotifications(novelsList: ArrayList<Novel>, contentIntent: PendingIntent) {
+    private fun showBundledNotifications(
+        novelsList: ArrayList<Novel>,
+        contentIntent: PendingIntent
+    ) {
         if (NOTIFICATION_ID == 0) {
             NOTIFICATION_ID = Utils.getUniqueNotificationId()
         }
@@ -166,9 +186,7 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
                     context.getString(R.string.new_chapters_notification_channel_id),
                     context.getString(R.string.new_chapters_notification_channel_name),
                     NotificationManager.IMPORTANCE_DEFAULT
-                ).apply {
-                    description = context.getString(R.string.new_chapters_notification_channel_description)
-                })
+                ).apply { description = context.getString(R.string.new_chapters_notification_channel_description) })
         }
 
         val first = createNotificationBuilder(context.getString(R.string.app_name), context.getString(R.string.group_update_notification_text), contentIntent)
@@ -176,10 +194,17 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
         notificationManager.notify(NOTIFICATION_ID, first.build())
 
         novelsList.forEach { novel ->
-            val notificationBuilder =
-                createNotificationBuilder(novel.name, context.getString(R.string.new_chapters_notification_content_single, novel.newReleasesCount.toInt()), createNovelDetailsPendingIntent(novel))
+            val notificationBuilder = createNotificationBuilder(
+                novel.name, context.getString(
+                    R.string.new_chapters_notification_content_single,
+                    novel.newReleasesCount.toInt()
+                ), createNovelDetailsPendingIntent(novel)
+            )
             notificationBuilder.setGroup(UPDATE_NOTIFICATION_GROUP)
-            notificationManager.notify((NOTIFICATION_ID + novel.id + 1).toInt(), notificationBuilder.build())
+            notificationManager.notify(
+                (NOTIFICATION_ID + novel.id + 1).toInt(),
+                notificationBuilder.build()
+            )
         }
     }
 
@@ -206,12 +231,7 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) : 
         novelDetailsBundle.putInt("currentNavId", R.id.nav_library)
         novelDetailsBundle.putSerializable("novel", novel)
         novelDetailsIntent.putExtras(novelDetailsBundle)
-        return PendingIntent.getActivity(
-            this.applicationContext,
-            novel.hashCode(),
-            novelDetailsIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT
-        )
+        return PendingIntent.getActivity(this.applicationContext, novel.hashCode(), novelDetailsIntent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
 //endregion
