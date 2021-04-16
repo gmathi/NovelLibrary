@@ -80,7 +80,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog(this).show {
-                title(text = "\uD83C\uDF89 What's New 0.18.2.beta!")
+                title(text = "\uD83C\uDF89 What's New ${BuildConfig.VERSION_NAME}!")
                 message(
                     text =
 

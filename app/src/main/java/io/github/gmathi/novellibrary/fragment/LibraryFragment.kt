@@ -422,7 +422,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 try {
                     waitList.add(async {
                         dbHelper.writableDatabase.runTransaction { writableDatabase ->
-                            dbHelper.deleteWebPages(novelToUpdate.id, writableDatabase)
+                            //Don't auto delete chapters
+                            //dbHelper.deleteWebPages(novelToUpdate.id, writableDatabase)
                             for (i in chapters.indices) {
                                 dbHelper.createWebPage(chapters[i], writableDatabase)
                                 dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novelToUpdate.id), writableDatabase)

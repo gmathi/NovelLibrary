@@ -95,7 +95,8 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
                     }
                     val newReleasesCount = novel.newReleasesCount + newChaptersCount
                     dbHelper.updateChaptersAndReleasesCount(novel.id, chapters.size.toLong(), newReleasesCount, writableDatabase)
-                    dbHelper.deleteWebPages(novel.id, writableDatabase)
+                    //Don't Auto-delete chapters, as they might be the one's that are downloaded.
+                    //dbHelper.deleteWebPages(novel.id, writableDatabase)
                     for (i in 0 until chapters.size) {
                         dbHelper.createWebPage(chapters[i], writableDatabase)
                         dbHelper.createWebPageSettings(
