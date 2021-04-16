@@ -80,7 +80,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun showWhatsNewDialog() {
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog(this).show {
-                title(text = "\uD83C\uDF89 What's New 0.18.1.beta!")
+                title(text = "\uD83C\uDF89 What's New 0.18.2.beta!")
                 message(
                     text =
 
@@ -88,10 +88,10 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 //                            "✨️ Support GitHub\n" +
 //                            "✨ UI Changes - New SnackBar!\n" +
 //                            "✨ Font Style Preview!\n" +
-                            "⚠️ OLD Backups are not compatible!\n" +
+                            "⚠️ OLD Backups are not compatible! Backup with this new version.\n" +
 //                            "⚠️ Fix - Hosted novels offline downloads announcement page\n" +
 //                            "⚠️ Fix - Positive button of Font style changer wasn't allowed\n" +
-                            "❌️ Broken - Novel Sync\n" +
+//                            "❌️ Broken - Novel Sync\n" +
                             "\uD83D\uDEE0️ Other major/minor bug fixes.\n" +
 //                            "\uD83D\uDEE0 Support for 3 more translation sites in reader mode.\n" +
 //                            "\uD83D\uDEE0 Discord link updated.\n" +
