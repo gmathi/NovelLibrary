@@ -1,6 +1,11 @@
 package io.github.gmathi.novellibrary.activity
 
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
+import android.os.IBinder
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
@@ -22,18 +27,22 @@ import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.other.ChapterActionModeEvent
+import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.other.EventType
+import io.github.gmathi.novellibrary.service.download.DownloadListener
+import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.ALL_TRANSLATOR_SOURCES
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.system.shareUrl
+import io.github.gmathi.novellibrary.util.system.startDownloadNovelService
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel
 import org.greenrobot.eventbus.EventBus
 import java.util.*
 import kotlin.collections.ArrayList
 
 
-class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
+class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListener {
 
     companion object {
         //private const val TAG = "ChaptersPagerActivity"
@@ -47,6 +56,9 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
     private var confirmDialog: MaterialDialog? = null
 
+    private var downloadNovelService: DownloadNovelService? = null
+    private var isServiceConnected: Boolean = false
+
     private var maxProgress: Int = 0
     private var progressMessage = "In Progress…"
     private var isSyncing = false
@@ -56,6 +68,23 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
     private var snackProgressBar: SnackProgressBar? = null
 
     private lateinit var binding: ActivityChaptersPagerBinding
+
+    /** Defines callbacks for service binding, passed to bindService()  */
+    private val mConnection = object : ServiceConnection {
+
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            val binder = service as DownloadNovelService.DownloadNovelBinder
+            downloadNovelService = binder.getService()
+            downloadNovelService?.downloadListener = this@ChaptersPagerActivity
+            isServiceConnected = true
+        }
+
+        override fun onServiceDisconnected(className: ComponentName) {
+            isServiceConnected = false
+            downloadNovelService?.downloadListener = null
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -166,7 +195,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         }
 
         val navPageAdapter =
-            GenericFragmentStatePagerAdapter(supportFragmentManager, translatorSourceNames.toTypedArray(), translatorSourceNames.size, ChaptersPageListener(vm.novel, translatorSourceNames))
+                GenericFragmentStatePagerAdapter(supportFragmentManager, translatorSourceNames.toTypedArray(), translatorSourceNames.size, ChaptersPageListener(vm.novel, translatorSourceNames))
         binding.activityChaptersPager.viewPager.offscreenPageLimit = 3
         binding.activityChaptersPager.viewPager.adapter = navPageAdapter
         binding.activityChaptersPager.tabStrip.setViewPager(binding.activityChaptersPager.viewPager)
@@ -178,7 +207,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         vm.novel.currentChapterUrl?.let { currentChapterUrl ->
             val currentBookmarkWebPage = dbHelper.getWebPage(currentChapterUrl) ?: return@let
             val currentSource = translatorSourceNames.firstOrNull { it == currentBookmarkWebPage.translatorSourceName }
-                ?: return@let
+                    ?: return@let
             val index = translatorSourceNames.indexOf(currentSource)
             if (index != -1)
                 binding.activityChaptersPager.viewPager.currentItem = index
@@ -213,7 +242,8 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
             R.id.action_download -> {
                 confirmDialog(getString(R.string.download_all_chapters_dialog_content), { dialog ->
                     val publisher = vm.novel.metadata["English Publisher"]
-                    val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true) ?: false
+                    val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true)
+                            ?: false
                     if (dataCenter.disableWuxiaDownloads && isWuxiaChapterPresent) {
                         dialog.dismiss()
                         showWuxiaWorldDownloadDialog()
@@ -222,6 +252,12 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                         vm.chapters?.let {
                             setProgressDialog("Adding chapters to download queue…", it.size)
                             vm.updateChapters(it, ChaptersViewModel.Action.ADD_DOWNLOADS, callback = {
+                                if (Utils.isServiceRunning(this, DownloadNovelService.QUALIFIED_NAME)) {
+                                    downloadNovelService?.handleNovelDownload(vm.novel.id, DownloadNovelService.ACTION_START)
+                                } else {
+                                    startDownloadNovelService(vm.novel.id)
+                                    bindService()
+                                }
                                 manageDownloadsDialog()
                                 firebaseAnalytics.logEvent(FAC.Event.DOWNLOAD_NOVEL) {
                                     param(FAC.Param.NOVEL_NAME, vm.novel.name)
@@ -338,7 +374,8 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                         mode?.finish()
                     } else {
                         val publisher = vm.novel.metadata["English Publisher"]
-                        val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true) ?: false
+                        val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true)
+                                ?: false
                         if (dataCenter.disableWuxiaDownloads && isWuxiaChapterPresent) {
                             dialog.dismiss()
                             showWuxiaWorldDownloadDialog()
@@ -348,6 +385,12 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
                                 dialog.dismiss()
                                 setProgressDialog("Add to Downloads…", listToDownload.size)
                                 vm.updateChapters(listToDownload, ChaptersViewModel.Action.ADD_DOWNLOADS) {
+                                    if (Utils.isServiceRunning(this, DownloadNovelService.QUALIFIED_NAME)) {
+                                        downloadNovelService?.handleNovelDownload(vm.novel.id, DownloadNovelService.ACTION_START)
+                                    } else {
+                                        startDownloadNovelService(vm.novel.id)
+                                        bindService()
+                                    }
                                     manageDownloadsDialog()
                                     firebaseAnalytics.logEvent(FAC.Event.DOWNLOAD_NOVEL) {
                                         param(FAC.Param.NOVEL_NAME, vm.novel.name)
@@ -502,7 +545,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
         if (maxProgress == 0 || maxProgress > 10) {
             snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, message)
-                .setProgressMax(maxProgress)
+                    .setProgressMax(maxProgress)
         } else {
             showSnackbar(message)
         }
@@ -516,9 +559,9 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
 
     private fun showSnackbar(message: String) {
         val snackbar = Snackbar.make(
-            findViewById(android.R.id.content),
-            message,
-            Snackbar.LENGTH_SHORT
+                findViewById(android.R.id.content),
+                message,
+                Snackbar.LENGTH_SHORT
         )
         snackbar.show()
     }
@@ -539,4 +582,17 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback {
         super.onBackPressed()
     }
 
+    //Service Binding
+    private fun bindService() {
+        Intent(this, DownloadNovelService::class.java).also { intent ->
+            bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
+        }
+    }
+
+    override fun handleEvent(downloadWebPageEvent: DownloadWebPageEvent) {
+        //TODO: Make WebPageSettings get created at adapter set time
+//        if (downloadWebPageEvent.download.novelId == vm.novel.id) {
+//            EventBus.getDefault().post(ChapterActionModeEvent(url = downloadWebPageEvent.webPageUrl, eventType = EventType.COMPLETE))
+//        }
+    }
 }

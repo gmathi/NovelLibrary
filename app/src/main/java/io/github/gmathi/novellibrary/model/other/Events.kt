@@ -11,7 +11,8 @@ enum class EventType {
     INSERT,
     COMPLETE,
     PAUSED,
-    RUNNING
+    RUNNING,
+    DOWNLOAD
 }
 
 class NovelEvent(var type: EventType, var novelId: Long = -1L, var webPage: WebPage? = null)
@@ -30,7 +31,7 @@ class SyncEvent(val novel: Novel, val newChapCount: Int)
 
 class NovelSectionEvent(val novelSectionId: Long)
 
-class ChapterActionModeEvent(val translatorSourceName: String = ALL_TRANSLATOR_SOURCES, val eventType: EventType)
+class ChapterActionModeEvent(val translatorSourceName: String = ALL_TRANSLATOR_SOURCES, val eventType: EventType, val url: String? = null,)
 
 class ReaderSettingsEvent(val setting: String) {
     companion object {

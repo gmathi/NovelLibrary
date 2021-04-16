@@ -29,7 +29,7 @@ fun DBHelper.createDownload(download: Download, db: SQLiteDatabase? = null) {
     values.put(DBKeys.KEY_NOVEL_ID, download.novelId)
     values.put(DBKeys.KEY_WEB_PAGE_URL, download.webPageUrl)
     values.put(DBKeys.KEY_CHAPTER, download.chapter)
-    values.put(DBKeys.KEY_STATUS, Download.STATUS_PAUSED)
+    values.put(DBKeys.KEY_STATUS, Download.STATUS_IN_QUEUE)
     values.put(DBKeys.KEY_ORDER_ID, download.orderId)
     values.put(DBKeys.KEY_METADATA, Gson().toJson(HashMap<String, String?>()))
     writableDatabase.insert(DBKeys.TABLE_DOWNLOAD, null, values)

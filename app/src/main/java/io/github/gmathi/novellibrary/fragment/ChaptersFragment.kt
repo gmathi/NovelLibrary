@@ -25,7 +25,6 @@ import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.ALL_TRANSLATOR_SOURCES
-import io.github.gmathi.novellibrary.extensions.setDefaultsNoAnimation
 import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.util.system.startWebViewActivity
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
@@ -34,8 +33,8 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
 class ChaptersFragment : BaseFragment(),
-    GenericAdapterSelectTitleProvider.Listener<WebPage>,
-    AnimateCheckBox.OnCheckedChangeListener {
+        GenericAdapterSelectTitleProvider.Listener<WebPage>,
+        AnimateCheckBox.OnCheckedChangeListener {
 
     companion object {
 
@@ -61,7 +60,8 @@ class ChaptersFragment : BaseFragment(),
     private lateinit var binding: FragmentSourceChaptersBinding
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val result = inflater.inflate(R.layout.fragment_source_chapters, container, false) ?: return null
+        val result = inflater.inflate(R.layout.fragment_source_chapters, container, false)
+                ?: return null
         binding = FragmentSourceChaptersBinding.bind(result)
         return result
     }
@@ -69,7 +69,8 @@ class ChaptersFragment : BaseFragment(),
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         novel = requireArguments().getParcelable<Novel>(NOVEL) as Novel
-        translatorSourceName = requireArguments().getString(TRANSLATOR_SOURCE_NAME) ?: ALL_TRANSLATOR_SOURCES
+        translatorSourceName = requireArguments().getString(TRANSLATOR_SOURCE_NAME)
+                ?: ALL_TRANSLATOR_SOURCES
         binding.progressLayout.showLoading()
         setRecyclerView()
         setData()
@@ -100,7 +101,8 @@ class ChaptersFragment : BaseFragment(),
                 if (shouldScrollToBookmark)
                     scrollToBookmark()
                 else if (shouldScrollToFirstUnread)
-                    scrollToFirstUnread(activity.vm.chapterSettings ?: throw Error("Invalid Chapter Settings"))
+                    scrollToFirstUnread(activity.vm.chapterSettings
+                            ?: throw Error("Invalid Chapter Settings"))
                 if (activity.dataSet.isNotEmpty()) {
                     lastKnownRecyclerState?.let { binding.recyclerView.layoutManager?.onRestoreInstanceState(it) }
                 }
@@ -180,7 +182,8 @@ class ChaptersFragment : BaseFragment(),
                 itemBinding.chapterTitle.text = "${item.chapterName}: $it"
         }
 
-        itemBinding.chapterCheckBox.isChecked = (activity as? ChaptersPagerActivity)?.dataSet?.contains(item) ?: false
+        itemBinding.chapterCheckBox.isChecked = (activity as? ChaptersPagerActivity)?.dataSet?.contains(item)
+                ?: false
         itemBinding.chapterCheckBox.tag = item
         itemBinding.chapterCheckBox.setOnCheckedChangeListener(this@ChaptersFragment)
 
@@ -240,17 +243,14 @@ class ChaptersFragment : BaseFragment(),
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onDownloadEvent(webPageEvent: DownloadWebPageEvent) {
-        if (webPageEvent.download.novelName == novel.name) {
-            adapter.items.firstOrNull { it.url == webPageEvent.webPageUrl }?.let { adapter.updateItem(it) }
-        }
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
     fun onChapterActionModeEvent(chapterActionModeEvent: ChapterActionModeEvent) {
         if (chapterActionModeEvent.eventType == EventType.COMPLETE || (chapterActionModeEvent.eventType == EventType.UPDATE && (chapterActionModeEvent.translatorSourceName == translatorSourceName || translatorSourceName == ALL_TRANSLATOR_SOURCES))) {
             lastKnownRecyclerState = binding.recyclerView.layoutManager?.onSaveInstanceState()
             setData()
+            return
+        }
+        if (chapterActionModeEvent.eventType == EventType.DOWNLOAD) {
+            adapter.items.firstOrNull { it.url == chapterActionModeEvent.url }?.let { adapter.updateItem(it) }
         }
     }
 
