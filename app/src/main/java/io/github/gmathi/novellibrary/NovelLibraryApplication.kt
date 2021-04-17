@@ -135,7 +135,9 @@ class NovelLibraryApplication : MultiDexApplication() {
             defaults[Constants.RemoteConfig.SELECTOR_QUERIES] = "[]"
             remoteConfig.setDefaultsAsync(defaults)
             remoteConfig.fetchAndActivate().addOnCompleteListener {
-                dataCenter.htmlCleanerSelectorQueries = Gson().fromJson(remoteConfig.getString(Constants.RemoteConfig.SELECTOR_QUERIES), object : TypeToken<ArrayList<SelectorQuery>>() {}.type)
+                var selectorQueries = remoteConfig.getString(Constants.RemoteConfig.SELECTOR_QUERIES)
+                if (selectorQueries.isBlank()) selectorQueries = "[]"
+                dataCenter.htmlCleanerSelectorQueries = Gson().fromJson(selectorQueries, object : TypeToken<ArrayList<SelectorQuery>>() {}.type)
             }
         } catch (ex: Exception) {
             Logs.error("NovelLibraryApplication", "Failed fetching remote query configuration from firebase")

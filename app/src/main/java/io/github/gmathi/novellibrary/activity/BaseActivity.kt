@@ -13,6 +13,7 @@ import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.lang.LocaleManager
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import uy.kohesive.injekt.injectLazy
@@ -52,7 +53,11 @@ abstract class BaseActivity : AppCompatActivity() {
                 completionBlock(false, url, msg)
             }
         })
-        cf.getCookies()
+        try {
+            cf.getCookies()
+        } catch (e: Exception) {
+            Logs.error("BaseActivity", "CloudFlare GetCookies", e)
+        }
     }
 
 }

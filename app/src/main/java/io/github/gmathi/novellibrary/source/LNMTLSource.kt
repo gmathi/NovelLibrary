@@ -12,14 +12,19 @@ import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.LNMTL_BASE_URL
+import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Exceptions
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_IMPLEMENTATION
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.network.asJsoup
 import okhttp3.Headers
 import okhttp3.Request
 import okhttp3.Response
 import rx.Observable
+import uy.kohesive.injekt.injectLazy
 import java.net.URLEncoder
+import java.util.regex.Pattern
+import javax.net.ssl.SSLPeerUnverifiedException
 
 
 class LNMTLSource : HttpSource() {
@@ -136,38 +141,55 @@ class LNMTLSource : HttpSource() {
 
     @Synchronized
     private fun getNovelsLNMTL() {
-        if (novelsLNMTL != null)
-            return
+        try {
+            if (novelsLNMTL != null)
+                return
 
-        if (!network.isConnectedToNetwork()) {
-            this.shouldFetchNovels = true
-            return
-        }
+            if (!network.isConnectedToNetwork()) {
+                this.shouldFetchNovels = true
+                return
+            }
 
-        this.shouldFetchNovels = false
+            this.shouldFetchNovels = false
 
-        val request = GET(baseUrl)
-        val response = client.newCall(request).execute()
-        val document = response.asJsoup()
+            val request = GET(baseUrl)
+            val response = client.newCall(request).execute()
+            val document = response.asJsoup()
 
-        //Check for the novels list script tag
-        val scripts = document.select("script[type]") ?: return
-        val script = scripts.last() ?: return
-        val text = script.html() ?: return
+            //Check for the novels list script tag
+            val scripts = document.select("script[type]") ?: return
+            val script = scripts.last() ?: return
+            val text = script.html() ?: return
 
-        // script will be in a format:
-        // "{some javascript} local: [ {json} ] {some javascript}"
-        // we need to extract the pure json
-        // to do so, take the substring between "local: [" and "]"
-        val json = text.substring(text.indexOf("local:") + 7)
-            .substringBefore(']') + ']'
+            // script will be in a format:
+            // "{some javascript} local: [ {json} ] {some javascript}"
+            // we need to extract the pure json
+            // to do so, take the substring between "local: [" and "]"
+            val json = text.substring(text.indexOf("local:") + 7)
+                .substringBefore(']') + ']'
 
-        novelsLNMTL = ArrayList()
-        val novels: List<LNMTLNovelJson> = Gson().fromJson(json, Array<LNMTLNovelJson>::class.java).toList()
-        for (novelLNMTL in novels) {
-            val novel = Novel(novelLNMTL.name, novelLNMTL.url, id)
-            novel.imageUrl = novelLNMTL.image
-            novelsLNMTL?.add(novel)
+            novelsLNMTL = ArrayList()
+            val novels: List<LNMTLNovelJson> = Gson().fromJson(json, Array<LNMTLNovelJson>::class.java).toList()
+            novels.forEach { novelLNMTL ->
+                val novel = Novel(novelLNMTL.name, novelLNMTL.url, id)
+                novel.imageUrl = novelLNMTL.image
+                novelsLNMTL?.add(novel)
+            }
+        } catch (e: SSLPeerUnverifiedException) {
+            val p = Pattern.compile("Hostname\\s(.*?)\\snot", Pattern.DOTALL or Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE or Pattern.MULTILINE) // Regex for the value of the key
+            val m = p.matcher(e.localizedMessage ?: "")
+            if (m.find()) {
+                val hostName = m.group(1)
+                val dataCenter: DataCenter by injectLazy()
+                val hostNames = dataCenter.getVerifiedHosts()
+                if (!hostNames.contains(hostName ?: "")) {
+                    dataCenter.saveVerifiedHost(hostName ?: "")
+                    return getNovelsLNMTL()
+                }
+            }
+            Logs.error("LNMTLNovels", "SSLPeerUnverifiedException - getLNMTLNovels()", e)
+        } catch (e: Exception) {
+            Logs.error("LNMTLNovels", "Other Exceptions - getLNMTLNovels()", e)
         }
     }
 
@@ -191,7 +213,9 @@ class LNMTLSource : HttpSource() {
     }
 
     init {
+
         getNovelsLNMTL()
+
     }
 
     private class LNMTLNovelJson(
