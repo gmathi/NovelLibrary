@@ -40,7 +40,7 @@ class LNMTLSource : HttpSource() {
     override val name: String
         get() = "LNMTL"
 
-    var shouldFetchNovels = false
+    var shouldFetchNovels = true
 
     override fun headersBuilder(): Headers.Builder = Headers.Builder()
         .add("User-Agent", USER_AGENT)
@@ -210,12 +210,6 @@ class LNMTLSource : HttpSource() {
 
         // Below is to cache Neovel Genres & Tags
         private var novelsLNMTL: ArrayList<Novel>? = null
-    }
-
-    init {
-
-        getNovelsLNMTL()
-
     }
 
     private class LNMTLNovelJson(
