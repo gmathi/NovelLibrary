@@ -205,7 +205,7 @@
     <!-- v0.7 Strings -->
 
     <string name="clean">Dọn dẹp</string>
-    <string name="reader">Trìnhnđọc</string>
+    <string name="reader">Trình đọc</string>
     <string name="reader_mode">Chế độ đọc</string>
     <string name="show_reader_scroll">Hiện thanh cuộn</string>
     <string name="show_reader_scroll_description">Hiện thanh cuộn ở cạnh phải màn hình để theo dõi tiến độ chương truyện</string>
@@ -433,4 +433,10 @@
     <string name="information_webview_outdated">Please update the WebView app for better compatibility</string>
 
     <string name="source_not_installed">Source not installed: %1$s</string>
+
+    <string name="show_chapters_left_badge">Hiển thị số chương còn lại trên huy hiệu</string>
+    <string name="show_chapters_left_badge_description">
+        Thay vì hiển thị số lượng chương mới thì sẽ hiển thị số chương còn lại dựa theo chương đã đọc gần đây nhất. Huy hiệu màu đỏ vẫn sẽ thông báo có chương mới.
+    </string>
+
 </resources>
