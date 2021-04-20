@@ -363,7 +363,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
                     } catch (e: Exception) {
                         Logs.error(TAG, "Novel: $it", e)
-                    } finally {
                     }
                     true
                 })
@@ -397,9 +396,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 }
 
                 // We re-fetch the chapters in-case of NovelUpdates so that we also retrieve the translator information.
-                if (novelToUpdate.sourceId == Constants.SourceId.NOVEL_UPDATES) {
-                    chapters = ArrayList(withContext(Dispatchers.IO) { sourceManager.get(novelToUpdate.sourceId)?.getChapterList(novelToUpdate) } ?: emptyList())
-                }
 
                 novelToUpdate.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
 
@@ -420,6 +416,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 }
 
                 try {
+                    if (novelToUpdate.sourceId == Constants.SourceId.NOVEL_UPDATES) {
+                        chapters = ArrayList(withContext(Dispatchers.IO) { sourceManager.get(novelToUpdate.sourceId)?.getChapterList(novelToUpdate) } ?: emptyList())
+                    }
                     waitList.add(async {
                         dbHelper.writableDatabase.runTransaction { writableDatabase ->
                             //Don't auto delete chapters
