@@ -7,7 +7,9 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.support.v4.media.MediaMetadataCompat
@@ -22,6 +24,7 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
 import io.github.gmathi.novellibrary.database.*
+import io.github.gmathi.novellibrary.extensions.getGlideUrl
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.network.GET
@@ -31,7 +34,6 @@ import io.github.gmathi.novellibrary.service.tts.TTSNotificationBuilder.Companio
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Utils.getFormattedText
-import io.github.gmathi.novellibrary.extensions.getGlideUrl
 import io.github.gmathi.novellibrary.util.lang.albumArt
 import io.github.gmathi.novellibrary.util.lang.displaySubtitle
 import io.github.gmathi.novellibrary.util.lang.displayTitle
@@ -205,7 +207,9 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
             }
             ACTION_NEXT -> {
                 if (chapterIndex == (novel!!.chaptersCount - 1).toInt()) {
-                    Toast.makeText(this, "No More Chapters. You are up-to-date!", Toast.LENGTH_LONG).show()
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(this, "No More Chapters. You are up-to-date!", Toast.LENGTH_LONG).show()
+                    }
                 } else {
                     chapterIndex++
                     setAudioText()
@@ -213,7 +217,9 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
             }
             ACTION_PREVIOUS -> {
                 if (chapterIndex == 0) {
-                    Toast.makeText(this, "First Chapter! Cannot go back!", Toast.LENGTH_LONG).show()
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(this, "First Chapter! Cannot go back!", Toast.LENGTH_LONG).show()
+                    }
                 } else {
                     chapterIndex--
                     setAudioText()
@@ -226,12 +232,16 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         if (status == TextToSpeech.SUCCESS) {
             val result = tts.setLanguage(Locale.getDefault())
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                Toast.makeText(this, "English language is not available.", Toast.LENGTH_SHORT).show()
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(this, "English language is not available.", Toast.LENGTH_SHORT).show()
+                }
             } else {
                 startReading()
             }
         } else {
-            Toast.makeText(this, "Could not initialize TextToSpeech.", Toast.LENGTH_SHORT).show()
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(this, "Could not initialize TextToSpeech.", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -417,8 +427,9 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
                 mediaSession.setMetadata(metadataCompat.build())
                 startReading()
             } catch (e: Exception) {
-                e.printStackTrace()
-                Toast.makeText(this@TTSService, "Unable to read chapter", Toast.LENGTH_LONG).show()
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(this@TTSService, "Unable to read chapter", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
