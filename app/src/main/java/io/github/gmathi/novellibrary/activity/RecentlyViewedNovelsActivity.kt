@@ -65,14 +65,14 @@ class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Nov
             itemBinding.novelLanguageText.visibility = View.VISIBLE
         }
 
-        if (item.rating != null) {
+        if (!item.rating.isNullOrBlank()) {
             var ratingText = "(N/A)"
             try {
-                val rating = item.rating!!.toFloat()
+                val rating = item.rating!!.replace(",",".").toFloat()
                 itemBinding.novelRatingBar.rating = rating
                 ratingText = "(" + String.format("%.1f", rating) + ")"
             } catch (e: Exception) {
-                Logs.warning(TAG, "Rating: " + item.rating, e)
+                Logs.warning("NovelDetailsActivity", "Rating: ${item.rating}, Novel: ${item.name}", e)
             }
             itemBinding.novelRatingText.text = ratingText
         }

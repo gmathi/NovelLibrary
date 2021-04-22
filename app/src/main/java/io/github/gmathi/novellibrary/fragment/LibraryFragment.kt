@@ -184,8 +184,14 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                             // We run resetNovel in GlobalScope, wait for it with .join() (which is why we need runBlocking{})
                             // then we syncNovels() so that it shows in Library
                             runBlocking {
-//                                GlobalScope.launch { dbHelper.resetNovel(novel) }.join()
-//                                setData()
+                                GlobalScope.launch {
+                                    try {
+                                        dbHelper.resetNovel(novel)
+                                    } catch (e:Exception) {
+                                        Logs.error("LibraryFragment", "resetNovel: $novel", e)
+                                    }
+                                }.join()
+                                setData()
                             }
                         } else {
                             showAlertDialog(message = "You need to be connected to Internet to Hard Reset.")

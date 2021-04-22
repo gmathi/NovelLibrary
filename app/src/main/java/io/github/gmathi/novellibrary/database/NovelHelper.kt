@@ -7,7 +7,10 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.NovelGenre
+import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.util.Logs
+import kotlinx.coroutines.coroutineScope
+import uy.kohesive.injekt.injectLazy
 import java.util.*
 
 private const val LOG = "NovelHelper"
@@ -227,13 +230,14 @@ fun DBHelper.updateChaptersCount(novelId: Long, chaptersCount: Long, db: SQLiteD
 }
 
 
-//suspend fun DBHelper.resetNovel(novel: Novel) = coroutineScope {
-//    // Completely delete all novel data and start fresh. Hard reset mode ;p
-//    cleanupNovelData(novel)
-//
-//    // Notice: Cannot run getNovelDetails on MainThread
-//    val newNovel = NovelApi.getNovelDetails(novel.url)
-//    newNovel?.novelSectionId = novel.novelSectionId
-//    newNovel?.orderId = novel.orderId
-//    if (newNovel != null) insertNovel(newNovel)
-//}
+suspend fun DBHelper.resetNovel(novel: Novel) = coroutineScope {
+    // Completely delete all novel data and start fresh. Hard reset mode ;p
+    cleanupNovelData(novel)
+
+    // Notice: Cannot run getNovelDetails on MainThread
+    val sourceManager: SourceManager by injectLazy()
+    val newNovel =  sourceManager.get(novel.sourceId)?.getNovelDetails(novel)
+    newNovel?.novelSectionId = novel.novelSectionId
+    newNovel?.orderId = novel.orderId
+    if (newNovel != null) insertNovel(newNovel)
+}

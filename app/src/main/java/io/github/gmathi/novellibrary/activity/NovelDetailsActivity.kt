@@ -220,14 +220,14 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun setNovelRating() {
-        if (novel.rating != null) {
+        if (!novel.rating.isNullOrBlank()) {
             var ratingText = "(N/A)"
             try {
-                val rating = novel.rating!!.toFloat()
+                val rating = novel.rating!!.replace(",", ".").toFloat()
                 contentBinding.novelDetailsRatingBar.rating = rating
                 ratingText = "(" + String.format("%.1f", rating) + ")"
             } catch (e: Exception) {
-                Logs.warning("Library Activity", "Rating: " + novel.rating, e)
+                Logs.warning("NovelDetailsActivity", "Rating: ${novel.rating}, Novel: ${novel.name}", e)
             }
             contentBinding.novelDetailsRatingText.text = ratingText
         }

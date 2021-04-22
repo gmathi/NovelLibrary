@@ -45,6 +45,14 @@ fun String.addToLibrarySearchHistory() {
 }
 
 fun String.writableFileName(): String {
+    val regex = Regex("[^a-zA-Z0-9.-]")
+    var fileName = this.replace(regex, "")
+    if (fileName.length > 150)
+        fileName = fileName.substring(0, 150)
+    return fileName
+}
+
+fun String.writableOldFileName(): String {
     var fileName = this.replace(Regex.fromLiteral("[^a-zA-Z0-9.-]"), "_").replace("/", "_").replace(" ", "")
     if (fileName.length > 150)
         fileName = fileName.substring(0, 150)
