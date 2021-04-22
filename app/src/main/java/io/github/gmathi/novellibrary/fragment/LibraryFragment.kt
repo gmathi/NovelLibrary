@@ -530,7 +530,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     this@LibraryFragment.run {
                         val novel = adapter.items[viewHolderPosition]
                         Utils.deleteNovel(it, novel.id)
-                        adapter.onItemDismiss(viewHolderPosition)
+                        setData()
                         dialog.dismiss()
                     }
                 }

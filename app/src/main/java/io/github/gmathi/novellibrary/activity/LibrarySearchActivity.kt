@@ -4,19 +4,25 @@ import android.animation.Animator
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.widget.PopupMenu
+import androidx.lifecycle.lifecycleScope
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
+import com.afollestad.materialdialogs.list.listItems
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.database.getAllNovels
+import io.github.gmathi.novellibrary.database.updateNovelSectionId
 import io.github.gmathi.novellibrary.databinding.ActivityLibrarySearchBinding
 import io.github.gmathi.novellibrary.databinding.ListitemLibraryBinding
 import io.github.gmathi.novellibrary.extensions.addToLibrarySearchHistory
 import io.github.gmathi.novellibrary.extensions.getGlideUrl
 import io.github.gmathi.novellibrary.extensions.setDefaults
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.other.NovelSectionEvent
+import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
 import io.github.gmathi.novellibrary.util.system.startChaptersActivity
@@ -26,13 +32,14 @@ import io.github.gmathi.novellibrary.util.view.SimpleAnimationListener
 import io.github.gmathi.novellibrary.util.view.SuggestionsBuilder
 import org.cryse.widget.persistentsearch.PersistentSearchView
 import org.cryse.widget.persistentsearch.SearchItem
+import org.greenrobot.eventbus.EventBus
 
 class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
     lateinit var adapter: GenericAdapter<Novel>
-    private val allNovelsList: List<Novel> = dbHelper.getAllNovels()
     private var isDateSorted = false
     private var isTitleSorted = false
+    private var currentSearchTerm: String? = null
 
     private lateinit var binding: ActivityLibrarySearchBinding
 
@@ -47,12 +54,10 @@ class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
     private fun setSearchView() {
         //searchView.setHomeButtonVisibility(View.GONE)
-        binding.searchView.setHomeButtonListener(object : PersistentSearchView.HomeButtonListener {
-            override fun onHomeButtonClick() {
-                hideSoftKeyboard()
-                finish()
-            }
-        })
+        binding.searchView.setHomeButtonListener {
+            hideSoftKeyboard()
+            finish()
+        }
 
         binding.searchView.setSuggestionBuilder(SuggestionsBuilder(dataCenter.loadLibrarySearchHistory()))
         binding.searchView.setSearchListener(object : PersistentSearchView.SearchListener {
@@ -113,7 +118,7 @@ class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
     }
 
     private fun setRecyclerView() {
-        adapter = GenericAdapter(items = ArrayList(allNovelsList), layoutResId = R.layout.listitem_library, listener = this, loadMoreListener = null)
+        adapter = GenericAdapter(items = ArrayList(dbHelper.getAllNovels()), layoutResId = R.layout.listitem_library, listener = this, loadMoreListener = null)
         binding.contentRecyclerView.recyclerView.setDefaults(adapter)
         binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false
         binding.contentRecyclerView.swipeRefreshLayout.isRefreshing = false
@@ -121,9 +126,10 @@ class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
     }
 
     private fun searchNovels(searchTerm: String?) {
-        searchTerm?.let {
+        currentSearchTerm = searchTerm
+        currentSearchTerm?.let {
             adapter.items.clear()
-            adapter.addItems(allNovelsList.filter { novel -> novel.name.contains(it, ignoreCase = true) })
+            adapter.addItems(dbHelper.getAllNovels().filter { novel -> novel.name.contains(it, ignoreCase = true) })
         }
     }
 
@@ -154,12 +160,16 @@ class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
             val popup = PopupMenu(this, it)
             popup.menuInflater.inflate(R.menu.menu_popup_novel, popup.menu)
             popup.menu.findItem(R.id.action_novel_remove).isVisible = false
-            popup.menu.findItem(R.id.action_novel_assign_novel_section).isVisible = false
+//            popup.menu.findItem(R.id.action_novel_assign_novel_section).isVisible = false
 
             popup.setOnMenuItemClickListener { menuItem ->
                 when (menuItem.itemId) {
                     R.id.action_novel_details -> {
                         startNovelDetailsActivity(item, false)
+                        true
+                    }
+                    R.id.action_novel_assign_novel_section -> {
+                        showNovelSectionsList(position)
                         true
                     }
                     else -> {
@@ -172,6 +182,43 @@ class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
         itemBinding.readChapterImage.setOnClickListener {
             startReader(item)
+        }
+    }
+
+    private fun showNovelSectionsList(position: Int) {
+        val novel = adapter.items[position]
+        val novelSections = ArrayList(dbHelper.getAllNovelSections())
+        if (novelSections.isEmpty()) {
+            MaterialDialog(this).show {
+                message(R.string.no_novel_sections_error)
+            }
+            return
+        }
+        novelSections.firstOrNull { it.id == novel.novelSectionId }?.let { novelSections.remove(it) }
+        val novelSectionsNames = ArrayList(novelSections.map { it.name ?: "" })
+        if (novel.novelSectionId != -1L)
+            novelSectionsNames.add(0, getString(R.string.default_novel_section_name))
+
+        MaterialDialog(this).show {
+            title(text = "Choose A Novel Section")
+            listItems(items = novelSectionsNames.toList()) { _, which, _ ->
+                var id = -1L
+                if (novel.novelSectionId == -1L)
+                    id = novelSections[which].id
+                else if (which != 0)
+                    id = novelSections[which - 1].id
+
+                val novel = adapter.items[position]
+                dbHelper.updateNovelSectionId(novel.id, id)
+                EventBus.getDefault().post(NovelSectionEvent(id))
+                NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) {
+                    if (dataCenter.getSyncAddNovels(it.host)) it.updateNovel(
+                        novel,
+                        novelSections.firstOrNull { section -> section.id == id })
+                }
+                setRecyclerView()
+                searchNovels(currentSearchTerm)
+            }
         }
     }
 
