@@ -7,7 +7,8 @@ This lists all the releases and the changes they contain from their previous ver
 ### 0.18.x.beta
 
 #### Features: 
-✨️ Internal Structural Changes - CLOUDFLARE FIX!<br>
+✨️ Internal Structural Changes!<br>
+⚠️ Major fix for **cloudflare**!
 ⚠️ OLD Backups are not compatible!<br>
 ⚠️ Bug Fixes (lot of 'em)
 
