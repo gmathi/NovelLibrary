@@ -160,6 +160,9 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             val chaptersCount = chaptersList.size
             dbHelper.updateChaptersCount(novel.id, chaptersCount.toLong(), writableDatabase)
 
+            val chaptersHash = chaptersList.sumBy { it.hashCode() }
+            novel.metadata[Constants.MetaDataKeys.HASH_CODE] = chaptersHash.toString()
+            dbHelper.updateNovelMetaData(novel)
 
             for (i in 0 until chaptersCount) {
                 loadingStatus.postValue("Caching Chapters: $i/$chaptersCount")

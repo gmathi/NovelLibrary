@@ -196,7 +196,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
         }
 
         val navPageAdapter =
-                GenericFragmentStatePagerAdapter(supportFragmentManager, translatorSourceNames.toTypedArray(), translatorSourceNames.size, ChaptersPageListener(vm.novel, translatorSourceNames))
+            GenericFragmentStatePagerAdapter(supportFragmentManager, translatorSourceNames.toTypedArray(), translatorSourceNames.size, ChaptersPageListener(vm.novel, translatorSourceNames))
         binding.activityChaptersPager.viewPager.offscreenPageLimit = 3
         binding.activityChaptersPager.viewPager.adapter = navPageAdapter
         binding.activityChaptersPager.tabStrip.setViewPager(binding.activityChaptersPager.viewPager)
@@ -208,7 +208,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
         vm.novel.currentChapterUrl?.let { currentChapterUrl ->
             val currentBookmarkWebPage = dbHelper.getWebPage(currentChapterUrl) ?: return@let
             val currentSource = translatorSourceNames.firstOrNull { it == currentBookmarkWebPage.translatorSourceName }
-                    ?: return@let
+                ?: return@let
             val index = translatorSourceNames.indexOf(currentSource)
             if (index != -1)
                 binding.activityChaptersPager.viewPager.currentItem = index
@@ -244,7 +244,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                 confirmDialog(getString(R.string.download_all_chapters_dialog_content), { dialog ->
                     val publisher = vm.novel.metadata["English Publisher"]
                     val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true)
-                            ?: false
+                        ?: false
                     if (dataCenter.disableWuxiaDownloads && isWuxiaChapterPresent) {
                         dialog.dismiss()
                         showWuxiaWorldDownloadDialog()
@@ -376,7 +376,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                     } else {
                         val publisher = vm.novel.metadata["English Publisher"]
                         val isWuxiaChapterPresent = publisher?.contains("Wuxiaworld", ignoreCase = true)
-                                ?: false
+                            ?: false
                         if (dataCenter.disableWuxiaDownloads && isWuxiaChapterPresent) {
                             dialog.dismiss()
                             showWuxiaWorldDownloadDialog()
@@ -492,10 +492,14 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
         }
     }
 
-    private fun showAlertDialog() {
+    private fun showAlertDialog(title: String? = null, message: String? = null) {
         MaterialDialog(this).show {
             icon(R.drawable.ic_warning_white_vector)
-            title(R.string.alert)
+            if (title.isNullOrBlank())
+                title(R.string.alert)
+            else
+                title(text = title)
+            message(text = message)
             positiveButton(R.string.okay) {
                 it.dismiss()
             }
@@ -508,7 +512,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
     }
 
     private fun showWuxiaWorldDownloadDialog() {
-        showAlertDialog()
+        showAlertDialog(title = "Downloads Restricted", message = "WuxiaWorld novels cannot be downloaded.")
     }
 
     private fun manageDownloadsDialog() {
@@ -546,7 +550,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
 
         if (maxProgress == 0 || maxProgress > 10) {
             snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, message)
-                    .setProgressMax(maxProgress)
+                .setProgressMax(maxProgress)
         } else {
             showSnackbar(message)
         }
@@ -560,9 +564,9 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
 
     private fun showSnackbar(message: String) {
         val snackbar = Snackbar.make(
-                findViewById(android.R.id.content),
-                message,
-                Snackbar.LENGTH_SHORT
+            findViewById(android.R.id.content),
+            message,
+            Snackbar.LENGTH_SHORT
         )
         snackbar.show()
     }
