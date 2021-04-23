@@ -17,8 +17,13 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.lang.writableFileName
+import io.github.gmathi.novellibrary.util.network.getFileName
 import org.jsoup.nodes.Document
 import java.io.File
+import java.net.URI
+import java.net.URL
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class DownloadWebPageThread(val context: Context, val download: Download, val dbHelper: DBHelper, private val downloadListener: DownloadListener) : Thread(), DownloadListener {
@@ -74,8 +79,17 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
             val htmlHelper = HtmlCleaner.getInstance(doc, uri.host ?: doc.location())
             htmlHelper.downloadResources(doc, hostDir, novelDir)
+            var fileName = htmlHelper.getTitle(doc)
+            val location = doc.location()
+            if (location.isNotEmpty()) {
+                val url =  URL(location).toURI()
+                fileName = uri.getFileName()
+            }
+            if (fileName.isNullOrBlank())
+                fileName = UUID.randomUUID().toString()
+
             webPageSettings.title = htmlHelper.getTitle(doc)
-            val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName()))
+            val file = htmlHelper.convertDocToFile(doc, File(novelDir, fileName.writableFileName()))
                 ?: return false
             webPageSettings.filePath = file.path
             webPageSettings.redirectedUrl = doc.location()
