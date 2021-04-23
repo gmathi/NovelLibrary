@@ -8,7 +8,7 @@ This lists all the releases and the changes they contain from their previous ver
 
 #### Features: 
 ✨️ Internal Structural Changes!<br>
-⚠️ Major fix for **cloudflare**!
+⚠️ Major fix for **cloudflare**!<br>
 ⚠️ OLD Backups are not compatible!<br>
 ⚠️ Bug Fixes (lot of 'em)
 
