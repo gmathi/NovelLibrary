@@ -62,13 +62,13 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
             val novels = dbHelper.getAllNovels()
             novels.forEach { novel ->
                 try {
-                    val newChaptersList = withContext(Dispatchers.IO) {
-                        sourceManager.get(novel.sourceId)?.getChapterList(novel)
-                    } ?: ArrayList()
-                    val currentChaptersHashCode =
-                        dbHelper.getAllWebPages(novel.id).sumOf { it.hashCode() }
+                    val newChaptersList = withContext(Dispatchers.IO) { sourceManager.get(novel.sourceId)?.getChapterList(novel) } ?: ArrayList()
+                    var currentChaptersHashCode = (novel.metadata[Constants.MetaDataKeys.HASH_CODE] ?: "0").toInt()
+                    if (currentChaptersHashCode == 0)
+                        currentChaptersHashCode = dbHelper.getAllWebPages(novel.id).sumOf { it.hashCode() }
                     val newChaptersHashCode = newChaptersList.sumOf { it.hashCode() }
                     if (newChaptersList.isNotEmpty() && newChaptersHashCode != currentChaptersHashCode) {
+                        novel.metadata[Constants.MetaDataKeys.HASH_CODE] = newChaptersHashCode.toString()
                         totalCountMap[novel] = newChaptersList.size
                         totalChaptersMap[novel] = ArrayList(newChaptersList)
                     }
@@ -84,8 +84,7 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
             totalChaptersMap.forEach {
                 val novel = it.key
                 val chapters = it.value
-                novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] =
-                    Utils.getCurrentFormattedDate()
+                novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
 
                 dbHelper.writableDatabase.runTransaction { writableDatabase ->
                     dbHelper.updateNovelMetaData(novel, writableDatabase)
@@ -99,10 +98,7 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
                     //dbHelper.deleteWebPages(novel.id, writableDatabase)
                     for (i in 0 until chapters.size) {
                         dbHelper.createWebPage(chapters[i], writableDatabase)
-                        dbHelper.createWebPageSettings(
-                            WebPageSettings(chapters[i].url, novel.id),
-                            writableDatabase
-                        )
+                        dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id), writableDatabase)
                     }
                 }
             }

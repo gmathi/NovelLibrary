@@ -333,7 +333,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 activity?.invalidateOptionsMenu()
             }
 
-            val totalCountMap: HashMap<Novel, Int> = HashMap()
             val totalChaptersMap: HashMap<Novel, ArrayList<WebPage>> = HashMap()
             val novels = if (novel == null) dbHelper.getAllNovels(novelSectionId) else listOf(novel)
 
@@ -355,10 +354,12 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                             else
                                 source?.getChapterList(it)
                         } ?: ArrayList()
-                        val currentChaptersHashCode = dbHelper.getAllWebPages(it.id).sumOf { it.hashCode() }
+                        var currentChaptersHashCode = (it.metadata[Constants.MetaDataKeys.HASH_CODE] ?: "0").toInt()
+                        if (currentChaptersHashCode == 0)
+                            currentChaptersHashCode = dbHelper.getAllWebPages(it.id).sumOf { it.hashCode() }
                         val newChaptersHashCode = newChaptersList.sumOf { it.hashCode() }
                         if (newChaptersList.isNotEmpty() && newChaptersHashCode != currentChaptersHashCode) {
-                            totalCountMap[it] = newChaptersList.size
+                            it.metadata[Constants.MetaDataKeys.HASH_CODE] = newChaptersHashCode.toString()
                             totalChaptersMap[it] = ArrayList(newChaptersList)
                         }
 
