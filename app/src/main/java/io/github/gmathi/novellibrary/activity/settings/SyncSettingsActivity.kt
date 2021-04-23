@@ -18,10 +18,10 @@ import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.extensions.applyFont
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.lang.launchIO
 import io.github.gmathi.novellibrary.util.lang.launchUI
-import io.github.gmathi.novellibrary.extensions.setDefaults
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.util.system.startSyncLoginActivity
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import kotlinx.coroutines.Dispatchers

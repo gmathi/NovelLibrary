@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.util.system
+package io.github.gmathi.novellibrary.util.view
 
 import android.annotation.TargetApi
 import android.os.Build

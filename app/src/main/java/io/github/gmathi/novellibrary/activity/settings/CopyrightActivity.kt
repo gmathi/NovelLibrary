@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.MenuItem
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.databinding.ActivityCopyrightBinding
-import io.github.gmathi.novellibrary.extensions.applyFont
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 
 class CopyrightActivity : BaseActivity() {
     

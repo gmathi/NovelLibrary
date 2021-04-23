@@ -25,8 +25,8 @@ import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemSettingsBinding
-import io.github.gmathi.novellibrary.extensions.applyFont
-import io.github.gmathi.novellibrary.extensions.setDefaults
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import nl.dionsegijn.konfetti.models.Shape

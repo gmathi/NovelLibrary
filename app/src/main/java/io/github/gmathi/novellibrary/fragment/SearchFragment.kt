@@ -15,9 +15,9 @@ import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.NavPageListener
 import io.github.gmathi.novellibrary.adapter.SearchResultsListener
 import io.github.gmathi.novellibrary.databinding.FragmentSearchBinding
-import io.github.gmathi.novellibrary.extensions.FAC
 import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.extensions.addToNovelSearchHistory
+import io.github.gmathi.novellibrary.util.FAC
+import io.github.gmathi.novellibrary.util.lang.addToNovelSearchHistory
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
 import io.github.gmathi.novellibrary.util.view.SimpleAnimationListener
 import io.github.gmathi.novellibrary.util.view.SuggestionsBuilder
@@ -160,11 +160,11 @@ class SearchFragment : BaseFragment() {
         val titles = ArrayList<String>()
         titles.add("Novel-Updates")
         //if (!dataCenter.lockRoyalRoad || dataCenter.isDeveloper)
-            titles.add("RoyalRoad")
+        titles.add("RoyalRoad")
         //if (!dataCenter.lockNovelFull || dataCenter.isDeveloper)
-            titles.add("NovelFull")
+        titles.add("NovelFull")
         //if (!dataCenter.lockScribble || dataCenter.isDeveloper)
-            titles.add("ScribbleHub")
+        titles.add("ScribbleHub")
         titles.add("WLN-Updates")
         titles.add("LNMTL")
         titles.add("Neovel")

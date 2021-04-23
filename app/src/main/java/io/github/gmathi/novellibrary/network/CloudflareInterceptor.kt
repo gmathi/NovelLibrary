@@ -13,6 +13,10 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.system.*
+import io.github.gmathi.novellibrary.util.view.WebViewClientCompat
+import io.github.gmathi.novellibrary.util.view.WebViewUtil
+import io.github.gmathi.novellibrary.util.view.extensions.isOutdated
+import io.github.gmathi.novellibrary.util.view.extensions.setDefaultSettings
 import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor

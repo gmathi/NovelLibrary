@@ -1,7 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
 
-import io.github.gmathi.novellibrary.network.sync.NovelSync
 import android.animation.ObjectAnimator
 import android.app.Activity
 import android.content.Intent
@@ -53,8 +52,10 @@ import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.model.ui.DrawerItem
 import io.github.gmathi.novellibrary.model.ui.ReaderMenu
 import io.github.gmathi.novellibrary.model.ui.SimpleItem
+import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
+import io.github.gmathi.novellibrary.util.FAC
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.Utils.getFormattedText
@@ -201,17 +202,15 @@ class ReaderDBPagerActivity :
     }
 
     private fun changeTextSize() {
-        val dialog = MaterialDialog(this).show {
+        MaterialDialog(this).show {
             title(R.string.text_size)
             customView(R.layout.dialog_slider, scrollable = true)
-
-            getCustomView()?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setOnSeekBarChangedListener { _, progress ->
+            getCustomView().findViewById<TwoWaySeekBar>(R.id.seekBar)?.setOnSeekBarChangedListener { _, progress ->
                 dataCenter.textSize = progress.toInt()
                 EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
             }
-            getCustomView()?.findViewById<TwoWaySeekBar>(R.id.seekBar)?.setProgress(dataCenter.textSize.toDouble())
+            getCustomView().findViewById<TwoWaySeekBar>(R.id.seekBar)?.setProgress(dataCenter.textSize.toDouble())
         }
-
     }
 
     private fun reportPage() {
@@ -483,11 +482,10 @@ class ReaderDBPagerActivity :
                         typeFace = createTypeface(fontPath)
                         // Currently doesn't work
                         //dialog.setTypeface(dialog.titleView, typeFace)
-                        getCustomView()?.let {
-                            launchUI {
-                                val it = it as TextView
-                                it.setTypeface(typeFace, Typeface.NORMAL)
-                            }
+
+                        launchUI {
+                            val it = getCustomView() as TextView
+                            it.setTypeface(typeFace, Typeface.NORMAL)
                         }
 
                         setActionButtonEnabled(WhichButton.POSITIVE, true)

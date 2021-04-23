@@ -12,8 +12,8 @@ import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleBinding
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.sync.NovelSync
-import io.github.gmathi.novellibrary.extensions.applyFont
-import io.github.gmathi.novellibrary.extensions.setDefaults
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.util.system.startSyncSettingsActivity
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import java.util.*

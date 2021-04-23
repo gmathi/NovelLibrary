@@ -20,7 +20,6 @@ import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.other.ChapterActionModeEvent
-import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
@@ -28,6 +27,7 @@ import io.github.gmathi.novellibrary.util.Constants.ALL_TRANSLATOR_SOURCES
 import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.util.system.startWebViewActivity
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.util.view.setDefaultsNoAnimation
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode

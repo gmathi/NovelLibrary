@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.util.view
+package io.github.gmathi.novellibrary.util.view.extensions
 
 import android.graphics.Color
 import android.os.Build

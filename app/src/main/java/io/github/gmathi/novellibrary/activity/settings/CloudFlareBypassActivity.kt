@@ -12,7 +12,7 @@
 //import io.github.gmathi.novellibrary.databinding.ActivityCloudflareBypassBinding
 //import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 //import io.github.gmathi.novellibrary.network.HostNames
-//import io.github.gmathi.novellibrary.util.system.setDefaultSettings
+//import io.github.gmathi.novellibrary.util.view.extensions.setDefaultSettings
 //
 //class CloudFlareBypassActivity : BaseActivity() {
 //

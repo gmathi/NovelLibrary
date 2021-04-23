@@ -17,13 +17,13 @@ import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.database.updateNovelSectionId
 import io.github.gmathi.novellibrary.databinding.ActivityLibrarySearchBinding
 import io.github.gmathi.novellibrary.databinding.ListitemLibraryBinding
-import io.github.gmathi.novellibrary.extensions.addToLibrarySearchHistory
-import io.github.gmathi.novellibrary.extensions.getGlideUrl
-import io.github.gmathi.novellibrary.extensions.setDefaults
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.NovelSectionEvent
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
+import io.github.gmathi.novellibrary.util.lang.addToLibrarySearchHistory
+import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
 import io.github.gmathi.novellibrary.util.system.startChaptersActivity
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
@@ -208,12 +208,12 @@ class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
                 else if (which != 0)
                     id = novelSections[which - 1].id
 
-                val novel = adapter.items[position]
-                dbHelper.updateNovelSectionId(novel.id, id)
+                val novelInAdapter = adapter.items[position]
+                dbHelper.updateNovelSectionId(novelInAdapter.id, id)
                 EventBus.getDefault().post(NovelSectionEvent(id))
-                NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) {
+                NovelSync.getInstance(novelInAdapter)?.applyAsync(lifecycleScope) {
                     if (dataCenter.getSyncAddNovels(it.host)) it.updateNovel(
-                        novel,
+                        novelInAdapter,
                         novelSections.firstOrNull { section -> section.id == id })
                 }
                 setRecyclerView()

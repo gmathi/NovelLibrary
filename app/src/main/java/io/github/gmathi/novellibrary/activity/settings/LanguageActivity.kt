@@ -17,8 +17,8 @@ import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.lang.LocaleManager.Companion.changeLocale
 import io.github.gmathi.novellibrary.util.lang.LocaleManager.Companion.translated
-import io.github.gmathi.novellibrary.extensions.applyFont
-import io.github.gmathi.novellibrary.extensions.setDefaults
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import java.util.*
 import kotlin.collections.ArrayList
 

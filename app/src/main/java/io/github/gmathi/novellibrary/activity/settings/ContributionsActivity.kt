@@ -16,8 +16,8 @@ import io.github.gmathi.novellibrary.util.system.openInBrowser
 import io.github.gmathi.novellibrary.model.other.GenericJsonMappedModel
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.extensions.applyFont
-import io.github.gmathi.novellibrary.extensions.setDefaults
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader

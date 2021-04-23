@@ -32,9 +32,12 @@ import io.github.gmathi.novellibrary.model.other.NovelSectionEvent
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.source.NovelUpdatesSource
 import io.github.gmathi.novellibrary.util.*
+import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import kotlinx.coroutines.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -187,7 +190,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                                 GlobalScope.launch {
                                     try {
                                         dbHelper.resetNovel(novel)
-                                    } catch (e:Exception) {
+                                    } catch (e: Exception) {
                                         Logs.error("LibraryFragment", "resetNovel: $novel", e)
                                     }
                                 }.join()

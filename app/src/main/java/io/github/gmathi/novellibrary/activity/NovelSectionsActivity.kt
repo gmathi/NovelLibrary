@@ -22,14 +22,14 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.databinding.ActivityNovelSectionsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemNovelSectionBinding
-import io.github.gmathi.novellibrary.extensions.FAC
+import io.github.gmathi.novellibrary.util.FAC
 import io.github.gmathi.novellibrary.extensions.showEmpty
 import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.model.database.NovelSection
-import io.github.gmathi.novellibrary.extensions.setDefaults
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

@@ -22,18 +22,19 @@ import io.github.gmathi.novellibrary.databinding.ListitemImportListBinding
 import io.github.gmathi.novellibrary.extensions.showEmpty
 import io.github.gmathi.novellibrary.extensions.showError
 import io.github.gmathi.novellibrary.extensions.showLoading
+import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.ImportListItem
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.network.POST
+import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Exceptions.NETWORK_ERROR
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.extensions.applyFont
-import io.github.gmathi.novellibrary.extensions.setDefaultsNoAnimation
-import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.network.safeExecute
 import io.github.gmathi.novellibrary.util.system.toast
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
+import io.github.gmathi.novellibrary.util.view.setDefaultsNoAnimation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -164,7 +165,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
             .add("isMobile", "yes")
             .build()
         val request = POST(adminUrl, body = formBody)
-        return client.newCall(request).execute().body?.string()
+        return client.newCall(request).safeExecute().body?.string()
     }
 
     private fun getUserIdFromUrl(urlString: String): String {

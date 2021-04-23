@@ -9,10 +9,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.databinding.ActivitySyncLoginBinding
 import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.util.system.setDefaultSettings
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import java.net.CookieManager
+import io.github.gmathi.novellibrary.util.view.extensions.setDefaultSettings
 import java.net.URL
 
 class SyncLoginActivity : BaseActivity() {

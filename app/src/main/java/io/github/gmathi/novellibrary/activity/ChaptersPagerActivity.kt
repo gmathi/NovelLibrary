@@ -33,6 +33,7 @@ import io.github.gmathi.novellibrary.service.download.DownloadListener
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.ALL_TRANSLATOR_SOURCES
+import io.github.gmathi.novellibrary.util.FAC
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.system.shareUrl
 import io.github.gmathi.novellibrary.util.system.startDownloadNovelService

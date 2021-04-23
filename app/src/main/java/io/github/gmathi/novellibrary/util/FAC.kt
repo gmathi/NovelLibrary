@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.extensions
+package io.github.gmathi.novellibrary.util
 
 //Firebase Analytics Constants
 object FAC {

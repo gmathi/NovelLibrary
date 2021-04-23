@@ -13,7 +13,7 @@
 //import io.github.gmathi.novellibrary.util.DataCenter
 //import io.github.gmathi.novellibrary.util.Logs
 //import io.github.gmathi.novellibrary.util.lang.launchUI
-//import io.github.gmathi.novellibrary.util.system.setDefaultSettings
+//import io.github.gmathi.novellibrary.util.view.extensions.setDefaultSettings
 //import kotlinx.coroutines.Dispatchers
 //import kotlinx.coroutines.runBlocking
 //import kotlinx.coroutines.withContext

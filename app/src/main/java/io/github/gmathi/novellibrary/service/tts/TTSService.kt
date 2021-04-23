@@ -24,7 +24,6 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
 import io.github.gmathi.novellibrary.database.*
-import io.github.gmathi.novellibrary.extensions.getGlideUrl
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.network.GET
@@ -33,11 +32,14 @@ import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.service.tts.TTSNotificationBuilder.Companion.TTS_NOTIFICATION_ID
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils.getFormattedText
 import io.github.gmathi.novellibrary.util.lang.albumArt
 import io.github.gmathi.novellibrary.util.lang.displaySubtitle
 import io.github.gmathi.novellibrary.util.lang.displayTitle
+import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.network.asJsoup
+import io.github.gmathi.novellibrary.util.network.safeExecute
 import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 import org.jsoup.Jsoup
@@ -427,6 +429,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
                 mediaSession.setMetadata(metadataCompat.build())
                 startReading()
             } catch (e: Exception) {
+                Logs.error("TTSService", "Unable to read chapter", e)
                 Handler(Looper.getMainLooper()).post {
                     Toast.makeText(this@TTSService, "Unable to read chapter", Toast.LENGTH_LONG).show()
                 }
@@ -435,7 +438,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     }
 
     private fun getWebPageDocument(url: String): Document {
-        return client.newCall(GET(url)).execute().asJsoup()
+        return client.newCall(GET(url)).safeExecute().asJsoup()
     }
 
     private fun cleanDocumentText(doc: Document): String {

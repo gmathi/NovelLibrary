@@ -19,8 +19,10 @@ import io.github.gmathi.novellibrary.model.source.CatalogueSource
 import io.github.gmathi.novellibrary.network.*
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_SOURCE_ID
+import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.isFragmentActive
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -130,7 +132,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
     }
 
     private fun loadSearchResults(novelsPage: NovelsPage) {
-        val results: ArrayList<Novel>  = ArrayList(novelsPage.novels)
+        val results: ArrayList<Novel> = ArrayList(novelsPage.novels)
         if (!novelsPage.hasNextPage) adapter.loadMoreListener = null
 
         if (results.isNotEmpty() && !adapter.items.containsAll(results)) {

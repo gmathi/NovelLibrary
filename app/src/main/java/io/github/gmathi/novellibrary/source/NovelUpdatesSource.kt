@@ -12,10 +12,10 @@ import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.POST
 import io.github.gmathi.novellibrary.network.asObservableSuccess
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Exceptions
 import io.github.gmathi.novellibrary.util.Exceptions.INVALID_NOVEL
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_IMPLEMENTATION
-import io.github.gmathi.novellibrary.extensions.addPageNumberToUrl
-import io.github.gmathi.novellibrary.util.Exceptions
+import io.github.gmathi.novellibrary.util.lang.addPageNumberToUrl
 import io.github.gmathi.novellibrary.util.lang.awaitSingle
 import io.github.gmathi.novellibrary.util.network.asJsoup
 import okhttp3.*

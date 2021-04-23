@@ -17,6 +17,7 @@ import io.github.gmathi.novellibrary.util.Exceptions
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_IMPLEMENTATION
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.network.asJsoup
+import io.github.gmathi.novellibrary.util.network.safeExecute
 import okhttp3.Headers
 import okhttp3.Request
 import okhttp3.Response
@@ -153,7 +154,7 @@ class LNMTLSource : HttpSource() {
             this.shouldFetchNovels = false
 
             val request = GET(baseUrl)
-            val response = client.newCall(request).execute()
+            val response = client.newCall(request).safeExecute()
             val document = response.asJsoup()
 
             //Check for the novels list script tag
@@ -177,19 +178,6 @@ class LNMTLSource : HttpSource() {
             }
             novelsLNMTL = ArrayList(mappedNovels)
 
-        } catch (e: SSLPeerUnverifiedException) {
-            val p = Pattern.compile("Hostname\\s(.*?)\\snot", Pattern.DOTALL or Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE or Pattern.MULTILINE) // Regex for the value of the key
-            val m = p.matcher(e.localizedMessage ?: "")
-            if (m.find()) {
-                val hostName = m.group(1)
-                val dataCenter: DataCenter by injectLazy()
-                val hostNames = dataCenter.getVerifiedHosts()
-                if (!hostNames.contains(hostName ?: "")) {
-                    dataCenter.saveVerifiedHost(hostName ?: "")
-                    return getNovelsLNMTL()
-                }
-            }
-            Logs.error("LNMTLNovels", "SSLPeerUnverifiedException - getLNMTLNovels()", e)
         } catch (e: Exception) {
             Logs.error("LNMTLNovels", "Other Exceptions - getLNMTLNovels()", e)
         }

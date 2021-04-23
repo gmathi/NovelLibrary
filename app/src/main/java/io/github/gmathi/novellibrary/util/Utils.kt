@@ -27,9 +27,9 @@ import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.getNovel
-import io.github.gmathi.novellibrary.extensions.writableFileName
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.network.sync.NovelSync
+import io.github.gmathi.novellibrary.util.lang.writableFileName
 import io.github.gmathi.novellibrary.util.storage.createFileIfNotExists
 import io.github.gmathi.novellibrary.util.storage.getOrCreateDirectory
 import io.github.gmathi.novellibrary.util.storage.getOrCreateFile

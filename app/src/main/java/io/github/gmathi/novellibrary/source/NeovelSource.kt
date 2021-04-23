@@ -18,6 +18,7 @@ import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_IMPLEMENTATION
 import io.github.gmathi.novellibrary.util.Exceptions.NETWORK_ERROR
 import io.github.gmathi.novellibrary.util.lang.asJsonNullFreeString
+import io.github.gmathi.novellibrary.util.network.safeExecute
 import io.github.gmathi.novellibrary.util.system.encodeBase64ToString
 import okhttp3.Headers
 import okhttp3.Request
@@ -157,7 +158,7 @@ class NeovelSource : HttpSource() {
         try {
 
             val request = GET(baseUrl + "V1/genres", headers)
-            val response = client.newCall(request).execute()
+            val response = client.newCall(request).safeExecute()
             val jsonString = response.body?.string() ?: return
 
             val jsonArray = JsonParser.parseString(jsonString)?.asJsonArray
@@ -176,7 +177,7 @@ class NeovelSource : HttpSource() {
         try {
 
             val request = GET(baseUrl + "V1/tags", headers)
-            val response = client.newCall(request).execute()
+            val response = client.newCall(request).safeExecute()
             val jsonString = response.body?.string() ?: return
 
             val jsonArray = JsonParser.parseString(jsonString)?.asJsonArray

@@ -7,13 +7,13 @@ import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
-import io.github.gmathi.novellibrary.extensions.getFileName
-import io.github.gmathi.novellibrary.extensions.writableFileName
 import io.github.gmathi.novellibrary.model.other.SelectorQuery
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
+import io.github.gmathi.novellibrary.util.lang.writableFileName
+import io.github.gmathi.novellibrary.util.network.getFileName
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.HttpStatusException
 import org.jsoup.Jsoup
@@ -270,7 +270,7 @@ open class HtmlCleaner protected constructor() {
             val os = FileOutputStream(file)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os)
         } catch (e: Exception) {
-            Logs.debug(TAG, "Exception Downloading Image: $uri")
+            Logs.error(TAG, "Exception Downloading Image: $uri", e)
             return null
         }
         return file
@@ -544,7 +544,7 @@ open class HtmlCleaner protected constructor() {
             }
             "div", "span" -> {
                 // Clean up "Advertisements" divs that contain nothing else.
-                if (contentElement.childrenSize()==0 && contentElement.ownText().equals("Advertisements", true)) {
+                if (contentElement.childrenSize() == 0 && contentElement.ownText().equals("Advertisements", true)) {
                     contentElement.remove()
                     return
                 }

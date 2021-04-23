@@ -16,8 +16,8 @@ import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.source.NovelUpdatesSource
 import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.extensions.getGlideUrl
-import io.github.gmathi.novellibrary.extensions.setDefaults
+import io.github.gmathi.novellibrary.util.lang.getGlideUrl
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.util.system.isFragmentActive
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import kotlinx.coroutines.Dispatchers

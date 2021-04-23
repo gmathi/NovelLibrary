@@ -21,11 +21,11 @@ import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
-import io.github.gmathi.novellibrary.extensions.FAC
+import io.github.gmathi.novellibrary.util.FAC
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MAX
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MIN
-import io.github.gmathi.novellibrary.extensions.applyFont
-import io.github.gmathi.novellibrary.extensions.setDefaults
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.util.system.startReaderBackgroundSettingsActivity
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar

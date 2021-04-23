@@ -32,7 +32,7 @@ import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.system.setDefaultSettings
+import io.github.gmathi.novellibrary.util.view.extensions.setDefaultSettings
 import kotlinx.coroutines.*
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.greenrobot.eventbus.EventBus

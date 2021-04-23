@@ -5,12 +5,14 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.POST
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.network.asJsoup
 import okhttp3.Headers
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.jsoup.nodes.Document
+import java.lang.Exception
 
 
 class FoxTellerProxy : BaseProxyHelper() {
@@ -72,7 +74,13 @@ class FoxTellerProxy : BaseProxyHelper() {
             .build()
         val requestBody = data.toString().toRequestBody("application/json".toMediaTypeOrNull())
         val request = POST(aux_dem, headers, requestBody)
-        val chapterResponse = connect(request)
+        var chapterResponse: Response? = null
+        try {
+            chapterResponse = connect(request)
+        } catch (e:Exception) {
+            Logs.error("FoxTellerProxy", "request: $request", e)
+            return doc
+        }
 
         if (chapterResponse.code != 200) {
             val content = doc.getElementById("chapter-content")

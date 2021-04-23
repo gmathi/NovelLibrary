@@ -15,8 +15,8 @@ import io.github.gmathi.novellibrary.util.system.startCopyrightActivity
 import io.github.gmathi.novellibrary.util.system.startLanguagesActivity
 import io.github.gmathi.novellibrary.util.system.startLibrariesUsedActivity
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
-import io.github.gmathi.novellibrary.extensions.applyFont
-import io.github.gmathi.novellibrary.extensions.setDefaults
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
+import io.github.gmathi.novellibrary.util.view.setDefaults
 
 class MentionSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
