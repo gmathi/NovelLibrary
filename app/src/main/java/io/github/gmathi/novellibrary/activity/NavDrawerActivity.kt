@@ -84,15 +84,15 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 message(
                     text =
 
-                    "✨️ Internal Structural Changes - CLOUDFLARE FIX!\n" +
+//                    "✨️ Internal Structural Changes - CLOUDFLARE FIX!\n" +
 //                            "✨️ Support GitHub\n" +
 //                            "✨ UI Changes - New SnackBar!\n" +
 //                            "✨ Font Style Preview!\n" +
-                            "⚠️ OLD Backups are not compatible! Backup with this new version.\n" +
+                            "⚠️ BugFixes that address previous 0.18.x versions\n" +
 //                            "⚠️ Fix - Hosted novels offline downloads announcement page\n" +
 //                            "⚠️ Fix - Positive button of Font style changer wasn't allowed\n" +
 //                            "❌️ Broken - Novel Sync\n" +
-                            "\uD83D\uDEE0️ Other major/minor bug fixes.\n" +
+                            "\uD83D\uDEE0️ Other major/minor bug fixes reported on GitHub.\n" +
 //                            "\uD83D\uDEE0 Support for 3 more translation sites in reader mode.\n" +
 //                            "\uD83D\uDEE0 Discord link updated.\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
