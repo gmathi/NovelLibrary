@@ -7,6 +7,7 @@ import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.POST
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
+import io.github.gmathi.novellibrary.util.Logs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -75,38 +76,45 @@ class NovelUpdatesSync : NovelSync() {
     }
 
     override fun batchAdd(novels: List<Novel>, sections: List<NovelSection>, progress: ((String) -> Unit)?): Boolean {
-        runBlocking {
-            val categories = ArrayList(withContext(Dispatchers.IO) { fetchCategories() })
-            val categoryMap = HashMap<Long, Int>()
-            val initialCategoryCount = categories.count()
 
-            sections.forEach { section ->
-                val name = section.name ?: "NL Section ${section.id}"
-                var index = categories.indexOfFirst { cat -> cat.name == name }
-                if (index == -1) {
-                    index = categories.count()
-                    categories.add(CategoryInfo(name))
-                }
-                categoryMap[section.id] = index
-            }
+        try {
+            runBlocking {
 
-            if (initialCategoryCount != categories.count()) {
-                if (!withContext(Dispatchers.IO) { setCategories(categories) }) return@runBlocking
-            }
+                val categories = ArrayList(withContext(Dispatchers.IO) { fetchCategories() })
+                val categoryMap = HashMap<Long, Int>()
+                val initialCategoryCount = categories.count()
 
-            novels.forEach { novel ->
-                try {
-                    progress?.let { it(novel.name) }
-                    withContext(Dispatchers.IO) { WebPageDocumentFetcher.document(UPDATE_NOVEL_URL.format(novel.metadata["PostId"], categoryMap[novel.novelSectionId] ?: 0, "move")) }
-                    novel.currentChapterUrl?.let {
-                        withContext(Dispatchers.IO) { setBookmark(novel, dbHelper.getWebPage(it) ?: return@withContext) }
+                sections.forEach { section ->
+                    val name = section.name ?: "NL Section ${section.id}"
+                    var index = categories.indexOfFirst { cat -> cat.name == name }
+                    if (index == -1) {
+                        index = categories.count()
+                        categories.add(CategoryInfo(name))
                     }
-                } catch (e: IOException) {
-                    return@runBlocking
+                    categoryMap[section.id] = index
+                }
+
+                if (initialCategoryCount != categories.count()) {
+                    if (!withContext(Dispatchers.IO) { setCategories(categories) }) return@runBlocking
+                }
+
+                novels.forEach { novel ->
+                    try {
+                        progress?.let { it(novel.name) }
+                        withContext(Dispatchers.IO) { WebPageDocumentFetcher.document(UPDATE_NOVEL_URL.format(novel.metadata["PostId"], categoryMap[novel.novelSectionId] ?: 0, "move")) }
+                        novel.currentChapterUrl?.let {
+                            withContext(Dispatchers.IO) { setBookmark(novel, dbHelper.getWebPage(it) ?: return@withContext) }
+                        }
+                    } catch (e: IOException) {
+                        return@runBlocking
+                    }
                 }
             }
+            return true
+        } catch (e: Exception) {
+            return false
         }
-        return true
+
     }
 
     override fun setBookmark(novel: Novel, chapter: WebPage): Boolean {
