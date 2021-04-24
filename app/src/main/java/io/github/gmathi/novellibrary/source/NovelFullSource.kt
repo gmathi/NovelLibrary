@@ -50,15 +50,13 @@ class NovelFullSource : ParsedHttpSource() {
     override fun searchNovelsParse(response: Response): NovelsPage {
         val document = response.asJsoup()
 
-        val novels = document.select(searchNovelsSelector()).map { element ->
+        val novels = document.select("div.list.list-truyen").firstOrNull()?.select("div.row")?.map { element ->
             searchNovelsFromElement(element)
         }
 
-        val hasNextPage = searchNovelsNextPageSelector().let { selector ->
-            document.select(selector).first()
-        } == null
+        val hasNextPage = document.select("li.next").firstOrNull() != null && document.select("li.next.disabled").firstOrNull() == null
 
-        return NovelsPage(novels, hasNextPage)
+        return NovelsPage(novels ?: emptyList(), hasNextPage)
     }
 
     override fun searchNovelsFromElement(element: Element): Novel {
@@ -68,7 +66,7 @@ class NovelFullSource : ParsedHttpSource() {
     }
 
     override fun searchNovelsSelector() = "div.list.list-truyen div.row"
-    override fun searchNovelsNextPageSelector() = "li.next.disabled"
+    override fun searchNovelsNextPageSelector() = "li.next"
     //endregion
 
     //region Novel Details
