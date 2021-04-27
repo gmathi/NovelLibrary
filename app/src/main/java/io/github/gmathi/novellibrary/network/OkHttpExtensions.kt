@@ -1,11 +1,8 @@
 package io.github.gmathi.novellibrary.network
 
+import io.github.gmathi.novellibrary.util.network.safeExecute
 import kotlinx.coroutines.suspendCancellableCoroutine
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
+import okhttp3.*
 import rx.Observable
 import rx.Producer
 import rx.Subscription
@@ -25,7 +22,7 @@ fun Call.asObservable(): Observable<Response> {
                 if (n == 0L || !compareAndSet(false, true)) return
 
                 try {
-                    val response = call.execute()
+                    val response = call.safeExecute()
                     if (!subscriber.isUnsubscribed) {
                         subscriber.onNext(response)
                         subscriber.onCompleted()

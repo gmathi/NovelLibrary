@@ -1,18 +1,22 @@
-package eu.kanade.tachiyomi.network
+package io.github.gmathi.novellibrary.network
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.webkit.CookieManager
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.Toast
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.system.*
-import io.github.gmathi.novellibrary.model.source.online.HttpSource
+import io.github.gmathi.novellibrary.util.view.WebViewClientCompat
+import io.github.gmathi.novellibrary.util.view.WebViewUtil
+import io.github.gmathi.novellibrary.util.view.extensions.isOutdated
+import io.github.gmathi.novellibrary.util.view.extensions.setDefaultSettings
 import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
@@ -51,7 +55,14 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
         initWebView
 
-        val response = chain.proceed(originalRequest)
+        val cookie = CookieManager.getInstance().getCookie(originalRequest.url.toString()) ?: ""
+        val response = if (originalRequest.headers["Cookie"] == null && cookie.isNotEmpty()) {
+            val authorized = originalRequest.newBuilder()
+                .addHeader("Cookie", cookie)
+                .build();
+            chain.proceed(authorized);
+        } else
+            chain.proceed(originalRequest)
 
         // Check if Cloudflare anti-bot is on
         if (response.code != 503 || response.header("Server") !in SERVER_CHECK) {
@@ -65,6 +76,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
                 .firstOrNull { it.name == "cf_clearance" }
             resolveWithWebView(originalRequest, oldCookie)
 
+            //resolveWithCloudFlareLib(originalRequest, oldCookie)
             return chain.proceed(originalRequest)
         } catch (e: Exception) {
             // Because OkHttp's enqueue only handles IOExceptions, wrap the exception so that
@@ -168,6 +180,6 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
     companion object {
         private val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare")
-        private val COOKIE_NAMES = listOf("__cfduid", "cf_clearance")
+        private val COOKIE_NAMES = listOf("cf_clearance")
     }
 }

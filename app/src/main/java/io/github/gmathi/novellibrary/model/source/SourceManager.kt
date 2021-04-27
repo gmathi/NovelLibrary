@@ -2,10 +2,10 @@ package io.github.gmathi.novellibrary.model.source
 
 import android.content.Context
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.model.database.Chapter
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
-import io.github.gmathi.novellibray.source.CatalogueSource
+import io.github.gmathi.novellibrary.source.*
 import rx.Observable
 
 open class SourceManager(private val context: Context) {
@@ -46,7 +46,13 @@ open class SourceManager(private val context: Context) {
     }
 
     private fun createInternalSources(): List<Source> = listOf(
-//TODO:        LocalSource(context)
+        NovelUpdatesSource(),
+        NovelFullSource(),
+        RoyalRoadSource(),
+        ScribbleHubSource(),
+        WLNUpdatesSource(),
+        NeovelSource(),
+        LNMTLSource()
     )
 
     private inner class StubSource(override val id: Long) : Source {
@@ -58,7 +64,7 @@ open class SourceManager(private val context: Context) {
             return Observable.error(getSourceNotInstalledException())
         }
 
-        override fun fetchChapterList(novel: Novel): Observable<List<Chapter>> {
+        override fun fetchChapterList(novel: Novel): Observable<List<WebPage>> {
             return Observable.error(getSourceNotInstalledException())
         }
 

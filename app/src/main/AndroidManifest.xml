@@ -6,7 +6,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -76,6 +75,23 @@
         <!-- android:enabled="true" -->
         <!-- android:exported="false"> -->
         <!-- </service> -->
+
+
+        <activity
+            android:name=".activity.NavDrawerActivity"
+            android:label="@string/title_activity_nav_drawer"
+            android:launchMode="singleTask"
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+
+
         <activity
             android:name=".activity.NovelDetailsActivity"
             android:label="@string/title_activity_novel_details"
@@ -96,24 +112,7 @@
             android:label="@string/title_activity_settings"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
-        <activity
-            android:name=".activity.NavDrawerActivity"
-            android:label="@string/title_activity_nav_drawer"
-            android:launchMode="singleTask"
-            android:screenOrientation="fullUser"
-            android:theme="@style/DarkTheme_DarkSide">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <!--
-             activity
-            android:name=".activity.OldChaptersActivity"
-            android:label="@string/title_activity_chapters"
-            android:theme="@style/DarkTheme_DarkSide" /
-        -->
         <activity
             android:name=".activity.MetaDataActivity"
             android:label="@string/title_activity_meta_data"
@@ -134,11 +133,11 @@
             android:label="@string/title_activity_copyright"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
-        <activity
-            android:name=".activity.settings.CloudFlareBypassActivity"
-            android:label="@string/cloud_flare_check"
-            android:screenOrientation="fullUser"
-            android:theme="@style/DarkTheme_DarkSide" />
+<!--        <activity-->
+<!--            android:name=".activity.settings.CloudFlareBypassActivity"-->
+<!--            android:label="@string/cloud_flare_check"-->
+<!--            android:screenOrientation="fullUser"-->
+<!--            android:theme="@style/DarkTheme_DarkSide" />-->
         <activity
             android:name=".activity.SearchUrlActivity"
             android:label="@string/title_activity_search_results"

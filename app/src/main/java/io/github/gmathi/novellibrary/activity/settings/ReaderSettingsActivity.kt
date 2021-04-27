@@ -19,16 +19,13 @@ import com.google.firebase.analytics.ktx.logEvent
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
-import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.FAC
+import io.github.gmathi.novellibrary.util.FAC
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MAX
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MIN
-import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.applyFont
-import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.util.system.startReaderBackgroundSettingsActivity
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
@@ -63,12 +60,12 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     lateinit var adapter: GenericAdapter<String>
     private lateinit var settingsItems: ArrayList<String>
     private lateinit var settingsItemsDescription: ArrayList<String>
-    
+
     private lateinit var binding: ActivitySettingsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
@@ -233,9 +230,11 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         } else if (position == POSITION_CUSTOM_QUERY_LOOKUPS) {
             MaterialDialog(this).show {
                 title(R.string.custom_query_lookups_edit)
-                input(hintRes = R.string.custom_query_lookups_hint,
+                input(
+                    hintRes = R.string.custom_query_lookups_hint,
                     prefill = dataCenter.userSpecifiedSelectorQueries,
-                    inputType = InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_CLASS_TEXT)
+                    inputType = InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_CLASS_TEXT
+                )
                 positiveButton(R.string.fui_button_text_save) { widget ->
                     dataCenter.userSpecifiedSelectorQueries = widget.getInputField()?.text.toString()
                     firebaseAnalytics.logEvent(FAC.Event.SELECTOR_QUERY) {

@@ -14,7 +14,7 @@ abstract class DrawerItem<T : DrawerAdapter.ViewHolder> {
 
     abstract fun createViewHolder(parent: ViewGroup): T
 
-    abstract fun bindViewHolder(holder: T,position: Int)
+    abstract fun bindViewHolder(holder: T, position: Int)
 
     fun setChecked(isChecked: Boolean): DrawerItem<*> {
         this.isCheckedSlideMenu = isChecked

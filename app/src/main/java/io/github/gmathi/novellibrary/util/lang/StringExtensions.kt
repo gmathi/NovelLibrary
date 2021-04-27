@@ -1,5 +1,12 @@
 package io.github.gmathi.novellibrary.util.lang
 
+import android.webkit.CookieManager
+import com.bumptech.glide.load.model.GlideUrl
+import com.bumptech.glide.load.model.LazyHeaders
+import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.util.DataCenter
+import uy.kohesive.injekt.injectLazy
+import java.net.URL
 import kotlin.math.floor
 
 /**
@@ -48,3 +55,64 @@ fun String.takeBytes(n: Int): String {
         bytes.decodeToString(endIndex = n).replace("\uFFFD", "")
     }
 }
+
+
+fun String.addToNovelSearchHistory() {
+    val dataCenter: DataCenter by injectLazy()
+    val list = dataCenter.loadNovelSearchHistory()
+    if (!list.contains(this)) {
+        list.add(0, this)
+        dataCenter.saveNovelSearchHistory(list)
+    }
+}
+
+fun String.addToLibrarySearchHistory() {
+    val dataCenter: DataCenter by injectLazy()
+    val list = dataCenter.loadLibrarySearchHistory()
+    if (!list.contains(this)) {
+        list.add(0, this)
+        dataCenter.saveLibrarySearchHistory(list)
+    }
+}
+
+fun String.writableFileName(): String {
+    val regex = Regex("[^a-zA-Z0-9.-]")
+    var fileName = this.replace(regex, "")
+    if (fileName.length > 150)
+        fileName = fileName.substring(0, 150)
+    return fileName
+}
+
+fun String.writableOldFileName(): String {
+    var fileName = this.replace(Regex.fromLiteral("[^a-zA-Z0-9.-]"), "_").replace("/", "_").replace(" ", "")
+    if (fileName.length > 150)
+        fileName = fileName.substring(0, 150)
+    return fileName
+}
+
+fun String.getGlideUrl(): GlideUrl {
+    val dataCenter: DataCenter by injectLazy()
+    val url = URL(this)
+    val hostName = url.host.replace("www.", "").replace("m.", "").trim()
+    val builder = LazyHeaders.Builder()
+        .addHeader("User-Agent", HostNames.USER_AGENT)
+        .addHeader("Cookie", CookieManager.getInstance().getCookie(this) ?: CookieManager.getInstance().getCookie(".$hostName") ?: "")
+
+    return GlideUrl(this, builder.build())
+}
+
+private fun String?.contains(chapter: String?): Boolean {
+    return (this != null) && (chapter != null) && this.contains(chapter)
+}
+
+fun String.addPageNumberToUrl(pageNumber: Int, pageNumberExtension: String): String {
+    val url = URL(this)
+    return if (!url.query.isNullOrBlank()) {
+        "$this&$pageNumberExtension=$pageNumber"
+    } else {
+        "$this?$pageNumberExtension=$pageNumber"
+    }
+
+}
+
+

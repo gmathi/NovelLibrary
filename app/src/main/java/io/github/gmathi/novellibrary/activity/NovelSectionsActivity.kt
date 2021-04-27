@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
+import io.github.gmathi.novellibrary.network.sync.NovelSync
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.Menu
@@ -18,20 +19,17 @@ import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
 import com.google.firebase.analytics.ktx.logEvent
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.databinding.ActivityNovelSectionsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemNovelSectionBinding
-import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.extensions.FAC
+import io.github.gmathi.novellibrary.util.FAC
 import io.github.gmathi.novellibrary.extensions.showEmpty
 import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.model.database.NovelSection
-import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
-import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -40,12 +38,12 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
 
     lateinit var adapter: GenericAdapter<NovelSection>
     private lateinit var touchHelper: ItemTouchHelper
-    
+
     private lateinit var binding: ActivityNovelSectionsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         binding = ActivityNovelSectionsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
@@ -69,19 +67,17 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
         updateOrderIds()
         val novelSections = dbHelper.getAllNovelSections()
         adapter.updateData(ArrayList(novelSections))
-        if (binding.contentRecyclerView.swipeRefreshLayout != null && binding.contentRecyclerView.progressLayout != null) {
-            binding.contentRecyclerView.swipeRefreshLayout.isRefreshing = false
-            binding.contentRecyclerView.progressLayout.showContent()
-        }
+        binding.contentRecyclerView.swipeRefreshLayout.isRefreshing = false
+        binding.contentRecyclerView.progressLayout.showContent()
         if (novelSections.isEmpty())
             binding.contentRecyclerView.progressLayout.showEmpty(
                 resId = R.drawable.ic_info_white_vector,
                 isLottieAnimation = false,
                 emptyText = getString(R.string.novel_section_empty_message),
-                buttonText = getString(R.string.add_novel_section),
-                onClickListener = View.OnClickListener {
-                    addNovelSection()
-                })
+                buttonText = getString(R.string.add_novel_section)
+            ) {
+                addNovelSection()
+            }
     }
 
     private fun updateOrderIds() {
@@ -159,6 +155,7 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
         onItemRemove(viewHolderPosition)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun onItemRemove(position: Int) {
         MaterialDialog(this).show {
             title(R.string.confirm_remove)

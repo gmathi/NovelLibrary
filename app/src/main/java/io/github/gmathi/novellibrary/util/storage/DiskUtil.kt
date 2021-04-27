@@ -16,6 +16,7 @@ object DiskUtil {
         return Hash.md5(key)
     }
 
+    @Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     fun getDirectorySize(f: File): Long {
         var size: Long = 0
         if (f.isDirectory) {

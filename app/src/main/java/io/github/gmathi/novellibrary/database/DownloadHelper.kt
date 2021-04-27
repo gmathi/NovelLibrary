@@ -26,9 +26,10 @@ fun DBHelper.createDownload(download: Download, db: SQLiteDatabase? = null) {
 
     val values = ContentValues()
     values.put(DBKeys.KEY_NAME, download.novelName)
+    values.put(DBKeys.KEY_NOVEL_ID, download.novelId)
     values.put(DBKeys.KEY_WEB_PAGE_URL, download.webPageUrl)
     values.put(DBKeys.KEY_CHAPTER, download.chapter)
-    values.put(DBKeys.KEY_STATUS, Download.STATUS_PAUSED)
+    values.put(DBKeys.KEY_STATUS, Download.STATUS_IN_QUEUE)
     values.put(DBKeys.KEY_ORDER_ID, download.orderId)
     values.put(DBKeys.KEY_METADATA, Gson().toJson(HashMap<String, String?>()))
     writableDatabase.insert(DBKeys.TABLE_DOWNLOAD, null, values)
@@ -50,6 +51,7 @@ private fun getDownload(cursor: Cursor): Download {
     val download = Download(
         webPageUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_WEB_PAGE_URL)),
         novelName = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME)),
+        novelId = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID)),
         chapter = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_CHAPTER))
     )
     download.status = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_STATUS))
@@ -73,10 +75,10 @@ fun DBHelper.getAllDownloads(): List<Download> {
     return list
 }
 
-fun DBHelper.getAllDownloadsForNovel(novelName: String): List<Download> {
+fun DBHelper.getAllDownloadsForNovel(novelId: Long): List<Download> {
     val list = ArrayList<Download>()
-    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NAME} = ?"
-    val cursor = this.readableDatabase.rawQuery(selectQuery, arrayOf(novelName))
+    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NOVEL_ID} = ?"
+    val cursor = this.readableDatabase.rawQuery(selectQuery, arrayOf(novelId.toString()))
     if (cursor != null) {
         if (cursor.moveToFirst()) {
             do {
@@ -95,10 +97,10 @@ fun DBHelper.updateDownloadStatusWebPageUrl(status: Int, webPageUrl: String) {
     this.writableDatabase.update(DBKeys.TABLE_DOWNLOAD, values, DBKeys.KEY_WEB_PAGE_URL + " = ?", arrayOf(webPageUrl)).toLong()
 }
 
-fun DBHelper.updateDownloadStatusNovelName(status: Int, novelName: String) {
+fun DBHelper.updateDownloadStatusNovelId(status: Int, novelId: Long) {
     val values = ContentValues()
     values.put(DBKeys.KEY_STATUS, status)
-    this.writableDatabase.update(DBKeys.TABLE_DOWNLOAD, values, DBKeys.KEY_NAME + " = ?", arrayOf(novelName)).toLong()
+    this.writableDatabase.update(DBKeys.TABLE_DOWNLOAD, values, DBKeys.KEY_NOVEL_ID + " = ?", arrayOf(novelId.toString()))
 }
 
 fun DBHelper.updateDownloadStatus(status: Int): Long {
@@ -111,8 +113,8 @@ fun DBHelper.deleteDownload(webPageUrl: String) {
     this.writableDatabase.delete(DBKeys.TABLE_DOWNLOAD, DBKeys.KEY_WEB_PAGE_URL + " = ?", arrayOf(webPageUrl))
 }
 
-fun DBHelper.deleteDownloads(novelName: String) {
-    this.writableDatabase.delete(DBKeys.TABLE_DOWNLOAD, DBKeys.KEY_NAME + " = ?", arrayOf(novelName))
+fun DBHelper.deleteDownloads(novelId: Long) {
+    this.writableDatabase.delete(DBKeys.TABLE_DOWNLOAD, DBKeys.KEY_NOVEL_ID + " = ?", arrayOf(novelId.toString()))
 }
 
 fun DBHelper.getDownloadItemInQueue(): Download? {
@@ -127,10 +129,10 @@ fun DBHelper.getDownloadItemInQueue(): Download? {
     return download
 }
 
-fun DBHelper.getDownloadItemInQueue(novelName: String): Download? {
+fun DBHelper.getDownloadItemInQueue(novelId: Long): Download? {
     var download: Download? = null
-    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_STATUS} = ${Download.STATUS_IN_QUEUE} AND ${DBKeys.KEY_NAME} = ? LIMIT 1"
-    val cursor = this.readableDatabase.rawQuery(selectQuery, arrayOf(novelName))
+    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_STATUS} = ${Download.STATUS_IN_QUEUE} AND ${DBKeys.KEY_NOVEL_ID} = ? LIMIT 1"
+    val cursor = this.readableDatabase.rawQuery(selectQuery, arrayOf(novelId.toString()))
     if (cursor != null) {
         if (cursor.moveToFirst())
             download = getDownload(cursor)
@@ -139,14 +141,29 @@ fun DBHelper.getDownloadItemInQueue(novelName: String): Download? {
     return download
 }
 
-fun DBHelper.getDownloadNovelNames(): List<String> {
-    val list = ArrayList<String>()
-    val selectQuery = "SELECT DISTINCT(${DBKeys.KEY_NAME}) FROM ${DBKeys.TABLE_DOWNLOAD}"
+//fun DBHelper.getDownloadNovelNames(): List<String> {
+//    val list = ArrayList<String>()
+//    val selectQuery = "SELECT DISTINCT(${DBKeys.KEY_NOVEL_ID}), ${DBKeys.KEY_NAME} FROM ${DBKeys.TABLE_DOWNLOAD}"
+//    val cursor = this.readableDatabase.rawQuery(selectQuery, null)
+//    if (cursor != null) {
+//        if (cursor.moveToFirst()) {
+//            do {
+//                list.add(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME)))
+//            } while (cursor.moveToNext())
+//        }
+//        cursor.close()
+//    }
+//    return list
+//}
+
+fun DBHelper.getDownloadNovelIds(): List<Long> {
+    val list = ArrayList<Long>()
+    val selectQuery = "SELECT DISTINCT(${DBKeys.KEY_NOVEL_ID}) FROM ${DBKeys.TABLE_DOWNLOAD}"
     val cursor = this.readableDatabase.rawQuery(selectQuery, null)
     if (cursor != null) {
         if (cursor.moveToFirst()) {
             do {
-                list.add(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME)))
+                list.add(cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_NOVEL_ID)))
             } while (cursor.moveToNext())
         }
         cursor.close()
@@ -155,20 +172,21 @@ fun DBHelper.getDownloadNovelNames(): List<String> {
 }
 
 
-fun DBHelper.hasDownloadsInQueue(novelName: String): Boolean {
-    val selectQuery = "SELECT COUNT(*) FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NAME} = ? AND ${DBKeys.KEY_STATUS} = ${Download.STATUS_IN_QUEUE} LIMIT 1"
-    return (DatabaseUtils.longForQuery(this.readableDatabase, selectQuery, arrayOf(novelName)).toInt() > 0)
+fun DBHelper.hasDownloadsInQueue(novelId: Long): Boolean {
+    val selectQuery = "SELECT COUNT(*) FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NOVEL_ID} = ? AND ${DBKeys.KEY_STATUS} = ${Download.STATUS_IN_QUEUE} LIMIT 1"
+    return (DatabaseUtils.longForQuery(this.readableDatabase, selectQuery, arrayOf(novelId.toString())).toInt() > 0)
 }
 
-fun DBHelper.getRemainingDownloadsCountForNovel(novelName: String): Int {
-    val selectQuery = "SELECT COUNT(*) FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NAME} = ?"
-    return DatabaseUtils.longForQuery(this.readableDatabase, selectQuery, arrayOf(novelName)).toInt()
+fun DBHelper.getRemainingDownloadsCountForNovel(novelId: Long): Int {
+    val selectQuery = "SELECT COUNT(*) FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NOVEL_ID} = ?"
+    return DatabaseUtils.longForQuery(this.readableDatabase, selectQuery, arrayOf(novelId.toString())).toInt()
 }
 
-fun DBHelper.getAllDownloadsForNovel(novelName: String, downloadUrls: List<String>): List<Download> {
+fun DBHelper.getAllDownloadsForNovel(novelId: Long, downloadUrls: List<String>): List<Download> {
     val list = ArrayList<Download>()
-    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NAME} = ? AND ${DBKeys.KEY_WEB_PAGE_URL} IN (${TextUtils.join(",", Collections.nCopies(downloadUrls.count(), "?"))})"
-    val cursor = this.readableDatabase.rawQuery(selectQuery, arrayOf(novelName) + downloadUrls.toTypedArray())
+    val selectQuery =
+        "SELECT * FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NOVEL_ID} = ? AND ${DBKeys.KEY_WEB_PAGE_URL} IN (${TextUtils.join(",", Collections.nCopies(downloadUrls.count(), "?"))})"
+    val cursor = this.readableDatabase.rawQuery(selectQuery, arrayOf(novelId.toString()) + downloadUrls.toTypedArray())
     if (cursor != null) {
         if (cursor.moveToFirst()) {
             do {

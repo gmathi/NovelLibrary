@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Range
 import android.view.MenuItem
 import android.view.View
 import android.webkit.MimeTypeMap
@@ -28,17 +27,15 @@ import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
-import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
-import io.github.gmathi.novellibrary.util.applyFont
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.lang.launchIO
 import io.github.gmathi.novellibrary.util.lang.launchUI
-import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.util.view.setDefaults
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.worker.BackupWorker
 import io.github.gmathi.novellibrary.worker.oneTimeBackupWorkRequest
 import io.github.gmathi.novellibrary.worker.oneTimeRestoreWorkRequest
@@ -76,14 +73,14 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private var files: Boolean = false
 
     private var workRequestId: UUID? = null
-    
+
     private val isDeletingFiles = AtomicBoolean(false)
-    
+
     private lateinit var binding: ActivitySettingsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
@@ -151,7 +148,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             getString(R.string.restore_data) -> {
                 MaterialDialog(this).show {
                     title(text = item)
-                    listItemsMultiChoice (R.array.backup_and_restore_options, initialSelection = intArrayOf(0, 1, 2, 3)) { _, which, _ ->
+                    listItemsMultiChoice(R.array.backup_and_restore_options, initialSelection = intArrayOf(0, 1, 2, 3)) { _, which, _ ->
                         if (which.isNotEmpty())
                             restoreData(
                                 which.contains(0),
@@ -173,33 +170,33 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     }
                 MaterialDialog(this).show {
                     title(text = item)
-                    .listItemsSingleChoice(R.array.backup_frequency_options, initialSelection = selected)  { _, which, _ ->
-                        var backupFrequency =
-                            when (which) {
-                                1 -> 24
-                                2 -> 24 * 7
-                                else -> 0
-                            }
-                        if (dataCenter.backupFrequency != backupFrequency) {
-                            val workRequest =
-                                if (backupFrequency != 0) periodicBackupWorkRequest(backupFrequency) else null
-                            WorkManager.getInstance(applicationContext).apply {
-                                if (workRequest == null) {
-                                    backupFrequency = 0
-                                    cancelUniqueWork(BackupWorker.UNIQUE_WORK_NAME)
-                                } else {
-                                    enqueueUniquePeriodicWork(
-                                        BackupWorker.UNIQUE_WORK_NAME,
-                                        ExistingPeriodicWorkPolicy.REPLACE,
-                                        workRequest
-                                    )
+                        .listItemsSingleChoice(R.array.backup_frequency_options, initialSelection = selected) { _, which, _ ->
+                            var backupFrequency =
+                                when (which) {
+                                    1 -> 24
+                                    2 -> 24 * 7
+                                    else -> 0
                                 }
+                            if (dataCenter.backupFrequency != backupFrequency) {
+                                val workRequest =
+                                    if (backupFrequency != 0) periodicBackupWorkRequest(backupFrequency) else null
+                                WorkManager.getInstance(applicationContext).apply {
+                                    if (workRequest == null) {
+                                        backupFrequency = 0
+                                        cancelUniqueWork(BackupWorker.UNIQUE_WORK_NAME)
+                                    } else {
+                                        enqueueUniquePeriodicWork(
+                                            BackupWorker.UNIQUE_WORK_NAME,
+                                            ExistingPeriodicWorkPolicy.REPLACE,
+                                            workRequest
+                                        )
+                                    }
+                                }
+                                dataCenter.backupFrequency = backupFrequency
+                                setBackupFrequencyDescription(backupFrequency)
+                                adapter.notifyItemChanged(BACKUP_FREQUENCY_LIST_INDEX)
                             }
-                            dataCenter.backupFrequency = backupFrequency
-                            setBackupFrequencyDescription(backupFrequency)
-                            adapter.notifyItemChanged(BACKUP_FREQUENCY_LIST_INDEX)
                         }
-                    }
                     positiveButton(R.string.okay)
                 }
             }
@@ -228,9 +225,9 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 title(text = title)
             else
                 title(R.string.confirm_action)
-            
+
             if (content != null)
-                message(text =  content)
+                message(text = content)
 
             icon(iconRes)
 
@@ -390,7 +387,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         MaterialDialog(this).show {
             title(R.string.clear_data)
             message(R.string.clear_data_description)
-            positiveButton(R.string.clear) { dialog ->
+            positiveButton(R.string.clear) {
                 val snackProgressBarManager =
                     Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this@BackupSettingsActivity)
                 val snackProgressBar = SnackProgressBar(

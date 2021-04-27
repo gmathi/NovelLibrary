@@ -2,10 +2,9 @@ package io.github.gmathi.novellibrary.util.view
 
 import android.content.Context
 import android.graphics.Rect
-import androidx.fragment.app.Fragment
+import android.view.View
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
-import android.view.View
 
 class CustomDividerItemDecoration(context: Context, orientation: Int) : DividerItemDecoration(context, orientation) {
 

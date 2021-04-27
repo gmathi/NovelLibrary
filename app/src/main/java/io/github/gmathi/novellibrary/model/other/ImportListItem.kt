@@ -1,9 +1,8 @@
 package io.github.gmathi.novellibrary.model.other
 
 
-class ImportListItem {
+class ImportListItem(var novelUrl: String) {
 
-    var novelUrl: String? = null
     var novelName: String? = null
     var novelImageUrl: String? = null
     var currentlyReading: String? = null
@@ -23,7 +22,7 @@ class ImportListItem {
     }
 
     override fun hashCode(): Int {
-        var result = novelUrl?.hashCode() ?: 0
+        var result = novelUrl.hashCode() ?: 0
         result = 31 * result + (novelName?.hashCode() ?: 0)
         return result
     }

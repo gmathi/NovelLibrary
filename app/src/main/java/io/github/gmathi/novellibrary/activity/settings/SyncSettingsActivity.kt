@@ -12,23 +12,22 @@ import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
-import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.util.system.startSyncLoginActivity
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
-import io.github.gmathi.novellibrary.util.applyFont
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.lang.launchIO
 import io.github.gmathi.novellibrary.util.lang.launchUI
-import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.util.view.setDefaults
+import io.github.gmathi.novellibrary.util.system.startSyncLoginActivity
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import java.util.ArrayList
+import kotlinx.coroutines.withContext
+import java.util.*
 
 class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
@@ -40,10 +39,12 @@ class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         const val POSITION_DELETE_NOVELS = 4
         const val POSITION_BOOKMARKS = 5
         const val POSITION_MAKE_SYNC = 6
-//        const val POSITION_FETCH_NOVELS = 7
-//        const val POSITION_FETCH_BOOKMARKS = 8
-//        const val POSITION_FETCH_SECTIONS = 9
-//        const val POSITION_MAKE_FETCH = 10
+
+        //const val POSITION_FETCH_NOVELS = 7
+        //const val POSITION_FETCH_BOOKMARKS = 8
+        //const val POSITION_FETCH_SECTIONS = 9
+        //const val POSITION_MAKE_FETCH = 10
+
         const val POSITION_FORGET = 7 // 11
     }
 
@@ -52,19 +53,19 @@ class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private lateinit var settingsItemsDescriptions: ArrayList<String>
 
     private lateinit var novelSync: NovelSync
-    
+
     private lateinit var binding: ActivitySettingsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         val sync = NovelSync.getInstance(intent.getStringExtra("url")!!, true)
         if (sync == null) {
             finish()
             return
         }
         novelSync = sync
-        
+
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
@@ -96,11 +97,13 @@ class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         itemBinding.title.applyFont(assets).text = item
         itemBinding.subtitle.applyFont(assets).text = settingsItemsDescriptions[position]
 
-        itemView.setBackgroundColor(if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
-        else ContextCompat.getColor(this, android.R.color.transparent))
+        itemView.setBackgroundColor(
+            if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
+            else ContextCompat.getColor(this, android.R.color.transparent)
+        )
 
         itemBinding.widgetSwitch.setOnCheckedChangeListener(null)
-        when(position) {
+        when (position) {
             POSITION_ENABLE -> {
                 itemBinding.widgetSwitch.visibility = View.VISIBLE
                 itemBinding.widgetSwitch.isChecked = dataCenter.getSyncEnabled(novelSync.host)
@@ -182,7 +185,7 @@ class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             }
         }
     }
-    
+
     private var makeFullSyncInProgress = false
 
     private fun makeFullSync() {
@@ -204,10 +207,7 @@ class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             val novels = dbHelper.getAllNovels().filter { it.url.contains(novelSync.host) }
 
             val total = novels.count()
-
-            async(Dispatchers.Main) {
-                snackProgressBarManager.updateTo(snackProgressBar.setProgressMax(total))
-            }
+            withContext(Dispatchers.Main) { snackProgressBarManager.updateTo(snackProgressBar.setProgressMax(total)) }
 
             var counter = 0
             novelSync.batchAdd(novels, sections) { novelName ->

@@ -9,23 +9,23 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ActivityMetaDataBinding
 import io.github.gmathi.novellibrary.databinding.ListitemMetadataBinding
-import io.github.gmathi.novellibrary.util.system.startSearchResultsActivity
 import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.util.applyFont
-import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.util.system.startSearchResultsActivity
 import io.github.gmathi.novellibrary.util.view.TextViewLinkHandler
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import java.util.*
 
 class MetaDataActivity : BaseActivity(), GenericAdapter.Listener<Map.Entry<String, String?>>, TextViewLinkHandler.OnClickListener {
 
     lateinit var novel: Novel
     lateinit var adapter: GenericAdapter<Map.Entry<String, String?>>
-    
+
     private lateinit var binding: ActivityMetaDataBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         binding = ActivityMetaDataBinding.inflate(layoutInflater)
         setContentView(binding.root)
 

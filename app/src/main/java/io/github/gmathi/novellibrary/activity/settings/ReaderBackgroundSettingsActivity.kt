@@ -12,12 +12,11 @@ import com.afollestad.materialdialogs.color.colorChooser
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
-import io.github.gmathi.novellibrary.util.applyFont
-import io.github.gmathi.novellibrary.util.setDefaults
 import okhttp3.internal.toHexString
 import java.util.*
 import kotlin.collections.ArrayList
@@ -30,7 +29,7 @@ class ReaderBackgroundSettingsActivity : BaseActivity(), GenericAdapter.Listener
         private const val POSITION_DAY_TEXT = 1
         private const val POSITION_NIGHT_BACKGROUND = 2
         private const val POSITION_NIGHT_TEXT = 3
-        
+
         private const val LIGHTER = 0xCC
         private const val LIGHT = 0xAA
         private const val NORMAL = 0x88
@@ -45,7 +44,7 @@ class ReaderBackgroundSettingsActivity : BaseActivity(), GenericAdapter.Listener
         fun cyan(part: Int = 0xFF) = rgb(0, part, part)
         fun gray(part: Int) = rgb(part, part, part)
         fun rgb(r: Int, g: Int, b: Int): Int = Color.argb(0xFF, r, g, b)
-        
+
         fun palette(colorFn: ((Int) -> Int)) = intArrayOf(
             colorFn(0xFF),
             colorFn(LIGHTER),
@@ -60,12 +59,12 @@ class ReaderBackgroundSettingsActivity : BaseActivity(), GenericAdapter.Listener
     private lateinit var settingsItems: ArrayList<String>
 
     private var selectedPosition: Int = 0
-    
-    private lateinit var binding:ActivitySettingsBinding
+
+    private lateinit var binding: ActivitySettingsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
@@ -118,7 +117,7 @@ class ReaderBackgroundSettingsActivity : BaseActivity(), GenericAdapter.Listener
             else ContextCompat.getColor(this, android.R.color.transparent)
         )
     }
-    
+
 
     override fun onItemClick(item: String, position: Int) {
         val colors = intArrayOf(Color.RED, green(), blue(), yellow(), magenta(), cyan(), gray(0x00), gray(0xFF))
@@ -138,7 +137,8 @@ class ReaderBackgroundSettingsActivity : BaseActivity(), GenericAdapter.Listener
                 colors = colors,
                 subColors = subColors,
                 allowCustomArgb = true,
-                showAlphaSelector = false) { _, selectedColor ->
+                showAlphaSelector = false
+            ) { _, selectedColor ->
                 when (selectedPosition) {
                     POSITION_DAY_BACKGROUND -> dataCenter.dayModeBackgroundColor = selectedColor
                     POSITION_DAY_TEXT -> dataCenter.dayModeTextColor = selectedColor

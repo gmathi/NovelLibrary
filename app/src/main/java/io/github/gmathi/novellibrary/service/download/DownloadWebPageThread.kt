@@ -11,13 +11,19 @@ import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
 import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.other.EventType
-import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.writableFileName
+import io.github.gmathi.novellibrary.util.lang.writableFileName
+import io.github.gmathi.novellibrary.util.network.getFileName
 import org.jsoup.nodes.Document
 import java.io.File
+import java.net.URI
+import java.net.URL
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class DownloadWebPageThread(val context: Context, val download: Download, val dbHelper: DBHelper, private val downloadListener: DownloadListener) : Thread(), DownloadListener {
@@ -28,6 +34,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
     private lateinit var hostDir: File
     private lateinit var novelDir: File
+    private val networkHelper: NetworkHelper = NetworkHelper(context)
 
     override fun run() {
         try {
@@ -61,7 +68,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
     private fun downloadChapter(webPageSettings: WebPageSettings, webPage: WebPage): Boolean {
         val doc: Document
         try {
-            doc = NovelApi.getDocument(webPageSettings.url)
+            doc = WebPageDocumentFetcher.document(webPageSettings.url)
         } catch (e: Exception) {
             Logs.error(TAG, "Error getting WebPage: ${webPageSettings.url}")
             return false
@@ -72,8 +79,17 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
             val htmlHelper = HtmlCleaner.getInstance(doc, uri.host ?: doc.location())
             htmlHelper.downloadResources(doc, hostDir, novelDir)
+            var fileName = htmlHelper.getTitle(doc)
+            val location = doc.location()
+            if (location.isNotEmpty()) {
+                val url =  URL(location).toURI()
+                fileName = uri.getFileName()
+            }
+            if (fileName.isNullOrBlank())
+                fileName = UUID.randomUUID().toString()
+
             webPageSettings.title = htmlHelper.getTitle(doc)
-            val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName()))
+            val file = htmlHelper.convertDocToFile(doc, File(novelDir, fileName.writableFileName()))
                 ?: return false
             webPageSettings.filePath = file.path
             webPageSettings.redirectedUrl = doc.location()
@@ -106,7 +122,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
         val doc: Document
         try {
-            doc = NovelApi.getDocument(otherChapterLink)
+            doc = WebPageDocumentFetcher.document(otherChapterLink)
         } catch (e: Exception) {
             Logs.error(TAG, "Error getting internal links: $otherChapterLink")
             e.printStackTrace()
@@ -136,7 +152,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
     }
 
     private fun isNetworkDown(): Boolean {
-        if (!Utils.isConnectedToNetwork(context)) {
+        if (!networkHelper.isConnectedToNetwork()) {
             onNoNetwork()
             return true
         }

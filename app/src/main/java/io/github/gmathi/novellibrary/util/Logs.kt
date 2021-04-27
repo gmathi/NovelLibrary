@@ -3,7 +3,6 @@ package io.github.gmathi.novellibrary.util
 import android.util.Log
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.github.gmathi.novellibrary.BuildConfig
-import java.lang.Exception
 
 object Logs {
 

@@ -7,15 +7,21 @@ import io.github.gmathi.novellibrary.database.getRemainingDownloadsCountForNovel
 import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
 import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.other.EventType
+import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.Utils
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
 
-class DownloadNovelThread(val context: Context, val novelName: String, val dbHelper: DBHelper, private val downloadListener: DownloadListener) : Thread(), DownloadListener {
+class DownloadNovelThread(
+    val context: Context,
+    val novelId: Long,
+    val dbHelper: DBHelper,
+    private val downloadListener: DownloadListener
+
+) : Thread(), DownloadListener {
 
     private var threadPool: ThreadPoolExecutor? = null
 
@@ -25,13 +31,13 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
 
     override fun run() {
         try {
-            var download = dbHelper.getDownloadItemInQueue(novelName)
+            var download = dbHelper.getDownloadItemInQueue(novelId)
             threadPool = Executors.newFixedThreadPool(10) as ThreadPoolExecutor
 //            val fasterDownloads = DataCenter(context).experimentalDownload
 
             while (download != null && !interrupted()) {
 
-                if (!Utils.isConnectedToNetwork(context)) throw InterruptedException(Constants.NO_NETWORK)
+                if (!NetworkHelper(context).isConnectedToNetwork()) throw InterruptedException(Constants.NO_NETWORK)
 
 //                if (!fasterDownloads)
                 // .get at the end makes it a synchronous task
@@ -45,7 +51,7 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
                     threadPool?.shutdownNow(); return
                 }
 
-                download = dbHelper.getDownloadItemInQueue(novelName)
+                download = dbHelper.getDownloadItemInQueue(novelId)
             }
 
             threadPool?.shutdown()
@@ -59,20 +65,18 @@ class DownloadNovelThread(val context: Context, val novelName: String, val dbHel
 //                        }
 //                }
 
-                if (dbHelper.getRemainingDownloadsCountForNovel(novelName) == 0)
-                    downloadListener.handleEvent(DownloadNovelEvent(EventType.DELETE, novelName))
+                if (dbHelper.getRemainingDownloadsCountForNovel(novelId) == 0)
+                    downloadListener.handleEvent(DownloadNovelEvent(EventType.DELETE, novelId))
                 else
-                    downloadListener.handleEvent(DownloadNovelEvent(EventType.PAUSED, novelName))
+                    downloadListener.handleEvent(DownloadNovelEvent(EventType.PAUSED, novelId))
 
             } catch (e: InterruptedException) {
                 Logs.warning(TAG, "Thread pool executor interrupted~")
             }
 
         } catch (e: InterruptedException) {
-            Logs.warning(TAG, "Interrupting the Thread: $novelName, ${e.localizedMessage}")
             threadPool?.shutdownNow()
         } catch (e: Exception) {
-            Logs.error(TAG, "This is really bad!!", e)
             threadPool?.shutdownNow()
         }
     }

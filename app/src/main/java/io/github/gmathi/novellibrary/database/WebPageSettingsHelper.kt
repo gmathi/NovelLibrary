@@ -12,13 +12,6 @@ import kotlin.collections.ArrayList
 
 private const val LOG = "WebPageSettingsHelper"
 
-//fun DBHelper.getAllDownloadedWebPageSettingss(novelId: Long): ArrayList<WebPageSettings> {
-//  val selectQuery = "SELECT * FROM ${DBKeys.TABLE_WEB_PAGE_SETTINGS} WHERE ${DBKeys.KEY_NOVEL_ID} = $novelId AND ${DBKeys.KEY_FILE_PATH} IS NOT NULL"
-
-//fun DBHelper.getDownloadedWebPageSettingssCount(novelId: Long): Int {
-//  val selectQuery = "SELECT COUNT(*) FROM ${DBKeys.TABLE_WEB_PAGE_SETTINGS} WHERE ${DBKeys.KEY_NOVEL_ID} = $novelId AND ${DBKeys.KEY_FILE_PATH} IS NOT NULL"
-
-
 fun DBHelper.createWebPageSettings(webPageSettings: WebPageSettings, db: SQLiteDatabase? = null) {
     val writableDatabase = db ?: this.writableDatabase
     //Check 1st
@@ -36,7 +29,7 @@ fun DBHelper.createWebPageSettings(webPageSettings: WebPageSettings, db: SQLiteD
     values.put(DBKeys.KEY_REDIRECT_URL, webPageSettings.redirectedUrl)
     values.put(DBKeys.KEY_TITLE, webPageSettings.title)
     values.put(DBKeys.KEY_FILE_PATH, webPageSettings.filePath)
-    values.put(DBKeys.KEY_IS_READ, webPageSettings.isRead)
+    values.put(DBKeys.KEY_IS_READ, if (webPageSettings.isRead) 1 else 0)
     values.put(DBKeys.KEY_METADATA, Gson().toJson(webPageSettings.metadata))
 
     writableDatabase.insert(DBKeys.TABLE_WEB_PAGE_SETTINGS, null, values)
@@ -92,7 +85,7 @@ private fun getWebPageSettingsFromCursor(cursor: Cursor): WebPageSettings {
     webPageSettings.redirectedUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_REDIRECT_URL))
     webPageSettings.title = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_TITLE))
     webPageSettings.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
-    webPageSettings.isRead = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_IS_READ))
+    webPageSettings.isRead = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_IS_READ)) == 1
     webPageSettings.metadata = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
     return webPageSettings
 }

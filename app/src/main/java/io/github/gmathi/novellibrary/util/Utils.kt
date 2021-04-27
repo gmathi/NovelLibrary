@@ -1,23 +1,18 @@
 package io.github.gmathi.novellibrary.util
 
 import android.app.ActivityManager
-import android.content.ContentResolver
-import android.content.Context
+import android.content.*
 import android.content.Context.ACTIVITY_SERVICE
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.VectorDrawable
-import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
-import android.util.TypedValue
 import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
@@ -26,20 +21,22 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LifecycleOwner
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.dataCenter
+import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.getNovel
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.network.sync.NovelSync
+import io.github.gmathi.novellibrary.util.lang.writableFileName
 import io.github.gmathi.novellibrary.util.storage.createFileIfNotExists
 import io.github.gmathi.novellibrary.util.storage.getOrCreateDirectory
 import io.github.gmathi.novellibrary.util.storage.getOrCreateFile
-import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.network.sync.NovelSync
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.safety.Whitelist
+import uy.kohesive.injekt.injectLazy
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -54,52 +51,10 @@ object Utils {
     private const val TAG = "UTILS"
     private const val BUFFER_SIZE = 16384
 
-    //region color utils
-    fun getThemeAccentColor(context: Context): Int {
-        val typedValue = TypedValue()
-        val a = context.obtainStyledAttributes(
-            typedValue.data,
-            intArrayOf(R.attr.colorAccent)
-        )
-        val color = a.getColor(0, Color.CYAN)
-        a.recycle()
+    private val dbHelper: DBHelper by injectLazy()
+    private val dataCenter: DataCenter by injectLazy()
 
-        return color
-    }
-
-    fun getThemePrimaryColor(context: Context): Int {
-        val typedValue = TypedValue()
-        val a = context.obtainStyledAttributes(
-            typedValue.data,
-            intArrayOf(R.attr.colorPrimary)
-        )
-        val color = a.getColor(0, Color.BLUE)
-        a.recycle()
-
-        return color
-    }
-
-    fun lighten(color: Int, factor: Float): Int {
-        val red = ((Color.red(color) * (1 - factor) / 255 + factor) * 255).toInt()
-        val green = ((Color.green(color) * (1 - factor) / 255 + factor) * 255).toInt()
-        val blue = ((Color.blue(color) * (1 - factor) / 255 + factor) * 255).toInt()
-        return Color.argb(Color.alpha(color), red, green, blue)
-    }
-    //endregion
-
-    //region Bitmap to byte[] Conversions
-
-    fun getBytes(bitmap: Bitmap): ByteArray {
-        val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 0, stream)
-        return stream.toByteArray()
-    }
-
-    // convert from byte array to bitmap
     fun getImage(image: ByteArray): Bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
-
-    //endregion
-
 
     fun getHostDir(context: Context, url: String): File {
         val uri = Uri.parse(url)
@@ -140,18 +95,6 @@ object Utils {
         localIntent.putExtras(extras)
         localIntent.addCategory(Intent.CATEGORY_DEFAULT)
         context.sendBroadcast(localIntent)
-    }
-
-    /**
-     * returns - True - if there is connection to the internet
-     */
-    fun isConnectedToNetwork(context: Context?): Boolean {
-        context?.let {
-            val connectivityManager = it.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-            val netInfo = connectivityManager?.activeNetworkInfo
-            return netInfo != null && netInfo.isConnected
-        }
-        return false
     }
 
     @Throws(IOException::class)
@@ -344,7 +287,7 @@ object Utils {
         }
         return 0
     }
-    
+
     fun createSnackProgressBarManager(view: View, lifecycleOwner: LifecycleOwner?): SnackProgressBarManager {
         val result = SnackProgressBarManager(view, lifecycleOwner)
         result
@@ -431,6 +374,18 @@ object Utils {
         outputSettings(Document.OutputSettings().prettyPrint(false))
         val htmlString: String = html()//.replace("\\\\n", "\n")
         return Jsoup.clean(htmlString, "", Whitelist.none(), Document.OutputSettings().prettyPrint(false)).replace("&nbsp", "")
+    }
+
+    fun copyErrorToClipboard(e: Exception, activity: AppCompatActivity) {
+        val errorMessage = e.localizedMessage ?: "Unknown Error" + "\n" + e.stackTrace.joinToString(separator = "\n") { it.toString() }
+        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip: ClipData = ClipData.newPlainText("Error Message", errorMessage)
+        clipboard.setPrimaryClip(clip)
+        MaterialDialog(activity).show {
+            title(text = "Error!")
+            message(text = "The error message has been copied to clipboard. Please paste it in discord #bugs channel.")
+            lifecycleOwner(activity)
+        }
     }
 
 }

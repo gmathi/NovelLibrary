@@ -8,28 +8,29 @@ import android.webkit.WebViewClient
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.databinding.ActivitySyncLoginBinding
-import io.github.gmathi.novellibrary.network.CloudFlareByPasser
 import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.util.system.setDefaultSettings
+import io.github.gmathi.novellibrary.util.view.extensions.setDefaultSettings
 import java.net.URL
 
 class SyncLoginActivity : BaseActivity() {
-    
+
     private lateinit var binding: ActivitySyncLoginBinding
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         binding = ActivitySyncLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        binding.confirm.setOnClickListener { finish() }
-
         val url = intent.getStringExtra("url") ?: return
+        //Clear any existing cookies
         val host = URL(url).host
-        CloudFlareByPasser.clearCookies(host)
+        networkHelper.cookieManager.clearCookies(hostName = host)
+
+        //Setup Views
+        binding.confirm.setOnClickListener { finish() }
         binding.view.setDefaultSettings()
         binding.view.apply {
             settings.apply {
@@ -40,8 +41,7 @@ class SyncLoginActivity : BaseActivity() {
             val lookup = intent.getStringExtra("lookup")?.toRegex()
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
-                    if (CloudFlareByPasser.saveLoginCookies(host, lookup!!)) {
-                        //finish()
+                    if (networkHelper.cookieManager.saveLoginCookies(hostName = host, lookupRegex = lookup)) {
                         binding.cookieStatus.text = getString(R.string.sync_cookies_found)
                         binding.cookieStatus.isChecked = true
                     } else {

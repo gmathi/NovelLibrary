@@ -54,7 +54,6 @@ class DataCenter(context: Context) {
         private const val LIMIT_IMAGE_WIDTH = "limitImageWidth"
         private const val FONT_PATH = "fontPath"
         private const val ENABLE_CLUSTER_PAGES = "enableClusterPages"
-        private const val CF_COOKIES_STRING = "cfCookiesString"
         private const val DIRECTIONAL_LINKS = "enableDirectionalLinks"
         private const val READER_MODE_BUTTON_VISIBILITY = "isReaderModeButtonVisible"
         private const val ENABLE_NOTIFICATIONS = "enableNotifications"
@@ -62,6 +61,8 @@ class DataCenter(context: Context) {
         private const val DISABLE_WUXIA_DOWNLOADS = "disableWuxiaDownloads"
         private const val HAS_ALREADY_DELETED_OLD_CHANNELS = "hasAlreadyDeletedOldChannels"
         private const val LOGIN_COOKIES_STRING = "loginCookiesString"
+        private const val CUSTOM_QUERY_LOOKUPS = "customQueryLookups"
+        private const val SHOW_CHAPTERS_LEFT_BADGE = "showChaptersLeftBadge"
         private const val USER_SPECIFIED_SELECTOR_QUERIES = "userSpecifiedSelectorQueries"
 
         //Backup
@@ -74,8 +75,10 @@ class DataCenter(context: Context) {
         private const val GD_ACCOUNT_EMAIL = "gdAccountEmail"
         private const val GD_INTERNET_TYPE = "gdInternetType"
 
-        const val CF_COOKIES_CLEARANCE = "cf_clearance"
-        const val CF_COOKIES_DUID = "__cfduid"
+//      private const val CF_COOKIES_STRING = "cfCookiesString"
+//      const val CF_COOKIES_CLEARANCE = "cf_clearance"
+//      const val CF_COOKIES_DUID = "__cfduid"
+
 
         //Reader mode background color
         const val DAY_MODE_BACKGROUND_COLOR = "dayModeBackgroundColor"
@@ -269,6 +272,10 @@ class DataCenter(context: Context) {
         set(value) = prefs.edit().putBoolean(HAS_ALREADY_DELETED_OLD_CHANNELS, value).apply()
 
 
+    var showChaptersLeftBadge: Boolean
+        get() = prefs.getBoolean(SHOW_CHAPTERS_LEFT_BADGE, false)
+        set(value) = prefs.edit().putBoolean(SHOW_CHAPTERS_LEFT_BADGE, value).apply()
+
     // Verified HostNames management
 
     fun getVerifiedHosts(): ArrayList<String> =
@@ -282,32 +289,34 @@ class DataCenter(context: Context) {
     }
 
 
-    //CloudFlare
+    //region CloudFlare - Not used anymore from here
 
-    fun getCFClearance(hostName: String): String {
-        return prefs.getString(CF_COOKIES_CLEARANCE + hostName, "")!!
-    }
+//    fun getCFClearance(hostName: String): String {
+//        return prefs.getString(CF_COOKIES_CLEARANCE + hostName, "")!!
+//    }
+//
+//    fun setCFClearance(hostName: String, value: String) {
+//        prefs.edit().putString(CF_COOKIES_CLEARANCE + hostName, value).apply()
+//    }
+//
+//    fun getCFDuid(hostName: String): String {
+//        return prefs.getString(CF_COOKIES_DUID + hostName, "")!!
+//    }
+//
+//    fun setCFDuid(hostName: String, value: String) {
+//        prefs.edit().putString(CF_COOKIES_DUID + hostName, value).apply()
+//    }
+//
+//    fun getCFCookiesString(hostName: String): String {
+//        return prefs.getString(CF_COOKIES_STRING + hostName, "")!!
+//    }
+//
+//    fun setCFCookiesString(hostName: String, value: String) {
+//        prefs.edit().putString(CF_COOKIES_STRING + hostName, value).apply()
+//    }
+    //endregion
 
-    fun setCFClearance(hostName: String, value: String) {
-        prefs.edit().putString(CF_COOKIES_CLEARANCE + hostName, value).apply()
-    }
-
-    fun getCFDuid(hostName: String): String {
-        return prefs.getString(CF_COOKIES_DUID + hostName, "")!!
-    }
-
-    fun setCFDuid(hostName: String, value: String) {
-        prefs.edit().putString(CF_COOKIES_DUID + hostName, value).apply()
-    }
-
-    fun getCFCookiesString(hostName: String): String {
-        return prefs.getString(CF_COOKIES_STRING + hostName, "")!!
-    }
-
-    fun setCFCookiesString(hostName: String, value: String) {
-        prefs.edit().putString(CF_COOKIES_STRING + hostName, value).apply()
-    }
-
+    //region Novel Sync
     fun getLoginCookiesString(hostName: String): String {
         return prefs.getString(LOGIN_COOKIES_STRING + hostName, "")!!;
     }
@@ -351,6 +360,8 @@ class DataCenter(context: Context) {
     fun setSyncBookmarks(name: String, value: Boolean) {
         prefs.edit().putBoolean(SYNC_BOOKMARKS + name, value).apply()
     }
+
+    //endregion
 
     //Backup
 

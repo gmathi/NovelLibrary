@@ -36,10 +36,11 @@ import io.github.gmathi.novellibrary.extensions.isPlaying
 /**
  * Helper class to encapsulate code for building notifications.
  */
-class TTSNotificationBuilder(private val context: Context, private val pendingIntents: HashMap<String, PendingIntent>) {
+class TTSNotificationBuilder(private val context: Context, pendingIntents: HashMap<String, PendingIntent>) {
 
     companion object {
         const val TTS_CHANNEL_ID: String = "io.github.gmathi.novellibrary.tts"
+
         @JvmStatic
         val TTS_NOTIFICATION_ID: Int = io.github.gmathi.novellibrary.util.Utils.getUniqueNotificationId()
     }
@@ -80,20 +81,13 @@ class TTSNotificationBuilder(private val context: Context, private val pendingIn
 
         val builder = NotificationCompat.Builder(context, TTS_CHANNEL_ID)
 
-        // Only add actions for skip back, play/pause, skip forward, based on what's enabled.
-//        var playPauseIndex = 0
-//        if (playbackState.isSkipToPreviousEnabled) {
         builder.addAction(skipToPreviousAction)
-//            ++playPauseIndex
-//        }
         if (playbackState.isPlaying) {
             builder.addAction(pauseAction)
         } else {
             builder.addAction(playAction)
         }
-//        if (playbackState.isSkipToNextEnabled) {
         builder.addAction(skipToNextAction)
-//        }
 
         val drawable = AppCompatResources.getDrawable(context, R.mipmap.ic_launcher)
         if (drawable is BitmapDrawable) {

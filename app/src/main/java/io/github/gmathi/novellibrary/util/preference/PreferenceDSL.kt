@@ -1,21 +1,8 @@
 package io.github.gmathi.novellibrary.util.preference
 
-import androidx.annotation.StringRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.DrawableCompat
-import androidx.preference.CheckBoxPreference
-import androidx.preference.DialogPreference
-import androidx.preference.EditTextPreference
-import androidx.preference.ListPreference
-import androidx.preference.MultiSelectListPreference
-import androidx.preference.Preference
-import androidx.preference.PreferenceCategory
-import androidx.preference.PreferenceGroup
-import androidx.preference.PreferenceManager
-import androidx.preference.PreferenceScreen
-import androidx.preference.SwitchPreferenceCompat
-import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.util.system.getResourceColor
+import androidx.preference.*
 
 @DslMarker
 @Target(AnnotationTarget.TYPE)

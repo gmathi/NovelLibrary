@@ -2,10 +2,9 @@ package io.github.gmathi.novellibrary.activity.settings
 
 import android.os.Bundle
 import android.view.MenuItem
-import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.databinding.ActivityCopyrightBinding
-import io.github.gmathi.novellibrary.util.applyFont
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 
 class CopyrightActivity : BaseActivity() {
     

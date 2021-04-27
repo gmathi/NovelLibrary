@@ -16,23 +16,25 @@ import androidx.work.workDataOf
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.createNovel
 import io.github.gmathi.novellibrary.database.createNovelSection
-import io.github.gmathi.novellibrary.dbHelper
 import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.util.system.NotificationReceiver
-import io.github.gmathi.novellibrary.util.view.ProgressNotificationManager
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.DATABASES_DIR
 import io.github.gmathi.novellibrary.util.Constants.FILES_DIR
 import io.github.gmathi.novellibrary.util.Constants.SHARED_PREFS_DIR
 import io.github.gmathi.novellibrary.util.Constants.SIMPLE_NOVEL_BACKUP_FILE_NAME
 import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
+import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.Utils.recursiveCopy
+import io.github.gmathi.novellibrary.util.system.NotificationReceiver
+import io.github.gmathi.novellibrary.util.view.ProgressNotificationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import uy.kohesive.injekt.injectLazy
 import java.io.*
 
 internal class RestoreWorker(context: Context, workerParameters: WorkerParameters) :
@@ -49,18 +51,20 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
         const val UNIQUE_WORK_NAME = "restore_work"
     }
 
-    // region context wrapper (to improve readability)
-    private fun getString(@StringRes resId: Int, vararg formatArgs: Any): String =
-        if (formatArgs.isEmpty())
-            applicationContext.getString(resId)
-        else
-            applicationContext.getString(resId, formatArgs)
+    private val dbHelper: DBHelper by injectLazy()
 
     private val contentResolver
         get() = applicationContext.contentResolver
 
     private val cacheDir
         get() = applicationContext.cacheDir
+
+    // region context wrapper (to improve readability)
+    private fun getString(@StringRes resId: Int, vararg formatArgs: Any): String =
+        if (formatArgs.isEmpty())
+            applicationContext.getString(resId)
+        else
+            applicationContext.getString(resId, formatArgs)
 
     private fun sendBroadcast(intent: Intent) =
         applicationContext.sendBroadcast(intent)
@@ -141,10 +145,19 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                     nm.updateProgress(3)
                     for (i in 0 until novelsArray.length()) {
                         val novelJson = novelsArray.getJSONObject(i)
+                        val novelUrl = novelJson.getString("url")
+                        val sourceId = try {
+                            novelJson.getLong("sourceId")
+                        } catch (e: Exception) {
+                            dbHelper.getSourceId(novelUrl)
+                        }
                         val novel = Novel(
                             name = novelJson.getString("name"),
-                            url = novelJson.getString("url")
+                            url = novelUrl,
+                            sourceId = sourceId
                         )
+                        if (novelJson.has("externalNovelId"))
+                            novel.externalNovelId = novelJson.getString("externalNovelId")
                         if (novelJson.has("imageUrl"))
                             novel.imageUrl = novelJson.getString("imageUrl")
                         if (novelJson.has("currentlyReading"))
@@ -154,7 +167,6 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                                 novelJson.getString("metadata"),
                                 object : TypeToken<HashMap<String, String>>() {}.type
                             )
-
                         novel.novelSectionId =
                             newIdMap[oldIdMap[novelJson.getLong("novelSectionId")]]
                                 ?: -1L

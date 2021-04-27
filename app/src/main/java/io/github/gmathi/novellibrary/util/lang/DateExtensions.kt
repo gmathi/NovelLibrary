@@ -1,8 +1,7 @@
 package io.github.gmathi.novellibrary.util.lang
 
 import java.text.DateFormat
-import java.util.Calendar
-import java.util.Date
+import java.util.*
 
 fun Date.toDateTimestampString(dateFormatter: DateFormat): String {
     val date = dateFormatter.format(this)

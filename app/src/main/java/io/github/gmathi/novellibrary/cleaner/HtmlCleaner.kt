@@ -7,20 +7,19 @@ import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.model.other.SelectorQuery
 import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.network.NovelApi
+import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
+import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
-import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.getFileName
-import io.github.gmathi.novellibrary.util.writableFileName
+import io.github.gmathi.novellibrary.util.lang.writableFileName
+import io.github.gmathi.novellibrary.util.network.getFileName
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.HttpStatusException
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.io.FileOutputStream
 import java.math.BigDecimal
@@ -32,7 +31,7 @@ open class HtmlCleaner protected constructor() {
 
     companion object {
 
-        val defaultSelectorQueries = listOf(
+        private val defaultSelectorQueries = listOf(
             SelectorQuery("div.chapter-content"),
             SelectorQuery("div.entry-content"),
             SelectorQuery("div.elementor-widget-theme-post-content", appendTitleHeader = false),
@@ -91,6 +90,7 @@ open class HtmlCleaner protected constructor() {
         }
 
         private fun getSelectorQueries(): List<SelectorQuery> {
+            val dataCenter: DataCenter by injectLazy()
             var htmlCleanerSelectorQueries = dataCenter.htmlCleanerSelectorQueries
             if (htmlCleanerSelectorQueries.isNullOrEmpty()) htmlCleanerSelectorQueries = ArrayList(defaultSelectorQueries)
             val userSpecifiedSelectorQueries = dataCenter.userSpecifiedSelectorQueries
@@ -101,6 +101,7 @@ open class HtmlCleaner protected constructor() {
         }
     }
 
+    val dataCenter: DataCenter by injectLazy()
     open var keepContentStyle = false
     open var keepContentIds = true
     open var keepContentClasses = false
@@ -135,7 +136,7 @@ open class HtmlCleaner protected constructor() {
     open fun downloadCSS(doc: Document, downloadDir: File) {
         val elements = doc.head().getElementsByTag("link").filter { element -> element.hasAttr("rel") && element.attr("rel") == "stylesheet" }
         for (element in elements) {
-            val cssFile = downloadFile(element, downloadDir)
+            val cssFile = downloadOtherFiles(element, downloadDir)
             if (cssFile != null) {
                 element.removeAttr("href")
                 element.attr("href", "../" + cssFile.name)
@@ -150,7 +151,7 @@ open class HtmlCleaner protected constructor() {
 
     }
 
-    open fun downloadFile(element: Element, dir: File, retryCount: Int = 0): File? {
+    open fun downloadOtherFiles(element: Element, dir: File, retryCount: Int = 0): File? {
         val uri = Uri.parse(element.absUrl("href"))
         val file: File
         val doc: Document
@@ -158,12 +159,12 @@ open class HtmlCleaner protected constructor() {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: $uri")
             val fileName = uri.getFileName()
             file = File(dir, fileName)
-            doc = NovelApi.getDocument(uri.toString(), ignoreHttpErrors = false, useProxy = false)
+            doc = WebPageDocumentFetcher.document(uri.toString(), useProxy = false)
         } catch (e: Exception) {
             when (e) {
                 is SocketException -> {
                     // Let's try this one more time
-                    if (retryCount == 0) return downloadFile(element, dir, retryCount = 1)
+                    if (retryCount == 0) return downloadOtherFiles(element, dir, retryCount = 1)
                 }
                 is HttpStatusException -> {
                     //Do Nothing
@@ -192,20 +193,61 @@ open class HtmlCleaner protected constructor() {
     }
 
     open fun downloadImages(doc: Document, novelDir: File) {
-        val elements = doc.getElementsByTag("img").filter { element -> element.hasAttr("src") }
+        val elements = doc.getElementsByTag("img")
         for (element in elements) {
             val imageFile = getImageFile(element, novelDir)
             if (imageFile != null) {
                 if (!imageFile.exists())
                     downloadImage(element, imageFile)
-                element.removeAttr("src")
+                cleanImageTag(element)
                 element.attr("src", "./${imageFile.name}")
             }
         }
     }
 
+    open fun getImageUrl(element: Element): String? {
+        return when {
+            element.hasAttr("data-orig-file") -> element.absUrl("data-orig-file")
+            element.hasAttr("data-large-file") -> element.absUrl("data-large-file")
+            element.hasAttr("lazy-src") -> element.absUrl("lazy-src")
+            element.hasAttr("src") -> element.absUrl("src")
+            element.hasAttr("data-lazy-src") -> element.absUrl("data-lazy-src")
+            element.hasAttr("data-medium-file") -> element.absUrl("data-medium-file")
+            element.hasAttr("data-small-file") -> element.absUrl("data-small-file")
+            element.hasAttr("data-srcset") -> {
+                // Parse highest possible resolution
+                val src = element.attr("data-srcset").substringAfterLast(',').trim().substringBeforeLast(' ')
+                element.attr("_srcset", src)
+                val ret = element.absUrl("_srcset")
+                element.removeAttr("_srcset")
+                ret
+            }
+            element.hasAttr("srcset") -> {
+                // Parse highest possible resolution
+                val src = element.attr("srcset").substringAfterLast(',').trim().substringBeforeLast(' ')
+                element.attr("_srcset", src)
+                val ret = element.absUrl("_srcset")
+                element.removeAttr("_srcset")
+                ret
+            }
+            else -> null
+        }
+    }
+
+    open fun cleanImageTag(element: Element) {
+        element.removeAttr("data-orig-file")
+        element.removeAttr("data-large-file")
+        element.removeAttr("lazy-src")
+        element.removeAttr("src")
+        element.removeAttr("data-lazy-src")
+        element.removeAttr("data-medium-file")
+        element.removeAttr("data-small-file")
+        element.removeAttr("data-srcset")
+        element.removeAttr("srcset")
+    }
+
     open fun getImageFile(element: Element, dir: File): File? {
-        val uri = Uri.parse(element.absUrl("src"))
+        val uri = Uri.parse(getImageUrl(element) ?: return null)
         val file: File
         try {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: $uri")
@@ -219,7 +261,7 @@ open class HtmlCleaner protected constructor() {
     }
 
     open fun downloadImage(element: Element, file: File): File? {
-        val uri = Uri.parse(element.absUrl("src"))
+        val uri = Uri.parse(getImageUrl(element) ?: return null)
         if (uri.toString().contains("uploads/avatars")) return null
         try {
             val response = Jsoup.connect(uri.toString()).userAgent(HostNames.USER_AGENT).ignoreContentType(true).execute()
@@ -228,7 +270,7 @@ open class HtmlCleaner protected constructor() {
             val os = FileOutputStream(file)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os)
         } catch (e: Exception) {
-            Logs.debug(TAG, "Exception Downloading Image: $uri")
+            Logs.error(TAG, "Exception Downloading Image: $uri", e)
             return null
         }
         return file
@@ -491,6 +533,23 @@ open class HtmlCleaner protected constructor() {
 
         if (!keepContentIds && contentElement.hasAttr("id"))
             contentElement.removeAttr("id")
+
+        when (contentElement.tagName()) {
+            "img" -> {
+                // Fix images that use data- and lazy-src attributes to load
+                contentElement.attr("src", getImageUrl(contentElement))
+                // Some websites use srcset to "hide" images from scrapers, and sometimes those images are links to actual chapter.
+                // Example: lazytranslations use a 1x1 gif image to hide them.
+                contentElement.removeAttr("srcset")
+            }
+            "div", "span" -> {
+                // Clean up "Advertisements" divs that contain nothing else.
+                if (contentElement.childrenSize() == 0 && contentElement.ownText().equals("Advertisements", true)) {
+                    contentElement.remove()
+                    return
+                }
+            }
+        }
 
         if (keepContentStyle) {
             return

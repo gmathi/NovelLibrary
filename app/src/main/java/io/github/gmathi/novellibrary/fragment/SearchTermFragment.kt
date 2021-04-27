@@ -10,22 +10,22 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.databinding.ContentRecyclerViewBinding
 import io.github.gmathi.novellibrary.databinding.ListitemNovelBinding
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.other.NovelsPage
+import io.github.gmathi.novellibrary.model.source.CatalogueSource
 import io.github.gmathi.novellibrary.network.*
-import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.getGlideUrl
-import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.util.*
+import io.github.gmathi.novellibrary.util.Exceptions.MISSING_SOURCE_ID
+import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.isFragmentActive
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.net.URLEncoder
 import java.util.concurrent.atomic.AtomicBoolean
 
 
@@ -33,20 +33,20 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
 
     override var currentPageNumber: Int = 1
-    override val preloadCount: Int = 50
+    override val preloadCount: Int = 25
     override val isPageLoading: AtomicBoolean = AtomicBoolean(false)
     private lateinit var searchTerm: String
-    private lateinit var resultType: String
-    
+    private var sourceId: Long = 0L
+
     private lateinit var binding: ContentRecyclerViewBinding
 
     companion object {
         private const val TAG = "SearchTermFragment"
 
-        fun newInstance(searchTerms: String, resultType: String): SearchTermFragment {
+        fun newInstance(searchTerms: String, sourceId: Long): SearchTermFragment {
             val bundle = Bundle()
             bundle.putString("searchTerm", searchTerms)
-            bundle.putString("resultType", resultType)
+            bundle.putLong("sourceId", sourceId)
             val fragment = SearchTermFragment()
             fragment.arguments = bundle
             return fragment
@@ -68,10 +68,9 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        //(activity as AppCompatActivity).setSupportActionBar(null)
 
         searchTerm = arguments?.getString("searchTerm")!!
-        resultType = arguments?.getString("resultType")!!
+        sourceId = arguments?.getLong("sourceId")!!
 
         setRecyclerView()
 
@@ -88,7 +87,8 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
     }
 
     private fun setRecyclerView() {
-        adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_novel, listener = this, loadMoreListener = if (resultType != HostNames.WLN_UPDATES) this else null)
+        val enableLoadMoreListener = (sourceId != Constants.SourceId.WLN_UPDATES && sourceId != Constants.SourceId.LNMTL)
+        adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_novel, listener = this, loadMoreListener = if (enableLoadMoreListener) this else null)
         binding.recyclerView.setDefaults(adapter)
         binding.swipeRefreshLayout.setOnRefreshListener { searchNovels() }
     }
@@ -97,50 +97,44 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
         lifecycleScope.launch search@{
 
-            if (!Utils.isConnectedToNetwork(activity)) {
-                binding.progressLayout.noInternetError(View.OnClickListener {
+            if (!networkHelper.isConnectedToNetwork()) {
+                binding.swipeRefreshLayout.isRefreshing = false
+                binding.progressLayout.noInternetError {
                     binding.progressLayout.showLoading()
                     currentPageNumber = 1
                     searchNovels()
-                })
+                }
                 return@search
             }
 
-            val searchTerms = URLEncoder.encode(searchTerm, "UTF-8")
-            var results: ArrayList<Novel>? = null
-
             try {
-                when (resultType) {
-                    HostNames.NOVEL_UPDATES -> results = withContext(Dispatchers.IO) { NovelApi.searchNovelUpdates(searchTerms, currentPageNumber) }
-                    HostNames.ROYAL_ROAD -> results = withContext(Dispatchers.IO) { NovelApi.searchRoyalRoad(searchTerms, currentPageNumber) }
-                    HostNames.NOVEL_FULL -> results = withContext(Dispatchers.IO) { NovelApi.searchNovelFull(searchTerms, currentPageNumber) }
-                    HostNames.WLN_UPDATES -> results = withContext(Dispatchers.IO) { NovelApi.searchWlnUpdates(searchTerms) }
-                    HostNames.SCRIBBLE_HUB -> results = withContext(Dispatchers.IO) { NovelApi.searchScribbleHub(searchTerms, currentPageNumber) }
-                    HostNames.LNMTL -> results = withContext(Dispatchers.IO) { NovelApi.searchLNMTL(searchTerms) }
-                    HostNames.NEOVEL -> results =  withContext(Dispatchers.IO) { NovelApi.searchNeovel(searchTerms) }
-                }
-            } catch (e: Exception) {
-                Logs.error(TAG, "Search Failed!", e)
-            }
-
-            if (results != null) {
-                if (isVisible && (!isDetached || !isRemoving)) {
-                    loadSearchResults(results)
+                val source = sourceManager.get(sourceId) as? CatalogueSource ?: throw Exception("$MISSING_SOURCE_ID: $sourceId")
+                val novelsPage = withContext(Dispatchers.IO) { source.getSearchNovels(currentPageNumber, searchTerm) }
+                if (isFragmentActive()) {
+                    loadSearchResults(novelsPage)
                     isPageLoading.lazySet(false)
-                    binding.swipeRefreshLayout.isRefreshing = false
                 }
-            } else {
-                if (isFragmentActive() && binding.progressLayout != null)
-                    binding.progressLayout.showError(errorText = getString(R.string.connection_error), buttonText = getString(R.string.try_again), onClickListener = View.OnClickListener {
+
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                if (isFragmentActive()) {
+                    binding.progressLayout.showError(errorText = getString(R.string.connection_error), buttonText = getString(R.string.try_again)) {
                         binding.progressLayout.showLoading()
                         currentPageNumber = 1
                         searchNovels()
-                    })
+                    }
+                }
+            } finally {
+                binding.swipeRefreshLayout.isRefreshing = false
             }
         }
     }
 
-    private fun loadSearchResults(results: ArrayList<Novel>) {
+    private fun loadSearchResults(novelsPage: NovelsPage) {
+        val results: ArrayList<Novel> = ArrayList(novelsPage.novels)
+        if (!novelsPage.hasNextPage) adapter.loadMoreListener = null
+
         if (results.isNotEmpty() && !adapter.items.containsAll(results)) {
             if (currentPageNumber == 1) {
                 adapter.updateData(results)
@@ -149,23 +143,17 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
             }
         } else {
             adapter.loadMoreListener = null
-            adapter.notifyDataSetChanged()
         }
 
         if (adapter.items.isEmpty()) {
-            if (isFragmentActive() && binding.progressLayout != null)
-                binding.progressLayout.showEmpty(
-                    resId = R.raw.empty_search,
-                    isLottieAnimation = true,
-                    emptyText = "No Novels Found!",
-                    buttonText = getString(R.string.try_again),
-                    onClickListener = View.OnClickListener {
-                        binding.progressLayout.showLoading()
-                        currentPageNumber = 1
-                        searchNovels()
-                    })
+            if (isFragmentActive())
+                binding.progressLayout.showEmpty(R.raw.empty_search, true, "No Novels Found!", getString(R.string.try_again)) {
+                    binding.progressLayout.showLoading()
+                    currentPageNumber = 1
+                    searchNovels()
+                }
         } else {
-            if (isFragmentActive() && binding.progressLayout != null)
+            if (isFragmentActive())
                 binding.progressLayout.showContent()
         }
     }
@@ -181,7 +169,6 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
     override fun onItemClick(item: Novel, position: Int) {
         (activity as? AppCompatActivity)?.startNovelDetailsActivity(item, false)
-        //addToDownloads(item)
     }
 
     override fun bind(item: Novel, itemView: View, position: Int) {
@@ -198,6 +185,11 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
         //Other Data Fields
         itemBinding.novelTitleTextView.text = item.name
         itemBinding.novelTitleTextView.isSelected = dataCenter.enableScrollingText
+
+        if (item.metadata.containsKey("OriginMarker")) {
+            itemBinding.novelLanguageText.text = item.metadata["OriginMarker"]
+            itemBinding.novelLanguageText.visibility = View.VISIBLE
+        }
 
         if (item.rating != null && item.rating != "N/A") {
             var ratingText = "(N/A)"

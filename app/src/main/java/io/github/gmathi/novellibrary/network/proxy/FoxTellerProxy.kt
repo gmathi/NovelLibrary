@@ -4,10 +4,19 @@ import android.util.Base64
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import io.github.gmathi.novellibrary.network.HostNames
-import org.jsoup.Connection
+import io.github.gmathi.novellibrary.network.POST
+import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.network.asJsoup
+import okhttp3.Headers
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import org.jsoup.nodes.Document
+import java.lang.Exception
+
 
 class FoxTellerProxy : BaseProxyHelper() {
+
     companion object {
         val aux_dem = "https://www.${HostNames.FOXTELLER}/aux_dem"
         val dem_regex = """let +([de]) *= *'(.+?)';""".toRegex()
@@ -23,10 +32,18 @@ class FoxTellerProxy : BaseProxyHelper() {
     }
 
     @ExperimentalStdlibApi
-    override fun document(res: Connection.Response): Document {
-        val doc = res.parse()
-        val xsrf = res.cookie("XSRF-TOKEN")
-        val session = res.cookie("foxteller_session") ?: xsrf
+    override fun document(response: Response): Document {
+        val doc = response.asJsoup()
+        val cookiesList = response.headers.values("Set-Cookie")[0].split(";".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val cookieMap = HashMap<String, String>()
+        cookiesList.forEach {
+            val keyValueSplit = it.split("=")
+            if (keyValueSplit.size == 2)
+                cookieMap[keyValueSplit[0]] = keyValueSplit[1]
+        }
+
+        val xsrf = cookieMap["XSRF-TOKEN"]
+        val session = cookieMap["foxteller_session"] ?: xsrf
         val csrf = doc.selectFirst("meta[name=\"csrf-token\"]").attr("content")
 
         // remove chapter loading script as we load ourselves
@@ -43,33 +60,36 @@ class FoxTellerProxy : BaseProxyHelper() {
         data.addProperty("x1", dem["d"])
         data.addProperty("x2", dem["e"])
 
-        val chapterResponse = connect(aux_dem).referrer(doc.location())
-            .ignoreContentType(true)
-            .method(Connection.Method.POST).requestBody(data.toString())
-            .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0")
-            .header("Origin", "https://www.${HostNames.FOXTELLER}")
-            .header("X-Requested-With", "XMLHttpRequest")
-            .header("Content-Type", "application/json;charset=utf-8")
 
-            .cookie("theme", "light")
-            .cookie("font-size", "16")
-            .cookie("gdb1", "true")
+        val cookieString = "theme=light;font-size=16;gdb1=true;foxteller_session=$session;XSRF-TOKEN=$xsrf;"
 
-            .cookie("foxteller_session", session)
-            .cookie("XSRF-TOKEN", xsrf)
-            .header("X-XSRF-TOKEN", xsrf)
-            .header("X-CSRF-TOKEN", csrf)
-            .header("TE", "trailers")
-            .execute()
-
-        if (chapterResponse.statusCode() != 200) {
-            val content = doc.getElementById("chapter-content")
-            content.children().remove()
-            content.append("<p><b>ERROR: Could not load chapter content (${chapterResponse.statusCode()}).</b></p>")
+        val headers = Headers.Builder()
+            .add("Origin", "https://www.${HostNames.FOXTELLER}")
+            .add("X-Requested-With", "XMLHttpRequest")
+            .add("Content-Type", "application/json;charset=utf-8")
+            .add("X-XSRF-TOKEN", xsrf ?: "")
+            .add("X-CSRF-TOKEN", csrf)
+            .add("TE", "trailers")
+            .add("Cookie", cookieString)
+            .build()
+        val requestBody = data.toString().toRequestBody("application/json".toMediaTypeOrNull())
+        val request = POST(aux_dem, headers, requestBody)
+        var chapterResponse: Response? = null
+        try {
+            chapterResponse = connect(request)
+        } catch (e:Exception) {
+            Logs.error("FoxTellerProxy", "request: $request", e)
             return doc
         }
 
-        var chapter = JsonParser.parseString(chapterResponse.body())?.asJsonObject?.get("aux")?.asString ?: return doc
+        if (chapterResponse.code != 200) {
+            val content = doc.getElementById("chapter-content")
+            content.children().remove()
+            content.append("<p><b>ERROR: Could not load chapter content (${chapterResponse.code}).</b></p>")
+            return doc
+        }
+
+        var chapter = JsonParser.parseString(chapterResponse.body?.string())?.asJsonObject?.get("aux")?.asString ?: return doc
 
         chapter = chapter.replace(decode_regex) { match ->
             charmap.getValue(match.groups[1]?.value ?: "").toString()

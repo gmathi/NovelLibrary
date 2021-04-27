@@ -1,13 +1,13 @@
 package io.github.gmathi.novellibrary.model.source.online
 
-import io.github.gmathi.novellibrary.model.database.Chapter
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.other.NovelsPage
-import io.github.gmathi.novellibrary.network.GET
+import io.github.gmathi.novellibrary.model.source.CatalogueSource
 import io.github.gmathi.novellibrary.model.source.filter.FilterList
+import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.network.asObservableSuccess
-import io.github.gmathi.novellibray.source.CatalogueSource
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -204,7 +204,7 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param novel the novel to look for chapters.
      */
-    override fun fetchChapterList(novel: Novel): Observable<List<Chapter>> {
+    override fun fetchChapterList(novel: Novel): Observable<List<WebPage>> {
         // return if novel is licensed.
         return client.newCall(chapterListRequest(novel))
             .asObservableSuccess()
@@ -231,7 +231,7 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param response the response from the site.
      */
-    protected abstract fun chapterListParse(novel: Novel, response: Response): List<Chapter>
+    protected abstract fun chapterListParse(novel: Novel, response: Response): List<WebPage>
 
 
     /**
@@ -272,7 +272,7 @@ abstract class HttpSource : CatalogueSource {
      * @param chapter the chapter to be added.
      * @param novel the novel of the chapter.
      */
-    open fun prepareNewChapter(chapter: Chapter, novel: Novel) {
+    open fun prepareNewChapter(chapter: WebPage, novel: Novel) {
     }
 
     /**

@@ -4,7 +4,7 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
 import com.futuremind.recyclerviewfastscroll.SectionTitleProvider
-import io.github.gmathi.novellibrary.util.inflate
+import io.github.gmathi.novellibrary.util.view.inflate
 import java.util.*
 
 class GenericAdapterSelectTitleProvider<T>(val items: ArrayList<T>, val layoutResId: Int, val listener: Listener<T>) : RecyclerView.Adapter<GenericAdapterSelectTitleProvider.ViewHolder<T>>(), SectionTitleProvider {
@@ -47,15 +47,6 @@ class GenericAdapterSelectTitleProvider<T>(val items: ArrayList<T>, val layoutRe
             return
         }
 
-        //otherwise TODO: Revisit this
-//        if (newItems.size > items.size) {
-//            items.forEach { newItems.remove(it) }
-//            val size = items.size
-//            items.addAll(newItems)
-//            notifyItemRangeInserted(size - 1, newItems.size)
-//            return
-//        }
-
         items.clear()
         items.addAll(newItems)
         notifyDataSetChanged()
@@ -68,48 +59,6 @@ class GenericAdapterSelectTitleProvider<T>(val items: ArrayList<T>, val layoutRe
             items.add(index, item)
             notifyItemChanged(index)
         }
-    }
-
-    fun removeItem(item: T) {
-        val index = items.indexOf(item)
-        if (index != -1) {
-            items.removeAt(index)
-            notifyItemRemoved(index)
-        }
-    }
-
-    fun removeItemAt(position: Int) {
-        if (position != -1 && position < items.size) {
-            items.removeAt(position)
-            notifyItemRemoved(position)
-        }
-    }
-
-    fun insertItem(item: T, position: Int = -1) {
-        val index = items.indexOf(item)
-        if (index == -1) {
-            if (position != -1) items.add(position, item) else items.add(item)
-        } else
-            updateItem(item)
-    }
-
-    fun onItemDismiss(position: Int) {
-        items.removeAt(position)
-        notifyDataSetChanged()
-    }
-
-    fun onItemMove(fromPosition: Int, toPosition: Int): Boolean {
-        if (fromPosition < toPosition) {
-            for (i in fromPosition until toPosition) {
-                Collections.swap(items, i, i + 1)
-            }
-        } else {
-            for (i in fromPosition downTo toPosition + 1) {
-                Collections.swap(items, i, i - 1)
-            }
-        }
-        notifyItemMoved(fromPosition, toPosition)
-        return true
     }
 
     //endregion

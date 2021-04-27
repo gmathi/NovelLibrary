@@ -3,7 +3,6 @@ package io.github.gmathi.novellibrary.database
 import android.content.ContentValues
 import io.github.gmathi.novellibrary.model.database.Genre
 import io.github.gmathi.novellibrary.util.Logs
-import kotlin.collections.ArrayList
 
 
 private const val LOG = "GenreHelper"
@@ -28,14 +27,14 @@ fun DBHelper.getGenre(genreId: Long): Genre? {
 }
 
 fun DBHelper.getGenres(novelId: Long): List<String>? {
-    val selectQuery =  " SELECT group_concat(g.name) as Genres" +
+    val selectQuery = " SELECT group_concat(g.name) as Genres" +
             " FROM novel_genre ng, genre g" +
             " WHERE ng.genre_id = g.id AND ng.novel_id = $novelId" +
             " GROUP BY ng.novel_id"
     val cursor = this.readableDatabase.rawQuery(selectQuery, null)
     if (cursor != null) {
         if (cursor.moveToFirst()) {
-           return listOf(*cursor.getString(cursor.getColumnIndex("Genres")).split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray())
+            return listOf(*cursor.getString(cursor.getColumnIndex("Genres")).split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray())
         }
         cursor.close()
     }
@@ -86,14 +85,18 @@ fun DBHelper.updateGenre(genre: Genre): Long {
     values.put(DBKeys.KEY_ID, genre.id)
     values.put(DBKeys.KEY_NAME, genre.name)
 
-    return db.update(DBKeys.TABLE_GENRE, values, DBKeys.KEY_ID + " = ?",
-            arrayOf(genre.id.toString())).toLong()
+    return db.update(
+        DBKeys.TABLE_GENRE, values, DBKeys.KEY_ID + " = ?",
+        arrayOf(genre.id.toString())
+    ).toLong()
 }
 
 fun DBHelper.deleteGenre(id: Long) {
     val db = this.writableDatabase
-    db.delete(DBKeys.TABLE_GENRE, DBKeys.KEY_ID + " = ?",
-            arrayOf(id.toString()))
+    db.delete(
+        DBKeys.TABLE_GENRE, DBKeys.KEY_ID + " = ?",
+        arrayOf(id.toString())
+    )
 }
 
 

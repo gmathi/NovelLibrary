@@ -11,30 +11,29 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.createOrUpdateLargePreference
 import io.github.gmathi.novellibrary.database.getLargePreference
 import io.github.gmathi.novellibrary.databinding.ActivityRecentlyViewedNovelsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemNovelBinding
-import io.github.gmathi.novellibrary.dbHelper
-import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.setDefaults
+import io.github.gmathi.novellibrary.util.view.setDefaults
+import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 
 class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
     lateinit var adapter: GenericAdapter<Novel>
+
     companion object {
         private const val TAG = "RecentlyViewedNovelsActivity"
     }
-    
+
     private lateinit var binding: ActivityRecentlyViewedNovelsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         binding = ActivityRecentlyViewedNovelsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
@@ -52,23 +51,28 @@ class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Nov
         itemBinding.novelImageView.setImageResource(android.R.color.transparent)
         if (!item.imageUrl.isNullOrBlank()) {
             Glide.with(this)
-                    .load(item.imageUrl)
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(itemBinding.novelImageView)
+                .load(item.imageUrl)
+                .apply(RequestOptions.circleCropTransform())
+                .into(itemBinding.novelImageView)
         }
 
         //Other Data Fields
         itemBinding.novelTitleTextView.text = item.name
         itemBinding.novelTitleTextView.isSelected = dataCenter.enableScrollingText
 
-        if (item.rating != null) {
+        if (item.metadata.containsKey("OriginMarker")) {
+            itemBinding.novelLanguageText.text = item.metadata["OriginMarker"]
+            itemBinding.novelLanguageText.visibility = View.VISIBLE
+        }
+
+        if (!item.rating.isNullOrBlank()) {
             var ratingText = "(N/A)"
             try {
-                val rating = item.rating!!.toFloat()
+                val rating = item.rating!!.replace(",",".").toFloat()
                 itemBinding.novelRatingBar.rating = rating
                 ratingText = "(" + String.format("%.1f", rating) + ")"
             } catch (e: Exception) {
-                Logs.warning(TAG, "Rating: " + item.rating, e)
+                Logs.warning("NovelDetailsActivity", "Rating: ${item.rating}, Novel: ${item.name}", e)
             }
             itemBinding.novelRatingText.text = ratingText
         }

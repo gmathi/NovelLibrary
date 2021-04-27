@@ -2,21 +2,22 @@ package io.github.gmathi.novellibrary.network.proxy
 
 import com.google.gson.JsonParser
 import io.github.gmathi.novellibrary.util.lang.asJsonNullFreeString
-import org.jsoup.Connection
+import okhttp3.Response
 import org.jsoup.nodes.Document
 import java.net.URL
 
 class BabelNovelProxy : BaseProxyHelper() {
 
     @ExperimentalStdlibApi
-    override fun document(res: Connection.Response): Document {
-        val doc = res.parse()
+    override fun document(response: Response): Document {
+        val doc = super.document(response)
         val uri = URL(doc.location())
-        val url = "${uri.protocol}://${uri.host}/api${uri.path}/content"
+        val docUrl = "${uri.protocol}://${uri.host}/api${uri.path}/content"
 
         try {
-            val contentResponse = connect(url).cookies(res.cookies()).execute()
-            val responseDataJson = JsonParser.parseString(contentResponse.body())?.asJsonObject?.get("data")?.asJsonObject
+            val request = super.request(docUrl)
+            val contentResponse = super.connect(request)
+            val responseDataJson = JsonParser.parseString(contentResponse.body?.string())?.asJsonObject?.get("data")?.asJsonObject
             val title = responseDataJson?.get("name")?.asJsonNullFreeString ?: "Chapter name not found!"
             val content = responseDataJson?.get("content")?.asJsonNullFreeString ?: "No Content Found!"
             val lines = content.split("\n")
@@ -36,10 +37,7 @@ class BabelNovelProxy : BaseProxyHelper() {
             doc.body().append(html)
 
         } catch (e: Exception) {
-            // In-case of exception,
-            // we do nothing so it escapes the catch block and
-            // we send back the doc we initially got from the parent response.
-            e.printStackTrace()
+            //Do Nothing
         }
         return doc
     }

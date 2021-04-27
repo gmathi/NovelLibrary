@@ -2,11 +2,7 @@ package io.github.gmathi.novellibrary.network
 
 import okhttp3.MediaType
 import okhttp3.ResponseBody
-import okio.Buffer
-import okio.BufferedSource
-import okio.ForwardingSource
-import okio.Source
-import okio.buffer
+import okio.*
 import java.io.IOException
 
 class ProgressResponseBody(private val responseBody: ResponseBody, private val progressListener: ProgressListener) : ResponseBody() {

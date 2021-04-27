@@ -102,6 +102,7 @@ object Constants {
         const val OTHER_LINKED_WEB_PAGES = "otherWebPages"
         const val OTHER_LINKED_WEB_PAGES_SETTINGS = "otherWebPagesSettings"
         const val IS_FAVORITE = "isFavorite"
+        const val HASH_CODE = "hashCode"
     }
 
     object LargePreferenceKeys {
@@ -118,6 +119,9 @@ object Constants {
 
     const val WLN_UPDATES_API_URL = "https://www.${HostNames.WLN_UPDATES}/api"
     const val NEOVEL_API_URL = "https://${HostNames.NEOVEL}/"
+    const val LNMTL_BASE_URL = "https://${HostNames.LNMTL}/"
+
+    const val ALL_TRANSLATOR_SOURCES = "ALL"
 
     object Status {
         const val NO_INTERNET = "noInternet"
@@ -129,6 +133,17 @@ object Constants {
 
     object RemoteConfig {
         const val SELECTOR_QUERIES = "selector_queries"
+    }
+
+    object SourceId {
+        const val NOVEL_UPDATES = 1L
+        const val WLN_UPDATES = 2L
+        const val NEOVEL = 3L
+        const val LNMTL = 4L
+        const val ROYAL_ROAD = 5L
+        const val SCRIBBLE_HUB = 6L
+        const val NOVEL_FULL = 7L
+
     }
 
 }

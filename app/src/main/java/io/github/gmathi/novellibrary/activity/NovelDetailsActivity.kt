@@ -1,9 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.annotation.SuppressLint
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -27,18 +24,17 @@ import com.google.firebase.analytics.ktx.logEvent
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.databinding.ActivityNovelDetailsBinding
-import io.github.gmathi.novellibrary.dbHelper
+import io.github.gmathi.novellibrary.databinding.ContentNovelDetailsBinding
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.network.NovelApi
-import io.github.gmathi.novellibrary.network.getNovelDetails
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
+import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.*
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -52,81 +48,104 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     lateinit var novel: Novel
-    
+
     private lateinit var binding: ActivityNovelDetailsBinding
+    private lateinit var contentBinding: ContentNovelDetailsBinding
+
+    private var retryCounter = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
         binding = ActivityNovelDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        contentBinding = binding.contentNovelDetails
 
-        novel = intent.getSerializableExtra("novel") as Novel
-        getNovelInfoDB()
-        if (intent.hasExtra(Constants.JUMP))
-            startChaptersActivity(novel, true)
+        //Get Novel from intent
+        novel = intent.getParcelableExtra<Novel>("novel") as Novel
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = novel.name
 
-        if (novel.id != -1L) {
-            if (!Utils.isConnectedToNetwork(this))
-                setupViews()
-            else
-                binding.contentNovelDetails.progressLayout.showLoading()
-        } else {
-            binding.contentNovelDetails.progressLayout.showLoading()
-        }
-        getNovelInfo()
-        binding.contentNovelDetails.swipeRefreshLayout.setOnRefreshListener { getNovelInfoDB(); getNovelInfo() }
-    }
+        //check for novel in database
+        dbHelper.getNovelByUrl(novel.url)?.let { novel.id = it.id }
 
-    private fun getNovelInfoDB() {
-        val dbNovel = dbHelper.getNovel(novel.name)
-        if (dbNovel != null) {
-            novel.copyFrom(dbNovel)
+        if (novel.id != -1L && !networkHelper.isConnectedToNetwork()) {
+            setupViews()
+        } else {
+            getNovelInfo()
         }
+
+        contentBinding.swipeRefreshLayout.setOnRefreshListener { getNovelInfo() }
     }
 
     private fun getNovelInfo() {
-        if (!Utils.isConnectedToNetwork(this)) {
-            if (novel.id == -1L) {
-                binding.contentNovelDetails.swipeRefreshLayout.isRefreshing = false
-                binding.contentNovelDetails.progressLayout.noInternetError {
-                    binding.contentNovelDetails.progressLayout.showLoading()
+        contentBinding.progressLayout.showLoading()
+
+        //Check for network
+        if (!networkHelper.isConnectedToNetwork()) {
+            contentBinding.swipeRefreshLayout.isRefreshing = false
+
+            if (novel.id == -1L) { //If novel not present in library -> show error screen
+                contentBinding.progressLayout.noInternetError {
                     getNovelInfo()
                 }
+            } else { // else just show a toast
+                toast(R.string.no_internet)
             }
             return
         }
 
+        //Download novel details
         lifecycleScope.launch {
             try {
-                val downloadedNovel = withContext(Dispatchers.IO) { NovelApi.getNovelDetails(novel.url) }
-                novel.copyFrom(downloadedNovel)
-                addNovelToHistory()
+                val source = sourceManager.get(novel.sourceId) ?: throw Exception(Exceptions.MISSING_SOURCE_ID)
+                novel = withContext(Dispatchers.IO) { source.getNovelDetails(novel) }
+
+                //Update the novel in library with the new info
                 if (novel.id != -1L) withContext(Dispatchers.IO) { dbHelper.updateNovel(novel) }
+                addNovelToHistory()
                 setupViews()
-                binding.contentNovelDetails.progressLayout.showContent()
-                binding.contentNovelDetails.swipeRefreshLayout.isRefreshing = false
+                contentBinding.swipeRefreshLayout.isRefreshing = false
+                contentBinding.progressLayout.showContent()
+                retryCounter = 0
             } catch (e: Exception) {
-                e.printStackTrace()
-                val errorMessage = e.localizedMessage ?: "Unknown Error" + "\n" + e.stackTrace.joinToString(separator = "\n") { it.toString() }
-                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                val clip: ClipData = ClipData.newPlainText("Error Message", errorMessage)
-                clipboard.setPrimaryClip(clip)
-                MaterialDialog(this@NovelDetailsActivity).show {
-                    title(text = "Error!")
-                    message(text = "The error message has been copied to clipboard. Please paste it and send it the developer in discord.")
-                    
-                    lifecycleOwner(this@NovelDetailsActivity)
+                if (e.message?.contains(Exceptions.MISSING_SOURCE_ID) == true) {
+                    toast("Missing Novel Source Id. Please re-add the novel")
+                    return@launch
                 }
-                if (novel.id == -1L)
-                    binding.contentNovelDetails.progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again)) {
-                        binding.contentNovelDetails.progressLayout.showLoading()
+
+                if (e.message?.contains(getString(R.string.information_cloudflare_bypass_failure)) == true
+                    || e.message?.contains("HTTP error 503") == true && retryCounter < 2
+                ) {
+                    resolveCloudflare(novel.url) { success, _, errorMessage ->
+                        if (success) {
+                            toast("Cloudflare Success")
+                            retryCounter++
+                            getNovelInfo()
+                        } else {
+                            toast("Cloudflare Failed")
+                            contentBinding.progressLayout.showError(errorText = errorMessage ?: getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again)) {
+                                contentBinding.progressLayout.showLoading()
+                                getNovelInfo()
+                            }
+                            contentBinding.swipeRefreshLayout.isRefreshing = false
+                        }
+                    }
+                    return@launch
+                }
+
+                //Copy the error to clipboard
+                if (!isDestroyed && !isFinishing)
+                    Utils.copyErrorToClipboard(e, this@NovelDetailsActivity)
+
+                if (novel.id == -1L) {
+                    contentBinding.progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again)) {
+                        contentBinding.progressLayout.showLoading()
                         getNovelInfo()
                     }
+                }
+                contentBinding.swipeRefreshLayout.isRefreshing = false
             }
         }
     }
@@ -135,8 +154,8 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     private fun setupViews() {
         setNovelImage()
 
-        binding.contentNovelDetails.novelDetailsName.applyFont(assets).text = novel.name
-        binding.contentNovelDetails.novelDetailsName.isSelected = dataCenter.enableScrollingText
+        contentBinding.novelDetailsName.applyFont(assets).text = novel.name
+        contentBinding.novelDetailsName.isSelected = dataCenter.enableScrollingText
 
         val listener: View.OnClickListener = View.OnClickListener {
             MaterialDialog(this).show {
@@ -146,14 +165,14 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 lifecycleOwner(this@NovelDetailsActivity)
             }
         }
-        binding.contentNovelDetails.novelDetailsName.setOnClickListener(listener)
-        binding.contentNovelDetails.novelDetailsNameInfo.setOnClickListener(listener)
+        contentBinding.novelDetailsName.setOnClickListener(listener)
+        contentBinding.novelDetailsNameInfo.setOnClickListener(listener)
 
         setNovelAuthor()
 
-        binding.contentNovelDetails.novelDetailsStatus.applyFont(assets).text = "N/A"
+        contentBinding.novelDetailsStatus.applyFont(assets).text = "N/A"
         if (novel.metadata["Year"] != null)
-            binding.contentNovelDetails.novelDetailsStatus.applyFont(assets).text = novel.metadata["Year"]
+            contentBinding.novelDetailsStatus.applyFont(assets).text = novel.metadata["Year"]
 
         setLicensingInfo()
         setNovelRating()
@@ -161,29 +180,29 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         setNovelGenre()
         setNovelDescription()
 
-        binding.contentNovelDetails.novelDetailsChapters.text = getString(R.string.chapters) + " (${novel.chaptersCount})"
-        binding.contentNovelDetails.novelDetailsChaptersLayout.setOnClickListener {
+        contentBinding.novelDetailsChapters.text = getString(R.string.chapters) + " (${novel.chaptersCount})"
+        contentBinding.novelDetailsChaptersLayout.setOnClickListener {
             if (novel.chaptersCount != 0L) startChaptersActivity(novel, false)
         }
-        binding.contentNovelDetails.novelDetailsMetadataLayout.setOnClickListener { startMetadataActivity(novel) }
-        binding.contentNovelDetails.openInBrowserButton.setOnClickListener { openInBrowser(novel.url) }
+        contentBinding.novelDetailsMetadataLayout.setOnClickListener { startMetadataActivity(novel) }
+        contentBinding.openInBrowserButton.setOnClickListener { openInBrowser(novel.url) }
     }
 
     private fun setNovelImage() {
         if (!novel.imageUrl.isNullOrBlank()) {
             Glide.with(this)
                 .load(novel.imageUrl?.getGlideUrl())
-                .into(binding.contentNovelDetails.novelDetailsImage)
-            binding.contentNovelDetails.novelDetailsImage.setOnClickListener { startImagePreviewActivity(novel.imageUrl, novel.imageFilePath, binding.contentNovelDetails.novelDetailsImage) }
+                .into(contentBinding.novelDetailsImage)
+            contentBinding.novelDetailsImage.setOnClickListener { startImagePreviewActivity(novel.imageUrl, novel.imageFilePath, contentBinding.novelDetailsImage) }
         }
     }
 
     private fun setNovelAuthor() {
         val author = novel.metadata["Author(s)"]
         if (author != null) {
-            binding.contentNovelDetails.novelDetailsAuthor.movementMethod = TextViewLinkHandler(this)
+            contentBinding.novelDetailsAuthor.movementMethod = TextViewLinkHandler(this)
             @Suppress("DEPRECATION")
-            binding.contentNovelDetails.novelDetailsAuthor.applyFont(assets).text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+            contentBinding.novelDetailsAuthor.applyFont(assets).text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
                 Html.fromHtml(author, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(author)
         }
     }
@@ -193,33 +212,33 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         if (novel.metadata["English Publisher"] ?: "" != "" || novel.metadata["Licensed (in English)"] == "Yes") {
             val publisher = if (novel.metadata["English Publisher"] == null || novel.metadata["English Publisher"] == "") "an unknown publisher" else novel.metadata["English Publisher"]
             val warningLabel = getString(R.string.licensed_warning, publisher)
-            binding.contentNovelDetails.novelDetailsLicensedAlert.movementMethod = TextViewLinkHandler(this)
-            binding.contentNovelDetails.novelDetailsLicensedAlert.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+            contentBinding.novelDetailsLicensedAlert.movementMethod = TextViewLinkHandler(this)
+            contentBinding.novelDetailsLicensedAlert.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
                 Html.fromHtml(warningLabel, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(warningLabel)
-            binding.contentNovelDetails.novelDetailsLicensedLayout.visibility = View.VISIBLE
+            contentBinding.novelDetailsLicensedLayout.visibility = View.VISIBLE
         } else {
-            binding.contentNovelDetails.novelDetailsLicensedLayout.visibility = View.GONE
+            contentBinding.novelDetailsLicensedLayout.visibility = View.GONE
         }
     }
 
     private fun setNovelRating() {
-        if (novel.rating != null) {
+        if (!novel.rating.isNullOrBlank()) {
             var ratingText = "(N/A)"
             try {
-                val rating = novel.rating!!.toFloat()
-                binding.contentNovelDetails.novelDetailsRatingBar.rating = rating
+                val rating = novel.rating!!.replace(",", ".").toFloat()
+                contentBinding.novelDetailsRatingBar.rating = rating
                 ratingText = "(" + String.format("%.1f", rating) + ")"
             } catch (e: Exception) {
-                Logs.warning("Library Activity", "Rating: " + novel.rating, e)
+                Logs.warning("NovelDetailsActivity", "Rating: ${novel.rating}, Novel: ${novel.name}", e)
             }
-            binding.contentNovelDetails.novelDetailsRatingText.text = ratingText
+            contentBinding.novelDetailsRatingText.text = ratingText
         }
     }
 
     private fun setNovelAddToLibraryButton() {
         if (novel.id == -1L) {
             resetAddToLibraryButton()
-            binding.contentNovelDetails.novelDetailAddToLibraryButton.setOnClickListener {
+            contentBinding.novelDetailAddToLibraryButton.setOnClickListener {
                 disableAddToLibraryButton()
                 addNovelToDB()
             }
@@ -238,28 +257,28 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun resetAddToLibraryButton() {
-        binding.contentNovelDetails.novelDetailAddToLibraryButton.setText(getString(R.string.add_to_library))
-        binding.contentNovelDetails.novelDetailAddToLibraryButton.setIconResource(R.drawable.ic_library_add_white_vector)
-        binding.contentNovelDetails.novelDetailAddToLibraryButton.setBackgroundColor(ContextCompat.getColor(this@NovelDetailsActivity, android.R.color.transparent))
-        binding.contentNovelDetails.novelDetailAddToLibraryButton.isClickable = true
+        contentBinding.novelDetailAddToLibraryButton.setText(getString(R.string.add_to_library))
+        contentBinding.novelDetailAddToLibraryButton.setIconResource(R.drawable.ic_library_add_white_vector)
+        contentBinding.novelDetailAddToLibraryButton.setBackgroundColor(ContextCompat.getColor(this@NovelDetailsActivity, android.R.color.transparent))
+        contentBinding.novelDetailAddToLibraryButton.isClickable = true
     }
 
     private fun disableAddToLibraryButton() {
         invalidateOptionsMenu()
-        binding.contentNovelDetails.novelDetailAddToLibraryButton.setText(getString(R.string.in_library))
-        binding.contentNovelDetails.novelDetailAddToLibraryButton.setIconResource(R.drawable.ic_local_library_white_vector)
-        binding.contentNovelDetails.novelDetailAddToLibraryButton.setBackgroundColor(ContextCompat.getColor(this@NovelDetailsActivity, R.color.Green))
-        binding.contentNovelDetails.novelDetailAddToLibraryButton.isClickable = false
+        contentBinding.novelDetailAddToLibraryButton.setText(getString(R.string.in_library))
+        contentBinding.novelDetailAddToLibraryButton.setIconResource(R.drawable.ic_local_library_white_vector)
+        contentBinding.novelDetailAddToLibraryButton.setBackgroundColor(ContextCompat.getColor(this@NovelDetailsActivity, R.color.Green))
+        contentBinding.novelDetailAddToLibraryButton.isClickable = false
     }
 
 
     private fun setNovelGenre() {
-        binding.contentNovelDetails.novelDetailsGenresLayout.removeAllViews()
+        contentBinding.novelDetailsGenresLayout.removeAllViews()
         if (novel.genres != null && novel.genres!!.isNotEmpty()) {
             novel.genres!!.forEach {
-                binding.contentNovelDetails.novelDetailsGenresLayout.addView(getGenreTextView(it))
+                contentBinding.novelDetailsGenresLayout.addView(getGenreTextView(it))
             }
-        } else binding.contentNovelDetails.novelDetailsGenresLayout.addView(getGenreTextView("N/A"))
+        } else contentBinding.novelDetailsGenresLayout.addView(getGenreTextView("N/A"))
     }
 
     private fun getGenreTextView(genre: String): TextView {
@@ -278,7 +297,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         if (novel.longDescription != null) {
             val expandClickable = object : ClickableSpan() {
                 override fun onClick(textView: View) {
-                    binding.contentNovelDetails.novelDetailsDescription.applyFont(assets).text = novel.longDescription
+                    contentBinding.novelDetailsDescription.applyFont(assets).text = novel.longDescription
                 }
 
                 override fun updateDrawState(ds: TextPaint) {
@@ -290,8 +309,8 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             val novelDescription = "${novel.longDescription?.subSequence(0, min(300, novel.longDescription?.length ?: 0))}… Expand"
             val ss2 = SpannableString(novelDescription)
             ss2.setSpan(expandClickable, min(300, novel.longDescription?.length ?: 0) + 2, novelDescription.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-            binding.contentNovelDetails.novelDetailsDescription.applyFont(assets).text = ss2
-            binding.contentNovelDetails.novelDetailsDescription.movementMethod = LinkMovementMethod.getInstance()
+            contentBinding.novelDetailsDescription.applyFont(assets).text = ss2
+            contentBinding.novelDetailsDescription.movementMethod = LinkMovementMethod.getInstance()
         }
     }
 
@@ -346,7 +365,8 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 finish()
                 return
             }
-            getNovelInfoDB()
+            //Check if this novel was added to database in Chapters Screen
+            dbHelper.getNovelByUrl(novel.url)?.let { novel = it }
             setNovelAddToLibraryButton()
         }
 
@@ -362,7 +382,6 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             var history = dbHelper.getLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY)
                 ?: "[]"
             var historyList: ArrayList<Novel> = Gson().fromJson(history, object : TypeToken<ArrayList<Novel>>() {}.type)
-            Logs.info(TAG, "Novel Search History Size: ${historyList.size}")
             historyList.removeAll { novel.name == it.name }
             if (historyList.size > 99)
                 historyList = ArrayList(historyList.take(99))
@@ -370,7 +389,6 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             history = Gson().toJson(historyList)
             dbHelper.createOrUpdateLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY, history)
         } catch (e: Exception) {
-            Logs.error(TAG, "Error adding novel to history. Resetting the history", e)
             dbHelper.deleteLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY)
         }
     }

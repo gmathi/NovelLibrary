@@ -11,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.reflect.TypeToken
-import io.github.gmathi.novellibrary.dataCenter
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
@@ -35,7 +34,6 @@ class LocaleManager {
         }
 
         private const val englishLanguage = "en"
-
         private var translated: HashMap<String, Int> = HashMap()
 
         @Synchronized
@@ -65,26 +63,8 @@ class LocaleManager {
             return translated[toResourceLocale(language)] ?: -1
         }
 
-        @SuppressLint("ObsoleteSdkInt")
-        @Suppress("DEPRECATION")
-        private fun getResourcesLocale(context: Context, language: String = englishLanguage): Resources? {
-            if (language == SYSTEM_DEFAULT)
-                return null
-            val locale = Locale(language)
-            return if (Build.VERSION.SDK_INT >= JELLY_BEAN_MR1) {
-                val config = Configuration(context.resources.configuration)
-                config.setLocale(locale)
-                context.createConfigurationContext(config).resources
-            } else null
-        }
+        private fun getLanguage(context: Context): String = DataCenter(context).language
 
-        private fun getLanguage(context: Context): String {
-            return try {
-                dataCenter.language
-            } catch (e: NullPointerException) {
-                DataCenter(context).language
-            }
-        }
 
         @SuppressLint("ObsoleteSdkInt")
         @Suppress("DEPRECATION")

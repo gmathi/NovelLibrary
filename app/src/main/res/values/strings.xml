@@ -57,7 +57,7 @@
         <item>@string/sync</item>
         <item>@string/donate_developer</item>
         <item>@string/about_us</item>
-        <item>@string/cloud_flare_check</item>
+<!--        <item>@string/cloud_flare_check</item>-->
     </string-array>
 
     <string-array name="sync_list" translatable="false">
@@ -111,6 +111,7 @@
         <item>@string/disable_notifications</item>
         <item>@string/change_language</item>
         <item>@string/scrolling_text</item>
+        <item>@string/show_chapters_left_badge</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
@@ -120,6 +121,7 @@
         <item>@string/disable_notifications_description</item>
         <item>@string/locale_system_default</item>
         <item>@string/scrolling_text_description</item>
+        <item>@string/show_chapters_left_badge_description</item>
     </string-array>
 
     <string-array name="backup_and_restore_titles_list" translatable="false">
@@ -692,5 +694,21 @@
     <string name="information_webview_outdated">Please update the WebView app for better compatibility</string>
 
     <string name="source_not_installed">Source not installed: %1$s</string>
+
+    <string name="show_chapters_left_badge">Show remaining chapters in badge</string>
+    <string name="show_chapters_left_badge_description">
+        Instead of showing the number of new chapters, show the chapters remaining based on the last chapter read.
+        The badge being red will still mean that there\'s a new chapter.
+    </string>
+
+    <string name="sync_done_fetching_chapters">Remaining Novels to check: %2$d\nCompleted checking: %1$s</string>
+    <string name="sync_done_updating_chapters">Remaining Novels to update: %2$d\nCompleted updating: %1$s</string>
+
+    <string name="connection_error_cloudflare">
+        This error is due to cloudflare. Try NovelSync in Settings.
+        If that doesn\'t help, try a VPN connection.
+        Join discord, if you need any assistance.
+    </string>
+
 
 </resources>

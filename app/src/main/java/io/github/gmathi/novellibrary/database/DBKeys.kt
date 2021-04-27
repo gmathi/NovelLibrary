@@ -12,10 +12,9 @@ object DBKeys {
     internal const val VER_NEW_RELEASES = 7
     internal const val VER_LARGE_PREFERENCE = 8
     internal const val VER_WEB_PAGE_SETTINGS = 9
+    internal const val VER_SOURCES_REFACTOR = 10
 
-
-    internal const val DATABASE_VERSION = VER_WEB_PAGE_SETTINGS
-
+    internal const val DATABASE_VERSION = VER_SOURCES_REFACTOR
 
     internal const val DATABASE_NAME = "bnr_db"
 
@@ -25,9 +24,14 @@ object DBKeys {
     internal const val TABLE_WEB_PAGE_SETTINGS = "web_page_settings"
     internal const val TABLE_GENRE = "genre"
     internal const val TABLE_NOVEL_GENRE = "novel_genre"
+
+    @Deprecated("Use `downloads` table instead")
     internal const val TABLE_DOWNLOAD_QUEUE = "download_queue"
     internal const val TABLE_DOWNLOAD = "download"
+
+    @Deprecated("Not used staring from db version 10")
     internal const val TABLE_SOURCE = "source"
+
     internal const val TABLE_NOVEL_SECTION = "novel_section"
     internal const val TABLE_LARGE_PREFERENCE = "large_preference"
 
@@ -48,6 +52,7 @@ object DBKeys {
     internal const val KEY_RATING = "rating"
     internal const val KEY_SHORT_DESCRIPTION = "short_description"
     internal const val KEY_LONG_DESCRIPTION = "long_description"
+    internal const val KEY_EXTERNAL_NOVEL_ID = "external_novel_id"
     internal const val KEY_IMAGE_FILE_PATH = "image_file_path"
     internal const val KEY_CURRENT_WEB_PAGE_ID = "current_web_page_id"
     internal const val KEY_CURRENT_WEB_PAGE_URL = "current_web_page_url"
@@ -64,6 +69,7 @@ object DBKeys {
     internal const val KEY_REDIRECT_URL = "redirect_url"
     internal const val KEY_IS_READ = "is_read"
     internal const val KEY_SOURCE_ID = "source_id"
+    internal const val KEY_TRANSLATOR_SOURCE_NAME = "translator_source_name"
 
     // Table novel_genre columns
     internal const val KEY_GENRE_ID = "genre_id"
@@ -91,11 +97,13 @@ object DBKeys {
                     + KEY_RATING + " TEXT, "
                     + KEY_SHORT_DESCRIPTION + " TEXT, "
                     + KEY_LONG_DESCRIPTION + " TEXT, "
+                    + KEY_EXTERNAL_NOVEL_ID + " TEXT, "
                     + KEY_IMAGE_FILE_PATH + " TEXT, "
                     + KEY_METADATA + " TEXT, "
                     + KEY_CURRENT_WEB_PAGE_ID + " INTEGER, "
                     + KEY_CURRENT_WEB_PAGE_URL + " TEXT, "
                     + KEY_ORDER_ID + " INTEGER, "
+                    + KEY_SOURCE_ID + " INTEGER, "
                     + KEY_NEW_RELEASES_COUNT + " INTEGER, "
                     + KEY_CHAPTERS_COUNT + " INTEGER, "
                     + KEY_NOVEL_SECTION_ID + " INTEGER, "
@@ -109,6 +117,7 @@ object DBKeys {
                     + KEY_CHAPTER + " TEXT, "
                     + KEY_NOVEL_ID + " INTEGER, "
                     + KEY_SOURCE_ID + " INTEGER, "
+                    + KEY_TRANSLATOR_SOURCE_NAME + " TEXT, "
                     + KEY_ORDER_ID + " INTEGER, "
                     + "FOREIGN KEY (" + KEY_NOVEL_ID + ") REFERENCES " + TABLE_NOVEL + "(" + KEY_ID + ")"
                     + "FOREIGN KEY (" + KEY_SOURCE_ID + ") REFERENCES " + TABLE_SOURCE + "(" + KEY_ID + ")"
@@ -143,14 +152,6 @@ object DBKeys {
                     + "FOREIGN KEY (" + KEY_GENRE_ID + ") REFERENCES " + TABLE_GENRE + "(" + KEY_ID + ")"
                     + ")")
 
-    // download queue table create statement
-//    internal val CREATE_TABLE_DOWNLOAD_QUEUE = (
-//        "CREATE TABLE " + TABLE_DOWNLOAD_QUEUE + " ("
-//            + KEY_NOVEL_ID + " INTEGER PRIMARY KEY, "
-//            + KEY_STATUS + " INTEGER, "
-//            + KEY_METADATA + " TEXT"
-//            + ")")
-
     // source table create statement
     internal const val CREATE_TABLE_SOURCE = (
             "CREATE TABLE " + TABLE_SOURCE + " ("
@@ -163,6 +164,7 @@ object DBKeys {
     internal const val CREATE_TABLE_DOWNLOAD = (
             "CREATE TABLE " + TABLE_DOWNLOAD + " ("
                     + KEY_NAME + " TEXT, "
+                    + KEY_NOVEL_ID + " INTEGER, "
                     + KEY_WEB_PAGE_URL + " TEXT PRIMARY KEY, "
                     + KEY_CHAPTER + " TEXT, "
                     + KEY_STATUS + " INTEGER, "
@@ -185,14 +187,6 @@ object DBKeys {
                     + KEY_VALUE + " TEXT"
                     + ")")
 
-    //    // sync table create statement
-    //    static final String CREATE_TABLE_SYNC =
-    //            "CREATE TABLE " + TABLE_DOWNLOAD_QUEUE + " ("
-    //                    + KEY_ID + " INTEGER PRIMARY KEY, "
-    //                    + KEY_NAME + " TEXT UNIQUE ON CONFLICT IGNORE, "
-    //                    + KEY_NEW_RELEASES_COUNT + " INTEGER,"
-    //                    + KEY_METADATA + " TEXT"
-    //                    + ")";
 
     // web_page index statement
     internal const val CREATE_INDEX_WEB_PAGE = (
