@@ -124,7 +124,8 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
                 PendingIntent.FLAG_CANCEL_CURRENT
             )
 
-            showBundledNotifications(novelsList, contentIntent)
+            if (novelsList.isNotEmpty())
+                showBundledNotifications(novelsList, contentIntent)
         }
     }
 
