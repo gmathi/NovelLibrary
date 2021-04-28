@@ -1,14 +1,13 @@
 package io.github.gmathi.novellibrary
 
 import android.app.Application
+import android.os.Handler
+import android.os.Looper
 import io.github.gmathi.novellibrary.database.DBHelper
+import io.github.gmathi.novellibrary.extension.ExtensionManager
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.DataCenter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.api.*
 
 class AppModule(val app: Application) : InjektModule {
@@ -18,13 +17,15 @@ class AppModule(val app: Application) : InjektModule {
         addSingletonFactory { DBHelper.getInstance(app) }
         addSingletonFactory { DataCenter(app) }
         addSingletonFactory { NetworkHelper(app) }
-        addSingletonFactory { SourceManager(app) }//.also { get<ExtensionManager>().init(it) }
+        addSingletonFactory { SourceManager(app).also { get<ExtensionManager>().init(it) } }
+        addSingletonFactory { ExtensionManager(app) }
 
         // Asynchronously init expensive components for a faster cold start
-        GlobalScope.launch { get<DBHelper>() }
-        GlobalScope.launch { get<DataCenter>() }
-        GlobalScope.launch { get<NetworkHelper>() }
-        GlobalScope.launch { withContext(Dispatchers.IO) { get<SourceManager>() } }
-
+        Handler(Looper.getMainLooper()).post {
+            get<DBHelper>()
+            get<DataCenter>()
+            get<NetworkHelper>()
+            get<SourceManager>()
+        }
     }
 }

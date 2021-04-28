@@ -26,4 +26,5 @@
     <dimen name="image_size">150dp</dimen>
     <dimen name="progressbar_radius">100dp</dimen>
     <dimen name="spin_width">8dp</dimen>
+    <dimen name="appbar_padding">16dp</dimen>
 </resources>

@@ -92,6 +92,10 @@ fun AppCompatActivity.startSearchResultsActivity(title: String, url: String) {
     startActivityForResult(intent, Constants.SEARCH_RESULTS_ACT_REQ_CODE)
 }
 
+fun AppCompatActivity.startRecentNovelsPagerActivity() {
+    startActivityForResult(Intent(this, RecentNovelsPagerActivity::class.java), Constants.RECENT_NOVELS_PAGER_ACT_REQ_CODE)
+}
+
 fun AppCompatActivity.startRecentlyViewedNovelsActivity() {
     startActivityForResult(Intent(this, RecentlyViewedNovelsActivity::class.java), Constants.RECENT_VIEWED_ACT_REQ_CODE)
 }
@@ -194,7 +198,7 @@ fun AppCompatActivity.startNovelDownloadsActivity() {
     startActivityForResult(Intent(this, NovelDownloadsActivity::class.java), Constants.SETTINGS_ACT_REQ_CODE)
 }
 
-fun AppCompatActivity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean = false) {
+fun Activity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean = false) {
     val intent = Intent(this, NovelDetailsActivity::class.java)
     val bundle = Bundle()
     bundle.putParcelable("novel", novel)

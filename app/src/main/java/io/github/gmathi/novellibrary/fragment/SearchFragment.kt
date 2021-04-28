@@ -157,20 +157,23 @@ class SearchFragment : BaseFragment() {
         searchMode = true
         this.searchTerm = searchTerm
 
-        val titles = ArrayList<String>()
-        titles.add("Novel-Updates")
-        if (!dataCenter.lockRoyalRoad || dataCenter.isDeveloper)
-            titles.add("RoyalRoad")
-//        if (!dataCenter.lockNovelFull || dataCenter.isDeveloper)
-            titles.add("NovelFull")
-        if (!dataCenter.lockScribble || dataCenter.isDeveloper)
-            titles.add("ScribbleHub")
-        titles.add("WLN-Updates")
-        titles.add("LNMTL")
-        titles.add("Neovel")
+        val sources = sourceManager.getOnlineSources()
+        val sourceNames = sources.map { it.name }
+
+//        val titles = ArrayList<String>()
+//        titles.add("Novel-Updates")
+////        if (!dataCenter.lockRoyalRoad || dataCenter.isDeveloper)
+////            titles.add("RoyalRoad")
+////        if (!dataCenter.lockNovelFull || dataCenter.isDeveloper)
+//            titles.add("NovelFull")
+//        if (!dataCenter.lockScribble || dataCenter.isDeveloper)
+//            titles.add("ScribbleHub")
+//        titles.add("WLN-Updates")
+//        titles.add("LNMTL")
+//        titles.add("Neovel")
 
         binding.viewPager.offscreenPageLimit = 2
-        binding.viewPager.adapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles.toTypedArray(), titles.size, SearchResultsListener(searchTerm, titles))
+        binding.viewPager.adapter = GenericFragmentStatePagerAdapter(childFragmentManager, sourceNames.toTypedArray(), sourceNames.size, SearchResultsListener(searchTerm, sources))
         binding.tabStrip.setViewPager(binding.viewPager)
     }
 

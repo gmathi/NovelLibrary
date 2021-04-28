@@ -1,15 +1,14 @@
-package io.github.gmathi.novellibrary.activity
+package io.github.gmathi.novellibrary.fragment
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.view.MenuItem
-import android.view.View
+import android.view.*
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
-import io.github.gmathi.novellibrary.databinding.ActivityRecentlyUpdatedNovelsBinding
+import io.github.gmathi.novellibrary.databinding.ContentRecyclerViewBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleBinding
 import io.github.gmathi.novellibrary.extensions.noInternetError
 import io.github.gmathi.novellibrary.extensions.showLoading
@@ -17,46 +16,49 @@ import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.RecentlyUpdatedItem
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.view.extensions.applyFont
-import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.util.view.extensions.applyFont
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<RecentlyUpdatedItem> {
+class RecentlyUpdatedNovelsFragment : BaseFragment(), GenericAdapter.Listener<RecentlyUpdatedItem> {
 
-    lateinit var adapter: GenericAdapter<RecentlyUpdatedItem>
+    companion object {
+        fun newInstance() = RecentlyUpdatedNovelsFragment()
+    }
 
-    private lateinit var binding: ActivityRecentlyUpdatedNovelsBinding
+    private lateinit var binding: ContentRecyclerViewBinding
+    private lateinit var adapter: GenericAdapter<RecentlyUpdatedItem>
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val view = inflater.inflate(R.layout.content_recycler_view, container, false)
+        binding = ContentRecyclerViewBinding.bind(view)
+        return view
+    }
 
-        binding = ActivityRecentlyUpdatedNovelsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-        binding.contentRecyclerView.progressLayout.showLoading()
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        binding.progressLayout.showLoading()
         setRecyclerView()
         getRecentlyUpdatedNovels()
     }
 
     private fun setRecyclerView() {
         adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_title_subtitle, listener = this)
-        binding.contentRecyclerView.recyclerView.setDefaults(adapter)
-        binding.contentRecyclerView.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
-        binding.contentRecyclerView.swipeRefreshLayout.setOnRefreshListener { getRecentlyUpdatedNovels() }
+        binding.recyclerView.setDefaults(adapter)
+        binding.recyclerView.addItemDecoration(CustomDividerItemDecoration(requireActivity(), DividerItemDecoration.VERTICAL))
+        binding.swipeRefreshLayout.setOnRefreshListener { getRecentlyUpdatedNovels() }
     }
 
     private fun getRecentlyUpdatedNovels() {
         lifecycleScope.launch {
             if (!networkHelper.isConnectedToNetwork()) {
                 if (adapter.items.isEmpty())
-                    binding.contentRecyclerView.progressLayout.noInternetError {
-                        binding.contentRecyclerView.progressLayout.showLoading()
+                    binding.progressLayout.noInternetError {
+                        binding.progressLayout.showLoading()
                         getRecentlyUpdatedNovels()
                     }
                 return@launch
@@ -64,8 +66,8 @@ class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Re
 
             val items = withContext(Dispatchers.IO) { fetchRecentlyUpdatedNovels() } ?: return@launch
             adapter.updateData(items)
-            binding.contentRecyclerView.progressLayout.showContent()
-            binding.contentRecyclerView.swipeRefreshLayout.isRefreshing = false
+            binding.progressLayout.showContent()
+            binding.swipeRefreshLayout.isRefreshing = false
 
         }
     }
@@ -97,25 +99,19 @@ class RecentlyUpdatedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Re
         val itemBinding = ListitemTitleSubtitleBinding.bind(itemView)
         itemBinding.chevron.visibility = View.VISIBLE
 
-        itemBinding.title.applyFont(assets).text = item.novelName
-        itemBinding.subtitle.applyFont(assets).text = "${item.chapterName} [ ${item.publisherName} ]"
+        itemBinding.title.applyFont(requireActivity().assets).text = item.novelName
+        itemBinding.subtitle.applyFont(requireActivity().assets).text = "${item.chapterName} [ ${item.publisherName} ]"
 
         itemView.setBackgroundColor(
-            if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
-            else ContextCompat.getColor(this, android.R.color.transparent)
+            if (position % 2 == 0) ContextCompat.getColor(requireContext(), R.color.black_transparent)
+            else ContextCompat.getColor(requireContext(), android.R.color.transparent)
         )
     }
 
     override fun onItemClick(item: RecentlyUpdatedItem, position: Int) {
         if (item.novelName != null && item.novelUrl != null) {
-            startNovelDetailsActivity(Novel(item.novelName!!, item.novelUrl!!, Constants.SourceId.NOVEL_UPDATES))
+            requireActivity().startNovelDetailsActivity(Novel(item.novelName!!, item.novelUrl!!, Constants.SourceId.NOVEL_UPDATES))
         }
     }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) finish()
-        return super.onOptionsItemSelected(item)
-    }
-    //endregion
 
 }

@@ -1,11 +1,12 @@
 package io.github.gmathi.novellibrary
 
+import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationManagerCompat
-import androidx.multidex.MultiDexApplication
+import androidx.lifecycle.LifecycleObserver
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
@@ -21,6 +22,7 @@ import io.github.gmathi.novellibrary.network.MultiTrustManager
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.notification.Notifications
 import io.github.gmathi.novellibrary.util.lang.LocaleManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.InjektScope
@@ -35,7 +37,7 @@ import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 
 
-class NovelLibraryApplication : MultiDexApplication() {
+open class NovelLibraryApplication : Application(), LifecycleObserver {
     companion object {
         private const val TAG = "NovelLibraryApplication"
     }
@@ -72,6 +74,7 @@ class NovelLibraryApplication : MultiDexApplication() {
         }
 
         setRemoteConfig(dataCenter)
+        setupNotificationChannels()
     }
 
     private fun cleanupDatabase() {
@@ -136,9 +139,9 @@ class NovelLibraryApplication : MultiDexApplication() {
             remoteConfig.setDefaultsAsync(defaults)
             remoteConfig.fetchAndActivate().addOnCompleteListener {
                 try {
-                var selectorQueries = remoteConfig.getString(Constants.RemoteConfig.SELECTOR_QUERIES)
-                if (selectorQueries.isBlank()) selectorQueries = "[]"
-                dataCenter.htmlCleanerSelectorQueries = Gson().fromJson(selectorQueries, object : TypeToken<ArrayList<SelectorQuery>>() {}.type)
+                    var selectorQueries = remoteConfig.getString(Constants.RemoteConfig.SELECTOR_QUERIES)
+                    if (selectorQueries.isBlank()) selectorQueries = "[]"
+                    dataCenter.htmlCleanerSelectorQueries = Gson().fromJson(selectorQueries, object : TypeToken<ArrayList<SelectorQuery>>() {}.type)
                 } catch (e: Exception) {
                     Logs.error("NovelLibraryApplication", "addOnCompleteListener", e)
                 }
@@ -146,6 +149,10 @@ class NovelLibraryApplication : MultiDexApplication() {
         } catch (e: Exception) {
             Logs.error("NovelLibraryApplication", "setRemoteConfig", e)
         }
+    }
+
+    protected open fun setupNotificationChannels() {
+        Notifications.createChannels(this)
     }
 
 }

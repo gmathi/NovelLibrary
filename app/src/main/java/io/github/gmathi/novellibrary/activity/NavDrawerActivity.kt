@@ -88,7 +88,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 //                            "✨️ Support GitHub\n" +
 //                            "✨ UI Changes - New SnackBar!\n" +
 //                            "✨ Font Style Preview!\n" +
-                            "⚠️ BugFixes that address previous 0.18.x versions\n" +
+                    "⚠️ BugFixes that address previous 0.18.x versions\n" +
 //                            "⚠️ Fix - Hosted novels offline downloads announcement page\n" +
 //                            "⚠️ Fix - Positive button of Font style changer wasn't allowed\n" +
 //                            "❌️ Broken - Novel Sync\n" +
@@ -106,47 +106,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
     }
-
-//    private fun checkForCloudFlare() {
-//        isCloudflareChecking.set(true)
-//        cloudFlareLoadingSnack = SnackProgressBar(
-//            SnackProgressBar.TYPE_CIRCULAR,
-//            "If this is taking too long, You can skip and goto \"Settings\" -> \"CloudFlare Check\" to make the app work."
-//        )
-//            .setAction("Skip", object : SnackProgressBar.OnActionClickListener {
-//                override fun onActionClick() {
-//                    loadFragment(currentNavId)
-//                    showWhatsNewDialog()
-//                    checkIntentForNotificationData()
-//                    isCloudflareChecking.set(false)
-//                }
-//            })
-//        lifecycleScope.launch {
-//            snackProgressBarManager.show(
-//                cloudFlareLoadingSnack!!,
-//                SnackProgressBarManager.LENGTH_INDEFINITE
-//            )
-//            loadFragment(currentNavId)
-//        }
-//
-//        launchIO {
-//            CloudFlareByPasser.check(this@NavDrawerActivity, "novelupdates.com") { state ->
-//                if (!isDestroyed) {
-//                    if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
-//                        if (cloudFlareLoadingSnack != null) {
-//                            lifecycleScope.launch {
-//                                showWhatsNewDialog()
-//                                checkIntentForNotificationData()
-//                                snackProgressBarManager.dismiss()
-//                                cloudFlareLoadingSnack = null
-//                                isCloudflareChecking.set(false)
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
 
     override fun onBackPressed() {
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -206,11 +165,8 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_settings -> {
                 startSettingsActivity()
             }
-            R.id.nav_recently_viewed -> {
-                startRecentlyViewedNovelsActivity()
-            }
-            R.id.nav_recently_updated -> {
-                startRecentlyUpdatedNovelsActivity()
+            R.id.nav_recent_novels -> {
+                startRecentNovelsPagerActivity()
             }
             R.id.nav_discord_link -> {
                 openInBrowser("https://discord.gg/cPMxEVn")

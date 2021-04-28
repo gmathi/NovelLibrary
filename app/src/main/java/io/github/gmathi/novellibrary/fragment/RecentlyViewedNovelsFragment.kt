@@ -1,9 +1,9 @@
-package io.github.gmathi.novellibrary.activity
+package io.github.gmathi.novellibrary.fragment
 
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
+import android.view.*
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -13,37 +13,42 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.createOrUpdateLargePreference
 import io.github.gmathi.novellibrary.database.getLargePreference
-import io.github.gmathi.novellibrary.databinding.ActivityRecentlyViewedNovelsBinding
+import io.github.gmathi.novellibrary.databinding.ContentRecyclerViewBinding
 import io.github.gmathi.novellibrary.databinding.ListitemNovelBinding
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
+import io.github.gmathi.novellibrary.util.view.setDefaults
 
-class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
-
-    lateinit var adapter: GenericAdapter<Novel>
+class RecentlyViewedNovelsFragment : BaseFragment(), GenericAdapter.Listener<Novel> {
 
     companion object {
-        private const val TAG = "RecentlyViewedNovelsActivity"
+        fun newInstance() = RecentlyViewedNovelsFragment()
     }
 
-    private lateinit var binding: ActivityRecentlyViewedNovelsBinding
+    private lateinit var binding: ContentRecyclerViewBinding
+    private lateinit var adapter: GenericAdapter<Novel>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
 
-        binding = ActivityRecentlyViewedNovelsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val view = inflater.inflate(R.layout.content_recycler_view, container, false)
+        binding = ContentRecyclerViewBinding.bind(view)
+        return view
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
         setRecyclerView()
     }
 
     private fun setRecyclerView() {
         adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_novel, listener = this)
-        binding.contentRecyclerView.recyclerView.setDefaults(adapter)
+        binding.recyclerView.setDefaults(adapter)
     }
 
     override fun bind(item: Novel, itemView: View, position: Int) {
@@ -79,19 +84,18 @@ class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Nov
     }
 
     override fun onItemClick(item: Novel, position: Int) {
-        startNovelDetailsActivity(item)
+        requireActivity().startNovelDetailsActivity(item)
     }
 
     //region OptionsMenu
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
         menuInflater.inflate(R.menu.menu_recently_viewed_novels, menu)
-        return super.onCreateOptionsMenu(menu)
+        return super.onCreateOptionsMenu(menu, menuInflater)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) finish()
         if (item.itemId == R.id.action_clear)
-            MaterialDialog(this).show {
+            MaterialDialog(requireActivity()).show {
                 message(text = "Are you sure you want to clear all the recently viewed novels list?")
                 positiveButton(text = "Yes") { dialog ->
                     dbHelper.createOrUpdateLargePreference(
@@ -115,6 +119,4 @@ class RecentlyViewedNovelsActivity : BaseActivity(), GenericAdapter.Listener<Nov
         val historyList: java.util.ArrayList<Novel> = Gson().fromJson(history, object : TypeToken<java.util.ArrayList<Novel>>() {}.type)
         adapter.updateData(ArrayList(historyList.asReversed()))
     }
-
-
 }

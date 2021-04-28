@@ -1,10 +1,14 @@
 package io.github.gmathi.novellibrary.model.source
 
+import android.graphics.drawable.Drawable
+import io.github.gmathi.novellibrary.extension.ExtensionManager
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.source.NovelUpdatesSource
 import io.github.gmathi.novellibrary.util.lang.awaitSingle
 import rx.Observable
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 /**
  * A basic interface for creating a source. It could be an online source, a local source, etc...
@@ -58,5 +62,7 @@ interface Source {
         return fetchChapterList(novel).awaitSingle()
     }
 
+    fun Source.icon(): Drawable? = Injekt.get<ExtensionManager>().getAppIconForSource(this)
+    fun Source.getPreferenceKey(): String = "source_$id"
 
 }

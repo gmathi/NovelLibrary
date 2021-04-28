@@ -57,14 +57,14 @@
         <item>@string/sync</item>
         <item>@string/donate_developer</item>
         <item>@string/about_us</item>
-<!--        <item>@string/cloud_flare_check</item>-->
+        <!--        <item>@string/cloud_flare_check</item>-->
     </string-array>
 
     <string-array name="sync_list" translatable="false">
         <item>@string/experimental_sync_disclaimer</item>
         <item>@string/source_novel_updates</item>
-<!--        <item>@string/source_wln_updates</item>-->
-<!--        <item>@string/source_lnmtl</item>-->
+        <!--        <item>@string/source_wln_updates</item>-->
+        <!--        <item>@string/source_lnmtl</item>-->
     </string-array>
 
     <string-array name="sync_options" translatable="false">
@@ -75,10 +75,10 @@
         <item>@string/sync_delete_novels</item>
         <item>@string/sync_bookmarks</item>
         <item>@string/make_full_sync</item>
-<!--        <item>@string/fetch_novels</item>-->
-<!--        <item>@string/fetch_bookmarks</item>-->
-<!--        <item>@string/fetch_sections</item>-->
-<!--        <item>@string/make_full_fetch</item>-->
+        <!--        <item>@string/fetch_novels</item>-->
+        <!--        <item>@string/fetch_bookmarks</item>-->
+        <!--        <item>@string/fetch_sections</item>-->
+        <!--        <item>@string/make_full_fetch</item>-->
         <item>@string/sync_forget</item>
     </string-array>
 
@@ -709,6 +709,27 @@
         If that doesn\'t help, try a VPN connection.
         Join discord, if you need any assistance.
     </string>
+
+    <!-- Notification channels -->
+    <string name="channel_common">Common</string>
+    <string name="channel_progress">Progress</string>
+    <string name="channel_complete">Complete</string>
+    <string name="channel_errors">Errors</string>
+    <string name="channel_library">Library</string>
+    <string name="group_downloader">Downloads</string>
+    <string name="group_backup_restore">Backup and restore</string>
+    <string name="channel_new_chapters">Chapter updates</string>
+    <string name="channel_ext_updates">Extension updates</string>
+    <string name="channel_crash_logs">Crash logs</string>
+
+    <!--Extension Updates Notifications-->
+    <plurals name="update_check_notification_ext_updates">
+        <item quantity="one">Extension update available</item>
+        <item quantity="other">%d extension updates available</item>
+    </plurals>
+
+    <string name="title_activity_recent_novels">Recent Novels</string>
+
 
 
 </resources>
