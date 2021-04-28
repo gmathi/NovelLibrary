@@ -67,6 +67,15 @@ class RecentNovelsPageListener() : GenericFragmentStatePagerAdapter.Listener {
         return RecentlyViewedNovelsFragment.newInstance()
     }
 }
+
+class ExtensionsPageListener() : GenericFragmentStatePagerAdapter.Listener {
+    override fun getFragmentForItem(position: Int): Fragment {
+        if (position == 0)
+            return SourcesFragment.newInstance()
+        return RecentlyViewedNovelsFragment.newInstance()
+    }
+}
+
 //endregion
 
 

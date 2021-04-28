@@ -168,6 +168,10 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_recent_novels -> {
                 startRecentNovelsPagerActivity()
             }
+            R.id.nav_extensions -> {
+                startExtensionsPagerActivity()
+            }
+
             R.id.nav_discord_link -> {
                 openInBrowser("https://discord.gg/cPMxEVn")
             }

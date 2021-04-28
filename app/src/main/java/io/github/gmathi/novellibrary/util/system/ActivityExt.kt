@@ -19,8 +19,8 @@ import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.service.tts.TTSService
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.view.TransitionHelper
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.view.TransitionHelper
 
 fun AppCompatActivity.startNavDrawerActivity() {
     val intent = Intent(this, NavDrawerActivity::class.java)
@@ -96,12 +96,8 @@ fun AppCompatActivity.startRecentNovelsPagerActivity() {
     startActivityForResult(Intent(this, RecentNovelsPagerActivity::class.java), Constants.RECENT_NOVELS_PAGER_ACT_REQ_CODE)
 }
 
-fun AppCompatActivity.startRecentlyViewedNovelsActivity() {
-    startActivityForResult(Intent(this, RecentlyViewedNovelsActivity::class.java), Constants.RECENT_VIEWED_ACT_REQ_CODE)
-}
-
-fun AppCompatActivity.startRecentlyUpdatedNovelsActivity() {
-    startActivityForResult(Intent(this, RecentlyUpdatedNovelsActivity::class.java), Constants.RECENT_UPDATED_ACT_REQ_CODE)
+fun AppCompatActivity.startExtensionsPagerActivity() {
+    startActivityForResult(Intent(this, ExtensionsPagerActivity::class.java), Constants.RECENT_NOVELS_PAGER_ACT_REQ_CODE)
 }
 
 fun AppCompatActivity.startSettingsActivity() {

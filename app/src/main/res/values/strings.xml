@@ -729,7 +729,8 @@
     </plurals>
 
     <string name="title_activity_recent_novels">Recent Novels</string>
-
-
+    <string name="title_activity_extensions">Manage Extensions</string>
+    <string name="title_fragment_sources">Sources</string>
+    <string name="title_fragment_extensions">Extensions</string>
 
 </resources>

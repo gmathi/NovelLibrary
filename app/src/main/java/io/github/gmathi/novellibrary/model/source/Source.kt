@@ -62,7 +62,8 @@ interface Source {
         return fetchChapterList(novel).awaitSingle()
     }
 
-    fun Source.icon(): Drawable? = Injekt.get<ExtensionManager>().getAppIconForSource(this)
-    fun Source.getPreferenceKey(): String = "source_$id"
-
 }
+
+fun Source.icon(): Drawable? = Injekt.get<ExtensionManager>().getAppIconForSource(this)
+
+fun Source.getPreferenceKey(): String = "source_$id"

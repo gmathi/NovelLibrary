@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:tools="http://schemas.android.com/tools"
-      tools:showIn="navigation_view">
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
 
     <group android:checkableBehavior="none">
         <item
             android:id="@+id/nav_search"
             android:icon="@drawable/ic_search_black"
-            android:title="@string/title_search"/>
+            android:title="@string/title_search" />
 
         <item
             android:id="@+id/nav_library"
             android:icon="@drawable/ic_book_white_vector"
-            android:title="@string/title_library"/>
+            android:title="@string/title_library" />
 
         <item
             android:id="@+id/nav_downloads"
             android:icon="@drawable/ic_file_download_black_vector"
-            android:title="@string/title_downloads"/>
+            android:title="@string/title_downloads" />
 
     </group>
 
@@ -38,20 +38,20 @@
             <!--android:title="Search"/>-->
 
             <!--<item-->
-                <!--android:id="@+id/nav_refresh_cloud_flare_cookies"-->
-                <!--android:icon="@drawable/ic_refresh_white_vector"-->
-                <!--android:title="@string/refresh_cloud_flare_cookies"/>-->
+            <!--android:id="@+id/nav_refresh_cloud_flare_cookies"-->
+            <!--android:icon="@drawable/ic_refresh_white_vector"-->
+            <!--android:title="@string/refresh_cloud_flare_cookies"/>-->
 
             <item
                 android:id="@+id/nav_recent_novels"
                 android:icon="@drawable/ic_update_white_vector"
-                android:title="@string/title_activity_recent_novels"/>
+                android:title="@string/title_activity_recent_novels" />
 
 
-            <!--<item-->
-            <!--android:id="@+id/nav_legal"-->
-            <!--android:icon="@drawable/ic_account_legal_white_vector"-->
-            <!--android:title="@string/legal"/>-->
+            <item
+                android:id="@+id/nav_extensions"
+                android:icon="@drawable/ic_extension_white_vector"
+                android:title="@string/title_activity_extensions" />
         </menu>
     </item>
 
@@ -60,12 +60,12 @@
             <item
                 android:id="@+id/nav_settings"
                 android:icon="@drawable/ic_settings_white_vector"
-                android:title="@string/title_activity_settings"/>
+                android:title="@string/title_activity_settings" />
 
             <item
                 android:id="@+id/nav_discord_link"
                 android:icon="@drawable/discord_icon"
-                android:title="@string/join_us_on_discord"/>
+                android:title="@string/join_us_on_discord" />
         </menu>
     </item>
 

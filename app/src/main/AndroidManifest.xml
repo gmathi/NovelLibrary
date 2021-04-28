@@ -253,6 +253,12 @@
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide"/>
 
+        <activity
+            android:name=".activity.ExtensionsPagerActivity"
+            android:label="@string/title_activity_extensions"
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide"/>
+
 
         <provider
             android:name=".util.storage.GenericFileProvider"

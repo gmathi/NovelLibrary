@@ -10,13 +10,24 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
         android:layout_margin="@dimen/default_padding_list_item"
         android:baselineAligned="false"
+        android:minHeight="54dp"
         android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:visibility="gone"
+            app:srcCompat="@drawable/ic_extension_white_vector" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
             android:layout_marginStart="@dimen/default_margin"
             android:layout_marginTop="2dp"
             android:layout_marginEnd="@dimen/default_margin"

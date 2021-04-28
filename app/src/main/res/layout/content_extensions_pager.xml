@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<io.github.gmathi.novellibrary.util.view.ProgressLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/progressLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+    <LinearLayout
+        android:id="@+id/topPanel"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        android:layout_alignParentTop="true"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+
+
+        <com.ogaclejapan.smarttablayout.SmartTabLayout
+            android:id="@+id/tabStrip"
+            android:layout_width="0dp"
+            android:layout_height="?actionBarSize"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingBottom="4dp"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
+            app:stl_defaultTabTextColor="@color/white"
+            app:stl_defaultTabTextHorizontalPadding="24dp"
+            app:stl_indicatorColor="@color/colorAccent"
+            app:stl_indicatorCornerRadius="1.5dp"
+            app:stl_indicatorInterpolation="smart"
+            app:stl_indicatorThickness="3dp"
+            app:stl_underlineColor="@android:color/transparent" />
+
+    </LinearLayout>
+
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/topPanel"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+
+</io.github.gmathi.novellibrary.util.view.ProgressLayout>

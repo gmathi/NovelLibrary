@@ -452,4 +452,7 @@ class DataCenter(context: Context) {
         get() = prefs.getLong("lastExtCheck", Date().time)
         set(value) = prefs.edit().putLong("lastExtCheck", value).apply()
 
+    fun isSourceEnabled(sourceKey: String): Boolean = prefs.getBoolean(sourceKey, true)
+    fun enableSource(sourceKey: String, enable: Boolean) = prefs.edit().putBoolean(sourceKey, enable).apply()
+
 }
