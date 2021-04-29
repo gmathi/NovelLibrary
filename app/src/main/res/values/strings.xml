@@ -733,4 +733,31 @@
     <string name="title_fragment_sources">Sources</string>
     <string name="title_fragment_extensions">Extensions</string>
 
+    <!-- Extension section -->
+    <string name="all_lang">All</string>
+    <string name="ext_updates_pending">Updates pending</string>
+    <string name="ext_update">Update</string>
+    <string name="ext_obsolete">Obsolete</string>
+    <string name="ext_install">Install</string>
+    <string name="ext_pending">Pending</string>
+    <string name="ext_downloading">Downloading</string>
+    <string name="ext_installing">Installing</string>
+    <string name="ext_installed">Installed</string>
+    <string name="ext_trust">Trust</string>
+    <string name="ext_unofficial">Unofficial</string>
+    <string name="ext_untrusted">Untrusted</string>
+    <string name="ext_uninstall">Uninstall</string>
+    <string name="ext_available">Available</string>
+    <string name="untrusted_extension">Untrusted extension</string>
+    <string name="untrusted_extension_message">This extension was signed with an untrusted certificate and wasn\'t activated.\n\nA malicious extension could read any login credentials stored in NovelLibrary or execute arbitrary code.\n\nBy trusting this certificate you accept these risks.</string>
+    <string name="obsolete_extension_message">This extension is no longer available.</string>
+    <string name="unofficial_extension_message">This extension is not from the official NovelLibrary extensions list.</string>
+    <string name="ext_version_info">Version: %1$s</string>
+    <string name="ext_language_info">Language: %1$s</string>
+    <string name="ext_nsfw_short">18+</string>
+    <string name="ext_nsfw_warning">May contain NSFW (18+) content</string>
+
+    <string name="other_source">Other</string>
+
+
 </resources>

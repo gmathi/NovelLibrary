@@ -256,8 +256,7 @@ class ExtensionManager(
         if (signature !in untrustedSignatures) return
 
         ExtensionLoader.trustedSignatures += signature
-        // TODO:
-        //dataCenter.trustedSignatures() += signature
+        dataCenter.trustedSignatures = (dataCenter.trustedSignatures + signature) as MutableSet<String>
 
         val nowTrustedExtensions = untrustedExtensions.filter { it.signatureHash == signature }
         untrustedExtensions -= nowTrustedExtensions

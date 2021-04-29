@@ -32,13 +32,13 @@ internal object ExtensionLoader {
     private const val METADATA_SOURCE_CLASS = "novellibrary.extension.class"
     private const val METADATA_SOURCE_FACTORY = "novellibrary.extension.factory"
     private const val METADATA_NSFW = "novellibrary.extension.nsfw"
-    const val LIB_VERSION_MIN = 1.2
-    const val LIB_VERSION_MAX = 1.2
+    const val LIB_VERSION_MIN = 1.0
+    const val LIB_VERSION_MAX = 1.0
 
     private const val PACKAGE_FLAGS = PackageManager.GET_CONFIGURATIONS or PackageManager.GET_SIGNATURES
 
     // novellibrary's key
-    private const val officialSignature = "7ce04da7773d41b489f4693a366c36bcd0a11fc39b547168553c285bd7348e23"
+    private const val officialSignature = "e8db103a37baf2d3eb38cdd72403ef55d910305f8e0f11be2890945a83a9f837"
 
     /**
      * List of the trusted signatures.
