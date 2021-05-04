@@ -109,8 +109,9 @@ internal object ExtensionLoader {
             return LoadResult.Error(exception)
         }
 
-        // Validate lib version
+        //Validate lib version
         val libVersion = versionName.substringBeforeLast('.').toDouble()
+
         if (libVersion < LIB_VERSION_MIN || libVersion > LIB_VERSION_MAX) {
             val exception = Exception(
                 "Lib version is $libVersion, while only versions " +

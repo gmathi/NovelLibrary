@@ -2,8 +2,11 @@ package io.github.gmathi.novellibrary.fragment
 
 import android.app.Application
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import com.bumptech.glide.Glide
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
@@ -15,7 +18,11 @@ import io.github.gmathi.novellibrary.extension.model.ExtensionGroupItem
 import io.github.gmathi.novellibrary.extension.model.ExtensionItem
 import io.github.gmathi.novellibrary.extension.model.InstallStep
 import io.github.gmathi.novellibrary.extension.util.getApplicationIcon
+import io.github.gmathi.novellibrary.extensions.showEmpty
+import io.github.gmathi.novellibrary.extensions.showLoading
+import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.LocaleHelper
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.setDefaults
 import rx.Observable
 import rx.Subscription
@@ -23,7 +30,9 @@ import rx.android.schedulers.AndroidSchedulers
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
+import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.collections.ArrayList
 
 private typealias ExtensionTuple =
         Triple<List<Extension.Installed>, List<Extension.Untrusted>, List<Extension.Available>>
@@ -58,52 +67,68 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
         setRecyclerView()
         extensionManager.findAvailableExtensions()
         bindToExtensionsObservable()
+        binding.progressLayout.showLoading()
     }
 
     private fun setRecyclerView() {
         adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_extension_card, listener = this)
-        binding.recyclerView.setDefaults(adapter)
+        binding.run {
+            recyclerView.setDefaults(adapter)
+            recyclerView.addItemDecoration(CustomDividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))
+            swipeRefreshLayout.setOnRefreshListener {
+                extensionManager.findAvailableExtensions()
+                bindToExtensionsObservable()
+            }
+        }
     }
 
     override fun bind(item: ExtensionItem, itemView: View, position: Int) {
         val binding = ListitemExtensionCardBinding.bind(itemView)
         val extension = item.extension
 
-        binding.extTitle.text = extension.name
-        binding.version.text = extension.versionName
-        binding.lang.text = LocaleHelper.getSourceDisplayName(extension.lang, itemView.context)
-        binding.warning.text = when {
-            extension is Extension.Untrusted -> itemView.context.getString(R.string.ext_untrusted)
-            extension is Extension.Installed && extension.isObsolete -> itemView.context.getString(R.string.ext_obsolete)
-            extension is Extension.Installed && extension.isUnofficial -> itemView.context.getString(R.string.ext_unofficial)
-            extension.isNsfw && dataCenter.showNSFWSource -> itemView.context.getString(R.string.ext_nsfw_short)
-            else -> ""
-        }.toUpperCase()
 
-        Glide.with(itemView.context).clear(binding.image)
-        if (extension is Extension.Available) {
-            Glide.with(itemView.context)
-                .load(extension.iconUrl)
-                .into(binding.image)
-        } else {
-            extension.getApplicationIcon(itemView.context)?.let { binding.image.setImageDrawable(it) }
-        }
 
-        bindButton(item, binding)
+        binding.run {
 
-        binding.extButton.setOnClickListener {
-            when (extension) {
-                is Extension.Available -> extensionManager.installExtension(extension).subscribeToInstallUpdate(extension)
-                is Extension.Untrusted -> {
-                    extensionManager.trustSignature(extension.signatureHash)// Do Nothing //openTrustDialog(extension)
-                }
-                is Extension.Installed -> {
-                    //Do Nothing
+            //Image
+            Glide.with(itemView.context).clear(image)
+            if (extension is Extension.Available) {
+                Glide.with(itemView.context)
+                    .load(extension.iconUrl.getGlideUrl())
+                    .into(binding.image)
+            } else {
+                extension.getApplicationIcon(itemView.context)?.let { image.setImageDrawable(it) }
+            }
+
+
+            //Text
+            extTitle.text = extension.name
+            version.text = extension.versionName
+            lang.text = LocaleHelper.getSourceDisplayName(extension.lang, itemView.context)
+            warning.text = when {
+                extension is Extension.Untrusted -> itemView.context.getString(R.string.ext_untrusted)
+                extension is Extension.Installed && extension.isObsolete -> itemView.context.getString(R.string.ext_obsolete)
+                extension is Extension.Installed && extension.isUnofficial -> itemView.context.getString(R.string.ext_unofficial)
+                extension.isNsfw && dataCenter.showNSFWSource -> itemView.context.getString(R.string.ext_nsfw_short)
+                else -> ""
+            }.toUpperCase(Locale.getDefault())
+
+            //Button
+            bindButton(item, this)
+            extButton.setOnClickListener {
+                when (extension) {
+                    is Extension.Available -> extensionManager.installExtension(extension).subscribeToInstallUpdate(extension)
+                    is Extension.Untrusted -> {
+                        extensionManager.trustSignature(extension.signatureHash)// Do Nothing //openTrustDialog(extension)
+                    }
+                    is Extension.Installed -> {
+                        //Do Nothing
 //                    if (!extension.hasUpdate) {
 //                        //openDetails(extension)
 //                    } else {
 //                        //presenter.updateExtension(extension)
 //                    }
+                    }
                 }
             }
         }
@@ -142,7 +167,7 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
                     setText(R.string.ext_update)
                 }
                 else -> {
-                    setText(R.string.action_settings)
+                    setText(R.string.ext_installed)
                 }
             }
         } else if (extension is Extension.Untrusted) {
@@ -170,7 +195,13 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
                 extensions = it
-                adapter.updateData(ArrayList(extensions))
+                if (extensions.isEmpty()) {
+                    binding.progressLayout.showEmpty(emptyText = getString(R.string.empty_extensions))
+                } else {
+                    binding.progressLayout.showContent()
+                    adapter.updateData(ArrayList(extensions))
+                }
+                binding.swipeRefreshLayout.isRefreshing = false
             }
     }
 

@@ -18,8 +18,8 @@
 
         <ImageView
             android:id="@+id/icon"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:layout_gravity="center_vertical"
             android:visibility="gone"
             app:srcCompat="@drawable/ic_extension_white_vector" />

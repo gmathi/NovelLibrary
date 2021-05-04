@@ -3,17 +3,18 @@ package io.github.gmathi.novellibrary.fragment
 import android.os.Bundle
 import android.view.*
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.createOrUpdateLargePreference
 import io.github.gmathi.novellibrary.databinding.ContentRecyclerViewBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
-import io.github.gmathi.novellibrary.model.source.Source
 import io.github.gmathi.novellibrary.model.source.getPreferenceKey
 import io.github.gmathi.novellibrary.model.source.icon
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaults
 
@@ -45,6 +46,8 @@ class SourcesFragment : BaseFragment(), GenericAdapter.Listener<HttpSource> {
     private fun setRecyclerView() {
         adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
         binding.recyclerView.setDefaults(adapter)
+        binding.recyclerView.addItemDecoration(CustomDividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))
+        binding.swipeRefreshLayout.isEnabled = false
     }
 
     override fun bind(item: HttpSource, itemView: View, position: Int) {
@@ -54,7 +57,7 @@ class SourcesFragment : BaseFragment(), GenericAdapter.Listener<HttpSource> {
         itemBinding.currentValue.visibility = View.GONE
         itemBinding.blackOverlay.visibility = View.GONE
         itemBinding.subtitle.visibility = View.GONE
-        itemBinding.icon.visibility = View.INVISIBLE
+        itemBinding.icon.visibility = View.GONE
 
         val drawable = item.icon()
         if (drawable != null) {

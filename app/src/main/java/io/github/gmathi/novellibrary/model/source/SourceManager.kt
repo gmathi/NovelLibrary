@@ -49,9 +49,9 @@ open class SourceManager(private val context: Context) {
         NovelUpdatesSource(),
         NovelFullSource(),
 //        RoyalRoadSource(),
-        ScribbleHubSource(),
+//        ScribbleHubSource(),
         WLNUpdatesSource(),
-        NeovelSource(),
+//        NeovelSource(),
         LNMTLSource()
     )
 

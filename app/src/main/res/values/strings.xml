@@ -758,6 +758,7 @@
     <string name="ext_nsfw_warning">May contain NSFW (18+) content</string>
 
     <string name="other_source">Other</string>
+    <string name="empty_extensions">No Extensions Found!</string>
 
 
 </resources>

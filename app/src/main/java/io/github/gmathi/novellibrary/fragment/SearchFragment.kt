@@ -16,6 +16,7 @@ import io.github.gmathi.novellibrary.adapter.NavPageListener
 import io.github.gmathi.novellibrary.adapter.SearchResultsListener
 import io.github.gmathi.novellibrary.databinding.FragmentSearchBinding
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.source.getPreferenceKey
 import io.github.gmathi.novellibrary.util.FAC
 import io.github.gmathi.novellibrary.util.lang.addToNovelSearchHistory
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
@@ -157,7 +158,10 @@ class SearchFragment : BaseFragment() {
         searchMode = true
         this.searchTerm = searchTerm
 
-        val sources = sourceManager.getOnlineSources()
+        val sources = sourceManager.getOnlineSources().filter {
+            dataCenter.isSourceEnabled(it.getPreferenceKey())
+        }
+
         val sourceNames = sources.map { it.name }
 
 //        val titles = ArrayList<String>()
