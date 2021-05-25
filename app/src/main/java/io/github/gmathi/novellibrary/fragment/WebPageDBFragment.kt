@@ -171,6 +171,11 @@ class WebPageDBFragment : BaseFragment() {
                     return true
                 }
 
+                if (url == "abc://reset_page") {
+                    view?.scrollTo(0, 0)
+                    return true
+                }
+
 //                if (url == "abc://retry_internal")
 //                    checkForCloudFlare()
 
@@ -274,7 +279,7 @@ class WebPageDBFragment : BaseFragment() {
     }
 
     private fun loadCreatedDocument() {
-        doc?.body()?.append("<p><a href=\"#\">*** Go to top of page ***</a></p>")
+        doc?.body()?.append("<p><a href=\"abc://reset_page\">*** Go to top of page ***</a></p>")
         webPageSettings.let {
             binding.readerWebView.loadDataWithBaseURL(
                 if (it.filePath != null) "$FILE_PROTOCOL${it.filePath}" else doc?.location(),

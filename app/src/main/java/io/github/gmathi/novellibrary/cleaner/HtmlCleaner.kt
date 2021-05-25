@@ -305,7 +305,6 @@ open class HtmlCleaner protected constructor() {
                 html {
                     scroll-behavior: smooth;
                     overflow-wrap: break-word;
-                 
                 }
                 body {
                     background-color: ${
