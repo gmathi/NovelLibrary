@@ -42,6 +42,7 @@ open class HtmlCleaner protected constructor() {
             // Note: Subquery ordering is important, one that are attached to the end-results are attached in that order.
             // Hence the following order is recommended:
             // RHeader, RContent, RPage, RFooter, RNavigation, RMeta, RShare, RComments
+            // Make sure to put host-restricted queries first, since they likely trigger some other selector.
 
             // Most common in wordpress-hosted websites, but also nicely matches a bunch of others.
             SelectorQuery("div.entry-content", subqueries = listOf(

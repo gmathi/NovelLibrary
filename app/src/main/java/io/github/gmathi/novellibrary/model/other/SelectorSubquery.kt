@@ -24,4 +24,5 @@ enum class SubqueryRole {
     RNavigation, // The chapter navigation (next/prev/TOC)
     RPage, // In-chapter page navigation. Also can be used to detect buffer pages if applicable.
     RBlacklist, // Simply stuff that have to be removed regardless.
+    RWhitelist, // Same as blacklist, but inserted back instead. They also skip any class/id cleanups.
 }

@@ -5,7 +5,10 @@ import android.os.Parcelable
 import java.io.Serializable
 
 data class SelectorQuery(val query: String, val appendTitleHeader: Boolean = true, val host: String? = null,
-                         val subqueries: List<SelectorSubquery> = emptyList()) : Serializable {
+                         val subqueries: List<SelectorSubquery> = emptyList(),
+                         val keepContentStyle: Boolean = false, val keepContentIds: Boolean = true, val keepContentClasses: Boolean = false,
+                         val customCSS:String = ""
+) : Serializable {
 
     //region equals(), hashcode(), toString()
     override fun equals(other: Any?): Boolean {
@@ -14,12 +17,11 @@ data class SelectorQuery(val query: String, val appendTitleHeader: Boolean = tru
 
         other as SelectorQuery
 
-        if (query != other.query) return false
-        if (appendTitleHeader != other.appendTitleHeader) return false
-        if (host != other.host) return false
-        if (subqueries.count() != other.subqueries.count() || !subqueries.containsAll(other.subqueries)) return false
-
-        return true
+        return query == other.query && appendTitleHeader == other.appendTitleHeader &&
+                host == other.host && customCSS == other.customCSS &&
+                keepContentStyle == other.keepContentStyle && keepContentIds == other.keepContentIds &&
+                keepContentClasses == other.keepContentClasses && subqueries.count() == other.subqueries.count() &&
+                subqueries.containsAll(other.subqueries)
     }
 
     override fun hashCode(): Int {

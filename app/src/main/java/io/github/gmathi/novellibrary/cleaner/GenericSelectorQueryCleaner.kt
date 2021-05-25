@@ -7,7 +7,8 @@ import org.jsoup.select.Elements
 
 class GenericSelectorQueryCleaner(
     private val url: String, private val query: SelectorQuery,
-    override var keepContentStyle: Boolean = false, override var keepContentIds: Boolean = true, override var keepContentClasses: Boolean = false
+    override var keepContentStyle: Boolean = query.keepContentStyle, override var keepContentIds: Boolean = query.keepContentIds,
+    override var keepContentClasses: Boolean = query.keepContentClasses
 ) : HtmlCleaner() {
 
     override fun additionalProcessing(doc: Document) {
@@ -68,6 +69,10 @@ class GenericSelectorQueryCleaner(
                         }
                     SubqueryRole.RBlacklist -> {
                         elements.remove()
+                        return@forEachIndexed
+                    }
+                    SubqueryRole.RWhitelist -> {
+                        constructedContent.addAll(elements)
                         return@forEachIndexed
                     }
 //                    SubqueryRole.RPage -> {}
