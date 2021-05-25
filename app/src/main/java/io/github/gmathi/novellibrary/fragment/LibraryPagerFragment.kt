@@ -43,7 +43,6 @@ class LibraryPagerFragment : BaseFragment() {
         binding.contentLibraryPager.novelSectionSettings.setOnClickListener {
             startActivityForResult(Intent(activity, NovelSectionsActivity::class.java), Constants.NOVEL_SECTIONS_ACT_REQ_CODE)
         }
-
     }
 
     private fun setViewPager() {
