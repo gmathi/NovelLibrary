@@ -4,30 +4,8 @@ import android.os.Parcel
 import android.os.Parcelable
 import java.io.Serializable
 
-data class SelectorQuery(val query: String, val appendTitleHeader: Boolean = true) : Serializable, Parcelable {
-
-    //region Parcelable Implementation
-    constructor(parcel: Parcel) : this(parcel.readString().toString(), parcel.readByte() != 0.toByte())
-
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(query)
-        parcel.writeByte(if (appendTitleHeader) 1 else 0)
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    companion object CREATOR : Parcelable.Creator<SelectorQuery> {
-        override fun createFromParcel(parcel: Parcel): SelectorQuery {
-            return SelectorQuery(parcel)
-        }
-
-        override fun newArray(size: Int): Array<SelectorQuery?> {
-            return arrayOfNulls(size)
-        }
-    }
-    //endregion
+data class SelectorQuery(val query: String, val appendTitleHeader: Boolean = true, val host: String? = null,
+                         val subqueries: List<SelectorSubquery> = emptyList()) : Serializable {
 
     //region equals(), hashcode(), toString()
     override fun equals(other: Any?): Boolean {
@@ -38,18 +16,20 @@ data class SelectorQuery(val query: String, val appendTitleHeader: Boolean = tru
 
         if (query != other.query) return false
         if (appendTitleHeader != other.appendTitleHeader) return false
+        if (host != other.host) return false
+        if (subqueries.count() != other.subqueries.count() || !subqueries.containsAll(other.subqueries)) return false
 
         return true
     }
 
     override fun hashCode(): Int {
         var result = query.hashCode()
-        result = 31 * result + appendTitleHeader.hashCode()
+        result = 31 * result + appendTitleHeader.hashCode() + host.hashCode() + subqueries.hashCode()
         return result
     }
 
     override fun toString(): String {
-        return "SelectorQuery(query='$query', appendTitleHeader=$appendTitleHeader)"
+        return "SelectorQuery(query='$query', appendTitleHeader=$appendTitleHeader, host=$host, subqueries=${subqueries.count()})"
     }
     //endregion
 

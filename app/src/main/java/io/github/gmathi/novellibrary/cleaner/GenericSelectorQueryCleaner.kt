@@ -1,28 +1,88 @@
 package io.github.gmathi.novellibrary.cleaner
 
+import io.github.gmathi.novellibrary.model.other.SelectorQuery
+import io.github.gmathi.novellibrary.model.other.SubqueryRole
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 
 class GenericSelectorQueryCleaner(
-    private val url: String, private val query: String, private val appendTitle: Boolean = true,
+    private val url: String, private val query: SelectorQuery,
     override var keepContentStyle: Boolean = false, override var keepContentIds: Boolean = true, override var keepContentClasses: Boolean = false
 ) : HtmlCleaner() {
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc)
 
-        val contentElement = doc.body().select(query)
+        val body = doc.body()
 
-        websiteSpecificFixes(contentElement)
+        val contentElement = body.select(query.query)
+        val subQueries = query.subqueries
+        val constructedContent = Elements()
+        var hasHeader = false
+        if (subQueries.count() == 0) {
+            // Legacy cleaner behavior
+            websiteSpecificFixes(contentElement)
 
-        contentElement.forEach { element -> element.children()?.forEach { cleanCSSFromChildren(it) } }
-        if (appendTitle)
-            contentElement.prepend("<h4>${getTitle(doc)}</h4><br>")
+            contentElement.forEach { element -> element.children()?.forEach { cleanCSSFromChildren(it) } }
 
-        if (!dataCenter.enableDirectionalLinks)
-            removeDirectionalLinks(contentElement)
+            doc.getElementsByClass("post-navigation")?.remove()
 
-        doc.getElementsByClass("post-navigation")?.remove()
+            constructedContent.addAll(contentElement)
+        } else {
+            // Comprehensive subqueries
+            val subContent = subQueries.map { body.select(it.query) }
+            subContent.forEachIndexed { index, elements ->
+                val q = subQueries[index]
+
+                if (!q.multiple && elements.count() > 0) {
+                    val first = elements.first()
+                    elements.clear()
+                    elements.add(first)
+                }
+
+                when (q.role) {
+                    SubqueryRole.RContent -> {
+                        if (elements.count() == 0) elements.addAll(contentElement)
+                        websiteSpecificFixes(elements)
+                    }
+                    SubqueryRole.RHeader ->
+                        hasHeader = elements.count() > 0
+//                    SubqueryRole.RFooter -> {}
+                    SubqueryRole.RShare -> {
+                        elements.remove()
+                        return@forEachIndexed
+                    }
+                    SubqueryRole.RComments ->
+                        if (!dataCenter.showChapterComments) {
+                            elements.remove()
+                            return@forEachIndexed
+                        }
+                    SubqueryRole.RMeta -> {
+                        elements.remove()
+                        return@forEachIndexed
+                    }
+                    SubqueryRole.RNavigation ->
+                        if (!dataCenter.enableDirectionalLinks) {
+                            elements.remove()
+                            return@forEachIndexed
+                        }
+                    SubqueryRole.RBlacklist -> {
+                        elements.remove()
+                        return@forEachIndexed
+                    }
+//                    SubqueryRole.RPage -> {}
+                    else -> {}
+                }
+
+                elements.forEach { cleanCSSFromChildren(it) }
+                constructedContent.addAll(elements)
+            }
+        }
+
+        if (!dataCenter.enableDirectionalLinks) removeDirectionalLinks(constructedContent)
+
+        if (!hasHeader && query.appendTitleHeader)
+            constructedContent.first().prepend("<h4>${getTitle(doc)}</h4><br>")
 
         if (!dataCenter.showChapterComments) {
             doc.getElementsByClass("comments-container")?.remove()
@@ -31,12 +91,13 @@ class GenericSelectorQueryCleaner(
 
         doc.body().children().remove()
         doc.body().classNames().forEach { doc.body().removeClass(it) }
-        doc.body().append(contentElement?.outerHtml())
+        doc.body().append(constructedContent.outerHtml())
 
     }
 
     fun websiteSpecificFixes(contentElement: Elements) {
         //Fix for volarenovels.com
+        // TODO: Extract into comprehensive query with Blacklist subquery role
         if (url.contains("volarenovels.com")) {
             val elements = contentElement.select("[id*=announcement]")
             contentElement.removeAll(elements)
@@ -44,9 +105,8 @@ class GenericSelectorQueryCleaner(
     }
 
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
-        return getLinkedChapters(doc.location(), doc.body().select(query).firstOrNull())
+        return getLinkedChapters(doc.location(), doc.body().select(query.query).firstOrNull())
     }
-
 
     private fun removeDirectionalLinks(contentElement: Elements) {
         contentElement.forEach { element ->
