@@ -14,9 +14,8 @@ fun WebView.setDefaultSettings() {
         domStorageEnabled = true
         databaseEnabled = true
         setAppCacheEnabled(true)
-        useWideViewPort = true
-        // This is disabled to not cause the iniAtial zoom out.
-        // loadWithOverviewMode = true
+        useWideViewPort = false
+        loadWithOverviewMode = false
         cacheMode = WebSettings.LOAD_DEFAULT
     }
 }
