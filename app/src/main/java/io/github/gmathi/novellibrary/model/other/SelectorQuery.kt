@@ -1,7 +1,5 @@
 package io.github.gmathi.novellibrary.model.other
 
-import android.os.Parcel
-import android.os.Parcelable
 import java.io.Serializable
 
 data class SelectorQuery(val query: String, val appendTitleHeader: Boolean = true, val host: String? = null,

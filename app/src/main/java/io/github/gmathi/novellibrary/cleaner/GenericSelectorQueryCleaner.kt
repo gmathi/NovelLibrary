@@ -12,16 +12,15 @@ class GenericSelectorQueryCleaner(
 ) : HtmlCleaner() {
 
     override fun additionalProcessing(doc: Document) {
-        removeCSS(doc)
 
         val body = doc.body()
-
         val contentElement = body.select(query.query)
         val subQueries = query.subqueries
         val constructedContent = Elements()
         var hasHeader = false
         if (subQueries.count() == 0) {
             // Legacy cleaner behavior
+            removeCSS(doc)
             websiteSpecificFixes(contentElement)
 
             contentElement.forEach { element -> element.children()?.forEach { cleanCSSFromChildren(it) } }
@@ -31,7 +30,8 @@ class GenericSelectorQueryCleaner(
             constructedContent.addAll(contentElement)
         } else {
             // Comprehensive subqueries
-            val subContent = subQueries.map { body.select(it.query) }
+            val subContent = subQueries.map { if (it.query.isEmpty()) Elements() else body.select(it.query) }
+            removeCSS(doc)
             subContent.forEachIndexed { index, elements ->
                 val q = subQueries[index]
 
@@ -78,7 +78,6 @@ class GenericSelectorQueryCleaner(
 //                    SubqueryRole.RPage -> {}
                     else -> {}
                 }
-
                 elements.forEach { cleanCSSFromChildren(it) }
                 constructedContent.addAll(elements)
             }
@@ -94,9 +93,11 @@ class GenericSelectorQueryCleaner(
             doc.getElementsByClass("respond-container")?.remove()
         }
 
-        doc.body().children().remove()
-        doc.body().classNames().forEach { doc.body().removeClass(it) }
-        doc.body().append(constructedContent.outerHtml())
+        body.children().remove()
+        body.classNames().forEach { body.removeClass(it) }
+        body.append(constructedContent.outerHtml())
+        if (query.customCSS.isNotEmpty())
+            body.append("<style>${query.customCSS}</style>");
 
     }
 

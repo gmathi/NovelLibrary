@@ -44,6 +44,26 @@ open class HtmlCleaner protected constructor() {
             // RHeader, RContent, RPage, RFooter, RNavigation, RMeta, RShare, RComments
             // Make sure to put host-restricted queries first, since they likely trigger some other selector.
 
+            SelectorQuery(".nv__main", host = "activetranslations.xyz", subqueries = listOf(
+                SelectorSubquery(".nv-page-title", SubqueryRole.RHeader, optional = false, multiple = false),
+                SelectorSubquery("div[class*='entry-content']", SubqueryRole.RContent, optional = false, multiple = false),
+                SelectorSubquery(".nnl_container", SubqueryRole.RNavigation, optional = true, multiple = false),
+                SelectorSubquery("#comments", SubqueryRole.RComments, optional = true, multiple = false),
+                SelectorSubquery("div[class*='entry-content']>style", SubqueryRole.RWhitelist, optional = false, multiple = true),
+            ), keepContentClasses = true, customCSS = """
+                *,*::before,*::after {
+                    user-select: initial !important;
+                    
+                    top: initial!important;
+                    bottom: initial!important;
+                    left: initial!important;
+                    right: initial!important;
+                }
+            """.trimIndent()),
+
+            // Github, DIY Translations as an example
+            SelectorQuery("div#readme", host="github.com"),
+
             // Most common in wordpress-hosted websites, but also nicely matches a bunch of others.
             SelectorQuery("div.entry-content", subqueries = listOf(
                 SelectorSubquery(".entry-title,.entry-header", SubqueryRole.RHeader, optional = true, multiple = false),
@@ -66,12 +86,22 @@ open class HtmlCleaner protected constructor() {
                 SelectorSubquery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
             )),
 
+            // Modern tumblr
             SelectorQuery("div#content", host = "tumblr.com", subqueries = listOf(
                 SelectorSubquery("div.entry>.body", SubqueryRole.RContent, optional = true, multiple = false),
                 SelectorSubquery(".posttitle", SubqueryRole.RHeader, optional = true, multiple = false),
-                SelectorSubquery(".permalink", SubqueryRole.RMeta, optional = true, multiple = true),
+                SelectorSubquery("#jp-post-flair,.wpcnt,.permalink", SubqueryRole.RMeta, optional = true, multiple = true),
                 SelectorSubquery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
             )),
+
+            // Legacy TumblrCleaner. Boy, tumblr has so many variations.
+            SelectorQuery("div.textpostbody", host = "tumblr.com", subqueries = listOf(
+                SelectorSubquery(".textposttitle", SubqueryRole.RHeader, optional = true, multiple = false),
+                SelectorSubquery("", SubqueryRole.RContent, optional = true, multiple = false),
+                SelectorSubquery("#jp-post-flair,.wpcnt,.permalink", SubqueryRole.RMeta, optional = true, multiple = true),
+                SelectorSubquery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
+            )),
+
             // Legacy selectors
             SelectorQuery("div.chapter-content"),
             SelectorQuery("div.entry-content"),
@@ -98,7 +128,8 @@ open class HtmlCleaner protected constructor() {
             SelectorQuery("article.article-content"),
             SelectorQuery("div.page-content"),
             SelectorQuery("div.legacy-journal"), // Sample: deviantart journals (NU group: darksilencer)
-            SelectorQuery("article.entry-content") //GitHub
+            SelectorQuery("article.entry-content"), //GitHub
+            SelectorQuery("article"),
         )
 
         private const val TAG = "HtmlHelper"
@@ -107,15 +138,12 @@ open class HtmlCleaner protected constructor() {
             when {
                 url.contains(HostNames.WATTPAD) -> return WattPadCleaner()
                 url.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldCleaner()
-                url.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsCleaner()
                 url.contains(HostNames.QIDIAN) -> return QidianCleaner()
                 url.contains(HostNames.GOOGLE_DOCS) -> return GoogleDocsCleaner()
                 url.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsCleaner()
-                url.contains(HostNames.TUMBLR) -> return TumblrCleaner()
                 url.contains(HostNames.BAKA_TSUKI) -> return BakaTsukiCleaner()
                 url.contains(HostNames.SCRIBBLE_HUB) -> return ScribbleHubCleaner()
                 url.contains(HostNames.NEOVEL) -> return NeovelCleaner()
-                url.contains(HostNames.ACTIVE_TRANSLATIONS) -> return ActiveTranslationsCleaner()
                 url.contains(HostNames.CHRYSANTHEMUMGARDEN) -> return ChrysanthemumgardenCleaner()
             }
 
