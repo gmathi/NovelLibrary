@@ -152,7 +152,8 @@ open class HtmlCleaner protected constructor() {
                 if ((it.host == null || url.contains(it.host)) && body.select(it.query).isNotEmpty()) {
                     // Check non-optional subqueries to ensure we match the correct website.
                     // TODO: Optimise with running all queries at once and storing them, instead of rerunning them a second time inside cleaner
-                    it.subqueries.all { sub ->
+                    if (it.subqueries.count() == 0) true
+                    else it.subqueries.all { sub ->
                         sub.optional || body.select(sub.query).isNotEmpty()
                     }
                 } else false
