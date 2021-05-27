@@ -1,0 +1,49 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.mgn.bingenovelreader.fragment.LibraryFragment">
+
+    <item
+        android:id="@+id/action_novel_remove"
+        android:icon="@drawable/ic_delete_white_vector"
+        android:title="@string/remove"
+        android:titleCondensed="@string/delete_chapters"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_reset_novel"
+        android:icon="@drawable/ic_restore_white_vector"
+        android:title="@string/reset_novel"
+        android:titleCondensed="@string/unread"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_novel_assign_novel_section"
+        android:icon="@drawable/ic_forward_white_vector"
+        android:title="@string/assign_novel_section"
+        android:titleCondensed="@string/download"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_select_interval"
+        android:icon="@drawable/ic_settings_ethernet_white_vector"
+        android:title="@string/select_interval"
+        android:titleCondensed="@string/select_interval"
+        app:showAsAction="ifRoom|withText" />
+
+    <item
+        android:id="@+id/action_select_all"
+        android:icon="@drawable/ic_check_all_white_vector"
+        android:title="@string/select_all"
+        android:titleCondensed="@string/select_all"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_clear_selection"
+        android:icon="@drawable/ic_uncheck_all_white_vector"
+        android:title="@string/clear_selection"
+        android:titleCondensed="@string/clear_selection"
+        app:showAsAction="ifRoom" />
+
+
+</menu>

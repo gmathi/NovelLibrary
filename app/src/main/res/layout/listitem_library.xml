@@ -44,16 +44,34 @@
 
         </androidx.cardview.widget.CardView>
 
-        <ImageView
-            android:id="@+id/popMenu"
+        <RelativeLayout
+            android:id="@+id/rightItemsLayout"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:paddingStart="@dimen/default_margin"
-            android:paddingEnd="8dp"
             android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:scaleType="centerInside"
-            app:srcCompat="@drawable/ic_more_vert_white_vector" />
+            android:layout_centerVertical="true">
+
+            <ImageView
+                android:id="@+id/popMenu"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:paddingStart="@dimen/default_margin"
+                android:paddingEnd="8dp"
+                android:scaleType="centerInside"
+                app:srcCompat="@drawable/ic_more_vert_white_vector"
+                tools:visibility="invisible" />
+
+            <CheckBox
+                android:id="@+id/checkbox"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:checked="false"
+                android:visibility="invisible"
+                tools:visibility="visible" />
+
+        </RelativeLayout>
 
 
         <TextView
@@ -64,7 +82,7 @@
             android:layout_marginStart="@dimen/default_margin"
             android:layout_marginTop="-2dp"
             android:layout_marginEnd="0dp"
-            android:layout_toStartOf="@id/popMenu"
+            android:layout_toStartOf="@id/rightItemsLayout"
             android:layout_toEndOf="@id/novelImageViewLayout"
             android:ellipsize="marquee"
             android:fadingEdge="horizontal"
@@ -86,7 +104,7 @@
             android:layout_alignParentBottom="true"
             android:layout_marginStart="@dimen/default_margin"
             android:layout_marginEnd="0dp"
-            android:layout_toStartOf="@id/popMenu"
+            android:layout_toStartOf="@id/rightItemsLayout"
             android:layout_toEndOf="@id/novelImageViewLayout"
             android:gravity="center_vertical"
             android:orientation="horizontal">
@@ -137,5 +155,12 @@
         tools:background="@color/DarkRed"
         tools:text="4"
         tools:visibility="visible" />
+
+    <View
+        android:id="@+id/blackOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@color/black_overlay_dark"
+        android:visibility="invisible" />
 
 </RelativeLayout>

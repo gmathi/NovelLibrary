@@ -631,10 +631,10 @@
     <string name="auto_read_next_chapter_description">Automatically read the next chapter when the current chapter finishes in Read Aloud mode</string>
 
     <!-- 0.15.5-->
-    <string name="reset_novel" tools:ignore="MissingTranslation">Hard Reset Novel</string>
+    <string name="reset_novel">Hard Reset Novel</string>
 
     <!-- 0.15.6-->
-    <string name="licensed_warning" tools:ignore="MissingTranslation">This novel was officially licensed by %1$s and may have missing (by DMCA or voluntary), or paywalled, chapters</string>
+    <string name="licensed_warning">This novel was officially licensed by %1$s and may have missing (by DMCA or voluntary), or paywalled, chapters</string>
 
     <!-- 0.16 -->
     <string name="sync_fetching_chapter_counts">Obtaining chapter counts: %1$d / %2$d\n%3$s</string>
@@ -760,5 +760,7 @@
     <string name="other_source">Other</string>
     <string name="empty_extensions">No Extensions Found!</string>
 
+    <string name="remove_novels">Do you want to remove selected novels from your library?</string>
+    <string name="reset_novels">Do you want to hard reset selected novels?</string>
 
 </resources>
