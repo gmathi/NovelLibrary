@@ -17,7 +17,6 @@ object HostNames {
     const val MOON_BUNNY_CAFE = "moonbunnycafe.com"
     const val BLUE_SILVER_TRANSLATIONS = "bluesilvertranslations.wordpress.com"
     const val GOOGLE_DOCS = "docs.google.com"
-    const val TUMBLR = "tumblr.com"
     const val BAKA_TSUKI = "baka-tsuki.org"
     const val NOVEL_FULL = "novelfull.com"
     const val SCRIBBLE_HUB = "scribblehub.com"

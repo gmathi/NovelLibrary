@@ -14,11 +14,11 @@ class GenericSelectorQueryCleaner(
     override fun additionalProcessing(doc: Document) {
 
         val body = doc.body()
-        val contentElement = body.select(query.query)
+        val contentElement = body.select(query.selector)
         val subQueries = query.subqueries
         val constructedContent = Elements()
         var hasHeader = false
-        if (subQueries.count() == 0) {
+        if (subQueries.isEmpty()) {
             // Legacy cleaner behavior
             removeCSS(doc)
             websiteSpecificFixes(contentElement)
@@ -30,12 +30,12 @@ class GenericSelectorQueryCleaner(
             constructedContent.addAll(contentElement)
         } else {
             // Comprehensive subqueries
-            val subContent = subQueries.map { if (it.query.isEmpty()) Elements() else body.select(it.query) }
+            val subContent = subQueries.map { if (it.selector.isEmpty()) Elements() else body.select(it.selector) }
             removeCSS(doc)
             subContent.forEachIndexed { index, elements ->
                 val q = subQueries[index]
 
-                if (!q.multiple && elements.count() > 0) {
+                if (!q.multiple && elements.isNotEmpty()) {
                     val first = elements.first()
                     elements.clear()
                     elements.add(first)
@@ -43,11 +43,11 @@ class GenericSelectorQueryCleaner(
 
                 when (q.role) {
                     SubqueryRole.RContent -> {
-                        if (elements.count() == 0) elements.addAll(contentElement)
+                        if (elements.isEmpty()) elements.addAll(contentElement)
                         websiteSpecificFixes(elements)
                     }
                     SubqueryRole.RHeader ->
-                        hasHeader = elements.count() > 0
+                        hasHeader = elements.isNotEmpty()
 //                    SubqueryRole.RFooter -> {}
                     SubqueryRole.RShare -> {
                         elements.remove()
@@ -111,7 +111,7 @@ class GenericSelectorQueryCleaner(
     }
 
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
-        return getLinkedChapters(doc.location(), doc.body().select(query.query).firstOrNull())
+        return getLinkedChapters(doc.location(), doc.body().select(query.selector).firstOrNull())
     }
 
     private fun removeDirectionalLinks(contentElement: Elements) {
