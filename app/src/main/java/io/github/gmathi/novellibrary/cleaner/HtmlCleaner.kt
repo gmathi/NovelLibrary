@@ -37,6 +37,18 @@ open class HtmlCleaner protected constructor() {
         private const val genericShareSubquery = ".sd-block,.sharedaddy"
         private const val genericMetaSubquery = ".byline,.posted-on,.cat-links,.tags-links,.entry-author,.post-date,.post-info,.post-meta,.entry-meta"
 
+        private val imageAttributes = listOf(
+            "data-orig-file",
+            "data-large-file",
+            "lazy-src",
+            "src",
+            "data-lazy-src",
+            "data-medium-file",
+            "data-small-file",
+            "data-srcset",
+            "srcset"
+        )
+
         private val defaultSelectorQueries = listOf(
             // Comprehensive selectors
             // Note: Subquery ordering is important, one that are attached to the end-results are attached in that order.
@@ -284,32 +296,24 @@ open class HtmlCleaner protected constructor() {
         }
     }
 
-    open fun getImageUrl(element: Element): String? {
+    open fun getImageUrl(element: Element, absolute: Boolean = false): String? {
+        val attr = imageAttributes.firstOrNull { element.hasAttr(it) }
         return when {
-            element.hasAttr("data-orig-file") -> element.absUrl("data-orig-file")
-            element.hasAttr("data-large-file") -> element.absUrl("data-large-file")
-            element.hasAttr("lazy-src") -> element.absUrl("lazy-src")
-            element.hasAttr("src") -> element.absUrl("src")
-            element.hasAttr("data-lazy-src") -> element.absUrl("data-lazy-src")
-            element.hasAttr("data-medium-file") -> element.absUrl("data-medium-file")
-            element.hasAttr("data-small-file") -> element.absUrl("data-small-file")
-            element.hasAttr("data-srcset") -> {
-                // Parse highest possible resolution
-                val src = element.attr("data-srcset").substringAfterLast(',').trim().substringBeforeLast(' ')
-                element.attr("_srcset", src)
-                val ret = element.absUrl("_srcset")
-                element.removeAttr("_srcset")
-                ret
+            attr == null -> null
+            attr.endsWith("srcset") -> {
+                val src = element.attr(attr).substringAfterLast(',').trim().substringBeforeLast(' ')
+                if (absolute) {
+                    element.attr("_srcset", src)
+                    val ret = element.absUrl("_srcset")
+                    element.removeAttr("_srcset")
+                    ret
+                } else {
+                    src
+                }
             }
-            element.hasAttr("srcset") -> {
-                // Parse highest possible resolution
-                val src = element.attr("srcset").substringAfterLast(',').trim().substringBeforeLast(' ')
-                element.attr("_srcset", src)
-                val ret = element.absUrl("_srcset")
-                element.removeAttr("_srcset")
-                ret
-            }
-            else -> null
+            else ->
+                if (absolute) element.absUrl(attr)
+                else element.attr(attr)
         }
     }
 
@@ -326,7 +330,7 @@ open class HtmlCleaner protected constructor() {
     }
 
     open fun getImageFile(element: Element, dir: File): File? {
-        val uri = Uri.parse(getImageUrl(element) ?: return null)
+        val uri = Uri.parse(getImageUrl(element, true) ?: return null)
         val file: File
         try {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: $uri")
@@ -340,7 +344,7 @@ open class HtmlCleaner protected constructor() {
     }
 
     open fun downloadImage(element: Element, file: File): File? {
-        val uri = Uri.parse(getImageUrl(element) ?: return null)
+        val uri = Uri.parse(getImageUrl(element, true) ?: return null)
         if (uri.toString().contains("uploads/avatars")) return null
         try {
             val response = Jsoup.connect(uri.toString()).userAgent(HostNames.USER_AGENT).ignoreContentType(true).execute()
