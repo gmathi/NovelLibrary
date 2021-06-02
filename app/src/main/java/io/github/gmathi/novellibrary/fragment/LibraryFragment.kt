@@ -354,29 +354,15 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         lifecycleScope.launch(Dispatchers.IO) syncing@{
 
             if (activity == null) return@syncing
-
-            withContext(Dispatchers.Main) {
-                if (this@LibraryFragment.syncSnackBar != null)
-                    syncSnackBarManager.dismiss()
-                this@LibraryFragment.syncSnackBar = SnackProgressBar(
-                    SnackProgressBar.TYPE_HORIZONTAL,
-                    getString(R.string.sync_in_progress) + " - " + getString(R.string.please_wait)
-                )
-                syncSnackBarManager.show(syncSnackBar!!, SnackProgressBarManager.LENGTH_INDEFINITE)
-                activity?.invalidateOptionsMenu()
-            }
-
-            val totalChaptersMap: HashMap<Novel, ArrayList<WebPage>> = HashMap()
-            val novels = if (novel == null) dbHelper.getAllNovels(novelSectionId) else listOf(novel)
-
-            withContext(Dispatchers.Main) {
-                syncSnackBarManager.updateTo(syncSnackBar!!.setProgressMax(novels.count()))
-            }
+            snackBarView(SnackBarStatus.Initialize, message = getString(R.string.sync_in_progress) + " - " + getString(R.string.please_wait))
 
             var counter = 0
             val waitList = LinkedList<Deferred<Boolean>>()
-            novels.forEach {
+            val totalChaptersMap: HashMap<Novel, ArrayList<WebPage>> = HashMap()
+            val novels = if (novel == null) dbHelper.getAllNovels(novelSectionId) else listOf(novel)
+            snackBarView(SnackBarStatus.MaxProgress, maxProgress = novels.count())
 
+            novels.forEach {
                 waitList.add(async {
                     try {
 
@@ -396,13 +382,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                             totalChaptersMap[it] = ArrayList(newChaptersList)
                         }
 
-                        withContext(Dispatchers.Main) {
-                            syncSnackBar?.let { snackBar ->
-                                syncSnackBarManager.updateTo(snackBar.setMessage(getString(R.string.sync_done_fetching_chapters, it.name, (novels.count() - counter++))))
-                                syncSnackBarManager.setProgress(counter)
-                            }
-                        }
-
+                        val message = getString(R.string.sync_done_fetching_chapters, it.name, (novels.count() - counter++))
+                        snackBarView(SnackBarStatus.Update, message = message, progress = counter)
 
                     } catch (e: Exception) {
                         Logs.error(TAG, "Novel: $it", e)
@@ -416,30 +397,17 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             //Update DB with new chapters
             waitList.clear()
             counter = 0
-            withContext(Dispatchers.Main) {
-                syncSnackBarManager.updateTo(syncSnackBarManager.getLastShown()?.setProgressMax(totalChaptersMap.count())!!)
-            }
+            snackBarView(SnackBarStatus.MaxProgress, maxProgress = totalChaptersMap.count())
 
             totalChaptersMap.forEach {
                 val novelToUpdate = it.key
                 var chapters = it.value
                 counter++
-                withContext(Dispatchers.Main) {
-                    syncSnackBar?.let { progressBar ->
-                        syncSnackBarManager.updateTo(
-                            progressBar.setMessage(
-                                getString(
-                                    R.string.sync_fetching_chapter_list,
-                                    counter, totalChaptersMap.count(), novelToUpdate.name
-                                )
-                            )
-                        )
-                        syncSnackBarManager.setProgress(counter)
-                    }
-                }
+
+                val message = getString(R.string.sync_fetching_chapter_list, counter, totalChaptersMap.count(), novelToUpdate.name)
+                snackBarView(SnackBarStatus.Update, message = message, progress = counter)
 
                 // We re-fetch the chapters in-case of NovelUpdates so that we also retrieve the translator information.
-
                 novelToUpdate.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
 
                 var newChaptersCount = chapters.size - novelToUpdate.chaptersCount
@@ -481,13 +449,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             }
 
             waitList.awaitAll()
-
-            withContext(Dispatchers.Main) {
-                syncSnackBarManager.dismiss()
-                syncSnackBar = null
-            }
-
-            activity?.invalidateOptionsMenu()
+            snackBarView(SnackBarStatus.Dismiss)
         }
     }
 
@@ -620,7 +582,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 else if (which != 0)
                     id = novelSections[which - 1].id
 
-                novels.forEach { novel ->
+                withSnackBarStatus("Assigning") { novel ->
                     dbHelper.updateNovelSectionId(novel.id, id)
                     EventBus.getDefault().post(NovelSectionEvent(id))
                     NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) {
@@ -629,7 +591,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                             novelSections.firstOrNull { section -> section.id == id })
                     }
                 }
-                actionMode?.finish()
                 setData()
             }
         }
@@ -676,34 +637,25 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 removeFromDataSet(novels)
             }
             R.id.action_novel_remove -> {
-                confirmDialog(getString(R.string.remove_novels), { dialog ->
-                    dataSet.forEach { dbHelper.cleanupNovelData(it) }
-                    mode?.finish()
+                confirmDialog(getString(R.string.remove_novels), {
+                    withSnackBarStatus("Deleting") { novel ->
+                        dbHelper.cleanupNovelData(novel)
+                    }
                 })
             }
             R.id.action_reset_novel -> {
                 confirmDialog(getString(R.string.reset_novel), {
                     if (networkHelper.isConnectedToNetwork()) {
-                        dataSet.forEach {
-                            // We cannot block the main thread since we end up using Network methods later in dbHelper.resetNovel()
-                            // Instead of using async{} which is deprecated, we can use GlobalScope.Launch {} which uses the Kotlin Coroutines
-                            // We run resetNovel in GlobalScope, wait for it with .join() (which is why we need runBlocking{})
-                            // then we syncNovels() so that it shows in Library
-                            runBlocking {
-                                GlobalScope.launch {
-                                    try {
-                                        dbHelper.resetNovel(it)
-                                    } catch (e: Exception) {
-                                        Logs.error("LibraryFragment", "resetNovel: $it", e)
-                                    }
-                                }.join()
-                                setData()
+                        withSnackBarStatus("Resetting") { novel ->
+                            lifecycleScope.launch(Dispatchers.IO) {
+                                dbHelper.resetNovel(novel)
                             }
                         }
+                        setData()
                     } else {
                         showAlertDialog(message = "You need to be connected to Internet to Hard Reset.")
+                        mode?.finish()
                     }
-                    mode?.finish()
                 })
             }
             R.id.action_novel_assign_novel_section -> {
@@ -766,6 +718,65 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
                 lifecycleOwner(this@LibraryFragment)
             }
+        }
+    }
+
+    /**
+     * To Track SnackBar Status
+     */
+    enum class SnackBarStatus {
+        Initialize,
+        Update,
+        Dismiss,
+        MaxProgress
+    }
+
+    /**
+     *  Consolidate the SnackBarManager & SnackBar interactions based on the operation being performed.
+     */
+    private suspend fun snackBarView(status: SnackBarStatus, message: String = "", maxProgress: Int = 1, progress: Int = 0) = withContext(Dispatchers.Main) {
+        when (status) {
+            SnackBarStatus.Initialize -> {
+                if (this@LibraryFragment.syncSnackBar != null)
+                    syncSnackBarManager.dismiss()
+                this@LibraryFragment.syncSnackBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, message)
+                syncSnackBarManager.show(syncSnackBar!!, SnackProgressBarManager.LENGTH_INDEFINITE)
+                activity?.invalidateOptionsMenu()
+            }
+
+            SnackBarStatus.MaxProgress -> {
+                syncSnackBar?.let { syncSnackBarManager.updateTo(it.setProgressMax(maxProgress)) }
+            }
+
+            SnackBarStatus.Update -> {
+                syncSnackBar?.let {
+                    syncSnackBarManager.updateTo(it.setMessage(message))
+                    syncSnackBarManager.setProgress(progress)
+                }
+            }
+
+            SnackBarStatus.Dismiss -> {
+                syncSnackBarManager.dismiss()
+                syncSnackBar = null
+                activity?.invalidateOptionsMenu()
+                actionMode?.finish()
+            }
+        }
+    }
+
+    /**
+     * Handy actionMode operations functions that wraps around updating the status for action being performed.
+     */
+    private fun withSnackBarStatus(action: String = "", operation: (novel: Novel) -> Unit) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            snackBarView(SnackBarStatus.Initialize)
+            snackBarView(SnackBarStatus.MaxProgress, maxProgress = dataSet.size)
+            dataSet.forEachIndexed { index, novel ->
+                val message = "$action: ${novel.name}\nChecking: $index/${dataSet.size}"
+                snackBarView(SnackBarStatus.Update, message = message, progress = index + 1)
+                operation(novel)
+            }
+            snackBarView(SnackBarStatus.Dismiss)
         }
     }
 

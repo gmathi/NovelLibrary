@@ -322,7 +322,13 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
             var progressCnt: Int = 0
             updateSet.asSequence().forEach {
                 snackProgressBarManager.updateTo(snackProgressBar.setMessage("Importing: ${it.novelName}"))
-                withContext(Dispatchers.IO) { importNovelToLibrary(it) }
+                withContext(Dispatchers.IO) {
+                    try {
+                        importNovelToLibrary(it)
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {(e.localizedMessage ?: "Something went wrong!") }
+                    }
+                }
                 it.isAlreadyInLibrary = true
                 snackProgressBarManager.setProgress(++progressCnt)
             }
