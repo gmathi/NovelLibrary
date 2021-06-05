@@ -19,6 +19,7 @@ class AppModule(val app: Application) : InjektModule {
         addSingletonFactory { DBHelper.getInstance(app) }
         addSingletonFactory { DataCenter(app) }
         addSingletonFactory { NetworkHelper(app) }
+//        addSingletonFactory { JsoupNetworkHelper(app) }
         addSingletonFactory { SourceManager(app).also { get<ExtensionManager>().init(it) } }
         addSingletonFactory { ExtensionManager(app) }
 
@@ -30,6 +31,7 @@ class AppModule(val app: Application) : InjektModule {
             get<DBHelper>()
             get<DataCenter>()
             get<NetworkHelper>()
+//            get<JsoupNetworkHelper>()
             get<SourceManager>()
         }
     }

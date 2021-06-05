@@ -55,14 +55,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
         initWebView
 
-        val cookie = CookieManager.getInstance().getCookie(originalRequest.url.toString()) ?: ""
-        val response = if (originalRequest.headers["Cookie"] == null && cookie.isNotEmpty()) {
-            val authorized = originalRequest.newBuilder()
-                .addHeader("Cookie", cookie)
-                .build();
-            chain.proceed(authorized);
-        } else
-            chain.proceed(originalRequest)
+        val response = chain.proceed(originalRequest)
 
         // Check if Cloudflare anti-bot is on
         if (response.code != 503 || response.header("Server") !in SERVER_CHECK) {
