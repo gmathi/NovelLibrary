@@ -30,8 +30,6 @@ import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
-import io.github.gmathi.novellibrary.model.other.ChapterActionModeEvent
-import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.model.other.NovelEvent
 import io.github.gmathi.novellibrary.model.other.NovelSectionEvent
 import io.github.gmathi.novellibrary.network.sync.NovelSync
@@ -585,13 +583,12 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 withSnackBarStatus("Assigning") { novel ->
                     dbHelper.updateNovelSectionId(novel.id, id)
                     EventBus.getDefault().post(NovelSectionEvent(id))
-                    NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) {
-                        if (dataCenter.getSyncAddNovels(it.host)) it.updateNovel(
-                            novel,
-                            novelSections.firstOrNull { section -> section.id == id })
+                    NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { novelSync ->
+                        if (dataCenter.getSyncAddNovels(novelSync.host)) {
+                            novelSync.updateNovel(novel, novelSections.firstOrNull { section -> section.id == id })
+                        }
                     }
                 }
-                setData()
             }
         }
     }
@@ -617,8 +614,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     override fun onDestroyActionMode(mode: ActionMode?) {
         dataSet.clear()
         actionMode = null
-        setData()
-        EventBus.getDefault().post(ChapterActionModeEvent(eventType = EventType.COMPLETE))
     }
 
     override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
@@ -647,9 +642,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 confirmDialog(getString(R.string.reset_novel), {
                     if (networkHelper.isConnectedToNetwork()) {
                         withSnackBarStatus("Resetting") { novel ->
-                            lifecycleScope.launch(Dispatchers.IO) {
-                                dbHelper.resetNovel(novel)
-                            }
+                            dbHelper.resetNovel(novel)
                         }
                         setData()
                     } else {
@@ -741,6 +734,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     syncSnackBarManager.dismiss()
                 this@LibraryFragment.syncSnackBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, message)
                 syncSnackBarManager.show(syncSnackBar!!, SnackProgressBarManager.LENGTH_INDEFINITE)
+                actionMode?.finish()
                 activity?.invalidateOptionsMenu()
             }
 
@@ -758,8 +752,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             SnackBarStatus.Dismiss -> {
                 syncSnackBarManager.dismiss()
                 syncSnackBar = null
-                activity?.invalidateOptionsMenu()
                 actionMode?.finish()
+                activity?.invalidateOptionsMenu()
+                setData()
             }
         }
     }
@@ -767,14 +762,15 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     /**
      * Handy actionMode operations functions that wraps around updating the status for action being performed.
      */
-    private fun withSnackBarStatus(action: String = "", operation: (novel: Novel) -> Unit) {
-        lifecycleScope.launch(Dispatchers.IO) {
+    private fun withSnackBarStatus(action: String = "", operation: suspend (novel: Novel) -> Unit) {
+        lifecycleScope.launch(Dispatchers.Main) {
+            val novels = ArrayList(dataSet)
             snackBarView(SnackBarStatus.Initialize)
-            snackBarView(SnackBarStatus.MaxProgress, maxProgress = dataSet.size)
-            dataSet.forEachIndexed { index, novel ->
-                val message = "$action: ${novel.name}\nChecking: $index/${dataSet.size}"
+            snackBarView(SnackBarStatus.MaxProgress, maxProgress = novels.size)
+            novels.forEachIndexed { index, novel ->
+                val message = "$action: ${novel.name}\nChecking: $index/${novels.size}"
                 snackBarView(SnackBarStatus.Update, message = message, progress = index + 1)
-                operation(novel)
+                withContext(Dispatchers.IO) { operation(novel) }
             }
             snackBarView(SnackBarStatus.Dismiss)
         }
