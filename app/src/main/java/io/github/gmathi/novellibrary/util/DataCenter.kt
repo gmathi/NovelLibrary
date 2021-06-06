@@ -9,11 +9,11 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.other.SelectorQuery
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.network.PREF_DOH_CLOUDFLARE
 import io.github.gmathi.novellibrary.util.Constants.DEFAULT_FONT_PATH
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import java.io.File
 import java.util.*
-import kotlin.collections.ArrayList
 
 
 class DataCenter(context: Context) {
@@ -99,6 +99,7 @@ class DataCenter(context: Context) {
 
         //DNS over HTTPS
         const val ENABLE_DOH = "enable_doh"
+        const val DOH_PROVIDER = "doh_provider"
 
         //Content Selectors List
         const val SELECTOR_QUERIES = "selectorsQueries"
@@ -424,9 +425,9 @@ class DataCenter(context: Context) {
         get() = prefs.getString(USER_SPECIFIED_SELECTOR_QUERIES, "") ?: ""
         set(value) = prefs.edit().putString(USER_SPECIFIED_SELECTOR_QUERIES, value).apply()
 
-    var enableDOH: Boolean
-        get() = prefs.getBoolean(ENABLE_DOH, false)
-        set(value) = prefs.edit().putBoolean(ENABLE_DOH, value).apply()
+    var dohProvider: Int
+        get() = prefs.getInt(DOH_PROVIDER, PREF_DOH_CLOUDFLARE)
+        set(value) = prefs.edit().putInt(DOH_PROVIDER, value).apply()
 
     var htmlCleanerSelectorQueries: ArrayList<SelectorQuery>
         get() = Gson().fromJson(prefs.getString(SELECTOR_QUERIES, "[]"), object : TypeToken<ArrayList<SelectorQuery>>() {}.type)

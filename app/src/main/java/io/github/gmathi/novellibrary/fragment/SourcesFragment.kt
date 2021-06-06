@@ -10,13 +10,15 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.createOrUpdateLargePreference
 import io.github.gmathi.novellibrary.databinding.ContentRecyclerViewBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
+import io.github.gmathi.novellibrary.extension.ExtensionManager
 import io.github.gmathi.novellibrary.model.source.getPreferenceKey
-import io.github.gmathi.novellibrary.model.source.icon
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaults
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 class SourcesFragment : BaseFragment(), GenericAdapter.Listener<HttpSource> {
 
@@ -59,7 +61,8 @@ class SourcesFragment : BaseFragment(), GenericAdapter.Listener<HttpSource> {
         itemBinding.subtitle.visibility = View.GONE
         itemBinding.icon.visibility = View.GONE
 
-        val drawable = item.icon()
+
+        val drawable = Injekt.get<ExtensionManager>().getAppIconForSource(item, itemView.context)
         if (drawable != null) {
             itemBinding.icon.visibility = View.VISIBLE
             itemBinding.icon.setImageDrawable(drawable)
@@ -83,7 +86,7 @@ class SourcesFragment : BaseFragment(), GenericAdapter.Listener<HttpSource> {
 
     //region OptionsMenu
     override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
-        menuInflater.inflate(R.menu.menu_recently_viewed_novels, menu)
+//        menuInflater.inflate(R.menu.menu_recently_viewed_novels, menu)
         return super.onCreateOptionsMenu(menu, menuInflater)
     }
 

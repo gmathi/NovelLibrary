@@ -10,6 +10,7 @@ import io.github.gmathi.novellibrary.extension.model.LoadResult
 import io.github.gmathi.novellibrary.extension.util.ExtensionInstallReceiver
 import io.github.gmathi.novellibrary.extension.util.ExtensionInstaller
 import io.github.gmathi.novellibrary.extension.util.ExtensionLoader
+import io.github.gmathi.novellibrary.extension.util.getApplicationIcon
 import io.github.gmathi.novellibrary.model.source.Source
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.util.DataCenter
@@ -67,6 +68,11 @@ class ExtensionManager(
             return iconMap[pkgName] ?: iconMap.getOrPut(pkgName) { context.packageManager.getApplicationIcon(pkgName) }
         }
         return null
+    }
+
+    fun getAppIconForSource(source: Source, context: Context): Drawable? {
+        val extension = installedExtensions.find { ext -> ext.sources.any { it.id == source.id } }
+        return extension?.getApplicationIcon(context)
     }
 
     /**

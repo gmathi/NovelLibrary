@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.network
+package io.github.gmathi.novellibrary.network.interceptor
 
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import okhttp3.Interceptor
@@ -12,7 +12,7 @@ class UserAgentInterceptor : Interceptor {
             val newRequest = originalRequest
                 .newBuilder()
                 .removeHeader("User-Agent")
-                .addHeader("User-Agent", HttpSource.DEFAULT_USERAGENT)
+                .addHeader("User-Agent", HttpSource.DEFAULT_USER_AGENT)
                 .build()
             chain.proceed(newRequest)
         } else {

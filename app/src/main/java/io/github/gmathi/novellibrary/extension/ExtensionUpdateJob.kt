@@ -57,6 +57,7 @@ class ExtensionUpdateJob(private val context: Context, workerParams: WorkerParam
     companion object {
         private const val TAG = "ExtensionUpdate"
 
+        @ExperimentalExpeditedWork
         fun setupTask(context: Context, forceAutoUpdateJob: Boolean? = null) {
             val dataCenter = Injekt.get<DataCenter>()
             val autoUpdateJob = forceAutoUpdateJob ?: dataCenter.automaticExtUpdates
@@ -71,6 +72,7 @@ class ExtensionUpdateJob(private val context: Context, workerParams: WorkerParam
                     1,
                     TimeUnit.HOURS
                 )
+                    .setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
                     .addTag(TAG)
                     .setConstraints(constraints)
                     .build()

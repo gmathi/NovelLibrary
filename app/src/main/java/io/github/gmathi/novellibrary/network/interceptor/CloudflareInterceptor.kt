@@ -1,18 +1,17 @@
-package io.github.gmathi.novellibrary.network
+package io.github.gmathi.novellibrary.network.interceptor
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.webkit.CookieManager
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.Toast
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
+import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.lang.launchUI
-import io.github.gmathi.novellibrary.util.system.*
+import io.github.gmathi.novellibrary.util.system.toast
 import io.github.gmathi.novellibrary.util.view.WebViewClientCompat
 import io.github.gmathi.novellibrary.util.view.WebViewUtil
 import io.github.gmathi.novellibrary.util.view.extensions.isOutdated
@@ -69,7 +68,6 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
                 .firstOrNull { it.name == "cf_clearance" }
             resolveWithWebView(originalRequest, oldCookie)
 
-            //resolveWithCloudFlareLib(originalRequest, oldCookie)
             return chain.proceed(originalRequest)
         } catch (e: Exception) {
             // Because OkHttp's enqueue only handles IOExceptions, wrap the exception so that
@@ -101,7 +99,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
             // Avoid sending empty User-Agent, Chromium WebView will reset to default if empty
             webview.settings.userAgentString = request.header("User-Agent")
-                ?: HttpSource.DEFAULT_USERAGENT
+                ?: HttpSource.DEFAULT_USER_AGENT
 
             webview.webViewClient = object : WebViewClientCompat() {
                 override fun onPageFinished(view: WebView, url: String) {
@@ -116,10 +114,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
                         latch.countDown()
                     }
 
-                    // HTTP error codes are only received since M
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                        url == origRequestUrl && !challengeFound
-                    ) {
+                    if (url == origRequestUrl && !challengeFound) {
                         // The first request didn't return the challenge, abort.
                         latch.countDown()
                     }
@@ -158,6 +153,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
             webView?.stopLoading()
             webView?.destroy()
+            webView = null
         }
 
         // Throw exception if we failed to bypass Cloudflare

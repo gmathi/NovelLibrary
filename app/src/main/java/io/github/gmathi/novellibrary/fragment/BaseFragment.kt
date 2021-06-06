@@ -21,7 +21,7 @@ open class BaseFragment : Fragment() {
 
     fun resolveCloudflare(url: String, completionBlock: (success: Boolean, url: String, errorMessage: String?) -> Void) {
         val cf = Cloudflare(requireActivity(), url);
-        cf.user_agent = HttpSource.DEFAULT_USERAGENT
+        cf.user_agent = HttpSource.DEFAULT_USER_AGENT
         cf.setCfCallback(object : CfCallback {
             override fun onSuccess(cookieList: MutableList<HttpCookie>?, hasNewUrl: Boolean, newUrl: String?) {
                 val manager = CookieManager.getInstance()
