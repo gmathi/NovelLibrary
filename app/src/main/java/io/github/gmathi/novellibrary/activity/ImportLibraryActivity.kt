@@ -83,8 +83,8 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
             getNovelsFromUrl()
         }
 
-// Test Only
-//        binding.contentImportLibrary.readingListUrlEditText.setText("https://www.novelupdates.com/user/87290/goa_naidu2010/?rl=1")
+        // Test Only
+//        binding.contentImportLibrary.readingListUrlEditText.setText("https://www.novelupdates.com/user/373478/test_account/?rl=1")
 //        getNovelsFromUrl()
 //        adapter.notifyDataSetChanged()
 
@@ -327,7 +327,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
                     withContext(Dispatchers.IO) { importNovelToLibrary(it) }
                     it.isAlreadyInLibrary = true
                 } catch (e: Exception) {
-                    (e.localizedMessage ?: "Something went wrong!")
+                    //Do Nothing
                 }
                 snackProgressBarManager.setProgress(++progressCnt)
             }

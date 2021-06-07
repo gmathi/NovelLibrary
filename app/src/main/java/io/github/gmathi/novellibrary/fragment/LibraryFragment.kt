@@ -184,7 +184,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                         true
                     }
                     R.id.action_novel_assign_novel_section -> {
-                        showNovelSectionsList(listOf(item))
+                        showNovelSectionsList(arrayListOf(item))
                         true
                     }
                     R.id.action_reset_novel -> {
@@ -558,7 +558,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             }
     }
 
-    private fun showNovelSectionsList(novels: List<Novel>) {
+    private fun showNovelSectionsList(novels: ArrayList<Novel>) {
+        val isMultiNovelUpdate = novels.size > 1
         val novelSections = ArrayList(dbHelper.getAllNovelSections())
         if (novelSections.isEmpty()) {
             MaterialDialog(requireActivity()).show {
@@ -580,7 +581,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 else if (which != 0)
                     id = novelSections[which - 1].id
 
-                withSnackBarStatus("Assigning") { novel ->
+                withSnackBarStatus(novels,"Assigning") { novel ->
                     dbHelper.updateNovelSectionId(novel.id, id)
                     EventBus.getDefault().post(NovelSectionEvent(id))
                     NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { novelSync ->
@@ -589,6 +590,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                         }
                     }
                 }
+//                if (!isMultiNovelUpdate) setData()
             }
         }
     }
@@ -617,23 +619,25 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
-        val novels = adapter.items
+
         when (item?.itemId) {
             R.id.action_select_interval -> {
+                val novels = adapter.items
                 val firstIndex = novels.indexOf(dataSet.first())
                 val lastIndex = novels.indexOf(dataSet.last())
                 val subList = novels.subList(firstIndex, lastIndex)
                 addToDataSet(subList)
             }
             R.id.action_select_all -> {
-                addToDataSet(novels)
+                addToDataSet(adapter.items)
             }
             R.id.action_clear_selection -> {
-                removeFromDataSet(novels)
+                removeFromDataSet(adapter.items)
             }
             R.id.action_novel_remove -> {
                 confirmDialog(getString(R.string.remove_novels), {
-                    withSnackBarStatus("Deleting") { novel ->
+                    val novels = ArrayList(dataSet)
+                    withSnackBarStatus(novels,"Deleting") { novel ->
                         dbHelper.cleanupNovelData(novel)
                     }
                 })
@@ -641,7 +645,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             R.id.action_reset_novel -> {
                 confirmDialog(getString(R.string.reset_novel), {
                     if (networkHelper.isConnectedToNetwork()) {
-                        withSnackBarStatus("Resetting") { novel ->
+                        val novels = ArrayList(dataSet)
+                        withSnackBarStatus(novels, "Resetting") { novel ->
                             dbHelper.resetNovel(novel)
                         }
                         setData()
@@ -652,7 +657,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 })
             }
             R.id.action_novel_assign_novel_section -> {
-                showNovelSectionsList(dataSet.toList())
+                showNovelSectionsList(ArrayList(dataSet))
             }
         }
         return false
@@ -762,9 +767,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     /**
      * Handy actionMode operations functions that wraps around updating the status for action being performed.
      */
-    private fun withSnackBarStatus(action: String = "", operation: suspend (novel: Novel) -> Unit) {
+    private fun withSnackBarStatus(novels: ArrayList<Novel>, action: String = "", operation: suspend (novel: Novel) -> Unit) {
         lifecycleScope.launch(Dispatchers.Main) {
-            val novels = ArrayList(dataSet)
             snackBarView(SnackBarStatus.Initialize)
             snackBarView(SnackBarStatus.MaxProgress, maxProgress = novels.size)
             novels.forEachIndexed { index, novel ->
