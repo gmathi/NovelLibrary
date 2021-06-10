@@ -76,6 +76,16 @@ open class HtmlCleaner protected constructor() {
             // Github, DIY Translations as an example
             SelectorQuery("div#readme", host="github.com"),
 
+            SelectorQuery("div#content[role='main']", subqueries = listOf(
+                SelectorSubquery("h1.entry-title", SubqueryRole.RHeader, optional = true, multiple = false),
+                SelectorSubquery("div.entry-content", SubqueryRole.RContent, optional = true, multiple = false),
+                SelectorSubquery(".entry-footer,.entry-bottom", SubqueryRole.RFooter, optional = true, multiple = false),
+                SelectorSubquery(genericMetaSubquery, SubqueryRole.RMeta, optional = true, multiple = true),
+                SelectorSubquery(".post-navigation", SubqueryRole.RNavigation, optional = true, multiple = false),
+                SelectorSubquery(genericShareSubquery, SubqueryRole.RShare, optional = true, multiple = true),
+                SelectorSubquery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
+            )),
+
             // Most common in wordpress-hosted websites, but also nicely matches a bunch of others.
             SelectorQuery("div.entry-content", subqueries = listOf(
                 SelectorSubquery(".entry-title,.entry-header", SubqueryRole.RHeader, optional = true, multiple = false),
@@ -197,9 +207,9 @@ open class HtmlCleaner protected constructor() {
     open var keepContentIds = true
     open var keepContentClasses = false
 
-    fun downloadResources(doc: Document, hostDir: File, novelDir: File) {
+    fun downloadResources(doc: Document, novelDir: File) {
         // removeJS(doc)
-        downloadCSS(doc, hostDir)
+        downloadCSS(doc, novelDir)
         downloadImages(doc, novelDir)
         // additionalProcessing(doc)
         // addTitle(doc)

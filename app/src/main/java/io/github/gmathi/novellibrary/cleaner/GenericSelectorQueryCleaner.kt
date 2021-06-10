@@ -18,30 +18,41 @@ class GenericSelectorQueryCleaner(
         val subQueries = query.subqueries
         val constructedContent = Elements()
         var hasHeader = false
+
         if (subQueries.isEmpty()) {
-            // Legacy cleaner behavior
+            /**
+             *  Legacy Cleaning
+             */
+
+            // Remove the complete CSS links / Style elements in the doc
             removeCSS(doc)
+            // Any website specific tweaks that need to be done.
             websiteSpecificFixes(contentElement)
 
+            // Remove CSS Class/Ids from the child elements
             contentElement.forEach { element -> element.children()?.forEach { cleanCSSFromChildren(it) } }
-
             doc.getElementsByClass("post-navigation")?.remove()
 
+            //Add that back to the constructed elements
             constructedContent.addAll(contentElement)
+
         } else {
-            // Comprehensive subqueries
+            /**
+             * Comprehensive SubQueries
+             */
+
             val subContent = subQueries.map { if (it.selector.isEmpty()) Elements() else body.select(it.selector) }
             removeCSS(doc)
             subContent.forEachIndexed { index, elements ->
-                val q = subQueries[index]
+                val subQuery = subQueries[index]
 
-                if (!q.multiple && elements.isNotEmpty()) {
+                if (!subQuery.multiple && elements.isNotEmpty()) {
                     val first = elements.first()
                     elements.clear()
                     elements.add(first)
                 }
 
-                when (q.role) {
+                when (subQuery.role) {
                     SubqueryRole.RContent -> {
                         if (elements.isEmpty()) elements.addAll(contentElement)
                         websiteSpecificFixes(elements)
@@ -76,9 +87,12 @@ class GenericSelectorQueryCleaner(
                         return@forEachIndexed
                     }
 //                    SubqueryRole.RPage -> {}
-                    else -> {}
+                    else -> {
+                    }
                 }
-                elements.forEach { cleanCSSFromChildren(it) }
+                elements.forEach { element ->
+                    element.children()?.forEach { cleanCSSFromChildren(it) }
+                }
                 constructedContent.addAll(elements)
             }
         }
