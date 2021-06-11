@@ -4,8 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
-import android.webkit.CookieManager
-import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
@@ -16,25 +14,16 @@ import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
-import com.tingyik90.snackprogressbar.SnackProgressBar
-import com.zhkrb.cloudflare_scrape_webview.CfCallback
-import com.zhkrb.cloudflare_scrape_webview.Cloudflare
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.databinding.ActivityNavDrawerBinding
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.model.source.online.HttpSource
-import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.system.*
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.cryse.widget.persistentsearch.PersistentSearchView
-import java.net.HttpCookie
-import java.util.concurrent.atomic.AtomicBoolean
 
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -83,16 +72,15 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 title(text = "\uD83C\uDF89 What's New ${BuildConfig.VERSION_NAME}!")
                 message(
                     text =
-
-                    "✨️ External Sources!\n" +
-                            "✨️ Reader Mode Enhancements\n" +
-                            "✨ Long Press on Library Items!\n" +
+                    "✨️ 0.19 Goodies!\n" +
+                            "⚠️️ Fixed - Downloading wrong chapters/links within chapters.\n" +
+                            "⚠️ Fixed - Novel Section assigning from pop menu in the novel in Library.\n" +
+                            "⚠️ Fixed - Add to Library from Novel Details.\n" +
 //                            "✨ Font Style Preview!\n" +
-                    "⚠️ BugFixes that addresses image loading in a downloaded chapter\n" +
 //                            "⚠️ Fix - Hosted novels offline downloads announcement page\n" +
 //                            "⚠️ Fix - Positive button of Font style changer wasn't allowed\n" +
 //                            "❌️ Broken - Novel Sync\n" +
-                            "\uD83D\uDEE0️ Other major/minor bug fixes reported on GitHub.\n" +
+//                            "\uD83D\uDEE0️ Other major/minor bug fixes reported on GitHub.\n" +
 //                            "\uD83D\uDEE0 Support for 3 more translation sites in reader mode.\n" +
 //                            "\uD83D\uDEE0 Discord link updated.\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +

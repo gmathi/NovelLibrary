@@ -20,8 +20,8 @@ android {
         minSdkVersion 21
         targetSdkVersion 30
         multiDexEnabled true
-        versionCode 104
-        versionName "0.19.beta"
+        versionCode 105
+        versionName "0.19.1.beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -160,7 +160,7 @@ dependencies {
     implementation 'com.squareup.okio:okio:3.0.0-alpha.1'
 
     // TLS 1.3 support for Android < 10
-    implementation 'org.conscrypt:conscrypt-android:2.5.1'
+    implementation 'org.conscrypt:conscrypt-android:2.5.2'
 
     // REST
     final retrofit_version = '2.9.0'
