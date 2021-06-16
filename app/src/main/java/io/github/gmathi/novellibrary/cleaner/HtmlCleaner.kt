@@ -191,8 +191,8 @@ open class HtmlCleaner protected constructor() {
 
         private fun getSelectorQueries(): List<SelectorQuery> {
             val dataCenter: DataCenter by injectLazy()
-            var htmlCleanerSelectorQueries = dataCenter.htmlCleanerSelectorQueries
-            if (htmlCleanerSelectorQueries.isNullOrEmpty()) htmlCleanerSelectorQueries = ArrayList(defaultSelectorQueries)
+            val htmlCleanerSelectorQueries = dataCenter.htmlCleanerSelectorQueries
+            htmlCleanerSelectorQueries.addAll(defaultSelectorQueries)
 
             val userSpecifiedSelectorQueries = dataCenter.userSpecifiedSelectorQueries
             if (userSpecifiedSelectorQueries.isNotBlank()) {
