@@ -144,7 +144,7 @@ class GenericSelectorQueryCleaner(
                 SubqueryProcessingCommand.AddId -> els.attr("id", value)
                 SubqueryProcessingCommand.AddClass -> value.split(",").forEach { els.addClass(it.trim()) }
                 SubqueryProcessingCommand.DisableTTS -> {
-                    els.attr("aria-hidden", "true")
+                    els.attr("tts-disable", "true")
                     if (value.isNotEmpty()) els.attr("tts-substitute", value)
                 }
                 SubqueryProcessingCommand.FilterNotRegex -> {
