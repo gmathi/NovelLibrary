@@ -25,5 +25,7 @@ data class SelectorQuery(val selector: String, val appendTitleHeader: Boolean = 
  */
 data class SelectorSubquery(val selector: String, val role: SubqueryRole,
                             val optional: Boolean = true, val multiple: Boolean = true,
-                            val extraProcessing: Map<SubqueryProcessingCommand, String> = emptyMap()
+                            val extraProcessing: List<SubqueryProcessingCommandInfo> = emptyList()
 )
+
+data class SubqueryProcessingCommandInfo(val command: SubqueryProcessingCommand, val value: String = "")
