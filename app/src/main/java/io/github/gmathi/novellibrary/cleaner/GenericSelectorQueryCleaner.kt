@@ -1,6 +1,8 @@
 package io.github.gmathi.novellibrary.cleaner
 
 import io.github.gmathi.novellibrary.model.other.SelectorQuery
+import io.github.gmathi.novellibrary.model.other.SelectorSubquery
+import io.github.gmathi.novellibrary.model.other.SubqueryProcessingCommand
 import io.github.gmathi.novellibrary.model.other.SubqueryRole
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
@@ -33,6 +35,9 @@ class GenericSelectorQueryCleaner(
             contentElement.forEach { element -> element.children()?.forEach { cleanCSSFromChildren(it) } }
             doc.getElementsByClass("post-navigation")?.remove()
 
+            // Mark as a content.
+            contentElement.attr("data-role", SubqueryRole.RContent.toString())
+
             //Add that back to the constructed elements
             constructedContent.addAll(contentElement)
 
@@ -61,35 +66,48 @@ class GenericSelectorQueryCleaner(
                         hasHeader = elements.isNotEmpty()
 //                    SubqueryRole.RFooter -> {}
                     SubqueryRole.RShare -> {
+                        applyCommands(subQuery, elements)
                         elements.remove()
                         return@forEachIndexed
                     }
                     SubqueryRole.RComments ->
                         if (!dataCenter.showChapterComments) {
+                            applyCommands(subQuery, elements)
                             elements.remove()
                             return@forEachIndexed
                         }
                     SubqueryRole.RMeta -> {
+                        applyCommands(subQuery, elements)
                         elements.remove()
                         return@forEachIndexed
                     }
                     SubqueryRole.RNavigation ->
                         if (!dataCenter.enableDirectionalLinks) {
+                            applyCommands(subQuery, elements)
                             elements.remove()
                             return@forEachIndexed
                         }
                     SubqueryRole.RBlacklist -> {
+                        applyCommands(subQuery, elements)
                         elements.remove()
                         return@forEachIndexed
                     }
                     SubqueryRole.RWhitelist -> {
+                        applyCommands(subQuery, elements)
+                        elements.attr("data-role", subQuery.role.toString())
                         constructedContent.addAll(elements)
+                        return@forEachIndexed
+                    }
+                    SubqueryRole.RProcess -> {
+                        applyCommands(subQuery, elements)
                         return@forEachIndexed
                     }
 //                    SubqueryRole.RPage -> {}
                     else -> {
                     }
                 }
+                applyCommands(subQuery, elements)
+                elements.attr("data-role", subQuery.role.toString())
                 elements.forEach { element ->
                     element.children()?.forEach { cleanCSSFromChildren(it) }
                 }
@@ -100,7 +118,7 @@ class GenericSelectorQueryCleaner(
         if (!dataCenter.enableDirectionalLinks) removeDirectionalLinks(constructedContent)
 
         if (!hasHeader && query.appendTitleHeader)
-            constructedContent.first().prepend("<h4>${getTitle(doc)}</h4><br>")
+            constructedContent.first().prepend("<h4 data-role=\"${SubqueryRole.RHeader}\">${getTitle(doc)}</h4><br>")
 
         if (!dataCenter.showChapterComments) {
             doc.getElementsByClass("comments-container")?.remove()
@@ -113,6 +131,68 @@ class GenericSelectorQueryCleaner(
         if (query.customCSS.isNotEmpty())
             body.append("<style>${query.customCSS}</style>");
 
+    }
+
+    private fun applyCommands(subquery: SelectorSubquery, elements: Elements) {
+        var els = elements
+        subquery.extraProcessing.forEach { (command, value) ->
+            when (command) {
+                SubqueryProcessingCommand.AddAttribute -> {
+                    val split = value.split("=".toRegex(), 2)
+                    elements.attr(split[0], split[1])
+                }
+                SubqueryProcessingCommand.AddId -> els.attr("id", value)
+                SubqueryProcessingCommand.AddClass -> value.split(",").forEach { els.addClass(it.trim()) }
+                SubqueryProcessingCommand.DisableTTS -> {
+                    els.attr("aria-hidden", "true")
+                    if (value.isNotEmpty()) els.attr("tts-substitute", value)
+                }
+                SubqueryProcessingCommand.FilterNotRegex -> {
+                    val reg = value.toRegex()
+                    els = els.filterTo(Elements()) { !it.text().matches(reg) }
+                }
+                SubqueryProcessingCommand.FilterNotString ->
+                    els = els.filterTo(Elements()) { !it.text().contains(value) }
+                SubqueryProcessingCommand.FilterOnlyRegex -> {
+                    val reg = value.toRegex()
+                    els = els.filterTo(Elements()) { it.text().matches(reg) }
+                }
+                SubqueryProcessingCommand.FilterOnlyString ->
+                    els = els.filterTo(Elements()) { it.text().contains(value) }
+                SubqueryProcessingCommand.MarkBufferLink ->
+                    els.forEach {
+                        if (it.hasAttr("href"))
+                            els.attr("data-role", "RBuffer")
+                    }
+                SubqueryProcessingCommand.RemoveAttributes -> {
+                    if (value.isEmpty()) els.forEach { it.clearAttributes() }
+                    else {
+                        val list = value.split(",").map { it.trim() }
+                        els.forEach { it.attributes().removeAll { attr -> attr.key in list } }
+                    }
+                }
+                SubqueryProcessingCommand.RemoveClasses ->
+                    if (value.isEmpty()) els.removeAttr("class")
+                    else value.split(",").forEach { els.removeClass(it.trim()) }
+                SubqueryProcessingCommand.RemoveId ->
+                    if (value.isEmpty()) els.removeAttr("id")
+                    else {
+                        val list = value.split(",").map { it.trim() }
+                        els.forEach { if (it.attr("id") in list) it.removeAttr("id") }
+                    }
+                SubqueryProcessingCommand.Unwrap -> {
+                    els = els.unwrap()
+                    if (value.isNotEmpty()) els = els.wrap("<$value></$value>") // TODO: Sanitize?
+                }
+                SubqueryProcessingCommand.Wrap -> els = els.wrap("<$value></$value>")
+                SubqueryProcessingCommand.ChangeTag -> els.tagName(value)
+
+            }
+        }
+        if (els != elements) {
+            elements.clear()
+            elements.addAll(els)
+        }
     }
 
     fun websiteSpecificFixes(contentElement: Elements) {
