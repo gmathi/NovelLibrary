@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/action_open_reader"
+        android:icon="@drawable/ic_chrome_reader_mode_white_vector"
+        android:title="@string/open_reader"
+        android:titleCondensed="@string/open_reader"
+        app:showAsAction="ifRoom|withText" />
+</menu>

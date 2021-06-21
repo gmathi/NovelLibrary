@@ -82,6 +82,16 @@ fun AppCompatActivity.startReaderDBPagerActivity(novel: Novel) {
     startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
 }
 
+fun AppCompatActivity.startReaderDBPagerActivity(novel: Novel, translatorSourceName: String?) {
+    val intent = Intent(this, ReaderDBPagerActivity::class.java)
+    val bundle = Bundle()
+    bundle.putParcelable("novel", novel)
+    if (translatorSourceName != null)
+        bundle.putString("translatorSourceName", translatorSourceName)
+    intent.putExtras(bundle)
+    startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
+}
+
 
 fun AppCompatActivity.startSearchResultsActivity(title: String, url: String) {
     val intent = Intent(this, SearchUrlActivity::class.java)
@@ -260,6 +270,10 @@ fun AppCompatActivity.startTTSService(audioText: String, title: String, novelId:
     bundle.putInt(TTSService.CHAPTER_INDEX, chapterIndex)
     serviceIntent.putExtras(bundle)
     startService(serviceIntent)
+}
+
+fun AppCompatActivity.startTTSActivity() {
+    startActivity(Intent(this, TextToSpeechControlsActivity::class.java))
 }
 
 fun Activity.showAlertDialog(title: String? = null, message: String? = null, @DrawableRes icon: Int = R.drawable.ic_warning_white_vector) {
