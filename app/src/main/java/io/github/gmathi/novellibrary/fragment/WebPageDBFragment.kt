@@ -279,7 +279,7 @@ class WebPageDBFragment : BaseFragment() {
     }
 
     private fun loadCreatedDocument() {
-        doc?.body()?.append("<p><a href=\"abc://reset_page\">*** Go to top of page ***</a></p>")
+        doc?.body()?.append("<p><a tts-disable=\"true\" href=\"abc://reset_page\">*** Go to top of page ***</a></p>")
         webPageSettings.let {
             binding.readerWebView.loadDataWithBaseURL(
                 if (it.filePath != null) "$FILE_PROTOCOL${it.filePath}" else doc?.location(),

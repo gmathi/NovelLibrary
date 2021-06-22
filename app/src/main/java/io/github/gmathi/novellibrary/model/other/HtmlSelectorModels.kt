@@ -21,5 +21,11 @@ data class SelectorQuery(val selector: String, val appendTitleHeader: Boolean = 
  * @param role The subquery role. Depending on it, content is processed differently.
  * @param optional Allows query to be missing from the page. If mandatory query is not found, while SelectorQuery is discarded and not used for the website.
  * @param multiple Whether only first found query result is injected in reader mode or all of them.
+ * @param extraProcessing An optional list of extra processing commands for this subquery.
  */
-data class SelectorSubquery(val selector: String, val role: SubqueryRole, val optional: Boolean = true, val multiple: Boolean = true)
+data class SelectorSubquery(val selector: String, val role: SubqueryRole,
+                            val optional: Boolean = true, val multiple: Boolean = true,
+                            val extraProcessing: List<SubqueryProcessingCommandInfo> = emptyList()
+)
+
+data class SubqueryProcessingCommandInfo(val command: SubqueryProcessingCommand, val value: String = "")

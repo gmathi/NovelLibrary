@@ -59,4 +59,9 @@ enum class SubqueryRole {
      * Do note that no cleanup is performed and IDs, classes and style are left intact.
      */
     RWhitelist,
+
+    /**
+     * Used only to execute processing commands and won't be removed nor added to the constructed contents.
+     */
+    RProcess,
 }
