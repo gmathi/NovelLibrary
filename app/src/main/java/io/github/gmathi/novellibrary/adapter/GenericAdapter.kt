@@ -160,6 +160,8 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
             }
         }
         notifyItemMoved(fromPosition, toPosition)
+        notifyItemChanged(fromPosition)
+        notifyItemChanged(toPosition)
         return true
     }
 

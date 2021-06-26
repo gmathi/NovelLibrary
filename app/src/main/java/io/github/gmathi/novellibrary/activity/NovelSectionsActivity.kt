@@ -43,7 +43,6 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityNovelSectionsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
@@ -151,8 +150,8 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
         adapter.onItemMove(source, target)
     }
 
+    //Note: This is never invoked.
     override fun onItemDismiss(viewHolderPosition: Int) {
-        onItemRemove(viewHolderPosition)
     }
 
     @SuppressLint("NotifyDataSetChanged")
