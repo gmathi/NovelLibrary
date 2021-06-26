@@ -558,6 +558,11 @@
     <string name="previous_chapter">Previous Chapter</string>
     <string name="next_chapter">Next Chapter</string>
     <string name="connection_error">Connection Error!</string>
+    <string name="next_sentence">Next sentence</string>
+    <string name="previous_sentence">Previous sentence</string>
+    <string name="text_to_speech_controls">TTS Controls</string>
+    <string name="text_to_speech_inactive">TTS Service is not active.\nStart the TTS playback trough the chapter view first!</string>
+    <string name="open_reader">Open reader</string>
 
     <!-- v0.9 Strings -->
 

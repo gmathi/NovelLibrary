@@ -383,6 +383,7 @@ class ReaderDBPagerActivity :
                         param(FAC.Param.NOVEL_NAME, novel.name)
                         param(FAC.Param.NOVEL_URL, novel.url)
                     }
+                    startTTSActivity()
                 } else {
                     showAlertDialog(title = "Read Aloud", message = "Only supported in Reader Mode!")
                 }

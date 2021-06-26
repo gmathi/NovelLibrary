@@ -6,10 +6,7 @@ import android.app.Service
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-import android.os.Bundle
-import android.os.Handler
-import android.os.IBinder
-import android.os.Looper
+import android.os.*
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.support.v4.media.MediaMetadataCompat
@@ -22,6 +19,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import io.github.gmathi.novellibrary.activity.TextToSpeechControlsActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.model.database.Novel
@@ -67,6 +65,9 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         const val ACTION_PLAY = "actionPlay"
         const val ACTION_NEXT = "actionNext"
         const val ACTION_PREVIOUS = "actionPrevious"
+        const val ACTION_OPEN_CONTROLS = "actionOpenControls"
+        const val ACTION_NEXT_SENTENCE = "actionNextSentence"
+        const val ACTION_PREV_SENTENCE = "actionPrevSentence"
     }
 
     private val dataCenter: DataCenter by injectLazy()
@@ -76,26 +77,33 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
 
     private lateinit var tts: TextToSpeech
     private lateinit var mediaSession: MediaSessionCompat
-    private lateinit var mediaController: MediaControllerCompat
+    lateinit var mediaController: MediaControllerCompat
     private lateinit var ttsNotificationBuilder: TTSNotificationBuilder
     private lateinit var notificationManager: NotificationManagerCompat
     private lateinit var dbHelper: DBHelper
 
     private var blockingJob: Job? = null
-    private var novel: Novel? = null
-    private var translatorSourceName: String? = null
+    var novel: Novel? = null
+    var translatorSourceName: String? = null
     private var audioText: String? = null
     private var title: String? = null
-    private var chapterIndex: Int = 0
+    var chapterIndex: Int = 0
 
-    private var lines: ArrayList<String> = ArrayList()
-    private var lineNumber: Int = 0
+    var lines: ArrayList<String> = ArrayList()
+    var lineNumber: Int = 0
     private var isForegroundService: Boolean = false
     private val metadataCompat = MediaMetadataCompat.Builder()
 
+    inner class TTSBinder : Binder() {
 
-    override fun onBind(intent: Intent): IBinder? {
-        return null
+        fun getInstance(): TTSService = this@TTSService
+
+    }
+    private val binder = TTSBinder()
+    var eventListener: TTSEventListener? = null
+
+    override fun onBind(intent: Intent): IBinder {
+        return binder
     }
 
     @SuppressLint("UnspecifiedImmutableFlag")
@@ -113,6 +121,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
                 setSessionActivity(sessionActivityPendingIntent)
                 isActive = true
             }
+
         mediaController = MediaControllerCompat(this, mediaSession).also {
             it.registerCallback(MediaControllerCallback())
         }
@@ -122,6 +131,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         pendingIntents[ACTION_STOP] = createPendingIntent(ACTION_STOP)
         pendingIntents[ACTION_NEXT] = createPendingIntent(ACTION_NEXT)
         pendingIntents[ACTION_PREVIOUS] = createPendingIntent(ACTION_PREVIOUS)
+        pendingIntents[ACTION_OPEN_CONTROLS] = createPendingIntent(ACTION_OPEN_CONTROLS)
 
         ttsNotificationBuilder = TTSNotificationBuilder(this, pendingIntents)
         notificationManager = NotificationManagerCompat.from(this)
@@ -148,6 +158,12 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
             override fun onStart(utteranceId: String?) {
             }
         })
+    }
+
+    fun goToLine(line:Int) {
+        val oldLine = lineNumber
+        lineNumber = line.coerceIn(0, lines.count() - 1)
+        speakNexLine(TextToSpeech.QUEUE_FLUSH)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -192,7 +208,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private fun chooseMediaControllerActions(action: String) {
+    fun chooseMediaControllerActions(action: String) {
         Log.i(TAG, "TTS Action: $action")
         when (action) {
             ACTION_PLAY -> {
@@ -227,6 +243,17 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
                     setAudioText()
                 }
             }
+            ACTION_PREV_SENTENCE -> {
+                if (lineNumber > 0) lineNumber--
+                speakNexLine(TextToSpeech.QUEUE_FLUSH)
+            }
+            ACTION_NEXT_SENTENCE -> {
+                if (lineNumber < lines.count() - 1) lineNumber++
+                speakNexLine(TextToSpeech.QUEUE_FLUSH)
+            }
+            ACTION_OPEN_CONTROLS -> {
+                startActivity(Intent(this, TextToSpeechControlsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }
         }
     }
 
@@ -255,30 +282,38 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         lines.clear()
         lineNumber = 0
         val extractedLines: ArrayList<String> = ArrayList()
-        audioText?.split("\n")?.filter { it.isNotEmpty() }?.mapTo(extractedLines) { it }
+        audioText?.split("\n")?.filter { it.isNotBlank() }?.mapTo(extractedLines) { it.trim() }
 
-        val characterLimit = 50
+        val characterLimit = TextToSpeech.getMaxSpeechInputLength().coerceAtMost(500)
         extractedLines.forEach { extractedLine ->
-            //If line length is less than `characterLimit`
+            // If line length is less than `characterLimit`
             if (extractedLine.length < characterLimit) {
                 lines.add(extractedLine)
                 return@forEach
             }
 
+            // Permit line splits only when sentence ending character is followed by a space or a line end.
+            // Also include common sentence ending characters for dialogue or TN notes.
+            val sentenceEndRegex = """[.!?;"'」』”»“‘)\]](?>[\s\r]|$)""".toRegex()
+
             //Break a single big line in to multiple lines
             var lineToBreak = extractedLine.trim()
             while (lineToBreak.isNotEmpty()) {
-                var index = lineToBreak.indexOf(".")
-                while (index != -1 && index < characterLimit) {
-                    index = lineToBreak.indexOf(".", startIndex = index + 1)
-                }
-
+                var index = findSplitIndex(lineToBreak, characterLimit, sentenceEndRegex)
+                // If we can't split the sentence within boundaries by using common sentence finishers
+                // first try to split on a comma, and fall back to space if none found.
+                if (index == -1) index = findSplitIndex(lineToBreak, characterLimit, ',')
+                if (index == -1) index = findSplitIndex(lineToBreak, characterLimit, ' ')
                 if (index == -1) {
                     lines.add(lineToBreak)
                     return@forEach
                 } else {
                     lines.add(lineToBreak.substring(0, index + 1))
-                    lineToBreak = lineToBreak.substring(index + 1, lineToBreak.length).trim()
+                    lineToBreak = lineToBreak.substring(index + 1).trim()
+                    if (lineToBreak.length < characterLimit) {
+                        lines.add(lineToBreak)
+                        return@forEach
+                    }
                 }
             }
         }
@@ -291,12 +326,33 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
 
         //Set new data & start reading
         mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_PLAYING, 1L, 1F).build())
+        eventListener?.onReadingStart()
         speakNexLine()
     }
 
-    private fun speakNexLine() {
+    private fun findSplitIndex(text:String, maxLength:Int, regex: Regex):Int {
+        var index = -1
+        while (index < maxLength) {
+            val next = regex.find(text, index+1)?.range?.start
+            if (next != null && next < maxLength) index = next
+            else break
+        }
+        return index
+    }
+    private fun findSplitIndex(text:String, maxLength:Int, char: Char):Int {
+        var index = -1
+        while (index < maxLength) {
+            val next = text.indexOf(char, index+1)
+            if (next != -1 && next < maxLength) index = next
+            else break
+        }
+        return index
+    }
+
+    private fun speakNexLine(queueMode: Int = TextToSpeech.QUEUE_ADD) {
         if (lines.isNotEmpty() && lineNumber < lines.size) {
-            sendToTTS(lines[lineNumber], TextToSpeech.QUEUE_ADD, "KEEP_READING")
+            sendToTTS(lines[lineNumber], queueMode, "KEEP_READING")
+            eventListener?.onSentenceChange(lineNumber)
         } else {
             if (dataCenter.readAloudNextChapter) {
                 chooseMediaControllerActions(ACTION_NEXT)
@@ -327,6 +383,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
             state?.let { updateNotification(it) }
+            eventListener?.onPlaybackStateChange()
             Log.e(TAG, "State Changed: $state")
         }
 

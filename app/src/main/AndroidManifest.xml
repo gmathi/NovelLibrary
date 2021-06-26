@@ -96,6 +96,12 @@
             android:label="@string/title_activity_novel_details"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
+
+        <activity android:name=".activity.TextToSpeechControlsActivity"
+            android:label="@string/text_to_speech_controls"
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide"
+            />
         <activity
             android:name=".activity.ImagePreviewActivity"
             android:label=""

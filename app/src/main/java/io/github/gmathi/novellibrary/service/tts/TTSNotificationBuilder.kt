@@ -25,6 +25,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
+import android.widget.RemoteViews
 import androidx.annotation.RequiresApi
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.NotificationCompat
@@ -67,6 +68,11 @@ class TTSNotificationBuilder(private val context: Context, pendingIntents: HashM
         context.getString(R.string.next_chapter),
         pendingIntents[TTSService.ACTION_NEXT]
     )
+    private val openControlsAction = NotificationCompat.Action(
+        R.drawable.ic_open_in_browser_white_vector,
+        context.getString(R.string.text_to_speech_controls),
+        pendingIntents[TTSService.ACTION_OPEN_CONTROLS]
+    )
     private val stopPendingIntent =
         pendingIntents[TTSService.ACTION_STOP]
 
@@ -88,6 +94,7 @@ class TTSNotificationBuilder(private val context: Context, pendingIntents: HashM
             builder.addAction(playAction)
         }
         builder.addAction(skipToNextAction)
+        builder.addAction(openControlsAction)
 
         val drawable = AppCompatResources.getDrawable(context, R.mipmap.ic_launcher)
         if (drawable is BitmapDrawable) {
@@ -95,20 +102,30 @@ class TTSNotificationBuilder(private val context: Context, pendingIntents: HashM
         }
 
 
-        val mediaStyle = androidx.media.app.NotificationCompat.MediaStyle()
+        val mediaStyle = androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
             .setCancelButtonIntent(stopPendingIntent)
             .setMediaSession(sessionToken)
             .setShowActionsInCompactView(1)
             .setShowCancelButton(true)
+        val smallView = RemoteViews("io.github.gmathi.novellibrary", R.layout.notification_tts)
+        smallView.setTextViewText(R.id.notificationTitle, description.title)
+        smallView.setTextViewText(R.id.notificationDescription, description.subtitle)
+
+        val bigView = RemoteViews("io.github.gmathi.novellibrary", R.layout.notification_tts_large)
+        bigView.setTextViewText(R.id.notificationTitle, description.title)
+        bigView.setTextViewText(R.id.notificationDescription, description.subtitle)
 
         return builder.setContentIntent(controller.sessionActivity)
-            .setContentText(description.subtitle)
-            .setContentTitle(description.title)
-            .setDeleteIntent(stopPendingIntent)
-            .setLargeIcon(description.iconBitmap)
-            .setOnlyAlertOnce(true)
-            .setSmallIcon(R.drawable.ic_queue_music_white_vector)
             .setStyle(mediaStyle)
+            .setLargeIcon(description.iconBitmap)
+            .setSmallIcon(R.drawable.ic_queue_music_white_vector)
+            .setCustomContentView(smallView)
+            .setCustomBigContentView(bigView)
+//            .setContentText(description.subtitle)
+//            .setContentTitle(description.title)
+            .setDeleteIntent(stopPendingIntent)
+            .setOnlyAlertOnce(true)
+            .setColorized(true)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .build()
 
