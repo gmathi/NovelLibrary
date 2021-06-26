@@ -28,6 +28,7 @@ import io.github.gmathi.novellibrary.databinding.ContentLibraryBinding
 import io.github.gmathi.novellibrary.databinding.ListitemLibraryBinding
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.other.NovelEvent
@@ -575,25 +576,35 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         MaterialDialog(requireActivity()).show {
             title(text = "Choose A Novel Section")
             listItems(items = novelSectionsNames.toList()) { _, which, _ ->
-                var id = -1L
-                if (novelSectionId == -1L)
-                    id = novelSections[which].id
+                var novelSectionId = -1L
+                if (this@LibraryFragment.novelSectionId == -1L)
+                    novelSectionId = novelSections[which].id
                 else if (which != 0)
-                    id = novelSections[which - 1].id
+                    novelSectionId = novelSections[which - 1].id
 
-                withSnackBarStatus(novels,"Assigning") { novel ->
-                    dbHelper.updateNovelSectionId(novel.id, id)
-                    EventBus.getDefault().post(NovelSectionEvent(id))
-                    NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { novelSync ->
-                        if (dataCenter.getSyncAddNovels(novelSync.host)) {
-                            novelSync.updateNovel(novel, novelSections.firstOrNull { section -> section.id == id })
-                        }
+                if (actionMode != null) {
+                    withSnackBarStatus(novels, "Assigning") { novel ->
+                        assignNovelToSection(novel, novelSections, novelSectionId)
                     }
+                } else {
+                    assignNovelToSection(novels[0], novelSections, novelSectionId)
+                    setData()
                 }
-//                if (!isMultiNovelUpdate) setData()
             }
         }
     }
+
+    private fun assignNovelToSection(novel: Novel, novelSections: ArrayList<NovelSection>, novelSectionId: Long) {
+        dbHelper.updateNovelSectionId(novel.id, novelSectionId)
+        EventBus.getDefault().post(NovelSectionEvent(novelSectionId))
+        NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { novelSync ->
+            if (dataCenter.getSyncAddNovels(novelSync.host)) {
+                novelSync.updateNovel(novel, novelSections.firstOrNull { section -> section.id == novelSectionId })
+            }
+        }
+
+    }
+
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onNovelSectionEvent(novelSectionEvent: NovelSectionEvent) {
@@ -616,6 +627,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     override fun onDestroyActionMode(mode: ActionMode?) {
         dataSet.clear()
         actionMode = null
+        setData()
     }
 
     override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
@@ -637,7 +649,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             R.id.action_novel_remove -> {
                 confirmDialog(getString(R.string.remove_novels), {
                     val novels = ArrayList(dataSet)
-                    withSnackBarStatus(novels,"Deleting") { novel ->
+                    withSnackBarStatus(novels, "Deleting") { novel ->
                         dbHelper.cleanupNovelData(novel)
                     }
                 })
@@ -759,7 +771,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 syncSnackBar = null
                 actionMode?.finish()
                 activity?.invalidateOptionsMenu()
-                setData()
             }
         }
     }

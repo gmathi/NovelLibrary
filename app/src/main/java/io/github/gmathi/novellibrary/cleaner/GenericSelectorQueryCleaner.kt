@@ -205,6 +205,9 @@ class GenericSelectorQueryCleaner(
     }
 
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
+        if (query.subqueries.isNotEmpty()) {
+            return getLinkedChapters(doc.location(), doc.body().select(query.subqueries.first { it.role == SubqueryRole.RContent }.selector).firstOrNull())
+        }
         return getLinkedChapters(doc.location(), doc.body().select(query.selector).firstOrNull())
     }
 
