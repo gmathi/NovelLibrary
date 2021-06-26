@@ -4,6 +4,7 @@ import io.github.gmathi.novellibrary.model.other.SelectorQuery
 import io.github.gmathi.novellibrary.model.other.SelectorSubQuery
 import io.github.gmathi.novellibrary.model.other.SubQueryProcessingCommand
 import io.github.gmathi.novellibrary.model.other.SubqueryRole
+import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 
@@ -64,7 +65,7 @@ class GenericSelectorQueryCleaner(
                     }
                     SubqueryRole.RHeader ->
                         hasHeader = elements.isNotEmpty()
-//                    SubqueryRole.RFooter -> {}
+//                    SubQueryRole.RFooter -> {}
                     SubqueryRole.RShare -> {
                         applyCommands(subQuery, elements)
                         elements.remove()
@@ -102,7 +103,7 @@ class GenericSelectorQueryCleaner(
                         applyCommands(subQuery, elements)
                         return@forEachIndexed
                     }
-//                    SubqueryRole.RPage -> {}
+//                    SubQueryRole.RPage -> {}
                     else -> {
                     }
                 }
@@ -198,9 +199,15 @@ class GenericSelectorQueryCleaner(
     fun websiteSpecificFixes(contentElement: Elements) {
         //Fix for volarenovels.com
         // TODO: Extract into comprehensive query with Blacklist subquery role
-        if (url.contains("volarenovels.com")) {
-            val elements = contentElement.select("[id*=announcement]")
-            contentElement.removeAll(elements)
+        when {
+            url.contains(HostNames.NOVEL_FULL) -> {
+                contentElement.forEach { it.removeAttr("style") }
+            }
+
+            url.contains(HostNames.VOLARE_NOVELS) -> {
+                val elements = contentElement.select("[id*=announcement]")
+                contentElement.removeAll(elements)
+            }
         }
     }
 
