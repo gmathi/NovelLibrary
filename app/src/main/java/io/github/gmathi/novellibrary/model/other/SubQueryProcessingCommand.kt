@@ -1,7 +1,7 @@
 package io.github.gmathi.novellibrary.model.other
 
 @Suppress("KDocUnresolvedReference")
-enum class SubqueryProcessingCommand {
+enum class SubQueryProcessingCommand {
     /**
      * Unwraps the element contents top elements.
      * Example use-case: Wattpad wrapping the contents into <pre> element, causing fonts to be monospace.

@@ -1,8 +1,8 @@
 package io.github.gmathi.novellibrary.cleaner
 
 import io.github.gmathi.novellibrary.model.other.SelectorQuery
-import io.github.gmathi.novellibrary.model.other.SelectorSubquery
-import io.github.gmathi.novellibrary.model.other.SubqueryProcessingCommand
+import io.github.gmathi.novellibrary.model.other.SelectorSubQuery
+import io.github.gmathi.novellibrary.model.other.SubQueryProcessingCommand
 import io.github.gmathi.novellibrary.model.other.SubqueryRole
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
@@ -17,7 +17,7 @@ class GenericSelectorQueryCleaner(
 
         val body = doc.body()
         val contentElement = body.select(query.selector)
-        val subQueries = query.subqueries
+        val subQueries = query.subQueries
         val constructedContent = Elements()
         var hasHeader = false
 
@@ -133,59 +133,59 @@ class GenericSelectorQueryCleaner(
 
     }
 
-    private fun applyCommands(subquery: SelectorSubquery, elements: Elements) {
+    private fun applyCommands(subQuery: SelectorSubQuery, elements: Elements) {
         var els = elements
-        subquery.extraProcessing.forEach { (command, value) ->
+        subQuery.extraProcessing.forEach { (command, value) ->
             when (command) {
-                SubqueryProcessingCommand.AddAttribute -> {
+                SubQueryProcessingCommand.AddAttribute -> {
                     val split = value.split("=".toRegex(), 2)
                     elements.attr(split[0], split[1])
                 }
-                SubqueryProcessingCommand.AddId -> els.attr("id", value)
-                SubqueryProcessingCommand.AddClass -> value.split(",").forEach { els.addClass(it.trim()) }
-                SubqueryProcessingCommand.DisableTTS -> {
+                SubQueryProcessingCommand.AddId -> els.attr("id", value)
+                SubQueryProcessingCommand.AddClass -> value.split(",").forEach { els.addClass(it.trim()) }
+                SubQueryProcessingCommand.DisableTTS -> {
                     els.attr("tts-disable", "true")
                     if (value.isNotEmpty()) els.attr("tts-substitute", value)
                 }
-                SubqueryProcessingCommand.FilterNotRegex -> {
+                SubQueryProcessingCommand.FilterNotRegex -> {
                     val reg = value.toRegex()
                     els = els.filterTo(Elements()) { !it.text().matches(reg) }
                 }
-                SubqueryProcessingCommand.FilterNotString ->
+                SubQueryProcessingCommand.FilterNotString ->
                     els = els.filterTo(Elements()) { !it.text().contains(value) }
-                SubqueryProcessingCommand.FilterOnlyRegex -> {
+                SubQueryProcessingCommand.FilterOnlyRegex -> {
                     val reg = value.toRegex()
                     els = els.filterTo(Elements()) { it.text().matches(reg) }
                 }
-                SubqueryProcessingCommand.FilterOnlyString ->
+                SubQueryProcessingCommand.FilterOnlyString ->
                     els = els.filterTo(Elements()) { it.text().contains(value) }
-                SubqueryProcessingCommand.MarkBufferLink ->
+                SubQueryProcessingCommand.MarkBufferLink ->
                     els.forEach {
                         if (it.hasAttr("href"))
                             els.attr("data-role", "RBuffer")
                     }
-                SubqueryProcessingCommand.RemoveAttributes -> {
+                SubQueryProcessingCommand.RemoveAttributes -> {
                     if (value.isEmpty()) els.forEach { it.clearAttributes() }
                     else {
                         val list = value.split(",").map { it.trim() }
                         els.forEach { it.attributes().removeAll { attr -> attr.key in list } }
                     }
                 }
-                SubqueryProcessingCommand.RemoveClasses ->
+                SubQueryProcessingCommand.RemoveClasses ->
                     if (value.isEmpty()) els.removeAttr("class")
                     else value.split(",").forEach { els.removeClass(it.trim()) }
-                SubqueryProcessingCommand.RemoveId ->
+                SubQueryProcessingCommand.RemoveId ->
                     if (value.isEmpty()) els.removeAttr("id")
                     else {
                         val list = value.split(",").map { it.trim() }
                         els.forEach { if (it.attr("id") in list) it.removeAttr("id") }
                     }
-                SubqueryProcessingCommand.Unwrap -> {
+                SubQueryProcessingCommand.Unwrap -> {
                     els = els.unwrap()
                     if (value.isNotEmpty()) els = els.wrap("<$value></$value>") // TODO: Sanitize?
                 }
-                SubqueryProcessingCommand.Wrap -> els = els.wrap("<$value></$value>")
-                SubqueryProcessingCommand.ChangeTag -> els.tagName(value)
+                SubQueryProcessingCommand.Wrap -> els = els.wrap("<$value></$value>")
+                SubQueryProcessingCommand.ChangeTag -> els.tagName(value)
 
             }
         }
@@ -205,8 +205,8 @@ class GenericSelectorQueryCleaner(
     }
 
     override fun getLinkedChapters(doc: Document): ArrayList<String> {
-        if (query.subqueries.isNotEmpty()) {
-            return getLinkedChapters(doc.location(), doc.body().select(query.subqueries.first { it.role == SubqueryRole.RContent }.selector).firstOrNull())
+        if (query.subQueries.isNotEmpty()) {
+            return getLinkedChapters(doc.location(), doc.body().select(query.subQueries.first { it.role == SubqueryRole.RContent }.selector).firstOrNull())
         }
         return getLinkedChapters(doc.location(), doc.body().select(query.selector).firstOrNull())
     }

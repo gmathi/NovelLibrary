@@ -8,7 +8,7 @@ import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
 import io.github.gmathi.novellibrary.model.other.SelectorQuery
-import io.github.gmathi.novellibrary.model.other.SelectorSubquery
+import io.github.gmathi.novellibrary.model.other.SelectorSubQuery
 import io.github.gmathi.novellibrary.model.other.SubqueryRole
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.network.HostNames
@@ -58,12 +58,12 @@ open class HtmlCleaner protected constructor() {
             // Make sure to put host-restricted queries first, since they likely trigger some other selector.
 
             SelectorQuery(
-                ".nv__main", host = "activetranslations.xyz", subqueries = listOf(
-                    SelectorSubquery(".nv-page-title", SubqueryRole.RHeader, optional = false, multiple = false),
-                    SelectorSubquery("div[class*='entry-content']", SubqueryRole.RContent, optional = false, multiple = false),
-                    SelectorSubquery(".nnl_container", SubqueryRole.RNavigation, optional = true, multiple = false),
-                    SelectorSubquery("#comments", SubqueryRole.RComments, optional = true, multiple = false),
-                    SelectorSubquery("div[class*='entry-content']>style", SubqueryRole.RWhitelist, optional = false, multiple = true),
+                ".nv__main", host = "activetranslations.xyz", subQueries = listOf(
+                    SelectorSubQuery(".nv-page-title", SubqueryRole.RHeader, optional = false, multiple = false),
+                    SelectorSubQuery("div[class*='entry-content']", SubqueryRole.RContent, optional = false, multiple = false),
+                    SelectorSubQuery(".nnl_container", SubqueryRole.RNavigation, optional = true, multiple = false),
+                    SelectorSubQuery("#comments", SubqueryRole.RComments, optional = true, multiple = false),
+                    SelectorSubQuery("div[class*='entry-content']>style", SubqueryRole.RWhitelist, optional = false, multiple = true),
                 ), keepContentClasses = true, customCSS = """
                 *,*::before,*::after {
                     user-select: initial !important;
@@ -81,60 +81,60 @@ open class HtmlCleaner protected constructor() {
 
             // https://novelonomicon.com/
             SelectorQuery(
-                "div#content[role='main']", subqueries = listOf(
-                    SelectorSubquery("h1.entry-title", SubqueryRole.RHeader, optional = true, multiple = false),
-                    SelectorSubquery("div.entry-content", SubqueryRole.RContent, optional = true, multiple = false),
-                    SelectorSubquery(".entry-footer,.entry-bottom", SubqueryRole.RFooter, optional = true, multiple = false),
-                    SelectorSubquery(genericMetaSubquery, SubqueryRole.RMeta, optional = true, multiple = true),
-                    SelectorSubquery(".post-navigation", SubqueryRole.RNavigation, optional = true, multiple = false),
-                    SelectorSubquery(genericShareSubquery, SubqueryRole.RShare, optional = true, multiple = true),
-                    SelectorSubquery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
+                "div#content[role='main']", subQueries = listOf(
+                    SelectorSubQuery("h1.entry-title", SubqueryRole.RHeader, optional = true, multiple = false),
+                    SelectorSubQuery("div.entry-content", SubqueryRole.RContent, optional = true, multiple = false),
+                    SelectorSubQuery(".entry-footer,.entry-bottom", SubqueryRole.RFooter, optional = true, multiple = false),
+                    SelectorSubQuery(genericMetaSubquery, SubqueryRole.RMeta, optional = true, multiple = true),
+                    SelectorSubQuery(".post-navigation", SubqueryRole.RNavigation, optional = true, multiple = false),
+                    SelectorSubQuery(genericShareSubquery, SubqueryRole.RShare, optional = true, multiple = true),
+                    SelectorSubQuery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
                 )
             ),
 
             // Most common in wordpress-hosted websites, but also nicely matches a bunch of others.
             SelectorQuery(
-                "div.entry-content", subqueries = listOf(
-                    SelectorSubquery(".entry-title,.entry-header", SubqueryRole.RHeader, optional = true, multiple = false),
-                    SelectorSubquery("div.entry-content", SubqueryRole.RContent, optional = true, multiple = false),
-                    SelectorSubquery(".entry-footer,.entry-bottom", SubqueryRole.RFooter, optional = true, multiple = false),
-                    SelectorSubquery(genericMetaSubquery, SubqueryRole.RMeta, optional = true, multiple = true),
-                    SelectorSubquery(".post-navigation", SubqueryRole.RNavigation, optional = true, multiple = false),
-                    SelectorSubquery(genericShareSubquery, SubqueryRole.RShare, optional = true, multiple = true),
-                    SelectorSubquery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
+                "div.entry-content", subQueries = listOf(
+                    SelectorSubQuery(".entry-title,.entry-header", SubqueryRole.RHeader, optional = true, multiple = false),
+                    SelectorSubQuery("div.entry-content", SubqueryRole.RContent, optional = true, multiple = false),
+                    SelectorSubQuery(".entry-footer,.entry-bottom", SubqueryRole.RFooter, optional = true, multiple = false),
+                    SelectorSubQuery(genericMetaSubquery, SubqueryRole.RMeta, optional = true, multiple = true),
+                    SelectorSubQuery(".post-navigation", SubqueryRole.RNavigation, optional = true, multiple = false),
+                    SelectorSubQuery(genericShareSubquery, SubqueryRole.RShare, optional = true, multiple = true),
+                    SelectorSubQuery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
                 )
             ),
             // Alternative version where instead of entry- it has post- prefixes
             // Also common for tumblr
             SelectorQuery(
-                "div.post-content", subqueries = listOf(
-                    SelectorSubquery(".post-title,.post-header", SubqueryRole.RHeader, optional = true, multiple = false),
-                    SelectorSubquery("div.post-content", SubqueryRole.RContent, optional = true, multiple = false),
-                    SelectorSubquery(".post-footer,.post-bottom", SubqueryRole.RFooter, optional = true, multiple = false),
-                    SelectorSubquery("$genericMetaSubquery,.post-meta-container", SubqueryRole.RMeta, optional = true, multiple = true),
-                    SelectorSubquery(".post-navigation", SubqueryRole.RNavigation, optional = true, multiple = false),
-                    SelectorSubquery(genericShareSubquery, SubqueryRole.RShare, optional = true, multiple = true),
-                    SelectorSubquery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
+                "div.post-content", subQueries = listOf(
+                    SelectorSubQuery(".post-title,.post-header", SubqueryRole.RHeader, optional = true, multiple = false),
+                    SelectorSubQuery("div.post-content", SubqueryRole.RContent, optional = true, multiple = false),
+                    SelectorSubQuery(".post-footer,.post-bottom", SubqueryRole.RFooter, optional = true, multiple = false),
+                    SelectorSubQuery("$genericMetaSubquery,.post-meta-container", SubqueryRole.RMeta, optional = true, multiple = true),
+                    SelectorSubQuery(".post-navigation", SubqueryRole.RNavigation, optional = true, multiple = false),
+                    SelectorSubQuery(genericShareSubquery, SubqueryRole.RShare, optional = true, multiple = true),
+                    SelectorSubQuery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
                 )
             ),
 
             // Modern tumblr
             SelectorQuery(
-                "div#content", host = "tumblr.com", subqueries = listOf(
-                    SelectorSubquery("div.entry>.body", SubqueryRole.RContent, optional = true, multiple = false),
-                    SelectorSubquery(".posttitle", SubqueryRole.RHeader, optional = true, multiple = false),
-                    SelectorSubquery("#jp-post-flair,.wpcnt,.permalink", SubqueryRole.RMeta, optional = true, multiple = true),
-                    SelectorSubquery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
+                "div#content", host = "tumblr.com", subQueries = listOf(
+                    SelectorSubQuery("div.entry>.body", SubqueryRole.RContent, optional = true, multiple = false),
+                    SelectorSubQuery(".posttitle", SubqueryRole.RHeader, optional = true, multiple = false),
+                    SelectorSubQuery("#jp-post-flair,.wpcnt,.permalink", SubqueryRole.RMeta, optional = true, multiple = true),
+                    SelectorSubQuery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
                 )
             ),
 
             // Legacy TumblrCleaner. Boy, tumblr has so many variations.
             SelectorQuery(
-                "div.textpostbody", host = "tumblr.com", subqueries = listOf(
-                    SelectorSubquery(".textposttitle", SubqueryRole.RHeader, optional = true, multiple = false),
-                    SelectorSubquery("", SubqueryRole.RContent, optional = true, multiple = false),
-                    SelectorSubquery("#jp-post-flair,.wpcnt,.permalink", SubqueryRole.RMeta, optional = true, multiple = true),
-                    SelectorSubquery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
+                "div.textpostbody", host = "tumblr.com", subQueries = listOf(
+                    SelectorSubQuery(".textposttitle", SubqueryRole.RHeader, optional = true, multiple = false),
+                    SelectorSubQuery("", SubqueryRole.RContent, optional = true, multiple = false),
+                    SelectorSubQuery("#jp-post-flair,.wpcnt,.permalink", SubqueryRole.RMeta, optional = true, multiple = true),
+                    SelectorSubQuery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
                 )
             ),
 
@@ -188,8 +188,8 @@ open class HtmlCleaner protected constructor() {
                 if ((it.host == null || url.contains(it.host)) && body.select(it.selector).isNotEmpty()) {
                     // Check non-optional subqueries to ensure we match the correct website.
                     // TODO: Optimise with running all queries at once and storing them, instead of rerunning them a second time inside cleaner
-                    if (it.subqueries.isEmpty()) true
-                    else it.subqueries.all { sub ->
+                    if (it.subQueries.isEmpty()) true
+                    else it.subQueries.all { sub ->
                         sub.optional || body.select(sub.selector).isNotEmpty()
                     }
                 } else false
