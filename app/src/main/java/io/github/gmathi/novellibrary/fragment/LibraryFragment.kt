@@ -635,9 +635,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         when (item?.itemId) {
             R.id.action_select_interval -> {
                 val novels = adapter.items
-                val firstIndex = novels.indexOf(dataSet.first())
-                val lastIndex = novels.indexOf(dataSet.last())
-                val subList = novels.subList(firstIndex, lastIndex)
+                val indexes = dataSet.map { novels.indexOf(it) }.sorted()
+                val subList = novels.subList(indexes.first(), indexes.last())
                 addToDataSet(subList)
             }
             R.id.action_select_all -> {
