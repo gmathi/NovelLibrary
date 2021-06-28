@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.network
 
 
+import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import java.util.*
 
 object HostNames {
@@ -28,7 +29,7 @@ object HostNames {
     const val CHRYSANTHEMUMGARDEN = "chrysanthemumgarden.com"
     const val VOLARE_NOVELS = "volarenovels.com"
 
-    const val USER_AGENT = "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Mobile Safari/537.36"
+    const val USER_AGENT = HttpSource.DEFAULT_USER_AGENT//"Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Mobile Safari/537.36"
 
     private val DEFAULT_ALLOWED_HOST_NAMES_ARRAY = arrayOf(
         NOVEL_UPDATES,
