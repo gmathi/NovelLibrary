@@ -413,7 +413,7 @@ object Utils {
             // Perform a limited trim operation on excessive spacing, causing "     " to turn into just " " as well as changing \n\n\n\n into \n
             .replace("""([\s ])+""".toRegex(RegexOption.MULTILINE)) { it.groups[0]?.value?:"" }
             // Shorten long repeating characters such as =====, -----, -=-=-=-=-, ***** or !!!!!!!!
-            .replace("""([=*#\-]{4,}|\.{4,}|!{4,}|\?{4,})""".toRegex()) { it.value.substring(0, 3)}
+            .replace("""([=*#|+<>\-]{4,}|\.{4,}|!{4,}|\?{4,})""".toRegex()) { it.value.substring(0, 3)}
             .trim()
 //        val htmlString: String = html()//.replace("\\\\n", "\n")
 //        return Jsoup.clean(htmlString, "", Whitelist.none(), Document.OutputSettings().prettyPrint(false)).replace("&nbsp", "")
