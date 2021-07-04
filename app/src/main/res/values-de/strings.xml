@@ -29,14 +29,13 @@
        To All Translators I am very grateful for your help! :)
    -->
 
-
     <string-array name="search_tab_titles">
         <item>Beliebt</item>
         <item>Höchstbewertet</item>
         <item>Aktiv</item>
     </string-array>
 
-    <string name="title_activity_novel_details">Novel</string>
+    <string name="title_activity_novel_details">Novel Details</string>
     <string name="title_activity_settings">Einstellungen</string>
     <string name="title_activity_chapters">Kapitel</string>
     <string name="title_activity_meta_data">Mehr Informationen</string>
@@ -52,7 +51,7 @@
     <string name="title_search">Suche</string>
     <string name="title_downloads">Downloads</string>
 
-    <string name="app_description">Your One Stop For All Novels</string>
+    <string name="app_description">Eine App für alle Novel</string>
 
     <!-- Strings related to Settings -->
     <!--<string name="pref_title_dark_theme">Dark Page Theme</string>-->
@@ -63,8 +62,6 @@
     <!--<string name="pref_description_queue_novel_downloads">Downloads novels one after the another. If disabled, max of 5 novels with be downloaded simultaneously. </string>-->
     <!--<string name="pref_title_download_latest_first">Download Latest First</string>-->
     <!--<string name="pref_description_download_latest_first">Download the latest chapter first.</string>-->
-
-
     <!-- Transition Names -->
     <string name="synopsis">Synopsis</string>
     <string name="genres">Genres</string>
@@ -202,7 +199,7 @@
     <!-- v0.6.2 Strings -->
 
     <string name="clean">Bereinigen</string>
-    <string name="reader">Leser</string>
+    <string name="reader">Reader</string> <!-- I changed this from "Leser" back to the english original "Reader" since it isn't a entirely correct translation and it sounds better; If you disagree, please message me-->
     <string name="reader_mode">Lesemodus</string>
     <string name="show_reader_scroll">Scrollbar anzeigen</string>
     <string name="show_reader_scroll_description">Zeigt die vertikale Bildlaufleiste am rechten Bildschirmrand an, um den Verlauf des Kapitels zu verfolgen.</string>
@@ -228,7 +225,7 @@
     <string name="group_update_notification_text">Aktualisierte Romane deiner Bibliothek</string>
     <string name="confirm_remove_download_description">Willst du den Roman von den Downloads entfernen?</string>
     <string name="reader_mode_description">Lesemodus wird permanent eingeschaltet sein</string>
-    <string name="delete_chapters">Gelöschte Kapitel</string>
+    <string name="delete_chapters">Gelöschte Kapitel</string> <!-- TODO what does this do exactly?-->
 
     <!-- v0.8 Strings -->
 
@@ -291,6 +288,11 @@
     <string name="previous_chapter">Vorheriges Kapitel</string>
     <string name="next_chapter">Nächstes Kapitel</string>
     <string name="connection_error">Verbindungsfehler!</string>
+    <string name="next_sentence">Nächster Satz</string>
+    <string name="previous_sentence">Voriger Satz</string>
+    <string name="text_to_speech_controls">TTS Steuerung</string>
+    <string name="text_to_speech_inactive">Der TTS Service ist nicht aktiv.\nStarte zunächst die TTS Wiedergabe über die Kapitelübersicht!</string>
+    <string name="open_reader">Reader öffnen</string>
 
     <!-- v0.9 Strings -->
 
@@ -366,6 +368,12 @@
     <string name="auto_read_next_chapter">Automatisch nächstes Kapitel lesen</string>
     <string name="auto_read_next_chapter_description">Automatisch nächstes Kapitel vorlesen, wenn ein Kapitel im Vorlesemodus fertig gelesen wurde</string>
 
+    <!-- 0.15.5-->
+    <string name="reset_novel">Novel komplett zurücksetzen</string>
+
+    <!-- 0.15.6-->
+    <string name="licensed_warning">Manche Kapitel dieses Novel könnten fehlen (aus urheberrechtlichen Gründen oder freiwillig entfernt) oder nur mit Bezahlung erreichbar sein, da dieser von %1$s lizensiert wurde.</string>
+
     <!-- 0.16 -->
     <string name="sync_fetching_chapter_counts">Kapitelanzahl erhalten: %1$d / %2$d\n%3$s</string>
     <string name="sync_fetching_chapter_list">Kapitellisten erhalten: %1$d / %2$d\n%3$s</string>
@@ -423,4 +431,74 @@
     <string name="information_webview_outdated">Bitte aktualisiere die WebView App für bessere Kompatibilität</string>
 
     <string name="source_not_installed">Quelle nicht installiert: %1$s</string>
+
+    <string name="show_chapters_left_badge">Zeige die verbleibenden Kapiel im kleinen Kreis an</string>
+    <!-- Lacking a better translation for "badge", I replaced it with "kleiner Kreis" (=small Circle) for now, if you know a better one or other synonyms for badge that might work better for the translation, tell me please-->
+    <string name="show_chapters_left_badge_description">
+        Zeige anstelle der neuen Kapitel die verbleibenden Kapitel von den bereits gelesenen aus.
+        Ist der kleine Kreis rot, heißt das weiterhin dass neue Kapitel vorhanden sind.
+    </string>
+
+    <string name="sync_done_fetching_chapters">Verbleibende Novel zu überprüfen: %2$d\nÜberprüfen fertig: %1$s</string>
+    <string name="sync_done_updating_chapters">Verbleibende Novel zu aktualisieren: %2$d\nAktualisieren fertig: %1$s</string>
+
+    <string name="connection_error_cloudflare">
+        Dieser Fehler tritt aufgrund von Cloudflare auf. Versuche NovelSync in den Einstellungen.
+        Sollte dies nicht helfen, probiere es mit einer VPN Verbindung.
+        Solltest du zusätzliche Hilfe benötigen, trete dem Discord-Server bei.
+    </string>
+
+    <!-- Notification channels -->
+    <string name="channel_common">Gewöhnlich</string>
+    <string name="channel_progress">Progress</string>
+    <string name="channel_complete">Vollständig</string>
+    <string name="channel_errors">Fehler</string>
+    <string name="channel_library">Bibliothek</string>
+    <string name="group_downloader">Downloads</string>
+    <string name="group_backup_restore">Backup und Wiederherstellen</string>
+    <string name="channel_new_chapters">Kapitelupdates</string>
+    <string name="channel_ext_updates">Erweiterungsupdates</string>
+    <string name="channel_crash_logs">Absturzberichte</string>
+
+    <!--Extension Updates Notifications-->
+    <plurals name="update_check_notification_ext_updates">
+        <item quantity="one">Erweiterungsupdate verfügbar</item>
+        <item quantity="other">%d Erweiterung update Verfügbar</item>
+    </plurals>
+
+    <string name="title_activity_recent_novels">Kürzlich gelesene Romane</string>
+    <string name="title_activity_extensions">Erweiterungen verwalten</string>
+    <string name="title_fragment_sources">Quellen</string>
+    <string name="title_fragment_extensions">Erweiterungen</string>
+
+    <!-- Extension section -->
+    <string name="all_lang">Alle</string>
+    <string name="ext_updates_pending">Ausstehende Updates</string>
+    <string name="ext_update">Update</string>
+    <string name="ext_obsolete">Obsolet</string>
+    <string name="ext_install">Installieren</string>
+    <string name="ext_pending">Ausstehend</string>
+    <string name="ext_downloading">Lädt herunter</string>
+    <string name="ext_installing">Wird installiert</string>
+    <string name="ext_installed">Installiert</string>
+    <string name="ext_trust">Vertrauen</string>
+    <string name="ext_unofficial">Inoffiziell</string>
+    <string name="ext_untrusted">Unvertraut</string>
+    <string name="ext_uninstall">Deinstallieren</string>
+    <string name="ext_available">Verfügbar</string>
+    <string name="untrusted_extension">Nicht Vertrauenswürdige Erweiterung</string>
+    <string name="untrusted_extension_message">Diese Erweiterung ist mit einem nicht Vertrauenswürdigen Zertifikat signiert und wurde somit nicht aktiviert. Eine bösartige Erweiterung könnte Passwörter auslesen oder ungewollten Code ausführen. Indem diesem Zertifikat vertraut wird, akzeptierst du diese Risiken.</string>
+    <string name="obsolete_extension_message">Diese Erweiterung ist nicht mehr verfügbar.</string>
+    <string name="unofficial_extension_message">Diese Erweiterung ist nicht von der offiziellen NovelLibrary Erweiterungsliste.</string>
+    <string name="ext_version_info">Version: %1$s</string>
+    <string name="ext_language_info">Sprache: %1$s</string>
+    <string name="ext_nsfw_short">18+</string>
+    <string name="ext_nsfw_warning">Könnte NSFW (18+) Inhalte enthalten</string>
+
+    <string name="other_source">Andere</string>
+    <string name="empty_extensions">Keine Erweiterungen gefunden!</string>
+
+    <string name="remove_novels">Willst du die ausgewählten Romane aus deiner Bücherei entfernen?</string>
+    <string name="reset_novels">Willst du die ausgewählten Romane komplett zurücksetzen?</string>
+    <string name="importing">Importiere: %1$s</string>
 </resources>
