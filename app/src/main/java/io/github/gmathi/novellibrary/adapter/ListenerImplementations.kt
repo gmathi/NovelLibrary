@@ -1,13 +1,11 @@
 package io.github.gmathi.novellibrary.adapter
 
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
 import io.github.gmathi.novellibrary.fragment.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.NovelSection
-import io.github.gmathi.novellibrary.model.database.TranslatorSource
 import io.github.gmathi.novellibrary.model.database.WebPage
-import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.util.Constants
 
 //region Fragment Page Listeners
@@ -26,22 +24,13 @@ class NavPageListener : GenericFragmentStatePagerAdapter.Listener {
     }
 }
 
-class SearchResultsListener(private val searchTerms: String, private val tabNames: ArrayList<String>) : GenericFragmentStatePagerAdapter.Listener {
+class SearchResultsListener(private val searchTerms: String, private val sources: List<HttpSource>) : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment {
 
-        //This should not be triggered, but just in case
-        if (position >= tabNames.size) return SearchTermFragment.newInstance(searchTerms, Constants.SourceId.WLN_UPDATES)
+        //This should not be triggered, but just in case if there is an edge case bug
+        if (position >= sources.size) return SearchTermFragment.newInstance(searchTerms, Constants.SourceId.WLN_UPDATES)
 
-        //This returns the expected sourceId fragment for the matching titles
-        return when (tabNames[position]) {
-            "Novel-Updates" -> SearchTermFragment.newInstance(searchTerms, Constants.SourceId.NOVEL_UPDATES)
-            "RoyalRoad" -> SearchTermFragment.newInstance(searchTerms, Constants.SourceId.ROYAL_ROAD)
-            "NovelFull" -> SearchTermFragment.newInstance(searchTerms, Constants.SourceId.NOVEL_FULL)
-            "ScribbleHub" -> SearchTermFragment.newInstance(searchTerms, Constants.SourceId.SCRIBBLE_HUB)
-            "LNMTL" -> SearchTermFragment.newInstance(searchTerms, Constants.SourceId.LNMTL)
-            "Neovel" -> SearchTermFragment.newInstance(searchTerms, Constants.SourceId.NEOVEL)
-            else -> SearchTermFragment.newInstance(searchTerms, Constants.SourceId.WLN_UPDATES)
-        }
+        return SearchTermFragment.newInstance(searchTerms, sources[position].id)
     }
 }
 
@@ -55,7 +44,7 @@ class WebPageFragmentPageListener(val novel: Novel, private val webPages: List<W
 
 class LibraryPageListener(private val novelSections: ArrayList<NovelSection>) : GenericFragmentStatePagerAdapter.Listener {
     private var currentFragment = HashMap<Int, Fragment>()
-    
+
     fun getCurrentFragment(position: Int) = currentFragment[position]
 
     override fun getFragmentForItem(position: Int): Fragment {
@@ -70,6 +59,23 @@ class ChaptersPageListener(private val novel: Novel, private val translatorSourc
         return ChaptersFragment.newInstance(novel, translatorSourceNames[position])
     }
 }
+
+class RecentNovelsPageListener() : GenericFragmentStatePagerAdapter.Listener {
+    override fun getFragmentForItem(position: Int): Fragment {
+        if (position == 0)
+            return RecentlyUpdatedNovelsFragment.newInstance()
+        return RecentlyViewedNovelsFragment.newInstance()
+    }
+}
+
+class ExtensionsPageListener() : GenericFragmentStatePagerAdapter.Listener {
+    override fun getFragmentForItem(position: Int): Fragment {
+        if (position == 0)
+            return SourcesFragment.newInstance()
+        return ExtensionsFragment.newInstance()
+    }
+}
+
 //endregion
 
 

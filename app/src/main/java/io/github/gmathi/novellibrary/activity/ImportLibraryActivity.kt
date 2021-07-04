@@ -83,8 +83,8 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
             getNovelsFromUrl()
         }
 
-// Test Only
-//        binding.contentImportLibrary.readingListUrlEditText.setText("https://www.novelupdates.com/user/87290/goa_naidu2010/?rl=1")
+        // Test Only
+//        binding.contentImportLibrary.readingListUrlEditText.setText("https://www.novelupdates.com/user/373478/test_account/?rl=1")
 //        getNovelsFromUrl()
 //        adapter.notifyDataSetChanged()
 
@@ -299,34 +299,38 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         if (isImporting.get()) {
             return
         }
-
         isImporting.set(true)
 
+        val novelsToImport = ArrayList(updateSet)
+        actionMode?.finish()
+
         val snackProgressBarManager = Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this)
-        val snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, "Importing… - " + getString(R.string.please_wait))
+        val snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, getString(R.string.importing, getString(R.string.please_wait)))
             .setAction(getString(R.string.cancel), object : SnackProgressBar.OnActionClickListener {
                 @SuppressLint("NotifyDataSetChanged")
                 override fun onActionClick() {
                     run {
                         this@ImportLibraryActivity.job?.cancel()
-                        this@ImportLibraryActivity.actionMode?.finish()
                         this@ImportLibraryActivity.adapter.notifyDataSetChanged()
                         snackProgressBarManager.disable()
                     }
                 }
             })
-            .setProgressMax(updateSet.count())
+            .setProgressMax(novelsToImport.count())
         snackProgressBarManager.show(snackProgressBar, SnackProgressBarManager.LENGTH_INDEFINITE)
 
         job = lifecycleScope.launch {
             var progressCnt: Int = 0
-            updateSet.asSequence().forEach {
-                snackProgressBarManager.updateTo(snackProgressBar.setMessage("Importing: ${it.novelName}"))
-                withContext(Dispatchers.IO) { importNovelToLibrary(it) }
-                it.isAlreadyInLibrary = true
+            novelsToImport.asSequence().forEach {
+                snackProgressBarManager.updateTo(snackProgressBar.setMessage(getString(R.string.importing, it.novelName)))
+                try {
+                    withContext(Dispatchers.IO) { importNovelToLibrary(it) }
+                    it.isAlreadyInLibrary = true
+                } catch (e: Exception) {
+                    //Do Nothing
+                }
                 snackProgressBarManager.setProgress(++progressCnt)
             }
-            actionMode?.finish()
             adapter.notifyDataSetChanged()
             snackProgressBarManager.disable()
             isImporting.set(false)

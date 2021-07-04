@@ -9,9 +9,11 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.other.SelectorQuery
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.network.PREF_DOH_CLOUDFLARE
 import io.github.gmathi.novellibrary.util.Constants.DEFAULT_FONT_PATH
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import java.io.File
+import java.util.*
 
 
 class DataCenter(context: Context) {
@@ -97,9 +99,13 @@ class DataCenter(context: Context) {
 
         //DNS over HTTPS
         const val ENABLE_DOH = "enable_doh"
+        const val DOH_PROVIDER = "doh_provider"
 
         //Content Selectors List
         const val SELECTOR_QUERIES = "selectorsQueries"
+
+        //Extensions
+        const val AUTOMATIC_EXT_UPDATES = "automaticExtUpdates"
     }
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -419,11 +425,35 @@ class DataCenter(context: Context) {
         get() = prefs.getString(USER_SPECIFIED_SELECTOR_QUERIES, "") ?: ""
         set(value) = prefs.edit().putString(USER_SPECIFIED_SELECTOR_QUERIES, value).apply()
 
-    var enableDOH: Boolean
-        get() = prefs.getBoolean(ENABLE_DOH, false)
-        set(value) = prefs.edit().putBoolean(ENABLE_DOH, value).apply()
+    var dohProvider: Int
+        get() = prefs.getInt(DOH_PROVIDER, PREF_DOH_CLOUDFLARE)
+        set(value) = prefs.edit().putInt(DOH_PROVIDER, value).apply()
 
     var htmlCleanerSelectorQueries: ArrayList<SelectorQuery>
         get() = Gson().fromJson(prefs.getString(SELECTOR_QUERIES, "[]"), object : TypeToken<ArrayList<SelectorQuery>>() {}.type)
         set(value) = prefs.edit().putString(SELECTOR_QUERIES, Gson().toJson(value)).apply()
+
+    var automaticExtUpdates: Boolean
+        get() = prefs.getBoolean(AUTOMATIC_EXT_UPDATES, false)
+        set(value) = prefs.edit().putBoolean(AUTOMATIC_EXT_UPDATES, value).apply()
+
+    var extensionUpdatesCount: Int
+        get() = prefs.getInt("extensionUpdatesCount", Color.WHITE)
+        set(value) = prefs.edit().putInt("extensionUpdatesCount", value).apply()
+
+    var showNSFWSource: Boolean
+        get() = prefs.getBoolean("showNSFWSource", false)
+        set(value) = prefs.edit().putBoolean("showNSFWSource", value).apply()
+
+    var trustedSignatures: MutableSet<String>
+        get() = prefs.getStringSet("trustedSignatures", emptySet())!!
+        set(value) = prefs.edit().putStringSet("trustedSignatures", value).apply()
+
+    var lastExtCheck: Long
+        get() = prefs.getLong("lastExtCheck", Date().time)
+        set(value) = prefs.edit().putLong("lastExtCheck", value).apply()
+
+    fun isSourceEnabled(sourceKey: String): Boolean = prefs.getBoolean(sourceKey, true)
+    fun enableSource(sourceKey: String, enable: Boolean) = prefs.edit().putBoolean(sourceKey, enable).apply()
+
 }

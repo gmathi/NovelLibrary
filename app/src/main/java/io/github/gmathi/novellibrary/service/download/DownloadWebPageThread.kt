@@ -16,14 +16,9 @@ import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.lang.writableFileName
 import io.github.gmathi.novellibrary.util.network.getFileName
 import org.jsoup.nodes.Document
 import java.io.File
-import java.net.URI
-import java.net.URL
-import java.util.*
-import kotlin.collections.ArrayList
 
 
 class DownloadWebPageThread(val context: Context, val download: Download, val dbHelper: DBHelper, private val downloadListener: DownloadListener) : Thread(), DownloadListener {
@@ -32,7 +27,6 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         private const val TAG = "DownloadWebPageThread"
     }
 
-    private lateinit var hostDir: File
     private lateinit var novelDir: File
     private val networkHelper: NetworkHelper = NetworkHelper(context)
 
@@ -43,8 +37,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             val webPageSettings = dbHelper.getWebPageSettings(download.webPageUrl)!!
             val webPage = dbHelper.getWebPage(download.webPageUrl)!!
 
-            hostDir = Utils.getHostDir(context, webPageSettings.url)
-            novelDir = Utils.getNovelDir(hostDir, download.novelName)
+            novelDir = Utils.getNovelDir(context, download.novelName, download.novelId)
 
             dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_RUNNING, download.webPageUrl)
             downloadListener.handleEvent(DownloadWebPageEvent(EventType.RUNNING, webPageSettings.url, download))
@@ -75,50 +68,40 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         }
 
         val uri = Uri.parse(doc.location())
-        if (!uri.host.isNullOrBlank()) {
+        if (uri.host.isNullOrBlank()) return false
 
-            val htmlHelper = HtmlCleaner.getInstance(doc, uri.host ?: doc.location())
-            htmlHelper.downloadResources(doc, hostDir, novelDir)
-            var fileName = htmlHelper.getTitle(doc)
-            val location = doc.location()
-            if (location.isNotEmpty()) {
-                val url =  URL(location).toURI()
-                fileName = uri.getFileName()
+        val htmlHelper = HtmlCleaner.getInstance(doc, uri.host ?: doc.location())
+        htmlHelper.downloadResources(doc, novelDir)
+
+        val file = htmlHelper.convertDocToFile(doc, File(novelDir, uri.getFileName())) ?: return false
+
+        webPageSettings.title = htmlHelper.getTitle(doc)
+        webPageSettings.filePath = file.path
+        webPageSettings.redirectedUrl = doc.location()
+
+        // We need to clean up the document to get only valid linked URLS
+        htmlHelper.removeJS(doc)
+        htmlHelper.additionalProcessing(doc)
+        htmlHelper.setProperHrefUrls(doc)
+
+        // Now we extract other links from the cleaned doc
+        val otherLinks = htmlHelper.getLinkedChapters(doc)
+        if (otherLinks.isNotEmpty()) {
+            val otherWebPages = ArrayList<WebPageSettings>()
+            otherLinks.mapNotNullTo(otherWebPages) { downloadOtherChapterLinks(it, webPage.novelId, novelDir) }
+            webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = Gson().toJson(otherLinks)
+            otherWebPages.forEach {
+                dbHelper.createWebPageSettings(it)
             }
-            if (fileName.isNullOrBlank())
-                fileName = UUID.randomUUID().toString()
-
-            webPageSettings.title = htmlHelper.getTitle(doc)
-            val file = htmlHelper.convertDocToFile(doc, File(novelDir, fileName.writableFileName()))
-                ?: return false
-            webPageSettings.filePath = file.path
-            webPageSettings.redirectedUrl = doc.location()
-
-            // We need to clean up the document to get only valid linked URLS
-            htmlHelper.removeJS(doc)
-            htmlHelper.additionalProcessing(doc)
-            htmlHelper.setProperHrefUrls(doc)
-
-            // Now we extract other links from the cleaned doc
-            val otherLinks = htmlHelper.getLinkedChapters(doc)
-            if (otherLinks.isNotEmpty()) {
-                val otherWebPages = ArrayList<WebPageSettings>()
-                otherLinks.mapNotNullTo(otherWebPages) { downloadOtherChapterLinks(it, webPage.novelId, hostDir, novelDir) }
-                webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = Gson().toJson(otherLinks)
-                otherWebPages.forEach {
-                    dbHelper.createWebPageSettings(it)
-                }
-            }
-
-            if (webPageSettings.metadata.containsKey(Constants.DOWNLOADING))
-                webPageSettings.metadata.remove(Constants.DOWNLOADING)
-            dbHelper.updateWebPageSettings(webPageSettings)
-            return true
         }
-        return false
+
+        if (webPageSettings.metadata.containsKey(Constants.DOWNLOADING))
+            webPageSettings.metadata.remove(Constants.DOWNLOADING)
+        dbHelper.updateWebPageSettings(webPageSettings)
+        return true
     }
 
-    private fun downloadOtherChapterLinks(otherChapterLink: String, novelId: Long, hostDir: File, novelDir: File): WebPageSettings? {
+    private fun downloadOtherChapterLinks(otherChapterLink: String, novelId: Long, novelDir: File): WebPageSettings? {
 
         val doc: Document
         try {
@@ -134,13 +117,12 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
         val webPageSettings = WebPageSettings(otherChapterLink, novelId)
         val htmlHelper = HtmlCleaner.getInstance(doc, uri.host ?: doc.location())
-        htmlHelper.downloadResources(doc, hostDir, novelDir)
+        htmlHelper.downloadResources(doc, novelDir)
 
-        webPageSettings.title = htmlHelper.getTitle(doc)
-        if (webPageSettings.title != null && webPageSettings.title == "") webPageSettings.title = doc.location()
+        val file = htmlHelper.convertDocToFile(doc, File(novelDir, uri.getFileName())) ?: return null
 
-        val file = htmlHelper.convertDocToFile(doc, File(novelDir, webPageSettings.title!!.writableFileName()))
-            ?: return null
+        val title = htmlHelper.getTitle(doc)
+        webPageSettings.title = if (title.isNullOrBlank()) doc.location() else title
         webPageSettings.filePath = file.path
         webPageSettings.redirectedUrl = doc.location()
         return webPageSettings

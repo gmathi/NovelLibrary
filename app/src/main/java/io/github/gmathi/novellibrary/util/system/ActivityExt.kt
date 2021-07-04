@@ -19,8 +19,8 @@ import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.service.tts.TTSService
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.view.TransitionHelper
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.view.TransitionHelper
 
 fun AppCompatActivity.startNavDrawerActivity() {
     val intent = Intent(this, NavDrawerActivity::class.java)
@@ -82,6 +82,16 @@ fun AppCompatActivity.startReaderDBPagerActivity(novel: Novel) {
     startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
 }
 
+fun AppCompatActivity.startReaderDBPagerActivity(novel: Novel, translatorSourceName: String?) {
+    val intent = Intent(this, ReaderDBPagerActivity::class.java)
+    val bundle = Bundle()
+    bundle.putParcelable("novel", novel)
+    if (translatorSourceName != null)
+        bundle.putString("translatorSourceName", translatorSourceName)
+    intent.putExtras(bundle)
+    startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
+}
+
 
 fun AppCompatActivity.startSearchResultsActivity(title: String, url: String) {
     val intent = Intent(this, SearchUrlActivity::class.java)
@@ -92,12 +102,12 @@ fun AppCompatActivity.startSearchResultsActivity(title: String, url: String) {
     startActivityForResult(intent, Constants.SEARCH_RESULTS_ACT_REQ_CODE)
 }
 
-fun AppCompatActivity.startRecentlyViewedNovelsActivity() {
-    startActivityForResult(Intent(this, RecentlyViewedNovelsActivity::class.java), Constants.RECENT_VIEWED_ACT_REQ_CODE)
+fun AppCompatActivity.startRecentNovelsPagerActivity() {
+    startActivityForResult(Intent(this, RecentNovelsPagerActivity::class.java), Constants.RECENT_NOVELS_PAGER_ACT_REQ_CODE)
 }
 
-fun AppCompatActivity.startRecentlyUpdatedNovelsActivity() {
-    startActivityForResult(Intent(this, RecentlyUpdatedNovelsActivity::class.java), Constants.RECENT_UPDATED_ACT_REQ_CODE)
+fun AppCompatActivity.startExtensionsPagerActivity() {
+    startActivityForResult(Intent(this, ExtensionsPagerActivity::class.java), Constants.RECENT_NOVELS_PAGER_ACT_REQ_CODE)
 }
 
 fun AppCompatActivity.startSettingsActivity() {
@@ -194,7 +204,7 @@ fun AppCompatActivity.startNovelDownloadsActivity() {
     startActivityForResult(Intent(this, NovelDownloadsActivity::class.java), Constants.SETTINGS_ACT_REQ_CODE)
 }
 
-fun AppCompatActivity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean = false) {
+fun Activity.startNovelDetailsActivity(novel: Novel, jumpToReader: Boolean = false) {
     val intent = Intent(this, NovelDetailsActivity::class.java)
     val bundle = Bundle()
     bundle.putParcelable("novel", novel)
@@ -260,6 +270,10 @@ fun AppCompatActivity.startTTSService(audioText: String, title: String, novelId:
     bundle.putInt(TTSService.CHAPTER_INDEX, chapterIndex)
     serviceIntent.putExtras(bundle)
     startService(serviceIntent)
+}
+
+fun AppCompatActivity.startTTSActivity() {
+    startActivity(Intent(this, TextToSpeechControlsActivity::class.java))
 }
 
 fun Activity.showAlertDialog(title: String? = null, message: String? = null, @DrawableRes icon: Int = R.drawable.ic_warning_white_vector) {

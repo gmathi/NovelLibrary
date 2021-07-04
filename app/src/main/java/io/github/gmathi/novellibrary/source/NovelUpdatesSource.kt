@@ -21,6 +21,7 @@ import io.github.gmathi.novellibrary.util.network.asJsoup
 import okhttp3.*
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import org.jsoup.nodes.TextNode
 import rx.Observable
 import rx.schedulers.Schedulers
 import java.net.URLEncoder
@@ -100,6 +101,9 @@ class NovelUpdatesSource : ParsedHttpSource() {
         document.select("#mypostid")?.firstOrNull()?.attr("value")?.let {
             novel.externalNovelId = it
             novel.metadata["PostId"] = it
+        }
+        document.select("h5.seriesother").firstOrNull { el -> el.ownText() == "Release Frequency" }?.nextSibling()?.let { node ->
+            if (node is TextNode) novel.metadata["Release Frequency"] = node.text().trim()
         }
 
         return novel

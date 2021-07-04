@@ -60,15 +60,21 @@ abstract class ParsedHttpSource : HttpSource() {
     override fun searchNovelsParse(response: Response): NovelsPage {
         val document = response.asJsoup()
 
-        val novels = document.select(searchNovelsSelector()).map { element ->
-            searchNovelsFromElement(element)
+        val novels = ArrayList<Novel>()
+        document.select(searchNovelsSelector())?.forEach { element ->
+            try {
+                val novel = searchNovelsFromElement(element)
+                novels.add(novel)
+            } catch (e: Exception) {
+                //Do Nothing
+            }
         }
 
         val hasNextPage = searchNovelsNextPageSelector()?.let { selector ->
             document.select(selector).first()
         } != null
 
-        return NovelsPage(novels, hasNextPage)
+        return NovelsPage(novels ?: emptyList(), hasNextPage)
     }
 
     /**

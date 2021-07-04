@@ -8,6 +8,9 @@ import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
 import io.github.gmathi.novellibrary.model.other.SelectorQuery
+import io.github.gmathi.novellibrary.model.other.SelectorSubQuery
+import io.github.gmathi.novellibrary.model.other.SubqueryRole
+import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.*
@@ -30,8 +33,112 @@ import java.net.SocketException
 open class HtmlCleaner protected constructor() {
 
     companion object {
+        // Fairly generic selectors for specific content types
+        private const val genericCommentsSubquery = "#comments,.comments,#disqus_thread"
+        private const val genericShareSubquery = ".sd-block,.sharedaddy"
+        private const val genericMetaSubquery = ".byline,.posted-on,.cat-links,.tags-links,.entry-author,.post-date,.post-info,.post-meta,.entry-meta"
+
+        private val imageAttributes = listOf(
+            "data-orig-file",
+            "data-large-file",
+            "lazy-src",
+            "src",
+            "data-lazy-src",
+            "data-medium-file",
+            "data-small-file",
+            "data-srcset",
+            "srcset"
+        )
 
         private val defaultSelectorQueries = listOf(
+            // Comprehensive selectors
+            // Note: Subquery ordering is important, one that are attached to the end-results are attached in that order.
+            // Hence the following order is recommended:
+            // RHeader, RContent, RPage, RFooter, RNavigation, RMeta, RShare, RComments
+            // Make sure to put host-restricted queries first, since they likely trigger some other selector.
+
+            SelectorQuery(
+                ".nv__main", host = "activetranslations.xyz", subQueries = listOf(
+                    SelectorSubQuery(".nv-page-title", SubqueryRole.RHeader, optional = false, multiple = false),
+                    SelectorSubQuery("div[class*='entry-content']", SubqueryRole.RContent, optional = false, multiple = false),
+                    SelectorSubQuery(".nnl_container", SubqueryRole.RNavigation, optional = true, multiple = false),
+                    SelectorSubQuery("#comments", SubqueryRole.RComments, optional = true, multiple = false),
+                    SelectorSubQuery("div[class*='entry-content']>style", SubqueryRole.RWhitelist, optional = false, multiple = true),
+                ), keepContentClasses = true, customCSS = """
+                *,*::before,*::after {
+                    user-select: initial !important;
+                    
+                    top: initial!important;
+                    bottom: initial!important;
+                    left: initial!important;
+                    right: initial!important;
+                }
+            """.trimIndent()
+            ),
+
+            // Github, DIY Translations as an example
+            SelectorQuery("div#readme", host = "github.com"),
+
+            // https://novelonomicon.com/
+            SelectorQuery(
+                "div#content[role='main']", subQueries = listOf(
+                    SelectorSubQuery("h1.entry-title", SubqueryRole.RHeader, optional = true, multiple = false),
+                    SelectorSubQuery("div.entry-content", SubqueryRole.RContent, optional = true, multiple = false),
+                    SelectorSubQuery(".entry-footer,.entry-bottom", SubqueryRole.RFooter, optional = true, multiple = false),
+                    SelectorSubQuery(genericMetaSubquery, SubqueryRole.RMeta, optional = true, multiple = true),
+                    SelectorSubQuery(".post-navigation", SubqueryRole.RNavigation, optional = true, multiple = false),
+                    SelectorSubQuery(genericShareSubquery, SubqueryRole.RShare, optional = true, multiple = true),
+                    SelectorSubQuery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
+                )
+            ),
+
+            // Most common in wordpress-hosted websites, but also nicely matches a bunch of others.
+            SelectorQuery(
+                "div.entry-content", subQueries = listOf(
+                    SelectorSubQuery(".entry-title,.entry-header", SubqueryRole.RHeader, optional = true, multiple = false),
+                    SelectorSubQuery("div.entry-content", SubqueryRole.RContent, optional = true, multiple = false),
+                    SelectorSubQuery(".entry-footer,.entry-bottom", SubqueryRole.RFooter, optional = true, multiple = false),
+                    SelectorSubQuery(genericMetaSubquery, SubqueryRole.RMeta, optional = true, multiple = true),
+                    SelectorSubQuery(".post-navigation", SubqueryRole.RNavigation, optional = true, multiple = false),
+                    SelectorSubQuery(genericShareSubquery, SubqueryRole.RShare, optional = true, multiple = true),
+                    SelectorSubQuery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
+                )
+            ),
+            // Alternative version where instead of entry- it has post- prefixes
+            // Also common for tumblr
+            SelectorQuery(
+                "div.post-content", subQueries = listOf(
+                    SelectorSubQuery(".post-title,.post-header", SubqueryRole.RHeader, optional = true, multiple = false),
+                    SelectorSubQuery("div.post-content", SubqueryRole.RContent, optional = true, multiple = false),
+                    SelectorSubQuery(".post-footer,.post-bottom", SubqueryRole.RFooter, optional = true, multiple = false),
+                    SelectorSubQuery("$genericMetaSubquery,.post-meta-container", SubqueryRole.RMeta, optional = true, multiple = true),
+                    SelectorSubQuery(".post-navigation", SubqueryRole.RNavigation, optional = true, multiple = false),
+                    SelectorSubQuery(genericShareSubquery, SubqueryRole.RShare, optional = true, multiple = true),
+                    SelectorSubQuery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
+                )
+            ),
+
+            // Modern tumblr
+            SelectorQuery(
+                "div#content", host = "tumblr.com", subQueries = listOf(
+                    SelectorSubQuery("div.entry>.body", SubqueryRole.RContent, optional = true, multiple = false),
+                    SelectorSubQuery(".posttitle", SubqueryRole.RHeader, optional = true, multiple = false),
+                    SelectorSubQuery("#jp-post-flair,.wpcnt,.permalink", SubqueryRole.RMeta, optional = true, multiple = true),
+                    SelectorSubQuery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
+                )
+            ),
+
+            // Legacy TumblrCleaner. Boy, tumblr has so many variations.
+            SelectorQuery(
+                "div.textpostbody", host = "tumblr.com", subQueries = listOf(
+                    SelectorSubQuery(".textposttitle", SubqueryRole.RHeader, optional = true, multiple = false),
+                    SelectorSubQuery("", SubqueryRole.RContent, optional = true, multiple = false),
+                    SelectorSubQuery("#jp-post-flair,.wpcnt,.permalink", SubqueryRole.RMeta, optional = true, multiple = true),
+                    SelectorSubQuery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
+                )
+            ),
+
+            // Legacy selectors
             SelectorQuery("div.chapter-content"),
             SelectorQuery("div.entry-content"),
             SelectorQuery("div.elementor-widget-theme-post-content", appendTitleHeader = false),
@@ -57,7 +164,8 @@ open class HtmlCleaner protected constructor() {
             SelectorQuery("article.article-content"),
             SelectorQuery("div.page-content"),
             SelectorQuery("div.legacy-journal"), // Sample: deviantart journals (NU group: darksilencer)
-            SelectorQuery("article.entry-content") //GitHub
+            SelectorQuery("article.entry-content"), //GitHub
+            SelectorQuery("article"),
         )
 
         private const val TAG = "HtmlHelper"
@@ -66,21 +174,27 @@ open class HtmlCleaner protected constructor() {
             when {
                 url.contains(HostNames.WATTPAD) -> return WattPadCleaner()
                 url.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldCleaner()
-                url.contains(HostNames.CIRCUS_TRANSLATIONS) -> return CircusTranslationsCleaner()
                 url.contains(HostNames.QIDIAN) -> return QidianCleaner()
                 url.contains(HostNames.GOOGLE_DOCS) -> return GoogleDocsCleaner()
                 url.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsCleaner()
-                url.contains(HostNames.TUMBLR) -> return TumblrCleaner()
                 url.contains(HostNames.BAKA_TSUKI) -> return BakaTsukiCleaner()
                 url.contains(HostNames.SCRIBBLE_HUB) -> return ScribbleHubCleaner()
                 url.contains(HostNames.NEOVEL) -> return NeovelCleaner()
-                url.contains(HostNames.ACTIVE_TRANSLATIONS) -> return ActiveTranslationsCleaner()
                 url.contains(HostNames.CHRYSANTHEMUMGARDEN) -> return ChrysanthemumgardenCleaner()
             }
 
             val body = doc.body()
-            val lookup = getSelectorQueries().firstOrNull { body.select(it.query).isNotEmpty() }
-            if (lookup != null) return GenericSelectorQueryCleaner(url, lookup.query, appendTitle = lookup.appendTitleHeader)
+            val lookup = getSelectorQueries().firstOrNull {
+                if ((it.host == null || url.contains(it.host)) && body.select(it.selector).isNotEmpty()) {
+                    // Check non-optional subqueries to ensure we match the correct website.
+                    // TODO: Optimise with running all queries at once and storing them, instead of rerunning them a second time inside cleaner
+                    if (it.subQueries.isEmpty()) true
+                    else it.subQueries.all { sub ->
+                        sub.optional || body.select(sub.selector).isNotEmpty()
+                    }
+                } else false
+            }
+            if (lookup != null) return GenericSelectorQueryCleaner(url, lookup)
 
             //Lastly let's check for cloud flare
             val contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
@@ -91,11 +205,12 @@ open class HtmlCleaner protected constructor() {
 
         private fun getSelectorQueries(): List<SelectorQuery> {
             val dataCenter: DataCenter by injectLazy()
-            var htmlCleanerSelectorQueries = dataCenter.htmlCleanerSelectorQueries
-            if (htmlCleanerSelectorQueries.isNullOrEmpty()) htmlCleanerSelectorQueries = ArrayList(defaultSelectorQueries)
+            val htmlCleanerSelectorQueries = dataCenter.htmlCleanerSelectorQueries
+            htmlCleanerSelectorQueries.addAll(defaultSelectorQueries)
+
             val userSpecifiedSelectorQueries = dataCenter.userSpecifiedSelectorQueries
             if (userSpecifiedSelectorQueries.isNotBlank()) {
-                htmlCleanerSelectorQueries + userSpecifiedSelectorQueries.split('\n').filter { it.isNotBlank() }.map { SelectorQuery(it.trim()) }
+                htmlCleanerSelectorQueries.addAll(0, userSpecifiedSelectorQueries.split('\n').filter { it.isNotBlank() }.map { SelectorQuery(it.trim()) })
             }
             return htmlCleanerSelectorQueries
         }
@@ -106,9 +221,9 @@ open class HtmlCleaner protected constructor() {
     open var keepContentIds = true
     open var keepContentClasses = false
 
-    fun downloadResources(doc: Document, hostDir: File, novelDir: File) {
+    fun downloadResources(doc: Document, novelDir: File) {
         // removeJS(doc)
-        downloadCSS(doc, hostDir)
+        downloadCSS(doc, novelDir)
         downloadImages(doc, novelDir)
         // additionalProcessing(doc)
         // addTitle(doc)
@@ -205,32 +320,24 @@ open class HtmlCleaner protected constructor() {
         }
     }
 
-    open fun getImageUrl(element: Element): String? {
+    open fun getImageUrl(element: Element, absolute: Boolean = false): String? {
+        val attr = imageAttributes.firstOrNull { element.hasAttr(it) }
         return when {
-            element.hasAttr("data-orig-file") -> element.absUrl("data-orig-file")
-            element.hasAttr("data-large-file") -> element.absUrl("data-large-file")
-            element.hasAttr("lazy-src") -> element.absUrl("lazy-src")
-            element.hasAttr("src") -> element.absUrl("src")
-            element.hasAttr("data-lazy-src") -> element.absUrl("data-lazy-src")
-            element.hasAttr("data-medium-file") -> element.absUrl("data-medium-file")
-            element.hasAttr("data-small-file") -> element.absUrl("data-small-file")
-            element.hasAttr("data-srcset") -> {
-                // Parse highest possible resolution
-                val src = element.attr("data-srcset").substringAfterLast(',').trim().substringBeforeLast(' ')
-                element.attr("_srcset", src)
-                val ret = element.absUrl("_srcset")
-                element.removeAttr("_srcset")
-                ret
+            attr == null -> null
+            attr.endsWith("srcset") -> {
+                val src = element.attr(attr).substringAfterLast(',').trim().substringBeforeLast(' ')
+                if (absolute) {
+                    element.attr("_srcset", src)
+                    val ret = element.absUrl("_srcset")
+                    element.removeAttr("_srcset")
+                    ret
+                } else {
+                    src
+                }
             }
-            element.hasAttr("srcset") -> {
-                // Parse highest possible resolution
-                val src = element.attr("srcset").substringAfterLast(',').trim().substringBeforeLast(' ')
-                element.attr("_srcset", src)
-                val ret = element.absUrl("_srcset")
-                element.removeAttr("_srcset")
-                ret
-            }
-            else -> null
+            else ->
+                if (absolute) element.absUrl(attr)
+                else element.attr(attr)
         }
     }
 
@@ -247,7 +354,7 @@ open class HtmlCleaner protected constructor() {
     }
 
     open fun getImageFile(element: Element, dir: File): File? {
-        val uri = Uri.parse(getImageUrl(element) ?: return null)
+        val uri = Uri.parse(getImageUrl(element, true) ?: return null)
         val file: File
         try {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: $uri")
@@ -261,10 +368,10 @@ open class HtmlCleaner protected constructor() {
     }
 
     open fun downloadImage(element: Element, file: File): File? {
-        val uri = Uri.parse(getImageUrl(element) ?: return null)
+        val uri = Uri.parse(getImageUrl(element, true) ?: return null)
         if (uri.toString().contains("uploads/avatars")) return null
         try {
-            val response = Jsoup.connect(uri.toString()).userAgent(HostNames.USER_AGENT).ignoreContentType(true).execute()
+            val response = Jsoup.connect(uri.toString()).userAgent(HttpSource.DEFAULT_USER_AGENT).ignoreContentType(true).execute()
             val bytes = response.bodyAsBytes()
             val bitmap = Utils.getImage(bytes)
             val os = FileOutputStream(file)
@@ -304,6 +411,7 @@ open class HtmlCleaner protected constructor() {
                 }
                 html {
                     scroll-behavior: smooth;
+                    overflow-wrap: break-word;
                 }
                 body {
                     background-color: ${

@@ -10,12 +10,14 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 /*
- * Util functions for bridging RxJava and coroutines. Taken from TachiyomiEH/SY.
+ * Util functions for bridging RxJava and coroutines. Taken from Tachiyomi EH/SY.
  */
 
+@ExperimentalCoroutinesApi
 suspend fun <T> Single<T>.await(subscribeOn: Scheduler? = null): T {
     return suspendCancellableCoroutine { continuation ->
         val self = if (subscribeOn != null) subscribeOn(subscribeOn) else this
+        @Suppress("JoinDeclarationAndAssignment")
         lateinit var sub: Subscription
         sub = self.subscribe(
             {
