@@ -82,6 +82,13 @@ android {
         dataBinding = true
         viewBinding = true
     }
+    sourceSets {
+        mirror {
+            res {
+                srcDirs 'src\\mirror\\res'
+            }
+        }
+    }
 
 }
 
