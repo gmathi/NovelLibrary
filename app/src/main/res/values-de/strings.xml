@@ -69,9 +69,9 @@
     <string name="legal">Rechtliches</string>
 
     <string name="download">Download</string>
-    <string name="downloaded">Downloaded</string>
+    <string name="downloaded">Heruntergeladen</string>
     <string name="downloading">Downloading</string>
-    <string name="chapters_loading_message">Abhängig von der Anzahl der Kapitel dauert der Ladevorgang</string>
+    <string name="chapters_loading_message">Die Dauer des Ladevorgangs ist Abhängig von der Anzahl der Kapitel</string>
 
     <string name="no_internet">Keine aktive Internetverbindung!</string>
     <string name="try_again">Versuche es nochmal</string>
@@ -83,7 +83,7 @@
     <string name="cancel">Beenden</string>
     <string name="remove">Entfernen</string>
     <string name="confirm_remove">Entfernen bestätigen</string>
-    <string name="confirm_remove_description_novel">Novel und all ihre Kapitel werden aus der Bibliothek entfernt</string>
+    <string name="confirm_remove_description_novel">Der Novel und alle seine Kapitel werden aus der Bibliothek entfernt</string>
     <string name="remove_from_downloads">Aus Downloads entfernen?</string>
     <string name="add_to_library">Zur Bibliothek hinzufügen</string>
     <string name="in_library">In Bibliothek</string>
@@ -159,10 +159,10 @@
     <string name="mark_chapters_unread_dialog_content">Als ungelesen markieren?</string>
     <string name="mark_chapters_read_dialog_content">Als gelesen markieren?</string>
     <string name="download_chapters_dialog_content">Kapitel herunterladen? \n Hinweis: Kapitel-Downloads können nicht pausiert / gestoppt werden</string>
-    <string name="alert">Alert</string>
-    <string name="novel_not_in_library_dialog_content">Novel muss zu der Bibliothek hinzugefügt werden, bevor einzelne Kapitel heruntergeladen werden können</string>
+    <string name="alert">Warnung</string>
+    <string name="novel_not_in_library_dialog_content">Novel muss zuerst der Bibliothek hinzugefügt werden, bevor einzelne Kapitel heruntergeladen werden können</string>
     <string name="download_all_chapters_dialog_content">Verwalten Sie neue Downloads mit dem Download-Manager. Alle Kapitel herunterladen?</string>
-    <string name="background_chapter_downloads">Kapitel-Downloads wurde im Hintergrund gestartet</string>
+    <string name="background_chapter_downloads">Kapitel-Download wurde im Hintergrund gestartet</string>
 
     <!-- v0.5 Strings -->
 
@@ -211,21 +211,19 @@
     <string name="nu_reading_list_url">NU Leseliste URL</string>
     <string name="volume_scroll">Scrollen Sie mit den Lautstärketasten</string>
     <string name="volume_scroll_description">Verwenden Sie die Lautstärketasten, um beim Lesen nach oben / unten zu blättern</string>
-    <!-- Following two need to be rewritten, but can't think of anything good right now, remove this when done-->
-    <string name="keep_screen_on">Halten Sie den Bildschirm an</string>
-    <string name="keep_screen_on_description">Hält den Bildschirm bei, während du liest</string>
+    <string name="keep_screen_on">Den Bildschirm wachhalten</string>
+    <string name="keep_screen_on_description">Hält den Bildschirm wach, während du liest</string>
     <string name="join_us_on_discord">Trete uns auf Discord bei</string>
     <string name="other">Andere</string>
     <string name="title_activity_recently_updated_novels">Kürzlich aktualisierte Novel</string>
     <string name="title_activity_recently_viewed_novels">Kürzlich angesehene Novel</string>
     <string name="no_bookmark">Kein Lesezeichen!</string>
     <string name="imported_list">Importierte Lesezeichen</string>
-
     <string name="already_in_library">[ Bereits in der Bibliotek ]</string>
     <string name="group_update_notification_text">Aktualisierte Novel in deiner Bibliothek</string>
     <string name="confirm_remove_download_description">Willst du den Novel aus den Downloads entfernen?</string>
     <string name="reader_mode_description">Lesemodus wird permanent eingeschaltet sein</string>
-    <string name="delete_chapters">Gelöschte Kapitel</string> <!-- TODO what does this do exactly?-->
+    <string name="delete_chapters">Heruntergeladene Kapitel löschen</string>
 
     <!-- v0.8 Strings -->
 
@@ -241,7 +239,7 @@
     <string name="title_java_script">JavaScript</string>
     <string name="refresh_cloud_flare_cookies">CloudFlare Cookies neuladen</string>
     <string name="merge_pages">Alle Links zu einer Seite zusammenfügen</string>
-    <string name="merge_pages_description">Fügt alle Webseiten in einer einzige Webseite zusammen, sodass Mittelungen auf dem selbem Bildschrim angezeigt werden</string>
+    <string name="merge_pages_description">Fügt alle Webseiten in einer einzige Webseite zusammen, sodass Mittelungen auf dem selbem Bildschirm angezeigt werden</string>
     <string name="title_merge_pages">Seiten zusammenfügen</string>
     <string name="directional_links">Directional Links</string>
     <string name="directional_links_description">Nächstes Kapitel &amp; Link zu dem vorherigen Kapitel wird auf dem Lesemodusbildschirm angezeigt</string>
@@ -253,7 +251,7 @@
     <string name="backup_and_restore">Sichern &amp; Wiederherstellen</string>
     <string name="internal_clear_data">Zwischenspeicher &amp; Daten leeren</string>
     <string name="internal_clear_data_description">Leert den Zwischenspeicher, Dateien und Datenbanken (eingeschlossen den Auto-generierten Ordnern)</string>
-    <string name="enable_cloud_flare">Cloud Flare Cookies</string>
+    <string name="enable_cloud_flare">Cloudflare Cookies</string>
     <string name="enable_cloud_flare_description">Du muss die App neustarten, wenn du dies umstellst!</string>
     <string name="preferences">Einstellungen (Lese-Einstellungen, usw.)</string>
     <string name="downloaded_files">Heruntergeladene Kapitel (Dateien)</string>
@@ -261,7 +259,7 @@
     <string name="disable_notifications">Benachrichtigungen aktivieren</string>
     <string name="disable_notifications_description">Stündliche Benachrichtigungen aktivieren, wenn neue Kapitelaktualisierungen verfügbar sind</string>
 
-    <string name="title_novel_sections">Novelgruppe</string>
+    <string name="title_novel_sections">Novelgruppen</string>
     <string name="add_novel_section">Novelgruppe hinzufügen</string>
 
     <string name="confirm_remove_description_novel_section">Die Novelgruppe wird entfernt und alle enthaltenen Novel werden zu momentan gelesen verschoben</string>
@@ -348,13 +346,13 @@
     <string name="alternative_text_colors">Textfarbe invertieren</string>
     <string name="alternative_text_colors_description">Invertiert Helligkeit von Textfarben um besser zum Nachtmodus zu passen. Funktioniert nur bei aktiviertem Nachtmodus.</string>
     <string name="limit_image_width">Bilder anpassen</string>
-    <string name="limit_image_width_description">Erzwingt eine Bildbereite die genauso lang ist wie die Bildschirmbreite. Verhindert horizontales scrollen wegen zu breiten Bildern</string>
+    <string name="limit_image_width_description">Erzwingt eine Bildbereite die genauso breit ist wie die Bildschirmbreite. Verhindert horizontales scrollen wegen zu breiten Bildern</string>
     <string name="cloud_flare_check_complete">CloudFlare Freigabe bekommen</string>
     <string name="loading">Lädt…</string>
     <string name="empty_chapters">Dieser Novel ist wahrscheinlich gecopyrighted oder pay-walled und somit kannst du keine Kapitel sehen!</string>
     <string name="remove_favorite">Favorite(n) entfernen</string>
     <string name="mark_favorite">Favorite(n) makieren</string>
-    <string name="unfavorite_chapters_read_dialog_content">Kapitel von Favoriten entfernen?</string>
+    <string name="unfavorite_chapters_read_dialog_content">Kapitel aus Favoriten entfernen?</string>
     <string name="favorite_chapters_read_dialog_content">Kapitel favorisieren?</string>
     <string name="day_mode_background_color">Tagmodus: Hintergrundfarbe</string>
     <string name="day_mode_text_color">Tagmodus: Textfarbe</string>
@@ -372,7 +370,7 @@
     <string name="reset_novel">Novel komplett zurücksetzen</string>
 
     <!-- 0.15.6-->
-    <string name="licensed_warning">Manche Kapitel dieses Novel könnten fehlen (aus urheberrechtlichen Gründen oder freiwillig entfernt) oder nur mit Bezahlung erreichbar sein, da dieser von %1$s lizensiert wurde.</string>
+    <string name="licensed_warning">Manche Kapitel dieses Novel könnten fehlen (aus urheberrechtlichen Gründen (DMCA) oder freiwillig entfernt) oder nur mit Bezahlung erreichbar sein, da dieser von %1$s lizensiert wurde.</string>
 
     <!-- 0.16 -->
     <string name="sync_fetching_chapter_counts">Kapitelanzahl erhalten: %1$d / %2$d\n%3$s</string>
@@ -411,7 +409,7 @@
     <string name="sync_delete_novels">Synchronisiere gelöschte Novel</string>
     <string name="sync_delete_novels_description">Novel, die durch die App gelöscht wurden, werden bei deiner Liste auf der Quellwebseite gelöscht.</string>
     <string name="sync_bookmarks">Synchronisiere Lesezeichen</string>
-    <string name="sync_bookmarks_description">Kaptitel, die in der App gelesen werden, wird dein Lesezeichen auf der Quellwebseite aktualisieren.</string>
+    <string name="sync_bookmarks_description">Kapitel, die in der App gelesen werden, aktualisieren dein Lesezeichen auf der Quellwebseite.</string>
     <string name="make_full_sync">Vollständig synchronisieren</string>
     <string name="make_full_sync_description">Novel und Gruppen von der App zu Listen der Quellwebseite hinzufügen.</string>
     <string name="sync_forget">Login vergessen</string>
