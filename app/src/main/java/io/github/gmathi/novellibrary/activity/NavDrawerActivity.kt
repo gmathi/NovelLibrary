@@ -4,8 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
-import android.webkit.CookieManager
-import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
@@ -16,25 +14,16 @@ import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
-import com.tingyik90.snackprogressbar.SnackProgressBar
-import com.zhkrb.cloudflare_scrape_webview.CfCallback
-import com.zhkrb.cloudflare_scrape_webview.Cloudflare
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.databinding.ActivityNavDrawerBinding
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.model.source.online.HttpSource
-import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.system.*
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.cryse.widget.persistentsearch.PersistentSearchView
-import java.net.HttpCookie
-import java.util.concurrent.atomic.AtomicBoolean
 
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -83,16 +72,15 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 title(text = "\uD83C\uDF89 What's New ${BuildConfig.VERSION_NAME}!")
                 message(
                     text =
-
-//                    "✨️ Internal Structural Changes - CLOUDFLARE FIX!\n" +
-//                            "✨️ Support GitHub\n" +
-//                            "✨ UI Changes - New SnackBar!\n" +
+                    "✨️ 0.19 Goodies!\n" +
+                            "⚠️️ Fixed - Downloading wrong chapters/links within chapters.\n" +
+                            "⚠️ Fixed - Novel Section assigning from pop menu in the novel in Library.\n" +
+                            "⚠️ Fixed - Add to Library from Novel Details.\n" +
 //                            "✨ Font Style Preview!\n" +
-                            "⚠️ BugFixes that address previous 0.18.x versions\n" +
 //                            "⚠️ Fix - Hosted novels offline downloads announcement page\n" +
 //                            "⚠️ Fix - Positive button of Font style changer wasn't allowed\n" +
 //                            "❌️ Broken - Novel Sync\n" +
-                            "\uD83D\uDEE0️ Other major/minor bug fixes reported on GitHub.\n" +
+//                            "\uD83D\uDEE0️ Other major/minor bug fixes reported on GitHub.\n" +
 //                            "\uD83D\uDEE0 Support for 3 more translation sites in reader mode.\n" +
 //                            "\uD83D\uDEE0 Discord link updated.\n" +
 //                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
@@ -106,47 +94,6 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
     }
-
-//    private fun checkForCloudFlare() {
-//        isCloudflareChecking.set(true)
-//        cloudFlareLoadingSnack = SnackProgressBar(
-//            SnackProgressBar.TYPE_CIRCULAR,
-//            "If this is taking too long, You can skip and goto \"Settings\" -> \"CloudFlare Check\" to make the app work."
-//        )
-//            .setAction("Skip", object : SnackProgressBar.OnActionClickListener {
-//                override fun onActionClick() {
-//                    loadFragment(currentNavId)
-//                    showWhatsNewDialog()
-//                    checkIntentForNotificationData()
-//                    isCloudflareChecking.set(false)
-//                }
-//            })
-//        lifecycleScope.launch {
-//            snackProgressBarManager.show(
-//                cloudFlareLoadingSnack!!,
-//                SnackProgressBarManager.LENGTH_INDEFINITE
-//            )
-//            loadFragment(currentNavId)
-//        }
-//
-//        launchIO {
-//            CloudFlareByPasser.check(this@NavDrawerActivity, "novelupdates.com") { state ->
-//                if (!isDestroyed) {
-//                    if (state == CloudFlareByPasser.State.CREATED || state == CloudFlareByPasser.State.UNNEEDED) {
-//                        if (cloudFlareLoadingSnack != null) {
-//                            lifecycleScope.launch {
-//                                showWhatsNewDialog()
-//                                checkIntentForNotificationData()
-//                                snackProgressBarManager.dismiss()
-//                                cloudFlareLoadingSnack = null
-//                                isCloudflareChecking.set(false)
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
 
     override fun onBackPressed() {
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -206,12 +153,13 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_settings -> {
                 startSettingsActivity()
             }
-            R.id.nav_recently_viewed -> {
-                startRecentlyViewedNovelsActivity()
+            R.id.nav_recent_novels -> {
+                startRecentNovelsPagerActivity()
             }
-            R.id.nav_recently_updated -> {
-                startRecentlyUpdatedNovelsActivity()
+            R.id.nav_extensions -> {
+                startExtensionsPagerActivity()
             }
+
             R.id.nav_discord_link -> {
                 openInBrowser("https://discord.gg/cPMxEVn")
             }

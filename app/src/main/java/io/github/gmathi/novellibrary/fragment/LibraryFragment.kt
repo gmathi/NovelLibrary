@@ -7,11 +7,14 @@ import android.os.Bundle
 import android.os.Handler
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
+import com.afollestad.materialdialogs.DialogCallback
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
 import com.afollestad.materialdialogs.list.listItems
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -25,6 +28,7 @@ import io.github.gmathi.novellibrary.databinding.ContentLibraryBinding
 import io.github.gmathi.novellibrary.databinding.ListitemLibraryBinding
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.other.NovelEvent
@@ -46,7 +50,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleItemTouchListener {
+class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleItemTouchListener, ActionMode.Callback {
 
     lateinit var adapter: GenericAdapter<Novel>
     private lateinit var touchHelper: ItemTouchHelper
@@ -59,6 +63,11 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     private var syncSnackBar: SnackProgressBar? = null
 
     private lateinit var binding: ContentLibraryBinding
+
+    var dataSet: HashSet<Novel> = HashSet()
+    private var actionMode: ActionMode? = null
+
+    private var confirmDialog: MaterialDialog? = null
 
     companion object {
 
@@ -137,8 +146,12 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     //region Adapter Listener Methods - onItemClick(), viewBinder()
 
     override fun onItemClick(item: Novel, position: Int) {
-        if (lastDeletedId != item.id)
-            (activity as? AppCompatActivity)?.startChaptersActivity(item)
+        if (lastDeletedId != item.id) {
+            if (dataSet.isNotEmpty()) {
+                if (dataSet.contains(item)) removeFromDataSet(item) else addToDataSet(item)
+            } else
+                (activity as? AppCompatActivity)?.startChaptersActivity(item)
+        }
     }
 
     override fun bind(item: Novel, itemView: View, position: Int) {
@@ -171,12 +184,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                             startNovelDetailsActivity(item)
                         true
                     }
-//                    R.id.action_novel_reorder -> {
-//                        touchHelper.startDrag(recyclerView.getChildViewHolder(itemView))
-//                        true
-//                    }
                     R.id.action_novel_assign_novel_section -> {
-                        showNovelSectionsList(position)
+                        showNovelSectionsList(arrayListOf(item))
                         true
                     }
                     R.id.action_reset_novel -> {
@@ -233,7 +242,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
         val badgeCount = if (dataCenter.showChaptersLeftBadge) {
             if (bookmarkOrderId == null) item.chaptersCount
-            else item.chaptersCount - bookmarkOrderId - 1;
+            else item.chaptersCount - bookmarkOrderId - 1
         } else item.newReleasesCount
 
         if (badgeCount != 0L) {
@@ -262,6 +271,29 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             }
         } else {
             itemBinding.novelProgressText.text = getString(R.string.no_bookmark)
+        }
+
+        itemView.setOnLongClickListener {
+            if (dataSet.contains(item)) removeFromDataSet(item) else addToDataSet(item)
+            true
+        }
+
+        itemBinding.checkbox.setOnCheckedChangeListener(null)
+        if (dataSet.isNotEmpty()) {
+            itemBinding.checkbox.visibility = View.VISIBLE
+            itemBinding.popMenu.visibility = View.INVISIBLE
+        } else {
+            itemBinding.checkbox.visibility = View.INVISIBLE
+            itemBinding.popMenu.visibility = View.VISIBLE
+        }
+
+        itemBinding.blackOverlay.visibility = if (dataSet.contains(item)) View.VISIBLE else View.INVISIBLE
+        itemBinding.checkbox.isChecked = dataSet.contains(item)
+        itemBinding.checkbox.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked)
+                addToDataSet(item)
+            else
+                removeFromDataSet(item)
         }
     }
 
@@ -321,29 +353,15 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         lifecycleScope.launch(Dispatchers.IO) syncing@{
 
             if (activity == null) return@syncing
-
-            withContext(Dispatchers.Main) {
-                if (this@LibraryFragment.syncSnackBar != null)
-                    syncSnackBarManager.dismiss()
-                this@LibraryFragment.syncSnackBar = SnackProgressBar(
-                    SnackProgressBar.TYPE_HORIZONTAL,
-                    getString(R.string.sync_in_progress) + " - " + getString(R.string.please_wait)
-                )
-                syncSnackBarManager.show(syncSnackBar!!, SnackProgressBarManager.LENGTH_INDEFINITE)
-                activity?.invalidateOptionsMenu()
-            }
-
-            val totalChaptersMap: HashMap<Novel, ArrayList<WebPage>> = HashMap()
-            val novels = if (novel == null) dbHelper.getAllNovels(novelSectionId) else listOf(novel)
-
-            withContext(Dispatchers.Main) {
-                syncSnackBarManager.updateTo(syncSnackBar!!.setProgressMax(novels.count()))
-            }
+            snackBarView(SnackBarStatus.Initialize, message = getString(R.string.sync_in_progress) + " - " + getString(R.string.please_wait))
 
             var counter = 0
             val waitList = LinkedList<Deferred<Boolean>>()
-            novels.forEach {
+            val totalChaptersMap: HashMap<Novel, ArrayList<WebPage>> = HashMap()
+            val novels = if (novel == null) dbHelper.getAllNovels(novelSectionId) else listOf(novel)
+            snackBarView(SnackBarStatus.MaxProgress, maxProgress = novels.count())
 
+            novels.forEach {
                 waitList.add(async {
                     try {
 
@@ -363,13 +381,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                             totalChaptersMap[it] = ArrayList(newChaptersList)
                         }
 
-                        withContext(Dispatchers.Main) {
-                            syncSnackBar?.let { snackBar ->
-                                syncSnackBarManager.updateTo(snackBar.setMessage(getString(R.string.sync_done_fetching_chapters, it.name, (novels.count() - counter++))))
-                                syncSnackBarManager.setProgress(counter)
-                            }
-                        }
-
+                        val message = getString(R.string.sync_done_fetching_chapters, it.name, (novels.count() - counter++))
+                        snackBarView(SnackBarStatus.Update, message = message, progress = counter)
 
                     } catch (e: Exception) {
                         Logs.error(TAG, "Novel: $it", e)
@@ -383,30 +396,17 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             //Update DB with new chapters
             waitList.clear()
             counter = 0
-            withContext(Dispatchers.Main) {
-                syncSnackBarManager.updateTo(syncSnackBarManager.getLastShown()?.setProgressMax(totalChaptersMap.count())!!)
-            }
+            snackBarView(SnackBarStatus.MaxProgress, maxProgress = totalChaptersMap.count())
 
             totalChaptersMap.forEach {
                 val novelToUpdate = it.key
                 var chapters = it.value
                 counter++
-                withContext(Dispatchers.Main) {
-                    syncSnackBar?.let { progressBar ->
-                        syncSnackBarManager.updateTo(
-                            progressBar.setMessage(
-                                getString(
-                                    R.string.sync_fetching_chapter_list,
-                                    counter, totalChaptersMap.count(), novelToUpdate.name
-                                )
-                            )
-                        )
-                        syncSnackBarManager.setProgress(counter)
-                    }
-                }
+
+                val message = getString(R.string.sync_fetching_chapter_list, counter, totalChaptersMap.count(), novelToUpdate.name)
+                snackBarView(SnackBarStatus.Update, message = message, progress = counter)
 
                 // We re-fetch the chapters in-case of NovelUpdates so that we also retrieve the translator information.
-
                 novelToUpdate.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
 
                 var newChaptersCount = chapters.size - novelToUpdate.chaptersCount
@@ -448,13 +448,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             }
 
             waitList.awaitAll()
-
-            withContext(Dispatchers.Main) {
-                syncSnackBarManager.dismiss()
-                syncSnackBar = null
-            }
-
-            activity?.invalidateOptionsMenu()
+            snackBarView(SnackBarStatus.Dismiss)
         }
     }
 
@@ -539,7 +533,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 positiveButton(R.string.remove) { dialog ->
                     this@LibraryFragment.run {
                         val novel = adapter.items[viewHolderPosition]
-                        Utils.deleteNovel(it, novel.id)
+                        Utils.deleteNovel(it, novel)
                         setData()
                         dialog.dismiss()
                     }
@@ -565,7 +559,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             }
     }
 
-    private fun showNovelSectionsList(position: Int) {
+    private fun showNovelSectionsList(novels: ArrayList<Novel>) {
+        val isMultiNovelUpdate = novels.size > 1
         val novelSections = ArrayList(dbHelper.getAllNovelSections())
         if (novelSections.isEmpty()) {
             MaterialDialog(requireActivity()).show {
@@ -581,29 +576,217 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         MaterialDialog(requireActivity()).show {
             title(text = "Choose A Novel Section")
             listItems(items = novelSectionsNames.toList()) { _, which, _ ->
-                var id = -1L
-                if (novelSectionId == -1L)
-                    id = novelSections[which].id
+                var novelSectionId = -1L
+                if (this@LibraryFragment.novelSectionId == -1L)
+                    novelSectionId = novelSections[which].id
                 else if (which != 0)
-                    id = novelSections[which - 1].id
+                    novelSectionId = novelSections[which - 1].id
 
-                val novel = adapter.items[position]
-                dbHelper.updateNovelSectionId(novel.id, id)
-                EventBus.getDefault().post(NovelSectionEvent(id))
-                NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) {
-                    if (dataCenter.getSyncAddNovels(it.host)) it.updateNovel(
-                        novel,
-                        novelSections.firstOrNull { section -> section.id == id })
+                if (actionMode != null) {
+                    withSnackBarStatus(novels, "Assigning") { novel ->
+                        assignNovelToSection(novel, novelSections, novelSectionId)
+                    }
+                } else {
+                    assignNovelToSection(novels[0], novelSections, novelSectionId)
+                    setData()
                 }
-                setData()
             }
         }
     }
+
+    private fun assignNovelToSection(novel: Novel, novelSections: ArrayList<NovelSection>, novelSectionId: Long) {
+        dbHelper.updateNovelSectionId(novel.id, novelSectionId)
+        EventBus.getDefault().post(NovelSectionEvent(novelSectionId))
+        NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { novelSync ->
+            if (dataCenter.getSyncAddNovels(novelSync.host)) {
+                novelSync.updateNovel(novel, novelSections.firstOrNull { section -> section.id == novelSectionId })
+            }
+        }
+
+    }
+
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onNovelSectionEvent(novelSectionEvent: NovelSectionEvent) {
         if (novelSectionEvent.novelSectionId == novelSectionId) {
             setData()
+        }
+    }
+
+    //region - Action Mode for Library
+    override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
+        mode?.menuInflater?.inflate(R.menu.menu_library_action_mode, menu)
+        return true
+    }
+
+    override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
+        menu?.findItem(R.id.action_novel_assign_novel_section)?.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        return true
+    }
+
+    override fun onDestroyActionMode(mode: ActionMode?) {
+        dataSet.clear()
+        actionMode = null
+        setData()
+    }
+
+    override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
+
+        when (item?.itemId) {
+            R.id.action_select_interval -> {
+                val novels = adapter.items
+                val indexes = dataSet.map { novels.indexOf(it) }.sorted()
+                val subList = novels.subList(indexes.first(), indexes.last())
+                addToDataSet(subList)
+            }
+            R.id.action_select_all -> {
+                addToDataSet(adapter.items)
+            }
+            R.id.action_clear_selection -> {
+                removeFromDataSet(adapter.items)
+            }
+            R.id.action_novel_remove -> {
+                confirmDialog(getString(R.string.remove_novels), {
+                    val novels = ArrayList(dataSet)
+                    withSnackBarStatus(novels, "Deleting") { novel ->
+                        dbHelper.cleanupNovelData(novel)
+                    }
+                })
+            }
+            R.id.action_reset_novel -> {
+                confirmDialog(getString(R.string.reset_novel), {
+                    if (networkHelper.isConnectedToNetwork()) {
+                        val novels = ArrayList(dataSet)
+                        withSnackBarStatus(novels, "Resetting") { novel ->
+                            dbHelper.resetNovel(novel)
+                        }
+                        setData()
+                    } else {
+                        showAlertDialog(message = "You need to be connected to Internet to Hard Reset.")
+                        mode?.finish()
+                    }
+                })
+            }
+            R.id.action_novel_assign_novel_section -> {
+                showNovelSectionsList(ArrayList(dataSet))
+            }
+        }
+        return false
+    }
+
+    private fun addToDataSet(novel: Novel) {
+        dataSet.add(novel)
+        if (actionMode == null) {
+            actionMode = (activity as? AppCompatActivity)?.startSupportActionMode(this)
+            adapter.notifyDataSetChanged()
+        }
+        actionMode?.title = dataSet.size.toString()
+        adapter.notifyItemChanged(adapter.items.indexOf(novel))
+    }
+
+    private fun removeFromDataSet(novel: Novel) {
+        dataSet.remove(novel)
+        if (dataSet.isEmpty()) {
+            actionMode?.finish()
+            adapter.notifyDataSetChanged()
+        } else {
+            actionMode?.title = dataSet.size.toString()
+            adapter.notifyItemChanged(adapter.items.indexOf(novel))
+        }
+    }
+
+    private fun addToDataSet(novels: List<Novel>) {
+        dataSet.addAll(novels)
+        if (actionMode == null) {
+            actionMode = (activity as? AppCompatActivity)?.startSupportActionMode(this)
+        }
+        actionMode?.title = dataSet.size.toString()
+        adapter.notifyDataSetChanged()
+    }
+
+    private fun removeFromDataSet(novels: List<Novel>) {
+        dataSet.removeAll(novels)
+        if (dataSet.isEmpty()) {
+            actionMode?.finish()
+        } else {
+            actionMode?.title = dataSet.size.toString()
+        }
+        adapter.notifyDataSetChanged()
+    }
+
+    //endregion
+
+    //region Dialogs
+    fun confirmDialog(content: String, positiveCallback: DialogCallback, negativeCallback: DialogCallback? = null) {
+        if (confirmDialog == null || !confirmDialog!!.isShowing && activity != null) {
+            MaterialDialog(requireActivity()).show {
+                title(R.string.confirm_action)
+                message(text = content)
+                positiveButton(R.string.okay, click = positiveCallback)
+                negativeButton(R.string.cancel, click = negativeCallback)
+
+                lifecycleOwner(this@LibraryFragment)
+            }
+        }
+    }
+
+    /**
+     * To Track SnackBar Status
+     */
+    enum class SnackBarStatus {
+        Initialize,
+        Update,
+        Dismiss,
+        MaxProgress
+    }
+
+    /**
+     *  Consolidate the SnackBarManager & SnackBar interactions based on the operation being performed.
+     */
+    private suspend fun snackBarView(status: SnackBarStatus, message: String = "", maxProgress: Int = 1, progress: Int = 0) = withContext(Dispatchers.Main) {
+        when (status) {
+            SnackBarStatus.Initialize -> {
+                if (this@LibraryFragment.syncSnackBar != null)
+                    syncSnackBarManager.dismiss()
+                this@LibraryFragment.syncSnackBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, message)
+                syncSnackBarManager.show(syncSnackBar!!, SnackProgressBarManager.LENGTH_INDEFINITE)
+                actionMode?.finish()
+                activity?.invalidateOptionsMenu()
+            }
+
+            SnackBarStatus.MaxProgress -> {
+                syncSnackBar?.let { syncSnackBarManager.updateTo(it.setProgressMax(maxProgress)) }
+            }
+
+            SnackBarStatus.Update -> {
+                syncSnackBar?.let {
+                    syncSnackBarManager.updateTo(it.setMessage(message))
+                    syncSnackBarManager.setProgress(progress)
+                }
+            }
+
+            SnackBarStatus.Dismiss -> {
+                syncSnackBarManager.dismiss()
+                syncSnackBar = null
+                actionMode?.finish()
+                activity?.invalidateOptionsMenu()
+            }
+        }
+    }
+
+    /**
+     * Handy actionMode operations functions that wraps around updating the status for action being performed.
+     */
+    private fun withSnackBarStatus(novels: ArrayList<Novel>, action: String = "", operation: suspend (novel: Novel) -> Unit) {
+        lifecycleScope.launch(Dispatchers.Main) {
+            snackBarView(SnackBarStatus.Initialize)
+            snackBarView(SnackBarStatus.MaxProgress, maxProgress = novels.size)
+            novels.forEachIndexed { index, novel ->
+                val message = "$action: ${novel.name}\nChecking: $index/${novels.size}"
+                snackBarView(SnackBarStatus.Update, message = message, progress = index + 1)
+                withContext(Dispatchers.IO) { operation(novel) }
+            }
+            snackBarView(SnackBarStatus.Dismiss)
         }
     }
 

@@ -20,8 +20,8 @@ android {
         minSdkVersion 21
         targetSdkVersion 30
         multiDexEnabled true
-        versionCode 103
-        versionName "0.18.6.beta"
+        versionCode 105
+        versionName "0.19.1.beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -82,6 +82,13 @@ android {
         dataBinding = true
         viewBinding = true
     }
+    sourceSets {
+        mirror {
+            res {
+                srcDirs 'src\\mirror\\res'
+            }
+        }
+    }
 
 }
 
@@ -89,13 +96,15 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     implementation 'androidx.browser:browser:1.3.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.3.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'androidx.appcompat:appcompat:1.3.0'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'com.google.android.material:material:1.3.0'
     implementation 'androidx.vectordrawable:vectordrawable:1.1.0'
@@ -136,12 +145,11 @@ dependencies {
     implementation "com.google.android.gms:play-services-drive:17.0.0"
     implementation "com.google.android.gms:play-services-auth:19.0.0"
 
-    def work_version = '2.5.0'
-    implementation "androidx.work:work-runtime-ktx:$work_version"
+    def work_version = '2.6.0-beta01'
+    // Job scheduling
+    implementation "androidx.work:work-runtime-ktx:2.7.0-alpha04"
     implementation "androidx.work:work-gcm:$work_version"
     androidTestImplementation "androidx.work:work-testing:$work_version"
-
-    implementation 'com.google.code.gson:gson:2.8.6'
 
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
 
@@ -159,7 +167,7 @@ dependencies {
     implementation 'com.squareup.okio:okio:3.0.0-alpha.1'
 
     // TLS 1.3 support for Android < 10
-    implementation 'org.conscrypt:conscrypt-android:2.5.1'
+    implementation 'org.conscrypt:conscrypt-android:2.5.2'
 
     // REST
     final retrofit_version = '2.9.0'
@@ -168,15 +176,33 @@ dependencies {
     implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
     implementation "com.squareup.retrofit2:adapter-rxjava:$retrofit_version"
 
+    //ReactiveX
+    implementation "io.reactivex:rxandroid:1.2.1"
+    implementation "io.reactivex:rxjava:1.3.8"
+    implementation "com.jakewharton.rxrelay:rxrelay:1.2.0"
+    implementation "com.github.pwittchen:reactivenetwork:0.13.0"
+
 
     canaryImplementation 'com.squareup.leakcanary:leakcanary-android:2.7'
 
     kapt 'com.github.bumptech.glide:compiler:4.12.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-   	final kotlinx_coroutines_version = '1.4.3-native-mt'
 
+    final kotlinx_coroutines_version = '1.4.3'
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinx_coroutines_version"
+
+    final kotlinSerializationVersion = "1.1.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinSerializationVersion"
+    implementation "com.google.code.gson:gson:2.8.7"
+    implementation "com.github.salomonbrys.kotson:kotson:2.5.0"
+
+    // Image library
+    final coilVersion = "1.2.1"
+    implementation("io.coil-kt:coil:$coilVersion")
+    implementation("io.coil-kt:coil-gif:$coilVersion")
+
 
     implementation 'com.github.tingyik90:snackprogressbar:6.4.2'
 

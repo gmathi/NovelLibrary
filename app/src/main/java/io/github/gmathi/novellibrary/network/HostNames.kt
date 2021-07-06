@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.network
 
 
+import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import java.util.*
 
 object HostNames {
@@ -13,12 +14,10 @@ object HostNames {
     const val WUXIA_WORLD = "wuxiaworld.com"
     const val WORD_PRESS = "wordpress.com"
     const val WLN_UPDATES = "wlnupdates.com"
-    const val CIRCUS_TRANSLATIONS = "circustranslations.com"
     const val QIDIAN = "webnovel.com"
     const val MOON_BUNNY_CAFE = "moonbunnycafe.com"
     const val BLUE_SILVER_TRANSLATIONS = "bluesilvertranslations.wordpress.com"
     const val GOOGLE_DOCS = "docs.google.com"
-    const val TUMBLR = "tumblr.com"
     const val BAKA_TSUKI = "baka-tsuki.org"
     const val NOVEL_FULL = "novelfull.com"
     const val SCRIBBLE_HUB = "scribblehub.com"
@@ -27,10 +26,10 @@ object HostNames {
     const val FOXTELLER = "foxteller.com"
     const val BABEL_NOVEL = "babelnovel.com"
     const val NEOVEL = "neoread.neovel.io"
-    const val ACTIVE_TRANSLATIONS = "activetranslations.xyz"
     const val CHRYSANTHEMUMGARDEN = "chrysanthemumgarden.com"
+    const val VOLARE_NOVELS = "volarenovels.com"
 
-    const val USER_AGENT = "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Mobile Safari/537.36"
+    const val USER_AGENT = HttpSource.DEFAULT_USER_AGENT//"Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Mobile Safari/537.36"
 
     private val DEFAULT_ALLOWED_HOST_NAMES_ARRAY = arrayOf(
         NOVEL_UPDATES,
@@ -40,7 +39,6 @@ object HostNames {
         WUXIA_WORLD,
         WORD_PRESS,
         WLN_UPDATES,
-        CIRCUS_TRANSLATIONS,
         QIDIAN,
         LNMTL,
         WATTPAD,

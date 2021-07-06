@@ -1,36 +1,36 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:app="http://schemas.android.com/apk/res-auto"
-      xmlns:tools="http://schemas.android.com/tools"
-      tools:context="com.mgn.bingenovelreader.fragment.LibraryFragment">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.mgn.bingenovelreader.fragment.LibraryFragment">
 
     <item
         android:id="@+id/action_sync"
         android:icon="@drawable/ic_sync_white_vector"
         android:title="@string/action_sync"
         android:titleCondensed="Sync"
-        app:showAsAction="always"/>
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_sort"
         android:icon="@drawable/ic_sort_by_alpha_white_vector"
         android:title="@string/sort"
         android:titleCondensed="@string/sort"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="never" />
 
 
     <item
         android:id="@+id/action_search"
         android:icon="@drawable/ic_search_black"
         android:title="@string/title_search"
-        app:iconTint="@android:color/white"
         android:titleCondensed="@string/title_search"
-        app:showAsAction="ifRoom"/>
+        app:iconTint="@android:color/white"
+        app:showAsAction="never" />
 
 
     <item
         android:id="@+id/action_import_reading_list"
         android:title="@string/import_reading_list"
         android:visible="true"
-        app:showAsAction="never"/>
+        app:showAsAction="never" />
 
 </menu>

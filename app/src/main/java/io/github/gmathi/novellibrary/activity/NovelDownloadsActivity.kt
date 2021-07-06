@@ -10,6 +10,8 @@ import android.os.IBinder
 import android.view.MenuItem
 import android.view.View
 import androidx.annotation.UiThread
+import coil.load
+import coil.transform.CircleCropTransformation
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
 import com.bumptech.glide.Glide
@@ -83,6 +85,10 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<Long>, Do
         val binding = ListitemDownloadQueueOldBinding.bind(itemView)
         val novel = dbHelper.getNovel(novelId = item)
         if (!novel?.imageUrl.isNullOrBlank()) {
+//            binding.novelImageView.load(novel?.imageUrl) {
+//                crossfade(true)
+//                transformations(CircleCropTransformation())
+//            }
             Glide.with(this)
                 .load(novel!!.imageUrl!!.getGlideUrl())
                 .apply(RequestOptions.circleCropTransform())

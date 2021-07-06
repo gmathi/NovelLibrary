@@ -348,7 +348,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun deleteNovel() {
-        Utils.deleteNovel(this, novel.id)
+        Utils.deleteNovel(this, novel)
         novel.id = -1L
         setNovelAddToLibraryButton()
         invalidateOptionsMenu()

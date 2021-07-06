@@ -133,7 +133,10 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
                 loadingStatus.postValue("Downloading Chapters…")
 
             val source = sourceManager.get(novel.sourceId) ?: throw Exception(MISSING_SOURCE_ID)
-            this@ChaptersViewModel.chapters = ArrayList(source.getChapterList(novel))
+            val fetchedChapters = source.getChapterList(novel)
+            if (novel.id != -1L)
+                fetchedChapters.forEach { it.novelId = novel.id }
+            this@ChaptersViewModel.chapters = ArrayList(fetchedChapters)
             return@withContext
 
         } catch (e: Exception) {

@@ -1,7 +1,6 @@
-//package io.github.gmathi.novellibrary.network
+package io.github.gmathi.novellibrary.network.scratch
 //
 //import android.annotation.SuppressLint
-//import android.content.Context
 //import android.os.Build
 //import android.util.Log
 //import android.webkit.CookieManager

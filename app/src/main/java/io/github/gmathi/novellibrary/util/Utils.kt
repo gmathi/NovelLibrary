@@ -26,7 +26,6 @@ import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.DBHelper
-import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.lang.writableFileName
@@ -34,8 +33,10 @@ import io.github.gmathi.novellibrary.util.storage.createFileIfNotExists
 import io.github.gmathi.novellibrary.util.storage.getOrCreateDirectory
 import io.github.gmathi.novellibrary.util.storage.getOrCreateFile
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
+import org.jsoup.nodes.*
+import org.jsoup.safety.Cleaner
 import org.jsoup.safety.Whitelist
+import org.jsoup.select.NodeVisitor
 import uy.kohesive.injekt.injectLazy
 import java.io.*
 import java.text.SimpleDateFormat
@@ -56,6 +57,19 @@ object Utils {
 
     fun getImage(image: ByteArray): Bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
 
+    fun getNovelDir(context: Context, novelName: String, novelId: Long): File {
+        val path = context.filesDir
+        var writableNovelName = novelName.writableFileName()
+        if (writableNovelName.isEmpty()) {
+            writableNovelName = UUID.randomUUID().toString().writableFileName()
+        }
+        val dirName = "$writableNovelName-$novelId"
+        val novelDir = File(path, dirName)
+        if (!novelDir.exists()) novelDir.mkdir()
+        return novelDir
+    }
+
+    @Deprecated(message = "Use the above function `getNovelDir(context, novelName, novelId)`")
     fun getHostDir(context: Context, url: String): File {
         val uri = Uri.parse(url)
         val path = context.filesDir
@@ -67,21 +81,26 @@ object Utils {
         return hostDir
     }
 
+    @Deprecated(message = "Use the above function `getNovelDir(context, novelName, novelId)`")
     fun getNovelDir(hostDir: File, novelName: String): File {
         val novelDir = File(hostDir, novelName.writableFileName())
         if (!novelDir.exists()) novelDir.mkdir()
         return novelDir
     }
 
-    fun deleteNovel(context: Context, novelId: Long) {
-        deleteNovel(context, dbHelper.getNovel(novelId))
-    }
 
-    private fun deleteNovel(context: Context, novel: Novel?) {
+    fun deleteNovel(context: Context, novel: Novel?) {
         if (novel == null) return
+
+        //This is the old download data
         val hostDir = getHostDir(context, novel.url)
         val novelDir = getNovelDir(hostDir, novel.name)
         novelDir.deleteRecursively()
+
+        //This is the new folder structure
+        val newNovelDir = getNovelDir(context, novel.name, novel.id)
+        newNovelDir.deleteRecursively()
+
         dbHelper.cleanupNovelData(novel)
         NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncDeleteNovels(it.host)) it.removeNovel(novel) }
         broadcastNovelDelete(context, novel)
@@ -371,9 +390,34 @@ object Utils {
     }
 
     fun Document.getFormattedText(): String {
-        outputSettings(Document.OutputSettings().prettyPrint(false))
-        val htmlString: String = html()//.replace("\\\\n", "\n")
-        return Jsoup.clean(htmlString, "", Whitelist.none(), Document.OutputSettings().prettyPrint(false)).replace("&nbsp", "")
+        val doc = clone()
+        val body = doc.body()
+        body.select("[tts-disable=\"true\"]").remove()
+        val content = body.select("[data-role=\"RContent\"]")
+        if (content.isNotEmpty()) {
+            content.select("[data-role=\"RHeader\"]").remove()
+            content.select("[data-role=\"RFooter\"]").remove()
+            content.select("[data-role=\"RNavigation\"]").remove()
+            body.children().remove()
+            body.append(doc.title())
+            content.forEach { body.appendChild(it) }
+            doc.head().children().remove()
+//            doc.head().html("")
+        }
+        val cleaner = Cleaner(Whitelist.none())
+        val cleanDoc = cleaner.clean(doc)
+        cleanDoc.outputSettings(Document.OutputSettings().prettyPrint(false))
+        val text = cleanDoc.body().html()
+            // Replace no-break spaces with a regular space
+            .replace("&nbsp;", " ")
+            // Perform a limited trim operation on excessive spacing, causing "     " to turn into just " " as well as changing \n\n\n\n into \n
+            .replace("""([\s ])+""".toRegex(RegexOption.MULTILINE)) { it.groups[0]?.value?:"" }
+            // Shorten long repeating characters such as =====, -----, -=-=-=-=-, ***** or !!!!!!!!
+            .replace("""([=*#|+<>\-]{4,}|\.{4,}|!{4,}|\?{4,})""".toRegex()) { it.value.substring(0, 3)}
+            .trim()
+//        val htmlString: String = html()//.replace("\\\\n", "\n")
+//        return Jsoup.clean(htmlString, "", Whitelist.none(), Document.OutputSettings().prettyPrint(false)).replace("&nbsp", "")
+        return text
     }
 
     fun copyErrorToClipboard(e: Exception, activity: AppCompatActivity) {
