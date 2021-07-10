@@ -22,6 +22,7 @@ import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.WhatsChanged
 import io.github.gmathi.novellibrary.util.system.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
 
@@ -71,23 +72,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             MaterialDialog(this).show {
                 title(text = "\uD83C\uDF89 What's New ${BuildConfig.VERSION_NAME}!")
                 message(
-                    text =
-                    "✨️ 0.19 Goodies!\n" +
-                            "⚠️️ Fixed - Downloading wrong chapters/links within chapters.\n" +
-                            "⚠️ Fixed - Novel Section assigning from pop menu in the novel in Library.\n" +
-                            "⚠️ Fixed - Add to Library from Novel Details.\n" +
-//                            "✨ Font Style Preview!\n" +
-//                            "⚠️ Fix - Hosted novels offline downloads announcement page\n" +
-//                            "⚠️ Fix - Positive button of Font style changer wasn't allowed\n" +
-//                            "❌️ Broken - Novel Sync\n" +
-//                            "\uD83D\uDEE0️ Other major/minor bug fixes reported on GitHub.\n" +
-//                            "\uD83D\uDEE0 Support for 3 more translation sites in reader mode.\n" +
-//                            "\uD83D\uDEE0 Discord link updated.\n" +
-//                                    "\uD83D\uDEE0 Bug Fixes for Recommendations not showing\n" +
-//                            "✨ Read Aloud moved to bottom in the reader settings.\n" +
-//                                    "✨ Added Hidden Buttons to unlock some hidden functionality!" +
-//                            "\uD83D\uDEE0  Experimental - Added Hard Reset to Novel Popup menu to reset the novel." +
-                            ""
+                    text = WhatsChanged.VERSION_20
                 )
                 positiveButton(text = "Ok")
             }
