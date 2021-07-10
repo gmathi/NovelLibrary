@@ -3,13 +3,23 @@ package io.github.gmathi.novellibrary.activity.settings
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.callbacks.onDismiss
+import com.afollestad.materialdialogs.customview.customView
+import com.afollestad.materialdialogs.customview.getCustomView
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
+import io.github.gmathi.novellibrary.network.PREF_DOH_CLOUDFLARE
+import io.github.gmathi.novellibrary.network.PREF_DOH_GOOGLE
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
@@ -30,6 +40,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         private const val POSITION_LANGUAGES = 3
         private const val POSITION_ENABLE_SCROLLING_TEXT = 4
         private const val POSITION_SHOW_CHAPTERS_LEFT_BADGE = 5
+        private const val POSITION_DNS_OVER_HTTPS = 6
 
     }
 
@@ -87,7 +98,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.loadLibraryScreen = value }
             }
 
-            POSITION_BACKUP_AND_RESTORE, POSITION_LANGUAGES -> {
+            POSITION_BACKUP_AND_RESTORE, POSITION_LANGUAGES, POSITION_DNS_OVER_HTTPS -> {
                 itemBinding.widgetChevron.visibility = View.VISIBLE
             }
 
@@ -114,6 +125,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemBinding.widgetSwitch.isChecked = dataCenter.showChaptersLeftBadge
                 itemBinding.widgetSwitch.setOnCheckedChangeListener { _, isChecked -> dataCenter.showChaptersLeftBadge = isChecked }
             }
+
         }
 
         itemView.setBackgroundColor(
@@ -126,7 +138,32 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         when (item) {
             getString(R.string.backup_and_restore) -> startBackupSettingsActivity()
             getString(R.string.change_language) -> startLanguagesActivity(true)
+            getString(R.string.dns_over_https) -> showDnsSelection()
         }
+    }
+
+    private fun showDnsSelection() {
+        var value = dataCenter.dohProvider
+
+        val dialog = MaterialDialog(this).show {
+            title(R.string.dns_over_https)
+            customView(R.layout.dialog_list, scrollable = true)
+            onDismiss {
+                dataCenter.dohProvider = value
+            }
+        }
+
+        val group = dialog.getCustomView().findViewById<RadioGroup>(R.id.listGroup)
+        val buttons = resources.getStringArray(R.array.dns_over_https_list).mapIndexed { index, text ->
+            val button = RadioButton(this)
+            button.id = View.generateViewId()
+            button.text = text
+            button.isChecked = index == value
+            group.addView(button)
+            button
+        }
+        group.setOnCheckedChangeListener { _, id -> value = buttons.indexOfFirst { it.id == id } }
+
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

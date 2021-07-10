@@ -40,6 +40,7 @@ class NetworkHelper(private val context: Context) {
             when (dataCenter.dohProvider) {
                 PREF_DOH_CLOUDFLARE -> builder.dohCloudflare()
                 PREF_DOH_GOOGLE -> builder.dohGoogle()
+                // PREF_DOH_NONE -> do nothing
             }
 
             return builder
