@@ -15,19 +15,21 @@ import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.lang.LocaleManager
+import io.github.gmathi.novellibrary.util.system.DataAccessor
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import uy.kohesive.injekt.injectLazy
 import java.net.HttpCookie
 
 
-abstract class BaseActivity : AppCompatActivity() {
+abstract class BaseActivity : AppCompatActivity(), DataAccessor {
 
-    lateinit var firebaseAnalytics: FirebaseAnalytics
+    override lateinit var firebaseAnalytics: FirebaseAnalytics
 
-    val dataCenter: DataCenter by injectLazy()
-    val dbHelper: DBHelper by injectLazy()
-    val sourceManager: SourceManager by injectLazy()
-    val networkHelper: NetworkHelper by injectLazy()
+    override val dataCenter: DataCenter by injectLazy()
+    override val dbHelper: DBHelper by injectLazy()
+    override val sourceManager: SourceManager by injectLazy()
+    override val networkHelper: NetworkHelper by injectLazy()
+    override fun getContext(): Context? = this
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleManager.updateContextLocale(newBase))
