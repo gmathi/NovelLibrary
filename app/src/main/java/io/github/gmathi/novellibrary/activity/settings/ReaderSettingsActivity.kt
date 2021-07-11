@@ -5,7 +5,6 @@ import android.text.InputType
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.callbacks.onDismiss
@@ -21,10 +20,10 @@ import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
+import io.github.gmathi.novellibrary.model.ui.*
 import io.github.gmathi.novellibrary.util.FAC
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MAX
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MIN
-import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.util.system.startReaderBackgroundSettingsActivity
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
@@ -32,34 +31,117 @@ import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
 import java.io.File
 import kotlin.math.abs
 
-class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
+class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<Setting> {
 
     companion object {
-        private const val POSITION_READER_MODE = 0
-        private const val POSITION_JAVASCRIPT_DISABLED = 1
-        private const val POSITION_READER_MODE_THEME = 2
-        private const val POSITION_JAP_SWIPE = 3
-        private const val POSITION_SHOW_READER_SCROLL = 4
-        private const val POSITION_SHOW_CHAPTER_COMMENTS = 5
-        private const val POSITION_VOLUME_SCROLL = 6
-        private const val POSITION_VOLUME_SCROLL_LENGTH = 7
-        private const val POSITION_KEEP_SCREEN_ON = 8
-        private const val POSITION_ENABLE_IMMERSIVE_MODE = 9
-        private const val POSITION_SHOW_NAVBAR_AT_CHAPTER_END = 10
-        private const val POSITION_ENABLE_CLUSTER_PAGES = 11
-        private const val POSITION_DIRECTIONAL_LINKS = 12
-        private const val POSITION_READER_MODE_BUTTON_VISIBILITY = 13
-        private const val POSITION_KEEP_TEXT_COLOR = 14
-        private const val POSITION_ALTERNATIVE_TEXT_COLORS = 15
-        private const val POSITION_LIMIT_IMAGE_WIDTH = 16
-        private const val POSITION_AUTO_READ_NEXT_CHAPTER = 17
-        private const val POSITION_CUSTOM_QUERY_LOOKUPS = 18
-
+        private val OPTIONS = listOf(
+            Setting(R.string.reader_mode, R.string.reader_mode_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.readerMode) { _, value ->
+                    dataCenter.readerMode = value
+                    if (value) {
+                        dataCenter.javascriptDisabled = value
+                        adapter.notifyDataSetChanged()
+                    }
+                }
+            },
+            Setting(R.string.disable_javascript, R.string.disable_javascript_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.javascriptDisabled) { _, value ->
+                    dataCenter.javascriptDisabled = value
+                    if (!value) {
+                        dataCenter.readerMode = value
+                        adapter.notifyDataSetChanged()
+                    }
+                }
+            },
+            Setting(R.string.reader_mode_colors, R.string.reader_mode_colors_description).bindChevron { _, _ ->
+                startReaderBackgroundSettingsActivity()
+            },
+            Setting(R.string.swipe_right_for_next_chapter, R.string.swipe_right_for_next_chapter_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.japSwipe) { _, value -> dataCenter.japSwipe = value }
+            },
+            Setting(R.string.show_reader_scroll, R.string.show_reader_scroll_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.showReaderScroll) { _, value -> dataCenter.showReaderScroll = value }
+            },
+            Setting(R.string.show_comments_section, R.string.show_comments_section_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.showChapterComments) { _, value -> dataCenter.showChapterComments = value }
+            },
+            Setting(R.string.volume_scroll, R.string.volume_scroll_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.volumeScroll) { _, value ->
+                    dataCenter.volumeScroll = value
+                    adapter.notifyDataSetChanged()
+                }
+            },
+            Setting(R.string.volume_scroll_length, R.string.volume_scroll_length_description).onBind { _, view, _ ->
+                val enable = dataCenter.volumeScroll
+                //itemView.enabled(enable)
+                view.blackOverlay.visibility =
+                    if (enable)
+                        View.INVISIBLE
+                    else
+                        View.VISIBLE
+                view.currentValue.visibility = View.VISIBLE
+                val value = dataCenter.scrollLength
+                view.currentValue.text = resources.getString(R.string.volume_scroll_length_template,
+                    if (value < 0) resources.getString(R.string.reverse) else "",
+                    abs(value)
+                )
+                if (enable)
+                    view.root.setOnClickListener {
+                        changeScrollDistance(view.currentValue)
+                    }
+                else view.root.setOnClickListener(null)
+            },
+            Setting(R.string.keep_screen_on, R.string.keep_screen_on_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.keepScreenOn) { _, value -> dataCenter.keepScreenOn = value }
+            },
+            Setting(R.string.immersive_mode, R.string.immersive_mode_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.enableImmersiveMode) { _, value -> dataCenter.enableImmersiveMode = value }
+            },
+            Setting(R.string.show_navbar_at_chapter_end, R.string.show_navbar_at_chapter_end_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.showNavbarAtChapterEnd) { _, value -> dataCenter.showNavbarAtChapterEnd = value }
+            },
+            Setting(R.string.merge_pages, R.string.merge_pages_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.enableClusterPages) { _, value -> dataCenter.enableClusterPages = value }
+            },
+            Setting(R.string.directional_links, R.string.directional_links_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.enableDirectionalLinks) { _, value -> dataCenter.enableDirectionalLinks = value }
+            },
+            Setting(R.string.reader_mode_button_visibility, R.string.reader_mode_button_visibility_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.isReaderModeButtonVisible) { _, value -> dataCenter.isReaderModeButtonVisible = value }
+            },
+            Setting(R.string.keep_text_color, R.string.keep_text_color_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.keepTextColor) { _, value -> dataCenter.keepTextColor = value }
+            },
+            Setting(R.string.alternative_text_colors, R.string.alternative_text_colors_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.alternativeTextColors) { _, value -> dataCenter.alternativeTextColors = value }
+            },
+            Setting(R.string.limit_image_width, R.string.limit_image_width_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.limitImageWidth) { _, value -> dataCenter.limitImageWidth = value }
+            },
+            Setting(R.string.auto_read_next_chapter, R.string.auto_read_next_chapter_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.readAloudNextChapter) { _, value -> dataCenter.readAloudNextChapter = value }
+            },
+            Setting(R.string.custom_query_lookups, R.string.custom_query_lookups_description).bindChevron { _, _ ->
+                MaterialDialog(this).show {
+                    title(R.string.custom_query_lookups_edit)
+                    input(
+                        hintRes = R.string.custom_query_lookups_hint,
+                        prefill = dataCenter.userSpecifiedSelectorQueries,
+                        inputType = InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_CLASS_TEXT
+                    )
+                    positiveButton(R.string.fui_button_text_save) { widget ->
+                        dataCenter.userSpecifiedSelectorQueries = widget.getInputField().text.toString()
+                        firebaseAnalytics.logEvent(FAC.Event.SELECTOR_QUERY) {
+                            param(FirebaseAnalytics.Param.VALUE, widget.getInputField().text.toString())
+                        }
+                    }
+                    negativeButton(R.string.cancel)
+                }
+            },
+        )
     }
 
-    lateinit var adapter: GenericAdapter<String>
-    private lateinit var settingsItems: ArrayList<String>
-    private lateinit var settingsItemsDescription: ArrayList<String>
+    lateinit var adapter: GenericAdapter<Setting>
 
     private lateinit var binding: ActivitySettingsBinding
 
@@ -74,176 +156,24 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     private fun setRecyclerView() {
-        settingsItems = ArrayList(resources.getStringArray(R.array.reader_titles_list).asList())
-        settingsItemsDescription = ArrayList(resources.getStringArray(R.array.reader_subtitles_list).asList())
-        adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
+        adapter = GenericAdapter(items = ArrayList(OPTIONS), layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
         binding.contentRecyclerView.recyclerView.setDefaults(adapter)
         binding.contentRecyclerView.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
         binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false
     }
 
-    override fun bind(item: String, itemView: View, position: Int) {
+    override fun bind(item: Setting, itemView: View, position: Int) {
         val itemBinding = ListitemTitleSubtitleWidgetBinding.bind(itemView)
-        //(itemView as ViewGroup).enabled(true)
-        itemBinding.blackOverlay.visibility = View.INVISIBLE
-        itemBinding.widgetChevron.visibility = View.INVISIBLE
-        itemBinding.widgetSwitch.visibility = View.INVISIBLE
-        itemBinding.currentValue.visibility = View.INVISIBLE
-        itemBinding.currentValue.text = ""
+        fillSettingDefaults(itemBinding, resources.getString(item.name), resources.getString(item.description), position)
 
-        itemBinding.title.applyFont(assets).text = item
-        itemBinding.subtitle.applyFont(assets).text = settingsItemsDescription[position]
-        itemBinding.widgetSwitch.setOnCheckedChangeListener(null)
-        when (position) {
-            POSITION_READER_MODE -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.readerMode
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value ->
-                    dataCenter.readerMode = value
-                    if (value) {
-                        dataCenter.javascriptDisabled = value
-                        adapter.notifyDataSetChanged()
-                    }
-                }
-            }
-            POSITION_JAVASCRIPT_DISABLED -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.javascriptDisabled
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value ->
-                    dataCenter.javascriptDisabled = value
-                    if (!value) {
-                        dataCenter.readerMode = value
-                        adapter.notifyDataSetChanged()
-                    }
-                }
-            }
-            POSITION_READER_MODE_THEME -> {
-                itemBinding.widgetChevron.visibility = View.VISIBLE
-            }
-
-            POSITION_JAP_SWIPE -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.japSwipe
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.japSwipe = value }
-            }
-            POSITION_SHOW_READER_SCROLL -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.showReaderScroll
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.showReaderScroll = value }
-            }
-            POSITION_SHOW_CHAPTER_COMMENTS -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.showChapterComments
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.showChapterComments = value }
-            }
-            POSITION_VOLUME_SCROLL -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.volumeScroll
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value ->
-                    dataCenter.volumeScroll = value
-                    adapter.notifyDataSetChanged()
-                }
-            }
-            POSITION_VOLUME_SCROLL_LENGTH -> {
-                val enable = dataCenter.volumeScroll
-                //itemView.enabled(enable)
-                itemBinding.blackOverlay.visibility =
-                    if (enable)
-                        View.INVISIBLE
-                    else
-                        View.VISIBLE
-                itemBinding.currentValue.visibility = View.VISIBLE
-                val value = dataCenter.scrollLength
-                itemBinding.currentValue.text = "${if (value < 0) resources.getString(R.string.reverse) else ""} ${abs(value)}"
-                if (enable)
-                    itemView.setOnClickListener {
-                        changeScrollDistance(itemBinding.currentValue)
-                    }
-            }
-            POSITION_KEEP_SCREEN_ON -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.keepScreenOn
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.keepScreenOn = value }
-            }
-            POSITION_ENABLE_IMMERSIVE_MODE -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.enableImmersiveMode
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableImmersiveMode = value }
-            }
-            POSITION_SHOW_NAVBAR_AT_CHAPTER_END -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.showNavbarAtChapterEnd
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.showNavbarAtChapterEnd = value }
-            }
-            POSITION_ENABLE_CLUSTER_PAGES -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.enableClusterPages
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableClusterPages = value }
-            }
-            POSITION_DIRECTIONAL_LINKS -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.enableDirectionalLinks
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableDirectionalLinks = value }
-            }
-            POSITION_READER_MODE_BUTTON_VISIBILITY -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.isReaderModeButtonVisible
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.isReaderModeButtonVisible = value }
-            }
-            POSITION_KEEP_TEXT_COLOR -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.keepTextColor
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.keepTextColor = value }
-            }
-            POSITION_ALTERNATIVE_TEXT_COLORS -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.alternativeTextColors
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.alternativeTextColors = value }
-            }
-            POSITION_LIMIT_IMAGE_WIDTH -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.limitImageWidth
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.limitImageWidth = value }
-            }
-            POSITION_AUTO_READ_NEXT_CHAPTER -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.readAloudNextChapter
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.readAloudNextChapter = value }
-            }
-            POSITION_CUSTOM_QUERY_LOOKUPS -> {
-                itemBinding.widgetChevron.visibility = View.VISIBLE
-            }
-        }
-
-        itemView.setBackgroundColor(
-            if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
-            else ContextCompat.getColor(this, android.R.color.transparent)
-        )
+        OPTIONS.getOrNull(position)?.bindCallback?.let { it(this, item, itemBinding, position) }
     }
 
-    override fun onItemClick(item: String, position: Int) {
+    override fun onItemClick(item: Setting, position: Int) {
 //        if (item == getString(R.string.sync_interval)) {
 //            showSyncIntervalDialog()
 //        }
-        if (position == POSITION_READER_MODE_THEME) {
-            startReaderBackgroundSettingsActivity()
-        } else if (position == POSITION_CUSTOM_QUERY_LOOKUPS) {
-            MaterialDialog(this).show {
-                title(R.string.custom_query_lookups_edit)
-                input(
-                    hintRes = R.string.custom_query_lookups_hint,
-                    prefill = dataCenter.userSpecifiedSelectorQueries,
-                    inputType = InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_CLASS_TEXT
-                )
-                positiveButton(R.string.fui_button_text_save) { widget ->
-                    dataCenter.userSpecifiedSelectorQueries = widget.getInputField()?.text.toString()
-                    firebaseAnalytics.logEvent(FAC.Event.SELECTOR_QUERY) {
-                        param(FirebaseAnalytics.Param.VALUE, widget.getInputField()?.text.toString())
-                    }
-                }
-                negativeButton(R.string.cancel)
-            }
-        }
+        OPTIONS.getOrNull(position)?.clickCallback?.let { it(this, item, position) }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -311,14 +241,19 @@ class ReaderSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             }
         }
 
-        val seekBar = dialog.getCustomView()?.findViewById<TwoWaySeekBar>(R.id.seekBar) ?: return
+        val seekBar = dialog.getCustomView().findViewById<TwoWaySeekBar>(R.id.seekBar) ?: return
         seekBar.notifyWhileDragging = true
         seekBar.setOnSeekBarChangedListener { _, progress ->
             value = progress.toInt()
-            textView.text = "${if (value < 0) resources.getString(R.string.reverse) else ""} ${abs(value)}"
+            textView.text = resources.getString(R.string.volume_scroll_length_template,
+                if (value < 0) resources.getString(R.string.reverse) else "",
+                abs(value)
+            )
         }
         seekBar.setAbsoluteMinMaxValue(VOLUME_SCROLL_LENGTH_MIN.toDouble(), VOLUME_SCROLL_LENGTH_MAX.toDouble())
         seekBar.setProgress(dataCenter.scrollLength.toDouble())
     }
 
 }
+
+private typealias Setting = GenericSettingItem<ReaderSettingsActivity>
