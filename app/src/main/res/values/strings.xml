@@ -709,11 +709,7 @@
     <string name="sync_done_fetching_chapters">Remaining Novels to check: %2$d\nCompleted checking: %1$s</string>
     <string name="sync_done_updating_chapters">Remaining Novels to update: %2$d\nCompleted updating: %1$s</string>
 
-    <string name="connection_error_cloudflare">
-        This error is due to cloudflare. Try NovelSync in Settings.
-        If that doesn\'t help, try a VPN connection.
-        Join discord, if you need any assistance.
-    </string>
+    <string name="connection_error_cloudflare">This error is due to cloudflare. Try NovelSync in Settings.\nIf that doesn\'t help, try a VPN connection.\nJoin discord, if you need any assistance.</string>
 
     <!-- Notification channels -->
     <string name="channel_common">Common</string>

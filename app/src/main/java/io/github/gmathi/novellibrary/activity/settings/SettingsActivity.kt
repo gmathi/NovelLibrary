@@ -105,7 +105,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             getString(R.string.general) -> startGeneralSettingsActivity()
             getString(R.string.reader) -> startReaderSettingsActivity()
             getString(R.string.mentions) -> startMentionSettingsActivity()
-            getString(R.string.sync) -> startSyncSettingsSelectionActivity()
+            getString(R.string.sync) -> underConstructionDialog("NovelSync is under a rewrite and will be back in future releases!") //startSyncSettingsSelectionActivity()
             getString(R.string.donate_developer) -> donateDeveloperDialog()
             getString(R.string.about_us) -> aboutUsDialog()
             //getString(R.string.cloud_flare_check) -> underConstructionDialog()//startCloudFlareBypassActivity("novelupdates.com")
@@ -156,10 +156,10 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         }
     }
 
-    private fun underConstructionDialog() {
+    private fun underConstructionDialog(text: String = "Under Re-construction!") {
         MaterialDialog(this).show {
             //title(R.string.about_us)
-            message(text = "Under Re-construction!")
+            message(text = text)
         }
     }
 

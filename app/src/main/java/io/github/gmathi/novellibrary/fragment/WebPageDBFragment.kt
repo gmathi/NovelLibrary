@@ -8,9 +8,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.webkit.CookieManager
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.*
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
@@ -34,6 +32,8 @@ import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.view.extensions.setDefaultSettings
 import kotlinx.coroutines.*
+import okhttp3.Cookie
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -205,8 +205,11 @@ class WebPageDBFragment : BaseFragment() {
                 val cookies = CookieManager.getInstance().getCookie(url)
                 Logs.debug("WebViewDBFragment", "${Uri.parse(url).host}: All the cookiesMap in a string: $cookies")
 
-                if (url != "about:blank" && cookies != null && cookies.contains("cfduid") && cookies.contains("cf_clearance")) {
-//                    CloudFlareByPasser.saveCookies(URL(url))
+                if (!dataCenter.readerMode && url != null && url != "about:blank" && cookies?.contains("cf_clearance") == true) {
+                    url.toHttpUrlOrNull()?.let { hurl ->
+                        val list = cookies.split(";").mapNotNull { if (it.startsWith("cf_")) Cookie.parse(hurl, it) else null }
+                        networkHelper.cookieManager.saveFromResponse(hurl, list)
+                    }
                 }
 
                 webPageSettings.let {

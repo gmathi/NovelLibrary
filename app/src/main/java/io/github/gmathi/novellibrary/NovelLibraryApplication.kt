@@ -135,11 +135,11 @@ open class NovelLibraryApplication : Application(), LifecycleObserver {
             val remoteConfig = FirebaseRemoteConfig.getInstance()
             remoteConfig.setConfigSettingsAsync(FirebaseRemoteConfigSettings.Builder().build())
             val defaults = HashMap<String, Any>()
-            defaults[Constants.RemoteConfig.SELECTOR_QUERIES] = "[]"
+            defaults[Constants.RemoteConfig.ADDITIVE_SELECTOR_QUERIES] = "[]"
             remoteConfig.setDefaultsAsync(defaults)
             remoteConfig.fetchAndActivate().addOnCompleteListener {
                 try {
-                    var selectorQueries = remoteConfig.getString(Constants.RemoteConfig.SELECTOR_QUERIES)
+                    var selectorQueries = remoteConfig.getString(Constants.RemoteConfig.ADDITIVE_SELECTOR_QUERIES)
                     if (selectorQueries.isBlank()) selectorQueries = "[]"
                     dataCenter.htmlCleanerSelectorQueries = Gson().fromJson(selectorQueries, object : TypeToken<ArrayList<SelectorQuery>>() {}.type)
                 } catch (e: Exception) {

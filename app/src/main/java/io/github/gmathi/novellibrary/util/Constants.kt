@@ -134,6 +134,7 @@ object Constants {
 
     object RemoteConfig {
         const val SELECTOR_QUERIES = "selector_queries"
+        const val ADDITIVE_SELECTOR_QUERIES = "additive_selector_queries"
     }
 
     object SourceId {
