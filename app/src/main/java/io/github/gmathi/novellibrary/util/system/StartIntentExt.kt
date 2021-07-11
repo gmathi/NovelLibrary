@@ -48,10 +48,11 @@ private fun novelBundle(novel: Novel): Bundle {
     bundle.putParcelable("novel", novel)
     return bundle
 }
-private fun novelBundle(novel: Novel, translatorSourceName: String): Bundle {
+private fun novelBundle(novel: Novel, translatorSourceName: String?): Bundle {
     val bundle = Bundle()
     bundle.putParcelable("novel", novel)
-    bundle.putString("translatorSourceName", translatorSourceName)
+    if (translatorSourceName != null)
+        bundle.putString("translatorSourceName", translatorSourceName)
     return bundle
 }
 private fun novelBundle(novel: Novel, jumpToReader: Boolean): Bundle {
@@ -166,9 +167,9 @@ fun Fragment.startReaderDBPagerActivity(novel: Novel) =
 fun AppCompatActivity.startReaderDBPagerActivity(novel: Novel) =
     startActivityForResult<ReaderDBPagerActivity>(novelBundle(novel), Constants.READER_ACT_REQ_CODE)
 
-fun Fragment.startReaderDBPagerActivity(novel: Novel, translatorSourceName: String) =
+fun Fragment.startReaderDBPagerActivity(novel: Novel, translatorSourceName: String?) =
     startActivityForResult<ReaderDBPagerActivity>(novelBundle(novel, translatorSourceName), Constants.READER_ACT_REQ_CODE)
-fun AppCompatActivity.startReaderDBPagerActivity(novel: Novel, translatorSourceName: String) =
+fun AppCompatActivity.startReaderDBPagerActivity(novel: Novel, translatorSourceName: String?) =
     startActivityForResult<ReaderDBPagerActivity>(novelBundle(novel, translatorSourceName), Constants.READER_ACT_REQ_CODE)
 
 fun Fragment.startWebViewActivity(url: String) =
