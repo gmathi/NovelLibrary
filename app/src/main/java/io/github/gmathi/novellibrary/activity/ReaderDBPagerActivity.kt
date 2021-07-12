@@ -167,16 +167,7 @@ class ReaderDBPagerActivity :
     }
 
     private fun updateBookmark(webPage: WebPage) {
-        firebaseAnalytics.logEvent(FAC.Event.READ_NOVEL) {
-            param(FAC.Param.NOVEL_NAME, novel.name)
-            param(FAC.Param.NOVEL_URL, novel.url)
-        }
-        dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, webPage.url)
-        NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, webPage) }
-        val webPageSettings = dbHelper.getWebPageSettings(webPage.url)
-        if (webPageSettings != null) {
-            dbHelper.updateWebPageSettingsReadStatus(webPageSettings, markRead = true)
-        }
+        updateNovelBookmark(novel, webPage)
     }
 
     @Suppress("DEPRECATION")
@@ -379,10 +370,7 @@ class ReaderDBPagerActivity :
                     val chapterIndex = (if (dataCenter.japSwipe) webPages.reversed() else webPages).indexOf(webPages[binding.viewPager.currentItem])
 
                     startTTSService(audioText, title, novel.id, translatorSourceName, chapterIndex)
-                    firebaseAnalytics.logEvent(FAC.Event.LISTEN_NOVEL) {
-                        param(FAC.Param.NOVEL_NAME, novel.name)
-                        param(FAC.Param.NOVEL_URL, novel.url)
-                    }
+                    firebaseAnalytics.logNovelEvent(FAC.Event.LISTEN_NOVEL, novel)
                     startTTSActivity()
                 } else {
                     showAlertDialog(title = "Read Aloud", message = "Only supported in Reader Mode!")
@@ -571,12 +559,7 @@ class ReaderDBPagerActivity :
 
     override fun onResume() {
         super.onResume()
-        novel.metadata[Constants.MetaDataKeys.LAST_READ_DATE] = Utils.getCurrentFormattedDate()
-        dbHelper.updateNovelMetaData(novel)
-        firebaseAnalytics.logEvent(FAC.Event.OPEN_NOVEL) {
-            param(FAC.Param.NOVEL_NAME, novel.name)
-            param(FAC.Param.NOVEL_URL, novel.url)
-        }
+        updateNovelLastRead(novel)
     }
 
 

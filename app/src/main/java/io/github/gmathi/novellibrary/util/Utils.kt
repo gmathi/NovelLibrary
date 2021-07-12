@@ -88,10 +88,7 @@ object Utils {
         return novelDir
     }
 
-
-    fun deleteNovel(context: Context, novel: Novel?) {
-        if (novel == null) return
-
+    fun deleteDownloadedChapters(context: Context, novel: Novel) {
         //This is the old download data
         val hostDir = getHostDir(context, novel.url)
         val novelDir = getNovelDir(hostDir, novel.name)
@@ -100,16 +97,12 @@ object Utils {
         //This is the new folder structure
         val newNovelDir = getNovelDir(context, novel.name, novel.id)
         newNovelDir.deleteRecursively()
-
-        dbHelper.cleanupNovelData(novel)
-        NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncDeleteNovels(it.host)) it.removeNovel(novel) }
-        broadcastNovelDelete(context, novel)
     }
 
-    private fun broadcastNovelDelete(context: Context, novel: Novel?) {
+    fun broadcastNovelDelete(context: Context, novel: Novel) {
         val localIntent = Intent()
         val extras = Bundle()
-        extras.putLong(Constants.NOVEL_ID, novel!!.id)
+        extras.putLong(Constants.NOVEL_ID, novel.id)
         localIntent.action = Constants.NOVEL_DELETED
         localIntent.putExtras(extras)
         localIntent.addCategory(Intent.CATEGORY_DEFAULT)

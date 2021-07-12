@@ -21,6 +21,7 @@ import io.github.gmathi.novellibrary.util.Exceptions.MISSING_SOURCE_ID
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.system.DataAccessor
+import io.github.gmathi.novellibrary.util.system.addNewNovel
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel.Action.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -196,9 +197,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     fun addNovelToLibrary() {
         if (novel.id != -1L) return
         loadingStatus.value = Constants.Status.START
-        novel.id = dbHelper.insertNovel(novel)
-        NovelSync.getInstance(novel)?.applyAsync(viewModelScope) { if (dataCenter.getSyncAddNovels(it.host)) it.addNovel(novel) }
-        //There is a chance that the above insertion might fail
+        addNewNovel(novel)
         if (novel.id == -1L) return
         chapters?.forEach { it.novelId = novel.id }
         addNovelChaptersToDB()

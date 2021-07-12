@@ -44,13 +44,12 @@ fun DataAccessor.addNewNovel(novel: Novel) {
  * Removes novel in NovelSync
  */
 fun DataAccessor.deleteNovel(novel: Novel, context: Context) {
-    Utils.deleteNovel(context, novel)
-    novel.id = -1L
+    Utils.deleteDownloadedChapters(context, novel)
+    dbHelper.cleanupNovelData(novel)
     //NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncAddNovels(it.host)) it.removeNovel(novel, null) }
-    firebaseAnalytics.logEvent(FAC.Event.REMOVE_NOVEL) {
-        param(FAC.Param.NOVEL_NAME, novel.name)
-        param(FAC.Param.NOVEL_URL, novel.url)
-    }
+    firebaseAnalytics.logNovelEvent(FAC.Event.REMOVE_NOVEL, novel)
+    Utils.broadcastNovelDelete(context, novel)
+    novel.id = -1L
 }
 fun DataAccessor.deleteNovel(novel: Novel) = getContext()?.let { deleteNovel(novel, it) }
 
@@ -98,3 +97,4 @@ fun DataAccessor.updateNovelLastRead(novel: Novel) {
 }
 
 // TODO: Section actions
+// TODO: Download actions
