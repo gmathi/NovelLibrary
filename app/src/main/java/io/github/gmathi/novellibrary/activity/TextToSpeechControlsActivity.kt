@@ -23,6 +23,7 @@ import io.github.gmathi.novellibrary.service.tts.TTSEventListener
 import io.github.gmathi.novellibrary.service.tts.TTSService
 import io.github.gmathi.novellibrary.util.lang.albumArt
 import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
+import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaults
 
@@ -169,9 +170,7 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
                 if (isServiceConnected) tts?.let { tts ->
                     tts.novel?.let { novel ->
                         dbHelper.getWebPage(novel.id, tts.translatorSourceName, tts.chapterIndex)?.let { chapter ->
-                            novel.currentChapterUrl = chapter.url
-                            dbHelper.updateNovel(novel)
-                            NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, chapter) }
+                            updateNovelBookmark(novel, chapter)
                             startReaderDBPagerActivity(novel, tts.translatorSourceName)
                         }
                     }

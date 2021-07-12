@@ -198,7 +198,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                             runBlocking {
                                 GlobalScope.launch {
                                     try {
-                                        dbHelper.resetNovel(novel)
+                                        this@LibraryFragment.resetNovel(novel)
                                     } catch (e: Exception) {
                                         Logs.error("LibraryFragment", "resetNovel: $novel", e)
                                     }
@@ -526,14 +526,14 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     @SuppressLint("NotifyDataSetChanged")
     override fun onItemDismiss(viewHolderPosition: Int) {
-        activity?.let {
-            MaterialDialog(it).show {
+        activity?.let { fragmentActivity ->
+            MaterialDialog(fragmentActivity).show {
                 title(R.string.confirm_remove)
                 message(R.string.confirm_remove_description_novel)
                 positiveButton(R.string.remove) { dialog ->
                     this@LibraryFragment.run {
                         val novel = adapter.items[viewHolderPosition]
-                        Utils.deleteNovel(it, novel)
+                        this@LibraryFragment.deleteNovel(novel, fragmentActivity)
                         setData()
                         dialog.dismiss()
                     }
@@ -649,7 +649,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 confirmDialog(getString(R.string.remove_novels), {
                     val novels = ArrayList(dataSet)
                     withSnackBarStatus(novels, "Deleting") { novel ->
-                        dbHelper.cleanupNovelData(novel)
+                        this@LibraryFragment.deleteNovel(novel)
                     }
                 })
             }
@@ -658,7 +658,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     if (networkHelper.isConnectedToNetwork()) {
                         val novels = ArrayList(dataSet)
                         withSnackBarStatus(novels, "Resetting") { novel ->
-                            dbHelper.resetNovel(novel)
+                            this@LibraryFragment.resetNovel(novel)
                         }
                         setData()
                     } else {

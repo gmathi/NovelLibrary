@@ -273,10 +273,6 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
             R.id.action_add_to_library -> {
                 vm.addNovelToLibrary()
                 invalidateOptionsMenu()
-                firebaseAnalytics.logEvent(FAC.Event.ADD_NOVEL) {
-                    param(FAC.Param.NOVEL_NAME, vm.novel.name)
-                    param(FAC.Param.NOVEL_URL, vm.novel.url)
-                }
                 return true
             }
             R.id.action_sort -> {
