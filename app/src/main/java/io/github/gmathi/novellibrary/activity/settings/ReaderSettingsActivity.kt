@@ -135,54 +135,6 @@ class ReaderSettingsActivity : BaseSettingsActivity<ReaderSettingsActivity, Read
         )
     }
 
-    //region Delete Files
-    private fun deleteFilesDialog() {
-        MaterialDialog(this).show {
-            title(R.string.clear_data)
-            message(R.string.clear_data_description)
-            positiveButton(R.string.clear) { dialog ->
-                val snackBar = Snackbar.make(
-                    findViewById(android.R.id.content),
-                    getString(R.string.clearing_data) + " - " + getString(R.string.please_wait),
-                    Snackbar.LENGTH_INDEFINITE
-                )
-                deleteFiles()
-                snackBar.dismiss()
-                dialog.dismiss()
-            }
-            negativeButton(R.string.cancel) { dialog ->
-                dialog.dismiss()
-            }
-        }
-    }
-
-    private fun deleteFiles() {
-        try {
-            deleteDir(cacheDir)
-            deleteDir(filesDir)
-            dbHelper.removeAll()
-            dataCenter.saveNovelSearchHistory(ArrayList())
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-    }
-
-    private fun deleteDir(dir: File?): Boolean {
-        return if (dir != null && dir.isDirectory) {
-            val children = dir.list()
-            for (i in children.indices) {
-                deleteDir(File(dir, children[i]))
-            }
-            dir.delete()
-        } else if (dir != null && dir.isFile) {
-            dir.delete()
-        } else {
-            false
-        }
-    }
-    //endregion
-
     private fun changeScrollDistance(textView: TextView) {
         var value = dataCenter.scrollLength
 
