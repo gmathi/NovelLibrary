@@ -92,7 +92,7 @@ class SearchFragment : BaseFragment() {
                 if (query != null) {
                     searchNovels(query)
                     binding.searchView.setSuggestionBuilder(SuggestionsBuilder(dataCenter.loadNovelSearchHistory()))
-                    (activity as BaseActivity).firebaseAnalytics.logEvent(FAC.Event.SEARCH_NOVEL) {
+                    firebaseAnalytics.logEvent(FAC.Event.SEARCH_NOVEL) {
                         param(FAC.Param.SEARCH_TERM, query)
                     }
                 }

@@ -21,24 +21,6 @@ fun Fragment.isFragmentActive(): Boolean {
     return activity != null && isResumed && !isRemoving && !isDetached
 }
 
-fun Fragment.startReaderDBPagerActivity(novel: Novel, translatorSourceName: String) {
-    val intent = Intent(context, ReaderDBPagerActivity::class.java)
-    val bundle = Bundle()
-    bundle.putParcelable("novel", novel)
-    bundle.putString("translatorSourceName", translatorSourceName)
-    intent.putExtras(bundle)
-    startActivityForResult(intent, Constants.READER_ACT_REQ_CODE)
-}
-
-fun Fragment.startWebViewActivity(url: String) {
-    val intent = Intent(context, WebViewActivity::class.java)
-    val bundle = Bundle()
-    bundle.putString("url", url)
-    intent.putExtras(bundle)
-    startActivity(intent)
-}
-
-
 fun Fragment.showAlertDialog(title: String? = null, message: String? = null, icon: Int = R.drawable.ic_warning_white_vector) {
     requireActivity().showAlertDialog(title, message, icon)
 }

@@ -26,6 +26,7 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.ALL_TRANSLATOR_SOURCES
 import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.util.system.startWebViewActivity
+import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.setDefaultsNoAnimation
 import org.greenrobot.eventbus.EventBus
@@ -138,9 +139,7 @@ class ChaptersFragment : BaseFragment(),
 
     override fun onItemClick(item: WebPage, position: Int) {
         if (novel.id != -1L) {
-            novel.currentChapterUrl = item.url
-            dbHelper.updateNovel(novel)
-            NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, item) }
+            updateNovelBookmark(novel, item)
             startReaderDBPagerActivity(novel, translatorSourceName)
         } else
             startWebViewActivity(item.url)

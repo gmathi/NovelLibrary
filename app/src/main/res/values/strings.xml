@@ -146,51 +146,6 @@
         <item>@string/backup_frequency_description</item>
     </string-array>
 
-
-    <string-array name="reader_titles_list" translatable="false">
-        <item>@string/reader_mode</item>
-        <item>@string/disable_javascript</item>
-        <item>@string/reader_mode_colors</item>
-        <item>@string/swipe_right_for_next_chapter</item>
-        <item>@string/show_reader_scroll</item>
-        <item>@string/show_comments_section</item>
-        <item>@string/volume_scroll</item>
-        <item>@string/volume_scroll_length</item>
-        <item>@string/keep_screen_on</item>
-        <item>@string/immersive_mode</item>
-        <item>@string/show_navbar_at_chapter_end</item>
-        <item>@string/merge_pages</item>
-        <item>@string/directional_links</item>
-        <item>@string/reader_mode_button_visibility</item>
-        <item>@string/keep_text_color</item>
-        <item>@string/alternative_text_colors</item>
-        <item>@string/limit_image_width</item>
-        <item>@string/auto_read_next_chapter</item>
-        <item>@string/custom_query_lookups</item>
-    </string-array>
-
-    <string-array name="reader_subtitles_list" translatable="false">
-        <item>@string/reader_mode_description</item>
-        <item>@string/disable_javascript_description</item>
-        <item>@string/reader_mode_colors_description</item>
-        <item>@string/swipe_right_for_next_chapter_description</item>
-        <item>@string/show_reader_scroll_description</item>
-        <item>@string/show_comments_section_description</item>
-        <item>@string/volume_scroll_description</item>
-        <item>@string/volume_scroll_length_description</item>
-        <item>@string/keep_screen_on_description</item>
-        <item>@string/immersive_mode_description</item>
-        <item>@string/show_navbar_at_chapter_end_description</item>
-        <item>@string/merge_pages_description</item>
-        <item>@string/directional_links_description</item>
-        <item>@string/reader_mode_button_visibility_description</item>
-        <item>@string/keep_text_color_description</item>
-        <item>@string/alternative_text_colors_description</item>
-        <item>@string/limit_image_width_description</item>
-        <item>@string/auto_read_next_chapter_description</item>
-        <item>@string/custom_query_lookups_description</item>
-    </string-array>
-
     <string-array name="reader_mode_menu_titles_list" translatable="false">
         <item>@string/title_reader</item>
         <item>@string/title_night</item>
@@ -589,6 +544,7 @@
     <string name="locale_pirate">Pirate</string>
     <string name="volume_scroll_length">Scroll Distance</string>
     <string name="volume_scroll_length_description">Change the distance to scroll when using volume keys</string>
+    <string name="volume_scroll_length_template" translatable="false">%1$s %2$d</string>
     <string name="reverse">Reverse</string>
     <string name="about_us_content">This project is an open-source project being developed with love for the novel reading community. If you would like to help out you can get in touch with us in discord!</string>
     <string name="bug_report_content">Please use discord to report a bug.%1$s</string>
