@@ -204,7 +204,12 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             @Suppress("DEPRECATION")
             contentBinding.novelDetailsAuthor.applyFont(assets).text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
                 Html.fromHtml(author, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(author)
+            return
         }
+        val authors = novel.authors?.joinToString {","} ?: return
+        contentBinding.novelDetailsAuthor.movementMethod = TextViewLinkHandler(this)
+        @Suppress("DEPRECATION")
+        contentBinding.novelDetailsAuthor.applyFont(assets).text = authors
     }
 
     @Suppress("DEPRECATION")
