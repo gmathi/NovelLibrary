@@ -19,6 +19,7 @@ class ImagePreviewActivity : BaseActivity() {
         val window = window
         val decorView = window.decorView
         val option = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+
         decorView.systemUiVisibility = option
         getWindow().statusBarColor = ContextCompat.getColor(this, R.color.colorBackground)
         super.onCreate(savedInstanceState)
