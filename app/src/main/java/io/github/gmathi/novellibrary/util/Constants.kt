@@ -12,6 +12,8 @@ object Constants {
     const val FILE_PROTOCOL = "file://"
     const val SYSTEM_DEFAULT = "systemDefault"
     const val VOLUME_SCROLL_LENGTH_DEFAULT = 2
+    const val AUTO_SCROLL_LENGTH_DEFAULT = 4
+    const val AUTO_SCROLL_INTERVAL_DEFAULT = 5
     const val VOLUME_SCROLL_LENGTH_STEP = 250
     const val VOLUME_SCROLL_LENGTH_MIN = -10
     const val VOLUME_SCROLL_LENGTH_MAX = 10
@@ -67,6 +69,7 @@ object Constants {
     const val READER_SETTINGS_ACT_REQ_CODE = 20
     const val READER_BACKGROUND_SETTINGS_ACT_REQ_CODE = 21
     const val RECENT_NOVELS_PAGER_ACT_REQ_CODE = 22
+    const val AUTO_SCROLL_SETTINGS_ACT_REQ_CODE = 23
 
     const val TTS_ACT_REQ_CODE = 1000
     const val ADD_FONT_REQUEST_CODE = 1101

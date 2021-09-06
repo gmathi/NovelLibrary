@@ -46,7 +46,7 @@ class DataCenter(context: Context) {
         private const val JAP_SWIPE = "japSwipe"
         private const val SHOW_READER_SCROLL = "showReaderScroll"
         private const val SHOW_CHAPTER_COMMENTS = "showChapterComments"
-        private const val VOLUME_SCROLL = "volumeScroll"
+        private const val ENABLE_VOLUME_SCROLL = "volumeScroll"
         private const val SCROLL_LENGTH = "scrollLength"
         private const val KEEP_SCREEN_ON = "keepScreenOn"
         private const val ENABLE_IMMERSIVE_MODE = "enableImmersiveMode"
@@ -66,6 +66,9 @@ class DataCenter(context: Context) {
         private const val CUSTOM_QUERY_LOOKUPS = "customQueryLookups"
         private const val SHOW_CHAPTERS_LEFT_BADGE = "showChaptersLeftBadge"
         private const val USER_SPECIFIED_SELECTOR_QUERIES = "userSpecifiedSelectorQueries"
+        private const val AUTO_SCROLL_LENGTH = "autoScrollLength"
+        private const val AUTO_SCROLL_INTERVAL = "autoScrollInterval"
+        private const val ENABLE_AUTO_SCROLL = "enableAutoScroll"
 
         //Backup
         private const val LAST_LOCAL_BACKUP_TIMESTAMP = "lastLocalBackupTimestamp"
@@ -209,14 +212,13 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(SHOW_CHAPTER_COMMENTS, false)
         set(value) = prefs.edit().putBoolean(SHOW_CHAPTER_COMMENTS, value).apply()
 
-    var volumeScroll: Boolean
-        get() = prefs.getBoolean(VOLUME_SCROLL, true)
-        set(value) = prefs.edit().putBoolean(VOLUME_SCROLL, value).apply()
+    var enableVolumeScroll: Boolean
+        get() = prefs.getBoolean(ENABLE_VOLUME_SCROLL, true)
+        set(value) = prefs.edit().putBoolean(ENABLE_VOLUME_SCROLL, value).apply()
 
-    var scrollLength: Int
+    var volumeScrollLength: Int
         get() = prefs.getInt(SCROLL_LENGTH, Constants.VOLUME_SCROLL_LENGTH_DEFAULT)
         set(value) = prefs.edit().putInt(SCROLL_LENGTH, value).apply()
-
 
     var keepScreenOn: Boolean
         get() = prefs.getBoolean(KEEP_SCREEN_ON, true)
@@ -456,4 +458,15 @@ class DataCenter(context: Context) {
     fun isSourceEnabled(sourceKey: String): Boolean = prefs.getBoolean(sourceKey, true)
     fun enableSource(sourceKey: String, enable: Boolean) = prefs.edit().putBoolean(sourceKey, enable).apply()
 
+    var enableAutoScroll: Boolean
+        get() = prefs.getBoolean(ENABLE_AUTO_SCROLL, true)
+        set(value) = prefs.edit().putBoolean(ENABLE_AUTO_SCROLL, value).apply()
+
+    var autoScrollLength: Int
+        get() = prefs.getInt(AUTO_SCROLL_LENGTH, Constants.AUTO_SCROLL_LENGTH_DEFAULT)
+        set(value) = prefs.edit().putInt(AUTO_SCROLL_LENGTH, value).apply()
+
+    var autoScrollInterval: Int
+        get() = prefs.getInt(AUTO_SCROLL_INTERVAL, Constants.AUTO_SCROLL_INTERVAL_DEFAULT)
+        set(value) = prefs.edit().putInt(AUTO_SCROLL_INTERVAL, value).apply()
 }

@@ -157,7 +157,12 @@
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
-            android:name=".activity.settings.ReaderSettingsActivity"
+            android:name=".activity.settings.reader.ReaderSettingsActivity"
+            android:label="@string/title_activity_reader_settings"
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide" />
+        <activity
+            android:name=".activity.settings.reader.ScrollBehaviourSettingsActivity"
             android:label="@string/title_activity_reader_settings"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
@@ -244,7 +249,7 @@
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
-            android:name=".activity.settings.ReaderBackgroundSettingsActivity"
+            android:name=".activity.settings.reader.ReaderBackgroundSettingsActivity"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
 

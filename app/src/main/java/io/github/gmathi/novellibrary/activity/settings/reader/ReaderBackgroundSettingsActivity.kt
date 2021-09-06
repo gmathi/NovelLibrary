@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.activity.settings
+package io.github.gmathi.novellibrary.activity.settings.reader
 
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
@@ -14,9 +14,9 @@ import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
+import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaults
-import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import okhttp3.internal.toHexString
 import java.util.*
 import kotlin.collections.ArrayList
@@ -122,12 +122,12 @@ class ReaderBackgroundSettingsActivity : BaseActivity(), GenericAdapter.Listener
     override fun onItemClick(item: String, position: Int) {
         val colors = intArrayOf(Color.RED, green(), blue(), yellow(), magenta(), cyan(), gray(0x00), gray(0xFF))
         val subColors = arrayOf(
-            palette(::red),
-            palette(::green),
-            palette(::blue),
-            palette(::yellow),
-            palette(::magenta),
-            palette(::cyan),
+            palette(Companion::red),
+            palette(Companion::green),
+            palette(Companion::blue),
+            palette(Companion::yellow),
+            palette(Companion::magenta),
+            palette(Companion::cyan),
             intArrayOf(gray(0x00), gray(0x22), gray(0x44), gray(0x88)),
             intArrayOf(gray(0xFF), gray(0xDD), gray(0xBB), gray(0x99))
         )

@@ -19,7 +19,6 @@ import android.widget.CompoundButton
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.MATCH_PARENT
@@ -32,7 +31,6 @@ import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
 import com.afollestad.materialdialogs.list.checkItem
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
-import com.google.firebase.analytics.ktx.logEvent
 import com.yarolegovich.slidingrootnav.SlideGravity
 import com.yarolegovich.slidingrootnav.SlidingRootNav
 import com.yarolegovich.slidingrootnav.SlidingRootNavBuilder
@@ -52,7 +50,6 @@ import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.model.ui.DrawerItem
 import io.github.gmathi.novellibrary.model.ui.ReaderMenu
 import io.github.gmathi.novellibrary.model.ui.SimpleItem
-import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
 import io.github.gmathi.novellibrary.util.FAC
@@ -232,24 +229,24 @@ class ReaderDBPagerActivity :
         val webView = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as WebPageDBFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
         return when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
-                if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
+                if (action == KeyEvent.ACTION_DOWN && dataCenter.enableVolumeScroll) {
                     val anim = ObjectAnimator.ofInt(
                         webView, "scrollY", webView?.scrollY
-                            ?: 0, (webView?.scrollY ?: 0) - dataCenter.scrollLength * VOLUME_SCROLL_LENGTH_STEP
+                            ?: 0, (webView?.scrollY ?: 0) - dataCenter.volumeScrollLength * VOLUME_SCROLL_LENGTH_STEP
                     )
                     anim.setDuration(500).start()
                 }
-                dataCenter.volumeScroll
+                dataCenter.enableVolumeScroll
             }
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
+                if (action == KeyEvent.ACTION_DOWN && dataCenter.enableVolumeScroll) {
                     val anim = ObjectAnimator.ofInt(
                         webView, "scrollY", webView?.scrollY
-                            ?: 0, (webView?.scrollY ?: 0) + dataCenter.scrollLength * VOLUME_SCROLL_LENGTH_STEP
+                            ?: 0, (webView?.scrollY ?: 0) + dataCenter.volumeScrollLength * VOLUME_SCROLL_LENGTH_STEP
                     )
                     anim.setDuration(500).start()
                 }
-                dataCenter.volumeScroll
+                dataCenter.enableVolumeScroll
             }
             else -> super.dispatchKeyEvent(event)
         }
