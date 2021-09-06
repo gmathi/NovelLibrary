@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /> <!-- Storage -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" /> <!-- For background jobs -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -15,7 +15,20 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" /> <!-- For managing extensions -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" /> <!-- To view extension packages in API 30+ -->
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
+    <permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+    </queries>
 
     <application
         android:name=".NovelLibraryApplication"
@@ -84,7 +97,8 @@
             android:label="@string/title_activity_nav_drawer"
             android:launchMode="singleTask"
             android:screenOrientation="fullUser"
-            android:theme="@style/DarkTheme_DarkSide">
+            android:theme="@style/DarkTheme_DarkSide"
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -97,11 +111,11 @@
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
 
-        <activity android:name=".activity.TextToSpeechControlsActivity"
+        <activity
+            android:name=".activity.TextToSpeechControlsActivity"
             android:label="@string/text_to_speech_controls"
             android:screenOrientation="fullUser"
-            android:theme="@style/DarkTheme_DarkSide"
-            />
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.ImagePreviewActivity"
             android:label=""
@@ -201,14 +215,13 @@
             android:label="@string/title_activity_import_library"
             android:parentActivityName=".activity.NavDrawerActivity"
             android:screenOrientation="fullUser"
-            android:theme="@style/DarkTheme_DarkSide">
+            android:theme="@style/DarkTheme_DarkSide"
+            android:exported="true">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="io.github.gmathi.novellibrary.activity.NavDrawerActivity" />
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
@@ -262,13 +275,13 @@
             android:name=".activity.RecentNovelsPagerActivity"
             android:label="@string/title_activity_recent_novels"
             android:screenOrientation="fullUser"
-            android:theme="@style/DarkTheme_DarkSide"/>
+            android:theme="@style/DarkTheme_DarkSide" />
 
         <activity
             android:name=".activity.ExtensionsPagerActivity"
             android:label="@string/title_activity_extensions"
             android:screenOrientation="fullUser"
-            android:theme="@style/DarkTheme_DarkSide"/>
+            android:theme="@style/DarkTheme_DarkSide" />
 
 
         <provider
