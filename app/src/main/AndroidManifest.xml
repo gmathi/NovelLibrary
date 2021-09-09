@@ -15,20 +15,22 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" /> <!-- For managing extensions -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" /> <!-- To view extension packages in API 30+ -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
-    <permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+<!--    <permission android:name="android.permission.QUERY_ALL_PACKAGES" />-->
 
-    <queries>
-        <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <category android:name="android.intent.category.BROWSABLE" />
-            <data android:scheme="https" />
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <data android:scheme="http" />
-        </intent>
-    </queries>
+<!--    <queries>-->
+<!--        <intent>-->
+<!--            <action android:name="android.intent.action.VIEW" />-->
+<!--            <category android:name="android.intent.category.BROWSABLE" />-->
+<!--            <data android:scheme="https" />-->
+<!--        </intent>-->
+<!--        <intent>-->
+<!--            <action android:name="android.intent.action.VIEW" />-->
+<!--            <data android:scheme="http" />-->
+<!--        </intent>-->
+<!--        <package android:name="io.github.gmathi.novellibrary" />-->
+<!--    </queries>-->
 
     <application
         android:name=".NovelLibraryApplication"
@@ -97,8 +99,7 @@
             android:label="@string/title_activity_nav_drawer"
             android:launchMode="singleTask"
             android:screenOrientation="fullUser"
-            android:theme="@style/DarkTheme_DarkSide"
-            android:exported="false">
+            android:theme="@style/DarkTheme_DarkSide">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
