@@ -27,6 +27,9 @@ import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.other.CompiledTTSFilter
+import io.github.gmathi.novellibrary.model.other.TTSFilter
+import io.github.gmathi.novellibrary.model.other.TTSFilterTarget
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.lang.writableFileName
 import io.github.gmathi.novellibrary.util.storage.createFileIfNotExists
@@ -397,10 +400,16 @@ object Utils {
             doc.head().children().remove()
 //            doc.head().html("")
         }
+
+        val filters = dataCenter.ttsFilterList
+        val textFilters = filters.filter { it.target == TTSFilterTarget.TextChunk }.map { it.compile(doc) }
+
+        applyFilters(doc.body(), filters.filter { it.target == TTSFilterTarget.Element }.map { it.compile(doc) })
+
         val cleaner = Cleaner(Whitelist.none())
         val cleanDoc = cleaner.clean(doc)
         cleanDoc.outputSettings(Document.OutputSettings().prettyPrint(false))
-        val text = cleanDoc.body().html()
+        var text = cleanDoc.body().html()
             // Replace no-break spaces with a regular space
             .replace("&nbsp;", " ")
             // Perform a limited trim operation on excessive spacing, causing "     " to turn into just " " as well as changing \n\n\n\n into \n
@@ -408,9 +417,25 @@ object Utils {
             // Shorten long repeating characters such as =====, -----, -=-=-=-=-, ***** or !!!!!!!!
             .replace("""([=*#|+<>\-]{4,}|\.{4,}|!{4,}|\?{4,})""".toRegex()) { it.value.substring(0, 3)}
             .trim()
+
+        textFilters.forEach { filter ->
+            text = filter.apply(text)
+        }
 //        val htmlString: String = html()//.replace("\\\\n", "\n")
 //        return Jsoup.clean(htmlString, "", Whitelist.none(), Document.OutputSettings().prettyPrint(false)).replace("&nbsp", "")
         return text
+    }
+
+    private fun applyFilters(element: Element, filters: List<CompiledTTSFilter>) {
+        if (element.childrenSize() == 0 && element.hasText()) {
+            var text = element.ownText()
+            filters.forEach { filter -> text = filter.apply(text) }
+            element.text(text)
+        } else {
+            element.children().forEach {
+                applyFilters(it, filters)
+            }
+        }
     }
 
     fun copyErrorToClipboard(e: Exception, activity: AppCompatActivity) {

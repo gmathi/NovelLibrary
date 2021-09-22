@@ -139,6 +139,8 @@ fun AppCompatActivity.startLibrariesUsedActivity() = startActivity<LibrariesUsed
 
 fun AppCompatActivity.startContributionsActivity() = startActivity<ContributionsActivity>()
 
+fun AppCompatActivity.startTTSSettingsActivity() = startActivity<TTSSettingsActivity>()
+
 //fun AppCompatActivity.startCloudFlareBypassActivity(hostName: String) {
 //    val intent = Intent(this, CloudFlareBypassActivity::class.java)
 //    val bundle = Bundle()
@@ -181,12 +183,14 @@ fun AppCompatActivity.startWebViewActivity(url: String) =
 
 //#region TTS
 
-fun AppCompatActivity.startTTSService(audioText: String, title: String, novelId: Long, translatorSourceName: String?, chapterIndex: Int = 0) {
+fun AppCompatActivity.startTTSService(audioText: String, linkedPages: ArrayList<String>, title: String,
+                                      novelId: Long, translatorSourceName: String?, chapterIndex: Int = 0) {
     val serviceIntent = Intent(this, TTSService::class.java)
     val bundle = Bundle()
     bundle.putString(TTSService.AUDIO_TEXT_KEY, audioText)
     bundle.putString(TTSService.TITLE, title)
     bundle.putLong(TTSService.NOVEL_ID, novelId)
+    bundle.putStringArrayList(TTSService.LINKED_PAGES, linkedPages)
     if (translatorSourceName != null) {
         bundle.putString(TTSService.TRANSLATOR_SOURCE_NAME, translatorSourceName)
     }

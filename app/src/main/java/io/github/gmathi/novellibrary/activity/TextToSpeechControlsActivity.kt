@@ -9,20 +9,21 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
+import androidx.core.view.children
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.getWebPage
-import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.databinding.ActivityTextToSpeechControlsBinding
 import io.github.gmathi.novellibrary.databinding.ContentTextToSpeechControlsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemSentenceBinding
 import io.github.gmathi.novellibrary.extensions.isPlaying
-import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.service.tts.TTSEventListener
 import io.github.gmathi.novellibrary.service.tts.TTSService
-import io.github.gmathi.novellibrary.util.lang.albumArt
+import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
+import io.github.gmathi.novellibrary.util.system.startTTSSettingsActivity
 import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaults
@@ -64,6 +65,10 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
         setContentView(binding.root)
         contentBinding = binding.contentTextToSpeechControls
 
+        // Enable marquee
+        contentBinding.ttsNovelChapter.isSelected = true
+        contentBinding.ttsNovelName.isSelected = true
+
         contentBinding.prevChapterButton.setOnClickListener {
             if (isServiceConnected) tts?.chooseMediaControllerActions(TTSService.ACTION_PREVIOUS)
         }
@@ -102,7 +107,12 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
         tts.mediaController.metadata?.let { metadata ->
             contentBinding.ttsNovelName.applyFont(assets).text = metadata.description.title
             contentBinding.ttsNovelChapter.applyFont(assets).text = metadata.description.subtitle
-            contentBinding.ttsNovelCover.setImageBitmap(metadata.albumArt)
+            if (tts.novel != null) {
+                Glide.with(this)
+                    .load(tts.novel?.imageUrl?.getGlideUrl())
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(contentBinding.ttsNovelCover)
+            }
         }
         setProgress()
     }
@@ -117,12 +127,12 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
     private fun setPlaybackState() {
         if (tts?.mediaController?.playbackState?.isPlaying == true) {
             contentBinding.playButton.let {
-                it.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_circle_pause_white))
+                it.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_pause_white_vector))
                 it.contentDescription = getString(R.string.pause)
             }
         } else {
             contentBinding.playButton.let {
-                it.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_circle_play_white))
+                it.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_play_arrow_white_vector))
                 it.contentDescription = getString(R.string.play)
             }
         }
@@ -175,29 +185,53 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
                         }
                     }
                 }
-
+            }
+            R.id.action_open_settings -> {
+                startTTSSettingsActivity()
             }
         }
         return super.onOptionsItemSelected(item)
     }
 
     override fun onReadingStart() {
-        setRecycleView()
+        runOnUiThread {
+            setRecycleView()
+        }
     }
 
     override fun onReadingStop() {
     }
 
     override fun onSentenceChange(sentenceIndex: Int) {
-        adapter.notifyItemChanged(lastSentence)
-        lastSentence = sentenceIndex
-        adapter.notifyItemChanged(sentenceIndex)
-        contentBinding.sentencesView.invalidate()
-        setProgress()
+        runOnUiThread {
+            adapter.notifyItemChanged(lastSentence)
+            lastSentence = sentenceIndex
+            adapter.notifyItemChanged(sentenceIndex)
+            contentBinding.sentencesView.invalidate()
+            setProgress()
+        }
     }
 
     override fun onPlaybackStateChange() {
-        setPlaybackState()
+        runOnUiThread {
+            setPlaybackState()
+        }
+    }
+
+    override fun onChapterLoadStart() {
+        runOnUiThread {
+            contentBinding.playbackControls.children.forEach {
+                it.isEnabled = false
+            }
+        }
+    }
+
+    override fun onChapterLoadStop() {
+        runOnUiThread {
+            contentBinding.playbackControls.children.forEach {
+                it.isEnabled = true
+            }
+        }
     }
 
 }

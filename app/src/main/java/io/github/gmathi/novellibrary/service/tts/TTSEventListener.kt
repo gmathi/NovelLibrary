@@ -5,5 +5,6 @@ interface TTSEventListener {
     fun onSentenceChange(sentenceIndex:Int)
     fun onReadingStop()
     fun onPlaybackStateChange()
-
+    fun onChapterLoadStart()
+    fun onChapterLoadStop()
 }

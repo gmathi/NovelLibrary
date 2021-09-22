@@ -210,5 +210,17 @@
         <item name="colorControlActivated">@color/DarkGray</item>
     </style>
 
+    <style name="TTSActionButton" parent="Widget.Design.FloatingActionButton" >
+        <item name="borderWidth">0dp</item>
+        <item name="android:layout_margin">0dp</item>
+        <item name="android:backgroundTint">@color/colorDarkKnight</item>
+        <item name="android:focusable">true</item>
+        <item name="elevation">0dp</item>
+        <item name="hoveredFocusedTranslationZ">0dp</item>
+        <item name="pressedTranslationZ">0dp</item>
+        <item name="maxImageSize">48dp</item>
+        <item name="backgroundTint">@color/tts_media_button_color</item>
+        <item name="android:tint">@color/tts_media_button_color</item>
+    </style>
 
 </resources>

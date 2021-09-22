@@ -369,7 +369,7 @@ class ReaderDBPagerActivity :
                     val title = webPageDBFragment.doc?.title() ?: ""
                     val chapterIndex = (if (dataCenter.japSwipe) webPages.reversed() else webPages).indexOf(webPages[binding.viewPager.currentItem])
 
-                    startTTSService(audioText, title, novel.id, translatorSourceName, chapterIndex)
+                    startTTSService(audioText, webPageDBFragment.linkedPages, title, novel.id, translatorSourceName, chapterIndex)
                     firebaseAnalytics.logNovelEvent(FAC.Event.LISTEN_NOVEL, novel)
                     startTTSActivity()
                 } else {
