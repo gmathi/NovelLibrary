@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /> <!-- Storage -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" /> <!-- For background jobs -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -16,6 +16,21 @@
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" /> <!-- To view extension packages in API 30+ -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
+<!--    <permission android:name="android.permission.QUERY_ALL_PACKAGES" />-->
+
+<!--    <queries>-->
+<!--        <intent>-->
+<!--            <action android:name="android.intent.action.VIEW" />-->
+<!--            <category android:name="android.intent.category.BROWSABLE" />-->
+<!--            <data android:scheme="https" />-->
+<!--        </intent>-->
+<!--        <intent>-->
+<!--            <action android:name="android.intent.action.VIEW" />-->
+<!--            <data android:scheme="http" />-->
+<!--        </intent>-->
+<!--        <package android:name="io.github.gmathi.novellibrary" />-->
+<!--    </queries>-->
 
     <application
         android:name=".NovelLibraryApplication"
@@ -155,7 +170,12 @@
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
-            android:name=".activity.settings.ReaderSettingsActivity"
+            android:name=".activity.settings.reader.ReaderSettingsActivity"
+            android:label="@string/title_activity_reader_settings"
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide" />
+        <activity
+            android:name=".activity.settings.reader.ScrollBehaviourSettingsActivity"
             android:label="@string/title_activity_reader_settings"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
@@ -199,14 +219,13 @@
             android:label="@string/title_activity_import_library"
             android:parentActivityName=".activity.NavDrawerActivity"
             android:screenOrientation="fullUser"
-            android:theme="@style/DarkTheme_DarkSide">
+            android:theme="@style/DarkTheme_DarkSide"
+            android:exported="true">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="io.github.gmathi.novellibrary.activity.NavDrawerActivity" />
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
@@ -247,7 +266,7 @@
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
-            android:name=".activity.settings.ReaderBackgroundSettingsActivity"
+            android:name=".activity.settings.reader.ReaderBackgroundSettingsActivity"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
 

@@ -123,11 +123,11 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
                     }
                     is Extension.Installed -> {
                         //Do Nothing
-//                    if (!extension.hasUpdate) {
-//                        //openDetails(extension)
-//                    } else {
-//                        //presenter.updateExtension(extension)
-//                    }
+                        if (!extension.hasUpdate) {
+                            //openDetails(extension)
+                        } else {
+                            extensionManager.updateExtension(extension).subscribeToInstallUpdate(extension)
+                        }
                     }
                 }
             }

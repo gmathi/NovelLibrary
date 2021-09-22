@@ -10,6 +10,9 @@ import androidx.fragment.app.Fragment
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.*
 import io.github.gmathi.novellibrary.activity.settings.*
+import io.github.gmathi.novellibrary.activity.settings.reader.ScrollBehaviourSettingsActivity
+import io.github.gmathi.novellibrary.activity.settings.reader.ReaderBackgroundSettingsActivity
+import io.github.gmathi.novellibrary.activity.settings.reader.ReaderSettingsActivity
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.service.tts.TTSService
@@ -20,20 +23,26 @@ import io.github.gmathi.novellibrary.util.view.TransitionHelper
 
 inline fun <reified T : Activity> Activity.startActivity() =
     startActivity(Intent(this, T::class.java))
+
 inline fun <reified T : Activity> Activity.startActivity(bundle: Bundle) =
     startActivity(Intent(this, T::class.java).putExtras(bundle))
-inline fun <reified T: Activity> Activity.startActivityForResult(requestCode : Int) =
+
+inline fun <reified T : Activity> Activity.startActivityForResult(requestCode: Int) =
     startActivityForResult(Intent(this, T::class.java), requestCode)
-inline fun <reified T: Activity> Activity.startActivityForResult(bundle: Bundle, requestCode : Int) =
+
+inline fun <reified T : Activity> Activity.startActivityForResult(bundle: Bundle, requestCode: Int) =
     startActivityForResult(Intent(this, T::class.java).putExtras(bundle), requestCode)
 
 inline fun <reified T : Activity> Fragment.startActivity() =
     startActivity(Intent(context, T::class.java))
+
 inline fun <reified T : Activity> Fragment.startActivity(bundle: Bundle) =
     startActivity(Intent(context, T::class.java).putExtras(bundle))
-inline fun <reified T: Activity> Fragment.startActivityForResult(requestCode : Int) =
+
+inline fun <reified T : Activity> Fragment.startActivityForResult(requestCode: Int) =
     startActivityForResult(Intent(context, T::class.java), requestCode)
-inline fun <reified T: Activity> Fragment.startActivityForResult(bundle: Bundle, requestCode : Int) =
+
+inline fun <reified T : Activity> Fragment.startActivityForResult(bundle: Bundle, requestCode: Int) =
     startActivityForResult(Intent(context, T::class.java).putExtras(bundle), requestCode)
 
 inline fun <reified T : Activity> Context?.intentOf(): Intent = Intent(this, T::class.java)
@@ -48,6 +57,7 @@ private fun novelBundle(novel: Novel): Bundle {
     bundle.putParcelable("novel", novel)
     return bundle
 }
+
 private fun novelBundle(novel: Novel, translatorSourceName: String?): Bundle {
     val bundle = Bundle()
     bundle.putParcelable("novel", novel)
@@ -55,6 +65,7 @@ private fun novelBundle(novel: Novel, translatorSourceName: String?): Bundle {
         bundle.putString("translatorSourceName", translatorSourceName)
     return bundle
 }
+
 private fun novelBundle(novel: Novel, jumpToReader: Boolean): Bundle {
     val bundle = Bundle()
     bundle.putParcelable("novel", novel)
@@ -62,6 +73,7 @@ private fun novelBundle(novel: Novel, jumpToReader: Boolean): Bundle {
         bundle.putBoolean(Constants.JUMP, jumpToReader)
     return bundle
 }
+
 private fun urlBundle(url: String): Bundle {
     val bundle = Bundle()
     bundle.putString("url", url)
@@ -129,6 +141,8 @@ fun AppCompatActivity.startBackupSettingsActivity() = startActivity<BackupSettin
 
 fun AppCompatActivity.startReaderSettingsActivity() = startActivityForResult<ReaderSettingsActivity>(Constants.READER_SETTINGS_ACT_REQ_CODE)
 
+fun AppCompatActivity.startScrollBehaviourSettingsActivity() = startActivityForResult<ScrollBehaviourSettingsActivity>(Constants.READER_BACKGROUND_SETTINGS_ACT_REQ_CODE)
+
 fun AppCompatActivity.startReaderBackgroundSettingsActivity() = startActivityForResult<ReaderBackgroundSettingsActivity>(Constants.READER_BACKGROUND_SETTINGS_ACT_REQ_CODE)
 
 fun AppCompatActivity.startMentionSettingsActivity() = startActivity<MentionSettingsActivity>()
@@ -166,16 +180,19 @@ fun AppCompatActivity.startSyncLoginActivity(url: String, lookup: String) {
 
 fun Fragment.startReaderDBPagerActivity(novel: Novel) =
     startActivityForResult<ReaderDBPagerActivity>(novelBundle(novel), Constants.READER_ACT_REQ_CODE)
+
 fun AppCompatActivity.startReaderDBPagerActivity(novel: Novel) =
     startActivityForResult<ReaderDBPagerActivity>(novelBundle(novel), Constants.READER_ACT_REQ_CODE)
 
 fun Fragment.startReaderDBPagerActivity(novel: Novel, translatorSourceName: String?) =
     startActivityForResult<ReaderDBPagerActivity>(novelBundle(novel, translatorSourceName), Constants.READER_ACT_REQ_CODE)
+
 fun AppCompatActivity.startReaderDBPagerActivity(novel: Novel, translatorSourceName: String?) =
     startActivityForResult<ReaderDBPagerActivity>(novelBundle(novel, translatorSourceName), Constants.READER_ACT_REQ_CODE)
 
 fun Fragment.startWebViewActivity(url: String) =
     startActivity<WebViewActivity>(urlBundle(url))
+
 fun AppCompatActivity.startWebViewActivity(url: String) =
     startActivity<WebViewActivity>(urlBundle(url))
 

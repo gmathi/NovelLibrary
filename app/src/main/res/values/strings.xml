@@ -434,7 +434,7 @@
     <string name="restore">Restore</string>
     <string name="import_reading_list">Import Reading List</string>
     <string name="nu_reading_list_url">NU Reading List URL</string>
-    <string name="volume_scroll">Scroll With Volume Buttons</string>
+    <string name="volume_scroll">Scroll Using Volume Buttons</string>
     <string name="volume_scroll_description">Use Volume button to scroll up/down while reading</string>
     <string name="keep_screen_on">Keep Screen On</string>
     <string name="keep_screen_on_description">Keeps the screen on while you are reading</string>
@@ -545,7 +545,6 @@
     <string name="locale_Tagalog">Tagalog</string>
     <string name="locale_latin">Latin</string>
     <string name="locale_pirate">Pirate</string>
-    <string name="volume_scroll_length">Scroll Distance</string>
     <string name="volume_scroll_length_description">Change the distance to scroll when using volume keys</string>
     <string name="volume_scroll_length_template" translatable="false">%1$s %2$d</string>
     <string name="reverse">Reverse</string>
@@ -735,6 +734,17 @@
     <string name="remove_novels">Do you want to remove selected novels from your library?</string>
     <string name="reset_novels">Do you want to hard reset selected novels?</string>
     <string name="importing">Importing: %1$s</string>
+
+    <string name="reader_mode_scroll">Scroll Behaviour</string>
+    <string name="reader_mode_scroll_description">Change the scroll length, auto scroll - on/off &amp; interval, volume button to scroll options.</string>
+    <string name="volume_scroll_length">Volume Scroll Distance</string>
+
+    <string name="auto_scroll">Automatic Scroll</string>
+    <string name="auto_scroll_description">Automatically scrolls the reader view based on the scroll distance and the interval set below</string>
+    <string name="auto_scroll_length">Automatic Scroll Distance</string>
+    <string name="auto_scroll_length_description">Change the distance to scroll when using auto scroll is enabled</string>
+    <string name="auto_scroll_interval">Automatic Scroll Interval</string>
+    <string name="auto_scroll_inteval_description">Change the interval in seconds for which the scroll happens</string>
 
     <!-- TTS settings -->
     <string name="tts_merge_buffer_chapters">Merge All Links To Single Page</string>
