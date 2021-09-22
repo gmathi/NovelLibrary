@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.activity.settings
 
 import android.annotation.SuppressLint
 import android.content.ComponentName
+import android.content.Intent
 import android.content.ServiceConnection
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -104,6 +105,20 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        Intent(this, TTSService::class.java).also { intent ->
+            bindService(intent, ttsConnection, 0)
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unbindService(ttsConnection)
+        tts = null
+        isServiceConnected = false
+    }
+
     fun selectFilters() {
         val originalFilters = dataCenter.ttsFilters
         val filters = originalFilters.toMutableList()
@@ -178,7 +193,7 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
         }
     }
 
-    fun rebuildEnabledFilters(filters: List<String>, cache: Map<String, TTSFilterList>) {
+    private fun rebuildEnabledFilters(filters: List<String>, cache: Map<String, TTSFilterList>) {
         val list = mutableListOf<TTSFilter>()
 
         filters.forEach { name ->
@@ -195,19 +210,21 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
             customView(R.layout.dialog_slider, scrollable = true)
             onDismiss {
                 dataCenter.ttsPitch = value
+                tts?.chooseMediaControllerActions(TTSService.ACTION_UPDATE_TTS_SETTINGS)
             }
         }
 
+        // 50...200 range is bugged for TwoWaySeekBar as it's not including 0, so a crutch to offset it by -50
         val seekBar = dialog.getCustomView().findViewById<TwoWaySeekBar>(R.id.seekBar) ?: return
-        seekBar.setAbsoluteMinMaxValue(50.0, 200.0)
+        seekBar.setAbsoluteMinMaxValue(0.0, 150.0)
         seekBar.notifyWhileDragging = true
         seekBar.setOnSeekBarChangedListener { _, progress ->
-            value = (progress.roundToInt() / 100).toFloat()
+            value = (progress.roundToInt() / 100.0).toFloat() + 0.5f
             if (isServiceConnected) tts?.chooseMediaControllerActions(TTSService.ACTION_UPDATE_TTS_SETTINGS)
             @SuppressLint("SetTextI18n")
-            textView.text = (value * 100).roundToInt().toString() + "%"
+            textView.text = (progress+50.0).roundToInt().toString() + "%"
         }
-        seekBar.setProgress(value.toDouble() * 100.0)
+        seekBar.setProgress(value.toDouble() * 100.0 - 50.0)
     }
 
     fun changeRate(textView: TextView) {
@@ -217,18 +234,19 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
             customView(R.layout.dialog_slider, scrollable = true)
             onDismiss {
                 dataCenter.ttsSpeechRate = value
+                tts?.chooseMediaControllerActions(TTSService.ACTION_UPDATE_TTS_SETTINGS)
             }
         }
 
         val seekBar = dialog.getCustomView().findViewById<TwoWaySeekBar>(R.id.seekBar) ?: return
-        seekBar.setAbsoluteMinMaxValue(50.0, 200.0)
+        seekBar.setAbsoluteMinMaxValue(0.0, 150.0)
         seekBar.notifyWhileDragging = true
         seekBar.setOnSeekBarChangedListener { _, progress ->
-            value = (progress.roundToInt() / 100).toFloat()
+            value = (progress.roundToInt() / 100.0).toFloat() + 0.5f
             if (isServiceConnected) tts?.chooseMediaControllerActions(TTSService.ACTION_UPDATE_TTS_SETTINGS)
             @SuppressLint("SetTextI18n")
-            textView.text = (value * 100).roundToInt().toString() + "%"
+            textView.text = (progress+50.0).roundToInt().toString() + "%"
         }
-        seekBar.setProgress(value.toDouble() * 100.0)
+        seekBar.setProgress(value.toDouble() * 100.0 - 50.0)
     }
 }
