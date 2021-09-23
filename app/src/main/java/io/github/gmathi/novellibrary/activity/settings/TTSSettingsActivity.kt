@@ -91,7 +91,6 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
     private var tts: TTSService? = null
     private var isServiceConnected: Boolean = false
 
-    // TODO: Notify TTS
     private val ttsConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName?, service: IBinder?) {
             val binder = service as TTSService.TTSBinder
