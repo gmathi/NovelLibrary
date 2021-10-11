@@ -28,20 +28,19 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.CompiledTTSFilter
-import io.github.gmathi.novellibrary.model.other.TTSFilter
 import io.github.gmathi.novellibrary.model.other.TTSFilterTarget
-import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.lang.writableFileName
 import io.github.gmathi.novellibrary.util.storage.createFileIfNotExists
 import io.github.gmathi.novellibrary.util.storage.getOrCreateDirectory
 import io.github.gmathi.novellibrary.util.storage.getOrCreateFile
-import org.jsoup.Jsoup
-import org.jsoup.nodes.*
+import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
 import org.jsoup.safety.Cleaner
 import org.jsoup.safety.Whitelist
-import org.jsoup.select.NodeVisitor
 import uy.kohesive.injekt.injectLazy
 import java.io.*
+import java.net.MalformedURLException
+import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -413,9 +412,9 @@ object Utils {
             // Replace no-break spaces with a regular space
             .replace("&nbsp;", " ")
             // Perform a limited trim operation on excessive spacing, causing "     " to turn into just " " as well as changing \n\n\n\n into \n
-            .replace("""([\s ])+""".toRegex(RegexOption.MULTILINE)) { it.groups[0]?.value?:"" }
+            .replace("""([\s ])+""".toRegex(RegexOption.MULTILINE)) { it.groups[0]?.value ?: "" }
             // Shorten long repeating characters such as =====, -----, -=-=-=-=-, ***** or !!!!!!!!
-            .replace("""([=*#|+<>\-]{4,}|\.{4,}|!{4,}|\?{4,})""".toRegex()) { it.value.substring(0, 3)}
+            .replace("""([=*#|+<>\-]{4,}|\.{4,}|!{4,}|\?{4,})""".toRegex()) { it.value.substring(0, 3) }
             .trim()
 
         textFilters.forEach { filter ->
@@ -448,6 +447,31 @@ object Utils {
             message(text = "The error message has been copied to clipboard. Please paste it in discord #bugs channel.")
             lifecycleOwner(activity)
         }
+    }
+
+
+    @Throws(MalformedURLException::class)
+    fun replaceHostInUrl(originalUrl: String?, newHostName: String?): String? {
+        var url = originalUrl ?: return null
+        var newHost = newHostName ?: return null
+
+        val originalURL = URL(url)
+        val hostHasPort = newHostName.indexOf(":") != -1
+        var newPort: Int = originalURL.port
+        if (hostHasPort) {
+            val hostURL = URL("http://$newHostName")
+            newHost = hostURL.host
+            newPort = hostURL.port
+        } else {
+            newPort = -1
+        }
+
+        // Use implicit port if it's a default port
+        val isHttps: Boolean = originalURL.protocol.equals("https")
+        val useDefaultPort = newPort == 443 && isHttps || newPort == 80 && !isHttps
+        newPort = if (useDefaultPort) -1 else newPort
+        val newURL = URL(originalURL.protocol, newHost, newPort, originalURL.file)
+        return newURL.toString()
     }
 
 }

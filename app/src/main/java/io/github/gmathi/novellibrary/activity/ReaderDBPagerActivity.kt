@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.activity
 
 
 import android.animation.ObjectAnimator
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Typeface
@@ -80,11 +81,9 @@ class ReaderDBPagerActivity :
         private const val JAVA_SCRIPT = 2
         private const val FONTS = 3
         private const val FONT_SIZE = 4
-        private const val REPORT_PAGE = 5
-        private const val OPEN_IN_BROWSER = 6
-        private const val SHARE_CHAPTER = 7
-        private const val MORE_SETTINGS = 8
-        private const val READ_ALOUD = 9
+        private const val OPEN_IN_BROWSER = 5
+        private const val MORE_SETTINGS = 6
+        private const val READ_ALOUD = 7
 
 
         private val FONT_MIME_TYPES = arrayOf(
@@ -297,9 +296,7 @@ class ReaderDBPagerActivity :
                 createItemFor(JAVA_SCRIPT).setSwitchOn(true),
                 createItemFor(FONTS),
                 createItemFor(FONT_SIZE),
-                createItemFor(REPORT_PAGE),
                 createItemFor(OPEN_IN_BROWSER),
-                createItemFor(SHARE_CHAPTER),
                 createItemFor(MORE_SETTINGS),
                 createItemFor(READ_ALOUD)
 
@@ -355,9 +352,7 @@ class ReaderDBPagerActivity :
         when (position) {
             FONTS -> changeFontStyle()
             FONT_SIZE -> changeTextSize()
-            REPORT_PAGE -> reportPage()
             OPEN_IN_BROWSER -> inBrowser()
-            SHARE_CHAPTER -> share()
             MORE_SETTINGS -> startReaderSettingsActivity()
             READ_ALOUD -> {
                 if (dataCenter.readerMode) {
@@ -436,6 +431,7 @@ class ReaderDBPagerActivity :
         }
     }
 
+    @SuppressLint("CheckResult")
     private fun changeFontStyle() {
         if (AVAILABLE_FONTS.isEmpty())
             getAvailableFonts()

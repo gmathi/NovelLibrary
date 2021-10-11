@@ -25,7 +25,7 @@ internal class ExtensionGithubApi {
     suspend fun findExtensions(): List<Extension.Available> {
         return withIOContext {
             networkService.client
-                .newCall(GET("${REPO_URL_PREFIX}index.min.json"))
+                .newCall(GET("${REPO_URL_PREFIX}index.json"))
                 .await()
                 .parseAs<JsonArray>()
                 .let { parseResponse(it) }
