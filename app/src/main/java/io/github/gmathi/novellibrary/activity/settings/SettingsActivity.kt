@@ -99,6 +99,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             getString(R.string.general) -> startGeneralSettingsActivity()
             getString(R.string.reader) -> startReaderSettingsActivity()
             getString(R.string.mentions) -> startMentionSettingsActivity()
+            getString(R.string.title_read_aloud) -> startTTSSettingsActivity()
             getString(R.string.sync) -> startSyncSettingsSelectionActivity() //underConstructionDialog("NovelSync is under a rewrite and will be back in future releases!")
             getString(R.string.donate_developer) -> donateDeveloperDialog()
             getString(R.string.about_us) -> aboutUsDialog()

@@ -53,6 +53,7 @@
     <string-array name="settings_list" translatable="false">
         <item>@string/general</item>
         <item>@string/reader</item>
+        <item>@string/title_read_aloud</item>
         <item>@string/mentions</item>
         <item>@string/sync</item>
         <item>@string/donate_developer</item>
@@ -232,6 +233,7 @@
     <string name="title_activity_chapter_downloads" translatable="false">ChapterDownloadsActivity</string>
     <string name="title_activity_web_view" translatable="false">@string/app_name</string>
     <string name="title_activity_google_backup" translatable="false">Google Backup Settings</string>
+    <string name="title_activity_tts_settings" translatable="false">Read Aloud Settings</string>
 
 
     <string name="title_activity_language" translatable="false">LanguageActivity</string>
@@ -526,6 +528,7 @@
     <string name="text_to_speech_controls">TTS Controls</string>
     <string name="text_to_speech_inactive">TTS Service is not active.\nStart the TTS playback trough the chapter view first!</string>
     <string name="open_reader">Open reader</string>
+    <string name="open_settings">Open settings</string>
 
     <!-- v0.9 Strings -->
 
@@ -595,8 +598,6 @@
     <string name="hex_color">Hex: #%1$s</string>
     <string name="scrolling_text">Scrolling Text</string>
     <string name="scrolling_text_description">Enable scrolling text on novel titles and other items where text is too large to fit on the screen</string>
-    <string name="auto_read_next_chapter">Auto Read Next Chapter</string>
-    <string name="auto_read_next_chapter_description">Automatically read the next chapter when the current chapter finishes in Read Aloud mode</string>
 
     <!-- 0.15.5-->
     <string name="reset_novel">Hard Reset Novel</string>
@@ -744,5 +745,25 @@
     <string name="auto_scroll_length_description">Change the distance to scroll when using auto scroll is enabled</string>
     <string name="auto_scroll_interval">Automatic Scroll Interval</string>
     <string name="auto_scroll_inteval_description">Change the interval in seconds for which the scroll happens</string>
+
+    <!-- TTS settings -->
+    <string name="tts_merge_buffer_chapters">Merge All Links To Single Page</string>
+    <string name="tts_merge_buffer_chapters_description">Merges all the web pages in to a single web page, so that Read Aloud won\'t miss chapters behind announcement pages</string>
+    <string name="tts_pitch">Pitch</string>
+    <string name="tts_pitch_description">Set the Read Aloud synthesis pitch offset</string>
+    <string name="tts_rate">Speech rate</string>
+    <string name="tts_rate_description">Set the Read Aloud synthesis speech rate</string>
+    <string name="tts_filters">Processing filters</string>
+    <string name="tts_filters_description">Add extra text processing filters to Read Aloud</string>
+    <string name="tts_update_filters">Update filter cache</string>
+    <string name="tts_update_filters_description">Download new versions of processing filters and update the cache.</string>
+    <string name="tts_updating_filters">Updating filter cache…</string>
+    <string name="tts_need_connection_for_filters">You need an active internet connection to update the filter cache!</string>
+    <string name="auto_read_next_chapter">Auto Read Next Chapter</string>
+    <string name="auto_read_next_chapter_description">Automatically read the next chapter when the current chapter finishes in Read Aloud mode</string>
+    <string name="tts_mark_chapters_read">Mark chapters as read</string>
+    <string name="tts_mark_chapters_read_description">After Read Aloud finish the chapter it would mark it as read</string>
+    <string name="tts_move_bookmark">Move bookmark</string>
+    <string name="tts_move_bookmark_description">When Read Aloud starts reading the chapter it would move the bookmark to that chapter</string>
 
 </resources>

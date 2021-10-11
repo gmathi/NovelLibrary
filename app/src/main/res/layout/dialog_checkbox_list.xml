@@ -4,8 +4,12 @@
     android:layout_height="match_parent"
     android:padding="@dimen/default_padding_list_item">
 
-    <RadioGroup
+    <LinearLayout
         android:id="@+id/listGroup"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="1dp"
+        android:layout_marginRight="1dp"
+        android:orientation="vertical"></LinearLayout>
+
 </FrameLayout>

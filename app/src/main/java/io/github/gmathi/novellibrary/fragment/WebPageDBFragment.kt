@@ -49,6 +49,7 @@ class WebPageDBFragment : BaseFragment() {
     private lateinit var webPageSettings: WebPageSettings
 
     var doc: Document? = null
+    var linkedPages: ArrayList<String> = ArrayList<String>()
     var history: ArrayList<WebPageSettings> = ArrayList()
     var job: Job? = null
 
@@ -358,38 +359,25 @@ class WebPageDBFragment : BaseFragment() {
                     htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
 
                     if (dataCenter.enableClusterPages) {
-                        // Get URL domain name of the chapter provider
-                        val baseUrlDomain = getUrlDomain(doc.location())
-
-                        // Add the content of the links to the doc
                         val alreadyDownloadedLinks = ArrayList<String>()
                         alreadyDownloadedLinks.add(doc.location())
-                        val hrefElements = doc.body().select("a[href]")
-                        hrefElements?.forEach {
-
-                            // Other Share links
-                            if (it.hasAttr("title") && it.attr("title").contains("Click to share", true)) {
-                                return@forEach
-                            }
-
-                            val linkedUrl = it.attr("href").split("#").first()
+                        htmlHelper.getLinkedChapters(doc).forEach { linkedUrl ->
                             if (alreadyDownloadedLinks.contains(linkedUrl)) return@forEach
-
                             try {
-                                // Check if URL is from chapter provider, only download from same domain
-                                val urlDomain = getUrlDomain(linkedUrl)
-                                if (urlDomain == baseUrlDomain) {
-                                    val otherDoc = withContext(Dispatchers.IO) { WebPageDocumentFetcher.document(linkedUrl) }
-                                    val helper = HtmlCleaner.getInstance(otherDoc)
-                                    helper.removeJS(otherDoc)
-                                    helper.additionalProcessing(otherDoc)
-                                    doc.body().append(otherDoc.body().html())
-                                    alreadyDownloadedLinks.add(otherDoc.location())
-                                }
+                                val otherDoc = withContext(Dispatchers.IO) { WebPageDocumentFetcher.document(linkedUrl) }
+                                val helper = HtmlCleaner.getInstance(otherDoc)
+                                helper.removeJS(otherDoc)
+                                helper.additionalProcessing(otherDoc)
+                                helper.setProperHrefUrls(otherDoc)
+                                doc.body().append(otherDoc.body().html())
+                                alreadyDownloadedLinks.add(otherDoc.location())
                             } catch (e: Exception) {
                                 e.printStackTrace()
                             }
                         }
+                        linkedPages = ArrayList()
+                    } else {
+                        linkedPages = htmlHelper.getLinkedChapters(doc)
                     }
                     if (this.isActive)
                         loadCreatedDocument()
@@ -459,6 +447,9 @@ class WebPageDBFragment : BaseFragment() {
                         }
                     }
                 }
+                linkedPages = ArrayList()
+            } else {
+                linkedPages = htmlHelper.getLinkedChapters(doc)
             }
 
         } catch (e: Exception) {

@@ -1,14 +1,20 @@
 package io.github.gmathi.novellibrary.util.system
 
+import android.content.SharedPreferences
 import android.view.View
 import android.widget.CompoundButton
 import androidx.core.content.ContextCompat
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
 import io.github.gmathi.novellibrary.model.ui.ListitemSetting
 import io.github.gmathi.novellibrary.model.ui.SettingItemClickCallback
+import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
+import java.util.ArrayList
 
 /**
  * Initial setting item binding cleanup
@@ -52,3 +58,12 @@ fun ListitemTitleSubtitleWidgetBinding.bindChevron() {
 fun<T> ListitemSetting<T>.bindChevron(closure: SettingItemClickCallback<T, ListitemTitleSubtitleWidgetBinding>):ListitemSetting<T> {
     return this.onBind { _, view, _ -> view.bindChevron() }.onClick(closure)
 }
+
+inline fun<reified T> SharedPreferences.getJson(key: String, def: String): T =
+    Gson().fromJson(getString(key, def), object : TypeToken<T>() {}.type)
+
+inline fun<reified T> SharedPreferences.getJson(key: String): T? =
+    Gson().fromJson(getString(key, "null"), object : TypeToken<T>() {}.type)
+
+inline fun<reified T> SharedPreferences.Editor.putJson(key: String, value: T?):SharedPreferences.Editor =
+    putString(key, Gson().toJson(value))

@@ -46,7 +46,6 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:ignore="UnusedAttribute">
-
         <!-- <activity -->
         <!-- android:name=".activity.settings.GoogleBackupActivity" -->
         <!-- android:label="@string/title_activity_google_backup" -->
@@ -111,7 +110,6 @@
             android:label="@string/title_activity_novel_details"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
-
         <activity
             android:name=".activity.TextToSpeechControlsActivity"
             android:label="@string/text_to_speech_controls"
@@ -197,6 +195,11 @@
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
+            android:name=".activity.settings.TTSSettingsActivity"
+            android:label="@string/title_activity_tts_settings"
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide"/>
+        <activity
             android:name=".activity.settings.SyncLoginActivity"
             android:label="@string/title_activity_sync_login"
             android:screenOrientation="fullUser"
@@ -277,13 +280,11 @@
             android:label="@string/title_activity_recent_novels"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
-
         <activity
             android:name=".activity.ExtensionsPagerActivity"
             android:label="@string/title_activity_extensions"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
-
 
         <provider
             android:name=".util.storage.GenericFileProvider"

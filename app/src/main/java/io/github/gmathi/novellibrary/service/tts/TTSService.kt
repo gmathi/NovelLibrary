@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.service.tts
 import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
@@ -16,18 +17,25 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.Lifecycle
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.activity.TextToSpeechControlsActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
+import io.github.gmathi.novellibrary.model.other.TTSCleanDocument
+import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.service.tts.TTSNotificationBuilder.Companion.TTS_NOTIFICATION_ID
+import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
@@ -38,6 +46,9 @@ import io.github.gmathi.novellibrary.util.lang.displayTitle
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.network.asJsoup
 import io.github.gmathi.novellibrary.util.network.safeExecute
+import io.github.gmathi.novellibrary.util.system.DataAccessor
+import io.github.gmathi.novellibrary.util.system.markChapterRead
+import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 import org.jsoup.Jsoup
@@ -49,7 +60,7 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 
-class TTSService : Service(), TextToSpeech.OnInitListener {
+class TTSService : Service(), TextToSpeech.OnInitListener, DataAccessor {
 
     companion object {
         const val TAG = "TTSService"
@@ -59,6 +70,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         const val NOVEL_ID = "novelId"
         const val TRANSLATOR_SOURCE_NAME = "translatorSourceName"
         const val CHAPTER_INDEX = "chapterIndex"
+        const val LINKED_PAGES = "linkedPages"
 
         const val ACTION_STOP = "actionStop"
         const val ACTION_PAUSE = "actionPause"
@@ -68,10 +80,16 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         const val ACTION_OPEN_CONTROLS = "actionOpenControls"
         const val ACTION_NEXT_SENTENCE = "actionNextSentence"
         const val ACTION_PREV_SENTENCE = "actionPrevSentence"
+        const val ACTION_UPDATE_TTS_SETTINGS = "actionUpdateTTSSettings"
     }
 
-    private val dataCenter: DataCenter by injectLazy()
-    private val networkHelper: NetworkHelper by injectLazy()
+    override lateinit var firebaseAnalytics: FirebaseAnalytics
+    override val sourceManager: SourceManager by injectLazy()
+    override fun getContext(): Context = this
+    override fun getLifecycle(): Lifecycle? = null
+
+    override val dataCenter: DataCenter by injectLazy()
+    override val networkHelper: NetworkHelper by injectLazy()
     private val client: OkHttpClient
         get() = networkHelper.cloudflareClient
 
@@ -80,7 +98,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     lateinit var mediaController: MediaControllerCompat
     private lateinit var ttsNotificationBuilder: TTSNotificationBuilder
     private lateinit var notificationManager: NotificationManagerCompat
-    private lateinit var dbHelper: DBHelper
+    override lateinit var dbHelper: DBHelper
 
     private var blockingJob: Job? = null
     var novel: Novel? = null
@@ -88,6 +106,8 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     private var audioText: String? = null
     private var title: String? = null
     var chapterIndex: Int = 0
+
+    var linkedPages: List<String> = emptyList()
 
     var lines: ArrayList<String> = ArrayList()
     var lineNumber: Int = 0
@@ -110,6 +130,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     override fun onCreate() {
         super.onCreate()
 
+        firebaseAnalytics = FirebaseAnalytics.getInstance(this)
         //android.os.Debug.waitForDebugger()
 
         // Build a PendingIntent that can be used to launch the UI.
@@ -182,6 +203,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         novel?.let { setChapterIndex(it) }
 
         audioText = intent?.extras?.getString(AUDIO_TEXT_KEY, null) ?: ""
+        linkedPages = intent?.extras?.getStringArrayList(LINKED_PAGES) ?: ArrayList()
         title = intent?.extras?.getString(TITLE, null) ?: ""
         translatorSourceName = intent?.extras?.getString(TRANSLATOR_SOURCE_NAME)
         chapterIndex = intent?.extras?.getInt(CHAPTER_INDEX, 0) ?: 0
@@ -189,15 +211,23 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         metadataCompat.displayTitle = novel?.name ?: "Novel Name Not Found"
         metadataCompat.displaySubtitle = title
 
-        if (!novel?.imageUrl.isNullOrBlank() && networkHelper.isConnectedToNetwork()) {
+        if (!novel?.imageUrl.isNullOrBlank()) {
             Glide.with(this).asBitmap().load(novel!!.imageUrl!!.getGlideUrl()).into(object : CustomTarget<Bitmap>() {
                 override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
                     metadataCompat.albumArt = resource
-                    mediaSession.setMetadata(metadataCompat.build())
-                    startReading()
+                    start()
                 }
 
                 override fun onLoadCleared(placeholder: Drawable?) {
+                }
+
+                override fun onLoadFailed(errorDrawable: Drawable?) {
+                    start()
+                }
+
+                fun start() {
+                    mediaSession.setMetadata(metadataCompat.build())
+                    startReading()
                 }
             })
         } else {
@@ -209,7 +239,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     }
 
     fun chooseMediaControllerActions(action: String) {
-        Log.i(TAG, "TTS Action: $action")
+//        Log.i(TAG, "TTS Action: $action")
         when (action) {
             ACTION_PLAY -> {
                 speakNexLine()
@@ -230,7 +260,11 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
                     }
                 } else {
                     chapterIndex++
-                    setAudioText()
+                    if (!setAudioText()) {
+                        chapterIndex-- // Could not load it due to offline or other reasons
+                        eventListener?.onChapterLoadStop()
+                    }
+
                 }
             }
             ACTION_PREVIOUS -> {
@@ -240,7 +274,10 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
                     }
                 } else {
                     chapterIndex--
-                    setAudioText()
+                    if (!setAudioText()) {
+                        chapterIndex++ // Could not load it due to offline or other reasons
+                        eventListener?.onChapterLoadStop()
+                    }
                 }
             }
             ACTION_PREV_SENTENCE -> {
@@ -253,6 +290,10 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
             }
             ACTION_OPEN_CONTROLS -> {
                 startActivity(Intent(this, TextToSpeechControlsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }
+            ACTION_UPDATE_TTS_SETTINGS -> {
+                tts.setPitch(dataCenter.ttsPitch)
+                tts.setSpeechRate(dataCenter.ttsSpeechRate)
             }
         }
     }
@@ -277,6 +318,13 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
     private fun startReading() {
         //Stop reading
         sendToTTS("", TextToSpeech.QUEUE_FLUSH)
+
+        // Apply the pitch and speech rate options.
+        tts.setPitch(dataCenter.ttsPitch)
+        tts.setSpeechRate(dataCenter.ttsSpeechRate)
+        if (novel != null && dataCenter.ttsMoveBookmark) dbHelper.getWebPage(novel!!.id, translatorSourceName, chapterIndex)?.let {
+            updateNovelBookmark(novel!!, it, false)
+        }
 
         //Reset old data
         lines.clear()
@@ -354,6 +402,11 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
             sendToTTS(lines[lineNumber], queueMode, "KEEP_READING")
             eventListener?.onSentenceChange(lineNumber)
         } else {
+            if (novel != null && dataCenter.ttsMarkChaptersRead) {
+                dbHelper.getWebPage(novel!!.id, translatorSourceName, chapterIndex)?.let {
+                    markChapterRead(it, true)
+                }
+            }
             if (dataCenter.readAloudNextChapter) {
                 chooseMediaControllerActions(ACTION_NEXT)
             } else
@@ -384,7 +437,7 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
             state?.let { updateNotification(it) }
             eventListener?.onPlaybackStateChange()
-            Log.e(TAG, "State Changed: $state")
+//            Log.e(TAG, "State Changed: $state")
         }
 
         private fun updateNotification(state: PlaybackStateCompat) {
@@ -444,22 +497,30 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         chapterIndex = dbHelper.getAllWebPages(novel.id, translatorSourceName).indexOfFirst { it.url == webPage.url }
     }
 
-    private fun setAudioText() {
-        val webPage = dbHelper.getWebPage(novel!!.id, translatorSourceName, chapterIndex) ?: return
+    private fun setAudioText(): Boolean {
+        eventListener?.onChapterLoadStart()
+        val webPage = dbHelper.getWebPage(novel!!.id, translatorSourceName, chapterIndex) ?: return false
         title = webPage.chapterName
         metadataCompat.displaySubtitle = title
         mediaSession.setMetadata(metadataCompat.build())
 
-        val webPageSettings = dbHelper.getWebPageSettings(webPage.url) ?: return
+        val webPageSettings = dbHelper.getWebPageSettings(webPage.url) ?: return false
         if (webPageSettings.filePath != null) {
-            audioText = loadFromFile(webPageSettings) ?: return
+            val clean = loadFromFile(webPageSettings) ?: return false
+            audioText = clean.text
+            linkedPages = clean.bufferLinks
+            eventListener?.onChapterLoadStop()
             startReading()
+        } else if (!networkHelper.isConnectedToNetwork()) {
+            // Can't load chapter if no network
+            return false
         } else {
             loadFromWeb(webPageSettings)
         }
+        return true
     }
 
-    private fun loadFromFile(webPageSettings: WebPageSettings): String? {
+    private fun loadFromFile(webPageSettings: WebPageSettings): TTSCleanDocument? {
         val internalFilePath = "$FILE_PROTOCOL${webPageSettings.filePath}"
         val input = File(internalFilePath.substring(FILE_PROTOCOL.length))
         if (!input.exists()) {
@@ -468,8 +529,27 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         }
 
         val url = webPageSettings.redirectedUrl ?: internalFilePath
-        val doc = Jsoup.parse(input, "UTF-8", url) ?: return ""
-        return cleanDocumentText(doc)
+        val doc = Jsoup.parse(input, "UTF-8", url) ?: return TTSCleanDocument("", emptyList())
+        if (dataCenter.ttsMergeBufferChapters && webPageSettings.metadata.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
+            var text: String = cleanDocumentText(doc).text
+
+            val links: ArrayList<String> =
+                Gson().fromJson(webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES_SETTINGS], object : TypeToken<java.util.ArrayList<String>>() {}.type)
+
+            links.forEach { linkedUrl ->
+                val settings = dbHelper.getWebPageSettings(linkedUrl) ?: return@forEach
+                if (settings.filePath != null) {
+                    text += "\r\n\r\n" + loadFromFile(settings)?.text
+                }
+//                else {
+//                    // TODO: Load linked page from web when source page is offline
+//                }
+            }
+
+            return TTSCleanDocument(text, emptyList())
+        } else {
+            return cleanDocumentText(doc)
+        }
     }
 
     private fun loadFromWeb(webPageSettings: WebPageSettings) {
@@ -480,10 +560,20 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
                 if (doc.location().contains("rssbook") && doc.location().contains(HostNames.QIDIAN)) {
                     doc = withContext(Dispatchers.IO) { getWebPageDocument(doc.location().replace("rssbook", "book")) }
                 }
-                audioText = cleanDocumentText(doc)
+                val clean = cleanDocumentText(doc)
+                audioText = clean.text
+                linkedPages = clean.bufferLinks
+                if (dataCenter.ttsMergeBufferChapters) {
+                    linkedPages.forEach { linkedUrl ->
+                        val pageDoc = withContext(Dispatchers.IO) { getWebPageDocument(linkedUrl) }
+                        val cleanPage = cleanDocumentText(pageDoc)
+                        audioText += "\r\n\r\n" + cleanPage.text
+                    }
+                }
                 title = doc.title()
                 metadataCompat.displaySubtitle = title
                 mediaSession.setMetadata(metadataCompat.build())
+                eventListener?.onChapterLoadStop()
                 startReading()
             } catch (e: Exception) {
                 Logs.error("TTSService", "Unable to read chapter", e)
@@ -498,11 +588,11 @@ class TTSService : Service(), TextToSpeech.OnInitListener {
         return client.newCall(GET(url)).safeExecute().asJsoup()
     }
 
-    private fun cleanDocumentText(doc: Document): String {
+    private fun cleanDocumentText(doc: Document): TTSCleanDocument {
         val htmlHelper = HtmlCleaner.getInstance(doc)
         htmlHelper.removeJS(doc)
         htmlHelper.additionalProcessing(doc)
-        return doc.getFormattedText()
+        return TTSCleanDocument(doc.getFormattedText(), htmlHelper.getLinkedChapters(doc))
     }
 
 }

@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
@@ -9,23 +10,27 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
+import androidx.core.view.children
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.getWebPage
-import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.databinding.ActivityTextToSpeechControlsBinding
 import io.github.gmathi.novellibrary.databinding.ContentTextToSpeechControlsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemSentenceBinding
 import io.github.gmathi.novellibrary.extensions.isPlaying
-import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.service.tts.TTSEventListener
 import io.github.gmathi.novellibrary.service.tts.TTSService
-import io.github.gmathi.novellibrary.util.lang.albumArt
+import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
+import io.github.gmathi.novellibrary.util.system.startTTSSettingsActivity
 import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaults
+import io.github.gmathi.novellibrary.util.view.setDefaultsNoAnimation
 
 class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAdapter.Listener<String> {
     companion object {
@@ -64,6 +69,10 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
         setContentView(binding.root)
         contentBinding = binding.contentTextToSpeechControls
 
+        // Enable marquee
+        contentBinding.ttsNovelChapter.isSelected = true
+        contentBinding.ttsNovelName.isSelected = true
+
         contentBinding.prevChapterButton.setOnClickListener {
             if (isServiceConnected) tts?.chooseMediaControllerActions(TTSService.ACTION_PREVIOUS)
         }
@@ -83,7 +92,7 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
             )
         }
         contentBinding.scrollIntoViewButton.setOnClickListener {
-            contentBinding.sentencesView.smoothScrollToPosition(lastSentence)
+            scrollToPosition(lastSentence, true)
         }
 
         setSupportActionBar(binding.toolbar)
@@ -96,15 +105,40 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
         val tts = this.tts!!
         adapter = GenericAdapter(tts.lines, layoutResId = R.layout.listitem_sentence, listener = this)
         lastSentence = tts.lineNumber
-        contentBinding.sentencesView.setDefaults(adapter)
-        contentBinding.sentencesView.scrollTo(0, 0)
+        contentBinding.sentencesView.setDefaultsNoAnimation(adapter)
 
         tts.mediaController.metadata?.let { metadata ->
             contentBinding.ttsNovelName.applyFont(assets).text = metadata.description.title
             contentBinding.ttsNovelChapter.applyFont(assets).text = metadata.description.subtitle
-            contentBinding.ttsNovelCover.setImageBitmap(metadata.albumArt)
+            if (tts.novel != null) {
+                Glide.with(this)
+                    .load(tts.novel?.imageUrl?.getGlideUrl())
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(contentBinding.ttsNovelCover)
+            }
         }
         setProgress()
+        scrollToPosition(lastSentence, false)
+    }
+
+    private fun scrollToPosition(position: Int, smooth: Boolean) {
+        val view = contentBinding.sentencesView
+        val layout = view.layoutManager as LinearLayoutManager
+        if (smooth) {
+            val scroller = CenterSmoothScroller(view.context)
+            scroller.targetPosition = position
+            layout.startSmoothScroll(scroller)
+        } else {
+            layout.scrollToPosition(position)
+        }
+    }
+
+    class CenterSmoothScroller(context: Context) : LinearSmoothScroller(context) {
+
+        override fun calculateDtToFit(viewStart: Int, viewEnd: Int, boxStart: Int, boxEnd: Int, snapPreference: Int): Int {
+            return (boxStart + (boxEnd - boxStart) / 2) - (viewStart + (viewEnd - viewStart) / 2)
+        }
+
     }
 
     private fun setProgress() {
@@ -117,12 +151,12 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
     private fun setPlaybackState() {
         if (tts?.mediaController?.playbackState?.isPlaying == true) {
             contentBinding.playButton.let {
-                it.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_circle_pause_white))
+                it.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_pause_white_vector))
                 it.contentDescription = getString(R.string.pause)
             }
         } else {
             contentBinding.playButton.let {
-                it.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_circle_play_white))
+                it.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_play_arrow_white_vector))
                 it.contentDescription = getString(R.string.play)
             }
         }
@@ -140,6 +174,7 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
     override fun onItemClick(item: String, position: Int) {
         if (isServiceConnected) {
             tts?.goToLine(position)
+            setPlaybackState()
         }
     }
 
@@ -175,29 +210,63 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
                         }
                     }
                 }
-
+            }
+            R.id.action_open_settings -> {
+                startTTSSettingsActivity()
             }
         }
         return super.onOptionsItemSelected(item)
     }
 
     override fun onReadingStart() {
-        setRecycleView()
+        runOnUiThread {
+            setRecycleView()
+        }
     }
 
     override fun onReadingStop() {
     }
 
     override fun onSentenceChange(sentenceIndex: Int) {
-        adapter.notifyItemChanged(lastSentence)
-        lastSentence = sentenceIndex
-        adapter.notifyItemChanged(sentenceIndex)
-        contentBinding.sentencesView.invalidate()
-        setProgress()
+        runOnUiThread {
+            val layout = (contentBinding.sentencesView.layoutManager as LinearLayoutManager)
+            val visibleStart = layout.findFirstCompletelyVisibleItemPosition()
+            val visibleEnd = layout.findLastCompletelyVisibleItemPosition()
+            val shouldAutoScroll = !layout.isSmoothScrolling && lastSentence in visibleStart..visibleEnd
+
+            adapter.notifyItemChanged(lastSentence)
+            lastSentence = sentenceIndex
+            adapter.notifyItemChanged(sentenceIndex)
+            // If previous sentence was within boundaries and we left visible boundaries - scroll to new sentence.
+            // If either of them are not satisfied - that means user scrolled away from the current sentence
+            // and we don't want to be annoying by forcefully scrolling him back
+            if (shouldAutoScroll && sentenceIndex !in visibleStart..visibleEnd) contentBinding.sentencesView.smoothScrollToPosition(sentenceIndex)
+
+            contentBinding.sentencesView.invalidate()
+            setProgress()
+        }
     }
 
     override fun onPlaybackStateChange() {
-        setPlaybackState()
+        runOnUiThread {
+            setPlaybackState()
+        }
+    }
+
+    override fun onChapterLoadStart() {
+        runOnUiThread {
+            contentBinding.playbackControls.children.forEach {
+                it.isEnabled = false
+            }
+        }
+    }
+
+    override fun onChapterLoadStop() {
+        runOnUiThread {
+            contentBinding.playbackControls.children.forEach {
+                it.isEnabled = true
+            }
+        }
     }
 
 }

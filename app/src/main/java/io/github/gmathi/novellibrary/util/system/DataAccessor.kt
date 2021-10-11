@@ -22,6 +22,6 @@ interface DataAccessor {
     val sourceManager: SourceManager
     val networkHelper: NetworkHelper
     fun getContext(): Context?
-    fun getLifecycle(): Lifecycle?
+    fun getLifecycle(): Lifecycle? // TODO: Figure out alternative for Service compat
 
 }

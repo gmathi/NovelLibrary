@@ -8,10 +8,14 @@ import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.other.SelectorQuery
+import io.github.gmathi.novellibrary.model.other.TTSFilter
+import io.github.gmathi.novellibrary.model.other.TTSFilterList
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.PREF_DOH_CLOUDFLARE
 import io.github.gmathi.novellibrary.util.Constants.DEFAULT_FONT_PATH
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
+import io.github.gmathi.novellibrary.util.system.getJson
+import io.github.gmathi.novellibrary.util.system.putJson
 import java.io.File
 import java.util.*
 
@@ -84,6 +88,10 @@ class DataCenter(context: Context) {
 //      const val CF_COOKIES_CLEARANCE = "cf_clearance"
 //      const val CF_COOKIES_DUID = "__cfduid"
 
+        // TTS
+        private const val TTS_MERGE_BUFFER_CHAPTERS = "ttsMergeBufferChapters"
+        private const val TTS_PITCH = "ttsPitch"
+        private const val TTS_SPEECH_RATE = "ttsSpeechRate"
 
         //Reader mode background color
         const val DAY_MODE_BACKGROUND_COLOR = "dayModeBackgroundColor"
@@ -296,6 +304,46 @@ class DataCenter(context: Context) {
         HostNames.hostNamesList = hostNames
     }
 
+    //region TTS
+
+    // Whether to attempt detection and merging of pages.
+    var ttsMergeBufferChapters: Boolean
+        get() = prefs.getBoolean(TTS_MERGE_BUFFER_CHAPTERS, false)
+        set(value) = prefs.edit().putBoolean(TTS_MERGE_BUFFER_CHAPTERS, value).apply()
+
+    var ttsPitch: Float
+        get() = prefs.getFloat(TTS_PITCH, 1.0f)
+        set(value) = prefs.edit().putFloat(TTS_PITCH, value).apply()
+
+    var ttsSpeechRate: Float
+        get() = prefs.getFloat(TTS_SPEECH_RATE, 1.0f)
+        set(value) = prefs.edit().putFloat(TTS_SPEECH_RATE, value).apply()
+
+    var ttsMarkChaptersRead: Boolean
+        get() = prefs.getBoolean("ttsMarkChaptersRead", true)
+        set(value) = prefs.edit().putBoolean("ttsMarkChaptersRead", value).apply()
+
+    var ttsMoveBookmark: Boolean
+        get() = prefs.getBoolean("ttsMoveBookmark", false)
+        set(value) = prefs.edit().putBoolean("ttsMoveBookmark", value).apply()
+
+    // The names of currently active filter sets.
+    var ttsFilters: List<String>
+        get() = prefs.getJson("ttsFilters", "[]")
+        set(value) = prefs.edit().putJson("ttsFilters", value).apply()
+
+    // The cached filter sets. Because they are not built-in and rather sourced from outside,
+    // we want to keep them cached for offline usage even if user would want to enable them.
+    var ttsFilterCache: Map<String, TTSFilterList>
+        get() = prefs.getJson("ttsFilterCache", Gson().toJson(emptyMap<String, TTSFilterList>()))
+        set(value) = prefs.edit().putJson("ttsFilterCache", value).apply()
+
+    // The currently active filter list composed of all enabled filter sets.
+    var ttsFilterList: List<TTSFilter>
+        get() = prefs.getJson("ttsFilterList", "[]")
+        set(value) = prefs.edit().putJson("ttsFilterList", value).apply()
+
+    //endregion
 
     //region CloudFlare - Not used anymore from here
 
@@ -371,7 +419,7 @@ class DataCenter(context: Context) {
 
     //endregion
 
-    //Backup
+    //region Backup
 
     var lastLocalBackupTimestamp: String
         get() = prefs.getString(LAST_LOCAL_BACKUP_TIMESTAMP, "N/A") ?: "N/A"
@@ -385,7 +433,9 @@ class DataCenter(context: Context) {
         get() = prefs.getString(LAST_BACKUP_SIZE, "N/A") ?: "N/A"
         set(value) = prefs.edit().putString(LAST_BACKUP_SIZE, value).apply()
 
-    //Google Settings
+    //endregion
+
+    //region Google Settings
     var gdBackupInterval: String
         get() = prefs.getString(GD_BACKUP_INTERVAL, "Never") ?: "Never"
         set(value) = prefs.edit().putString(GD_BACKUP_INTERVAL, value).apply()
@@ -398,6 +448,7 @@ class DataCenter(context: Context) {
         get() = prefs.getString(GD_INTERNET_TYPE, "WiFi or cellular") ?: "WiFi or cellular"
         set(value) = prefs.edit().putString(GD_INTERNET_TYPE, value).apply()
 
+    //endregion
 
     var dayModeBackgroundColor: Int
         get() = prefs.getInt(DAY_MODE_BACKGROUND_COLOR, Color.WHITE)
