@@ -2,14 +2,19 @@ package io.github.gmathi.novellibrary.activity
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.commit
 import com.afollestad.materialdialogs.MaterialDialog
+import com.bumptech.glide.Glide
 import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
@@ -17,6 +22,7 @@ import com.google.firebase.auth.FirebaseAuth
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.databinding.ActivityNavDrawerBinding
+import io.github.gmathi.novellibrary.databinding.NavHeaderNavDrawerBinding
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.database.Novel
@@ -25,6 +31,8 @@ import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.WhatsChanged
 import io.github.gmathi.novellibrary.util.system.*
 import org.cryse.widget.persistentsearch.PersistentSearchView
+import java.util.*
+import kotlin.random.Random
 
 
 class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -35,12 +43,14 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private var mAuth: FirebaseAuth? = null
 
     lateinit var binding: ActivityNavDrawerBinding
+    lateinit var newIconsImageView: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityNavDrawerBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         mAuth = FirebaseAuth.getInstance()
         binding.navigationView.setNavigationItemSelectedListener(this)
 
@@ -65,6 +75,9 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             intent.removeExtra("showDownloads")
             startNovelDownloadsActivity()
         }
+
+        newIconsImageView = binding.navigationView.getHeaderView(0).findViewWithTag<ImageView>("icon")
+        newIconsImageView.setOnClickListener { setNewImageInNavigationHeaderView() }
     }
 
     private fun showWhatsNewDialog() {
@@ -201,5 +214,20 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         super.onSaveInstanceState(outState)
         outState.putInt("currentNavId", currentNavId)
     }
+
+    override fun onResume() {
+        setNewImageInNavigationHeaderView()
+        super.onResume()
+    }
+
+    private fun setNewImageInNavigationHeaderView() {
+        val randomNumber = Random(Date().time).nextInt(13) + 1
+        val uri = Uri.parse("file:///android_asset/album_arts/$randomNumber.png")
+        Glide.with(this)
+            .asBitmap()
+            .load(uri)
+            .into(newIconsImageView)
+    }
+
 
 }
