@@ -111,7 +111,10 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 retryCounter = 0
             } catch (e: Exception) {
                 if (e.message?.contains(Exceptions.MISSING_SOURCE_ID) == true) {
-                    toast("Missing Novel Source Id. Please re-add the novel")
+                    contentBinding.progressLayout.showError(errorText = "Missing Novel Source Id.\nPlease re-add the novel.", buttonText = "Delete Novel") {
+                        deleteNovel()
+                        finish()
+                    }
                     return@launch
                 }
 

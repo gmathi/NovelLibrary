@@ -20,5 +20,14 @@ object WhatsChanged {
             "\uD83D\uDEE0️ Other major/minor bug fixes reported on GitHub.\n" +
             "❌️ Novel Sync not working => Fix coming next update!!\n"
 
+    const val VERSION_21 = "✨️ 0.21 Goodies!\n" +
+            "✨ TTS - Another Major Update!!\n" +
+            "✨ Community made art in the drawer menu. (tap to change)\n" +
+            "✨ Auto Scroll still in works\n" +
+            "✨ ReaderMenu clean up\n" +
+            "⚠️️ Fixed - Minor bug fixes\n" +
+            "⚠️ Fixed - Update extension now works\n" +
+            "\uD83D\uDEE0️ Other major/minor bug fixes reported on GitHub.\n" +
+            "❌️ Novel Sync is now accessible, but it will not work.\n"
 
 }

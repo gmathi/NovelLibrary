@@ -85,7 +85,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             MaterialDialog(this).show {
                 title(text = "\uD83C\uDF89 What's New ${BuildConfig.VERSION_NAME}!")
                 message(
-                    text = WhatsChanged.VERSION_20
+                    text = WhatsChanged.VERSION_21
                 )
                 positiveButton(text = "Ok")
             }
@@ -221,7 +221,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun setNewImageInNavigationHeaderView() {
-        val randomNumber = Random(Date().time).nextInt(13) + 1
+        val randomNumber = Random(Date().time).nextInt(12) + 1 //since we have only 12 images to rotate from.
         val uri = Uri.parse("file:///android_asset/album_arts/$randomNumber.png")
         Glide.with(this)
             .asBitmap()
