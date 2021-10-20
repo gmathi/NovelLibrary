@@ -20,7 +20,7 @@ object WhatsChanged {
             "\uD83D\uDEE0️ Other major/minor bug fixes reported on GitHub.\n" +
             "❌️ Novel Sync not working => Fix coming next update!!\n"
 
-    const val VERSION_21 = "✨️ 0.21 Goodies!\n" +
+    const val VERSION_21 = "" + //0.21 Goodies!
             "✨ TTS - Another Major Update!!\n" +
             "✨ Community made art in the drawer menu. (tap to change)\n" +
             "✨ Auto Scroll still in works\n" +

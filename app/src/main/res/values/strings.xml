@@ -57,6 +57,7 @@
         <item>@string/mentions</item>
         <item>@string/sync</item>
         <item>@string/donate_developer</item>
+<!--        <item>@string/check_for_updates</item>-->
         <item>@string/about_us</item>
         <!--        <item>@string/cloud_flare_check</item>-->
     </string-array>
@@ -153,9 +154,9 @@
         <item>@string/title_java_script</item>
         <item>@string/title_fonts</item>
         <item>@string/title_fonts_size</item>
-        <item>@string/title_report_page</item>
+<!--        <item>@string/title_report_page</item>-->
         <item>@string/title_open_in_browser</item>
-        <item>@string/title_share_chapter</item>
+<!--        <item>@string/title_share_chapter</item>-->
         <item>@string/title_more_settings</item>
         <item>@string/title_read_aloud</item>
     </string-array>
@@ -766,4 +767,6 @@
     <string name="tts_move_bookmark">Move bookmark</string>
     <string name="tts_move_bookmark_description">When Read Aloud starts reading the chapter it would move the bookmark to that chapter</string>
 
+
+    <string name="check_for_updates">Check For Update</string>
 </resources>

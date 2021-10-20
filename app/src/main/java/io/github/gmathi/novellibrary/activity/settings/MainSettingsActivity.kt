@@ -19,6 +19,7 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.input.input
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
+import com.tingyik90.snackprogressbar.SnackProgressBar
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
@@ -33,14 +34,12 @@ import nl.dionsegijn.konfetti.models.Shape
 import nl.dionsegijn.konfetti.models.Size
 
 
-class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
+class MainSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     companion object {
         const val TAG = "SettingsActivity"
         const val DEFAULT_CODE = "defaultCode"
-
         const val CODE_NAME_WW = "code_unlock_wwd"
-
     }
 
     lateinit var adapter: GenericAdapter<String>
@@ -103,6 +102,8 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             getString(R.string.sync) -> startSyncSettingsSelectionActivity() //underConstructionDialog("NovelSync is under a rewrite and will be back in future releases!")
             getString(R.string.donate_developer) -> donateDeveloperDialog()
             getString(R.string.about_us) -> aboutUsDialog()
+            getString(R.string.check_for_updates) -> checkForUpdates()
+
             //getString(R.string.cloud_flare_check) -> underConstructionDialog()//startCloudFlareBypassActivity("novelupdates.com")
         }
     }
@@ -127,7 +128,7 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                         getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     val clip = ClipData.newPlainText("Debug-info", systemInfo)
                     clipboard.setPrimaryClip(clip)
-                    Toast.makeText(this@SettingsActivity, "Debug-info copied to clipboard!", Toast.LENGTH_SHORT)
+                    Toast.makeText(this@MainSettingsActivity, "Debug-info copied to clipboard!", Toast.LENGTH_SHORT)
                         .show()
                 }
                 cancelable(false)
@@ -222,5 +223,12 @@ class SettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             .append("\n\tModel (and Product): ").append(Build.MODEL).append(" (").append(Build.PRODUCT).append(')')
             .append("\n\tDisplay: ").append(displayMetrics.widthPixels).append('x').append(displayMetrics.heightPixels)
         return builder.toString()
+    }
+
+    private fun checkForUpdates() {
+//        val snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, "Checking Updates…")
+//        snackProgressBar.setIsIndeterminate(true)
+//        snackProgressBar
+
     }
 }

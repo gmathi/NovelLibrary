@@ -130,7 +130,7 @@ fun AppCompatActivity.startMetadataActivity(novel: Novel) = startActivityForResu
 
 fun AppCompatActivity.startExtensionsPagerActivity() = startActivityForResult<ExtensionsPagerActivity>(Constants.RECENT_NOVELS_PAGER_ACT_REQ_CODE)
 
-fun AppCompatActivity.startSettingsActivity() = startActivityForResult<SettingsActivity>(Constants.SETTINGS_ACT_REQ_CODE)
+fun AppCompatActivity.startSettingsActivity() = startActivityForResult<MainSettingsActivity>(Constants.SETTINGS_ACT_REQ_CODE)
 
 fun AppCompatActivity.startLanguagesActivity(changeLanguage: Boolean = false) =
     startActivityForResult(intentOf<LanguageActivity>().putExtra("changeLanguage", changeLanguage), Constants.LANG_ACT_REQ_CODE)

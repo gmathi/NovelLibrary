@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.network
 
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okhttp3.*
@@ -111,6 +112,7 @@ fun OkHttpClient.newCallWithProgress(request: Request, listener: ProgressListene
     return progressClient.newCall(request)
 }
 
+@ExperimentalSerializationApi
 inline fun <reified T> Response.parseAs(): T {
     // Avoiding Injekt.get<Json>() due to compiler issues
     val json = Injekt.getInstance<Json>(fullType<Json>().type)
