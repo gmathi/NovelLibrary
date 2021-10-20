@@ -66,7 +66,7 @@ suspend fun DataAccessor.resetNovel(novel: Novel) {
  * Marks the chapter as read
  * Sets the bookmark in the NovelSync
  */
-fun DataAccessor.updateNovelBookmark(novel: Novel, webPage: WebPage, markRead: Boolean = false) {
+fun DataAccessor.updateNovelBookmark(novel: Novel, webPage: WebPage, markRead: Boolean = true) {
     if (novel.currentChapterUrl != webPage.url) {
         firebaseAnalytics.logNovelEvent(FAC.Event.READ_NOVEL, novel)
         novel.currentChapterUrl = webPage.url
