@@ -401,12 +401,14 @@ object Utils {
             doc.head().children().remove()
 //            doc.head().html("")
         }
+        doc.select("br").forEach {
+            it.after("\n")
+        }
 
         val filters = dataCenter.ttsFilterList
         val textFilters = filters.filter { it.target == TTSFilterTarget.TextChunk }.map { it.compile(doc) }
 
         applyFilters(doc.body(), filters.filter { it.target == TTSFilterTarget.Element }.map { it.compile(doc) })
-
         val cleaner = Cleaner(Whitelist.none())
         val cleanDoc = cleaner.clean(doc)
         cleanDoc.outputSettings(Document.OutputSettings().prettyPrint(false))
