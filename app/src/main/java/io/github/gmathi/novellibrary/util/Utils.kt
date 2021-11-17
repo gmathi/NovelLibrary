@@ -394,6 +394,7 @@ object Utils {
             content.select("[data-role=\"RHeader\"]").remove()
             content.select("[data-role=\"RFooter\"]").remove()
             content.select("[data-role=\"RNavigation\"]").remove()
+            content.select("select,input,button").remove()
             body.children().remove()
             if (!dataCenter.ttsStripHeader) body.append(doc.title())
             content.forEach { body.appendChild(it) }
