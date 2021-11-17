@@ -2,10 +2,13 @@ package io.github.gmathi.novellibrary.activity
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.media.AudioManager
 import android.os.Bundle
-import android.os.IBinder
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.PlaybackStateCompat
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -17,79 +20,87 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.databinding.ActivityTextToSpeechControlsBinding
 import io.github.gmathi.novellibrary.databinding.ContentTextToSpeechControlsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemSentenceBinding
 import io.github.gmathi.novellibrary.extensions.isPlaying
-import io.github.gmathi.novellibrary.service.tts.TTSEventListener
 import io.github.gmathi.novellibrary.service.tts.TTSService
+import io.github.gmathi.novellibrary.util.lang.duration
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.util.system.startTTSSettingsActivity
 import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
-import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.util.view.setDefaultsNoAnimation
 
-class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAdapter.Listener<String> {
+class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     companion object {
-        const val TAG = "TextToSpeechControlsActivity"
+        const val TAG = "TTSControlsActivity"
     }
 
     lateinit var binding: ActivityTextToSpeechControlsBinding
     lateinit var contentBinding: ContentTextToSpeechControlsBinding
-    var tts:TTSService? = null
     var isServiceConnected = false
 
     lateinit var adapter: GenericAdapter<String>
     var lastSentence:Int = -1
+    var hasSentences = false
 
-    private val ttsConnection = object : ServiceConnection {
-        override fun onServiceConnected(className: ComponentName?, service: IBinder?) {
-            val binder = service as TTSService.TTSBinder
-            tts = binder.getInstance()
-            tts?.eventListener = this@TextToSpeechControlsActivity
+    private lateinit var browser: MediaBrowserCompat
+    private val connCallback = object : MediaBrowserCompat.ConnectionCallback() {
+        override fun onConnected() {
             isServiceConnected = true
+            browser.sessionToken.also { token ->
+                controller = MediaControllerCompat(this@TextToSpeechControlsActivity, token)
+                MediaControllerCompat.setMediaController(this@TextToSpeechControlsActivity, controller)
+            }
+
             contentBinding.ttsInactiveOverlay.visibility = View.GONE
-            setRecycleView()
-            setPlaybackState()
+            initController()
         }
 
-        override fun onServiceDisconnected(p0: ComponentName?) {
+        override fun onConnectionSuspended() {
             isServiceConnected = false
-            tts?.eventListener = null
+            controller?.unregisterCallback(ctrlCallback)
+            controller = null
             contentBinding.ttsInactiveOverlay.visibility = View.VISIBLE
         }
     }
+    var controller: MediaControllerCompat? = null
+    private val ctrlCallback = TTSController()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = ActivityTextToSpeechControlsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         contentBinding = binding.contentTextToSpeechControls
+
+        browser = MediaBrowserCompat(this, ComponentName(this, TTSService::class.java), connCallback, null)
 
         // Enable marquee
         contentBinding.ttsNovelChapter.isSelected = true
         contentBinding.ttsNovelName.isSelected = true
 
         contentBinding.prevChapterButton.setOnClickListener {
-            if (isServiceConnected) tts?.chooseMediaControllerActions(TTSService.ACTION_PREVIOUS)
+            controller?.transportControls?.skipToPrevious()
         }
         contentBinding.nextChapterButton.setOnClickListener {
-            if (isServiceConnected) tts?.chooseMediaControllerActions(TTSService.ACTION_NEXT)
+            controller?.transportControls?.skipToNext()
         }
         contentBinding.prevSentenceButton.setOnClickListener {
-            if (isServiceConnected) tts?.chooseMediaControllerActions(TTSService.ACTION_PREV_SENTENCE)
+            controller?.transportControls?.rewind()
         }
         contentBinding.nextSentenceButton.setOnClickListener {
-            if (isServiceConnected) tts?.chooseMediaControllerActions(TTSService.ACTION_NEXT_SENTENCE)
+            controller?.transportControls?.fastForward()
         }
         contentBinding.playButton.setOnClickListener {
-            if (isServiceConnected) tts?.chooseMediaControllerActions(
-                if (tts?.mediaController?.playbackState?.isPlaying == true) TTSService.ACTION_PAUSE
-                else TTSService.ACTION_PLAY
-            )
+            if (controller?.playbackState?.isPlaying == true)
+                controller?.transportControls?.pause()
+            else
+                controller?.transportControls?.play()
         }
         contentBinding.scrollIntoViewButton.setOnClickListener {
             scrollToPosition(lastSentence, true)
@@ -100,25 +111,118 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
 //        supportActionBar?.title = novel.name
     }
 
-    private fun setRecycleView() {
-        if (tts == null || !isServiceConnected) return
-        val tts = this.tts!!
-        adapter = GenericAdapter(tts.lines, layoutResId = R.layout.listitem_sentence, listener = this)
-        lastSentence = tts.lineNumber
-        contentBinding.sentencesView.setDefaultsNoAnimation(adapter)
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        when (keyCode) {
+            KeyEvent.KEYCODE_MEDIA_PLAY,
+                KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
+                    if (controller?.playbackState?.state == PlaybackStateCompat.STATE_PLAYING)
+                        controller?.transportControls?.pause()
+                    else
+                        controller?.transportControls?.play()
+                }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
 
-        tts.mediaController.metadata?.let { metadata ->
+    fun initController() {
+        controller?.registerCallback(ctrlCallback)
+        ctrlCallback.onMetadataChanged(controller?.metadata)
+        ctrlCallback.onPlaybackStateChanged(controller?.playbackState)
+        controller?.sendCommand(TTSService.COMMAND_REQUEST_SENTENCES, null, null)
+    }
+
+    private inner class TTSController : MediaControllerCompat.Callback() {
+
+        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
+            super.onMetadataChanged(metadata)
+            if (metadata == null) return
+            contentBinding.chapterProgress.max = (metadata.duration / 1000L).toInt()
+
             contentBinding.ttsNovelName.applyFont(assets).text = metadata.description.title
             contentBinding.ttsNovelChapter.applyFont(assets).text = metadata.description.subtitle
-            if (tts.novel != null) {
-                Glide.with(this)
-                    .load(tts.novel?.imageUrl?.getGlideUrl())
+            dbHelper.getNovel(metadata.getLong(TTSService.NOVEL_ID))?.let { novel ->
+                Glide.with(this@TextToSpeechControlsActivity)
+                    .load(novel.imageUrl?.getGlideUrl())
                     .apply(RequestOptions.circleCropTransform())
                     .into(contentBinding.ttsNovelCover)
             }
         }
-        setProgress()
+
+        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
+            super.onPlaybackStateChanged(state)
+            if (state == null) return
+            val oldPosition = lastSentence
+            lastSentence = (state.position / 1000L).toInt()
+            contentBinding.chapterProgress.progress = lastSentence
+            if (oldPosition != lastSentence && hasSentences) {
+                updatePosition(oldPosition)
+            }
+
+            var drawable = R.drawable.ic_play_arrow_white_vector
+            var label = getString(R.string.play)
+
+            when (state.state) {
+                PlaybackStateCompat.STATE_PLAYING -> {
+                    drawable = R.drawable.ic_pause_white_vector
+                    label = getString(R.string.pause)
+                }
+                PlaybackStateCompat.STATE_PAUSED -> {
+                }
+                PlaybackStateCompat.STATE_NONE -> {
+                    drawable = R.drawable.ic_stop_white_vector
+                }
+                PlaybackStateCompat.STATE_BUFFERING -> {
+                    drawable = R.drawable.ic_file_download_white_vector
+                    label = getString(R.string.loading)
+                }
+                else -> {}
+            }
+
+            contentBinding.playButton.let {
+                it.setImageDrawable(ContextCompat.getDrawable(this@TextToSpeechControlsActivity, drawable))
+                it.contentDescription = label
+            }
+
+            // Disable controls while buffering
+            if (contentBinding.playButton.isEnabled != (state.state != PlaybackStateCompat.STATE_BUFFERING)) {
+                contentBinding.playbackControls.children.forEach {
+                    it.isEnabled = !it.isEnabled
+                }
+            }
+
+        }
+
+        override fun onSessionEvent(event: String?, extras: Bundle?) {
+            super.onSessionEvent(event, extras)
+            if (event == TTSService.EVENT_SENTENCE_LIST && extras != null) {
+                setRecycleView(extras)
+            }
+        }
+
+    }
+
+    private fun setRecycleView(extras: Bundle) {
+        val lines = extras.getStringArrayList(TTSService.KEY_SENTENCES) ?: ArrayList()
+        adapter = GenericAdapter(lines, layoutResId = R.layout.listitem_sentence, listener = this)
+        contentBinding.sentencesView.setDefaultsNoAnimation(adapter)
         scrollToPosition(lastSentence, false)
+        hasSentences = true
+    }
+
+    private fun updatePosition(oldPosition: Int) {
+        val layout = (contentBinding.sentencesView.layoutManager as LinearLayoutManager)
+        val visibleStart = layout.findFirstCompletelyVisibleItemPosition()
+        val visibleEnd = layout.findLastCompletelyVisibleItemPosition()
+        val shouldAutoScroll = !layout.isSmoothScrolling && (oldPosition in visibleStart..visibleEnd || oldPosition == -1)
+
+        if (oldPosition != -1) adapter.notifyItemChanged(oldPosition)
+        adapter.notifyItemChanged(lastSentence)
+        // If previous sentence was within boundaries and we left visible boundaries - scroll to new sentence.
+        // If either of them are not satisfied - that means user scrolled away from the current sentence
+        // and we don't want to be annoying by forcefully scrolling him back
+        if (shouldAutoScroll && lastSentence !in visibleStart..visibleEnd) contentBinding.sentencesView.smoothScrollToPosition(lastSentence)
+
+        contentBinding.sentencesView.invalidate()
     }
 
     private fun scrollToPosition(position: Int, smooth: Boolean) {
@@ -141,27 +245,6 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
 
     }
 
-    private fun setProgress() {
-        if (tts == null || !isServiceConnected) return
-        val tts = this.tts!!
-        contentBinding.chapterProgress.progress = tts.lineNumber
-        contentBinding.chapterProgress.max = tts.lines.count()
-    }
-
-    private fun setPlaybackState() {
-        if (tts?.mediaController?.playbackState?.isPlaying == true) {
-            contentBinding.playButton.let {
-                it.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_pause_white_vector))
-                it.contentDescription = getString(R.string.pause)
-            }
-        } else {
-            contentBinding.playButton.let {
-                it.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_play_arrow_white_vector))
-                it.contentDescription = getString(R.string.play)
-            }
-        }
-    }
-
     override fun bind(item: String, itemView: View, position: Int) {
         val binding = ListitemSentenceBinding.bind(itemView)
         binding.sentenceContents.applyFont(assets).text = item
@@ -173,23 +256,25 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
 
     override fun onItemClick(item: String, position: Int) {
         if (isServiceConnected) {
-            tts?.goToLine(position)
-            setPlaybackState()
+            controller?.transportControls?.seekTo(position * 1000L)
         }
     }
 
     override fun onStart() {
         super.onStart()
-        Intent(this, TTSService::class.java).also { intent ->
-            bindService(intent, ttsConnection, 0)
-        }
+        browser.connect()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        volumeControlStream = AudioManager.STREAM_MUSIC
+        //
     }
 
     override fun onStop() {
         super.onStop()
-        unbindService(ttsConnection)
-        tts?.eventListener = null
-        isServiceConnected = false
+        controller?.unregisterCallback(ctrlCallback)
+        browser.disconnect()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -201,13 +286,17 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
         when(item.itemId) {
             android.R.id.home -> finish()
             R.id.action_open_reader -> {
-                finishAfterTransition()
-                if (isServiceConnected) tts?.let { tts ->
-                    tts.novel?.let { novel ->
-                        dbHelper.getWebPage(novel.id, tts.translatorSourceName, tts.chapterIndex)?.let { chapter ->
-                            updateNovelBookmark(novel, chapter)
-                            startReaderDBPagerActivity(novel, tts.translatorSourceName)
-                        }
+                if (controller?.metadata != null) {
+                    val meta = controller!!.metadata
+                    val novelId = meta.getLong(TTSService.NOVEL_ID)
+                    val novel = dbHelper.getNovel(novelId) ?: return super.onOptionsItemSelected(item)
+
+                    var translator:String? = meta.getString(TTSService.TRANSLATOR_SOURCE_NAME)
+                    if (translator == "") translator = null
+                    dbHelper.getWebPage(novelId, translator, meta.getLong(TTSService.CHAPTER_INDEX).toInt())?.let { chapter ->
+                        updateNovelBookmark(novel, chapter)
+                        finishAfterTransition()
+                        startReaderDBPagerActivity(novel, translator)
                     }
                 }
             }
@@ -216,57 +305,6 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
             }
         }
         return super.onOptionsItemSelected(item)
-    }
-
-    override fun onReadingStart() {
-        runOnUiThread {
-            setRecycleView()
-        }
-    }
-
-    override fun onReadingStop() {
-    }
-
-    override fun onSentenceChange(sentenceIndex: Int) {
-        runOnUiThread {
-            val layout = (contentBinding.sentencesView.layoutManager as LinearLayoutManager)
-            val visibleStart = layout.findFirstCompletelyVisibleItemPosition()
-            val visibleEnd = layout.findLastCompletelyVisibleItemPosition()
-            val shouldAutoScroll = !layout.isSmoothScrolling && lastSentence in visibleStart..visibleEnd
-
-            adapter.notifyItemChanged(lastSentence)
-            lastSentence = sentenceIndex
-            adapter.notifyItemChanged(sentenceIndex)
-            // If previous sentence was within boundaries and we left visible boundaries - scroll to new sentence.
-            // If either of them are not satisfied - that means user scrolled away from the current sentence
-            // and we don't want to be annoying by forcefully scrolling him back
-            if (shouldAutoScroll && sentenceIndex !in visibleStart..visibleEnd) contentBinding.sentencesView.smoothScrollToPosition(sentenceIndex)
-
-            contentBinding.sentencesView.invalidate()
-            setProgress()
-        }
-    }
-
-    override fun onPlaybackStateChange() {
-        runOnUiThread {
-            setPlaybackState()
-        }
-    }
-
-    override fun onChapterLoadStart() {
-        runOnUiThread {
-            contentBinding.playbackControls.children.forEach {
-                it.isEnabled = false
-            }
-        }
-    }
-
-    override fun onChapterLoadStop() {
-        runOnUiThread {
-            contentBinding.playbackControls.children.forEach {
-                it.isEnabled = true
-            }
-        }
     }
 
 }

@@ -17,6 +17,7 @@ import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.text.htmlEncode
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LifecycleOwner
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
@@ -394,7 +395,7 @@ object Utils {
             content.select("[data-role=\"RFooter\"]").remove()
             content.select("[data-role=\"RNavigation\"]").remove()
             body.children().remove()
-            body.append(doc.title())
+            if (!dataCenter.ttsStripHeader) body.append(doc.title())
             content.forEach { body.appendChild(it) }
             doc.head().children().remove()
 //            doc.head().html("")
@@ -411,10 +412,15 @@ object Utils {
         var text = cleanDoc.body().html()
             // Replace no-break spaces with a regular space
             .replace("&nbsp;", " ")
+            .replace("&lt;", "<")
+            .replace("&gt;", ">")
+            .replace("&amp;", " and ")
+            .replace("&quot;", "\"")
+            .replace("&apos;", "'")
             // Perform a limited trim operation on excessive spacing, causing "     " to turn into just " " as well as changing \n\n\n\n into \n
             .replace("""([\s ])+""".toRegex(RegexOption.MULTILINE)) { it.groups[0]?.value ?: "" }
             // Shorten long repeating characters such as =====, -----, -=-=-=-=-, ***** or !!!!!!!!
-            .replace("""([=*#|+<>\-]{4,}|\.{4,}|!{4,}|\?{4,})""".toRegex()) { it.value.substring(0, 3) }
+            .replace("""([_~=*#|+<>\-]{4,}|\.{4,}|!{4,}|\?{4,})""".toRegex()) { it.value.substring(0, 3) }
             .trim()
 
         textFilters.forEach { filter ->

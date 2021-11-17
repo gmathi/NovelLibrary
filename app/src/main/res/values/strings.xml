@@ -766,6 +766,11 @@
     <string name="tts_mark_chapters_read_description">After Read Aloud finish the chapter it would mark it as read</string>
     <string name="tts_move_bookmark">Move bookmark</string>
     <string name="tts_move_bookmark_description">When Read Aloud starts reading the chapter it would move the bookmark to that chapter</string>
+    <string name="tts_language">Read Aloud language</string>
+    <string name="tts_language_description">Select the language text to speech engine should talk with</string>
+    <string name="tts_language_default">Default (up to TTS engine)</string>
+    <string name="tts_strip_header">Strip chapter title</string>
+    <string name="tts_strip_header_description">Do not read out the chapter title (when possible)</string>
 
 
     <string name="check_for_updates">Check For Update</string>

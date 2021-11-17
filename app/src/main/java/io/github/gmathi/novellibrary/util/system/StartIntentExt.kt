@@ -203,6 +203,7 @@ fun AppCompatActivity.startWebViewActivity(url: String) =
 fun AppCompatActivity.startTTSService(audioText: String, linkedPages: ArrayList<String>, title: String,
                                       novelId: Long, translatorSourceName: String?, chapterIndex: Int = 0) {
     val serviceIntent = Intent(this, TTSService::class.java)
+    serviceIntent.action = TTSService.ACTION_STARTUP
     val bundle = Bundle()
     bundle.putString(TTSService.AUDIO_TEXT_KEY, audioText)
     bundle.putString(TTSService.TITLE, title)

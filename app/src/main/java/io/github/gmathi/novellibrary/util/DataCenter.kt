@@ -327,6 +327,14 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean("ttsMoveBookmark", false)
         set(value) = prefs.edit().putBoolean("ttsMoveBookmark", value).apply()
 
+    var ttsLanguage: Locale?
+        get() = prefs.getString("ttsLanguage", null)?.let { Locale.forLanguageTag(it) }
+        set(value) = prefs.edit().putString("ttsLanguage", value?.toLanguageTag()).apply()
+
+    var ttsStripHeader: Boolean
+        get() = prefs.getBoolean("ttsStripHeader", false)
+        set(value) = prefs.edit().putBoolean("ttsStripHeader", value).apply()
+
     // The names of currently active filter sets.
     var ttsFilters: List<String>
         get() = prefs.getJson("ttsFilters", "[]")

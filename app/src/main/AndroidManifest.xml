@@ -18,7 +18,11 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
 <!--    <permission android:name="android.permission.QUERY_ALL_PACKAGES" />-->
-
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE"/>
+        </intent>
+    </queries>
 <!--    <queries>-->
 <!--        <intent>-->
 <!--            <action android:name="android.intent.action.VIEW" />-->
@@ -273,7 +277,18 @@
         <service
             android:name=".service.tts.TTSService"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </service>
+        <receiver android:name="androidx.media.session.MediaButtonReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
 
         <activity
             android:name=".activity.RecentNovelsPagerActivity"
