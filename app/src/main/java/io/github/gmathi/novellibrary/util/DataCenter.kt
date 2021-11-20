@@ -121,6 +121,13 @@ class DataCenter(context: Context) {
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
+    fun internalGet(closure: SharedPreferences.()->Unit) = closure(prefs)
+    fun internalPut(closure: SharedPreferences.Editor.()->Unit) {
+        val editor = prefs.edit()
+        closure(editor)
+        editor.apply()
+    }
+
     fun loadNovelSearchHistory(): ArrayList<String> = Gson().fromJson(prefs.getString(SEARCH_HISTORY_LIST, "[]"), object : TypeToken<ArrayList<String>>() {}.type)
     fun saveNovelSearchHistory(history: ArrayList<String>) = prefs.edit().putString(SEARCH_HISTORY_LIST, Gson().toJson(history)).apply()
 
@@ -334,6 +341,10 @@ class DataCenter(context: Context) {
     var ttsStripHeader: Boolean
         get() = prefs.getBoolean("ttsStripHeader", false)
         set(value) = prefs.edit().putBoolean("ttsStripHeader", value).apply()
+
+    var ttsChapterChangeSFX: Boolean
+        get() = prefs.getBoolean("ttsChapterChangeSFX", true)
+        set(value) = prefs.edit().putBoolean("ttsChapterChangeSFX", value).apply()
 
     // The names of currently active filter sets.
     var ttsFilters: List<String>

@@ -280,7 +280,6 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
-                <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </service>
         <receiver android:name="androidx.media.session.MediaButtonReceiver"

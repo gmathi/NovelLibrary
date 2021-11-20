@@ -81,14 +81,19 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
             },
             TTSSetting(R.string.tts_strip_header, R.string.tts_strip_header_description).onBind { _, view, _ ->
                 view.bindSwitch(dataCenter.ttsStripHeader) { _, value -> dataCenter.ttsStripHeader = value }
-            }
+            },
+            TTSSetting(R.string.tts_chapter_change_sfx, R.string.tts_chapter_change_sfx_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.ttsChapterChangeSFX) { _, value -> dataCenter.ttsChapterChangeSFX = value }
+            },
         )
 
         val filterSources: List<TTSFilterSource> = listOf(
             TTSFilterSource("naggers", "1.0.0-beta", "Crawler naggers",
                 "https://gist.github.com/Yanrishatum/4aa3f71c6307171bd18154aa5c2eca8d/raw/naggers.json"),
             TTSFilterSource("tts-adjust", "1.0.0-beta", "TTS pronunciation fixes",
-                "https://gist.github.com/Yanrishatum/4aa3f71c6307171bd18154aa5c2eca8d/raw/tts-adjust.json")
+                "https://gist.github.com/Yanrishatum/4aa3f71c6307171bd18154aa5c2eca8d/raw/tts-adjust.json"),
+            TTSFilterSource("scene-changers", "1.0.0-beta", "Scene change sound effect",
+                "https://gist.github.com/Yanrishatum/4aa3f71c6307171bd18154aa5c2eca8d/raw/scene-changers.json")
 //            TTSFilterSource("notn", "TN be gone!", "")
         )
 
@@ -209,7 +214,7 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
             val button = SwitchCompat(this)
             button.id = View.generateViewId()
             @SuppressLint("SetTextI18n")
-            button.text = source.name + " [" + (filterCache[source.name]?.version ?: "not cached") + "]"
+            button.text = source.name + " [" + (filterCache[source.id]?.version ?: "not cached") + "]"
             button.isChecked = filters.contains(source.id)
             button.setOnCheckedChangeListener(onChangeListener)
             group.addView(button)

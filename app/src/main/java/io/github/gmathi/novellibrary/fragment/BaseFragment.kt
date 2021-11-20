@@ -21,8 +21,7 @@ import java.net.HttpCookie
 
 open class BaseFragment : Fragment(), DataAccessor {
 
-    override lateinit var firebaseAnalytics: FirebaseAnalytics
-
+    override val firebaseAnalytics: FirebaseAnalytics by injectLazy()
     override val dataCenter: DataCenter by injectLazy()
     override val dbHelper: DBHelper by injectLazy()
     override val sourceManager: SourceManager by injectLazy()
@@ -30,7 +29,6 @@ open class BaseFragment : Fragment(), DataAccessor {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        firebaseAnalytics = Firebase.analytics
     }
 
     fun resolveCloudflare(url: String, completionBlock: (success: Boolean, url: String, errorMessage: String?) -> Void) {

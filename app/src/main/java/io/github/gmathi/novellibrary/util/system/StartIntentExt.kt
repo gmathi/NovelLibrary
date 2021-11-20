@@ -216,6 +216,18 @@ fun AppCompatActivity.startTTSService(audioText: String, linkedPages: ArrayList<
     serviceIntent.putExtras(bundle)
     startService(serviceIntent)
 }
+fun AppCompatActivity.startTTSService(novelId: Long, translatorSourceName: String?, chapterIndex: Int) {
+    val serviceIntent = Intent(this, TTSService::class.java)
+    serviceIntent.action = TTSService.ACTION_STARTUP
+    val bundle = Bundle()
+    bundle.putLong(TTSService.NOVEL_ID, novelId)
+    if (translatorSourceName != null) {
+        bundle.putString(TTSService.TRANSLATOR_SOURCE_NAME, translatorSourceName)
+    }
+    bundle.putInt(TTSService.CHAPTER_INDEX, chapterIndex)
+    serviceIntent.putExtras(bundle)
+    startService(serviceIntent)
+}
 
 fun AppCompatActivity.startTTSActivity() = startActivity<TextToSpeechControlsActivity>()
 

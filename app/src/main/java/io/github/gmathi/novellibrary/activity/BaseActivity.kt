@@ -23,8 +23,7 @@ import java.net.HttpCookie
 
 abstract class BaseActivity : AppCompatActivity(), DataAccessor {
 
-    override lateinit var firebaseAnalytics: FirebaseAnalytics
-
+    override val firebaseAnalytics: FirebaseAnalytics by injectLazy()
     override val dataCenter: DataCenter by injectLazy()
     override val dbHelper: DBHelper by injectLazy()
     override val sourceManager: SourceManager by injectLazy()
@@ -38,7 +37,6 @@ abstract class BaseActivity : AppCompatActivity(), DataAccessor {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Obtain the FirebaseAnalytics instance.
-        firebaseAnalytics = Firebase.analytics
     }
 
     fun resolveCloudflare(url: String, completionBlock: (success: Boolean, url: String, errorMessage: String?) -> Unit) {

@@ -423,7 +423,7 @@ object Utils {
             // Perform a limited trim operation on excessive spacing, causing "     " to turn into just " " as well as changing \n\n\n\n into \n
             .replace("""([\s ])+""".toRegex(RegexOption.MULTILINE)) { it.groups[0]?.value ?: "" }
             // Shorten long repeating characters such as =====, -----, -=-=-=-=-, ***** or !!!!!!!!
-            .replace("""([_~=*#|+<>\-]{4,}|\.{4,}|!{4,}|\?{4,})""".toRegex()) { it.value.substring(0, 3) }
+            .replace("""((?>[◆◇＝_~=*#|+<>\-] ?){4,}|\.{4,}|!{4,}|\?{4,})""".toRegex()) { it.value.replace(" ", "").substring(0, 3) }
             .trim()
 
         textFilters.forEach { filter ->

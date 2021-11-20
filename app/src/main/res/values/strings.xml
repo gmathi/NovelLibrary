@@ -771,6 +771,8 @@
     <string name="tts_language_default">Default (up to TTS engine)</string>
     <string name="tts_strip_header">Strip chapter title</string>
     <string name="tts_strip_header_description">Do not read out the chapter title (when possible)</string>
+    <string name="tts_chapter_change_sfx">Chapter change sound</string>
+    <string name="tts_chapter_change_sfx_description">Play a short sound effect when changing the chapters</string>
 
 
     <string name="check_for_updates">Check For Update</string>

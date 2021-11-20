@@ -26,10 +26,13 @@ import io.github.gmathi.novellibrary.databinding.ActivityTextToSpeechControlsBin
 import io.github.gmathi.novellibrary.databinding.ContentTextToSpeechControlsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemSentenceBinding
 import io.github.gmathi.novellibrary.extensions.isPlaying
+import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.service.tts.TTSService
 import io.github.gmathi.novellibrary.util.lang.duration
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
+import io.github.gmathi.novellibrary.util.lang.trackNumber
 import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
+import io.github.gmathi.novellibrary.util.system.startTTSService
 import io.github.gmathi.novellibrary.util.system.startTTSSettingsActivity
 import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
@@ -47,6 +50,10 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
     lateinit var adapter: GenericAdapter<String>
     var lastSentence:Int = -1
     var hasSentences = false
+
+    var novel: Novel? = null
+    var translatorSource: String? = null
+    var chapterIndex: Int = 0
 
     private lateinit var browser: MediaBrowserCompat
     private val connCallback = object : MediaBrowserCompat.ConnectionCallback() {
@@ -97,7 +104,11 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
             controller?.transportControls?.fastForward()
         }
         contentBinding.playButton.setOnClickListener {
-            if (controller?.playbackState?.isPlaying == true)
+            if (controller?.playbackState?.state == PlaybackStateCompat.STATE_NONE) {
+                if (novel != null) {
+                    startTTSService(novel!!.id, translatorSource, chapterIndex)
+                }
+            } else if (controller?.playbackState?.isPlaying == true)
                 controller?.transportControls?.pause()
             else
                 controller?.transportControls?.play()
@@ -111,18 +122,18 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
 //        supportActionBar?.title = novel.name
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        when (keyCode) {
-            KeyEvent.KEYCODE_MEDIA_PLAY,
-                KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
-                    if (controller?.playbackState?.state == PlaybackStateCompat.STATE_PLAYING)
-                        controller?.transportControls?.pause()
-                    else
-                        controller?.transportControls?.play()
-                }
-        }
-        return super.onKeyDown(keyCode, event)
-    }
+//    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+//        when (keyCode) {
+//            KeyEvent.KEYCODE_MEDIA_PLAY,
+//                KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
+//                    if (controller?.playbackState?.state == PlaybackStateCompat.STATE_PLAYING)
+//                        controller?.transportControls?.pause()
+//                    else
+//                        controller?.transportControls?.play()
+//                }
+//        }
+//        return super.onKeyDown(keyCode, event)
+//    }
 
     fun initController() {
         controller?.registerCallback(ctrlCallback)
@@ -136,16 +147,23 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
             super.onMetadataChanged(metadata)
             if (metadata == null) return
+            val novelId = metadata.getLong(TTSService.NOVEL_ID)
+            if (novel?.id != novelId) {
+                novel = dbHelper.getNovel(novelId)
+                translatorSource = metadata.getString(TTSService.TRANSLATOR_SOURCE_NAME)
+                novel?.let { novel ->
+                    Glide.with(this@TextToSpeechControlsActivity)
+                        .load(novel.imageUrl?.getGlideUrl())
+                        .apply(RequestOptions.circleCropTransform())
+                        .into(contentBinding.ttsNovelCover)
+                }
+            }
+            chapterIndex = metadata.trackNumber.toInt() - 1
+
             contentBinding.chapterProgress.max = (metadata.duration / 1000L).toInt()
 
             contentBinding.ttsNovelName.applyFont(assets).text = metadata.description.title
             contentBinding.ttsNovelChapter.applyFont(assets).text = metadata.description.subtitle
-            dbHelper.getNovel(metadata.getLong(TTSService.NOVEL_ID))?.let { novel ->
-                Glide.with(this@TextToSpeechControlsActivity)
-                    .load(novel.imageUrl?.getGlideUrl())
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(contentBinding.ttsNovelCover)
-            }
         }
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
