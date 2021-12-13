@@ -6,7 +6,9 @@ import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.session.MediaControllerCompat
+import android.view.KeyEvent
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.appcompat.widget.SwitchCompat
 import androidx.lifecycle.lifecycleScope
@@ -22,16 +24,19 @@ import io.github.gmathi.novellibrary.model.other.TTSFilterList
 import io.github.gmathi.novellibrary.model.other.TTSFilterSource
 import io.github.gmathi.novellibrary.model.ui.ListitemSetting
 import io.github.gmathi.novellibrary.service.tts.TTSService
+import io.github.gmathi.novellibrary.util.fromHumanPercentage
 import io.github.gmathi.novellibrary.util.network.safeExecute
 import io.github.gmathi.novellibrary.util.system.bindChevron
 import io.github.gmathi.novellibrary.util.system.bindSwitch
 import io.github.gmathi.novellibrary.util.system.toast
+import io.github.gmathi.novellibrary.util.toHumanPercentage
 import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import java.util.*
+import kotlin.math.round
 import kotlin.math.roundToInt
 
 private typealias TTSSetting = ListitemSetting<TTSSettingsActivity>
@@ -42,20 +47,24 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
         private val OPTIONS = listOf(
             TTSSetting(R.string.tts_pitch, R.string.tts_pitch_description).onBind { _, view, _ ->
                 view.currentValue.visibility = View.VISIBLE
-                val value = dataCenter.ttsPitch
                 @SuppressLint("SetTextI18n")
-                view.currentValue.text = (value * 100).roundToInt().toString() + "%"
+                view.currentValue.text = (dataCenter.ttsPitch * 100).roundToInt().toString() + "%"
                 view.root.setOnClickListener {
-                    changePitch(view.currentValue)
+                    sliderMenu(view.currentValue, dataCenter.ttsPitch, TTSService.PITCH_MIN, TTSService.PITCH_MAX) { value, closing ->
+                        if (closing) dataCenter.ttsPitch = value
+                        value
+                    }
                 }
             },
             TTSSetting(R.string.tts_rate, R.string.tts_rate_description).onBind { _, view, _ ->
                 view.currentValue.visibility = View.VISIBLE
-                val value = dataCenter.ttsSpeechRate
                 @SuppressLint("SetTextI18n")
-                view.currentValue.text = (value * 100).roundToInt().toString() + "%"
+                view.currentValue.text = (dataCenter.ttsSpeechRate * 100).roundToInt().toString() + "%"
                 view.root.setOnClickListener {
-                    changeRate(view.currentValue)
+                    sliderMenu(view.currentValue, dataCenter.ttsSpeechRate, TTSService.SPEECH_RATE_MIN, TTSService.SPEECH_RATE_MAX) { value, closing ->
+                        if (closing) dataCenter.ttsSpeechRate = value
+                        value
+                    }
                 }
             },
             TTSSetting(R.string.auto_read_next_chapter, R.string.auto_read_next_chapter_description).onBind { _, view, _ ->
@@ -264,50 +273,71 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
         dataCenter.ttsFilterList = list
     }
 
-    fun changePitch(textView: TextView) {
-        var value = dataCenter.ttsPitch
+    fun sliderMenu(textView: TextView, initVal:Float, min: Float, max: Float, callback: (value: Float, closing: Boolean)->Float) {
+        var value = initVal
         val dialog = MaterialDialog(this).show {
             title(R.string.tts_rate)
-            customView(R.layout.dialog_slider, scrollable = true)
+            customView(R.layout.dialog_slider_ext, scrollable = true)
             onDismiss {
-                dataCenter.ttsPitch = value
+                callback(value, true)
                 tts?.sendCommand(TTSService.ACTION_UPDATE_SETTINGS, null, null)
             }
         }
 
         // 50...200 range is bugged for TwoWaySeekBar as it's not including 0, so a crutch to offset it by -50
         val seekBar = dialog.getCustomView().findViewById<TwoWaySeekBar>(R.id.seekBar) ?: return
-        seekBar.setAbsoluteMinMaxValue(0.0, 150.0)
+        seekBar.setAbsoluteMinMaxValue(0.0, (max - min).toDouble())
         seekBar.notifyWhileDragging = true
         seekBar.setOnSeekBarChangedListener { _, progress ->
-            value = (progress.roundToInt() / 100.0).toFloat() + 0.5f
+            value = (round(progress.toFloat() * 100.0f) / 100.0f) + min
+            value = callback(value, false)
             tts?.sendCommand(TTSService.ACTION_UPDATE_SETTINGS, null, null)
             @SuppressLint("SetTextI18n")
-            textView.text = (progress+50.0).roundToInt().toString() + "%"
+            textView.text = value.toHumanPercentage().roundToInt().toString() + "%"
         }
-        seekBar.setProgress(value.toDouble() * 100.0 - 50.0)
-    }
+        seekBar.setProgress(value.toDouble() - min)
+        val numberInput = dialog.getCustomView().findViewById<EditText>(R.id.seekBarCustomNumber) ?: return
 
-    fun changeRate(textView: TextView) {
-        var value = dataCenter.ttsSpeechRate
-        val dialog = MaterialDialog(this).show {
-            title(R.string.tts_rate)
-            customView(R.layout.dialog_slider, scrollable = true)
-            onDismiss {
-                dataCenter.ttsSpeechRate = value
-                tts?.sendCommand(TTSService.ACTION_UPDATE_SETTINGS, null, null)
+
+        val numberChange = object : TextView.OnEditorActionListener, View.OnFocusChangeListener {
+            override fun onEditorAction(view: TextView?, i: Int, keyEvent: KeyEvent?): Boolean {
+                return if (i == EditorInfo.IME_ACTION_SEARCH || i == EditorInfo.IME_ACTION_DONE || keyEvent?.keyCode == KeyEvent.KEYCODE_ENTER) {
+                    applyTextInput()
+                    true
+                } else false
+            }
+
+            override fun onFocusChange(p0: View?, p1: Boolean) {
+                applyTextInput()
+            }
+
+            fun applyTextInput() {
+                numberInput.text?.toString()?.toFloatOrNull()?.let {
+                    value = it.fromHumanPercentage()
+                    if (value < min) value = min
+                    value = callback(value, false)
+                    @SuppressLint("SetTextI18n")
+                    textView.text = value.toHumanPercentage().roundToInt().toString() + "%"
+                    tts?.sendCommand(TTSService.ACTION_UPDATE_SETTINGS, null, null)
+                }
             }
         }
 
-        val seekBar = dialog.getCustomView().findViewById<TwoWaySeekBar>(R.id.seekBar) ?: return
-        seekBar.setAbsoluteMinMaxValue(0.0, 150.0)
-        seekBar.notifyWhileDragging = true
-        seekBar.setOnSeekBarChangedListener { _, progress ->
-            value = (progress.roundToInt() / 100.0).toFloat() + 0.5f
-            tts?.sendCommand(TTSService.ACTION_UPDATE_SETTINGS, null, null)
-            @SuppressLint("SetTextI18n")
-            textView.text = (progress+50.0).roundToInt().toString() + "%"
+        numberInput.onFocusChangeListener = numberChange
+        numberInput.setOnEditorActionListener(numberChange)
+
+        dialog.getCustomView().findViewById<ImageButton>(R.id.toggleModeButton)?.let {
+            it.setOnClickListener {
+                if (numberInput.visibility == View.GONE) {
+                    numberInput.visibility = View.VISIBLE
+                    seekBar.visibility = View.GONE
+                    numberInput.setText(value.toHumanPercentage().roundToInt().toString())
+                } else {
+                    numberInput.visibility = View.GONE
+                    seekBar.visibility = View.VISIBLE
+                    seekBar.setProgress(value.toDouble() - min)
+                }
+            }
         }
-        seekBar.setProgress(value.toDouble() * 100.0 - 50.0)
     }
 }

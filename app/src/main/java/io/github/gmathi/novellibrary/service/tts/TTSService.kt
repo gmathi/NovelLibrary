@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.*
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.icu.util.TimeUnit
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
@@ -38,6 +39,7 @@ import io.github.gmathi.novellibrary.activity.TextToSpeechControlsActivity
 import io.github.gmathi.novellibrary.activity.settings.TTSSettingsActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
 import io.github.gmathi.novellibrary.database.*
+import io.github.gmathi.novellibrary.extensions.isPlaying
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.other.TTSCleanDocument
@@ -96,15 +98,19 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
 
         const val COMMAND_REQUEST_SENTENCES = "request_sentences"
         const val COMMAND_UPDATE_LANGUAGE = "update_language"
+        const val COMMAND_UPDATE_TIMER = "update_timer"
         const val EVENT_SENTENCE_LIST = "sentence_list"
         const val KEY_SENTENCES = "sentences"
-
-        const val SCENE_CHANGE_EARCON = "◇ ◇ ◇"
 
         private const val STATE_PREFIX = "TTSService."
         const val STATE_NOVEL_ID = STATE_PREFIX + NOVEL_ID
         const val STATE_TRANSLATOR_SOURCE_NAME = STATE_PREFIX + TRANSLATOR_SOURCE_NAME
         const val STATE_CHAPTER_INDEX = STATE_PREFIX + CHAPTER_INDEX
+
+        const val PITCH_MIN = 0.5f
+        const val PITCH_MAX = 2.0f
+        const val SPEECH_RATE_MIN = 0.5f
+        const val SPEECH_RATE_MAX = 2.0f
     }
 
     lateinit var mediaSession: MediaSessionCompat
@@ -117,6 +123,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
     private lateinit var notificationBuilder: TTSNotificationBuilder
     private lateinit var notificationManager: NotificationManagerCompat
     private lateinit var notification: NotificationController
+    private lateinit var stopTimer: StopTimerController
 
     private lateinit var focusRequest: AudioFocusRequest
 
@@ -210,6 +217,8 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         notificationBuilder = TTSNotificationBuilder(this, pendingIntents)
         notificationManager = NotificationManagerCompat.from(this)
         notification = NotificationController()
+
+        stopTimer = StopTimerController()
     }
 
     override fun onDestroy() {
@@ -339,6 +348,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         mediaSession.isActive = true
         startForeground(TTS_NOTIFICATION_ID, notificationBuilder.buildNotification(mediaSession.sessionToken))
         notification.start()
+        stopTimer.start()
 
         registerReceiver(noisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
         noisyReceiverHooked = true
@@ -359,6 +369,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
             am.abandonAudioFocus(this@TTSService)
         }
         notification.stop()
+        stopTimer.stop()
 
         stopSelf()
         mediaSession.isActive = false
@@ -387,6 +398,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
                     player.setFrom(old)
                 }
                 player.start()
+                stopTimer.reset()
             }
         }
 
@@ -400,6 +412,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         override fun onPause() {
             Log.d(TAG, "onPause")
             player.stop()
+            stopTimer.reset()
             resumeOnFocus = false
             if (isForeground) {
                 stopForeground(false)
@@ -413,20 +426,24 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
 
         override fun onSeekTo(pos: Long) {
             player.goto((pos / 1000L).toInt())
+            stopTimer.reset()
         }
 
         override fun onRewind() {
             player.goto(player.lineNumber - 1)
+            stopTimer.reset()
         }
 
         override fun onFastForward() {
             player.goto(player.lineNumber + 1)
+            stopTimer.reset()
         }
 
         override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
             mediaId?.toIntOrNull()?.let {
                 Log.d(TAG, "Play from media ID: $mediaId")
                 player.gotoChapter(it)
+                stopTimer.reset()
             }
         }
 //        override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
@@ -436,10 +453,12 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
 
         override fun onSkipToNext() {
             player.nextChapter()
+            stopTimer.reset()
         }
 
         override fun onSkipToPrevious() {
             player.previousChapter()
+            stopTimer.reset()
         }
 
         override fun onCommand(command: String?, extras: Bundle?, cb: ResultReceiver?) {
@@ -448,6 +467,22 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
                 COMMAND_REQUEST_SENTENCES -> player.sendSentences()
                 ACTION_UPDATE_SETTINGS -> player.updateVoiceConfig()
                 COMMAND_UPDATE_LANGUAGE -> player.selectLanguage()
+                COMMAND_UPDATE_TIMER -> {
+                    if (extras?.containsKey("active") == true) extras.getBoolean("active").let {
+                        if (it)
+                            Log.d(TAG, "Starting auto-stop timer")
+                        else
+                            Log.d(TAG, "Stopping auto-stop timer (user-request)")
+                        if (it && !stopTimer.isActive) stopTimer.reset(false)
+                        stopTimer.isActive = it
+                    }
+                    if (extras?.getBoolean("reset") == true)
+                        stopTimer.reset(false)
+                    cb?.send(if (stopTimer.isActive) 1 else 0, Bundle().apply {
+                        putLong("time", stopTimer.stopTime)
+                        putBoolean("active", stopTimer.isActive)
+                    })
+                }
             }
             super.onCommand(command, extras, cb)
         }
@@ -498,6 +533,49 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
                 notificationManager.notify(TTS_NOTIFICATION_ID, notificationBuilder.buildNotification(mediaSession.sessionToken))
             }
         }
+    }
+
+    private inner class StopTimerController : MediaControllerCompat.Callback() {
+        private val controller = MediaControllerCompat(this@TTSService, mediaSession.sessionToken)
+
+        var isActive: Boolean = false
+        var stopTime: Long = 0
+
+        fun reset(withEvent: Boolean = true) {
+            // In case we pause or do something else that interrupts playback - reset the timer.
+            stopTime = System.currentTimeMillis() + java.util.concurrent.TimeUnit.MINUTES.toMillis(player.dataCenter.ttsStopTimer)
+            if (isActive && withEvent) {
+                Log.d(TAG, "Resetting the auto-stop timer")
+                mediaSession.sendSessionEvent(COMMAND_UPDATE_TIMER, Bundle().apply {
+                    putBoolean("active", isActive)
+                    putLong("time", stopTime)
+                })
+            }
+        }
+
+        fun start() {
+            controller.registerCallback(this)
+        }
+
+        fun stop() {
+            controller.unregisterCallback(this)
+        }
+
+        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
+            if (isActive) {
+                if (state?.isPlaying == true && System.currentTimeMillis() >= stopTime) {
+                    Log.d(TAG, "Pausing TTS due to auto-stop timer")
+                    isActive = false
+                    controller.transportControls.pause()
+                    mediaSession.sendSessionEvent(COMMAND_UPDATE_TIMER, Bundle().apply {
+                        putBoolean("active", isActive)
+                        putLong("time", 0)
+                    })
+                    // TODO: Save state on exit so user can restore it
+                }
+            }
+        }
+
     }
 
 }

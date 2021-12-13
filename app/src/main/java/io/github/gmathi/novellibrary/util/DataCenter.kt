@@ -346,6 +346,10 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean("ttsChapterChangeSFX", true)
         set(value) = prefs.edit().putBoolean("ttsChapterChangeSFX", value).apply()
 
+    var ttsStopTimer: Long
+        get() = prefs.getLong("ttsStopTimer", 60L)
+        set(value) = prefs.edit().putLong("ttsStopTimer", value).apply()
+
     // The names of currently active filter sets.
     var ttsFilters: List<String>
         get() = prefs.getJson("ttsFilters", "[]")

@@ -1,19 +1,28 @@
 package io.github.gmathi.novellibrary.activity
 
+import android.app.TimePickerDialog
 import android.content.ComponentName
 import android.content.Context
 import android.media.AudioManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.ResultReceiver
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.view.KeyEvent
+import android.text.Spanned
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.TimePicker
 import androidx.core.content.ContextCompat
 import androidx.core.view.children
+import androidx.core.widget.doAfterTextChanged
+import androidx.core.widget.doBeforeTextChanged
+import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import com.bumptech.glide.Glide
@@ -24,10 +33,12 @@ import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.databinding.ActivityTextToSpeechControlsBinding
 import io.github.gmathi.novellibrary.databinding.ContentTextToSpeechControlsBinding
+import io.github.gmathi.novellibrary.databinding.FragmentTextToSpeechQuickSettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemSentenceBinding
 import io.github.gmathi.novellibrary.extensions.isPlaying
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.service.tts.TTSService
+import io.github.gmathi.novellibrary.util.fromHumanPercentage
 import io.github.gmathi.novellibrary.util.lang.duration
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.lang.trackNumber
@@ -35,16 +46,21 @@ import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.util.system.startTTSService
 import io.github.gmathi.novellibrary.util.system.startTTSSettingsActivity
 import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
+import io.github.gmathi.novellibrary.util.toHumanPercentage
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaultsNoAnimation
+import okhttp3.internal.format
+import kotlin.math.ceil
+import kotlin.math.round
 
 class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     companion object {
-        const val TAG = "TTSControlsActivity"
+        const val TAG = "NLTTS_Controls"
     }
 
     lateinit var binding: ActivityTextToSpeechControlsBinding
     lateinit var contentBinding: ContentTextToSpeechControlsBinding
+    lateinit var quickSettings: FragmentTextToSpeechQuickSettingsBinding
     var isServiceConnected = false
 
     lateinit var adapter: GenericAdapter<String>
@@ -54,6 +70,32 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
     var novel: Novel? = null
     var translatorSource: String? = null
     var chapterIndex: Int = 0
+
+    private var stopTimer: Long = 0L
+    private var lastMinutes: Long = 0L
+    lateinit var updateTimerRunnable: Runnable
+    private val updateTimerCallback = object : ResultReceiver(Handler(Looper.myLooper()!!)) {
+        override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {
+            quickSettings.autoStopTimerSwitch.isChecked = resultCode == 1
+            binding.root.removeCallbacks(updateTimerRunnable)
+            if (resultCode == 1) {
+                resultData?.getLong("time")?.let {
+                    stopTimer = it
+                    binding.root.postOnAnimation(updateTimerRunnable)
+                }
+                resultData?.getBoolean("active")?.let {
+                    if (it) {
+                        quickSettings.autoStopTimerSwitch.isChecked = true
+                    } else {
+                        quickSettings.autoStopTimerSwitch.isChecked = false
+                        quickSettings.autoStopTimerStatus.setText(R.string.off)
+                    }
+                }
+            } else {
+                quickSettings.autoStopTimerStatus.setText(R.string.off)
+            }
+        }
+    }
 
     private lateinit var browser: MediaBrowserCompat
     private val connCallback = object : MediaBrowserCompat.ConnectionCallback() {
@@ -84,6 +126,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
         binding = ActivityTextToSpeechControlsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         contentBinding = binding.contentTextToSpeechControls
+        quickSettings = FragmentTextToSpeechQuickSettingsBinding.bind(binding.quickSettings.getHeaderView(0))
 
         browser = MediaBrowserCompat(this, ComponentName(this, TTSService::class.java), connCallback, null)
 
@@ -117,29 +160,105 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
             scrollToPosition(lastSentence, true)
         }
 
+        //#region quick settings
+
+        quickSettings.pitch.run {
+            // TwoWaySeekBar can't handle 50...100 values
+            setAbsoluteMinMaxValue(0.0, (TTSService.PITCH_MAX - TTSService.PITCH_MIN).toHumanPercentage().toDouble())
+            setProgress((dataCenter.ttsPitch - TTSService.PITCH_MIN).toHumanPercentage().toDouble())
+
+            setOnSeekBarChangedListener { bar, value ->
+                val rounded = round(value / 10.0) * 10.0
+                dataCenter.ttsPitch = rounded.fromHumanPercentage().toFloat() + TTSService.PITCH_MIN
+                bar.setProgress(rounded)
+                controller?.sendCommand(TTSService.ACTION_UPDATE_SETTINGS, null, null)
+            }
+        }
+        quickSettings.speechRate.run {
+            setAbsoluteMinMaxValue(0.0, (TTSService.SPEECH_RATE_MAX - TTSService.SPEECH_RATE_MIN).toHumanPercentage().toDouble())
+            setProgress((dataCenter.ttsPitch - TTSService.SPEECH_RATE_MIN).toHumanPercentage().toDouble())
+
+            setOnSeekBarChangedListener { bar, value ->
+                val rounded = round(value / 10.0) * 10.0
+                dataCenter.ttsPitch = rounded.fromHumanPercentage().toFloat() + TTSService.SPEECH_RATE_MIN
+                bar.setProgress(rounded)
+                controller?.sendCommand(TTSService.ACTION_UPDATE_SETTINGS, null, null)
+            }
+        }
+
+        quickSettings.autoReadNextChapter.run {
+            isChecked = dataCenter.readAloudNextChapter
+            setOnCheckedChangeListener { _, b -> dataCenter.readAloudNextChapter = b }
+        }
+
+        quickSettings.moveBookmark.run {
+            isChecked = dataCenter.ttsMoveBookmark
+            setOnCheckedChangeListener { _, b -> dataCenter.ttsMoveBookmark = b }
+        }
+
+        quickSettings.markRead.run {
+            isChecked = dataCenter.ttsMarkChaptersRead
+            setOnCheckedChangeListener { _, b -> dataCenter.ttsMarkChaptersRead = b }
+        }
+
+        quickSettings.mergeChapters.run {
+            isChecked = dataCenter.ttsMergeBufferChapters
+            setOnCheckedChangeListener { _, b -> dataCenter.ttsMergeBufferChapters = b }
+        }
+
+        quickSettings.autoStopTimerPick.setOnClickListener {
+            val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
+                dataCenter.ttsStopTimer = (hour * 60 + minute).toLong()
+                controller?.sendCommand(TTSService.COMMAND_UPDATE_TIMER, Bundle().apply {
+                    putBoolean("reset", true)
+                }, updateTimerCallback)
+                quickSettings.autoStopTimerPick.text = getString(R.string.set_auto_stop_timer, dataCenter.ttsStopTimer / 60, dataCenter.ttsStopTimer % 60)
+            }
+            TimePickerDialog(this, listener, (dataCenter.ttsStopTimer / 60).toInt(), (dataCenter.ttsStopTimer % 60).toInt(), true).show()
+        }
+        quickSettings.autoStopTimerPick.text = getString(R.string.set_auto_stop_timer, dataCenter.ttsStopTimer / 60, dataCenter.ttsStopTimer % 60)
+
+        quickSettings.autoStopTimerSwitch.setOnCheckedChangeListener { _, b ->
+            controller?.sendCommand(TTSService.COMMAND_UPDATE_TIMER, Bundle().apply {
+                putBoolean("active", b)
+            }, updateTimerCallback)
+        }
+
+        updateTimerRunnable = Runnable {
+            val minutes = ceil((stopTimer - System.currentTimeMillis()).toDouble() / 60000).toLong().coerceAtLeast(0)
+            if (lastMinutes != minutes) {
+                lastMinutes = minutes
+                quickSettings.autoStopTimerStatus.text = format("%d:%02d", minutes / 60, minutes % 60)
+            }
+            binding.root.postOnAnimation(updateTimerRunnable)
+        }
+        //#endregion
+
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 //        supportActionBar?.title = novel.name
     }
 
-//    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-//        when (keyCode) {
-//            KeyEvent.KEYCODE_MEDIA_PLAY,
-//                KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
-//                    if (controller?.playbackState?.state == PlaybackStateCompat.STATE_PLAYING)
-//                        controller?.transportControls?.pause()
-//                    else
-//                        controller?.transportControls?.play()
-//                }
-//        }
-//        return super.onKeyDown(keyCode, event)
-//    }
+    private fun populateSettings() {
+        quickSettings.pitch.setProgress((dataCenter.ttsPitch - TTSService.PITCH_MIN).toHumanPercentage().toDouble())
+        quickSettings.speechRate.setProgress((dataCenter.ttsSpeechRate - TTSService.SPEECH_RATE_MIN).toHumanPercentage().toDouble())
+        quickSettings.autoReadNextChapter.isChecked = dataCenter.readAloudNextChapter
+        quickSettings.moveBookmark.isChecked = dataCenter.ttsMoveBookmark
+        quickSettings.markRead.isChecked = dataCenter.ttsMarkChaptersRead
+        quickSettings.mergeChapters.isChecked = dataCenter.ttsMergeBufferChapters
+        refreshTimerState()
+    }
+
+    private fun refreshTimerState() {
+        controller?.sendCommand(TTSService.COMMAND_UPDATE_TIMER, null, updateTimerCallback)
+    }
 
     fun initController() {
         controller?.registerCallback(ctrlCallback)
         ctrlCallback.onMetadataChanged(controller?.metadata)
         ctrlCallback.onPlaybackStateChanged(controller?.playbackState)
         controller?.sendCommand(TTSService.COMMAND_REQUEST_SENTENCES, null, null)
+        refreshTimerState()
     }
 
     private inner class TTSController : MediaControllerCompat.Callback() {
@@ -212,8 +331,11 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
 
         override fun onSessionEvent(event: String?, extras: Bundle?) {
             super.onSessionEvent(event, extras)
-            if (event == TTSService.EVENT_SENTENCE_LIST && extras != null) {
+            if (extras == null) return
+            if (event == TTSService.EVENT_SENTENCE_LIST) {
                 setRecycleView(extras)
+            } else if (event == TTSService.COMMAND_UPDATE_TIMER) {
+                updateTimerCallback.send(if (extras.getBoolean("active")) 1 else 0, extras)
             }
         }
 
@@ -286,6 +408,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
     override fun onResume() {
         super.onResume()
         volumeControlStream = AudioManager.STREAM_MUSIC
+        populateSettings()
         //
     }
 

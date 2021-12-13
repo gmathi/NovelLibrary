@@ -121,6 +121,7 @@ class TTSPlayer(private val context: Context,
     private var desiredState: Int = STATE_STOP
     private var currentState: Int = STATE_STOP
 
+    // Web loader
     private val client: OkHttpClient
         get() = networkHelper.cloudflareClient
     private var webLoadingJobIndex = -1
@@ -133,7 +134,7 @@ class TTSPlayer(private val context: Context,
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             tts.addEarcon(SCENE_CHANGE_EARCON, BuildConfig.APPLICATION_ID, R.raw.scene_change)
-            tts.addEarcon(CHAPTER_CHANGE_EARCON, BuildConfig.APPLICATION_ID, R.raw.scene_change)
+            tts.addEarcon(CHAPTER_CHANGE_EARCON, BuildConfig.APPLICATION_ID, R.raw.chapter_change)
             selectLanguage()
             ttsReady = true
             Log.d(TAG, "TTS initialized")
@@ -254,6 +255,7 @@ class TTSPlayer(private val context: Context,
         metadata.id = chapterIndex.toString()
         metadata.putLong(TTSService.NOVEL_ID, novel.id)
         metadata.putString(TTSService.TRANSLATOR_SOURCE_NAME, source ?: "")
+        metadata.putLong(TTSService.CHAPTER_INDEX, chapterIndex.toLong())
         chapterCache.clear() // Ensure our cache is properly discarded.
         mediaSession.setMetadata(metadata.build())  // TODO: Omit?
     }
@@ -466,7 +468,7 @@ class TTSPlayer(private val context: Context,
 
     private fun updateChapterIndex(index: Int) {
         metadata.trackNumber = (index+1).toLong()
-//        metadata.putLong(TTSService.CHAPTER_INDEX, index.toLong())
+        metadata.putLong(TTSService.CHAPTER_INDEX, index.toLong())
         dataCenter.internalPut {
             putInt(TTSService.STATE_CHAPTER_INDEX, index)
         }

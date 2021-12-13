@@ -773,6 +773,13 @@
     <string name="tts_strip_header_description">Do not read out the chapter title (when possible)</string>
     <string name="tts_chapter_change_sfx">Chapter change sound</string>
     <string name="tts_chapter_change_sfx_description">Play a short sound effect when changing the chapters</string>
+    <string name="scroll_current_into_view">Scroll current sentence into view</string>
+    <string name="cover">Cover</string>
+    <string name="auto_stop_timer">Auto-stop timer</string>
+    <string name="set_auto_stop_timer">Set timer (%02d:%02d)</string>
+    <string name="enable_timer">Timer enabled</string>
+    <string name="off">Off</string>
+    <string name="toggle_slider_number">Switch between slider/number inputs</string>
 
 
     <string name="check_for_updates">Check For Update</string>
