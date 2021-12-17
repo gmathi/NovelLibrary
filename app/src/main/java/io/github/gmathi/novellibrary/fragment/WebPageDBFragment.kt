@@ -24,6 +24,7 @@ import io.github.gmathi.novellibrary.extensions.noInternetError
 import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
+import io.github.gmathi.novellibrary.model.other.LinkedPage
 import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
@@ -49,7 +50,7 @@ class WebPageDBFragment : BaseFragment() {
     private lateinit var webPageSettings: WebPageSettings
 
     var doc: Document? = null
-    var linkedPages: ArrayList<String> = ArrayList<String>()
+    var linkedPages: ArrayList<LinkedPage> = ArrayList()
     var history: ArrayList<WebPageSettings> = ArrayList()
     var job: Job? = null
 
@@ -362,9 +363,9 @@ class WebPageDBFragment : BaseFragment() {
                         val alreadyDownloadedLinks = ArrayList<String>()
                         alreadyDownloadedLinks.add(doc.location())
                         htmlHelper.getLinkedChapters(doc).forEach { linkedUrl ->
-                            if (alreadyDownloadedLinks.contains(linkedUrl)) return@forEach
+                            if (alreadyDownloadedLinks.contains(linkedUrl.href)) return@forEach
                             try {
-                                val otherDoc = withContext(Dispatchers.IO) { WebPageDocumentFetcher.document(linkedUrl) }
+                                val otherDoc = withContext(Dispatchers.IO) { WebPageDocumentFetcher.document(linkedUrl.href) }
                                 val helper = HtmlCleaner.getInstance(otherDoc)
                                 helper.removeJS(otherDoc)
                                 helper.additionalProcessing(otherDoc)

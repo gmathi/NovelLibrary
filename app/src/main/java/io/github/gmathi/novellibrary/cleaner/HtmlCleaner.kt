@@ -7,9 +7,7 @@ import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
-import io.github.gmathi.novellibrary.model.other.SelectorQuery
-import io.github.gmathi.novellibrary.model.other.SelectorSubQuery
-import io.github.gmathi.novellibrary.model.other.SubqueryRole
+import io.github.gmathi.novellibrary.model.other.*
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
@@ -33,6 +31,16 @@ import java.net.SocketException
 open class HtmlCleaner protected constructor() {
 
     companion object {
+        // Usual text used for links leading to actual chapter text
+        private val genericMainContentUrlText = listOf(
+            "Enjoy", "Enjoy.", "Enjoy~",
+            "Click here to read the chapter",
+            "Click here for chapter",
+            "Read chapter",
+            "Read the chapter",
+            "Continue reading",
+        )
+
         // Fairly generic selectors for specific content types
         private const val genericCommentsSubquery = "#comments,.comments,#disqus_thread"
         private const val genericShareSubquery = ".sd-block,.sharedaddy"
@@ -593,10 +601,10 @@ open class HtmlCleaner protected constructor() {
         return doc
     }
 
-    open fun getLinkedChapters(doc: Document): ArrayList<String> = ArrayList()
+    open fun getLinkedChapters(doc: Document): ArrayList<LinkedPage> = ArrayList()
 
-    fun getLinkedChapters(sourceURL: String, contentElement: Element?): ArrayList<String> {
-        val links = ArrayList<String>()
+    fun getLinkedChapters(sourceURL: String, contentElement: Element?): ArrayList<LinkedPage> {
+        val links = ArrayList<LinkedPage>()
         val baseUrlDomain = sourceURL.toHttpUrlOrNull()?.topPrivateDomain()
         val otherLinks = contentElement?.select("a[href]")
         otherLinks?.forEach {
@@ -606,13 +614,23 @@ open class HtmlCleaner protected constructor() {
             }
 
             val linkedUrl = it.absUrl("href").split("#").first()
-            if (linkedUrl == sourceURL || links.contains(linkedUrl)) return@forEach
+            if (linkedUrl == sourceURL || links.find { l -> l.href == linkedUrl } != null) return@forEach
 
             try {
                 // Check if URL is from chapter provider, only download from same domain
                 val urlDomain = linkedUrl.toHttpUrlOrNull()?.topPrivateDomain()
                 if (urlDomain == baseUrlDomain) {
-                    links.add(linkedUrl)
+                    var text = it.text().trim()
+                    if (text.isEmpty()) {
+                        text = it.selectFirst("img")?.let { img ->
+                            if (img.hasAttr("title")) img.attr("title")
+                            else "(image url)"
+                        } ?: linkedUrl
+                    }
+                    val isMainContent = genericMainContentUrlText.find { cmp -> cmp.equals(text, true) } != null ||
+                            Regex("""Chapter \d+""", RegexOption.IGNORE_CASE).containsMatchIn(text) ||
+                            it.attr("data-role") == "RBuffer"
+                    links.add(LinkedPage(linkedUrl, text, isMainContent))
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

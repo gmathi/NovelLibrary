@@ -81,6 +81,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         const val TRANSLATOR_SOURCE_NAME = "translatorSourceName"
         const val CHAPTER_INDEX = "chapterIndex"
         const val LINKED_PAGES = "linkedPages"
+        const val LINKED_PAGES_TITLES = "linkedPagesTitles"
 
         const val ACTION_OPEN_CONTROLS = "open_controls"
         const val ACTION_OPEN_SETTINGS = "open_settings"
@@ -303,7 +304,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
                 Log.d(TAG, "Startup had no text: Load from chapter metadata")
                 player.loadCurrentChapter()
             } else {
-                player.setData(startupText.text, startupText.title)
+                player.setData(startupText.text, startupText.title, startupText.bufferLinks)
                 player.start()
             }
         }

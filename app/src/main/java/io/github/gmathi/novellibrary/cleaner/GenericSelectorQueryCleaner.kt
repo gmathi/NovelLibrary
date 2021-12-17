@@ -1,9 +1,6 @@
 package io.github.gmathi.novellibrary.cleaner
 
-import io.github.gmathi.novellibrary.model.other.SelectorQuery
-import io.github.gmathi.novellibrary.model.other.SelectorSubQuery
-import io.github.gmathi.novellibrary.model.other.SubQueryProcessingCommand
-import io.github.gmathi.novellibrary.model.other.SubqueryRole
+import io.github.gmathi.novellibrary.model.other.*
 import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -223,7 +220,7 @@ class GenericSelectorQueryCleaner(
         }
     }
 
-    override fun getLinkedChapters(doc: Document): ArrayList<String> {
+    override fun getLinkedChapters(doc: Document): ArrayList<LinkedPage> {
         if (query.subQueries.isNotEmpty()) {
             return getLinkedChapters(doc.location(), doc.body().select(query.subQueries.first { it.role == SubqueryRole.RContent }.selector).firstOrNull())
         }

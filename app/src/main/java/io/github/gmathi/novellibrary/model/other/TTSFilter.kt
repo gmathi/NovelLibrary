@@ -86,7 +86,7 @@ class PlaintextTTSFilter(base: TTSFilter, doc: Document?) : CompiledTTSFilter() 
 
     override fun apply(text: String): String =
         if (fullMatch) {
-            if (text == lookup) replace
+            if (text.equals(lookup, ignoreCase)) replace
             else text
         } else
             text.replace(lookup, replace, ignoreCase)

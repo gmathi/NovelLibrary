@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.cleaner
 
+import io.github.gmathi.novellibrary.model.other.LinkedPage
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
@@ -29,7 +30,7 @@ class WattPadCleaner : HtmlCleaner() {
         }
     }
 
-    override fun getLinkedChapters(doc: Document): ArrayList<String> {
+    override fun getLinkedChapters(doc: Document): ArrayList<LinkedPage> {
         return super.getLinkedChapters(doc.location(), doc.body())
     }
 }

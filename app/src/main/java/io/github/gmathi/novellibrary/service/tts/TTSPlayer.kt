@@ -8,7 +8,6 @@ import android.media.MediaPlayer
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
-import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -28,6 +27,7 @@ import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
+import io.github.gmathi.novellibrary.model.other.LinkedPage
 import io.github.gmathi.novellibrary.model.other.TTSCleanDocument
 import io.github.gmathi.novellibrary.model.other.TTSFilterTarget
 import io.github.gmathi.novellibrary.model.source.SourceManager
@@ -101,6 +101,7 @@ class TTSPlayer(private val context: Context,
     var chapterIndex: Int = 0
     var chapterCount: Int = 0
     var albumArt: Bitmap? = null
+    var linkedPages: ArrayList<LinkedPage> = ArrayList()
     private val metadata = MediaMetadataCompat.Builder()
 
     var isDisposed = false
@@ -109,14 +110,12 @@ class TTSPlayer(private val context: Context,
         get() = desiredState == STATE_PLAY
 
     // Player state
-    private data class ChapterCacheEntry(val index: Int, val text: String, val title: String)
-    private val chapterCache: MutableList<ChapterCacheEntry> = mutableListOf()
+    private val chapterCache: MutableList<TTSCleanDocument> = mutableListOf()
 
     private lateinit var title: String
     private lateinit var rawText: String
     var lineNumber: Int = 0
     var lines: MutableList<String> = mutableListOf()
-    var playingEarcon: String? = null
 
     private var desiredState: Int = STATE_STOP
     private var currentState: Int = STATE_STOP
@@ -171,7 +170,7 @@ class TTSPlayer(private val context: Context,
     fun setFrom(other: TTSPlayer) {
         Log.d(TAG, "Copying metadata from another player instance")
         setMetadata(other.novel, other.translatorSourceName, other.chapterIndex, other.chapterCount)
-        setData(other.rawText, other.title)
+        setData(other.rawText, other.title, other.linkedPages)
     }
 
     fun setBundle(extras: Bundle): TTSCleanDocument? {
@@ -232,7 +231,8 @@ class TTSPlayer(private val context: Context,
         }
 
         return extras.getString(TTSService.AUDIO_TEXT_KEY)?.let {
-            TTSCleanDocument(it, extras.getStringArrayList(TTSService.LINKED_PAGES) ?: ArrayList(), title)
+            val pages:ArrayList<LinkedPage> = extras.getParcelableArrayList(TTSService.LINKED_PAGES)?:ArrayList()
+            TTSCleanDocument(it, pages, title, chapterIndex)
         }
     }
 
@@ -260,15 +260,20 @@ class TTSPlayer(private val context: Context,
         mediaSession.setMetadata(metadata.build())  // TODO: Omit?
     }
 
-    fun setData(text: String, title: String) {
+    fun setData(text: String, title: String, linkedPages: ArrayList<LinkedPage>) {
         Log.d(TAG, "Setting raw text data for chapter '$title'")
         this.rawText = text
         this.title = title
+        this.linkedPages = linkedPages
         processRawText()
         if (ttsReady) selectLanguage()
         metadata.displaySubtitle = title
         metadata.duration = lines.count().toLong() * 1000L
         metadata.trackNumber = (chapterIndex+1).toLong()
+        MediaMetadataCompat.Builder::class.java.getDeclaredField("mBundle").let {
+            it.isAccessible = true
+            (it.get(metadata) as Bundle).putParcelableArrayList(TTSService.LINKED_PAGES, linkedPages)
+        }
     }
 
     //#endregion
@@ -290,7 +295,7 @@ class TTSPlayer(private val context: Context,
         Log.d(TAG, "TTSPlayer.start()")
         updateVoiceConfig()
         mediaSession.setMetadata(metadata.build())
-        speakLine(if (playingEarcon != null) TextToSpeech.QUEUE_ADD else TextToSpeech.QUEUE_FLUSH)
+        speakLine(TextToSpeech.QUEUE_ADD)
     }
 
     fun goto(line:Int) {
@@ -311,7 +316,6 @@ class TTSPlayer(private val context: Context,
         Log.d(TAG, "TTSPlayer.stop()")
         if (silence.isPlaying) silence.stop()
         tts.stop()
-        playingEarcon = null
         setPlaybackState(withState)
     }
 
@@ -341,7 +345,6 @@ class TTSPlayer(private val context: Context,
         currentState = STATE_LOADING
         desiredState = STATE_PLAY
         tts.stop()
-        playingEarcon = null
         setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
         loadChapter(chapterIndex - 1)
     }
@@ -352,7 +355,6 @@ class TTSPlayer(private val context: Context,
         currentState = STATE_LOADING
         desiredState = STATE_PLAY
         tts.stop()
-        playingEarcon = null
         setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
         loadChapter(chapterIndex)
     }
@@ -363,7 +365,6 @@ class TTSPlayer(private val context: Context,
         currentState = STATE_LOADING
         desiredState = STATE_PLAY
         tts.stop()
-        playingEarcon = null
         setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
         loadChapter(chapter)
     }
@@ -408,11 +409,9 @@ class TTSPlayer(private val context: Context,
         if (text == SCENE_CHANGE_EARCON || text == CHAPTER_CHANGE_EARCON) {
             val earconType = if (text == CHAPTER_CHANGE_EARCON) TYPE_CHAPTER_CHANGE_EARCON else TYPE_EARCON
             params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, earconType)
-            playingEarcon = text
             tts.playEarcon(SCENE_CHANGE_EARCON, queueMode, params, earconType)
         } else {
             params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, TYPE_EARCON)
-            playingEarcon = null
             tts.speak(text, queueMode, params, TYPE_SENTENCE)
         }
     }
@@ -428,11 +427,11 @@ class TTSPlayer(private val context: Context,
     //#region Chapter loading
 
     private fun loadChapter(index: Int, forCaching: Boolean = false): Boolean {
-        chapterCache.find { it.index == index }?.let {
+        chapterCache.find { it.chapterIndex == index }?.let {
             if (!forCaching) {
                 Log.d(TAG, "Already cached chapter $index")
                 updateChapterIndex(index)
-                setData(it.text, it.title)
+                setData(it.text, it.title, it.bufferLinks)
                 start()
             }
             return@loadChapter true
@@ -441,15 +440,15 @@ class TTSPlayer(private val context: Context,
         val webPageSettings = dbHelper.getWebPageSettings(webPage.url) ?: return false
 
         if (webPageSettings.filePath != null) {
-            val clean = loadFromFile(webPageSettings)
+            val clean = loadFromFile(webPageSettings, index)
             if (clean == null) {
                 if (networkHelper.isConnectedToNetwork()) loadFromWeb(webPageSettings, index)
                 else return false
             } else {
-                cacheChapter(index, clean.text, clean.title)
+                cacheChapter(clean)
                 if (!forCaching) {
                     updateChapterIndex(index)
-                    setData(clean.text, clean.title)
+                    setData(clean.text, clean.title, clean.bufferLinks)
                     start()
                 }
             }
@@ -478,7 +477,7 @@ class TTSPlayer(private val context: Context,
         }
     }
 
-    private fun loadFromFile(webPageSettings: WebPageSettings) : TTSCleanDocument? {
+    private fun loadFromFile(webPageSettings: WebPageSettings, index: Int) : TTSCleanDocument? {
         Log.d(TAG, "Loading from file ${webPageSettings.title} ${webPageSettings.filePath}")
         val internalFilePath = "$FILE_PROTOCOL${webPageSettings.filePath}"
         val input = File(internalFilePath.substring(FILE_PROTOCOL.length))
@@ -488,7 +487,7 @@ class TTSPlayer(private val context: Context,
         // Old behavior: Failure to parse would cause it to read empty text chapter.
         val doc = Jsoup.parse(input, "UTF-8", url) ?: return null
         if (dataCenter.ttsMergeBufferChapters && webPageSettings.metadata.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
-            var text: String = cleanDocumentText(doc).text
+            var text: String = cleanDocumentText(doc, index).text
 
             val links: ArrayList<String> =
                     Gson().fromJson(webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES_SETTINGS]?:"[]")
@@ -496,16 +495,16 @@ class TTSPlayer(private val context: Context,
             links.forEach { linkedUrl ->
                 val settings = dbHelper.getWebPageSettings(linkedUrl) ?: return@forEach
                 if (settings.filePath != null) {
-                    text += "\r\n\r\n" + loadFromFile(settings)?.text
+                    text += "\r\n\r\n" + loadFromFile(settings, index)?.text
                 }
 //                else {
 //                    // TODO: Load linked page from web when source page is offline
 //                }
             }
 
-            return TTSCleanDocument(text, emptyList(), doc.title())
+            return TTSCleanDocument(text, ArrayList(), doc.title(), index)
         } else {
-            return cleanDocumentText(doc)
+            return cleanDocumentText(doc, index)
         }
     }
 
@@ -518,22 +517,22 @@ class TTSPlayer(private val context: Context,
         webLoadingJob = launchIO {
             try {
                 val doc = withIOContext { getWebPageDocument(webPageSettings.url) }
-                val clean = cleanDocumentText(doc)
+                val clean = cleanDocumentText(doc, index)
                 var text: String = clean.text
                 if (dataCenter.ttsMergeBufferChapters) {
                     clean.bufferLinks.forEach { linkedUrl ->
-                        val pageDoc = withIOContext { getWebPageDocument(linkedUrl) }
-                        val cleanPage = cleanDocumentText(pageDoc)
+                        val pageDoc = withIOContext { getWebPageDocument(linkedUrl.href) }
+                        val cleanPage = cleanDocumentText(pageDoc, index)
                         text += "\r\n\r\n" + cleanPage.text
                     }
                 }
-                cacheChapter(index, text, doc.title())
+                cacheChapter(clean)
 
                 if (chapterIndex == index && desiredState == STATE_PLAY) {
                     // TODO: linkedPages handling
                     // In theory it should have an interface for user to click and load, but right now
                     // we don't have any handling of linkedPages outside of merge option
-                    setData(text, doc.title()) //, linkedPages)
+                    setData(text, doc.title(), clean.bufferLinks)
                     start()
                 } // else -> loaded for caching
             } catch (e: Exception) {
@@ -543,12 +542,12 @@ class TTSPlayer(private val context: Context,
         }
     }
 
-    private fun cacheChapter(index: Int, text: String, title: String) {
+    private fun cacheChapter(clean: TTSCleanDocument) {
         while (chapterCache.size > 5) {
             chapterCache.removeAt(0)
         }
-        chapterCache.indexOfFirst { it.index == index }.let { if (it != -1) chapterCache.removeAt(it) }
-        chapterCache.add(ChapterCacheEntry(index, text, title))
+        chapterCache.indexOfFirst { it.chapterIndex == clean.chapterIndex }.let { if (it != -1) chapterCache.removeAt(it) }
+        chapterCache.add(clean)
     }
 
     private suspend fun getWebPageDocument(url: String): Document {
@@ -560,11 +559,11 @@ class TTSPlayer(private val context: Context,
         return doc
     }
 
-    private fun cleanDocumentText(doc: Document): TTSCleanDocument {
+    private fun cleanDocumentText(doc: Document, index: Int): TTSCleanDocument {
         val htmlHelper = HtmlCleaner.getInstance(doc)
         htmlHelper.removeJS(doc)
         htmlHelper.additionalProcessing(doc)
-        return TTSCleanDocument(doc.getFormattedText(), htmlHelper.getLinkedChapters(doc), doc.title())
+        return TTSCleanDocument(doc.getFormattedText(), htmlHelper.getLinkedChapters(doc), doc.title(), index)
     }
 
     //#endregion

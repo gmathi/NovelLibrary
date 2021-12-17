@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.cleaner
 
+import io.github.gmathi.novellibrary.model.other.LinkedPage
 import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.nodes.Document
 
@@ -28,7 +29,7 @@ class BlueSilverTranslationsCleaner : HtmlCleaner() {
 
     }
 
-    override fun getLinkedChapters(doc: Document): ArrayList<String> {
+    override fun getLinkedChapters(doc: Document): ArrayList<LinkedPage> {
         val links = ArrayList<String>()
         val otherLinks = doc.getElementsByAttributeValue("itemprop", "articleBody").firstOrNull()?.getElementsByAttributeValueContaining("href", HostNames.WORD_PRESS)
         if (otherLinks != null && otherLinks.isNotEmpty()) {
@@ -43,6 +44,8 @@ class BlueSilverTranslationsCleaner : HtmlCleaner() {
             otherLinks3.mapTo(links) { it.attr("href") }
         }
 
-        return ArrayList(links.distinct())
+        return links.distinct().mapTo(ArrayList<LinkedPage>()) {
+            LinkedPage(it, it)
+        }
     }
 }

@@ -14,6 +14,7 @@ import io.github.gmathi.novellibrary.activity.settings.reader.ScrollBehaviourSet
 import io.github.gmathi.novellibrary.activity.settings.reader.ReaderBackgroundSettingsActivity
 import io.github.gmathi.novellibrary.activity.settings.reader.ReaderSettingsActivity
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.other.LinkedPage
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.service.tts.TTSService
 import io.github.gmathi.novellibrary.util.Constants
@@ -200,7 +201,7 @@ fun AppCompatActivity.startWebViewActivity(url: String) =
 
 //#region TTS
 
-fun AppCompatActivity.startTTSService(audioText: String, linkedPages: ArrayList<String>, title: String,
+fun AppCompatActivity.startTTSService(audioText: String, linkedPages: ArrayList<LinkedPage>, title: String,
                                       novelId: Long, translatorSourceName: String?, chapterIndex: Int = 0) {
     val serviceIntent = Intent(this, TTSService::class.java)
     serviceIntent.action = TTSService.ACTION_STARTUP
@@ -208,7 +209,7 @@ fun AppCompatActivity.startTTSService(audioText: String, linkedPages: ArrayList<
     bundle.putString(TTSService.AUDIO_TEXT_KEY, audioText)
     bundle.putString(TTSService.TITLE, title)
     bundle.putLong(TTSService.NOVEL_ID, novelId)
-    bundle.putStringArrayList(TTSService.LINKED_PAGES, linkedPages)
+    bundle.putParcelableArrayList(TTSService.LINKED_PAGES, linkedPages)
     if (translatorSourceName != null) {
         bundle.putString(TTSService.TRANSLATOR_SOURCE_NAME, translatorSourceName)
     }

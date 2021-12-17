@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.cleaner
 
+import io.github.gmathi.novellibrary.model.other.LinkedPage
 import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.nodes.Document
 
@@ -24,13 +25,13 @@ class WuxiaWorldCleaner : HtmlCleaner() {
             doc.getElementsByTag("a")?.filter { it.text() == "Next Chapter" || it.text() == "Previous Chapter" }?.forEach { it.remove() }
     }
 
-    override fun getLinkedChapters(doc: Document): ArrayList<String> {
+    override fun getLinkedChapters(doc: Document): ArrayList<LinkedPage> {
 
         val links = ArrayList<String>()
         val otherLinks = doc.selectFirst("div.fr-view")?.getElementsByAttributeValueContaining("href", HostNames.WUXIA_WORLD)
         if (otherLinks != null && otherLinks.isNotEmpty()) {
             otherLinks.mapTo(links) { it.attr("href") }
         }
-        return links
+        return links.mapTo(ArrayList()) { LinkedPage(it, it) }
     }
 }
