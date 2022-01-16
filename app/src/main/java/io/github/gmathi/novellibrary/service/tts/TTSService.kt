@@ -114,7 +114,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         const val PITCH_MIN = 0.5f
         const val PITCH_MAX = 2.0f
         const val SPEECH_RATE_MIN = 0.5f
-        const val SPEECH_RATE_MAX = 2.0f
+        const val SPEECH_RATE_MAX = 3.0f
     }
 
     lateinit var mediaSession: MediaSessionCompat
