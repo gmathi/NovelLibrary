@@ -81,7 +81,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         const val TRANSLATOR_SOURCE_NAME = "translatorSourceName"
         const val CHAPTER_INDEX = "chapterIndex"
         const val LINKED_PAGES = "linkedPages"
-        const val LINKED_PAGES_TITLES = "linkedPagesTitles"
+        const val KEY_SENTENCES = "sentences"
 
         const val ACTION_OPEN_CONTROLS = "open_controls"
         const val ACTION_OPEN_SETTINGS = "open_settings"
@@ -97,11 +97,14 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
 
         const val ACTION_STARTUP = "startup"
 
-        const val COMMAND_REQUEST_SENTENCES = "request_sentences"
+        const val COMMAND_REQUEST_LINKED_PAGES = "cmd_$LINKED_PAGES"
+        const val COMMAND_REQUEST_SENTENCES = "cmd_$KEY_SENTENCES"
         const val COMMAND_UPDATE_LANGUAGE = "update_language"
         const val COMMAND_UPDATE_TIMER = "update_timer"
-        const val EVENT_SENTENCE_LIST = "sentence_list"
-        const val KEY_SENTENCES = "sentences"
+        const val COMMAND_LOAD_BUFFER_LINK = "cmd_load_buffer_link"
+        const val COMMAND_RELOAD_CHAPTER = "cmd_reload_chapter"
+        const val EVENT_SENTENCE_LIST = "event_$KEY_SENTENCES"
+        const val EVENT_LINKED_PAGES = "event_$LINKED_PAGES"
 
         private const val STATE_PREFIX = "TTSService."
         const val STATE_NOVEL_ID = STATE_PREFIX + NOVEL_ID
@@ -466,6 +469,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
 //            Log.d(TAG, "Command: $command")
             when (command) {
                 COMMAND_REQUEST_SENTENCES -> player.sendSentences()
+                COMMAND_REQUEST_LINKED_PAGES -> player.sendLinkedPages()
                 ACTION_UPDATE_SETTINGS -> player.updateVoiceConfig()
                 COMMAND_UPDATE_LANGUAGE -> player.selectLanguage()
                 COMMAND_UPDATE_TIMER -> {
@@ -483,6 +487,11 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
                         putLong("time", stopTimer.stopTime)
                         putBoolean("active", stopTimer.isActive)
                     })
+                }
+                COMMAND_LOAD_BUFFER_LINK -> extras?.getString("href")?.let { player.loadLinkedPage(it) }
+                COMMAND_RELOAD_CHAPTER -> {
+                    player.clearChapterCache()
+                    player.loadCurrentChapter()
                 }
             }
             super.onCommand(command, extras, cb)

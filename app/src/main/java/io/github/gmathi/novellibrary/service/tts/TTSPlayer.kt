@@ -38,6 +38,7 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.Utils.getFormattedText
+import io.github.gmathi.novellibrary.util.getLinkedPagesCompat
 import io.github.gmathi.novellibrary.util.lang.*
 import io.github.gmathi.novellibrary.util.network.asJsoup
 import io.github.gmathi.novellibrary.util.network.safeExecute
@@ -52,6 +53,7 @@ import org.jsoup.nodes.Document
 import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.util.*
+import kotlin.collections.ArrayList
 
 class TTSPlayer(private val context: Context,
                 private val mediaSession: MediaSessionCompat,
@@ -150,11 +152,11 @@ class TTSPlayer(private val context: Context,
         tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onDone(utteranceId: String?) {
                 if (currentState == STATE_PLAY) {
-                    if (utteranceId != CHAPTER_CHANGE_EARCON)
+                    if (utteranceId != TYPE_CHAPTER_CHANGE_EARCON)
                         lineNumber++
                     speakLine()
                 }
-            }
+             }
 
             override fun onError(utteranceId: String?) {
                 Log.e(TAG, "Error playing TTS $utteranceId")
@@ -270,10 +272,6 @@ class TTSPlayer(private val context: Context,
         metadata.displaySubtitle = title
         metadata.duration = lines.count().toLong() * 1000L
         metadata.trackNumber = (chapterIndex+1).toLong()
-        MediaMetadataCompat.Builder::class.java.getDeclaredField("mBundle").let {
-            it.isAccessible = true
-            (it.get(metadata) as Bundle).putParcelableArrayList(TTSService.LINKED_PAGES, linkedPages)
-        }
     }
 
     //#endregion
@@ -359,6 +357,16 @@ class TTSPlayer(private val context: Context,
         loadChapter(chapterIndex)
     }
 
+    fun loadLinkedPage(url: String) {
+        Log.d(TAG, "Requested to load a linked page!")
+        currentState = STATE_LOADING
+        desiredState = STATE_PLAY
+        tts.stop()
+        setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
+        loadChapter(chapterIndex, false, url)
+        // TODO: Preserve list of linked pages
+    }
+
     fun gotoChapter(chapter: Int) {
         if (isDisposed) return
         Log.d(TAG, "Playing chapter with index $chapter")
@@ -378,6 +386,10 @@ class TTSPlayer(private val context: Context,
         if (withEarcon && dataCenter.ttsChapterChangeSFX) sendToTTS(CHAPTER_CHANGE_EARCON, TextToSpeech.QUEUE_FLUSH)
         else tts.stop()
         loadChapter(chapterIndex + 1)
+    }
+
+    fun clearChapterCache() {
+        chapterCache.clear()
     }
 
     //#endregion
@@ -426,7 +438,7 @@ class TTSPlayer(private val context: Context,
 
     //#region Chapter loading
 
-    private fun loadChapter(index: Int, forCaching: Boolean = false): Boolean {
+    private fun loadChapter(index: Int, forCaching: Boolean = false, url: String? = null): Boolean {
         chapterCache.find { it.chapterIndex == index }?.let {
             if (!forCaching) {
                 Log.d(TAG, "Already cached chapter $index")
@@ -440,9 +452,9 @@ class TTSPlayer(private val context: Context,
         val webPageSettings = dbHelper.getWebPageSettings(webPage.url) ?: return false
 
         if (webPageSettings.filePath != null) {
-            val clean = loadFromFile(webPageSettings, index)
+            val clean = loadFromFile(webPageSettings, index, url)
             if (clean == null) {
-                if (networkHelper.isConnectedToNetwork()) loadFromWeb(webPageSettings, index)
+                if (networkHelper.isConnectedToNetwork()) loadFromWeb(webPageSettings, index, url)
                 else return false
             } else {
                 cacheChapter(clean)
@@ -460,7 +472,7 @@ class TTSPlayer(private val context: Context,
                 updateChapterIndex(index)
                 mediaSession.setMetadata(metadata.build())
             }
-            loadFromWeb(webPageSettings, index)
+            loadFromWeb(webPageSettings, index, url)
         }
         return true
     }
@@ -477,11 +489,20 @@ class TTSPlayer(private val context: Context,
         }
     }
 
-    private fun loadFromFile(webPageSettings: WebPageSettings, index: Int) : TTSCleanDocument? {
+    private fun loadFromFile(webPageSettings: WebPageSettings, index: Int, linkedUrl: String?) : TTSCleanDocument? {
         Log.d(TAG, "Loading from file ${webPageSettings.title} ${webPageSettings.filePath}")
         val internalFilePath = "$FILE_PROTOCOL${webPageSettings.filePath}"
         val input = File(internalFilePath.substring(FILE_PROTOCOL.length))
         if (!input.exists()) return null
+
+        if (linkedUrl != null) {
+            val linkedPage = dbHelper.getWebPageSettings(linkedUrl)
+            if (linkedPage != null) {
+                return loadFromFile(linkedPage, index, null)
+            } else {
+                context.showToastWithMain("Could not find the linked page in offline storage!", Toast.LENGTH_LONG)
+            }
+        }
 
         val url = webPageSettings.redirectedUrl ?: internalFilePath
         // Old behavior: Failure to parse would cause it to read empty text chapter.
@@ -489,17 +510,34 @@ class TTSPlayer(private val context: Context,
         if (dataCenter.ttsMergeBufferChapters && webPageSettings.metadata.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
             var text: String = cleanDocumentText(doc, index).text
 
-            val links: ArrayList<String> =
-                    Gson().fromJson(webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES_SETTINGS]?:"[]")
+            val links: ArrayList<LinkedPage> = webPageSettings.getLinkedPagesCompat()
 
-            links.forEach { linkedUrl ->
-                val settings = dbHelper.getWebPageSettings(linkedUrl) ?: return@forEach
+            if (dataCenter.ttsDiscardInitialBufferPage && links.size > 0) {
+                text = ""
+            }
+
+            val pageTexts = links.mapNotNull { link ->
+                val settings = dbHelper.getWebPageSettings(link.href) ?: return@mapNotNull null
                 if (settings.filePath != null) {
-                    text += "\r\n\r\n" + loadFromFile(settings, index)?.text
-                }
+                    loadFromFile(settings, index, null)?.text
+                } else null
 //                else {
-//                    // TODO: Load linked page from web when source page is offline
+//                    // TODO: Load linked page from web when source page is offline.
+//                    // Requires rewriting offline loader to be async
 //                }
+            }
+            if (dataCenter.ttsUseLongestPage) {
+                var longest: String? = null
+                var longestSize = -1
+                pageTexts.forEach { s ->
+                    if (s.length > longestSize) {
+                        longest = s
+                        longestSize = s.length
+                    }
+                }
+                if (longest != null) text += "\r\n\r\n" + longest
+            } else {
+                pageTexts.forEach { s -> text += "\r\n\r\n" + s }
             }
 
             return TTSCleanDocument(text, ArrayList(), doc.title(), index)
@@ -508,25 +546,42 @@ class TTSPlayer(private val context: Context,
         }
     }
 
-    private fun loadFromWeb(webPageSettings: WebPageSettings, index: Int) {
+    private fun loadFromWeb(webPageSettings: WebPageSettings, index: Int, linkedUrl:String?) {
         if (webLoadingJobIndex == index) return
         setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
+        val url = linkedUrl ?: webPageSettings.url
         Log.d(TAG, "Loading from web $index ${webPageSettings.title} ${webPageSettings.url}")
         webLoadingJobIndex = index
         webLoadingJob?.cancel()
         webLoadingJob = launchIO {
             try {
-                val doc = withIOContext { getWebPageDocument(webPageSettings.url) }
+                val doc = withIOContext { getWebPageDocument(url) }
                 val clean = cleanDocumentText(doc, index)
                 var text: String = clean.text
-                if (dataCenter.ttsMergeBufferChapters) {
-                    clean.bufferLinks.forEach { linkedUrl ->
+                if (dataCenter.ttsMergeBufferChapters && linkedUrl == null) {
+                    if (dataCenter.ttsDiscardInitialBufferPage && clean.bufferLinks.size > 0) {
+                        text = ""
+                    }
+                    val pageTexts = clean.bufferLinks.map { linkedUrl ->
                         val pageDoc = withIOContext { getWebPageDocument(linkedUrl.href) }
                         val cleanPage = cleanDocumentText(pageDoc, index)
-                        text += "\r\n\r\n" + cleanPage.text
+                        cleanPage.text
+                    }
+                    if (dataCenter.ttsUseLongestPage) {
+                        var longest: String? = null
+                        var longestSize = -1
+                        pageTexts.forEach { s ->
+                            if (s.length > longestSize) {
+                                longest = s
+                                longestSize = s.length
+                            }
+                        }
+                        if (longest != null) text += "\r\n\r\n" + longest
+                    } else {
+                        pageTexts.forEach { s -> text += "\r\n\r\n" + s }
                     }
                 }
-                cacheChapter(clean)
+                cacheChapter(TTSCleanDocument(text, clean.bufferLinks, clean.title, clean.chapterIndex))
 
                 if (chapterIndex == index && desiredState == STATE_PLAY) {
                     // TODO: linkedPages handling
@@ -654,6 +709,12 @@ class TTSPlayer(private val context: Context,
     fun sendSentences() {
         mediaSession.sendSessionEvent(TTSService.EVENT_SENTENCE_LIST, Bundle().apply {
             putStringArrayList(TTSService.KEY_SENTENCES, lines.toCollection(ArrayList()))
+        })
+    }
+
+    fun sendLinkedPages() {
+        mediaSession.sendSessionEvent(TTSService.EVENT_LINKED_PAGES, Bundle().apply {
+            putParcelableArrayList(TTSService.LINKED_PAGES, linkedPages)
         })
     }
 

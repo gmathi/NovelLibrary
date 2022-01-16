@@ -79,6 +79,12 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
             TTSSetting(R.string.tts_merge_buffer_chapters, R.string.tts_merge_buffer_chapters_description).onBind { _, view, _ ->
                 view.bindSwitch(dataCenter.ttsMergeBufferChapters) { _, value -> dataCenter.ttsMergeBufferChapters = value }
             },
+            TTSSetting(R.string.tts_discard_first_page, R.string.tts_discard_first_page_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.ttsDiscardInitialBufferPage) { _, value -> dataCenter.ttsDiscardInitialBufferPage = value }
+            },
+            TTSSetting(R.string.tts_use_longest_page, R.string.tts_use_longest_page_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.ttsUseLongestPage) { _, value -> dataCenter.ttsUseLongestPage = value }
+            },
             TTSSetting(R.string.tts_language, R.string.tts_language_description).bindChevron { _, _ ->
                 selectLanguage()
             },

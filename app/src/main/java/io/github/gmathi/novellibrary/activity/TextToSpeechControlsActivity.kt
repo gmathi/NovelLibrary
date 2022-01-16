@@ -14,9 +14,9 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.text.Spanned
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
+import android.view.*
+import android.widget.Button
+import android.widget.TableRow
 import android.widget.TimePicker
 import androidx.core.content.ContextCompat
 import androidx.core.view.children
@@ -37,6 +37,7 @@ import io.github.gmathi.novellibrary.databinding.FragmentTextToSpeechQuickSettin
 import io.github.gmathi.novellibrary.databinding.ListitemSentenceBinding
 import io.github.gmathi.novellibrary.extensions.isPlaying
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.other.LinkedPage
 import io.github.gmathi.novellibrary.service.tts.TTSService
 import io.github.gmathi.novellibrary.util.fromHumanPercentage
 import io.github.gmathi.novellibrary.util.lang.duration
@@ -70,6 +71,8 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
     var novel: Novel? = null
     var translatorSource: String? = null
     var chapterIndex: Int = 0
+    var linkedPages = ArrayList<LinkedPage>()
+    private var linkedPageButtons:MutableMap<Int, String> = mutableMapOf()
 
     private var stopTimer: Long = 0L
     private var lastMinutes: Long = 0L
@@ -206,6 +209,30 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
             setOnCheckedChangeListener { _, b -> dataCenter.ttsMergeBufferChapters = b }
         }
 
+        quickSettings.discardBufferPage.run {
+            isChecked = dataCenter.ttsDiscardInitialBufferPage
+            setOnCheckedChangeListener { _, b -> dataCenter.ttsDiscardInitialBufferPage = b }
+        }
+
+        quickSettings.useLongestPage.run {
+            isChecked = dataCenter.ttsUseLongestPage
+            setOnCheckedChangeListener { _, b -> dataCenter.ttsUseLongestPage = b }
+        }
+
+        quickSettings.reloadChapter.setOnClickListener {
+            controller?.sendCommand(TTSService.COMMAND_RELOAD_CHAPTER, null, null)
+            binding.root.closeDrawers()
+        }
+
+        quickSettings.openReader.setOnClickListener {
+            openReader()
+        }
+
+        quickSettings.openSettings.setOnClickListener {
+            startTTSSettingsActivity()
+            binding.root.closeDrawers()
+        }
+
         quickSettings.autoStopTimerPick.setOnClickListener {
             val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
                 dataCenter.ttsStopTimer = (hour * 60 + minute).toLong()
@@ -258,6 +285,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
         ctrlCallback.onMetadataChanged(controller?.metadata)
         ctrlCallback.onPlaybackStateChanged(controller?.playbackState)
         controller?.sendCommand(TTSService.COMMAND_REQUEST_SENTENCES, null, null)
+        controller?.sendCommand(TTSService.COMMAND_REQUEST_LINKED_PAGES, null, null)
         refreshTimerState()
     }
 
@@ -332,10 +360,10 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
         override fun onSessionEvent(event: String?, extras: Bundle?) {
             super.onSessionEvent(event, extras)
             if (extras == null) return
-            if (event == TTSService.EVENT_SENTENCE_LIST) {
-                setRecycleView(extras)
-            } else if (event == TTSService.COMMAND_UPDATE_TIMER) {
-                updateTimerCallback.send(if (extras.getBoolean("active")) 1 else 0, extras)
+            when (event) {
+                TTSService.EVENT_SENTENCE_LIST -> setRecycleView(extras)
+                TTSService.COMMAND_UPDATE_TIMER -> updateTimerCallback.send(if (extras.getBoolean("active")) 1 else 0, extras)
+                TTSService.EVENT_LINKED_PAGES -> updateLinkedPages(extras.getParcelableArrayList(TTSService.LINKED_PAGES)?:ArrayList())
             }
         }
 
@@ -347,6 +375,36 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
         contentBinding.sentencesView.setDefaultsNoAnimation(adapter)
         scrollToPosition(lastSentence, false)
         hasSentences = true
+    }
+
+    private fun updateLinkedPages(pages: ArrayList<LinkedPage>) {
+        linkedPages = pages
+        linkedPageButtons = linkedPageButtons.filterTo(mutableMapOf()) { entry ->
+            if (pages.find { it.href == entry.value } == null) {
+                quickSettings.root.removeView(quickSettings.root.findViewById(entry.key))
+                false
+            } else true
+        }
+        val themeWrapper = ContextThemeWrapper(this@TextToSpeechControlsActivity, R.style.Widget_AppCompat_Button_Borderless_Colored)
+        pages.forEach { page ->
+            if (!linkedPageButtons.containsValue(page.href)) {
+                val row = TableRow(this@TextToSpeechControlsActivity)
+                val button = Button(themeWrapper)
+                row.addView(button)
+                row.id = View.generateViewId()
+                quickSettings.root.addView(row)
+                linkedPageButtons[row.id] = page.href
+                button.text = if (page.isMainContent) {
+                    page.label + " [!]"
+                } else {
+                    page.label
+                }
+                button.setOnClickListener {
+                    controller?.sendCommand(TTSService.COMMAND_LOAD_BUFFER_LINK, Bundle().apply { putString("href", page.href) }, null)
+                }
+            }
+        }
+        quickSettings.noLinkedPages.visibility = if (pages.size == 0) View.VISIBLE else View.GONE
     }
 
     private fun updatePosition(oldPosition: Int) {
@@ -427,25 +485,32 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
         when(item.itemId) {
             android.R.id.home -> finish()
             R.id.action_open_reader -> {
-                if (controller?.metadata != null) {
-                    val meta = controller!!.metadata
-                    val novelId = meta.getLong(TTSService.NOVEL_ID)
-                    val novel = dbHelper.getNovel(novelId) ?: return super.onOptionsItemSelected(item)
-
-                    var translator:String? = meta.getString(TTSService.TRANSLATOR_SOURCE_NAME)
-                    if (translator == "") translator = null
-                    dbHelper.getWebPage(novelId, translator, meta.getLong(TTSService.CHAPTER_INDEX).toInt())?.let { chapter ->
-                        updateNovelBookmark(novel, chapter)
-                        finishAfterTransition()
-                        startReaderDBPagerActivity(novel, translator)
-                    }
-                }
+                openReader()
             }
             R.id.action_open_settings -> {
-                startTTSSettingsActivity()
+                binding.root.openDrawer(binding.quickSettings)
+                //startTTSSettingsActivity()
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun openReader(): Boolean {
+        if (controller?.metadata != null) {
+            val meta = controller!!.metadata
+            val novelId = meta.getLong(TTSService.NOVEL_ID)
+            val novel = dbHelper.getNovel(novelId) ?: return false
+
+            var translator:String? = meta.getString(TTSService.TRANSLATOR_SOURCE_NAME)
+            if (translator == "") translator = null
+            dbHelper.getWebPage(novelId, translator, meta.getLong(TTSService.CHAPTER_INDEX).toInt())?.let { chapter ->
+                updateNovelBookmark(novel, chapter)
+                finishAfterTransition()
+                startReaderDBPagerActivity(novel, translator)
+                return true
+            }
+        }
+        return false
     }
 
 }

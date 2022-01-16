@@ -3,6 +3,8 @@ package io.github.gmathi.novellibrary.cleaner
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
+import android.util.Log
+import android.webkit.URLUtil
 import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
@@ -20,6 +22,7 @@ import org.jsoup.HttpStatusException
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import org.jsoup.parser.Tag
 import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.io.FileOutputStream
@@ -639,6 +642,26 @@ open class HtmlCleaner protected constructor() {
         return links
     }
 
+    fun linkify(element: Element) {
+        if (!dataCenter.linkifyText) return
+        val reg = Regex("""^\s*(https?://[^\s]+)(?:$|\s)""")
+        element.getElementsMatchingOwnText(reg.toPattern()).forEach { el ->
+            if (el.tagName() != "a" && el.parents().find { it.tagName() == "a" } == null) // Ensure we don't linkify what is already a link.
+            el.textNodes().forEach { node ->
+                val text = node.wholeText
+                reg.find(node.wholeText)?.let { result ->
+                    val group = result.groups[1]!!
+                    if (URLUtil.isValidUrl(group.value)) {
+                        node.text(text.removeRange(group.range))
+                        val anchor = Element(Tag.valueOf("a"), node.baseUri())
+                        anchor.attr("href", group.value)
+                        anchor.text(group.value)
+                        node.before(anchor)
+                    }
+                }
+            }
+        }
+    }
 
     private fun processColorComponent(comp: String): Double {
         if (comp.endsWith("%")) return comp.substring(0, comp.length - 1).toDouble() / 100.0

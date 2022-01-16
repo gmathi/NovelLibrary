@@ -278,6 +278,10 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(DIRECTIONAL_LINKS, false)
         set(value) = prefs.edit().putBoolean(DIRECTIONAL_LINKS, value).apply()
 
+    var linkifyText: Boolean
+        get() = prefs.getBoolean("linkifyText", false)
+        set(value) = prefs.edit().putBoolean("linkifyText", value).apply()
+
     var isReaderModeButtonVisible: Boolean
         get() = prefs.getBoolean(READER_MODE_BUTTON_VISIBILITY, true)
         set(value) = prefs.edit().putBoolean(READER_MODE_BUTTON_VISIBILITY, value).apply()
@@ -317,6 +321,14 @@ class DataCenter(context: Context) {
     var ttsMergeBufferChapters: Boolean
         get() = prefs.getBoolean(TTS_MERGE_BUFFER_CHAPTERS, false)
         set(value) = prefs.edit().putBoolean(TTS_MERGE_BUFFER_CHAPTERS, value).apply()
+
+    var ttsDiscardInitialBufferPage: Boolean
+        get() = prefs.getBoolean("ttsDiscardInitialBufferPage", false)
+        set(value) = prefs.edit().putBoolean("ttsDiscardInitialBufferPage", value).apply()
+
+    var ttsUseLongestPage: Boolean
+        get() = prefs.getBoolean("ttsUseLongestPage", false)
+        set(value) = prefs.edit().putBoolean("ttsUseLongestPage", value).apply()
 
     var ttsPitch: Float
         get() = prefs.getFloat(TTS_PITCH, 1.0f)

@@ -138,6 +138,10 @@ class GenericSelectorQueryCleaner(
         body.children().remove()
         body.classNames().forEach { body.removeClass(it) }
         body.append(constructedContent.outerHtml())
+
+        // Linkification is applied after content processing in order to avoid unnecessary html tree traversal.
+        linkify(body)
+
         if (query.customCSS.isNotEmpty())
             body.append("<style>${query.customCSS}</style>");
 

@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.model.other
 
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
 
 /**
  * A TTS text filtering base.
@@ -21,6 +22,7 @@ data class TTSFilter(val type: TTSFilterType, val target: TTSFilterTarget, val l
         return when (type) {
             TTSFilterType.Regex -> RegexTTSFilter(this, doc)
             TTSFilterType.Plaintext -> PlaintextTTSFilter(this, doc)
+            TTSFilterType.Selector -> SelectorTTSFilter(this, doc)
         }
     }
 
@@ -93,6 +95,18 @@ class PlaintextTTSFilter(base: TTSFilter, doc: Document?) : CompiledTTSFilter() 
 
 }
 
+class SelectorTTSFilter(base: TTSFilter, doc: Document?) : CompiledTTSFilter() {
+    private val lookup: String = substitute(base.lookup, doc)
+
+    public fun apply(el: Element) {
+        el.select(lookup).remove()
+    }
+
+    override fun apply(text: String): String {
+        return text;
+    }
+}
+
 enum class TTSFilterType {
     /**
      * A pure text replacement with exact match. Supports ${} substitutions.
@@ -116,6 +130,14 @@ enum class TTSFilterType {
      *  It's possible to use capturing groups in replace string with $1, $2, etc.
      */
     Regex,
+
+    /**
+     * Apply filtering based on a CSS selector.
+     *
+     * The replace field is ignored and matching elements are removed instead.
+     * Filter target MUST be set to Selector.
+     */
+    Selector,
 }
 
 enum class TTSFilterTarget {
@@ -136,4 +158,9 @@ enum class TTSFilterTarget {
      * Substitutes are not supported on that stage.
      */
     Line,
+
+    /**
+     * A combination with filter type Selector, both type and target should be set to Selector value.
+     */
+    Selector,
 }

@@ -30,6 +30,7 @@ import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.CompiledTTSFilter
 import io.github.gmathi.novellibrary.model.other.TTSFilterTarget
+import io.github.gmathi.novellibrary.model.other.TTSFilterType
 import io.github.gmathi.novellibrary.util.lang.writableFileName
 import io.github.gmathi.novellibrary.util.storage.createFileIfNotExists
 import io.github.gmathi.novellibrary.util.storage.getOrCreateDirectory
@@ -406,6 +407,13 @@ object Utils {
         }
 
         val filters = dataCenter.ttsFilterList
+
+        filters.forEach {
+            if (it.type == TTSFilterType.Selector) {
+                doc.select(it.lookup).remove()
+            }
+        }
+
         val textFilters = filters.filter { it.target == TTSFilterTarget.TextChunk }.map { it.compile(doc) }
 
         applyFilters(doc.body(), filters.filter { it.target == TTSFilterTarget.Element }.map { it.compile(doc) })

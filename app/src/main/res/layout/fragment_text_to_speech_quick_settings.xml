@@ -7,6 +7,30 @@
     android:layout_margin="@dimen/side_menu_padding"
     android:paddingTop="@dimen/side_menu_height">
 
+    <LinearLayout android:gravity="end">
+
+        <ImageButton
+            android:id="@+id/reload_chapter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/reload_chapter"
+            android:src="@drawable/ic_refresh_white_vector" />
+
+        <ImageButton
+            android:id="@+id/open_reader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/open_reader"
+            android:src="@drawable/ic_chrome_reader_mode_white_vector" />
+
+        <ImageButton
+            android:id="@+id/open_settings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/open_settings"
+            android:src="@drawable/ic_settings_white_vector"/>
+    </LinearLayout>
+
     <TableRow>
 
         <TextView
@@ -146,7 +170,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:minHeight="48dp">
+        android:minHeight="28dp">
 
         <TextView
             android:layout_weight="1"
@@ -157,6 +181,51 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent" />
 
+    </TableRow>
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="28dp">
+
+        <TextView
+            android:layout_weight="1"
+            android:text="@string/tts_discard_first_page" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/discardBufferPage"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent" />
+
+    </TableRow>
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="28dp">
+
+        <TextView
+            android:layout_weight="1"
+            android:text="@string/tts_use_longest_page" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/useLongestPage"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent" />
+
+    </TableRow>
+    <!-- TODO: Add actions like reload page -->
+    <TableRow>
+        <TextView
+            android:layout_weight="1"
+            android:text="@string/linked_pages" />
+    </TableRow>
+
+    <TableRow android:id="@+id/noLinkedPages" android:visibility="gone">
+        <TextView
+            android:layout_weight="1"
+            android:textAlignment="center"
+            android:text="@string/no_linked_pages"/>
     </TableRow>
 
 </TableLayout>
