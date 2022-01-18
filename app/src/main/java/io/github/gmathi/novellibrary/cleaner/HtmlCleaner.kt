@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.cleaner
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
+import android.util.Log
 import android.webkit.URLUtil
 import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
@@ -86,6 +87,100 @@ open class HtmlCleaner protected constructor() {
                 }
             """.trimIndent()
             ),
+            SelectorQuery(
+                ".content-area", host = "a-t.nu", subQueries = listOf(
+                    SelectorSubQuery("#chapter-heading", SubqueryRole.RHeader, optional = false, multiple = false),
+                    SelectorSubQuery(".reading-content", SubqueryRole.RContent, optional = false, multiple = false),
+                    SelectorSubQuery(".manga-discussion", SubqueryRole.RComments, optional = true, multiple = false),
+                    // Contains css with text pseudo-elements.
+                    SelectorSubQuery(".reading-content style", SubqueryRole.RWhitelist, optional = false, multiple = true),
+                    SelectorSubQuery(".wp-community-credits", SubqueryRole.RBlacklist, optional = true, multiple = true),
+                ), keepContentClasses = true, customCSS = """
+                *,*::before,*::after {
+                    user-select: initial !important;
+                    
+                    top: initial!important;
+                    bottom: initial!important;
+                    left: initial!important;
+                    right: initial!important;
+                }
+            """.trimIndent()
+            ),
+
+            // Make lazytranslations more bearable, ref -> https://lazytranslations.com/tl/oc/oc1/
+            SelectorQuery(".elementor-inner", host="lazytranslations.com", subQueries = listOf(
+                SelectorSubQuery(".entry-header h1.entry-title", SubqueryRole.RHeader, optional = false, multiple = false),
+                SelectorSubQuery("#innerbody,.elementor-text-editor", SubqueryRole.RContent, optional = false, multiple = false),
+                // Horrible abomination
+                SelectorSubQuery(".elementor-inner>.elementor-section:nth-child(3)", SubqueryRole.RNavigation, optional = true, multiple = false),
+                SelectorSubQuery("#innerbody>div>p>span[style*='color: #ffffff'],.elementor-text-editor div>p>span[style*='color: #ffffff'],.lazyt-announcement", SubqueryRole.RBlacklist, optional = true, multiple = true)
+            )),
+            SelectorQuery(".post-content", host="lazytranslations.com", subQueries = listOf(
+                SelectorSubQuery(".entry-header h1.entry-title", SubqueryRole.RHeader, optional = false, multiple = false),
+                SelectorSubQuery(".entry-content", SubqueryRole.RContent, optional = false, multiple = false),
+                SelectorSubQuery(".lazyt-announcement", SubqueryRole.RBlacklist, optional = true, multiple = true),
+                SelectorSubQuery(".post-content figure.wp-block-image>a", SubqueryRole.RRealChapter, optional = true, multiple = false),
+                SelectorSubQuery(".post-content figure.wp-block-image>a>img", SubqueryRole.RProcess, optional = true, multiple = false,
+                    extraProcessing = listOf(
+                        SubQueryProcessingCommandInfo(SubQueryProcessingCommand.AddAttribute, "alt=my image")
+                    )
+                ),
+            )),
+
+            // Scrambled fonts
+            SelectorQuery("div.entry-content", host = "secondlifetranslations.com", subQueries = listOf(
+                SelectorSubQuery(".entry-header .entry-title", SubqueryRole.RHeader, optional = false, multiple = false),
+                SelectorSubQuery("div.entry-content", SubqueryRole.RContent, optional = true, multiple = false),
+            ), keepContentClasses = true, customCSS = """
+                @font-face {
+                    font-family: 'open_sansscrambled';
+                    src: url('https://secondlifetranslations.com/wp-content/plugins/slt-scramble-text/public/fonts/opensans-scrambled-webfont.eot');
+                    src: url('https://secondlifetranslations.com/wp-content/plugins/slt-scramble-text/public/fonts/opensans-scrambled-webfont.eot?#iefix') format('embedded-opentype'),
+                         url('https://secondlifetranslations.com/wp-content/plugins/slt-scramble-text/public/fonts/opensans-scrambled-webfont.woff2') format('woff2'),
+                         url('https://secondlifetranslations.com/wp-content/plugins/slt-scramble-text/public/fonts/opensans-scrambled-webfont.woff') format('woff'),
+                         url('https://secondlifetranslations.com/wp-content/plugins/slt-scramble-text/public/fonts/opensans-scrambled-webfont.ttf') format('truetype'),
+                         url('https://secondlifetranslations.com/wp-content/plugins/slt-scramble-text/public/fonts/opensans-scrambled-webfont.svg#open_sansscrambled') format('svg');
+                    font-weight: normal;
+                    font-style: normal;
+                }
+
+                span.scrmbl {
+                    font-family: 'open_sansscrambled' !important;
+                }
+
+                span.scrmbl .scrmbl-ent {
+                    font-family: "Open Sans", sans-serif !important;
+                }
+
+                .scrmbl-ent {
+                    visibility:hidden;
+                }
+
+                .scrmbl-disclaimer {
+                    color: transparent;
+                    height:1px;
+                    margin:0;
+                    padding:0;
+                    overflow:hidden;
+                }
+            """.trimIndent()),
+
+            SelectorQuery(".reading-content", host="dragontea.ink", subQueries = listOf(
+                SelectorSubQuery("#chapter-heading", SubqueryRole.RHeader, optional = false, multiple = false),
+                SelectorSubQuery(".reading-content", SubqueryRole.RContent, optional = true, multiple = false),
+            ), customCSS = """
+                @font-face {
+                  font-family: 'DragonTea';
+                  src: url(https://dragontea.ink/wp-content/themes/madara-child/font/DragonTea-Regular.eot);
+                  src: url(https://dragontea.ink/wp-content/themes/madara-child/font/DragonTea-Regular.eot?#iefix) format('embedded-opentype'), url(//dragontea.ink/wp-content/themes/madara-child/font/DragonTea-Regular.woff2) format('woff2'), url(//dragontea.ink/wp-content/themes/madara-child/font/DragonTea-Regular.woff) format('woff'), url(//dragontea.ink/wp-content/themes/madara-child/font/DragonTea-Regular.ttf) format('truetype'), url(//dragontea.ink/wp-content/themes/madara-child/font/DragonTea-Regular.svg#DragonTea-Regular) format('svg');
+                  font-weight: normal;
+                  font-style: normal;
+                  font-display: swap!important;
+                }
+                div[data-role=RContent] {
+                    font-family: 'DragonTea'!important;
+                }
+            """.trimIndent()),
 
             // Github, DIY Translations as an example
             SelectorQuery("div#readme", host = "github.com"),
