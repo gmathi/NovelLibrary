@@ -198,7 +198,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                             runBlocking {
                                 GlobalScope.launch {
                                     try {
-                                        dbHelper.resetNovel(novel)
+                                        this@LibraryFragment.resetNovel(novel)
                                     } catch (e: Exception) {
                                         Logs.error("LibraryFragment", "resetNovel: $novel", e)
                                     }
@@ -526,14 +526,14 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     @SuppressLint("NotifyDataSetChanged")
     override fun onItemDismiss(viewHolderPosition: Int) {
-        activity?.let {
-            MaterialDialog(it).show {
+        activity?.let { fragmentActivity ->
+            MaterialDialog(fragmentActivity).show {
                 title(R.string.confirm_remove)
                 message(R.string.confirm_remove_description_novel)
                 positiveButton(R.string.remove) { dialog ->
                     this@LibraryFragment.run {
                         val novel = adapter.items[viewHolderPosition]
-                        Utils.deleteNovel(it, novel)
+                        this@LibraryFragment.deleteNovel(novel, fragmentActivity)
                         setData()
                         dialog.dismiss()
                     }
@@ -559,6 +559,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             }
     }
 
+    @SuppressLint("CheckResult")
     private fun showNovelSectionsList(novels: ArrayList<Novel>) {
         val isMultiNovelUpdate = novels.size > 1
         val novelSections = ArrayList(dbHelper.getAllNovelSections())
@@ -648,8 +649,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             R.id.action_novel_remove -> {
                 confirmDialog(getString(R.string.remove_novels), {
                     val novels = ArrayList(dataSet)
-                    withSnackBarStatus(novels, "Deleting") { novel ->
-                        dbHelper.cleanupNovelData(novel)
+                    withSnackBarStatus(novels, "Deleting", shouldRefetchNovels = true) { novel ->
+                        this@LibraryFragment.deleteNovel(novel)
                     }
                 })
             }
@@ -657,10 +658,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 confirmDialog(getString(R.string.reset_novel), {
                     if (networkHelper.isConnectedToNetwork()) {
                         val novels = ArrayList(dataSet)
-                        withSnackBarStatus(novels, "Resetting") { novel ->
-                            dbHelper.resetNovel(novel)
+                        withSnackBarStatus(novels, "Resetting", shouldRefetchNovels = true) { novel ->
+                            this@LibraryFragment.resetNovel(novel)
                         }
-                        setData()
                     } else {
                         showAlertDialog(message = "You need to be connected to Internet to Hard Reset.")
                         mode?.finish()
@@ -777,7 +777,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     /**
      * Handy actionMode operations functions that wraps around updating the status for action being performed.
      */
-    private fun withSnackBarStatus(novels: ArrayList<Novel>, action: String = "", operation: suspend (novel: Novel) -> Unit) {
+    private fun withSnackBarStatus(novels: ArrayList<Novel>, action: String = "", shouldRefetchNovels: Boolean = false, operation: suspend (novel: Novel) -> Unit) {
         lifecycleScope.launch(Dispatchers.Main) {
             snackBarView(SnackBarStatus.Initialize)
             snackBarView(SnackBarStatus.MaxProgress, maxProgress = novels.size)
@@ -787,6 +787,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 withContext(Dispatchers.IO) { operation(novel) }
             }
             snackBarView(SnackBarStatus.Dismiss)
+            if (shouldRefetchNovels) setData()
         }
     }
 

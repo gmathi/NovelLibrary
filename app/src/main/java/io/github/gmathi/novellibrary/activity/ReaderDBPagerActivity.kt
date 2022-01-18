@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.activity
 
 
 import android.animation.ObjectAnimator
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Typeface
@@ -19,7 +20,6 @@ import android.widget.CompoundButton
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutParams.MATCH_PARENT
@@ -32,7 +32,6 @@ import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
 import com.afollestad.materialdialogs.list.checkItem
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
-import com.google.firebase.analytics.ktx.logEvent
 import com.yarolegovich.slidingrootnav.SlideGravity
 import com.yarolegovich.slidingrootnav.SlidingRootNav
 import com.yarolegovich.slidingrootnav.SlidingRootNavBuilder
@@ -52,7 +51,6 @@ import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.model.ui.DrawerItem
 import io.github.gmathi.novellibrary.model.ui.ReaderMenu
 import io.github.gmathi.novellibrary.model.ui.SimpleItem
-import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
 import io.github.gmathi.novellibrary.util.FAC
@@ -83,11 +81,9 @@ class ReaderDBPagerActivity :
         private const val JAVA_SCRIPT = 2
         private const val FONTS = 3
         private const val FONT_SIZE = 4
-        private const val REPORT_PAGE = 5
-        private const val OPEN_IN_BROWSER = 6
-        private const val SHARE_CHAPTER = 7
-        private const val MORE_SETTINGS = 8
-        private const val READ_ALOUD = 9
+        private const val OPEN_IN_BROWSER = 5
+        private const val MORE_SETTINGS = 6
+        private const val READ_ALOUD = 7
 
 
         private val FONT_MIME_TYPES = arrayOf(
@@ -167,16 +163,7 @@ class ReaderDBPagerActivity :
     }
 
     private fun updateBookmark(webPage: WebPage) {
-        firebaseAnalytics.logEvent(FAC.Event.READ_NOVEL) {
-            param(FAC.Param.NOVEL_NAME, novel.name)
-            param(FAC.Param.NOVEL_URL, novel.url)
-        }
-        dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, webPage.url)
-        NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, webPage) }
-        val webPageSettings = dbHelper.getWebPageSettings(webPage.url)
-        if (webPageSettings != null) {
-            dbHelper.updateWebPageSettingsReadStatus(webPageSettings, markRead = true)
-        }
+        updateNovelBookmark(novel, webPage)
     }
 
     @Suppress("DEPRECATION")
@@ -241,24 +228,24 @@ class ReaderDBPagerActivity :
         val webView = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as WebPageDBFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
         return when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
-                if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
+                if (action == KeyEvent.ACTION_DOWN && dataCenter.enableVolumeScroll) {
                     val anim = ObjectAnimator.ofInt(
                         webView, "scrollY", webView?.scrollY
-                            ?: 0, (webView?.scrollY ?: 0) - dataCenter.scrollLength * VOLUME_SCROLL_LENGTH_STEP
+                            ?: 0, (webView?.scrollY ?: 0) - dataCenter.volumeScrollLength * VOLUME_SCROLL_LENGTH_STEP
                     )
                     anim.setDuration(500).start()
                 }
-                dataCenter.volumeScroll
+                dataCenter.enableVolumeScroll
             }
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                if (action == KeyEvent.ACTION_DOWN && dataCenter.volumeScroll) {
+                if (action == KeyEvent.ACTION_DOWN && dataCenter.enableVolumeScroll) {
                     val anim = ObjectAnimator.ofInt(
                         webView, "scrollY", webView?.scrollY
-                            ?: 0, (webView?.scrollY ?: 0) + dataCenter.scrollLength * VOLUME_SCROLL_LENGTH_STEP
+                            ?: 0, (webView?.scrollY ?: 0) + dataCenter.volumeScrollLength * VOLUME_SCROLL_LENGTH_STEP
                     )
                     anim.setDuration(500).start()
                 }
-                dataCenter.volumeScroll
+                dataCenter.enableVolumeScroll
             }
             else -> super.dispatchKeyEvent(event)
         }
@@ -309,9 +296,7 @@ class ReaderDBPagerActivity :
                 createItemFor(JAVA_SCRIPT).setSwitchOn(true),
                 createItemFor(FONTS),
                 createItemFor(FONT_SIZE),
-                createItemFor(REPORT_PAGE),
                 createItemFor(OPEN_IN_BROWSER),
-                createItemFor(SHARE_CHAPTER),
                 createItemFor(MORE_SETTINGS),
                 createItemFor(READ_ALOUD)
 
@@ -367,9 +352,7 @@ class ReaderDBPagerActivity :
         when (position) {
             FONTS -> changeFontStyle()
             FONT_SIZE -> changeTextSize()
-            REPORT_PAGE -> reportPage()
             OPEN_IN_BROWSER -> inBrowser()
-            SHARE_CHAPTER -> share()
             MORE_SETTINGS -> startReaderSettingsActivity()
             READ_ALOUD -> {
                 if (dataCenter.readerMode) {
@@ -378,11 +361,8 @@ class ReaderDBPagerActivity :
                     val title = webPageDBFragment.doc?.title() ?: ""
                     val chapterIndex = (if (dataCenter.japSwipe) webPages.reversed() else webPages).indexOf(webPages[binding.viewPager.currentItem])
 
-                    startTTSService(audioText, title, novel.id, translatorSourceName, chapterIndex)
-                    firebaseAnalytics.logEvent(FAC.Event.LISTEN_NOVEL) {
-                        param(FAC.Param.NOVEL_NAME, novel.name)
-                        param(FAC.Param.NOVEL_URL, novel.url)
-                    }
+                    startTTSService(audioText, webPageDBFragment.linkedPages, title, novel.id, translatorSourceName, chapterIndex)
+                    firebaseAnalytics.logNovelEvent(FAC.Event.LISTEN_NOVEL, novel)
                     startTTSActivity()
                 } else {
                     showAlertDialog(title = "Read Aloud", message = "Only supported in Reader Mode!")
@@ -451,6 +431,7 @@ class ReaderDBPagerActivity :
         }
     }
 
+    @SuppressLint("CheckResult")
     private fun changeFontStyle() {
         if (AVAILABLE_FONTS.isEmpty())
             getAvailableFonts()
@@ -571,12 +552,7 @@ class ReaderDBPagerActivity :
 
     override fun onResume() {
         super.onResume()
-        novel.metadata[Constants.MetaDataKeys.LAST_READ_DATE] = Utils.getCurrentFormattedDate()
-        dbHelper.updateNovelMetaData(novel)
-        firebaseAnalytics.logEvent(FAC.Event.OPEN_NOVEL) {
-            param(FAC.Param.NOVEL_NAME, novel.name)
-            param(FAC.Param.NOVEL_URL, novel.url)
-        }
+        updateNovelLastRead(novel)
     }
 
 

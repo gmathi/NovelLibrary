@@ -8,4 +8,10 @@
         android:title="@string/open_reader"
         android:titleCondensed="@string/open_reader"
         app:showAsAction="ifRoom|withText" />
+    <item
+        android:id="@+id/action_open_settings"
+        android:icon="@drawable/ic_settings_white_vector"
+        android:title="@string/open_settings"
+        android:titleCondensed="@string/open_settings"
+        app:showAsAction="ifRoom|withText" />
 </menu>

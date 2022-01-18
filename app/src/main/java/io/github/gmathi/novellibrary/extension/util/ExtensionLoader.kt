@@ -11,7 +11,7 @@ import io.github.gmathi.novellibrary.extension.model.Extension
 import io.github.gmathi.novellibrary.extension.model.LoadResult
 import io.github.gmathi.novellibrary.model.source.CatalogueSource
 import io.github.gmathi.novellibrary.model.source.Source
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.lang.Hash
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking

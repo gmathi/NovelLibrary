@@ -117,7 +117,6 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
 
             } catch (e: Exception) {
-                e.printStackTrace()
                 if (isFragmentActive()) {
                     binding.progressLayout.showError(errorText = getString(R.string.connection_error), buttonText = getString(R.string.try_again)) {
                         binding.progressLayout.showLoading()

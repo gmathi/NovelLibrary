@@ -9,7 +9,7 @@ package io.github.gmathi.novellibrary.network.scratch
 //import android.webkit.WebViewClient
 //import androidx.annotation.RequiresApi
 //import io.github.gmathi.novellibrary.dataCenter
-//import io.github.gmathi.novellibrary.util.DataCenter
+//import io.github.gmathi.novellibrary.model.preferences.DataCenter
 //import io.github.gmathi.novellibrary.util.Logs
 //import io.github.gmathi.novellibrary.util.lang.launchUI
 //import io.github.gmathi.novellibrary.util.view.extensions.setDefaultSettings

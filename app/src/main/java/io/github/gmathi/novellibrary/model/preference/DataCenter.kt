@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.util
+package io.github.gmathi.novellibrary.model.preference
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -8,15 +8,22 @@ import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.other.SelectorQuery
+import io.github.gmathi.novellibrary.model.other.TTSFilter
+import io.github.gmathi.novellibrary.model.other.TTSFilterList
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.PREF_DOH_CLOUDFLARE
+import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.DEFAULT_FONT_PATH
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
+import io.github.gmathi.novellibrary.util.system.getJson
+import io.github.gmathi.novellibrary.util.system.putJson
 import java.io.File
 import java.util.*
 
 
 class DataCenter(context: Context) {
+
+
 
     companion object {
 
@@ -46,7 +53,7 @@ class DataCenter(context: Context) {
         private const val JAP_SWIPE = "japSwipe"
         private const val SHOW_READER_SCROLL = "showReaderScroll"
         private const val SHOW_CHAPTER_COMMENTS = "showChapterComments"
-        private const val VOLUME_SCROLL = "volumeScroll"
+        private const val ENABLE_VOLUME_SCROLL = "volumeScroll"
         private const val SCROLL_LENGTH = "scrollLength"
         private const val KEEP_SCREEN_ON = "keepScreenOn"
         private const val ENABLE_IMMERSIVE_MODE = "enableImmersiveMode"
@@ -66,6 +73,9 @@ class DataCenter(context: Context) {
         private const val CUSTOM_QUERY_LOOKUPS = "customQueryLookups"
         private const val SHOW_CHAPTERS_LEFT_BADGE = "showChaptersLeftBadge"
         private const val USER_SPECIFIED_SELECTOR_QUERIES = "userSpecifiedSelectorQueries"
+        private const val AUTO_SCROLL_LENGTH = "autoScrollLength"
+        private const val AUTO_SCROLL_INTERVAL = "autoScrollInterval"
+        private const val ENABLE_AUTO_SCROLL = "enableAutoScroll"
 
         //Backup
         private const val LAST_LOCAL_BACKUP_TIMESTAMP = "lastLocalBackupTimestamp"
@@ -109,6 +119,15 @@ class DataCenter(context: Context) {
     }
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+    val ttsPreferences = TTSPreferences(context, prefs)
+
+
+    fun internalGet(closure: SharedPreferences.()->Unit) = closure(prefs)
+    fun internalPut(closure: SharedPreferences.Editor.()->Unit) {
+        val editor = prefs.edit()
+        closure(editor)
+        editor.apply()
+    }
 
     fun loadNovelSearchHistory(): ArrayList<String> = Gson().fromJson(prefs.getString(SEARCH_HISTORY_LIST, "[]"), object : TypeToken<ArrayList<String>>() {}.type)
     fun saveNovelSearchHistory(history: ArrayList<String>) = prefs.edit().putString(SEARCH_HISTORY_LIST, Gson().toJson(history)).apply()
@@ -209,14 +228,13 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(SHOW_CHAPTER_COMMENTS, false)
         set(value) = prefs.edit().putBoolean(SHOW_CHAPTER_COMMENTS, value).apply()
 
-    var volumeScroll: Boolean
-        get() = prefs.getBoolean(VOLUME_SCROLL, true)
-        set(value) = prefs.edit().putBoolean(VOLUME_SCROLL, value).apply()
+    var enableVolumeScroll: Boolean
+        get() = prefs.getBoolean(ENABLE_VOLUME_SCROLL, true)
+        set(value) = prefs.edit().putBoolean(ENABLE_VOLUME_SCROLL, value).apply()
 
-    var scrollLength: Int
+    var volumeScrollLength: Int
         get() = prefs.getInt(SCROLL_LENGTH, Constants.VOLUME_SCROLL_LENGTH_DEFAULT)
         set(value) = prefs.edit().putInt(SCROLL_LENGTH, value).apply()
-
 
     var keepScreenOn: Boolean
         get() = prefs.getBoolean(KEEP_SCREEN_ON, true)
@@ -261,6 +279,10 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(DIRECTIONAL_LINKS, false)
         set(value) = prefs.edit().putBoolean(DIRECTIONAL_LINKS, value).apply()
 
+    var linkifyText: Boolean
+        get() = prefs.getBoolean("linkifyText", false)
+        set(value) = prefs.edit().putBoolean("linkifyText", value).apply()
+
     var isReaderModeButtonVisible: Boolean
         get() = prefs.getBoolean(READER_MODE_BUTTON_VISIBILITY, true)
         set(value) = prefs.edit().putBoolean(READER_MODE_BUTTON_VISIBILITY, value).apply()
@@ -293,7 +315,6 @@ class DataCenter(context: Context) {
         prefs.edit().putString(VERIFIED_HOSTS, Gson().toJson(hostNames)).apply()
         HostNames.hostNamesList = hostNames
     }
-
 
     //region CloudFlare - Not used anymore from here
 
@@ -369,7 +390,7 @@ class DataCenter(context: Context) {
 
     //endregion
 
-    //Backup
+    //region Backup
 
     var lastLocalBackupTimestamp: String
         get() = prefs.getString(LAST_LOCAL_BACKUP_TIMESTAMP, "N/A") ?: "N/A"
@@ -383,7 +404,9 @@ class DataCenter(context: Context) {
         get() = prefs.getString(LAST_BACKUP_SIZE, "N/A") ?: "N/A"
         set(value) = prefs.edit().putString(LAST_BACKUP_SIZE, value).apply()
 
-    //Google Settings
+    //endregion
+
+    //region Google Settings
     var gdBackupInterval: String
         get() = prefs.getString(GD_BACKUP_INTERVAL, "Never") ?: "Never"
         set(value) = prefs.edit().putString(GD_BACKUP_INTERVAL, value).apply()
@@ -396,6 +419,7 @@ class DataCenter(context: Context) {
         get() = prefs.getString(GD_INTERNET_TYPE, "WiFi or cellular") ?: "WiFi or cellular"
         set(value) = prefs.edit().putString(GD_INTERNET_TYPE, value).apply()
 
+    //endregion
 
     var dayModeBackgroundColor: Int
         get() = prefs.getInt(DAY_MODE_BACKGROUND_COLOR, Color.WHITE)
@@ -456,4 +480,15 @@ class DataCenter(context: Context) {
     fun isSourceEnabled(sourceKey: String): Boolean = prefs.getBoolean(sourceKey, true)
     fun enableSource(sourceKey: String, enable: Boolean) = prefs.edit().putBoolean(sourceKey, enable).apply()
 
+    var enableAutoScroll: Boolean
+        get() = prefs.getBoolean(ENABLE_AUTO_SCROLL, true)
+        set(value) = prefs.edit().putBoolean(ENABLE_AUTO_SCROLL, value).apply()
+
+    var autoScrollLength: Int
+        get() = prefs.getInt(AUTO_SCROLL_LENGTH, Constants.AUTO_SCROLL_LENGTH_DEFAULT)
+        set(value) = prefs.edit().putInt(AUTO_SCROLL_LENGTH, value).apply()
+
+    var autoScrollInterval: Int
+        get() = prefs.getInt(AUTO_SCROLL_INTERVAL, Constants.AUTO_SCROLL_INTERVAL_DEFAULT)
+        set(value) = prefs.edit().putInt(AUTO_SCROLL_INTERVAL, value).apply()
 }

@@ -4,7 +4,7 @@ import android.webkit.CookieManager
 import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.model.LazyHeaders
 import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import uy.kohesive.injekt.injectLazy
 import java.net.URL
 import kotlin.math.floor

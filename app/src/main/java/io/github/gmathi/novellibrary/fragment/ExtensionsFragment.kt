@@ -107,9 +107,10 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
             lang.text = LocaleHelper.getSourceDisplayName(extension.lang, itemView.context)
             warning.text = when {
                 extension is Extension.Untrusted -> itemView.context.getString(R.string.ext_untrusted)
-                extension is Extension.Installed && extension.isObsolete -> itemView.context.getString(R.string.ext_obsolete)
-                extension is Extension.Installed && extension.isUnofficial -> itemView.context.getString(R.string.ext_unofficial)
+                extension is Extension.Installed && extension.isObsolete -> "${itemView.context.getString(R.string.ext_installed)}: ${itemView.context.getString(R.string.ext_obsolete)}"
+                extension is Extension.Installed && extension.isUnofficial -> "${itemView.context.getString(R.string.ext_installed)}: ${itemView.context.getString(R.string.ext_unofficial)}"
                 extension.isNsfw && dataCenter.showNSFWSource -> itemView.context.getString(R.string.ext_nsfw_short)
+                extension.isNsfw && dataCenter.showNSFWSource && extension is Extension.Installed -> "${itemView.context.getString(R.string.ext_installed)}: ${itemView.context.getString(R.string.ext_nsfw_short)}"
                 else -> ""
             }.toUpperCase(Locale.getDefault())
 
@@ -123,11 +124,11 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
                     }
                     is Extension.Installed -> {
                         //Do Nothing
-//                    if (!extension.hasUpdate) {
-//                        //openDetails(extension)
-//                    } else {
-//                        //presenter.updateExtension(extension)
-//                    }
+                        if (!extension.hasUpdate) {
+                            extensionManager.uninstallExtension(extension.pkgName)
+                        } else {
+                            extensionManager.updateExtension(extension).subscribeToInstallUpdate(extension)
+                        }
                     }
                 }
             }
@@ -153,7 +154,7 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
                     InstallStep.Pending -> R.string.ext_pending
                     InstallStep.Downloading -> R.string.ext_downloading
                     InstallStep.Installing -> R.string.ext_installing
-                    InstallStep.Installed -> R.string.ext_installed
+                    InstallStep.Installed -> R.string.ext_uninstall
                     InstallStep.Error -> R.string.try_again
                 }
             )
@@ -167,7 +168,7 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
                     setText(R.string.ext_update)
                 }
                 else -> {
-                    setText(R.string.ext_installed)
+                    setText(R.string.ext_uninstall)
                 }
             }
         } else if (extension is Extension.Untrusted) {

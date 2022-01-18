@@ -53,9 +53,11 @@
     <string-array name="settings_list" translatable="false">
         <item>@string/general</item>
         <item>@string/reader</item>
+        <item>@string/title_read_aloud</item>
         <item>@string/mentions</item>
         <item>@string/sync</item>
         <item>@string/donate_developer</item>
+<!--        <item>@string/check_for_updates</item>-->
         <item>@string/about_us</item>
         <!--        <item>@string/cloud_flare_check</item>-->
     </string-array>
@@ -112,6 +114,7 @@
         <item>@string/change_language</item>
         <item>@string/scrolling_text</item>
         <item>@string/show_chapters_left_badge</item>
+        <item>@string/dns_over_https</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
@@ -122,6 +125,13 @@
         <item>@string/locale_system_default</item>
         <item>@string/scrolling_text_description</item>
         <item>@string/show_chapters_left_badge_description</item>
+        <item>@string/dns_over_https_description</item>
+    </string-array>
+
+    <string-array name="dns_over_https_list" translatable="false">
+        <item>@string/dns_none</item>
+        <item>@string/dns_cloudflare</item>
+        <item>@string/dns_google</item>
     </string-array>
 
     <string-array name="backup_and_restore_titles_list" translatable="false">
@@ -138,60 +148,15 @@
         <item>@string/backup_frequency_description</item>
     </string-array>
 
-
-    <string-array name="reader_titles_list" translatable="false">
-        <item>@string/reader_mode</item>
-        <item>@string/disable_javascript</item>
-        <item>@string/reader_mode_colors</item>
-        <item>@string/swipe_right_for_next_chapter</item>
-        <item>@string/show_reader_scroll</item>
-        <item>@string/show_comments_section</item>
-        <item>@string/volume_scroll</item>
-        <item>@string/volume_scroll_length</item>
-        <item>@string/keep_screen_on</item>
-        <item>@string/immersive_mode</item>
-        <item>@string/show_navbar_at_chapter_end</item>
-        <item>@string/merge_pages</item>
-        <item>@string/directional_links</item>
-        <item>@string/reader_mode_button_visibility</item>
-        <item>@string/keep_text_color</item>
-        <item>@string/alternative_text_colors</item>
-        <item>@string/limit_image_width</item>
-        <item>@string/auto_read_next_chapter</item>
-        <item>@string/custom_query_lookups</item>
-    </string-array>
-
-    <string-array name="reader_subtitles_list" translatable="false">
-        <item>@string/reader_mode_description</item>
-        <item>@string/disable_javascript_description</item>
-        <item>@string/reader_mode_colors_description</item>
-        <item>@string/swipe_right_for_next_chapter_description</item>
-        <item>@string/show_reader_scroll_description</item>
-        <item>@string/show_comments_section_description</item>
-        <item>@string/volume_scroll_description</item>
-        <item>@string/volume_scroll_length_description</item>
-        <item>@string/keep_screen_on_description</item>
-        <item>@string/immersive_mode_description</item>
-        <item>@string/show_navbar_at_chapter_end_description</item>
-        <item>@string/merge_pages_description</item>
-        <item>@string/directional_links_description</item>
-        <item>@string/reader_mode_button_visibility_description</item>
-        <item>@string/keep_text_color_description</item>
-        <item>@string/alternative_text_colors_description</item>
-        <item>@string/limit_image_width_description</item>
-        <item>@string/auto_read_next_chapter_description</item>
-        <item>@string/custom_query_lookups_description</item>
-    </string-array>
-
     <string-array name="reader_mode_menu_titles_list" translatable="false">
         <item>@string/title_reader</item>
         <item>@string/title_night</item>
         <item>@string/title_java_script</item>
         <item>@string/title_fonts</item>
         <item>@string/title_fonts_size</item>
-        <item>@string/title_report_page</item>
+<!--        <item>@string/title_report_page</item>-->
         <item>@string/title_open_in_browser</item>
-        <item>@string/title_share_chapter</item>
+<!--        <item>@string/title_share_chapter</item>-->
         <item>@string/title_more_settings</item>
         <item>@string/title_read_aloud</item>
     </string-array>
@@ -269,6 +234,7 @@
     <string name="title_activity_chapter_downloads" translatable="false">ChapterDownloadsActivity</string>
     <string name="title_activity_web_view" translatable="false">@string/app_name</string>
     <string name="title_activity_google_backup" translatable="false">Google Backup Settings</string>
+    <string name="title_activity_tts_settings" translatable="false">Read Aloud Settings</string>
 
 
     <string name="title_activity_language" translatable="false">LanguageActivity</string>
@@ -469,7 +435,7 @@
     <string name="restore">Restore</string>
     <string name="import_reading_list">Import Reading List</string>
     <string name="nu_reading_list_url">NU Reading List URL</string>
-    <string name="volume_scroll">Scroll With Volume Buttons</string>
+    <string name="volume_scroll">Scroll Using Volume Buttons</string>
     <string name="volume_scroll_description">Use Volume button to scroll up/down while reading</string>
     <string name="keep_screen_on">Keep Screen On</string>
     <string name="keep_screen_on_description">Keeps the screen on while you are reading</string>
@@ -563,6 +529,7 @@
     <string name="text_to_speech_controls">TTS Controls</string>
     <string name="text_to_speech_inactive">TTS Service is not active.\nStart the TTS playback trough the chapter view first!</string>
     <string name="open_reader">Open reader</string>
+    <string name="open_settings">Open settings</string>
 
     <!-- v0.9 Strings -->
 
@@ -579,8 +546,8 @@
     <string name="locale_Tagalog">Tagalog</string>
     <string name="locale_latin">Latin</string>
     <string name="locale_pirate">Pirate</string>
-    <string name="volume_scroll_length">Scroll Distance</string>
     <string name="volume_scroll_length_description">Change the distance to scroll when using volume keys</string>
+    <string name="volume_scroll_length_template" translatable="false">%1$s %2$d</string>
     <string name="reverse">Reverse</string>
     <string name="about_us_content">This project is an open-source project being developed with love for the novel reading community. If you would like to help out you can get in touch with us in discord!</string>
     <string name="bug_report_content">Please use discord to report a bug.%1$s</string>
@@ -632,8 +599,6 @@
     <string name="hex_color">Hex: #%1$s</string>
     <string name="scrolling_text">Scrolling Text</string>
     <string name="scrolling_text_description">Enable scrolling text on novel titles and other items where text is too large to fit on the screen</string>
-    <string name="auto_read_next_chapter">Auto Read Next Chapter</string>
-    <string name="auto_read_next_chapter_description">Automatically read the next chapter when the current chapter finishes in Read Aloud mode</string>
 
     <!-- 0.15.5-->
     <string name="reset_novel">Hard Reset Novel</string>
@@ -706,14 +671,16 @@
         The badge being red will still mean that there\'s a new chapter.
     </string>
 
+    <string name="dns_over_https">DNS over HTTPS provider</string>
+    <string name="dns_over_https_description">Select which DNS provider to use for network requests.</string>
+    <string name="dns_cloudflare">CloudFlare 1.1.1.1</string>
+    <string name="dns_google">Google DNS</string>
+    <string name="dns_none">None (use your network DNS)</string>
+
     <string name="sync_done_fetching_chapters">Remaining Novels to check: %2$d\nCompleted checking: %1$s</string>
     <string name="sync_done_updating_chapters">Remaining Novels to update: %2$d\nCompleted updating: %1$s</string>
 
-    <string name="connection_error_cloudflare">
-        This error is due to cloudflare. Try NovelSync in Settings.
-        If that doesn\'t help, try a VPN connection.
-        Join discord, if you need any assistance.
-    </string>
+    <string name="connection_error_cloudflare">This error is due to cloudflare. Try NovelSync in Settings.\nIf that doesn\'t help, try a VPN connection.\nJoin discord, if you need any assistance.</string>
 
     <!-- Notification channels -->
     <string name="channel_common">Common</string>
@@ -769,4 +736,61 @@
     <string name="reset_novels">Do you want to hard reset selected novels?</string>
     <string name="importing">Importing: %1$s</string>
 
+    <string name="reader_mode_scroll">Scroll Behaviour</string>
+    <string name="reader_mode_scroll_description">Change the scroll length, auto scroll - on/off &amp; interval, volume button to scroll options.</string>
+    <string name="volume_scroll_length">Volume Scroll Distance</string>
+
+    <string name="auto_scroll">Automatic Scroll</string>
+    <string name="auto_scroll_description">Automatically scrolls the reader view based on the scroll distance and the interval set below</string>
+    <string name="auto_scroll_length">Automatic Scroll Distance</string>
+    <string name="auto_scroll_length_description">Change the distance to scroll when using auto scroll is enabled</string>
+    <string name="auto_scroll_interval">Automatic Scroll Interval</string>
+    <string name="auto_scroll_inteval_description">Change the interval in seconds for which the scroll happens</string>
+
+    <!-- TTS settings -->
+    <string name="tts_merge_buffer_chapters">Merge All Links To Single Page</string>
+    <string name="tts_merge_buffer_chapters_description">Merges all the web pages in to a single web page, so that Read Aloud won\'t miss chapters behind announcement pages</string>
+    <string name="tts_pitch">Pitch</string>
+    <string name="tts_pitch_description">Set the Read Aloud synthesis pitch offset</string>
+    <string name="tts_rate">Speech rate</string>
+    <string name="tts_rate_description">Set the Read Aloud synthesis speech rate</string>
+    <string name="tts_filters">Processing filters</string>
+    <string name="tts_filters_description">Add extra text processing filters to Read Aloud</string>
+    <string name="tts_update_filters">Update filter cache</string>
+    <string name="tts_update_filters_description">Download new versions of processing filters and update the cache.</string>
+    <string name="tts_updating_filters">Updating filter cache…</string>
+    <string name="tts_need_connection_for_filters">You need an active internet connection to update the filter cache!</string>
+    <string name="auto_read_next_chapter">Auto Read Next Chapter</string>
+    <string name="auto_read_next_chapter_description">Automatically read the next chapter when the current chapter finishes in Read Aloud mode</string>
+    <string name="tts_mark_chapters_read">Mark chapters as read</string>
+    <string name="tts_mark_chapters_read_description">After Read Aloud finish the chapter it would mark it as read</string>
+    <string name="tts_move_bookmark">Move bookmark</string>
+    <string name="tts_move_bookmark_description">When Read Aloud starts reading the chapter it would move the bookmark to that chapter</string>
+    <string name="tts_language">Read Aloud language</string>
+    <string name="tts_language_description">Select the language text to speech engine should talk with</string>
+    <string name="tts_language_default">Default (up to TTS engine)</string>
+    <string name="tts_strip_header">Strip chapter title</string>
+    <string name="tts_strip_header_description">Do not read out the chapter title (when possible)</string>
+    <string name="tts_chapter_change_sfx">Chapter change sound</string>
+    <string name="tts_chapter_change_sfx_description">Play a short sound effect when changing the chapters</string>
+    <string name="tts_discard_first_page">Discard original page</string>
+    <string name="tts_discard_first_page_description">Only works with link merging: Completely ignore content of the initial page if it contains buffer links. (For chapters behind "click here for actual chapter")</string>
+    <string name="tts_use_longest_page">Only read the page with most text</string>
+    <string name="tts_use_longest_page_description">Only works with link merging: When loading linked pages, only use the one that has the most text in it. Doesn\'t discard original page.</string>
+    <string name="scroll_current_into_view">Scroll current sentence into view</string>
+    <string name="cover">Cover</string>
+    <string name="auto_stop_timer">Auto-stop timer</string>
+    <string name="set_auto_stop_timer">Set timer (%02d:%02d)</string>
+    <string name="enable_timer">Timer enabled</string>
+    <string name="off">Off</string>
+    <string name="toggle_slider_number">Switch between slider/number inputs</string>
+    <string name="linked_pages">Linked pages in this chapter</string>
+    <string name="no_linked_pages">None!</string>
+    <string name="linkify_text">Convert text URL to clickable links</string>
+    <string name="linkify_text_description">Converts obvious urls (i.e. starting with http) to clickable links</string>
+    <string name="reload_chapter">Force reload chapter</string>
+
+
+
+    <string name="check_for_updates">Check For Update</string>
 </resources>

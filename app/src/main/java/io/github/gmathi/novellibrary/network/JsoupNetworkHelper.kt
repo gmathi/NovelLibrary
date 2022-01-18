@@ -3,7 +3,7 @@
 //import android.content.Context
 //import android.net.Uri
 //import android.webkit.CookieManager
-//import io.github.gmathi.novellibrary.util.DataCenter
+//import io.github.gmathi.novellibrary.model.preferences.DataCenter
 //import io.github.gmathi.novellibrary.util.lang.fixMalformedWithHost
 //import okhttp3.Request
 //import okio.Buffer

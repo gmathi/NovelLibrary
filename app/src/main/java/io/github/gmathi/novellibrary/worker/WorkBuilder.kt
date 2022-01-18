@@ -2,7 +2,7 @@ package io.github.gmathi.novellibrary.worker
 
 import android.net.Uri
 import androidx.work.*
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import uy.kohesive.injekt.injectLazy
 import java.util.concurrent.TimeUnit
 

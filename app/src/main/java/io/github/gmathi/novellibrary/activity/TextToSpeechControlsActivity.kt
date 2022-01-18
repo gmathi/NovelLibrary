@@ -1,130 +1,446 @@
 package io.github.gmathi.novellibrary.activity
 
+import android.app.TimePickerDialog
 import android.content.ComponentName
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.Context
+import android.media.AudioManager
 import android.os.Bundle
-import android.os.IBinder
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
+import android.os.Handler
+import android.os.Looper
+import android.os.ResultReceiver
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.PlaybackStateCompat
+import android.text.Spanned
+import android.util.Log
+import android.view.*
+import android.widget.Button
+import android.widget.TableRow
+import android.widget.TimePicker
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
+import androidx.core.view.children
+import androidx.core.widget.doAfterTextChanged
+import androidx.core.widget.doBeforeTextChanged
+import androidx.core.widget.doOnTextChanged
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.getWebPage
-import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.databinding.ActivityTextToSpeechControlsBinding
 import io.github.gmathi.novellibrary.databinding.ContentTextToSpeechControlsBinding
+import io.github.gmathi.novellibrary.databinding.FragmentTextToSpeechQuickSettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemSentenceBinding
 import io.github.gmathi.novellibrary.extensions.isPlaying
-import io.github.gmathi.novellibrary.network.sync.NovelSync
-import io.github.gmathi.novellibrary.service.tts.TTSEventListener
+import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.other.LinkedPage
 import io.github.gmathi.novellibrary.service.tts.TTSService
-import io.github.gmathi.novellibrary.util.lang.albumArt
+import io.github.gmathi.novellibrary.util.fromHumanPercentage
+import io.github.gmathi.novellibrary.util.lang.duration
+import io.github.gmathi.novellibrary.util.lang.getGlideUrl
+import io.github.gmathi.novellibrary.util.lang.trackNumber
 import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
+import io.github.gmathi.novellibrary.util.system.startTTSService
+import io.github.gmathi.novellibrary.util.system.startTTSSettingsActivity
+import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
+import io.github.gmathi.novellibrary.util.toHumanPercentage
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
-import io.github.gmathi.novellibrary.util.view.setDefaults
+import io.github.gmathi.novellibrary.util.view.setDefaultsNoAnimation
+import okhttp3.internal.format
+import kotlin.math.ceil
+import kotlin.math.round
 
-class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAdapter.Listener<String> {
+class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     companion object {
-        const val TAG = "TextToSpeechControlsActivity"
+        const val TAG = "NLTTS_Controls"
     }
 
     lateinit var binding: ActivityTextToSpeechControlsBinding
     lateinit var contentBinding: ContentTextToSpeechControlsBinding
-    var tts:TTSService? = null
+    lateinit var quickSettings: FragmentTextToSpeechQuickSettingsBinding
     var isServiceConnected = false
 
     lateinit var adapter: GenericAdapter<String>
     var lastSentence:Int = -1
+    var hasSentences = false
 
-    private val ttsConnection = object : ServiceConnection {
-        override fun onServiceConnected(className: ComponentName?, service: IBinder?) {
-            val binder = service as TTSService.TTSBinder
-            tts = binder.getInstance()
-            tts?.eventListener = this@TextToSpeechControlsActivity
-            isServiceConnected = true
-            contentBinding.ttsInactiveOverlay.visibility = View.GONE
-            setRecycleView()
-            setPlaybackState()
-        }
+    var novel: Novel? = null
+    var translatorSource: String? = null
+    var chapterIndex: Int = 0
+    var linkedPages = ArrayList<LinkedPage>()
+    private var linkedPageButtons:MutableMap<Int, String> = mutableMapOf()
 
-        override fun onServiceDisconnected(p0: ComponentName?) {
-            isServiceConnected = false
-            tts?.eventListener = null
-            contentBinding.ttsInactiveOverlay.visibility = View.VISIBLE
+    private var stopTimer: Long = 0L
+    private var lastMinutes: Long = 0L
+    lateinit var updateTimerRunnable: Runnable
+    private val updateTimerCallback = object : ResultReceiver(Handler(Looper.myLooper()!!)) {
+        override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {
+            quickSettings.autoStopTimerSwitch.isChecked = resultCode == 1
+            binding.root.removeCallbacks(updateTimerRunnable)
+            if (resultCode == 1) {
+                resultData?.getLong("time")?.let {
+                    stopTimer = it
+                    binding.root.postOnAnimation(updateTimerRunnable)
+                }
+                resultData?.getBoolean("active")?.let {
+                    if (it) {
+                        quickSettings.autoStopTimerSwitch.isChecked = true
+                    } else {
+                        quickSettings.autoStopTimerSwitch.isChecked = false
+                        quickSettings.autoStopTimerStatus.setText(R.string.off)
+                    }
+                }
+            } else {
+                quickSettings.autoStopTimerStatus.setText(R.string.off)
+            }
         }
     }
 
+    private lateinit var browser: MediaBrowserCompat
+    private val connCallback = object : MediaBrowserCompat.ConnectionCallback() {
+        override fun onConnected() {
+            isServiceConnected = true
+            browser.sessionToken.also { token ->
+                controller = MediaControllerCompat(this@TextToSpeechControlsActivity, token)
+                MediaControllerCompat.setMediaController(this@TextToSpeechControlsActivity, controller)
+            }
+
+            contentBinding.ttsInactiveOverlay.visibility = View.GONE
+            initController()
+        }
+
+        override fun onConnectionSuspended() {
+            isServiceConnected = false
+            controller?.unregisterCallback(ctrlCallback)
+            controller = null
+            contentBinding.ttsInactiveOverlay.visibility = View.VISIBLE
+        }
+    }
+    var controller: MediaControllerCompat? = null
+    private val ctrlCallback = TTSController()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = ActivityTextToSpeechControlsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         contentBinding = binding.contentTextToSpeechControls
+        quickSettings = FragmentTextToSpeechQuickSettingsBinding.bind(binding.quickSettings.getHeaderView(0))
+
+        browser = MediaBrowserCompat(this, ComponentName(this, TTSService::class.java), connCallback, null)
+
+        // Enable marquee
+        contentBinding.ttsNovelChapter.isSelected = true
+        contentBinding.ttsNovelName.isSelected = true
 
         contentBinding.prevChapterButton.setOnClickListener {
-            if (isServiceConnected) tts?.chooseMediaControllerActions(TTSService.ACTION_PREVIOUS)
+            controller?.transportControls?.skipToPrevious()
         }
         contentBinding.nextChapterButton.setOnClickListener {
-            if (isServiceConnected) tts?.chooseMediaControllerActions(TTSService.ACTION_NEXT)
+            controller?.transportControls?.skipToNext()
         }
         contentBinding.prevSentenceButton.setOnClickListener {
-            if (isServiceConnected) tts?.chooseMediaControllerActions(TTSService.ACTION_PREV_SENTENCE)
+            controller?.transportControls?.rewind()
         }
         contentBinding.nextSentenceButton.setOnClickListener {
-            if (isServiceConnected) tts?.chooseMediaControllerActions(TTSService.ACTION_NEXT_SENTENCE)
+            controller?.transportControls?.fastForward()
         }
         contentBinding.playButton.setOnClickListener {
-            if (isServiceConnected) tts?.chooseMediaControllerActions(
-                if (tts?.mediaController?.playbackState?.isPlaying == true) TTSService.ACTION_PAUSE
-                else TTSService.ACTION_PLAY
-            )
+            if (controller?.playbackState?.state == PlaybackStateCompat.STATE_NONE) {
+                if (novel != null) {
+                    startTTSService(novel!!.id, translatorSource, chapterIndex)
+                }
+            } else if (controller?.playbackState?.isPlaying == true)
+                controller?.transportControls?.pause()
+            else
+                controller?.transportControls?.play()
         }
         contentBinding.scrollIntoViewButton.setOnClickListener {
-            contentBinding.sentencesView.smoothScrollToPosition(lastSentence)
+            scrollToPosition(lastSentence, true)
         }
+
+        //#region quick settings
+
+        quickSettings.pitch.run {
+            // TwoWaySeekBar can't handle 50...100 values
+            setAbsoluteMinMaxValue(0.0, (TTSService.PITCH_MAX - TTSService.PITCH_MIN).toHumanPercentage().toDouble())
+            setProgress((dataCenter.ttsPreferences.ttsPitch - TTSService.PITCH_MIN).toHumanPercentage().toDouble())
+
+            setOnSeekBarChangedListener { bar, value ->
+                val rounded = round(value / 10.0) * 10.0
+                dataCenter.ttsPreferences.ttsPitch = rounded.fromHumanPercentage().toFloat() + TTSService.PITCH_MIN
+                bar.setProgress(rounded)
+                controller?.sendCommand(TTSService.ACTION_UPDATE_SETTINGS, null, null)
+            }
+        }
+        quickSettings.speechRate.run {
+            setAbsoluteMinMaxValue(0.0, (TTSService.SPEECH_RATE_MAX - TTSService.SPEECH_RATE_MIN).toHumanPercentage().toDouble())
+            setProgress((dataCenter.ttsPreferences.ttsPitch - TTSService.SPEECH_RATE_MIN).toHumanPercentage().toDouble())
+
+            setOnSeekBarChangedListener { bar, value ->
+                val rounded = round(value / 10.0) * 10.0
+                dataCenter.ttsPreferences.ttsPitch = rounded.fromHumanPercentage().toFloat() + TTSService.SPEECH_RATE_MIN
+                bar.setProgress(rounded)
+                controller?.sendCommand(TTSService.ACTION_UPDATE_SETTINGS, null, null)
+            }
+        }
+
+        quickSettings.autoReadNextChapter.run {
+            isChecked = dataCenter.readAloudNextChapter
+            setOnCheckedChangeListener { _, b -> dataCenter.readAloudNextChapter = b }
+        }
+
+        quickSettings.moveBookmark.run {
+            isChecked = dataCenter.ttsPreferences.ttsMoveBookmark
+            setOnCheckedChangeListener { _, b -> dataCenter.ttsPreferences.ttsMoveBookmark = b }
+        }
+
+        quickSettings.markRead.run {
+            isChecked = dataCenter.ttsPreferences.ttsMarkChaptersRead
+            setOnCheckedChangeListener { _, b -> dataCenter.ttsPreferences.ttsMarkChaptersRead = b }
+        }
+
+        quickSettings.mergeChapters.run {
+            isChecked = dataCenter.ttsPreferences.ttsMergeBufferChapters
+            setOnCheckedChangeListener { _, b -> dataCenter.ttsPreferences.ttsMergeBufferChapters = b }
+        }
+
+        quickSettings.discardBufferPage.run {
+            isChecked = dataCenter.ttsPreferences.ttsDiscardInitialBufferPage
+            setOnCheckedChangeListener { _, b -> dataCenter.ttsPreferences.ttsDiscardInitialBufferPage = b }
+        }
+
+        quickSettings.useLongestPage.run {
+            isChecked = dataCenter.ttsPreferences.ttsUseLongestPage
+            setOnCheckedChangeListener { _, b -> dataCenter.ttsPreferences.ttsUseLongestPage = b }
+        }
+
+        quickSettings.reloadChapter.setOnClickListener {
+            controller?.sendCommand(TTSService.COMMAND_RELOAD_CHAPTER, null, null)
+            binding.root.closeDrawers()
+        }
+
+        quickSettings.openReader.setOnClickListener {
+            openReader()
+        }
+
+        quickSettings.openSettings.setOnClickListener {
+            startTTSSettingsActivity()
+            binding.root.closeDrawers()
+        }
+
+        quickSettings.autoStopTimerPick.setOnClickListener {
+            val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
+                dataCenter.ttsPreferences.ttsStopTimer = (hour * 60 + minute).toLong()
+                controller?.sendCommand(TTSService.COMMAND_UPDATE_TIMER, Bundle().apply {
+                    putBoolean("reset", true)
+                }, updateTimerCallback)
+                quickSettings.autoStopTimerPick.text = getString(R.string.set_auto_stop_timer, dataCenter.ttsPreferences.ttsStopTimer / 60, dataCenter.ttsPreferences.ttsStopTimer % 60)
+            }
+            TimePickerDialog(this, listener, (dataCenter.ttsPreferences.ttsStopTimer / 60).toInt(), (dataCenter.ttsPreferences.ttsStopTimer % 60).toInt(), true).show()
+        }
+        quickSettings.autoStopTimerPick.text = getString(R.string.set_auto_stop_timer, dataCenter.ttsPreferences.ttsStopTimer / 60, dataCenter.ttsPreferences.ttsStopTimer % 60)
+
+        quickSettings.autoStopTimerSwitch.setOnCheckedChangeListener { _, b ->
+            controller?.sendCommand(TTSService.COMMAND_UPDATE_TIMER, Bundle().apply {
+                putBoolean("active", b)
+            }, updateTimerCallback)
+        }
+
+        updateTimerRunnable = Runnable {
+            val minutes = ceil((stopTimer - System.currentTimeMillis()).toDouble() / 60000).toLong().coerceAtLeast(0)
+            if (lastMinutes != minutes) {
+                lastMinutes = minutes
+                quickSettings.autoStopTimerStatus.text = format("%d:%02d", minutes / 60, minutes % 60)
+            }
+            binding.root.postOnAnimation(updateTimerRunnable)
+        }
+        //#endregion
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 //        supportActionBar?.title = novel.name
     }
 
-    private fun setRecycleView() {
-        if (tts == null || !isServiceConnected) return
-        val tts = this.tts!!
-        adapter = GenericAdapter(tts.lines, layoutResId = R.layout.listitem_sentence, listener = this)
-        lastSentence = tts.lineNumber
-        contentBinding.sentencesView.setDefaults(adapter)
-        contentBinding.sentencesView.scrollTo(0, 0)
+    private fun populateSettings() {
+        quickSettings.pitch.setProgress((dataCenter.ttsPreferences.ttsPitch - TTSService.PITCH_MIN).toHumanPercentage().toDouble())
+        quickSettings.speechRate.setProgress((dataCenter.ttsPreferences.ttsSpeechRate - TTSService.SPEECH_RATE_MIN).toHumanPercentage().toDouble())
+        quickSettings.autoReadNextChapter.isChecked = dataCenter.readAloudNextChapter
+        quickSettings.moveBookmark.isChecked = dataCenter.ttsPreferences.ttsMoveBookmark
+        quickSettings.markRead.isChecked = dataCenter.ttsPreferences.ttsMarkChaptersRead
+        quickSettings.mergeChapters.isChecked = dataCenter.ttsPreferences.ttsMergeBufferChapters
+        refreshTimerState()
+    }
 
-        tts.mediaController.metadata?.let { metadata ->
+    private fun refreshTimerState() {
+        controller?.sendCommand(TTSService.COMMAND_UPDATE_TIMER, null, updateTimerCallback)
+    }
+
+    fun initController() {
+        controller?.registerCallback(ctrlCallback)
+        ctrlCallback.onMetadataChanged(controller?.metadata)
+        ctrlCallback.onPlaybackStateChanged(controller?.playbackState)
+        controller?.sendCommand(TTSService.COMMAND_REQUEST_SENTENCES, null, null)
+        controller?.sendCommand(TTSService.COMMAND_REQUEST_LINKED_PAGES, null, null)
+        refreshTimerState()
+    }
+
+    private inner class TTSController : MediaControllerCompat.Callback() {
+
+        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
+            super.onMetadataChanged(metadata)
+            if (metadata == null) return
+            val novelId = metadata.getLong(TTSService.NOVEL_ID)
+            if (novel?.id != novelId) {
+                novel = dbHelper.getNovel(novelId)
+                translatorSource = metadata.getString(TTSService.TRANSLATOR_SOURCE_NAME)
+                novel?.let { novel ->
+                    Glide.with(this@TextToSpeechControlsActivity)
+                        .load(novel.imageUrl?.getGlideUrl())
+                        .apply(RequestOptions.circleCropTransform())
+                        .into(contentBinding.ttsNovelCover)
+                }
+            }
+            chapterIndex = metadata.trackNumber.toInt() - 1
+
+            contentBinding.chapterProgress.max = (metadata.duration / 1000L).toInt()
+
             contentBinding.ttsNovelName.applyFont(assets).text = metadata.description.title
             contentBinding.ttsNovelChapter.applyFont(assets).text = metadata.description.subtitle
-            contentBinding.ttsNovelCover.setImageBitmap(metadata.albumArt)
         }
-        setProgress()
-    }
 
-    private fun setProgress() {
-        if (tts == null || !isServiceConnected) return
-        val tts = this.tts!!
-        contentBinding.chapterProgress.progress = tts.lineNumber
-        contentBinding.chapterProgress.max = tts.lines.count()
-    }
-
-    private fun setPlaybackState() {
-        if (tts?.mediaController?.playbackState?.isPlaying == true) {
-            contentBinding.playButton.let {
-                it.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_circle_pause_white))
-                it.contentDescription = getString(R.string.pause)
+        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
+            super.onPlaybackStateChanged(state)
+            if (state == null) return
+            val oldPosition = lastSentence
+            lastSentence = (state.position / 1000L).toInt()
+            contentBinding.chapterProgress.progress = lastSentence
+            if (oldPosition != lastSentence && hasSentences) {
+                updatePosition(oldPosition)
             }
+
+            var drawable = R.drawable.ic_play_arrow_white_vector
+            var label = getString(R.string.play)
+
+            when (state.state) {
+                PlaybackStateCompat.STATE_PLAYING -> {
+                    drawable = R.drawable.ic_pause_white_vector
+                    label = getString(R.string.pause)
+                }
+                PlaybackStateCompat.STATE_PAUSED -> {
+                }
+                PlaybackStateCompat.STATE_NONE -> {
+                    drawable = R.drawable.ic_stop_white_vector
+                }
+                PlaybackStateCompat.STATE_BUFFERING -> {
+                    drawable = R.drawable.ic_file_download_white_vector
+                    label = getString(R.string.loading)
+                }
+                else -> {}
+            }
+
+            contentBinding.playButton.let {
+                it.setImageDrawable(ContextCompat.getDrawable(this@TextToSpeechControlsActivity, drawable))
+                it.contentDescription = label
+            }
+
+            // Disable controls while buffering
+            if (contentBinding.playButton.isEnabled != (state.state != PlaybackStateCompat.STATE_BUFFERING)) {
+                contentBinding.playbackControls.children.forEach {
+                    it.isEnabled = !it.isEnabled
+                }
+            }
+
+        }
+
+        override fun onSessionEvent(event: String?, extras: Bundle?) {
+            super.onSessionEvent(event, extras)
+            if (extras == null) return
+            when (event) {
+                TTSService.EVENT_SENTENCE_LIST -> setRecycleView(extras)
+                TTSService.COMMAND_UPDATE_TIMER -> updateTimerCallback.send(if (extras.getBoolean("active")) 1 else 0, extras)
+                TTSService.EVENT_LINKED_PAGES -> updateLinkedPages(extras.getParcelableArrayList(TTSService.LINKED_PAGES)?:ArrayList())
+            }
+        }
+
+    }
+
+    private fun setRecycleView(extras: Bundle) {
+        val lines = extras.getStringArrayList(TTSService.KEY_SENTENCES) ?: ArrayList()
+        adapter = GenericAdapter(lines, layoutResId = R.layout.listitem_sentence, listener = this)
+        contentBinding.sentencesView.setDefaultsNoAnimation(adapter)
+        scrollToPosition(lastSentence, false)
+        hasSentences = true
+    }
+
+    private fun updateLinkedPages(pages: ArrayList<LinkedPage>) {
+        linkedPages = pages
+        linkedPageButtons = linkedPageButtons.filterTo(mutableMapOf()) { entry ->
+            if (pages.find { it.href == entry.value } == null) {
+                quickSettings.root.removeView(quickSettings.root.findViewById(entry.key))
+                false
+            } else true
+        }
+        val themeWrapper = ContextThemeWrapper(this@TextToSpeechControlsActivity, R.style.Widget_AppCompat_Button_Borderless_Colored)
+        pages.forEach { page ->
+            if (!linkedPageButtons.containsValue(page.href)) {
+                val row = TableRow(this@TextToSpeechControlsActivity)
+                val button = Button(themeWrapper)
+                row.addView(button)
+                row.id = View.generateViewId()
+                quickSettings.root.addView(row)
+                linkedPageButtons[row.id] = page.href
+                button.text = if (page.isMainContent) {
+                    page.label + " [!]"
+                } else {
+                    page.label
+                }
+                button.setOnClickListener {
+                    controller?.sendCommand(TTSService.COMMAND_LOAD_BUFFER_LINK, Bundle().apply { putString("href", page.href) }, null)
+                }
+            }
+        }
+        quickSettings.noLinkedPages.visibility = if (pages.size == 0) View.VISIBLE else View.GONE
+    }
+
+    private fun updatePosition(oldPosition: Int) {
+        val layout = (contentBinding.sentencesView.layoutManager as LinearLayoutManager)
+        val visibleStart = layout.findFirstCompletelyVisibleItemPosition()
+        val visibleEnd = layout.findLastCompletelyVisibleItemPosition()
+        val shouldAutoScroll = !layout.isSmoothScrolling && (oldPosition in visibleStart..visibleEnd || oldPosition == -1)
+
+        if (oldPosition != -1) adapter.notifyItemChanged(oldPosition)
+        adapter.notifyItemChanged(lastSentence)
+        // If previous sentence was within boundaries and we left visible boundaries - scroll to new sentence.
+        // If either of them are not satisfied - that means user scrolled away from the current sentence
+        // and we don't want to be annoying by forcefully scrolling him back
+        if (shouldAutoScroll && lastSentence !in visibleStart..visibleEnd) contentBinding.sentencesView.smoothScrollToPosition(lastSentence)
+
+        contentBinding.sentencesView.invalidate()
+    }
+
+    private fun scrollToPosition(position: Int, smooth: Boolean) {
+        val view = contentBinding.sentencesView
+        val layout = view.layoutManager as LinearLayoutManager
+        if (smooth) {
+            val scroller = CenterSmoothScroller(view.context)
+            scroller.targetPosition = position
+            layout.startSmoothScroll(scroller)
         } else {
-            contentBinding.playButton.let {
-                it.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_circle_play_white))
-                it.contentDescription = getString(R.string.play)
-            }
+            layout.scrollToPosition(position)
         }
+    }
+
+    class CenterSmoothScroller(context: Context) : LinearSmoothScroller(context) {
+
+        override fun calculateDtToFit(viewStart: Int, viewEnd: Int, boxStart: Int, boxEnd: Int, snapPreference: Int): Int {
+            return (boxStart + (boxEnd - boxStart) / 2) - (viewStart + (viewEnd - viewStart) / 2)
+        }
+
     }
 
     override fun bind(item: String, itemView: View, position: Int) {
@@ -138,22 +454,26 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
 
     override fun onItemClick(item: String, position: Int) {
         if (isServiceConnected) {
-            tts?.goToLine(position)
+            controller?.transportControls?.seekTo(position * 1000L)
         }
     }
 
     override fun onStart() {
         super.onStart()
-        Intent(this, TTSService::class.java).also { intent ->
-            bindService(intent, ttsConnection, 0)
-        }
+        browser.connect()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        volumeControlStream = AudioManager.STREAM_MUSIC
+        populateSettings()
+        //
     }
 
     override fun onStop() {
         super.onStop()
-        unbindService(ttsConnection)
-        tts?.eventListener = null
-        isServiceConnected = false
+        controller?.unregisterCallback(ctrlCallback)
+        browser.disconnect()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -165,40 +485,32 @@ class TextToSpeechControlsActivity : BaseActivity(), TTSEventListener, GenericAd
         when(item.itemId) {
             android.R.id.home -> finish()
             R.id.action_open_reader -> {
-                finishAfterTransition()
-                if (isServiceConnected) tts?.let { tts ->
-                    tts.novel?.let { novel ->
-                        dbHelper.getWebPage(novel.id, tts.translatorSourceName, tts.chapterIndex)?.let { chapter ->
-                            novel.currentChapterUrl = chapter.url
-                            dbHelper.updateNovel(novel)
-                            NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncBookmarks(it.host)) it.setBookmark(novel, chapter) }
-                            startReaderDBPagerActivity(novel, tts.translatorSourceName)
-                        }
-                    }
-                }
-
+                openReader()
+            }
+            R.id.action_open_settings -> {
+                binding.root.openDrawer(binding.quickSettings)
+                //startTTSSettingsActivity()
             }
         }
         return super.onOptionsItemSelected(item)
     }
 
-    override fun onReadingStart() {
-        setRecycleView()
-    }
+    private fun openReader(): Boolean {
+        if (controller?.metadata != null) {
+            val meta = controller!!.metadata
+            val novelId = meta.getLong(TTSService.NOVEL_ID)
+            val novel = dbHelper.getNovel(novelId) ?: return false
 
-    override fun onReadingStop() {
-    }
-
-    override fun onSentenceChange(sentenceIndex: Int) {
-        adapter.notifyItemChanged(lastSentence)
-        lastSentence = sentenceIndex
-        adapter.notifyItemChanged(sentenceIndex)
-        contentBinding.sentencesView.invalidate()
-        setProgress()
-    }
-
-    override fun onPlaybackStateChange() {
-        setPlaybackState()
+            var translator:String? = meta.getString(TTSService.TRANSLATOR_SOURCE_NAME)
+            if (translator == "") translator = null
+            dbHelper.getWebPage(novelId, translator, meta.getLong(TTSService.CHAPTER_INDEX).toInt())?.let { chapter ->
+                updateNovelBookmark(novel, chapter)
+                finishAfterTransition()
+                startReaderDBPagerActivity(novel, translator)
+                return true
+            }
+        }
+        return false
     }
 
 }

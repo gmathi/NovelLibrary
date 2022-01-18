@@ -111,7 +111,10 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 retryCounter = 0
             } catch (e: Exception) {
                 if (e.message?.contains(Exceptions.MISSING_SOURCE_ID) == true) {
-                    toast("Missing Novel Source Id. Please re-add the novel")
+                    contentBinding.progressLayout.showError(errorText = "Missing Novel Source Id.\nPlease re-add the novel.", buttonText = "Delete Novel") {
+                        deleteNovel()
+                        finish()
+                    }
                     return@launch
                 }
 
@@ -204,7 +207,12 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             @Suppress("DEPRECATION")
             contentBinding.novelDetailsAuthor.applyFont(assets).text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
                 Html.fromHtml(author, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(author)
+            return
         }
+        val authors = novel.authors?.joinToString {","} ?: return
+        contentBinding.novelDetailsAuthor.movementMethod = TextViewLinkHandler(this)
+        @Suppress("DEPRECATION")
+        contentBinding.novelDetailsAuthor.applyFont(assets).text = authors
     }
 
     @Suppress("DEPRECATION")
@@ -240,20 +248,9 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             resetAddToLibraryButton()
             contentBinding.novelDetailAddToLibraryButton.setOnClickListener {
                 disableAddToLibraryButton()
-                addNovelToDB()
+                addNewNovel(novel)
             }
         } else disableAddToLibraryButton()
-    }
-
-    private fun addNovelToDB() {
-        if (novel.id == -1L) {
-            novel.id = dbHelper.insertNovel(novel)
-            NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { if (dataCenter.getSyncAddNovels(it.host)) it.addNovel(novel, null) }
-            firebaseAnalytics.logEvent(FAC.Event.ADD_NOVEL) {
-                param(FAC.Param.NOVEL_NAME, novel.name)
-                param(FAC.Param.NOVEL_URL, novel.url)
-            }
-        }
     }
 
     private fun resetAddToLibraryButton() {
@@ -348,14 +345,9 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun deleteNovel() {
-        Utils.deleteNovel(this, novel)
-        novel.id = -1L
+        deleteNovel(novel)
         setNovelAddToLibraryButton()
         invalidateOptionsMenu()
-        firebaseAnalytics.logEvent(FAC.Event.REMOVE_NOVEL) {
-            param(FAC.Param.NOVEL_NAME, novel.name)
-            param(FAC.Param.NOVEL_URL, novel.url)
-        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

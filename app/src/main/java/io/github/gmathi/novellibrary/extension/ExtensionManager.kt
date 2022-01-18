@@ -13,7 +13,7 @@ import io.github.gmathi.novellibrary.extension.util.ExtensionLoader
 import io.github.gmathi.novellibrary.extension.util.getApplicationIcon
 import io.github.gmathi.novellibrary.model.source.Source
 import io.github.gmathi.novellibrary.model.source.SourceManager
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.lang.launchNow
 import io.github.gmathi.novellibrary.util.system.toast
 import kotlinx.coroutines.async

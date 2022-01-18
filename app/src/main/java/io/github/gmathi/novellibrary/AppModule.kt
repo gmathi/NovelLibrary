@@ -3,12 +3,14 @@ package io.github.gmathi.novellibrary
 import android.app.Application
 import android.os.Handler
 import android.os.Looper
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.extension.ExtensionManager
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import kotlinx.serialization.json.Json
 import uy.kohesive.injekt.api.*
 
@@ -22,6 +24,7 @@ class AppModule(val app: Application) : InjektModule {
 //        addSingletonFactory { JsoupNetworkHelper(app) }
         addSingletonFactory { SourceManager(app).also { get<ExtensionManager>().init(it) } }
         addSingletonFactory { ExtensionManager(app) }
+        addSingletonFactory { Firebase.analytics }
 
         addSingletonFactory { Gson() }
         addSingletonFactory { Json { ignoreUnknownKeys = true } }

@@ -27,18 +27,22 @@ import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.network.sync.NovelSync
+import io.github.gmathi.novellibrary.model.other.CompiledTTSFilter
+import io.github.gmathi.novellibrary.model.other.TTSFilterTarget
+import io.github.gmathi.novellibrary.model.other.TTSFilterType
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.lang.writableFileName
 import io.github.gmathi.novellibrary.util.storage.createFileIfNotExists
 import io.github.gmathi.novellibrary.util.storage.getOrCreateDirectory
 import io.github.gmathi.novellibrary.util.storage.getOrCreateFile
-import org.jsoup.Jsoup
-import org.jsoup.nodes.*
+import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
 import org.jsoup.safety.Cleaner
 import org.jsoup.safety.Whitelist
-import org.jsoup.select.NodeVisitor
 import uy.kohesive.injekt.injectLazy
 import java.io.*
+import java.net.MalformedURLException
+import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -88,10 +92,7 @@ object Utils {
         return novelDir
     }
 
-
-    fun deleteNovel(context: Context, novel: Novel?) {
-        if (novel == null) return
-
+    fun deleteDownloadedChapters(context: Context, novel: Novel) {
         //This is the old download data
         val hostDir = getHostDir(context, novel.url)
         val novelDir = getNovelDir(hostDir, novel.name)
@@ -100,16 +101,12 @@ object Utils {
         //This is the new folder structure
         val newNovelDir = getNovelDir(context, novel.name, novel.id)
         newNovelDir.deleteRecursively()
-
-        dbHelper.cleanupNovelData(novel)
-        NovelSync.getInstance(novel)?.applyAsync { if (dataCenter.getSyncDeleteNovels(it.host)) it.removeNovel(novel) }
-        broadcastNovelDelete(context, novel)
     }
 
-    private fun broadcastNovelDelete(context: Context, novel: Novel?) {
+    fun broadcastNovelDelete(context: Context, novel: Novel) {
         val localIntent = Intent()
         val extras = Bundle()
-        extras.putLong(Constants.NOVEL_ID, novel!!.id)
+        extras.putLong(Constants.NOVEL_ID, novel.id)
         localIntent.action = Constants.NOVEL_DELETED
         localIntent.putExtras(extras)
         localIntent.addCategory(Intent.CATEGORY_DEFAULT)
@@ -398,26 +395,63 @@ object Utils {
             content.select("[data-role=\"RHeader\"]").remove()
             content.select("[data-role=\"RFooter\"]").remove()
             content.select("[data-role=\"RNavigation\"]").remove()
+            content.select("select,input,button").remove()
             body.children().remove()
-            body.append(doc.title())
+            if (!dataCenter.ttsPreferences.ttsStripHeader) body.append(doc.title())
             content.forEach { body.appendChild(it) }
             doc.head().children().remove()
 //            doc.head().html("")
         }
+        doc.select("br").forEach {
+            it.after("\n")
+        }
+
+        val filters = dataCenter.ttsPreferences.ttsFilterList
+
+        filters.forEach {
+            if (it.type == TTSFilterType.Selector) {
+                doc.select(it.lookup).remove()
+            }
+        }
+
+        val textFilters = filters.filter { it.target == TTSFilterTarget.TextChunk }.map { it.compile(doc) }
+
+        applyFilters(doc.body(), filters.filter { it.target == TTSFilterTarget.Element }.map { it.compile(doc) })
         val cleaner = Cleaner(Whitelist.none())
         val cleanDoc = cleaner.clean(doc)
         cleanDoc.outputSettings(Document.OutputSettings().prettyPrint(false))
-        val text = cleanDoc.body().html()
+        var text = cleanDoc.body().html()
             // Replace no-break spaces with a regular space
             .replace("&nbsp;", " ")
+            .replace("&lt;", "<")
+            .replace("&gt;", ">")
+            .replace("&amp;", " and ")
+            .replace("&quot;", "\"")
+            .replace("&apos;", "'")
             // Perform a limited trim operation on excessive spacing, causing "     " to turn into just " " as well as changing \n\n\n\n into \n
-            .replace("""([\s ])+""".toRegex(RegexOption.MULTILINE)) { it.groups[0]?.value?:"" }
+            .replace("""([\s ])+""".toRegex(RegexOption.MULTILINE)) { it.groups[0]?.value ?: "" }
             // Shorten long repeating characters such as =====, -----, -=-=-=-=-, ***** or !!!!!!!!
-            .replace("""([=*#|+<>\-]{4,}|\.{4,}|!{4,}|\?{4,})""".toRegex()) { it.value.substring(0, 3)}
+            .replace("""((?>[◆◇＝_~=*#|+<>\-] ?){4,}|\.{4,}|!{4,}|\?{4,})""".toRegex()) { it.value.replace(" ", "").substring(0, 3) }
             .trim()
+
+        textFilters.forEach { filter ->
+            text = filter.apply(text)
+        }
 //        val htmlString: String = html()//.replace("\\\\n", "\n")
 //        return Jsoup.clean(htmlString, "", Whitelist.none(), Document.OutputSettings().prettyPrint(false)).replace("&nbsp", "")
         return text
+    }
+
+    private fun applyFilters(element: Element, filters: List<CompiledTTSFilter>) {
+        if (element.childrenSize() == 0 && element.hasText()) {
+            var text = element.ownText()
+            filters.forEach { filter -> text = filter.apply(text) }
+            element.text(text)
+        } else {
+            element.children().forEach {
+                applyFilters(it, filters)
+            }
+        }
     }
 
     fun copyErrorToClipboard(e: Exception, activity: AppCompatActivity) {
@@ -430,6 +464,31 @@ object Utils {
             message(text = "The error message has been copied to clipboard. Please paste it in discord #bugs channel.")
             lifecycleOwner(activity)
         }
+    }
+
+
+    @Throws(MalformedURLException::class)
+    fun replaceHostInUrl(originalUrl: String?, newHostName: String?): String? {
+        val url = originalUrl ?: return null
+        var newHost = newHostName ?: return null
+
+        val originalURL = URL(url)
+        val hostHasPort = newHostName.indexOf(":") != -1
+        var newPort: Int
+        if (hostHasPort) {
+            val hostURL = URL("http://$newHostName")
+            newHost = hostURL.host
+            newPort = hostURL.port
+        } else {
+            newPort = -1
+        }
+
+        // Use implicit port if it's a default port
+        val isHttps: Boolean = originalURL.protocol.equals("https")
+        val useDefaultPort = newPort == 443 && isHttps || newPort == 80 && !isHttps
+        newPort = if (useDefaultPort) -1 else newPort
+        val newURL = URL(originalURL.protocol, newHost, newPort, originalURL.file)
+        return newURL.toString()
     }
 
 }

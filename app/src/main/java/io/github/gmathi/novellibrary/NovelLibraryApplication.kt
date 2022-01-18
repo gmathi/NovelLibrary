@@ -20,7 +20,7 @@ import io.github.gmathi.novellibrary.model.other.SelectorQuery
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.MultiTrustManager
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.notification.Notifications
 import io.github.gmathi.novellibrary.util.lang.LocaleManager
@@ -135,11 +135,11 @@ open class NovelLibraryApplication : Application(), LifecycleObserver {
             val remoteConfig = FirebaseRemoteConfig.getInstance()
             remoteConfig.setConfigSettingsAsync(FirebaseRemoteConfigSettings.Builder().build())
             val defaults = HashMap<String, Any>()
-            defaults[Constants.RemoteConfig.SELECTOR_QUERIES] = "[]"
+            defaults[Constants.RemoteConfig.ADDITIVE_SELECTOR_QUERIES] = "[]"
             remoteConfig.setDefaultsAsync(defaults)
             remoteConfig.fetchAndActivate().addOnCompleteListener {
                 try {
-                    var selectorQueries = remoteConfig.getString(Constants.RemoteConfig.SELECTOR_QUERIES)
+                    var selectorQueries = remoteConfig.getString(Constants.RemoteConfig.ADDITIVE_SELECTOR_QUERIES)
                     if (selectorQueries.isBlank()) selectorQueries = "[]"
                     dataCenter.htmlCleanerSelectorQueries = Gson().fromJson(selectorQueries, object : TypeToken<ArrayList<SelectorQuery>>() {}.type)
                 } catch (e: Exception) {

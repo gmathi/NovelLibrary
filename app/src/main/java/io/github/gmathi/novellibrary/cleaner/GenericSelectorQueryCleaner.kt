@@ -1,11 +1,9 @@
 package io.github.gmathi.novellibrary.cleaner
 
-import io.github.gmathi.novellibrary.model.other.SelectorQuery
-import io.github.gmathi.novellibrary.model.other.SelectorSubQuery
-import io.github.gmathi.novellibrary.model.other.SubQueryProcessingCommand
-import io.github.gmathi.novellibrary.model.other.SubqueryRole
+import io.github.gmathi.novellibrary.model.other.*
 import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
 
 class GenericSelectorQueryCleaner(
@@ -13,6 +11,15 @@ class GenericSelectorQueryCleaner(
     override var keepContentStyle: Boolean = query.keepContentStyle, override var keepContentIds: Boolean = query.keepContentIds,
     override var keepContentClasses: Boolean = query.keepContentClasses
 ) : HtmlCleaner() {
+
+    companion object {
+        val DIRECTIONAL_LINKS = listOf(
+            "Previous Chapter", "Next Chapter", "[Previous Chapter]", "[Next Chapter]",
+            "Previous", "Next", "[Previous]", "[Next]",
+            "Project Page",
+            "Index", "Table of Contents", "TOC", "[Index]", "[Table of Contents]", "[TOC]"
+        )
+    }
 
     override fun additionalProcessing(doc: Document) {
 
@@ -117,6 +124,8 @@ class GenericSelectorQueryCleaner(
         }
 
         if (!dataCenter.enableDirectionalLinks) removeDirectionalLinks(constructedContent)
+        // TTS: Mark them to be ignored in order to avoid TTS reading out "Previous, TOC, Next" and such.
+        else markDirectionalLinks(constructedContent)
 
         if (!hasHeader && query.appendTitleHeader)
             constructedContent.first().prepend("<h4 data-role=\"${SubqueryRole.RHeader}\">${getTitle(doc)}</h4><br>")
@@ -129,6 +138,10 @@ class GenericSelectorQueryCleaner(
         body.children().remove()
         body.classNames().forEach { body.removeClass(it) }
         body.append(constructedContent.outerHtml())
+
+        // Linkification is applied after content processing in order to avoid unnecessary html tree traversal.
+        linkify(body)
+
         if (query.customCSS.isNotEmpty())
             body.append("<style>${query.customCSS}</style>");
 
@@ -211,28 +224,31 @@ class GenericSelectorQueryCleaner(
         }
     }
 
-    override fun getLinkedChapters(doc: Document): ArrayList<String> {
+    override fun getLinkedChapters(doc: Document): ArrayList<LinkedPage> {
         if (query.subQueries.isNotEmpty()) {
             return getLinkedChapters(doc.location(), doc.body().select(query.subQueries.first { it.role == SubqueryRole.RContent }.selector).firstOrNull())
         }
         return getLinkedChapters(doc.location(), doc.body().select(query.selector).firstOrNull())
     }
 
+    private fun isDirectionalLink(el: Element): Boolean {
+        val text = el.text()
+        return DIRECTIONAL_LINKS.any { text.equals(it, ignoreCase = true) }
+    }
+
+    private fun markDirectionalLinks(contentElement: Elements) {
+        contentElement.forEach { element ->
+            element.getElementsByTag("a")
+                ?.filter { isDirectionalLink(it) }
+                ?.forEach { it.attr("tts-disable", "true") }
+        }
+    }
+
     private fun removeDirectionalLinks(contentElement: Elements) {
         contentElement.forEach { element ->
-            element.getElementsByTag("a")?.filter {
-                it.text().equals("Previous Chapter", ignoreCase = true)
-                        || it.text().equals("Next Chapter", ignoreCase = true)
-                        || it.text().equals("Project Page", ignoreCase = true)
-                        || it.text().equals("Index", ignoreCase = true)
-                        || it.text().equals("[Previous Chapter]", ignoreCase = true)
-                        || it.text().equals("[Next Chapter]", ignoreCase = true)
-                        || it.text().equals("[Table of Contents]", ignoreCase = true)
-                        || it.text().equals("Next", ignoreCase = true)
-                        || it.text().equals("TOC", ignoreCase = true)
-                        || it.text().equals("Previous", ignoreCase = true)
-
-            }?.forEach { it?.remove() }
+            element.getElementsByTag("a")
+                ?.filter { isDirectionalLink(it) }
+                ?.forEach { it?.remove() }
         }
     }
 }

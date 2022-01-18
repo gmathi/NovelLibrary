@@ -3,13 +3,13 @@ package io.github.gmathi.novellibrary.cleaner
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
+import android.webkit.URLUtil
 import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
-import io.github.gmathi.novellibrary.model.other.SelectorQuery
-import io.github.gmathi.novellibrary.model.other.SelectorSubQuery
-import io.github.gmathi.novellibrary.model.other.SubqueryRole
+import io.github.gmathi.novellibrary.model.other.*
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
@@ -22,6 +22,7 @@ import org.jsoup.HttpStatusException
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import org.jsoup.parser.Tag
 import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.io.FileOutputStream
@@ -33,6 +34,16 @@ import java.net.SocketException
 open class HtmlCleaner protected constructor() {
 
     companion object {
+        // Usual text used for links leading to actual chapter text
+        private val genericMainContentUrlText = listOf(
+            "Enjoy", "Enjoy.", "Enjoy~",
+            "Click here to read the chapter",
+            "Click here for chapter",
+            "Read chapter",
+            "Read the chapter",
+            "Continue reading",
+        )
+
         // Fairly generic selectors for specific content types
         private const val genericCommentsSubquery = "#comments,.comments,#disqus_thread"
         private const val genericShareSubquery = ".sd-block,.sharedaddy"
@@ -593,10 +604,10 @@ open class HtmlCleaner protected constructor() {
         return doc
     }
 
-    open fun getLinkedChapters(doc: Document): ArrayList<String> = ArrayList()
+    open fun getLinkedChapters(doc: Document): ArrayList<LinkedPage> = ArrayList()
 
-    fun getLinkedChapters(sourceURL: String, contentElement: Element?): ArrayList<String> {
-        val links = ArrayList<String>()
+    fun getLinkedChapters(sourceURL: String, contentElement: Element?): ArrayList<LinkedPage> {
+        val links = ArrayList<LinkedPage>()
         val baseUrlDomain = sourceURL.toHttpUrlOrNull()?.topPrivateDomain()
         val otherLinks = contentElement?.select("a[href]")
         otherLinks?.forEach {
@@ -606,13 +617,23 @@ open class HtmlCleaner protected constructor() {
             }
 
             val linkedUrl = it.absUrl("href").split("#").first()
-            if (linkedUrl == sourceURL || links.contains(linkedUrl)) return@forEach
+            if (linkedUrl == sourceURL || links.find { l -> l.href == linkedUrl } != null) return@forEach
 
             try {
                 // Check if URL is from chapter provider, only download from same domain
                 val urlDomain = linkedUrl.toHttpUrlOrNull()?.topPrivateDomain()
                 if (urlDomain == baseUrlDomain) {
-                    links.add(linkedUrl)
+                    var text = it.text().trim()
+                    if (text.isEmpty()) {
+                        text = it.selectFirst("img")?.let { img ->
+                            if (img.hasAttr("title")) img.attr("title")
+                            else "(image url)"
+                        } ?: linkedUrl
+                    }
+                    val isMainContent = genericMainContentUrlText.find { cmp -> cmp.equals(text, true) } != null ||
+                            Regex("""Chapter \d+""", RegexOption.IGNORE_CASE).containsMatchIn(text) ||
+                            it.attr("data-role") == "RBuffer"
+                    links.add(LinkedPage(linkedUrl, text, isMainContent))
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -621,6 +642,26 @@ open class HtmlCleaner protected constructor() {
         return links
     }
 
+    fun linkify(element: Element) {
+        if (!dataCenter.linkifyText) return
+        val reg = Regex("""^\s*(https?://[^\s]+)(?:$|\s)""")
+        element.getElementsMatchingOwnText(reg.toPattern()).forEach { el ->
+            if (el.tagName() != "a" && el.parents().find { it.tagName() == "a" } == null) // Ensure we don't linkify what is already a link.
+            el.textNodes().forEach { node ->
+                val text = node.wholeText
+                reg.find(node.wholeText)?.let { result ->
+                    val group = result.groups[1]!!
+                    if (URLUtil.isValidUrl(group.value)) {
+                        node.text(text.removeRange(group.range))
+                        val anchor = Element(Tag.valueOf("a"), node.baseUri())
+                        anchor.attr("href", group.value)
+                        anchor.text(group.value)
+                        node.before(anchor)
+                    }
+                }
+            }
+        }
+    }
 
     private fun processColorComponent(comp: String): Double {
         if (comp.endsWith("%")) return comp.substring(0, comp.length - 1).toDouble() / 100.0

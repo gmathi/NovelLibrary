@@ -1,7 +1,7 @@
 package io.github.gmathi.novellibrary.util.network
 
 import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import okhttp3.Call
 import okhttp3.Response
 import uy.kohesive.injekt.injectLazy

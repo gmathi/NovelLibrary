@@ -2,507 +2,548 @@ package io.github.gmathi.novellibrary.service.tts
 
 import android.annotation.SuppressLint
 import android.app.PendingIntent
-import android.app.Service
-import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
+import android.content.*
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
 import android.os.*
-import android.speech.tts.TextToSpeech
-import android.speech.tts.UtteranceProgressListener
-import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
-import android.widget.Toast
 import androidx.core.app.NotificationManagerCompat
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
+import androidx.media.MediaBrowserServiceCompat
+import androidx.media.session.MediaButtonReceiver
+import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.activity.ReaderDBPagerActivity
 import io.github.gmathi.novellibrary.activity.TextToSpeechControlsActivity
-import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
+import io.github.gmathi.novellibrary.activity.settings.TTSSettingsActivity
 import io.github.gmathi.novellibrary.database.*
-import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.model.database.WebPageSettings
-import io.github.gmathi.novellibrary.network.GET
-import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.extensions.isPlaying
 import io.github.gmathi.novellibrary.service.tts.TTSNotificationBuilder.Companion.TTS_NOTIFICATION_ID
-import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
-import io.github.gmathi.novellibrary.util.DataCenter
-import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.Utils.getFormattedText
-import io.github.gmathi.novellibrary.util.lang.albumArt
-import io.github.gmathi.novellibrary.util.lang.displaySubtitle
-import io.github.gmathi.novellibrary.util.lang.displayTitle
-import io.github.gmathi.novellibrary.util.lang.getGlideUrl
-import io.github.gmathi.novellibrary.util.network.asJsoup
-import io.github.gmathi.novellibrary.util.network.safeExecute
+import io.github.gmathi.novellibrary.util.lang.*
+import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import kotlinx.coroutines.*
-import okhttp3.OkHttpClient
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
-import uy.kohesive.injekt.injectLazy
-import java.io.File
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
-
-class TTSService : Service(), TextToSpeech.OnInitListener {
+class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeListener {
 
     companion object {
-        const val TAG = "TTSService"
+        const val TAG = "NLTTS_Main"
 
         const val AUDIO_TEXT_KEY = "audioTextKey"
         const val TITLE = "title"
         const val NOVEL_ID = "novelId"
         const val TRANSLATOR_SOURCE_NAME = "translatorSourceName"
         const val CHAPTER_INDEX = "chapterIndex"
+        const val LINKED_PAGES = "linkedPages"
+        const val KEY_SENTENCES = "sentences"
+
+        const val ACTION_OPEN_CONTROLS = "open_controls"
+        const val ACTION_OPEN_SETTINGS = "open_settings"
+        const val ACTION_OPEN_READER = "open_reader"
+        const val ACTION_UPDATE_SETTINGS = "update_settings"
 
         const val ACTION_STOP = "actionStop"
         const val ACTION_PAUSE = "actionPause"
+        const val ACTION_PLAY_PAUSE = "actionPlayPause"
         const val ACTION_PLAY = "actionPlay"
         const val ACTION_NEXT = "actionNext"
         const val ACTION_PREVIOUS = "actionPrevious"
-        const val ACTION_OPEN_CONTROLS = "actionOpenControls"
-        const val ACTION_NEXT_SENTENCE = "actionNextSentence"
-        const val ACTION_PREV_SENTENCE = "actionPrevSentence"
+
+        const val ACTION_STARTUP = "startup"
+
+        const val COMMAND_REQUEST_LINKED_PAGES = "cmd_$LINKED_PAGES"
+        const val COMMAND_REQUEST_SENTENCES = "cmd_$KEY_SENTENCES"
+        const val COMMAND_UPDATE_LANGUAGE = "update_language"
+        const val COMMAND_UPDATE_TIMER = "update_timer"
+        const val COMMAND_LOAD_BUFFER_LINK = "cmd_load_buffer_link"
+        const val COMMAND_RELOAD_CHAPTER = "cmd_reload_chapter"
+        const val EVENT_SENTENCE_LIST = "event_$KEY_SENTENCES"
+        const val EVENT_LINKED_PAGES = "event_$LINKED_PAGES"
+
+        private const val STATE_PREFIX = "TTSService."
+        const val STATE_NOVEL_ID = STATE_PREFIX + NOVEL_ID
+        const val STATE_TRANSLATOR_SOURCE_NAME = STATE_PREFIX + TRANSLATOR_SOURCE_NAME
+        const val STATE_CHAPTER_INDEX = STATE_PREFIX + CHAPTER_INDEX
+
+        const val PITCH_MIN = 0.5f
+        const val PITCH_MAX = 2.0f
+        const val SPEECH_RATE_MIN = 0.5f
+        const val SPEECH_RATE_MAX = 3.0f
     }
 
-    private val dataCenter: DataCenter by injectLazy()
-    private val networkHelper: NetworkHelper by injectLazy()
-    private val client: OkHttpClient
-        get() = networkHelper.cloudflareClient
+    lateinit var mediaSession: MediaSessionCompat
+    private lateinit var mediaCallback: TTSSessionCallback
+    private lateinit var stateBuilder: PlaybackStateCompat.Builder
 
-    private lateinit var tts: TextToSpeech
-    private lateinit var mediaSession: MediaSessionCompat
-    lateinit var mediaController: MediaControllerCompat
-    private lateinit var ttsNotificationBuilder: TTSNotificationBuilder
+    private val noisyReceiver = NoisyReceiver()
+    private var noisyReceiverHooked = false
+
+    private lateinit var notificationBuilder: TTSNotificationBuilder
     private lateinit var notificationManager: NotificationManagerCompat
-    private lateinit var dbHelper: DBHelper
+    private lateinit var notification: NotificationController
+    private lateinit var stopTimer: StopTimerController
 
-    private var blockingJob: Job? = null
-    var novel: Novel? = null
-    var translatorSourceName: String? = null
-    private var audioText: String? = null
-    private var title: String? = null
-    var chapterIndex: Int = 0
+    private lateinit var focusRequest: AudioFocusRequest
 
-    var lines: ArrayList<String> = ArrayList()
-    var lineNumber: Int = 0
-    private var isForegroundService: Boolean = false
-    private val metadataCompat = MediaMetadataCompat.Builder()
+    private var isHooked = false
+    private var isForeground = false
 
-    inner class TTSBinder : Binder() {
+    private val focusLock = Any()
+    private var resumeOnFocus = true
 
-        fun getInstance(): TTSService = this@TTSService
+    lateinit var player: TTSPlayer
+    var initialized: Boolean = false
 
-    }
-    private val binder = TTSBinder()
-    var eventListener: TTSEventListener? = null
-
-    override fun onBind(intent: Intent): IBinder {
-        return binder
-    }
-
-    @SuppressLint("UnspecifiedImmutableFlag")
     override fun onCreate() {
         super.onCreate()
 
-        //android.os.Debug.waitForDebugger()
+        Log.d(TAG, "Service start!")
 
-        // Build a PendingIntent that can be used to launch the UI.
-        val sessionActivityPendingIntent = PendingIntent.getActivity(this, 0, Intent(), 0)
+        val pendingIntentFlags:Int =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT }
+            else { PendingIntent.FLAG_UPDATE_CURRENT }
 
-        // Create a new MediaSession.
-        mediaSession = MediaSessionCompat(this, "NovelTTSService")
-            .apply {
-                setSessionActivity(sessionActivityPendingIntent)
+        fun createPendingIntent(action: String):PendingIntent {
+            val actionIntent = Intent(this, TTSService::class.java)
+            actionIntent.action = action
+            return PendingIntent.getService(this, 0, actionIntent, pendingIntentFlags)
+        }
+
+        val mediaButtonIntent = Intent(Intent.ACTION_MEDIA_BUTTON)
+        mediaButtonIntent.setClass(this, MediaButtonReceiver::class.java)
+        val mbrIntent = PendingIntent.getBroadcast(this, 0, mediaButtonIntent, pendingIntentFlags)
+        val mbrComponent = ComponentName(this, MediaButtonReceiver::class.java)
+
+        mediaSession = MediaSessionCompat(baseContext, TAG, mbrComponent, mbrIntent).apply {
+            setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS +
+                    MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS +
+                    MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
+            )
+            @SuppressLint("WrongConstant")
+            stateBuilder = PlaybackStateCompat.Builder()
+                .setActions(
+                    // PlaybackStateCompat actions
+                    // Stop, Play, Pause, Play/Pause, Skip to next/prev, forward/rewind, seek, play from media ID
+                    0x77F
+                )
+                .addCustomAction(ACTION_OPEN_SETTINGS, "Open Settings", R.drawable.ic_settings_white_vector)
+                .addCustomAction(ACTION_OPEN_READER, "Open Reader", R.drawable.ic_chrome_reader_mode_white_vector)
+                .addCustomAction(ACTION_OPEN_CONTROLS, "Open Controls", R.drawable.ic_queue_music_white_vector)
+//                .addCustomAction(ACTION_UPDATE_SETTINGS, "Update Settings", R.drawable.ic_refresh_white_vector)
+//                .addCustomAction(COMMAND_REQUEST_SENTENCES, "Request sentences", R.drawable.ic_menu_white_vector)
+            setPlaybackState(stateBuilder.build())
+
+            mediaCallback = TTSSessionCallback()
+            setCallback(mediaCallback)
+            setSessionActivity(PendingIntent.getActivity(this@TTSService, 0,
+                    Intent(this@TTSService, TextToSpeechControlsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    pendingIntentFlags
+            ))
+            // createPendingIntent(ACTION_OPEN_CONTROLS))
+
+            // TODO: Store session data for restarting
+            setMediaButtonReceiver(PendingIntent.getService(this@TTSService, 0,
+                Intent(this@TTSService, TTSService::class.java).apply { action = ACTION_PLAY_PAUSE }, pendingIntentFlags))
+            setSessionToken(sessionToken)
+
+            try {
+                isActive = true
+            }
+            catch (e: NullPointerException) {
+                // VLC source code info:
+                // Some versions of KitKat do not support AudioManager.registerMediaButtonIntent
+                // with a PendingIntent. They will throw a NullPointerException, in which case
+                // they should be able to activate a MediaSessionCompat with only transport
+                // controls.
+                isActive = false
+                setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS + MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS)
                 isActive = true
             }
 
-        mediaController = MediaControllerCompat(this, mediaSession).also {
-            it.registerCallback(MediaControllerCallback())
         }
+
+        player = TTSPlayer(this, mediaSession, stateBuilder)
+
         val pendingIntents = HashMap<String, PendingIntent>()
-        pendingIntents[ACTION_PLAY] = createPendingIntent(ACTION_PLAY)
-        pendingIntents[ACTION_PAUSE] = createPendingIntent(ACTION_PAUSE)
-        pendingIntents[ACTION_STOP] = createPendingIntent(ACTION_STOP)
-        pendingIntents[ACTION_NEXT] = createPendingIntent(ACTION_NEXT)
-        pendingIntents[ACTION_PREVIOUS] = createPendingIntent(ACTION_PREVIOUS)
+        pendingIntents[ACTION_PLAY] = MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PLAY)
+        pendingIntents[ACTION_PAUSE] = MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PAUSE)
+        pendingIntents[ACTION_STOP] = MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_STOP)
+        pendingIntents[ACTION_NEXT] = MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
+        pendingIntents[ACTION_PREVIOUS] = MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
         pendingIntents[ACTION_OPEN_CONTROLS] = createPendingIntent(ACTION_OPEN_CONTROLS)
 
-        ttsNotificationBuilder = TTSNotificationBuilder(this, pendingIntents)
+        notificationBuilder = TTSNotificationBuilder(this, pendingIntents)
         notificationManager = NotificationManagerCompat.from(this)
+        notification = NotificationController()
 
-        dbHelper = DBHelper.getInstance(this)
-
-        tts = TextToSpeech(this, this)
-        tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-            override fun onDone(utteranceId: String?) {
-                utteranceId?.let {
-                    if (it == "KEEP_READING") {
-                        lineNumber++
-                        speakNexLine()
-                    } else if (utteranceId == "STOP_READING") {
-                        //Do Nothing
-                    }
-                }
-
-            }
-
-            override fun onError(utteranceId: String?) {
-            }
-
-            override fun onStart(utteranceId: String?) {
-            }
-        })
+        stopTimer = StopTimerController()
     }
 
-    fun goToLine(line:Int) {
-        val oldLine = lineNumber
-        lineNumber = line.coerceIn(0, lines.count() - 1)
-        speakNexLine(TextToSpeech.QUEUE_FLUSH)
+    override fun onDestroy() {
+        Log.d(TAG,"Service destroyed!")
+        unhookSystem()
+        player.destroy()
+        mediaSession.isActive = false
+        mediaSession.release()
+        super.onDestroy()
+    }
+
+
+    override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot {
+        return BrowserRoot("NONE", null)
+    }
+
+    override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
+        result.sendResult(mutableListOf())
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.e(TAG, "OnStartCommand")
-        val action = intent?.action
+//        Log.d(TAG, "Start command! ${intent?.action} $flags $startId")
 
-        //If called from Notification Actions like play, pause, e.t.c.
-        if (action != null) {
-            chooseMediaControllerActions(action)
-            return super.onStartCommand(intent, flags, startId)
-        }
-
-        //If called from activity
-        val novelId = intent?.extras?.getLong(NOVEL_ID, -1L) ?: -1L
-        novel = dbHelper.getNovel(novelId)
-        novel?.let { setChapterIndex(it) }
-
-        audioText = intent?.extras?.getString(AUDIO_TEXT_KEY, null) ?: ""
-        title = intent?.extras?.getString(TITLE, null) ?: ""
-        translatorSourceName = intent?.extras?.getString(TRANSLATOR_SOURCE_NAME)
-        chapterIndex = intent?.extras?.getInt(CHAPTER_INDEX, 0) ?: 0
-
-        metadataCompat.displayTitle = novel?.name ?: "Novel Name Not Found"
-        metadataCompat.displaySubtitle = title
-
-        if (!novel?.imageUrl.isNullOrBlank() && networkHelper.isConnectedToNetwork()) {
-            Glide.with(this).asBitmap().load(novel!!.imageUrl!!.getGlideUrl()).into(object : CustomTarget<Bitmap>() {
-                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                    metadataCompat.albumArt = resource
-                    mediaSession.setMetadata(metadataCompat.build())
-                    startReading()
+        when (intent?.action) {
+            ACTION_STARTUP -> actionStartup(intent.extras!!)
+            ACTION_OPEN_CONTROLS -> {
+                startActivity(Intent(this, TextToSpeechControlsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }
+            ACTION_OPEN_READER -> {
+                val novel = player.novel
+                player.dbHelper.getWebPage(novel.id, player.translatorSourceName, player.chapterIndex)?.let { chapter ->
+                    player.updateNovelBookmark(novel, chapter, false)
                 }
 
-                override fun onLoadCleared(placeholder: Drawable?) {
+                val bundle = Bundle()
+                bundle.putParcelable("novel", novel)
+                if (player.translatorSourceName != null)
+                    bundle.putString("translatorSourceName", player.translatorSourceName)
+                startActivity(Intent(this, ReaderDBPagerActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), bundle)
+            }
+            ACTION_OPEN_SETTINGS -> {
+                startActivity(Intent(this, TTSSettingsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }
+            ACTION_UPDATE_SETTINGS -> {
+                player.updateVoiceConfig()
+            }
+            ACTION_PLAY_PAUSE -> {
+                if (player.isDisposed || !initialized) {
+                    val data = Bundle()
+                    // TODO: Fix it pausing due to MediaButtonReceiver calling onPause
+                    player.dataCenter.internalGet {
+                        data.putLong(NOVEL_ID, getLong(STATE_NOVEL_ID, 0))
+                        val translator = getString(STATE_TRANSLATOR_SOURCE_NAME, null)
+                        if (translator != null) data.putString(TRANSLATOR_SOURCE_NAME, translator)
+                        data.putInt(CHAPTER_INDEX, getInt(STATE_CHAPTER_INDEX, 0))
+                    }
+                    actionStartup(data)
+                } else {
+                    if (player.isPlaying) mediaCallback.onPause()
+                    else mediaCallback.onPlay()
                 }
-            })
-        } else {
-            mediaSession.setMetadata(metadataCompat.build())
-            startReading()
+            }
+            Intent.ACTION_MEDIA_BUTTON -> {
+                MediaButtonReceiver.handleIntent(mediaSession, intent)
+            }
+            null -> {} // No action required
+            else -> Log.w(TAG, "Unknown TTS action! ${intent.action}")
         }
 
         return super.onStartCommand(intent, flags, startId)
     }
 
-    fun chooseMediaControllerActions(action: String) {
-        Log.i(TAG, "TTS Action: $action")
-        when (action) {
-            ACTION_PLAY -> {
-                speakNexLine()
-                mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_PLAYING, 1L, 1F).build())
-            }
-            ACTION_PAUSE -> {
-                sendToTTS("", TextToSpeech.QUEUE_FLUSH, "STOP_READING")
-                mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_PAUSED, 1L, 1F).build())
-            }
-            ACTION_STOP -> {
-                sendToTTS("", TextToSpeech.QUEUE_FLUSH, "STOP_COMPLETELY")
-                mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_NONE, 1L, 1F).build())
-            }
-            ACTION_NEXT -> {
-                if (chapterIndex == (novel!!.chaptersCount - 1).toInt()) {
-                    Handler(Looper.getMainLooper()).post {
-                        Toast.makeText(this, "No More Chapters. You are up-to-date!", Toast.LENGTH_LONG).show()
-                    }
-                } else {
-                    chapterIndex++
-                    setAudioText()
-                }
-            }
-            ACTION_PREVIOUS -> {
-                if (chapterIndex == 0) {
-                    Handler(Looper.getMainLooper()).post {
-                        Toast.makeText(this, "First Chapter! Cannot go back!", Toast.LENGTH_LONG).show()
-                    }
-                } else {
-                    chapterIndex--
-                    setAudioText()
-                }
-            }
-            ACTION_PREV_SENTENCE -> {
-                if (lineNumber > 0) lineNumber--
-                speakNexLine(TextToSpeech.QUEUE_FLUSH)
-            }
-            ACTION_NEXT_SENTENCE -> {
-                if (lineNumber < lines.count() - 1) lineNumber++
-                speakNexLine(TextToSpeech.QUEUE_FLUSH)
-            }
-            ACTION_OPEN_CONTROLS -> {
-                startActivity(Intent(this, TextToSpeechControlsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            }
+    private fun actionStartup(extras: Bundle) {
+        Log.d(TAG,"Booting up!")
+        if (player.isDisposed) {
+            player = TTSPlayer(this, mediaSession, stateBuilder)
         }
-    }
-
-    override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) {
-            val result = tts.setLanguage(Locale.getDefault())
-            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                Handler(Looper.getMainLooper()).post {
-                    Toast.makeText(this, "English language is not available.", Toast.LENGTH_SHORT).show()
-                }
+        val startupText = player.setBundle(extras)
+        initialized = true
+        if (hookSystem()) {
+            if (startupText == null) {
+                Log.d(TAG, "Startup had no text: Load from chapter metadata")
+                player.loadCurrentChapter()
             } else {
-                startReading()
-            }
-        } else {
-            Handler(Looper.getMainLooper()).post {
-                Toast.makeText(this, "Could not initialize TextToSpeech.", Toast.LENGTH_SHORT).show()
+                player.setData(startupText.text, startupText.title, startupText.bufferLinks)
+                player.start()
             }
         }
     }
 
-    private fun startReading() {
-        //Stop reading
-        sendToTTS("", TextToSpeech.QUEUE_FLUSH)
-
-        //Reset old data
-        lines.clear()
-        lineNumber = 0
-        val extractedLines: ArrayList<String> = ArrayList()
-        audioText?.split("\n")?.filter { it.isNotBlank() }?.mapTo(extractedLines) { it.trim() }
-
-        val characterLimit = TextToSpeech.getMaxSpeechInputLength().coerceAtMost(500)
-        extractedLines.forEach { extractedLine ->
-            // If line length is less than `characterLimit`
-            if (extractedLine.length < characterLimit) {
-                lines.add(extractedLine)
-                return@forEach
+    // Initialize all the hooks that are required for MediaSession to run properly.
+    // Except player.start
+    fun hookSystem(): Boolean {
+        if (isHooked) {
+            if (!isForeground) {
+                startService(Intent(applicationContext, TTSService::class.java))
+                startForeground(TTS_NOTIFICATION_ID, notificationBuilder.buildNotification(mediaSession.sessionToken))
+                isForeground = true
             }
+            if (!noisyReceiverHooked) {
+                registerReceiver(noisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
+                noisyReceiverHooked = true
+            }
+            return true
+        }
 
-            // Permit line splits only when sentence ending character is followed by a space or a line end.
-            // Also include common sentence ending characters for dialogue or TN notes.
-            val sentenceEndRegex = """[.!?;"'」』”»“‘)\]](?>[\s\r]|$)""".toRegex()
+        val am = baseContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-            //Break a single big line in to multiple lines
-            var lineToBreak = extractedLine.trim()
-            while (lineToBreak.isNotEmpty()) {
-                var index = findSplitIndex(lineToBreak, characterLimit, sentenceEndRegex)
-                // If we can't split the sentence within boundaries by using common sentence finishers
-                // first try to split on a comma, and fall back to space if none found.
-                if (index == -1) index = findSplitIndex(lineToBreak, characterLimit, ',')
-                if (index == -1) index = findSplitIndex(lineToBreak, characterLimit, ' ')
-                if (index == -1) {
-                    lines.add(lineToBreak)
-                    return@forEach
-                } else {
-                    lines.add(lineToBreak.substring(0, index + 1))
-                    lineToBreak = lineToBreak.substring(index + 1).trim()
-                    if (lineToBreak.length < characterLimit) {
-                        lines.add(lineToBreak)
-                        return@forEach
-                    }
+        val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).run {
+                setOnAudioFocusChangeListener(this@TTSService)
+                setAudioAttributes(AudioAttributes.Builder().run {
+                    setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    setUsage(AudioAttributes.USAGE_MEDIA)
+                    build()
+                })
+                build()
+            }
+            am.requestAudioFocus(focusRequest)
+        } else {
+            @Suppress("DEPRECATION")
+            am.requestAudioFocus(this@TTSService, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN)
+        }
+        if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) return false
+
+        startService(Intent(applicationContext, TTSService::class.java))
+        mediaSession.isActive = true
+        startForeground(TTS_NOTIFICATION_ID, notificationBuilder.buildNotification(mediaSession.sessionToken))
+        notification.start()
+        stopTimer.start()
+
+        registerReceiver(noisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
+        noisyReceiverHooked = true
+
+        isForeground = true
+
+        isHooked = true
+        return true
+    }
+
+    fun unhookSystem(): Boolean {
+        if (!isHooked) return false
+        val am = baseContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            am.abandonAudioFocusRequest(focusRequest)
+        } else {
+            @Suppress("DEPRECATION")
+            am.abandonAudioFocus(this@TTSService)
+        }
+        notification.stop()
+        stopTimer.stop()
+
+        stopSelf()
+        mediaSession.isActive = false
+        if (isForeground) {
+            stopForeground(true)
+            isForeground = false
+        }
+        if (noisyReceiverHooked) {
+            unregisterReceiver(noisyReceiver)
+            noisyReceiverHooked = false
+        }
+        resumeOnFocus = false
+
+        isHooked = false
+        return true
+    }
+
+    private inner class TTSSessionCallback : MediaSessionCompat.Callback() {
+
+        override fun onPlay() {
+            Log.d(TAG, "onPlay")
+            if (hookSystem()) {
+                if (player.isDisposed) {
+                    val old = player
+                    player = TTSPlayer(this@TTSService, mediaSession, stateBuilder)
+                    player.setFrom(old)
                 }
+                player.start()
+                stopTimer.reset()
             }
         }
 
-//        Testing Only - Auto Next Chapter
-//        val tempArray = audioText?.split("\n") ?: return
-//        for (x in 0..10) {
-//            lines.add(tempArray[x])
+        override fun onStop() {
+            Log.d(TAG, "onStop")
+            if (unhookSystem()) {
+                player.destroy()
+            }
+        }
+
+        override fun onPause() {
+            Log.d(TAG, "onPause")
+            player.stop()
+            stopTimer.reset()
+            resumeOnFocus = false
+            if (isForeground) {
+                stopForeground(false)
+                isForeground = false
+            }
+            if (noisyReceiverHooked) {
+                unregisterReceiver(noisyReceiver)
+                noisyReceiverHooked = false
+            }
+        }
+
+        override fun onSeekTo(pos: Long) {
+            player.goto((pos / 1000L).toInt())
+            stopTimer.reset()
+        }
+
+        override fun onRewind() {
+            player.goto(player.lineNumber - 1)
+            stopTimer.reset()
+        }
+
+        override fun onFastForward() {
+            player.goto(player.lineNumber + 1)
+            stopTimer.reset()
+        }
+
+        override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
+            mediaId?.toIntOrNull()?.let {
+                Log.d(TAG, "Play from media ID: $mediaId")
+                player.gotoChapter(it)
+                stopTimer.reset()
+            }
+        }
+//        override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
+//            super.onPlayFromMediaId(mediaId, extras)
+        // TODO: Support chapter navigation
 //        }
 
-        //Set new data & start reading
-        mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_PLAYING, 1L, 1F).build())
-        eventListener?.onReadingStart()
-        speakNexLine()
-    }
-
-    private fun findSplitIndex(text:String, maxLength:Int, regex: Regex):Int {
-        var index = -1
-        while (index < maxLength) {
-            val next = regex.find(text, index+1)?.range?.start
-            if (next != null && next < maxLength) index = next
-            else break
+        override fun onSkipToNext() {
+            player.nextChapter()
+            stopTimer.reset()
         }
-        return index
-    }
-    private fun findSplitIndex(text:String, maxLength:Int, char: Char):Int {
-        var index = -1
-        while (index < maxLength) {
-            val next = text.indexOf(char, index+1)
-            if (next != -1 && next < maxLength) index = next
-            else break
+
+        override fun onSkipToPrevious() {
+            player.previousChapter()
+            stopTimer.reset()
         }
-        return index
+
+        override fun onCommand(command: String?, extras: Bundle?, cb: ResultReceiver?) {
+//            Log.d(TAG, "Command: $command")
+            when (command) {
+                COMMAND_REQUEST_SENTENCES -> player.sendSentences()
+                COMMAND_REQUEST_LINKED_PAGES -> player.sendLinkedPages()
+                ACTION_UPDATE_SETTINGS -> player.updateVoiceConfig()
+                COMMAND_UPDATE_LANGUAGE -> player.selectLanguage()
+                COMMAND_UPDATE_TIMER -> {
+                    if (extras?.containsKey("active") == true) extras.getBoolean("active").let {
+                        if (it)
+                            Log.d(TAG, "Starting auto-stop timer")
+                        else
+                            Log.d(TAG, "Stopping auto-stop timer (user-request)")
+                        if (it && !stopTimer.isActive) stopTimer.reset(false)
+                        stopTimer.isActive = it
+                    }
+                    if (extras?.getBoolean("reset") == true)
+                        stopTimer.reset(false)
+                    cb?.send(if (stopTimer.isActive) 1 else 0, Bundle().apply {
+                        putLong("time", stopTimer.stopTime)
+                        putBoolean("active", stopTimer.isActive)
+                    })
+                }
+                COMMAND_LOAD_BUFFER_LINK -> extras?.getString("href")?.let { player.loadLinkedPage(it) }
+                COMMAND_RELOAD_CHAPTER -> {
+                    player.clearChapterCache()
+                    player.loadCurrentChapter()
+                }
+            }
+            super.onCommand(command, extras, cb)
+        }
+
     }
 
-    private fun speakNexLine(queueMode: Int = TextToSpeech.QUEUE_ADD) {
-        if (lines.isNotEmpty() && lineNumber < lines.size) {
-            sendToTTS(lines[lineNumber], queueMode, "KEEP_READING")
-            eventListener?.onSentenceChange(lineNumber)
-        } else {
-            if (dataCenter.readAloudNextChapter) {
-                chooseMediaControllerActions(ACTION_NEXT)
-            } else
-                mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_NONE, 1L, 1F).build())
+    override fun onAudioFocusChange(focusChange: Int) {
+        Log.d(TAG, "Focus change $focusChange")
+        when (focusChange) {
+            AudioManager.AUDIOFOCUS_GAIN -> if (resumeOnFocus) {
+                synchronized(focusLock) { resumeOnFocus = false }
+                player.start()
+            }
+            AudioManager.AUDIOFOCUS_LOSS -> {
+                synchronized(focusLock) { resumeOnFocus = false }
+                player.stop()
+            }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                synchronized(focusLock) { resumeOnFocus = player.isPlaying }
+                player.stop()
+            }
         }
     }
 
-    @Suppress("DEPRECATION")
-    private fun sendToTTS(text: String, queueMode: Int, utteranceId: String = "DO_NOTHING") {
-        val params = Bundle()
-        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId) // Define if you need it
-        tts.speak(text, queueMode, params, utteranceId)
+    private inner class NoisyReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY) {
+                resumeOnFocus = false
+                player.stop()
+            }
+        }
     }
 
-    @SuppressLint("UnspecifiedImmutableFlag")
-    private fun createPendingIntent(action: String): PendingIntent {
-        val actionIntent = Intent(this, TTSService::class.java)
-        actionIntent.action = action
-        return PendingIntent.getService(this, 0, actionIntent, 0)
-    }
+    private inner class NotificationController : MediaControllerCompat.Callback() {
 
-    private inner class MediaControllerCallback : MediaControllerCompat.Callback() {
-        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            //mediaController.playbackState?.let { updateNotification(it) }
-            Log.e(TAG, "MetaData Changed: $metadata")
+        private val controller = MediaControllerCompat(this@TTSService, mediaSession.sessionToken)
+
+        fun start() {
+            controller.registerCallback(this)
+        }
+
+        fun stop() {
+            controller.unregisterCallback(this)
         }
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-            state?.let { updateNotification(it) }
-            eventListener?.onPlaybackStateChange()
-            Log.e(TAG, "State Changed: $state")
-        }
-
-        private fun updateNotification(state: PlaybackStateCompat) {
-            val updatedState = state.state
-            if (mediaController.metadata == null) {
-                return
-            }
-
-            // Skip building a notification when state is "none".
-            val notification = if (updatedState != PlaybackStateCompat.STATE_NONE) {
-                ttsNotificationBuilder.buildNotification(mediaSession.sessionToken)
-            } else {
-                null
-            }
-
-            when (updatedState) {
-                PlaybackStateCompat.STATE_BUFFERING,
-                PlaybackStateCompat.STATE_PLAYING -> {
-
-                    if (!isForegroundService) {
-                        //startService(Intent(applicationContext, this@TTSService.javaClass))
-                        startForeground(TTS_NOTIFICATION_ID, notification)
-                        isForegroundService = true
-                    } else if (notification != null) {
-                        notificationManager.notify(TTS_NOTIFICATION_ID, notification)
-                    }
-                }
-                else -> {
-                    if (isForegroundService) {
-                        stopForeground(false)
-                        isForegroundService = false
-                        tts.stop()
-                        // If playback has ended, also stop the service.
-                        if (updatedState == PlaybackStateCompat.STATE_NONE) {
-                            stopSelf()
-                            tts.shutdown()
-                        }
-
-                        if (notification != null) {
-                            notificationManager.notify(TTS_NOTIFICATION_ID, notification)
-                        } else {
-                            stopForeground(true)
-                        }
-                    }
-                }
+            if (state != null && mediaSession.controller.metadata != null) {
+                notificationManager.notify(TTS_NOTIFICATION_ID, notificationBuilder.buildNotification(mediaSession.sessionToken))
             }
         }
     }
 
-    //Helper functions
-    private fun setChapterIndex(novel: Novel) {
-        val webPage = if (novel.currentChapterUrl != null)
-            dbHelper.getWebPage(novel.currentChapterUrl!!)
-        else
-            dbHelper.getWebPage(novel.id, translatorSourceName, 0)
-        if (webPage?.url == null) return
-        chapterIndex = dbHelper.getAllWebPages(novel.id, translatorSourceName).indexOfFirst { it.url == webPage.url }
-    }
+    private inner class StopTimerController : MediaControllerCompat.Callback() {
+        private val controller = MediaControllerCompat(this@TTSService, mediaSession.sessionToken)
 
-    private fun setAudioText() {
-        val webPage = dbHelper.getWebPage(novel!!.id, translatorSourceName, chapterIndex) ?: return
-        title = webPage.chapterName
-        metadataCompat.displaySubtitle = title
-        mediaSession.setMetadata(metadataCompat.build())
+        var isActive: Boolean = false
+        var stopTime: Long = 0
 
-        val webPageSettings = dbHelper.getWebPageSettings(webPage.url) ?: return
-        if (webPageSettings.filePath != null) {
-            audioText = loadFromFile(webPageSettings) ?: return
-            startReading()
-        } else {
-            loadFromWeb(webPageSettings)
-        }
-    }
-
-    private fun loadFromFile(webPageSettings: WebPageSettings): String? {
-        val internalFilePath = "$FILE_PROTOCOL${webPageSettings.filePath}"
-        val input = File(internalFilePath.substring(FILE_PROTOCOL.length))
-        if (!input.exists()) {
-            loadFromWeb(webPageSettings)
-            return null
+        fun reset(withEvent: Boolean = true) {
+            // In case we pause or do something else that interrupts playback - reset the timer.
+            stopTime = System.currentTimeMillis() + java.util.concurrent.TimeUnit.MINUTES.toMillis(player.dataCenter.ttsPreferences.ttsStopTimer)
+            if (isActive && withEvent) {
+                Log.d(TAG, "Resetting the auto-stop timer")
+                mediaSession.sendSessionEvent(COMMAND_UPDATE_TIMER, Bundle().apply {
+                    putBoolean("active", isActive)
+                    putLong("time", stopTime)
+                })
+            }
         }
 
-        val url = webPageSettings.redirectedUrl ?: internalFilePath
-        val doc = Jsoup.parse(input, "UTF-8", url) ?: return ""
-        return cleanDocumentText(doc)
-    }
+        fun start() {
+            controller.registerCallback(this)
+        }
 
-    private fun loadFromWeb(webPageSettings: WebPageSettings) {
-        blockingJob?.cancel()
-        blockingJob = GlobalScope.launch {
-            try {
-                var doc = withContext(Dispatchers.IO) { getWebPageDocument(webPageSettings.url) }
-                if (doc.location().contains("rssbook") && doc.location().contains(HostNames.QIDIAN)) {
-                    doc = withContext(Dispatchers.IO) { getWebPageDocument(doc.location().replace("rssbook", "book")) }
-                }
-                audioText = cleanDocumentText(doc)
-                title = doc.title()
-                metadataCompat.displaySubtitle = title
-                mediaSession.setMetadata(metadataCompat.build())
-                startReading()
-            } catch (e: Exception) {
-                Logs.error("TTSService", "Unable to read chapter", e)
-                Handler(Looper.getMainLooper()).post {
-                    Toast.makeText(this@TTSService, "Unable to read chapter", Toast.LENGTH_LONG).show()
+        fun stop() {
+            controller.unregisterCallback(this)
+        }
+
+        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
+            if (isActive) {
+                if (state?.isPlaying == true && System.currentTimeMillis() >= stopTime) {
+                    Log.d(TAG, "Pausing TTS due to auto-stop timer")
+                    isActive = false
+                    controller.transportControls.pause()
+                    mediaSession.sendSessionEvent(COMMAND_UPDATE_TIMER, Bundle().apply {
+                        putBoolean("active", isActive)
+                        putLong("time", 0)
+                    })
+                    // TODO: Save state on exit so user can restore it
                 }
             }
         }
-    }
 
-    private fun getWebPageDocument(url: String): Document {
-        return client.newCall(GET(url)).safeExecute().asJsoup()
-    }
-
-    private fun cleanDocumentText(doc: Document): String {
-        val htmlHelper = HtmlCleaner.getInstance(doc)
-        htmlHelper.removeJS(doc)
-        htmlHelper.additionalProcessing(doc)
-        return doc.getFormattedText()
     }
 
 }

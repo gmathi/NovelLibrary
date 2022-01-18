@@ -12,7 +12,7 @@ import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import java.io.BufferedReader
 import java.io.IOException

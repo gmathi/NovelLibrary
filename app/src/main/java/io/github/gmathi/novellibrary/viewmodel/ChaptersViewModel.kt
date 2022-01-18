@@ -2,21 +2,21 @@ package io.github.gmathi.novellibrary.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.*
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.model.database.Download
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
-import io.github.gmathi.novellibrary.network.sync.NovelSync
-import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_SOURCE_ID
-import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.system.DataAccessor
+import io.github.gmathi.novellibrary.util.system.addNewNovel
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel.Action.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,8 +24,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.injectLazy
 import java.io.File
+import java.lang.ref.WeakReference
 
-class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), LifecycleObserver {
+class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), LifecycleObserver, DataAccessor {
 
     companion object {
         const val TAG = "ChaptersViewModel"
@@ -40,10 +41,18 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         state.set(KEY_NOVEL, novel)
     }
 
-    private val dbHelper: DBHelper by injectLazy()
-    private val dataCenter: DataCenter by injectLazy()
-    private val sourceManager: SourceManager by injectLazy()
-    private val networkHelper: NetworkHelper by injectLazy()
+    override lateinit var firebaseAnalytics: FirebaseAnalytics
+
+    override val dbHelper: DBHelper by injectLazy()
+    override val dataCenter: DataCenter by injectLazy()
+    override val sourceManager: SourceManager by injectLazy()
+    override val networkHelper: NetworkHelper by injectLazy()
+
+    private lateinit var _ctx: WeakReference<Context>
+    override fun getContext(): Context? = _ctx.get()
+
+    private lateinit var _lifecycle: WeakReference<LifecycleOwner>
+    override fun getLifecycle(): Lifecycle? = _lifecycle.get()?.lifecycle
 
     var chapters: ArrayList<WebPage>? = null
     var chapterSettings: ArrayList<WebPageSettings>? = null
@@ -55,7 +64,9 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
 
     fun init(novel: Novel, lifecycleOwner: LifecycleOwner, context: Context) {
         setNovel(novel)
+        this._ctx = WeakReference(context)
         lifecycleOwner.lifecycle.addObserver(this)
+        firebaseAnalytics = Firebase.analytics
         this.showSources = novel.metadata[Constants.MetaDataKeys.SHOW_SOURCES]?.toBoolean() ?: false
     }
 
@@ -181,9 +192,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     fun addNovelToLibrary() {
         if (novel.id != -1L) return
         loadingStatus.value = Constants.Status.START
-        novel.id = dbHelper.insertNovel(novel)
-        NovelSync.getInstance(novel)?.applyAsync(viewModelScope) { if (dataCenter.getSyncAddNovels(it.host)) it.addNovel(novel) }
-        //There is a chance that the above insertion might fail
+        addNewNovel(novel)
         if (novel.id == -1L) return
         chapters?.forEach { it.novelId = novel.id }
         addNovelChaptersToDB()
@@ -231,11 +240,10 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             file.delete()
             webPageSettings.filePath = null
             try {
-                val otherLinkedPagesJsonString = webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES]
-                if (otherLinkedPagesJsonString != null) {
-                    val linkedPages: ArrayList<WebPage> = Gson().fromJson(otherLinkedPagesJsonString, object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+                if (webPageSettings.metadata.contains(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
+                    val linkedPages = webPageSettings.getLinkedPagesCompat()
                     linkedPages.forEach {
-                        val linkedWebPageSettings = dbHelper.getWebPageSettings(it.url)
+                        val linkedWebPageSettings = dbHelper.getWebPageSettings(it.href)
                         if (linkedWebPageSettings?.filePath != null) {
                             val linkedFile = File(linkedWebPageSettings.filePath!!)
                             linkedFile.delete()

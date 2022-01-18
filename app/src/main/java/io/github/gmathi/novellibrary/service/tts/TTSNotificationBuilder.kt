@@ -25,7 +25,6 @@ import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
-import android.widget.RemoteViews
 import androidx.annotation.RequiresApi
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.NotificationCompat
@@ -37,7 +36,7 @@ import io.github.gmathi.novellibrary.extensions.isPlaying
 /**
  * Helper class to encapsulate code for building notifications.
  */
-class TTSNotificationBuilder(private val context: Context, pendingIntents: HashMap<String, PendingIntent>) {
+class TTSNotificationBuilder(private val context: Context, private val pendingIntents: HashMap<String, PendingIntent>) {
 
     companion object {
         const val TTS_CHANNEL_ID: String = "io.github.gmathi.novellibrary.tts"
@@ -107,22 +106,23 @@ class TTSNotificationBuilder(private val context: Context, pendingIntents: HashM
             .setMediaSession(sessionToken)
             .setShowActionsInCompactView(1)
             .setShowCancelButton(true)
-        val smallView = RemoteViews("io.github.gmathi.novellibrary", R.layout.notification_tts)
-        smallView.setTextViewText(R.id.notificationTitle, description.title)
-        smallView.setTextViewText(R.id.notificationDescription, description.subtitle)
-
-        val bigView = RemoteViews("io.github.gmathi.novellibrary", R.layout.notification_tts_large)
-        bigView.setTextViewText(R.id.notificationTitle, description.title)
-        bigView.setTextViewText(R.id.notificationDescription, description.subtitle)
+//        val smallView = RemoteViews("io.github.gmathi.novellibrary", R.layout.notification_tts)
+//        smallView.setTextViewText(R.id.notificationTitle, description.title)
+//        smallView.setTextViewText(R.id.notificationDescription, description.subtitle)
+//
+//        val bigView = RemoteViews("io.github.gmathi.novellibrary", R.layout.notification_tts_large)
+//        bigView.setTextViewText(R.id.notificationTitle, description.title)
+//        bigView.setTextViewText(R.id.notificationDescription, description.subtitle)
+        // TODO: Find a reason why RemoteViews causes crashes
 
         return builder.setContentIntent(controller.sessionActivity)
             .setStyle(mediaStyle)
             .setLargeIcon(description.iconBitmap)
             .setSmallIcon(R.drawable.ic_queue_music_white_vector)
-            .setCustomContentView(smallView)
-            .setCustomBigContentView(bigView)
-//            .setContentText(description.subtitle)
-//            .setContentTitle(description.title)
+//            .setCustomContentView(smallView)
+//            .setCustomBigContentView(bigView)
+            .setContentText(description.subtitle)
+            .setContentTitle(description.title)
             .setDeleteIntent(stopPendingIntent)
             .setOnlyAlertOnce(true)
             .setColorized(true)

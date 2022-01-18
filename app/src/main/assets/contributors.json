@@ -73,5 +73,15 @@
     "name": "@codefionn",
     "description": "Translations in German Language",
     "link": "https://github.com/codefionn"
+  },
+  {
+    "name": "@McPlayer",
+    "description": "New Translations in German Language",
+    "link": "https://github.com/ManInDark"
+  },
+  {
+    "name": "@Yanrishatum",
+    "description": "Major Upgrades to Read Aloud (TTS) & Reader Mode",
+    "link": "https://github.com/Yanrishatum"
   }
 ]

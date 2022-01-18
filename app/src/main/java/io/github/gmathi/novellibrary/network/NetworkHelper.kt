@@ -6,7 +6,7 @@ import coil.util.CoilUtils
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.network.interceptor.CloudflareInterceptor
 import io.github.gmathi.novellibrary.network.interceptor.UserAgentInterceptor
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -40,6 +40,7 @@ class NetworkHelper(private val context: Context) {
             when (dataCenter.dohProvider) {
                 PREF_DOH_CLOUDFLARE -> builder.dohCloudflare()
                 PREF_DOH_GOOGLE -> builder.dohGoogle()
+                // PREF_DOH_NONE -> do nothing
             }
 
             return builder

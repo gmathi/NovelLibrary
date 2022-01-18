@@ -6,18 +6,41 @@
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/sentencesView"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_above="@+id/controlsLayout"
         android:layout_alignParentTop="true"
         android:layout_marginTop="0dp"
-        android:layout_marginBottom="0dp"
-        android:overScrollMode="always"
-        android:scrollbars="vertical"
-        tools:itemCount="60"
-        tools:listitem="@layout/listitem_sentence" />
+        android:layout_marginBottom="0dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/sentencesView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:overScrollMode="always"
+            android:scrollbars="vertical"
+            tools:itemCount="60"
+            tools:listitem="@layout/listitem_sentence">
+
+        </androidx.recyclerview.widget.RecyclerView>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/scrollIntoViewButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/sentencesView"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="12dp"
+            android:clickable="true"
+            android:contentDescription="@string/scroll_current_into_view"
+            android:focusable="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/sentencesView"
+            app:srcCompat="@drawable/ic_forward_white_vector" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <LinearLayout
         android:id="@+id/controlsLayout"
@@ -41,7 +64,9 @@
                 android:layout_marginStart="5dp"
                 android:layout_marginTop="0dp"
                 android:layout_marginBottom="0dp"
-                app:srcCompat="@drawable/ic_art_track_white_vector" />
+                android:contentDescription="@string/cover"
+                app:srcCompat="@drawable/ic_art_track_white_vector"
+                tools:ignore="ImageContrastCheck" />
 
             <TextView
                 android:id="@+id/ttsNovelName"
@@ -90,6 +115,7 @@
             android:progressTint="@color/colorStateBlue" />
 
         <LinearLayout
+            android:id="@+id/playbackControls"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
@@ -100,60 +126,66 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
-            <ImageView
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/prevChapterButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                style="@style/TTSActionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:contentDescription="@string/previous_chapter"
-                app:srcCompat="@drawable/ic_skip_previous_white" />
+                android:src="@drawable/ic_skip_previous_white" />
 
             <Space
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
-            <ImageView
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/prevSentenceButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                style="@style/TTSActionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:contentDescription="@string/previous_sentence"
-                app:srcCompat="@drawable/ic_fast_rewind_white" />
+                android:src="@drawable/ic_fast_rewind_white" />
 
             <Space
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
-            <ImageView
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/playButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                style="@style/TTSActionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:contentDescription="@string/play"
-                app:srcCompat="@drawable/ic_circle_play_white" />
+                android:src="@drawable/ic_play_arrow_white_vector"
+                app:borderWidth="4dp" />
 
             <Space
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
-            <ImageView
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/nextSentenceButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                style="@style/TTSActionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:contentDescription="@string/next_sentence"
-                app:srcCompat="@drawable/ic_fast_forward_white" />
+                android:src="@drawable/ic_fast_forward_white" />
 
             <Space
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
-            <ImageView
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/nextChapterButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                style="@style/TTSActionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:contentDescription="@string/next_chapter"
-                app:srcCompat="@drawable/ic_skip_next_white" />
+                android:src="@drawable/ic_skip_next_white" />
 
             <Space
                 android:layout_width="wrap_content"
@@ -175,6 +207,7 @@
         <ImageView
             android:layout_width="86dp"
             android:layout_height="86dp"
+            android:contentDescription="@string/text_to_speech_inactive"
             app:srcCompat="@drawable/ic_queue_music_white_vector" />
 
         <TextView
@@ -184,16 +217,5 @@
             android:textAlignment="center"
             android:textSize="24sp" />
     </LinearLayout>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/scrollIntoViewButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/sentencesView"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="12dp"
-        android:layout_marginBottom="12dp"
-        android:clickable="true"
-        app:srcCompat="@drawable/ic_forward_white_vector" />
 
 </RelativeLayout>
