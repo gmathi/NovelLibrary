@@ -50,6 +50,11 @@ enum class SubqueryRole {
     RPage,
 
     /**
+     * URL to the real chapter. Because translators oh so love being annoying to their readers.
+     */
+    RRealChapter,
+
+    /**
      * Matches are explicitly removed from the cleaned chapter.
      */
     RBlacklist,
