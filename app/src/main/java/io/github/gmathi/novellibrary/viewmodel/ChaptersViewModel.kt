@@ -15,11 +15,8 @@ import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.network.sync.NovelSync
-import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_SOURCE_ID
-import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.system.DataAccessor
 import io.github.gmathi.novellibrary.util.system.addNewNovel
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel.Action.*
@@ -245,11 +242,10 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             file.delete()
             webPageSettings.filePath = null
             try {
-                val otherLinkedPagesJsonString = webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES]
-                if (otherLinkedPagesJsonString != null) {
-                    val linkedPages: ArrayList<WebPage> = Gson().fromJson(otherLinkedPagesJsonString, object : TypeToken<java.util.ArrayList<WebPage>>() {}.type)
+                if (webPageSettings.metadata.contains(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
+                    val linkedPages = webPageSettings.getLinkedPagesCompat()
                     linkedPages.forEach {
-                        val linkedWebPageSettings = dbHelper.getWebPageSettings(it.url)
+                        val linkedWebPageSettings = dbHelper.getWebPageSettings(it.href)
                         if (linkedWebPageSettings?.filePath != null) {
                             val linkedFile = File(linkedWebPageSettings.filePath!!)
                             linkedFile.delete()

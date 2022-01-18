@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.model.other
 
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
 
 /**
  * A TTS text filtering base.
@@ -17,10 +18,11 @@ import org.jsoup.nodes.Document
  */
 data class TTSFilter(val type: TTSFilterType, val target: TTSFilterTarget, val lookup: String, val regexFlags: String? = "", val replace: String? = "") {
 
-    fun compile(doc: Document): CompiledTTSFilter {
+    fun compile(doc: Document?): CompiledTTSFilter {
         return when (type) {
             TTSFilterType.Regex -> RegexTTSFilter(this, doc)
             TTSFilterType.Plaintext -> PlaintextTTSFilter(this, doc)
+            TTSFilterType.Selector -> SelectorTTSFilter(this, doc)
         }
     }
 
@@ -48,8 +50,9 @@ data class TTSFilterSource(val id: String, val version: String, val name: String
 abstract class CompiledTTSFilter {
     abstract fun apply(text: String): String
 
-    protected fun substitute(lookup: String, doc: Document, escape: Boolean = false): String {
-        val url = doc.location()?.toHttpUrlOrNull()
+    protected fun substitute(lookup: String, doc: Document?, escape: Boolean = false): String {
+        if (doc == null) return lookup
+        val url = doc.location()?.toHttpUrlOrNull(); Regex("""(?:asd)""")
         return Regex("""\$\{\w+\}""").replace(lookup) { match ->
             val text = when (match.value) {
                 "\${host}" -> url?.host ?: match.value
@@ -67,7 +70,7 @@ abstract class CompiledTTSFilter {
     }
 }
 
-class RegexTTSFilter(base: TTSFilter, doc: Document) : CompiledTTSFilter() {
+class RegexTTSFilter(base: TTSFilter, doc: Document?) : CompiledTTSFilter() {
 
     private val lookup: Regex = Regex(substitute(base.lookup, doc, true), base.regexOptions)
     private val replace: String = substitute(base.replace?:"", doc, true)
@@ -76,7 +79,7 @@ class RegexTTSFilter(base: TTSFilter, doc: Document) : CompiledTTSFilter() {
 
 }
 
-class PlaintextTTSFilter(base: TTSFilter, doc: Document) : CompiledTTSFilter() {
+class PlaintextTTSFilter(base: TTSFilter, doc: Document?) : CompiledTTSFilter() {
 
     private val lookup: String = substitute(base.lookup, doc)
     private val replace: String = substitute(base.replace?:"", doc)
@@ -85,11 +88,23 @@ class PlaintextTTSFilter(base: TTSFilter, doc: Document) : CompiledTTSFilter() {
 
     override fun apply(text: String): String =
         if (fullMatch) {
-            if (text == lookup) replace
+            if (text.equals(lookup, ignoreCase)) replace
             else text
         } else
             text.replace(lookup, replace, ignoreCase)
 
+}
+
+class SelectorTTSFilter(base: TTSFilter, doc: Document?) : CompiledTTSFilter() {
+    private val lookup: String = substitute(base.lookup, doc)
+
+    public fun apply(el: Element) {
+        el.select(lookup).remove()
+    }
+
+    override fun apply(text: String): String {
+        return text;
+    }
 }
 
 enum class TTSFilterType {
@@ -115,6 +130,14 @@ enum class TTSFilterType {
      *  It's possible to use capturing groups in replace string with $1, $2, etc.
      */
     Regex,
+
+    /**
+     * Apply filtering based on a CSS selector.
+     *
+     * The replace field is ignored and matching elements are removed instead.
+     * Filter target MUST be set to Selector.
+     */
+    Selector,
 }
 
 enum class TTSFilterTarget {
@@ -131,6 +154,13 @@ enum class TTSFilterTarget {
 
     /**
      * Apply filtering on a chapter text after it was decomposed into lines.
+     *
+     * Substitutes are not supported on that stage.
      */
-    Line, // TODO
+    Line,
+
+    /**
+     * A combination with filter type Selector, both type and target should be set to Selector value.
+     */
+    Selector,
 }

@@ -3,6 +3,9 @@ package io.github.gmathi.novellibrary
 import android.app.Application
 import android.os.Handler
 import android.os.Looper
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.extension.ExtensionManager
@@ -22,6 +25,7 @@ class AppModule(val app: Application) : InjektModule {
 //        addSingletonFactory { JsoupNetworkHelper(app) }
         addSingletonFactory { SourceManager(app).also { get<ExtensionManager>().init(it) } }
         addSingletonFactory { ExtensionManager(app) }
+        addSingletonFactory { Firebase.analytics }
 
         addSingletonFactory { Gson() }
         addSingletonFactory { Json { ignoreUnknownKeys = true } }

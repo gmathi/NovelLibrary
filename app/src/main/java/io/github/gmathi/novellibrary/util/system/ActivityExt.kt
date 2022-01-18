@@ -13,14 +13,7 @@ import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.*
-import io.github.gmathi.novellibrary.activity.settings.*
-import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.service.download.DownloadNovelService
-import io.github.gmathi.novellibrary.service.tts.TTSService
-import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.view.TransitionHelper
 
 fun AppCompatActivity.hideSoftKeyboard() {
     val inputMethodManager = getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager

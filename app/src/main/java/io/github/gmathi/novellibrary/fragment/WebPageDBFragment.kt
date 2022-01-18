@@ -24,12 +24,14 @@ import io.github.gmathi.novellibrary.extensions.noInternetError
 import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
+import io.github.gmathi.novellibrary.model.other.LinkedPage
 import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.getLinkedPagesCompat
 import io.github.gmathi.novellibrary.util.view.extensions.setDefaultSettings
 import kotlinx.coroutines.*
 import okhttp3.Cookie
@@ -49,7 +51,7 @@ class WebPageDBFragment : BaseFragment() {
     private lateinit var webPageSettings: WebPageSettings
 
     var doc: Document? = null
-    var linkedPages: ArrayList<String> = ArrayList<String>()
+    var linkedPages: ArrayList<LinkedPage> = ArrayList()
     var history: ArrayList<WebPageSettings> = ArrayList()
     var job: Job? = null
 
@@ -362,9 +364,9 @@ class WebPageDBFragment : BaseFragment() {
                         val alreadyDownloadedLinks = ArrayList<String>()
                         alreadyDownloadedLinks.add(doc.location())
                         htmlHelper.getLinkedChapters(doc).forEach { linkedUrl ->
-                            if (alreadyDownloadedLinks.contains(linkedUrl)) return@forEach
+                            if (alreadyDownloadedLinks.contains(linkedUrl.href)) return@forEach
                             try {
-                                val otherDoc = withContext(Dispatchers.IO) { WebPageDocumentFetcher.document(linkedUrl) }
+                                val otherDoc = withContext(Dispatchers.IO) { WebPageDocumentFetcher.document(linkedUrl.href) }
                                 val helper = HtmlCleaner.getInstance(otherDoc)
                                 helper.removeJS(otherDoc)
                                 helper.additionalProcessing(otherDoc)
@@ -429,10 +431,9 @@ class WebPageDBFragment : BaseFragment() {
             if (dataCenter.enableClusterPages) {
                 // Add the content of the links to the doc
                 if (webPageSettings.metadata.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
-                    val links: ArrayList<String> =
-                        Gson().fromJson(webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES_SETTINGS], object : TypeToken<java.util.ArrayList<String>>() {}.type)
+                    val links = webPageSettings.getLinkedPagesCompat()
                     links.forEach {
-                        val tempWebPageSettings = dbHelper.getWebPageSettings(it)!!
+                        val tempWebPageSettings = dbHelper.getWebPageSettings(it.href)!!
                         val internalFilePath = "$FILE_PROTOCOL${tempWebPageSettings.filePath}"
                         val input = File(internalFilePath.substring(7))
 
@@ -469,10 +470,10 @@ class WebPageDBFragment : BaseFragment() {
     fun checkUrl(url: String?): Boolean {
         if (url == null) return false
         if (webPageSettings.metadata.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
-            val links: ArrayList<String> = Gson().fromJson(webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES], object : TypeToken<java.util.ArrayList<String>>() {}.type)
+            val links = webPageSettings.getLinkedPagesCompat()
             links.forEach {
-                val tempWebPageSettings = dbHelper.getWebPageSettings(it) ?: return@forEach
-                if (it == url || (tempWebPageSettings.redirectedUrl != null && tempWebPageSettings.redirectedUrl == url)) {
+                val tempWebPageSettings = dbHelper.getWebPageSettings(it.href) ?: return@forEach
+                if (it.href == url || (tempWebPageSettings.redirectedUrl != null && tempWebPageSettings.redirectedUrl == url)) {
                     history.add(tempWebPageSettings)
                     webPageSettings = tempWebPageSettings
                     loadData()

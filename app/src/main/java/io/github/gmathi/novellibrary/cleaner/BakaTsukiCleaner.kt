@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.cleaner
 
+import io.github.gmathi.novellibrary.model.other.LinkedPage
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
@@ -37,7 +38,7 @@ class BakaTsukiCleaner : HtmlCleaner() {
 
     }
 
-    override fun getLinkedChapters(doc: Document): ArrayList<String> {
+    override fun getLinkedChapters(doc: Document): ArrayList<LinkedPage> {
         return getLinkedChapters(doc.location(), doc.body().select("div#content").firstOrNull())
     }
 

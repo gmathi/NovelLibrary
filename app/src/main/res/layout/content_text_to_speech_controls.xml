@@ -6,18 +6,41 @@
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/sentencesView"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_above="@+id/controlsLayout"
         android:layout_alignParentTop="true"
         android:layout_marginTop="0dp"
-        android:layout_marginBottom="0dp"
-        android:overScrollMode="always"
-        android:scrollbars="vertical"
-        tools:itemCount="60"
-        tools:listitem="@layout/listitem_sentence" />
+        android:layout_marginBottom="0dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/sentencesView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:overScrollMode="always"
+            android:scrollbars="vertical"
+            tools:itemCount="60"
+            tools:listitem="@layout/listitem_sentence">
+
+        </androidx.recyclerview.widget.RecyclerView>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/scrollIntoViewButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/sentencesView"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="12dp"
+            android:clickable="true"
+            android:contentDescription="@string/scroll_current_into_view"
+            android:focusable="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/sentencesView"
+            app:srcCompat="@drawable/ic_forward_white_vector" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <LinearLayout
         android:id="@+id/controlsLayout"
@@ -41,7 +64,9 @@
                 android:layout_marginStart="5dp"
                 android:layout_marginTop="0dp"
                 android:layout_marginBottom="0dp"
-                app:srcCompat="@drawable/ic_art_track_white_vector" />
+                android:contentDescription="@string/cover"
+                app:srcCompat="@drawable/ic_art_track_white_vector"
+                tools:ignore="ImageContrastCheck" />
 
             <TextView
                 android:id="@+id/ttsNovelName"
@@ -182,6 +207,7 @@
         <ImageView
             android:layout_width="86dp"
             android:layout_height="86dp"
+            android:contentDescription="@string/text_to_speech_inactive"
             app:srcCompat="@drawable/ic_queue_music_white_vector" />
 
         <TextView
@@ -191,17 +217,5 @@
             android:textAlignment="center"
             android:textSize="24sp" />
     </LinearLayout>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/scrollIntoViewButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/sentencesView"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="12dp"
-        android:layout_marginBottom="12dp"
-        android:clickable="true"
-        android:focusable="true"
-        app:srcCompat="@drawable/ic_forward_white_vector" />
 
 </RelativeLayout>

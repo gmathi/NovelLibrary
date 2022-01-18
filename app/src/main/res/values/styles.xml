@@ -64,6 +64,10 @@
         <item name="md_color_content">@color/colorTextContent_dark</item>
         <item name="md_color_button_text">@color/colorAccent</item>
         <item name="md_background_color">@color/colorDarkKnight</item>
+
+        <!-- Force time picker dialog to use spinner mode -->
+        <item name="android:timePickerMode">spinner</item>
+        <item name="android:timePickerStyle">@style/TTSTimeStopPicker</item>
     </style>
 
     <!-- User Theme application theme. -->
@@ -221,6 +225,10 @@
         <item name="maxImageSize">48dp</item>
         <item name="backgroundTint">@color/tts_media_button_color</item>
         <item name="android:tint">@color/tts_media_button_color</item>
+    </style>
+
+    <style name="TTSTimeStopPicker" parent="android:Widget.Material.TimePicker">
+        <item name="android:timePickerMode">spinner</item>
     </style>
 
 </resources>

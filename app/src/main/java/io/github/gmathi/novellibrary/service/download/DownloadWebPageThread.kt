@@ -88,7 +88,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         val otherLinks = htmlHelper.getLinkedChapters(doc)
         if (otherLinks.isNotEmpty()) {
             val otherWebPages = ArrayList<WebPageSettings>()
-            otherLinks.mapNotNullTo(otherWebPages) { downloadOtherChapterLinks(it, webPage.novelId, novelDir) }
+            otherLinks.mapNotNullTo(otherWebPages) { downloadOtherChapterLinks(it.href, webPage.novelId, novelDir) }
             webPageSettings.metadata[Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES] = Gson().toJson(otherLinks)
             otherWebPages.forEach {
                 dbHelper.createWebPageSettings(it)

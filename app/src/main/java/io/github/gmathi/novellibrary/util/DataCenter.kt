@@ -121,6 +121,13 @@ class DataCenter(context: Context) {
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
+    fun internalGet(closure: SharedPreferences.()->Unit) = closure(prefs)
+    fun internalPut(closure: SharedPreferences.Editor.()->Unit) {
+        val editor = prefs.edit()
+        closure(editor)
+        editor.apply()
+    }
+
     fun loadNovelSearchHistory(): ArrayList<String> = Gson().fromJson(prefs.getString(SEARCH_HISTORY_LIST, "[]"), object : TypeToken<ArrayList<String>>() {}.type)
     fun saveNovelSearchHistory(history: ArrayList<String>) = prefs.edit().putString(SEARCH_HISTORY_LIST, Gson().toJson(history)).apply()
 
@@ -271,6 +278,10 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(DIRECTIONAL_LINKS, false)
         set(value) = prefs.edit().putBoolean(DIRECTIONAL_LINKS, value).apply()
 
+    var linkifyText: Boolean
+        get() = prefs.getBoolean("linkifyText", false)
+        set(value) = prefs.edit().putBoolean("linkifyText", value).apply()
+
     var isReaderModeButtonVisible: Boolean
         get() = prefs.getBoolean(READER_MODE_BUTTON_VISIBILITY, true)
         set(value) = prefs.edit().putBoolean(READER_MODE_BUTTON_VISIBILITY, value).apply()
@@ -311,6 +322,14 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(TTS_MERGE_BUFFER_CHAPTERS, false)
         set(value) = prefs.edit().putBoolean(TTS_MERGE_BUFFER_CHAPTERS, value).apply()
 
+    var ttsDiscardInitialBufferPage: Boolean
+        get() = prefs.getBoolean("ttsDiscardInitialBufferPage", false)
+        set(value) = prefs.edit().putBoolean("ttsDiscardInitialBufferPage", value).apply()
+
+    var ttsUseLongestPage: Boolean
+        get() = prefs.getBoolean("ttsUseLongestPage", false)
+        set(value) = prefs.edit().putBoolean("ttsUseLongestPage", value).apply()
+
     var ttsPitch: Float
         get() = prefs.getFloat(TTS_PITCH, 1.0f)
         set(value) = prefs.edit().putFloat(TTS_PITCH, value).apply()
@@ -326,6 +345,22 @@ class DataCenter(context: Context) {
     var ttsMoveBookmark: Boolean
         get() = prefs.getBoolean("ttsMoveBookmark", false)
         set(value) = prefs.edit().putBoolean("ttsMoveBookmark", value).apply()
+
+    var ttsLanguage: Locale?
+        get() = prefs.getString("ttsLanguage", null)?.let { Locale.forLanguageTag(it) }
+        set(value) = prefs.edit().putString("ttsLanguage", value?.toLanguageTag()).apply()
+
+    var ttsStripHeader: Boolean
+        get() = prefs.getBoolean("ttsStripHeader", false)
+        set(value) = prefs.edit().putBoolean("ttsStripHeader", value).apply()
+
+    var ttsChapterChangeSFX: Boolean
+        get() = prefs.getBoolean("ttsChapterChangeSFX", true)
+        set(value) = prefs.edit().putBoolean("ttsChapterChangeSFX", value).apply()
+
+    var ttsStopTimer: Long
+        get() = prefs.getLong("ttsStopTimer", 60L)
+        set(value) = prefs.edit().putLong("ttsStopTimer", value).apply()
 
     // The names of currently active filter sets.
     var ttsFilters: List<String>

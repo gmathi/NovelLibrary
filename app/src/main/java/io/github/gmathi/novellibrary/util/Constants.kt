@@ -104,7 +104,6 @@ object Constants {
         const val SHOW_SOURCES = "showSources"
         const val SCROLL_POSITION = "scrollY"
         const val OTHER_LINKED_WEB_PAGES = "otherWebPages"
-        const val OTHER_LINKED_WEB_PAGES_SETTINGS = "otherWebPagesSettings"
         const val IS_FAVORITE = "isFavorite"
         const val HASH_CODE = "hashCode"
     }

@@ -15,8 +15,7 @@ import io.github.gmathi.novellibrary.util.DataCenter
  */
 interface DataAccessor {
 
-    var firebaseAnalytics: FirebaseAnalytics
-
+    val firebaseAnalytics: FirebaseAnalytics
     val dataCenter: DataCenter
     val dbHelper: DBHelper
     val sourceManager: SourceManager

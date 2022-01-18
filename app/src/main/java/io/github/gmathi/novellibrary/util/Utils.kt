@@ -17,6 +17,7 @@ import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.text.htmlEncode
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LifecycleOwner
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
@@ -29,6 +30,7 @@ import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.CompiledTTSFilter
 import io.github.gmathi.novellibrary.model.other.TTSFilterTarget
+import io.github.gmathi.novellibrary.model.other.TTSFilterType
 import io.github.gmathi.novellibrary.util.lang.writableFileName
 import io.github.gmathi.novellibrary.util.storage.createFileIfNotExists
 import io.github.gmathi.novellibrary.util.storage.getOrCreateDirectory
@@ -393,28 +395,43 @@ object Utils {
             content.select("[data-role=\"RHeader\"]").remove()
             content.select("[data-role=\"RFooter\"]").remove()
             content.select("[data-role=\"RNavigation\"]").remove()
+            content.select("select,input,button").remove()
             body.children().remove()
-            body.append(doc.title())
+            if (!dataCenter.ttsStripHeader) body.append(doc.title())
             content.forEach { body.appendChild(it) }
             doc.head().children().remove()
 //            doc.head().html("")
         }
+        doc.select("br").forEach {
+            it.after("\n")
+        }
 
         val filters = dataCenter.ttsFilterList
+
+        filters.forEach {
+            if (it.type == TTSFilterType.Selector) {
+                doc.select(it.lookup).remove()
+            }
+        }
+
         val textFilters = filters.filter { it.target == TTSFilterTarget.TextChunk }.map { it.compile(doc) }
 
         applyFilters(doc.body(), filters.filter { it.target == TTSFilterTarget.Element }.map { it.compile(doc) })
-
         val cleaner = Cleaner(Whitelist.none())
         val cleanDoc = cleaner.clean(doc)
         cleanDoc.outputSettings(Document.OutputSettings().prettyPrint(false))
         var text = cleanDoc.body().html()
             // Replace no-break spaces with a regular space
             .replace("&nbsp;", " ")
+            .replace("&lt;", "<")
+            .replace("&gt;", ">")
+            .replace("&amp;", " and ")
+            .replace("&quot;", "\"")
+            .replace("&apos;", "'")
             // Perform a limited trim operation on excessive spacing, causing "     " to turn into just " " as well as changing \n\n\n\n into \n
             .replace("""([\s ])+""".toRegex(RegexOption.MULTILINE)) { it.groups[0]?.value ?: "" }
             // Shorten long repeating characters such as =====, -----, -=-=-=-=-, ***** or !!!!!!!!
-            .replace("""([=*#|+<>\-]{4,}|\.{4,}|!{4,}|\?{4,})""".toRegex()) { it.value.substring(0, 3) }
+            .replace("""((?>[◆◇＝_~=*#|+<>\-] ?){4,}|\.{4,}|!{4,}|\?{4,})""".toRegex()) { it.value.replace(" ", "").substring(0, 3) }
             .trim()
 
         textFilters.forEach { filter ->
