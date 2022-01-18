@@ -168,22 +168,22 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
         quickSettings.pitch.run {
             // TwoWaySeekBar can't handle 50...100 values
             setAbsoluteMinMaxValue(0.0, (TTSService.PITCH_MAX - TTSService.PITCH_MIN).toHumanPercentage().toDouble())
-            setProgress((dataCenter.ttsPitch - TTSService.PITCH_MIN).toHumanPercentage().toDouble())
+            setProgress((dataCenter.ttsPreferences.ttsPitch - TTSService.PITCH_MIN).toHumanPercentage().toDouble())
 
             setOnSeekBarChangedListener { bar, value ->
                 val rounded = round(value / 10.0) * 10.0
-                dataCenter.ttsPitch = rounded.fromHumanPercentage().toFloat() + TTSService.PITCH_MIN
+                dataCenter.ttsPreferences.ttsPitch = rounded.fromHumanPercentage().toFloat() + TTSService.PITCH_MIN
                 bar.setProgress(rounded)
                 controller?.sendCommand(TTSService.ACTION_UPDATE_SETTINGS, null, null)
             }
         }
         quickSettings.speechRate.run {
             setAbsoluteMinMaxValue(0.0, (TTSService.SPEECH_RATE_MAX - TTSService.SPEECH_RATE_MIN).toHumanPercentage().toDouble())
-            setProgress((dataCenter.ttsPitch - TTSService.SPEECH_RATE_MIN).toHumanPercentage().toDouble())
+            setProgress((dataCenter.ttsPreferences.ttsPitch - TTSService.SPEECH_RATE_MIN).toHumanPercentage().toDouble())
 
             setOnSeekBarChangedListener { bar, value ->
                 val rounded = round(value / 10.0) * 10.0
-                dataCenter.ttsPitch = rounded.fromHumanPercentage().toFloat() + TTSService.SPEECH_RATE_MIN
+                dataCenter.ttsPreferences.ttsPitch = rounded.fromHumanPercentage().toFloat() + TTSService.SPEECH_RATE_MIN
                 bar.setProgress(rounded)
                 controller?.sendCommand(TTSService.ACTION_UPDATE_SETTINGS, null, null)
             }
@@ -195,28 +195,28 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
         }
 
         quickSettings.moveBookmark.run {
-            isChecked = dataCenter.ttsMoveBookmark
-            setOnCheckedChangeListener { _, b -> dataCenter.ttsMoveBookmark = b }
+            isChecked = dataCenter.ttsPreferences.ttsMoveBookmark
+            setOnCheckedChangeListener { _, b -> dataCenter.ttsPreferences.ttsMoveBookmark = b }
         }
 
         quickSettings.markRead.run {
-            isChecked = dataCenter.ttsMarkChaptersRead
-            setOnCheckedChangeListener { _, b -> dataCenter.ttsMarkChaptersRead = b }
+            isChecked = dataCenter.ttsPreferences.ttsMarkChaptersRead
+            setOnCheckedChangeListener { _, b -> dataCenter.ttsPreferences.ttsMarkChaptersRead = b }
         }
 
         quickSettings.mergeChapters.run {
-            isChecked = dataCenter.ttsMergeBufferChapters
-            setOnCheckedChangeListener { _, b -> dataCenter.ttsMergeBufferChapters = b }
+            isChecked = dataCenter.ttsPreferences.ttsMergeBufferChapters
+            setOnCheckedChangeListener { _, b -> dataCenter.ttsPreferences.ttsMergeBufferChapters = b }
         }
 
         quickSettings.discardBufferPage.run {
-            isChecked = dataCenter.ttsDiscardInitialBufferPage
-            setOnCheckedChangeListener { _, b -> dataCenter.ttsDiscardInitialBufferPage = b }
+            isChecked = dataCenter.ttsPreferences.ttsDiscardInitialBufferPage
+            setOnCheckedChangeListener { _, b -> dataCenter.ttsPreferences.ttsDiscardInitialBufferPage = b }
         }
 
         quickSettings.useLongestPage.run {
-            isChecked = dataCenter.ttsUseLongestPage
-            setOnCheckedChangeListener { _, b -> dataCenter.ttsUseLongestPage = b }
+            isChecked = dataCenter.ttsPreferences.ttsUseLongestPage
+            setOnCheckedChangeListener { _, b -> dataCenter.ttsPreferences.ttsUseLongestPage = b }
         }
 
         quickSettings.reloadChapter.setOnClickListener {
@@ -235,15 +235,15 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
 
         quickSettings.autoStopTimerPick.setOnClickListener {
             val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
-                dataCenter.ttsStopTimer = (hour * 60 + minute).toLong()
+                dataCenter.ttsPreferences.ttsStopTimer = (hour * 60 + minute).toLong()
                 controller?.sendCommand(TTSService.COMMAND_UPDATE_TIMER, Bundle().apply {
                     putBoolean("reset", true)
                 }, updateTimerCallback)
-                quickSettings.autoStopTimerPick.text = getString(R.string.set_auto_stop_timer, dataCenter.ttsStopTimer / 60, dataCenter.ttsStopTimer % 60)
+                quickSettings.autoStopTimerPick.text = getString(R.string.set_auto_stop_timer, dataCenter.ttsPreferences.ttsStopTimer / 60, dataCenter.ttsPreferences.ttsStopTimer % 60)
             }
-            TimePickerDialog(this, listener, (dataCenter.ttsStopTimer / 60).toInt(), (dataCenter.ttsStopTimer % 60).toInt(), true).show()
+            TimePickerDialog(this, listener, (dataCenter.ttsPreferences.ttsStopTimer / 60).toInt(), (dataCenter.ttsPreferences.ttsStopTimer % 60).toInt(), true).show()
         }
-        quickSettings.autoStopTimerPick.text = getString(R.string.set_auto_stop_timer, dataCenter.ttsStopTimer / 60, dataCenter.ttsStopTimer % 60)
+        quickSettings.autoStopTimerPick.text = getString(R.string.set_auto_stop_timer, dataCenter.ttsPreferences.ttsStopTimer / 60, dataCenter.ttsPreferences.ttsStopTimer % 60)
 
         quickSettings.autoStopTimerSwitch.setOnCheckedChangeListener { _, b ->
             controller?.sendCommand(TTSService.COMMAND_UPDATE_TIMER, Bundle().apply {
@@ -267,12 +267,12 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
     }
 
     private fun populateSettings() {
-        quickSettings.pitch.setProgress((dataCenter.ttsPitch - TTSService.PITCH_MIN).toHumanPercentage().toDouble())
-        quickSettings.speechRate.setProgress((dataCenter.ttsSpeechRate - TTSService.SPEECH_RATE_MIN).toHumanPercentage().toDouble())
+        quickSettings.pitch.setProgress((dataCenter.ttsPreferences.ttsPitch - TTSService.PITCH_MIN).toHumanPercentage().toDouble())
+        quickSettings.speechRate.setProgress((dataCenter.ttsPreferences.ttsSpeechRate - TTSService.SPEECH_RATE_MIN).toHumanPercentage().toDouble())
         quickSettings.autoReadNextChapter.isChecked = dataCenter.readAloudNextChapter
-        quickSettings.moveBookmark.isChecked = dataCenter.ttsMoveBookmark
-        quickSettings.markRead.isChecked = dataCenter.ttsMarkChaptersRead
-        quickSettings.mergeChapters.isChecked = dataCenter.ttsMergeBufferChapters
+        quickSettings.moveBookmark.isChecked = dataCenter.ttsPreferences.ttsMoveBookmark
+        quickSettings.markRead.isChecked = dataCenter.ttsPreferences.ttsMarkChaptersRead
+        quickSettings.mergeChapters.isChecked = dataCenter.ttsPreferences.ttsMergeBufferChapters
         refreshTimerState()
     }
 

@@ -17,7 +17,6 @@ import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.text.htmlEncode
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LifecycleOwner
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
@@ -31,6 +30,7 @@ import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.CompiledTTSFilter
 import io.github.gmathi.novellibrary.model.other.TTSFilterTarget
 import io.github.gmathi.novellibrary.model.other.TTSFilterType
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.lang.writableFileName
 import io.github.gmathi.novellibrary.util.storage.createFileIfNotExists
 import io.github.gmathi.novellibrary.util.storage.getOrCreateDirectory
@@ -397,7 +397,7 @@ object Utils {
             content.select("[data-role=\"RNavigation\"]").remove()
             content.select("select,input,button").remove()
             body.children().remove()
-            if (!dataCenter.ttsStripHeader) body.append(doc.title())
+            if (!dataCenter.ttsPreferences.ttsStripHeader) body.append(doc.title())
             content.forEach { body.appendChild(it) }
             doc.head().children().remove()
 //            doc.head().html("")
@@ -406,7 +406,7 @@ object Utils {
             it.after("\n")
         }
 
-        val filters = dataCenter.ttsFilterList
+        val filters = dataCenter.ttsPreferences.ttsFilterList
 
         filters.forEach {
             if (it.type == TTSFilterType.Selector) {
@@ -469,12 +469,12 @@ object Utils {
 
     @Throws(MalformedURLException::class)
     fun replaceHostInUrl(originalUrl: String?, newHostName: String?): String? {
-        var url = originalUrl ?: return null
+        val url = originalUrl ?: return null
         var newHost = newHostName ?: return null
 
         val originalURL = URL(url)
         val hostHasPort = newHostName.indexOf(":") != -1
-        var newPort: Int = originalURL.port
+        var newPort: Int
         if (hostHasPort) {
             val hostURL = URL("http://$newHostName")
             newHost = hostURL.host

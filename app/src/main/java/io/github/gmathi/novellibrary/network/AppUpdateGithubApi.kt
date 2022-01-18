@@ -3,15 +3,8 @@ package io.github.gmathi.novellibrary.network
 import android.content.Context
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.BuildConfig
-import io.github.gmathi.novellibrary.extension.model.Extension
-import io.github.gmathi.novellibrary.extension.model.LoadResult
-import io.github.gmathi.novellibrary.extension.util.ExtensionLoader
 import io.github.gmathi.novellibrary.model.other.LatestUpdate
-import io.github.gmathi.novellibrary.network.GET
-import io.github.gmathi.novellibrary.network.NetworkHelper
-import io.github.gmathi.novellibrary.network.await
-import io.github.gmathi.novellibrary.network.parseAs
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.lang.withIOContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*

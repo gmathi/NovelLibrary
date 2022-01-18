@@ -5,16 +5,14 @@ import androidx.lifecycle.*
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.model.database.Download
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
-import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_SOURCE_ID
 import io.github.gmathi.novellibrary.util.system.DataAccessor

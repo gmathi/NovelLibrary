@@ -4,15 +4,13 @@ import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.ktx.Firebase
 import com.zhkrb.cloudflare_scrape_webview.CfCallback
 import com.zhkrb.cloudflare_scrape_webview.Cloudflare
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.network.NetworkHelper
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.lang.LocaleManager
 import io.github.gmathi.novellibrary.util.system.DataAccessor

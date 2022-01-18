@@ -1,7 +1,7 @@
 package io.github.gmathi.novellibrary.network
 
 import android.webkit.CookieManager
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl

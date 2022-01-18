@@ -3,7 +3,7 @@ package io.github.gmathi.novellibrary.network
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.proxy.BaseProxyHelper
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.network.asJsoup
 import io.github.gmathi.novellibrary.util.network.safeExecute

@@ -11,10 +11,7 @@ import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
 import io.github.gmathi.novellibrary.model.ui.ListitemSetting
 import io.github.gmathi.novellibrary.model.ui.SettingItemClickCallback
-import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.util.DataCenter
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
-import java.util.ArrayList
 
 /**
  * Initial setting item binding cleanup

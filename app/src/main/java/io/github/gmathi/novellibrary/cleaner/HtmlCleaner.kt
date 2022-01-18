@@ -3,13 +3,13 @@ package io.github.gmathi.novellibrary.cleaner
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
-import android.util.Log
 import android.webkit.URLUtil
 import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
 import io.github.gmathi.novellibrary.model.other.*
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher

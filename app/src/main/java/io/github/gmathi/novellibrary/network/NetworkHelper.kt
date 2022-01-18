@@ -6,7 +6,7 @@ import coil.util.CoilUtils
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.network.interceptor.CloudflareInterceptor
 import io.github.gmathi.novellibrary.network.interceptor.UserAgentInterceptor
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

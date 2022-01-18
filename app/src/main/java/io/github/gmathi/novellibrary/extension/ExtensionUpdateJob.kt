@@ -6,7 +6,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.work.*
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.extension.api.ExtensionGithubApi
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.notification.Notifications
 import io.github.gmathi.novellibrary.util.system.notification
 import kotlinx.coroutines.coroutineScope

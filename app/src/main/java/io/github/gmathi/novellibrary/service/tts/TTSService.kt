@@ -3,71 +3,29 @@ package io.github.gmathi.novellibrary.service.tts
 import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.*
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
-import android.icu.util.TimeUnit
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
-import android.media.MediaPlayer
 import android.os.*
-import android.speech.tts.TextToSpeech
-import android.speech.tts.UtteranceProgressListener
 import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaDescriptionCompat
-import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
-import android.view.KeyEvent
-import android.widget.Toast
 import androidx.core.app.NotificationManagerCompat
-import androidx.lifecycle.Lifecycle
 import androidx.media.MediaBrowserServiceCompat
 import androidx.media.session.MediaButtonReceiver
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
-import com.github.salomonbrys.kotson.fromJson
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.gson.Gson
-import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ReaderDBPagerActivity
 import io.github.gmathi.novellibrary.activity.TextToSpeechControlsActivity
 import io.github.gmathi.novellibrary.activity.settings.TTSSettingsActivity
-import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.extensions.isPlaying
-import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.model.database.WebPageSettings
-import io.github.gmathi.novellibrary.model.other.TTSCleanDocument
-import io.github.gmathi.novellibrary.model.other.TTSFilterTarget
-import io.github.gmathi.novellibrary.model.source.SourceManager
-import io.github.gmathi.novellibrary.network.GET
-import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.service.tts.TTSNotificationBuilder.Companion.TTS_NOTIFICATION_ID
-import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
-import io.github.gmathi.novellibrary.util.DataCenter
-import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.Utils.getFormattedText
 import io.github.gmathi.novellibrary.util.lang.*
-import io.github.gmathi.novellibrary.util.network.asJsoup
-import io.github.gmathi.novellibrary.util.network.safeExecute
-import io.github.gmathi.novellibrary.util.system.DataAccessor
-import io.github.gmathi.novellibrary.util.system.markChapterRead
 import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import kotlinx.coroutines.*
-import okhttp3.OkHttpClient
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
-import uy.kohesive.injekt.injectLazy
-import java.io.File
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeListener {
@@ -553,7 +511,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
 
         fun reset(withEvent: Boolean = true) {
             // In case we pause or do something else that interrupts playback - reset the timer.
-            stopTime = System.currentTimeMillis() + java.util.concurrent.TimeUnit.MINUTES.toMillis(player.dataCenter.ttsStopTimer)
+            stopTime = System.currentTimeMillis() + java.util.concurrent.TimeUnit.MINUTES.toMillis(player.dataCenter.ttsPreferences.ttsStopTimer)
             if (isActive && withEvent) {
                 Log.d(TAG, "Resetting the auto-stop timer")
                 mediaSession.sendSessionEvent(COMMAND_UPDATE_TIMER, Bundle().apply {

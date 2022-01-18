@@ -8,7 +8,7 @@ import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.network.await
 import io.github.gmathi.novellibrary.network.parseAs
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.lang.withIOContext
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.int

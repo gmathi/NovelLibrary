@@ -20,7 +20,7 @@ import io.github.gmathi.novellibrary.model.other.SelectorQuery
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.MultiTrustManager
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.notification.Notifications
 import io.github.gmathi.novellibrary.util.lang.LocaleManager

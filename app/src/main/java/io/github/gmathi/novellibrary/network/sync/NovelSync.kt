@@ -8,7 +8,7 @@ import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NetworkHelper
-import io.github.gmathi.novellibrary.util.DataCenter
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.lang.containsCaseInsensitive
 import kotlinx.coroutines.*
 import uy.kohesive.injekt.injectLazy
