@@ -30,4 +30,9 @@ object WhatsChanged {
             "\uD83D\uDEE0️ Other major/minor bug fixes reported on GitHub.\n" +
             "❌️ Novel Sync is now accessible, but it will not work.\n"
 
+    const val VERSION_22 = "" + //0.22 Goodies!
+            "✨ TTS - Another Major Update!!\n" +
+            "⚠️️ Fixed - Minor bug fixes\n"
+
+
 }
