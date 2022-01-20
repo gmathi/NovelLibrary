@@ -182,6 +182,17 @@ open class HtmlCleaner protected constructor() {
                 }
             """.trimIndent()),
 
+            // They use annoying 2-page splitting: https://tigertranslations.org/2018/08/31/jack-of-all-trades-1/
+            SelectorQuery(".the-content", host="tigertranslations.org", subQueries = listOf(
+                SelectorSubQuery("#chapter-heading,.entry-header .entry-title", SubqueryRole.RHeader, optional = false, multiple = false),
+                SelectorSubQuery(".the-content", SubqueryRole.RContent, optional = true, multiple = false),
+                SelectorSubQuery("a:containsOwn(PAGE)", SubqueryRole.RPage, optional = true, multiple = true),
+                SelectorSubQuery("a:containsOwn(NEXT CHAPTER)", SubqueryRole.RChapterLink, optional = true, multiple = true),
+                SelectorSubQuery("$genericMetaSubquery,.post-meta-container,.taxonomies", SubqueryRole.RMeta, optional = true, multiple = true),
+                SelectorSubQuery("$genericShareSubquery, .jp-relatedposts, #jp-relatedposts", SubqueryRole.RShare, optional = true, multiple = true),
+                SelectorSubQuery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
+            )),
+
             // Github, DIY Translations as an example
             SelectorQuery("div#readme", host = "github.com"),
 
@@ -294,8 +305,10 @@ open class HtmlCleaner protected constructor() {
                 if ((it.host == null || url.contains(it.host)) && body.select(it.selector).isNotEmpty()) {
                     // Check non-optional subqueries to ensure we match the correct website.
                     // TODO: Optimise with running all queries at once and storing them, instead of rerunning them a second time inside cleaner
+                    //if (it.host != null) Log.d(TAG, "${it.host}, ${it.selector}")
                     if (it.subQueries.isEmpty()) true
                     else it.subQueries.all { sub ->
+                        //if (it.host != null) Log.d(TAG, "${sub.selector} -> ${sub.optional} : ${body.select(sub.selector).isNotEmpty()}")
                         sub.optional || body.select(sub.selector).isNotEmpty()
                     }
                 } else false
@@ -707,7 +720,8 @@ open class HtmlCleaner protected constructor() {
         val otherLinks = contentElement?.select("a[href]")
         otherLinks?.forEach {
             // Other Share links
-            if (it.hasAttr("title") && it.attr("title").contains("Click to share", true)) {
+            if ((it.hasAttr("title") && it.attr("title").contains("Click to share", true)) ||
+                it.attr("data-role") == "RChapterLink") {
                 return@forEach
             }
 
@@ -727,7 +741,7 @@ open class HtmlCleaner protected constructor() {
                     }
                     val isMainContent = genericMainContentUrlText.find { cmp -> cmp.equals(text, true) } != null ||
                             Regex("""Chapter \d+""", RegexOption.IGNORE_CASE).containsMatchIn(text) ||
-                            it.attr("data-role") == "RBuffer"
+                            it.attr("data-role") == "RBuffer" || it.attr("data-role") == "RRealChapter"
                     links.add(LinkedPage(linkedUrl, text, isMainContent))
                 }
             } catch (e: Exception) {
