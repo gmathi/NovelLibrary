@@ -110,7 +110,11 @@ class GenericSelectorQueryCleaner(
                         applyCommands(subQuery, elements)
                         return@forEachIndexed
                     }
-//                    SubQueryRole.RPage -> {}
+                    SubqueryRole.RPage, SubqueryRole.RRealChapter, SubqueryRole.RChapterLink -> {
+                        applyCommands(subQuery, elements)
+                        elements.attr("data-role", subQuery.role.toString())
+                        return@forEachIndexed
+                    }
                     else -> {
                     }
                 }
