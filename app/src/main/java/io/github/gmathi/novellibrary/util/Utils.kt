@@ -397,7 +397,7 @@ object Utils {
             content.select("[data-role=\"RNavigation\"]").remove()
             content.select("select,input,button").remove()
             body.children().remove()
-            if (!dataCenter.ttsPreferences.ttsStripHeader) body.append(doc.title())
+            if (!dataCenter.ttsPreferences.stripHeader) body.append(doc.title())
             content.forEach { body.appendChild(it) }
             doc.head().children().remove()
 //            doc.head().html("")
@@ -406,7 +406,7 @@ object Utils {
             it.after("\n")
         }
 
-        val filters = dataCenter.ttsPreferences.ttsFilterList
+        val filters = dataCenter.ttsPreferences.filterList
 
         filters.forEach {
             if (it.type == TTSFilterType.Selector) {
