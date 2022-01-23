@@ -34,5 +34,9 @@ object WhatsChanged {
             "✨ TTS - Another Major Update!!\n" +
             "⚠️️ Fixed - Minor bug fixes\n"
 
+    const val VERSION_22_1 = "" + //0.22 Goodies!
+            "✨ Minor Bug Fixes for TTS!!\n" +
+            "⚠️️ Other minor bug fixes!\n"
+
 
 }
