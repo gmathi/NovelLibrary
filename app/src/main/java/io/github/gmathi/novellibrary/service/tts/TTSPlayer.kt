@@ -381,7 +381,7 @@ class TTSPlayer(private val context: Context,
         currentState = STATE_LOADING
         desiredState = STATE_PLAY
         setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
-        if (withEarcon && dataCenter.ttsPreferences.ttsChapterChangeSFX) sendToTTS(CHAPTER_CHANGE_EARCON, TextToSpeech.QUEUE_FLUSH)
+        if (withEarcon && dataCenter.ttsPreferences.chapterChangeSFX) sendToTTS(CHAPTER_CHANGE_EARCON, TextToSpeech.QUEUE_FLUSH)
         else tts.stop()
         loadChapter(chapterIndex + 1)
     }
@@ -399,7 +399,7 @@ class TTSPlayer(private val context: Context,
             sendToTTS(lines[lineNumber], queueMode)
             setPlaybackState(PlaybackStateCompat.STATE_PLAYING) // Update state
         } else {
-            if (dataCenter.ttsPreferences.ttsMarkChaptersRead) {
+            if (dataCenter.ttsPreferences.markChaptersRead) {
                 dbHelper.getWebPage(novel.id, translatorSourceName, chapterIndex)?.let {
                     markChapterRead(it, true)
                 }
@@ -482,7 +482,7 @@ class TTSPlayer(private val context: Context,
             putInt(TTSService.STATE_CHAPTER_INDEX, index)
         }
         chapterIndex = index
-        if (dataCenter.ttsPreferences.ttsMoveBookmark) dbHelper.getWebPage(novel.id, translatorSourceName, index)?.let {
+        if (dataCenter.ttsPreferences.moveBookmark) dbHelper.getWebPage(novel.id, translatorSourceName, index)?.let {
             updateNovelBookmark(novel, it, false)
         }
     }
@@ -505,12 +505,12 @@ class TTSPlayer(private val context: Context,
         val url = webPageSettings.redirectedUrl ?: internalFilePath
         // Old behavior: Failure to parse would cause it to read empty text chapter.
         val doc = Jsoup.parse(input, "UTF-8", url) ?: return null
-        if (dataCenter.ttsPreferences.ttsMergeBufferChapters && webPageSettings.metadata.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
+        if (dataCenter.ttsPreferences.mergeBufferChapters && webPageSettings.metadata.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
             var text: String = cleanDocumentText(doc, index).text
 
             val links: ArrayList<LinkedPage> = webPageSettings.getLinkedPagesCompat()
 
-            if (dataCenter.ttsPreferences.ttsDiscardInitialBufferPage && links.size > 0) {
+            if (dataCenter.ttsPreferences.discardInitialBufferPage && links.size > 0) {
                 text = ""
             }
 
@@ -524,7 +524,7 @@ class TTSPlayer(private val context: Context,
 //                    // Requires rewriting offline loader to be async
 //                }
             }
-            if (dataCenter.ttsPreferences.ttsUseLongestPage) {
+            if (dataCenter.ttsPreferences.useLongestPage) {
                 var longest: String? = null
                 var longestSize = -1
                 pageTexts.forEach { s ->
@@ -556,8 +556,8 @@ class TTSPlayer(private val context: Context,
                 val doc = withIOContext { getWebPageDocument(url) }
                 val clean = cleanDocumentText(doc, index)
                 var text: String = clean.text
-                if (dataCenter.ttsPreferences.ttsMergeBufferChapters && linkedUrl == null) {
-                    if (dataCenter.ttsPreferences.ttsDiscardInitialBufferPage && clean.bufferLinks.size > 0) {
+                if (dataCenter.ttsPreferences.mergeBufferChapters && linkedUrl == null) {
+                    if (dataCenter.ttsPreferences.discardInitialBufferPage && clean.bufferLinks.size > 0) {
                         text = ""
                     }
                     val pageTexts = clean.bufferLinks.map { linkedUrl ->
@@ -565,7 +565,7 @@ class TTSPlayer(private val context: Context,
                         val cleanPage = cleanDocumentText(pageDoc, index)
                         cleanPage.text
                     }
-                    if (dataCenter.ttsPreferences.ttsUseLongestPage) {
+                    if (dataCenter.ttsPreferences.useLongestPage) {
                         var longest: String? = null
                         var longestSize = -1
                         pageTexts.forEach { s ->
@@ -631,7 +631,7 @@ class TTSPlayer(private val context: Context,
 
         // TODO: Avoid doing JSON parsing every time
         // Also it's done twice, because Utils.getDocumentText also parses it
-        val filters = dataCenter.ttsPreferences.ttsFilterList.filter { it.target == TTSFilterTarget.Line }.map { it.compile(null) }
+        val filters = dataCenter.ttsPreferences.filterList.filter { it.target == TTSFilterTarget.Line }.map { it.compile(null) }
 
 
         fun findSplitIndex(text:String, maxLength:Int, regex: Regex):Int {
@@ -717,12 +717,12 @@ class TTSPlayer(private val context: Context,
     }
 
     fun updateVoiceConfig() {
-        tts.setPitch(dataCenter.ttsPreferences.ttsPitch)
-        tts.setSpeechRate(dataCenter.ttsPreferences.ttsSpeechRate)
+        tts.setPitch(dataCenter.ttsPreferences.pitch)
+        tts.setSpeechRate(dataCenter.ttsPreferences.speechRate)
     }
 
     fun selectLanguage(): Boolean {
-        val locale = dataCenter.ttsPreferences.ttsLanguage ?: Locale.getDefault()
+        val locale = dataCenter.ttsPreferences.language ?: Locale.getDefault()
         val result = tts.setLanguage(locale)
         return if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
             context.showToastWithMain("Language ${locale.displayName} is not available.", Toast.LENGTH_SHORT)

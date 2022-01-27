@@ -85,7 +85,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             MaterialDialog(this).show {
                 title(text = "\uD83C\uDF89 What's New ${BuildConfig.VERSION_NAME}!")
                 message(
-                    text = WhatsChanged.VERSION_22
+                    text = WhatsChanged.VERSION_22_1
                 )
                 positiveButton(text = "Ok")
             }

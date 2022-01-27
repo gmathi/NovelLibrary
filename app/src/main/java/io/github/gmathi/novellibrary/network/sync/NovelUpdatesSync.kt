@@ -7,12 +7,10 @@ import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.POST
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
-import io.github.gmathi.novellibrary.util.Logs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.FormBody
-import java.io.IOException
 import java.net.URL
 
 class NovelUpdatesSync : NovelSync() {
@@ -55,7 +53,7 @@ class NovelUpdatesSync : NovelSync() {
         return try {
             WebPageDocumentFetcher.document(UPDATE_NOVEL_URL.format(novel.metadata["PostId"], category, "move"))
             true
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             false
         }
     }
@@ -66,7 +64,7 @@ class NovelUpdatesSync : NovelSync() {
         return try {
             WebPageDocumentFetcher.document(READING_LIST_UPDATE_URL.format(novel.metadata["PostId"], "0", "noo"))
             true
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             false
         }
     }
@@ -80,7 +78,9 @@ class NovelUpdatesSync : NovelSync() {
         try {
             runBlocking {
 
-                val categories = ArrayList(withContext(Dispatchers.IO) { fetchCategories() })
+                val tempCategoriesList = withContext(Dispatchers.IO) { fetchCategories() }
+                if (tempCategoriesList.isEmpty()) return@runBlocking
+                val categories = ArrayList(tempCategoriesList)
                 val categoryMap = HashMap<Long, Int>()
                 val initialCategoryCount = categories.count()
 
@@ -105,7 +105,7 @@ class NovelUpdatesSync : NovelSync() {
                         novel.currentChapterUrl?.let {
                             withContext(Dispatchers.IO) { setBookmark(novel, dbHelper.getWebPage(it) ?: return@withContext) }
                         }
-                    } catch (e: IOException) {
+                    } catch (e: Exception) {
                         return@runBlocking
                     }
                 }
@@ -123,7 +123,7 @@ class NovelUpdatesSync : NovelSync() {
             val chapterId = chapter.url.split("/").dropLastWhile { it.isEmpty() }.last()
             WebPageDocumentFetcher.document(READING_LIST_UPDATE_URL.format(novel.metadata["PostId"], chapterId, "yes"))
             true
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             false
         }
     }
@@ -134,7 +134,7 @@ class NovelUpdatesSync : NovelSync() {
         return try {
             WebPageDocumentFetcher.document(READING_LIST_UPDATE_URL.format(novel.metadata["PostId"], "0", "no"))
             true
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             false
         }
     }
@@ -149,7 +149,7 @@ class NovelUpdatesSync : NovelSync() {
     }
 
     override fun renameSection(section: NovelSection, oldName: String?, newName: String?): Boolean {
-        val categories = fetchCategories()
+        val categories = fetchCategories() ?: return false
         val existing = categories.firstOrNull { it.name == oldName }
         return if (existing == null) {
 //            setCategories(categories + CategoryInfo(section.name?:"NL Section ${section.id}"))
@@ -163,8 +163,12 @@ class NovelUpdatesSync : NovelSync() {
     // getters
 
     override fun getCategories(): List<String> {
-        return WebPageDocumentFetcher.document(CATEGORY_LIST_URL).body().select("#myTable_crl tbody tr input[name^=fname]").map {
-            it.attr("value")
+        return try {
+            WebPageDocumentFetcher.document(CATEGORY_LIST_URL).body().select("#myTable_crl tbody tr input[name^=fname]").map {
+                it.attr("value")
+            }
+        } catch (e: Exception) {
+            emptyList()
         }
     }
 
@@ -174,7 +178,7 @@ class NovelUpdatesSync : NovelSync() {
         return if (section == null) {
             0
         } else {
-            val categories = fetchCategories()
+            val categories = fetchCategories() ?: return 0
             val existingIndex = categories.firstOrNull { it.name == section.name }?.index
             if (existingIndex != null) existingIndex
             else {
@@ -205,19 +209,23 @@ class NovelUpdatesSync : NovelSync() {
             val request = POST(CATEGORY_LIST_URL, body = formBodyBuilder.build())
             WebPageDocumentFetcher.connect(request)
             true
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             false
         }
     }
 
     private fun fetchCategories(): List<CategoryInfo> {
-        return WebPageDocumentFetcher.document(CATEGORY_LIST_URL).body().select("#myTable_crl tbody tr").map {
-            CategoryInfo(
-                it.select("input[name^=fname]").attr("value"),
-                description = it.select("input[name^=desc]").attr("value"),
-                icon = it.select("select.webmenu>option[selected]").attr("value"),
-                index = it.select("input[name=check]").attr("value").toInt()
-            )
+        return try {
+            WebPageDocumentFetcher.document(CATEGORY_LIST_URL).body().select("#myTable_crl tbody tr").map {
+                CategoryInfo(
+                    it.select("input[name^=fname]").attr("value"),
+                    description = it.select("input[name^=desc]").attr("value"),
+                    icon = it.select("select.webmenu>option[selected]").attr("value"),
+                    index = it.select("input[name=check]").attr("value").toInt()
+                )
+            }
+        } catch (e: Exception) {
+            emptyList()
         }
     }
 

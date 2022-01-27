@@ -511,7 +511,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
 
         fun reset(withEvent: Boolean = true) {
             // In case we pause or do something else that interrupts playback - reset the timer.
-            stopTime = System.currentTimeMillis() + java.util.concurrent.TimeUnit.MINUTES.toMillis(player.dataCenter.ttsPreferences.ttsStopTimer)
+            stopTime = System.currentTimeMillis() + java.util.concurrent.TimeUnit.MINUTES.toMillis(player.dataCenter.ttsPreferences.stopTimer)
             if (isActive && withEvent) {
                 Log.d(TAG, "Resetting the auto-stop timer")
                 mediaSession.sendSessionEvent(COMMAND_UPDATE_TIMER, Bundle().apply {

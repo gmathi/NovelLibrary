@@ -69,7 +69,7 @@ class AndroidCookieJar : CookieJar {
     }
 
     private fun saveLoginCookiesInternal(hostName: String, lookup: Regex?): Boolean {
-        val cookies = CookieManager.getInstance().getCookie("https://$hostName/").trim()
+        val cookies = CookieManager.getInstance().getCookie("https://$hostName/")?.trim() ?: return false
         val parts = cookies.split(";".toRegex()).dropLastWhile { it.isEmpty() }.filter {
             lookup?.containsMatchIn(it) ?: false
         }

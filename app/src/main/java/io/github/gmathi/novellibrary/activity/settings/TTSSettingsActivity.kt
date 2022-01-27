@@ -48,10 +48,10 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
             TTSSetting(R.string.tts_pitch, R.string.tts_pitch_description).onBind { _, view, _ ->
                 view.currentValue.visibility = View.VISIBLE
                 @SuppressLint("SetTextI18n")
-                view.currentValue.text = (dataCenter.ttsPreferences.ttsPitch * 100).roundToInt().toString() + "%"
+                view.currentValue.text = (dataCenter.ttsPreferences.pitch * 100).roundToInt().toString() + "%"
                 view.root.setOnClickListener {
-                    sliderMenu(view.currentValue, dataCenter.ttsPreferences.ttsPitch, TTSService.PITCH_MIN, TTSService.PITCH_MAX) { value, closing ->
-                        if (closing) dataCenter.ttsPreferences.ttsPitch = value
+                    sliderMenu(view.currentValue, dataCenter.ttsPreferences.pitch, TTSService.PITCH_MIN, TTSService.PITCH_MAX) { value, closing ->
+                        if (closing) dataCenter.ttsPreferences.pitch = value
                         value
                     }
                 }
@@ -59,10 +59,10 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
             TTSSetting(R.string.tts_rate, R.string.tts_rate_description).onBind { _, view, _ ->
                 view.currentValue.visibility = View.VISIBLE
                 @SuppressLint("SetTextI18n")
-                view.currentValue.text = (dataCenter.ttsPreferences.ttsSpeechRate * 100).roundToInt().toString() + "%"
+                view.currentValue.text = (dataCenter.ttsPreferences.speechRate * 100).roundToInt().toString() + "%"
                 view.root.setOnClickListener {
-                    sliderMenu(view.currentValue, dataCenter.ttsPreferences.ttsSpeechRate, TTSService.SPEECH_RATE_MIN, TTSService.SPEECH_RATE_MAX) { value, closing ->
-                        if (closing) dataCenter.ttsPreferences.ttsSpeechRate = value
+                    sliderMenu(view.currentValue, dataCenter.ttsPreferences.speechRate, TTSService.SPEECH_RATE_MIN, TTSService.SPEECH_RATE_MAX) { value, closing ->
+                        if (closing) dataCenter.ttsPreferences.speechRate = value
                         value
                     }
                 }
@@ -71,19 +71,19 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
                 view.bindSwitch(dataCenter.readAloudNextChapter) { _, value -> dataCenter.readAloudNextChapter = value }
             },
             TTSSetting(R.string.tts_move_bookmark, R.string.tts_move_bookmark_description).onBind { _, view, _ ->
-                view.bindSwitch(dataCenter.ttsPreferences.ttsMoveBookmark) { _, value -> dataCenter.ttsPreferences.ttsMoveBookmark = value }
+                view.bindSwitch(dataCenter.ttsPreferences.moveBookmark) { _, value -> dataCenter.ttsPreferences.moveBookmark = value }
             },
             TTSSetting(R.string.tts_mark_chapters_read, R.string.tts_mark_chapters_read_description).onBind { _, view, _ ->
-                view.bindSwitch(dataCenter.ttsPreferences.ttsMarkChaptersRead) { _, value -> dataCenter.ttsPreferences.ttsMarkChaptersRead = value }
+                view.bindSwitch(dataCenter.ttsPreferences.markChaptersRead) { _, value -> dataCenter.ttsPreferences.markChaptersRead = value }
             },
             TTSSetting(R.string.tts_merge_buffer_chapters, R.string.tts_merge_buffer_chapters_description).onBind { _, view, _ ->
-                view.bindSwitch(dataCenter.ttsPreferences.ttsMergeBufferChapters) { _, value -> dataCenter.ttsPreferences.ttsMergeBufferChapters = value }
+                view.bindSwitch(dataCenter.ttsPreferences.mergeBufferChapters) { _, value -> dataCenter.ttsPreferences.mergeBufferChapters = value }
             },
             TTSSetting(R.string.tts_discard_first_page, R.string.tts_discard_first_page_description).onBind { _, view, _ ->
-                view.bindSwitch(dataCenter.ttsPreferences.ttsDiscardInitialBufferPage) { _, value -> dataCenter.ttsPreferences.ttsDiscardInitialBufferPage = value }
+                view.bindSwitch(dataCenter.ttsPreferences.discardInitialBufferPage) { _, value -> dataCenter.ttsPreferences.discardInitialBufferPage = value }
             },
             TTSSetting(R.string.tts_use_longest_page, R.string.tts_use_longest_page_description).onBind { _, view, _ ->
-                view.bindSwitch(dataCenter.ttsPreferences.ttsUseLongestPage) { _, value -> dataCenter.ttsPreferences.ttsUseLongestPage = value }
+                view.bindSwitch(dataCenter.ttsPreferences.useLongestPage) { _, value -> dataCenter.ttsPreferences.useLongestPage = value }
             },
             TTSSetting(R.string.tts_language, R.string.tts_language_description).bindChevron { _, _ ->
                 selectLanguage()
@@ -95,10 +95,10 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
                 updateFilterSources()
             },
             TTSSetting(R.string.tts_strip_header, R.string.tts_strip_header_description).onBind { _, view, _ ->
-                view.bindSwitch(dataCenter.ttsPreferences.ttsStripHeader) { _, value -> dataCenter.ttsPreferences.ttsStripHeader = value }
+                view.bindSwitch(dataCenter.ttsPreferences.stripHeader) { _, value -> dataCenter.ttsPreferences.stripHeader = value }
             },
             TTSSetting(R.string.tts_chapter_change_sfx, R.string.tts_chapter_change_sfx_description).onBind { _, view, _ ->
-                view.bindSwitch(dataCenter.ttsPreferences.ttsChapterChangeSFX) { _, value -> dataCenter.ttsPreferences.ttsChapterChangeSFX = value }
+                view.bindSwitch(dataCenter.ttsPreferences.chapterChangeSFX) { _, value -> dataCenter.ttsPreferences.chapterChangeSFX = value }
             },
         )
 
@@ -150,13 +150,13 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
         @Suppress("JoinDeclarationAndAssignment")
         lateinit var engine: TextToSpeech
         engine = TextToSpeech(this) {
-            var language: Locale? = dataCenter.ttsPreferences.ttsLanguage
+            var language: Locale? = dataCenter.ttsPreferences.language
 
             val dialog = MaterialDialog(this).show {
                 title(R.string.tts_language)
                 customView(R.layout.dialog_list, scrollable = true)
                 positiveButton(R.string.okay) {
-                    dataCenter.ttsPreferences.ttsLanguage = language
+                    dataCenter.ttsPreferences.language = language
                     tts?.sendCommand(TTSService.COMMAND_UPDATE_LANGUAGE, null, null)
                 }
                 negativeButton(R.string.cancel) {  dismiss() }
@@ -193,7 +193,7 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
     }
 
     fun selectFilters() {
-        val originalFilters = dataCenter.ttsPreferences.ttsFilters
+        val originalFilters = dataCenter.ttsPreferences.filters
         val filters = originalFilters.toMutableList()
 
         val dialog = MaterialDialog(this).show {
@@ -201,8 +201,8 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
             customView(R.layout.dialog_checkbox_list, scrollable = true)
             positiveButton(R.string.okay) {
                 if (originalFilters.size != filters.size || !originalFilters.containsAll(filters)) {
-                    dataCenter.ttsPreferences.ttsFilters = filters
-                    val cache = dataCenter.ttsPreferences.ttsFilterCache
+                    dataCenter.ttsPreferences.filters = filters
+                    val cache = dataCenter.ttsPreferences.filterCache
                     if (!filters.all { id -> cache.containsKey(id) }) {
                         updateFilterSources()
                     } else {
@@ -223,7 +223,7 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
                 filters.remove(sourceId)
         }
 
-        val filterCache = dataCenter.ttsPreferences.ttsFilterCache
+        val filterCache = dataCenter.ttsPreferences.filterCache
         val group = dialog.getCustomView().findViewById<LinearLayout>(R.id.listGroup) ?: return
         checkToId = filterSources.map { source ->
             val button = SwitchCompat(this)
@@ -249,7 +249,7 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
         }
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
-                val cache = dataCenter.ttsPreferences.ttsFilterCache.toMutableMap()
+                val cache = dataCenter.ttsPreferences.filterCache.toMutableMap()
                 filterSources.forEach { source ->
                     val request = Request.Builder()
                         .url(source.url + "?timestamp=" + System.currentTimeMillis())
@@ -260,8 +260,8 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
                         cache[source.id] = Gson().fromJson(it)
                     }
                 }
-                dataCenter.ttsPreferences.ttsFilterCache = cache
-                rebuildEnabledFilters(dataCenter.ttsPreferences.ttsFilters, cache)
+                dataCenter.ttsPreferences.filterCache = cache
+                rebuildEnabledFilters(dataCenter.ttsPreferences.filters, cache)
                 withContext(Dispatchers.Main) {
                     dialog.dismiss()
                 }
@@ -276,7 +276,7 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
             cache[name]?.let { list.addAll(it.list) }
         }
 
-        dataCenter.ttsPreferences.ttsFilterList = list
+        dataCenter.ttsPreferences.filterList = list
     }
 
     fun sliderMenu(textView: TextView, initVal:Float, min: Float, max: Float, callback: (value: Float, closing: Boolean)->Float) {

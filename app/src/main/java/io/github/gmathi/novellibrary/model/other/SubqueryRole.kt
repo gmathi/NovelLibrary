@@ -50,6 +50,16 @@ enum class SubqueryRole {
     RPage,
 
     /**
+     * URL to the real chapter. Because translators oh so love being annoying to their readers.
+     */
+    RRealChapter,
+
+    /**
+     * URL to another (previous/next/specific) chapter. Chapters marked as such would be ignored by chapter merge option.
+     */
+    RChapterLink,
+
+    /**
      * Matches are explicitly removed from the cleaned chapter.
      */
     RBlacklist,
