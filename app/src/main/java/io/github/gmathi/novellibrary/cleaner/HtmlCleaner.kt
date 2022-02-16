@@ -24,6 +24,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.parser.Tag
+import org.jsoup.select.Elements
 import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.io.FileOutputStream
@@ -181,6 +182,27 @@ open class HtmlCleaner protected constructor() {
                     font-family: 'DragonTea'!important;
                 }
             """.trimIndent()),
+
+            // Extremely obnoxious anti-scraper inserts and other garbage.
+            SelectorQuery(".post-content.entry-content", host = "convallariaslibrary.com", subQueries = listOf(
+                SelectorSubQuery(".post-header .entry-title", SubqueryRole.RHeader, optional = false, multiple = false),
+                SelectorSubQuery(".post-content.entry-content", SubqueryRole.RContent, optional = false, multiple = true),
+                SelectorSubQuery("", SubqueryRole.RBlacklist, optional = true, multiple = true) { doc ->
+                    val hr = doc.selectFirst(".entry-content>hr")?.siblingIndex() ?: -1
+                    val els = doc.select(".entry-content>p,.entry-content>div").filter { el ->
+                        val txt = el.text()
+                        el.siblingIndex() < hr || // anything before <hr> tag is shilling
+                            txt == "&nbsp;" || // Reduce clutter
+                            txt.contains("hesitate to comment") || // Obnoxious
+                            txt.contains("convallariaslibrary") || txt.contains("Convallaria", true) || // Purge that shit
+                            el.selectFirst("img[srcset*='/Credit']") != null || // Purge once again
+                            el.hasClass(".code-block") || // And then purge some more
+                            el.selectFirst("a[href*=patreon],a[href*=ko-fi]") != null // And purge again after a break
+                    }
+
+                    Elements(els)
+                }
+            )),
 
             // They use annoying 2-page splitting: https://tigertranslations.org/2018/08/31/jack-of-all-trades-1/
             SelectorQuery(".the-content", host="tigertranslations.org", subQueries = listOf(
