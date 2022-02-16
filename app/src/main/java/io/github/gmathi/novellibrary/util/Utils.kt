@@ -408,7 +408,6 @@ object Utils {
         doc.select("br,p,hr").forEach {
             it.after("\n")
         }
-        doc.select("em,strong,italic,s,i").unwrap()
 
         val filters = dataCenter.ttsPreferences.filterList
 
@@ -417,6 +416,7 @@ object Utils {
                 doc.select(it.lookup).remove()
             }
         }
+        doc.select("em,strong,italic,s,i,a").unwrap()
 
         val textFilters = filters.filter { it.target == TTSFilterTarget.TextChunk }.map { it.compile(doc) }
 

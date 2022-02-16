@@ -33,7 +33,12 @@ open class BasePostProxyHelper {
                         """/chapters/(\d+)""".toRegex().find(doc.location())?.let { match ->
                             val jsonString = string(connect(request("https://api.inoveltranslation.com/chapters/${match.groups[1]!!.value}"))) ?: return null
                             val json: INovelTranslationJson = Gson().fromJson(jsonString)
-                            val html = json.content.let {
+                            val raw = json.content
+                                // Hide obnoxious T/N notes in TTS.
+                                .replace("""---\s*T/N:.+(\n\[?!$|---)""".toRegex(setOf(RegexOption.DOT_MATCHES_ALL)), "<div tts-disable=\"true\">\n\n$0\n\n</div>")
+                                .replace("""T/N:.+shoutout to the following:.*?for being.*?patre?ons?.*?$""".toRegex(setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.MULTILINE)), "<div tts-disable=\"true\">\n\n$0\n\n</div>")
+                                .replace("""(Editor|Translator|T/N): .+""".toRegex(), "<p tts-disable=\"true\">$0</p>")
+                            val html = raw.let {
                                 val flavour = CommonMarkFlavourDescriptor()
                                 val tree = MarkdownParser(flavour).buildMarkdownTreeFromString(it)
                                 HtmlGenerator(it, tree, flavour).generateHtml()
