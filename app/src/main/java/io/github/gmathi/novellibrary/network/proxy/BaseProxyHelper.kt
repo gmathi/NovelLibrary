@@ -1,8 +1,12 @@
 package io.github.gmathi.novellibrary.network.proxy
 
+import androidx.core.text.htmlEncode
+import com.github.salomonbrys.kotson.fromJson
+import com.google.gson.Gson
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
+import io.github.gmathi.novellibrary.network.postProxy.JsonContentProxy
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -31,5 +35,5 @@ open class BaseProxyHelper {
     open fun request(url: String): Request = WebPageDocumentFetcher.request(url)
     open fun connect(request: Request): Response = WebPageDocumentFetcher.connect(request)
     open fun document(response: Response): Document = WebPageDocumentFetcher.document(response)
-    //open fun string(response: Response): String? = WebPageDocumentFetcher.string(response)
+    open fun string(response: Response): String? = WebPageDocumentFetcher.string(response)
 }

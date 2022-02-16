@@ -35,6 +35,7 @@ import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.model.preference.DataCenter
+import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Utils.getFormattedText
 import io.github.gmathi.novellibrary.util.getLinkedPagesCompat
 import io.github.gmathi.novellibrary.util.lang.*
@@ -603,13 +604,8 @@ class TTSPlayer(private val context: Context,
         chapterCache.add(clean)
     }
 
-    private suspend fun getWebPageDocument(url: String): Document {
-        val doc = client.newCall(GET(url)).safeExecute().asJsoup()
-        // Clearly a crutch that should not be there?
-        if (doc.location().contains("rssbook") && doc.location().contains(HostNames.QIDIAN)) {
-            return withIOContext { getWebPageDocument(doc.location().replace("rssbook", "book")) }
-        }
-        return doc
+    private fun getWebPageDocument(url: String): Document {
+        return WebPageDocumentFetcher.document(url)
     }
 
     private fun cleanDocumentText(doc: Document, index: Int): TTSCleanDocument {

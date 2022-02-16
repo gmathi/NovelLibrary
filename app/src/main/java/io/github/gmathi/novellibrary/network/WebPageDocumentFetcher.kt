@@ -4,6 +4,7 @@ import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.proxy.BaseProxyHelper
 import io.github.gmathi.novellibrary.model.preference.DataCenter
+import io.github.gmathi.novellibrary.network.postProxy.BasePostProxyHelper
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.network.asJsoup
 import io.github.gmathi.novellibrary.util.network.safeExecute
@@ -23,7 +24,7 @@ object WebPageDocumentFetcher {
     private val client: OkHttpClient
         get() = networkHelper.cloudflareClient
 
-    private fun response(url: String, proxy: BaseProxyHelper?): Response {
+    fun response(url: String, proxy: BaseProxyHelper?): Response {
         try {
             val request = proxy?.request(url) ?: request(url)
             return proxy?.connect(request) ?: connect(request)
@@ -39,7 +40,8 @@ object WebPageDocumentFetcher {
             proxy = BaseProxyHelper.getInstance(url)
         }
         val response = response(url, proxy)
-        var doc = proxy?.document(response) ?: document(response)
+        val postProxy = if (useProxy) BasePostProxyHelper.getInstance(response) else null
+        var doc = postProxy?.document(response) ?: proxy?.document(response) ?: document(response)
         if (doc.location().contains("rssbook") && doc.location().contains(HostNames.QIDIAN)) {
             doc = document(doc.location().replace("rssbook", "book"), useProxy)
         }
@@ -63,9 +65,7 @@ object WebPageDocumentFetcher {
         return response.asJsoup()
     }
 
-//    private fun string(response: Response): String? {
-//        return response.body?.string()
-//    }
+    fun string(response: Response): String? = response.body?.string()
 
     fun request(url: String): Request = GET(url)
 

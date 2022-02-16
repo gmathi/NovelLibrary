@@ -405,9 +405,10 @@ object Utils {
             doc.head().children().remove()
 //            doc.head().html("")
         }
-        doc.select("br").forEach {
+        doc.select("br,p,hr").forEach {
             it.after("\n")
         }
+        doc.select("em,strong,italic,s,i").unwrap()
 
         val filters = dataCenter.ttsPreferences.filterList
 
