@@ -219,6 +219,9 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics-ktx'
 
     implementation 'com.zhkrb.cloudflare-scrape-android:scrape-webview:0.0.4'
+
+    // Markdown parser for websites that use markdown
+    implementation "org.jetbrains:markdown:0.3.1"
 }
 
 task countTranslations {
