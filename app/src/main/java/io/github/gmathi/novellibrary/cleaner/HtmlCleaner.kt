@@ -49,7 +49,7 @@ open class HtmlCleaner protected constructor() {
         // Fairly generic selectors for specific content types
         private const val genericCommentsSubquery = "#comments,.comments,#disqus_thread"
         private const val genericShareSubquery = ".sd-block,.sharedaddy"
-        private const val genericMetaSubquery = ".byline,.posted-on,.cat-links,.tags-links,.entry-author,.post-date,.post-info,.post-meta,.entry-meta"
+        private const val genericMetaSubquery = ".byline,.posted-on,.cat-links,.tags-links,.entry-author,.post-date,.post-info,.post-meta,.entry-meta,.meta-in-content"
 
         private val imageAttributes = listOf(
             "data-orig-file",
@@ -70,6 +70,7 @@ open class HtmlCleaner protected constructor() {
             // RHeader, RContent, RPage, RFooter, RNavigation, RMeta, RShare, RComments
             // Make sure to put host-restricted queries first, since they likely trigger some other selector.
 
+            //#region Site-specific queries
             SelectorQuery(
                 ".nv__main", host = "activetranslations.xyz", subQueries = listOf(
                     SelectorSubQuery(".nv-page-title", SubqueryRole.RHeader, optional = false, multiple = false),
@@ -126,6 +127,31 @@ open class HtmlCleaner protected constructor() {
                         SubQueryProcessingCommandInfo(SubQueryProcessingCommand.AddAttribute, "alt=my image")
                     )
                 ),
+            )),
+
+            // Better TTS support for Shirokus. Mark header, navigation and TL comments as non-read.
+            // They have long as hell TL comments, holy cramoly.
+            SelectorQuery(".entry-content", host="shirokuns.com", subQueries = listOf(
+                SelectorSubQuery(".entry-title", SubqueryRole.RHeader, optional = false, multiple = false),
+                SelectorSubQuery(".entry-content", SubqueryRole.RContent, optional = false, multiple = false),
+                SelectorSubQuery(".entry-content>p:contains(Patreon Supporter)", SubqueryRole.RBlacklist),
+                SelectorSubQuery(".entry-content>p:contains(Table Of Content)", SubqueryRole.RNavigation),
+                SelectorSubQuery("", SubqueryRole.RBlacklist, optional = true, multiple = true) { doc ->
+                    // If there's 2 hrs - it has TL comment, otherwise it's just separator, but since we already processed .entry-title it should be safe to yeet it.
+                    // 42 is magic number because I doubt they'll do THAT long of a TL comment.
+                    val hr = doc.select(".entry-content>hr").last { it.siblingIndex() < 42 }?.siblingIndex() ?: -1
+//                    val hr = doc.selectFirst(".entry-content>p:matches(enjoy.+this.+chapter~) + hr")?.siblingIndex() ?: -1
+                    val els = doc.select(".entry-content>p,.entry-content>div,.entry-content>table").filter { el ->
+                        val txt = el.text()
+                        el.siblingIndex() < hr || // anything before <hr> tag is a huge TL note.
+                                txt.isEmpty() ||
+                                txt == "&nbsp;" || // Reduce clutter
+                                txt.startsWith("(TLN") || txt.startsWith("( TLN") || // Remove all obnoxious TLNs because 99% cases they bring no value.
+                                txt.contains("patron supporters") // Shilling
+                    }
+
+                    Elements(els)
+                }
             )),
 
             // Scrambled fonts
@@ -215,8 +241,18 @@ open class HtmlCleaner protected constructor() {
                 SelectorSubQuery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
             )),
 
+            SelectorQuery(".entry-content", host="fanstranslations.com", subQueries = listOf(
+                SelectorSubQuery("#chapter-heading", SubqueryRole.RHeader, optional = false, multiple = false),
+                SelectorSubQuery(".reading-content", SubqueryRole.RContent, optional = true, multiple = false),
+                SelectorSubQuery(".alert-warning", SubqueryRole.RBlacklist, optional = true, multiple = false), // Announcements of "we picked up that and that novel"
+                SelectorSubQuery("p:containsOwn(~Edited)", SubqueryRole.RBlacklist, optional = true, multiple = true),
+                SelectorSubQuery("p:contains(wait to read more)", SubqueryRole.RBlacklist, optional = true, multiple = true),
+                SelectorSubQuery("p:contains(check out our new novel)", SubqueryRole.RBlacklist, optional = true, multiple = true),
+            )),
+
             // Github, DIY Translations as an example
             SelectorQuery("div#readme", host = "github.com"),
+            //#endregion
 
             // https://novelonomicon.com/
             SelectorQuery(

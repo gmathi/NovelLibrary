@@ -69,7 +69,10 @@ class TTSPlayer(private val context: Context,
 
         const val TYPE_EARCON = "earcon"
         const val TYPE_SENTENCE = "sentence"
+        const val TYPE_DIALOGUE = "dialogue"
+        const val TYPE_DIALOGUE_SPEAKER = "dialogue_speaker"
         const val TYPE_CHAPTER_CHANGE_EARCON = "chapter_change_earcon"
+        const val TYPE_SPECIAL = "special"
 
         const val SCENE_CHANGE_EARCON = "◇ ◇ ◇"
         const val CHAPTER_CHANGE_EARCON = "##next_chapter##"
@@ -116,7 +119,20 @@ class TTSPlayer(private val context: Context,
     private lateinit var title: String
     private lateinit var rawText: String
     var lineNumber: Int = 0
-    var lines: MutableList<String> = mutableListOf()
+    var lines: MutableList<TTSLine> = mutableListOf()
+
+    data class TTSLine(val line: String, val mode: TTSReadMode = TTSReadMode.ModeRegular, val speaker: String? = null, val sequential: Boolean = false) {
+        fun getDisplayString(): String {
+            return if (mode == TTSReadMode.ModeDialogue && speaker != null) {
+                "$line $speaker"
+            } else line
+        }
+    }
+    enum class TTSReadMode {
+        ModeRegular,
+        ModeDialogue,
+        ModeSceneChange,
+    }
 
     private var desiredState: Int = STATE_STOP
     private var currentState: Int = STATE_STOP
@@ -151,11 +167,28 @@ class TTSPlayer(private val context: Context,
         tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onDone(utteranceId: String?) {
                 if (currentState == STATE_PLAY) {
-                    if (utteranceId != TYPE_CHAPTER_CHANGE_EARCON)
-                        lineNumber++
-                    speakLine()
+                    when (utteranceId) {
+                        TYPE_SENTENCE, TYPE_DIALOGUE_SPEAKER, TYPE_EARCON -> {
+                            lineNumber++
+                            speakLine()
+                        }
+                        TYPE_DIALOGUE -> {
+                            if (dataCenter.ttsPreferences.downpitchDialogue) tts.setPitch(dataCenter.ttsPreferences.pitch)
+                            if (lines[lineNumber].speaker == null) {
+                                lineNumber++
+                                speakLine()
+                            } else {
+                                tts.speak(lines[lineNumber].speaker, TextToSpeech.QUEUE_ADD, ttsBundle(TYPE_DIALOGUE_SPEAKER), TYPE_DIALOGUE_SPEAKER)
+                            }
+                        }
+                        TYPE_CHAPTER_CHANGE_EARCON -> speakLine()
+                    }
                 }
              }
+
+            // TODO: Improve utteranceId management to prevent misinterpreting
+
+            // TODO: Try onAudioAvailable + synthesizeToFile(/dev/null) approach?
 
             override fun onError(utteranceId: String?) {
                 Log.e(TAG, "Error playing TTS $utteranceId")
@@ -382,7 +415,7 @@ class TTSPlayer(private val context: Context,
         currentState = STATE_LOADING
         desiredState = STATE_PLAY
         setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
-        if (withEarcon && dataCenter.ttsPreferences.chapterChangeSFX) sendToTTS(CHAPTER_CHANGE_EARCON, TextToSpeech.QUEUE_FLUSH)
+        if (withEarcon && dataCenter.ttsPreferences.chapterChangeSFX) sendChapterChangeEarconToTTS(TextToSpeech.QUEUE_FLUSH)
         else tts.stop()
         loadChapter(chapterIndex + 1)
     }
@@ -397,7 +430,7 @@ class TTSPlayer(private val context: Context,
 
     fun speakLine(queueMode:Int = TextToSpeech.QUEUE_ADD) {
         if (lines.isNotEmpty() && lineNumber < lines.size) {
-            sendToTTS(lines[lineNumber], queueMode)
+            sendLineToTTS(lines[lineNumber], queueMode)
             setPlaybackState(PlaybackStateCompat.STATE_PLAYING) // Update state
         } else {
             if (dataCenter.ttsPreferences.markChaptersRead) {
@@ -413,7 +446,29 @@ class TTSPlayer(private val context: Context,
         }
     }
 
-    private fun sendToTTS(text: String, queueMode: Int) {
+    private fun ttsBundle(type: String): Bundle {
+        val params = Bundle()
+        params.putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_MUSIC)
+        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, type)
+        return params
+    }
+
+    private fun sendChapterChangeEarconToTTS(queueMode: Int) {
+        tts.playEarcon(CHAPTER_CHANGE_EARCON, queueMode, ttsBundle(TYPE_CHAPTER_CHANGE_EARCON), TYPE_CHAPTER_CHANGE_EARCON)
+    }
+
+    private fun sendLineToTTS(line: TTSLine, queueMode: Int) {
+        when (line.mode) {
+            TTSReadMode.ModeRegular -> tts.speak(line.line, queueMode, ttsBundle(TYPE_SENTENCE), TYPE_SENTENCE)
+            TTSReadMode.ModeDialogue -> {
+                if (dataCenter.ttsPreferences.downpitchDialogue) tts.setPitch(dataCenter.ttsPreferences.pitch * .95f)
+                tts.speak(line.line, queueMode, ttsBundle(TYPE_DIALOGUE), TYPE_DIALOGUE)
+            }
+            TTSReadMode.ModeSceneChange -> tts.playEarcon(SCENE_CHANGE_EARCON, queueMode, ttsBundle(TYPE_EARCON), TYPE_EARCON)
+        }
+    }
+
+    private fun sendToTTS(text: String, queueMode: Int, playMode: TTSReadMode = TTSReadMode.ModeRegular) {
         val params = Bundle()
         params.putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_MUSIC)
 
@@ -592,6 +647,7 @@ class TTSPlayer(private val context: Context,
             } catch (e: Exception) {
                 Log.e(TAG, "Unable to read chapter ${webPageSettings.url}", e)
                 context.showToastWithMain("Unable to read chapter", Toast.LENGTH_LONG)
+                tts.speak("Unable to read next chapter!", TextToSpeech.QUEUE_FLUSH, ttsBundle(TYPE_SPECIAL), TYPE_SPECIAL)
             }
         }
     }
@@ -650,6 +706,25 @@ class TTSPlayer(private val context: Context,
             return index
         }
 
+        // TODO: Detect dialogue prior line-splitting
+        // TODO: Handle <div><i></i></div> as "inner dialogue"
+        // TODO: Improve dialogue detection
+        // Detects:
+        // "dialogue"
+        // "dialogue" [speaker]
+        val dialogueRegex = """^\s*("+.+"+|\p{Pi}+.+\p{Pf}+|\p{Ps}+.+\p{Pe}+)(?: *(\p{Ps}+.{1,30}\p{Pe}+))?\s*$""".toRegex()
+        fun makeLine(text: String, sequential: Boolean) {
+            val dialogue = dialogueRegex.matchEntire(text)
+            if (dialogue != null) {
+                lines.add(TTSLine(dialogue.groupValues[1], TTSReadMode.ModeDialogue, dialogue.groupValues[2], sequential))
+            } else {
+                lines.add(TTSLine(text,
+                    mode = if(text == SCENE_CHANGE_EARCON) TTSReadMode.ModeSceneChange else TTSReadMode.ModeRegular,
+                    sequential = sequential
+                ))
+            }
+        }
+
         // Limit the character count to manageable and reasonable values.
         // Even if TTS engine says it can process more at once, it doesn't mean we want it to,
         // since it will produce audible pauses. Processing in smaller chunks is better.
@@ -660,7 +735,7 @@ class TTSPlayer(private val context: Context,
             lineToBreak = lineToBreak.trim()
 
             if (lineToBreak.length < characterLimit) {
-                lines.add(lineToBreak)
+                makeLine(lineToBreak, false)
                 return@forEach
             }
 
@@ -669,6 +744,7 @@ class TTSPlayer(private val context: Context,
             val sentenceEndRegex = """[.!?;"'」』”»“‘)\]](?>[\s\r]|$)""".toRegex()
 
             //Break a single big line in to multiple lines
+            var sequentialMarker = false
             while (lineToBreak.isNotEmpty()) {
                 var index = findSplitIndex(lineToBreak, characterLimit, sentenceEndRegex)
                 // If we can't split the sentence within boundaries by using common sentence finishers
@@ -678,16 +754,17 @@ class TTSPlayer(private val context: Context,
                 if (index == -1) {
                     // Last ditch: Couldn't find any way to split, just cut it.
                     while (lineToBreak.length > characterLimit) {
-                        lines.add(lineToBreak.substring(0, characterLimit))
+                        makeLine(lineToBreak.substring(0, characterLimit), sequentialMarker)
+                        sequentialMarker = true
                         lineToBreak = lineToBreak.substring(characterLimit)
                     }
-                    lines.add(lineToBreak)
                     return@forEach
                 } else {
-                    lines.add(lineToBreak.substring(0, index + 1))
+                    makeLine(lineToBreak.substring(0, index + 1), sequentialMarker)
+                    sequentialMarker = true
                     lineToBreak = lineToBreak.substring(index + 1).trim()
                     if (lineToBreak.length < characterLimit) {
-                        lines.add(lineToBreak)
+                        makeLine(lineToBreak, sequentialMarker)
                         return@forEach
                     }
                 }
@@ -702,7 +779,7 @@ class TTSPlayer(private val context: Context,
 
     fun sendSentences() {
         mediaSession.sendSessionEvent(TTSService.EVENT_SENTENCE_LIST, Bundle().apply {
-            putStringArrayList(TTSService.KEY_SENTENCES, lines.toCollection(ArrayList()))
+            putStringArrayList(TTSService.KEY_SENTENCES, lines.mapTo(ArrayList()) { it.getDisplayString() })
         })
     }
 

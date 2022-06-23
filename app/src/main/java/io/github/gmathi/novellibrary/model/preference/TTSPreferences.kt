@@ -56,6 +56,10 @@ data class TTSPreferences(val context: Context, val prefs: SharedPreferences) {
         get() = prefs.getLong("ttsStopTimer", 60L)
         set(value) = prefs.edit().putLong("ttsStopTimer", value).apply()
 
+    var downpitchDialogue: Boolean
+        get() = prefs.getBoolean("ttsDownpitchDialogue", false)
+        set(value) = prefs.edit().putBoolean("ttsDownpitchDialogue", value).apply()
+
     // The names of currently active filter sets.
     var filters: List<String>
         get() = prefs.getJson("ttsFilters", "[]")
