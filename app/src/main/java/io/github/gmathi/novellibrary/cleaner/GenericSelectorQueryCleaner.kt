@@ -14,11 +14,14 @@ class GenericSelectorQueryCleaner(
 
     companion object {
         val DIRECTIONAL_LINKS = listOf(
-            "Previous Chapter", "Next Chapter", "[Previous Chapter]", "[Next Chapter]",
-            "Previous", "Next", "[Previous]", "[Next]",
-            "Project Page",
-            "Index", "Table of Contents", "TOC", "[Index]", "[Table of Contents]", "[TOC]"
+//            "Previous Chapter", "Next Chapter", "[Previous Chapter]", "[Next Chapter]", "Prev", "[Prev]",
+//            "Previous", "Next", "[Previous]", "[Next]",
+            "Project Page", "Glossary",
+//            "Index", "Table of Contents", "TOC", "[Index]", "[Table of Contents]", "[TOC]"
         )
+        val PREV_REGEX = Regex("""^\s*\W*\s*Prev(?:ious)?(?:\sChapter)?$""", RegexOption.IGNORE_CASE)
+        val NEXT_REGEX = Regex("""^\s*\W*\s*Next(?:\sChapter)?\s*\W*\s*$""", RegexOption.IGNORE_CASE)
+        val TOC_REGEX = Regex("""^\s*\W*\s*(Index|TOC|Table of Contents)(\s*\W*\s*|\s\W\s.+)$""", RegexOption.IGNORE_CASE)
     }
 
     override fun additionalProcessing(doc: Document) {
@@ -54,7 +57,7 @@ class GenericSelectorQueryCleaner(
              * Comprehensive SubQueries
              */
 
-            val subContent = subQueries.map { if (it.selector.isEmpty()) Elements() else body.select(it.selector) }
+            val subContent = subQueries.map { it.select(body) }
             removeCSS(doc)
             subContent.forEachIndexed { index, elements ->
                 val subQuery = subQueries[index]
@@ -75,29 +78,29 @@ class GenericSelectorQueryCleaner(
 //                    SubQueryRole.RFooter -> {}
                     SubqueryRole.RShare -> {
                         applyCommands(subQuery, elements)
-                        elements.remove()
+                        elements.forEach { if (it.hasParent()) it.remove() }
                         return@forEachIndexed
                     }
                     SubqueryRole.RComments ->
                         if (!dataCenter.showChapterComments) {
                             applyCommands(subQuery, elements)
-                            elements.remove()
+                            elements.forEach { if (it.hasParent()) it.remove() }
                             return@forEachIndexed
                         }
                     SubqueryRole.RMeta -> {
                         applyCommands(subQuery, elements)
-                        elements.remove()
+                        elements.forEach { if (it.hasParent()) it.remove() }
                         return@forEachIndexed
                     }
                     SubqueryRole.RNavigation ->
                         if (!dataCenter.enableDirectionalLinks) {
                             applyCommands(subQuery, elements)
-                            elements.remove()
+                            elements.forEach { if (it.hasParent()) it.remove() }
                             return@forEachIndexed
                         }
                     SubqueryRole.RBlacklist -> {
                         applyCommands(subQuery, elements)
-                        elements.remove()
+                        elements.forEach { if (it.hasParent()) it.remove() }
                         return@forEachIndexed
                     }
                     SubqueryRole.RWhitelist -> {
@@ -230,14 +233,14 @@ class GenericSelectorQueryCleaner(
 
     override fun getLinkedChapters(doc: Document): ArrayList<LinkedPage> {
         if (query.subQueries.isNotEmpty()) {
-            return getLinkedChapters(doc.location(), doc.body().select(query.subQueries.first { it.role == SubqueryRole.RContent }.selector).firstOrNull())
+            return getLinkedChapters(doc.location(), query.subQueries.first { it.role == SubqueryRole.RContent }.select(doc.body()).firstOrNull())
         }
         return getLinkedChapters(doc.location(), doc.body().select(query.selector).firstOrNull())
     }
 
     private fun isDirectionalLink(el: Element): Boolean {
         val text = el.text()
-        return DIRECTIONAL_LINKS.any { text.equals(it, ignoreCase = true) }
+        return text.matches(NEXT_REGEX) || text.matches(PREV_REGEX) || text.matches(TOC_REGEX) || DIRECTIONAL_LINKS.any { text.equals(it, ignoreCase = true) }
     }
 
     private fun markDirectionalLinks(contentElement: Elements) {

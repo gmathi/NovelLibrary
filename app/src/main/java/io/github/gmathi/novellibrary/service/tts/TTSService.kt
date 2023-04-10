@@ -63,6 +63,10 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         const val COMMAND_RELOAD_CHAPTER = "cmd_reload_chapter"
         const val EVENT_SENTENCE_LIST = "event_$KEY_SENTENCES"
         const val EVENT_LINKED_PAGES = "event_$LINKED_PAGES"
+        const val EVENT_TEXT_RANGE = "event_text_range"
+
+        const val TEXT_RANGE_START = "range_start"
+        const val TEXT_RANGE_END = "range_end"
 
         private const val STATE_PREFIX = "TTSService."
         const val STATE_NOVEL_ID = STATE_PREFIX + NOVEL_ID
@@ -392,12 +396,18 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         }
 
         override fun onRewind() {
-            player.goto(player.lineNumber - 1)
+            if (player.dataCenter.ttsPreferences.swapRewindSkip)
+                player.previousChapter()
+            else
+                player.goto(player.lineNumber - player.dataCenter.ttsPreferences.rewindSentences)
             stopTimer.reset()
         }
 
         override fun onFastForward() {
-            player.goto(player.lineNumber + 1)
+            if (player.dataCenter.ttsPreferences.swapRewindSkip)
+                player.nextChapter()
+            else
+                player.goto(player.lineNumber + player.dataCenter.ttsPreferences.forwardSentences)
             stopTimer.reset()
         }
 
@@ -414,12 +424,18 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
 //        }
 
         override fun onSkipToNext() {
-            player.nextChapter()
+            if (player.dataCenter.ttsPreferences.swapRewindSkip)
+                player.goto(player.lineNumber + player.dataCenter.ttsPreferences.forwardSentences)
+            else
+                player.nextChapter()
             stopTimer.reset()
         }
 
         override fun onSkipToPrevious() {
-            player.previousChapter()
+            if (player.dataCenter.ttsPreferences.swapRewindSkip)
+                player.goto(player.lineNumber - player.dataCenter.ttsPreferences.rewindSentences)
+            else
+                player.previousChapter()
             stopTimer.reset()
         }
 

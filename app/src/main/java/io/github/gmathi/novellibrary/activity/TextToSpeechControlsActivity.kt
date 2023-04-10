@@ -12,10 +12,15 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.text.SpannableString
+import android.text.style.UnderlineSpan
+import android.util.Log
 import android.view.*
 import android.widget.Button
 import android.widget.TableRow
+import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.text.clearSpans
 import androidx.core.view.children
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
@@ -32,6 +37,7 @@ import io.github.gmathi.novellibrary.databinding.ListitemSentenceBinding
 import io.github.gmathi.novellibrary.extensions.isPlaying
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.LinkedPage
+import io.github.gmathi.novellibrary.service.tts.TTSPlayer
 import io.github.gmathi.novellibrary.service.tts.TTSService
 import io.github.gmathi.novellibrary.util.fromHumanPercentage
 import io.github.gmathi.novellibrary.util.lang.duration
@@ -61,6 +67,8 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
     lateinit var adapter: GenericAdapter<String>
     var lastSentence:Int = -1
     var hasSentences = false
+    var sentenceRangeStart: Int = -1
+    var sentenceRangeEnd: Int = -1
 
     var novel: Novel? = null
     var translatorSource: String? = null
@@ -132,16 +140,28 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
         contentBinding.ttsNovelName.isSelected = true
 
         contentBinding.prevChapterButton.setOnClickListener {
-            controller?.transportControls?.skipToPrevious()
+            if (dataCenter.ttsPreferences.swapRewindSkip)
+                controller?.transportControls?.rewind()
+            else
+                controller?.transportControls?.skipToPrevious()
         }
         contentBinding.nextChapterButton.setOnClickListener {
-            controller?.transportControls?.skipToNext()
+            if (dataCenter.ttsPreferences.swapRewindSkip)
+                controller?.transportControls?.fastForward()
+            else
+                controller?.transportControls?.skipToNext()
         }
         contentBinding.prevSentenceButton.setOnClickListener {
-            controller?.transportControls?.rewind()
+            if (dataCenter.ttsPreferences.swapRewindSkip)
+                controller?.transportControls?.skipToPrevious()
+            else
+                controller?.transportControls?.rewind()
         }
         contentBinding.nextSentenceButton.setOnClickListener {
-            controller?.transportControls?.fastForward()
+            if (dataCenter.ttsPreferences.swapRewindSkip)
+                controller?.transportControls?.skipToNext()
+            else
+                controller?.transportControls?.fastForward()
         }
         contentBinding.playButton.setOnClickListener {
             if (controller?.playbackState?.state == PlaybackStateCompat.STATE_NONE) {
@@ -213,6 +233,15 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
             setOnCheckedChangeListener { _, b -> dataCenter.ttsPreferences.useLongestPage = b }
         }
 
+        quickSettings.keepScreenOn.run {
+            isChecked = dataCenter.ttsPreferences.keepScreenOn
+            setOnCheckedChangeListener { _, b ->
+                dataCenter.ttsPreferences.keepScreenOn = b
+                if (b) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
+        }
+
         quickSettings.reloadChapter.setOnClickListener {
             controller?.sendCommand(TTSService.COMMAND_RELOAD_CHAPTER, null, null)
             binding.root.closeDrawers()
@@ -255,19 +284,24 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
         }
         //#endregion
 
+        if (dataCenter.ttsPreferences.keepScreenOn) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 //        supportActionBar?.title = novel.name
     }
 
     private fun populateSettings() {
-        quickSettings.pitch.setProgress((dataCenter.ttsPreferences.pitch - TTSService.PITCH_MIN).toHumanPercentage().toDouble())
-        quickSettings.speechRate.setProgress((dataCenter.ttsPreferences.speechRate - TTSService.SPEECH_RATE_MIN).toHumanPercentage().toDouble())
+        val prefs = dataCenter.ttsPreferences
+        quickSettings.pitch.setProgress((prefs.pitch - TTSService.PITCH_MIN).toHumanPercentage().toDouble())
+        quickSettings.speechRate.setProgress((prefs.speechRate - TTSService.SPEECH_RATE_MIN).toHumanPercentage().toDouble())
         quickSettings.autoReadNextChapter.isChecked = dataCenter.readAloudNextChapter
-        quickSettings.moveBookmark.isChecked = dataCenter.ttsPreferences.moveBookmark
-        quickSettings.markRead.isChecked = dataCenter.ttsPreferences.markChaptersRead
-        quickSettings.mergeChapters.isChecked = dataCenter.ttsPreferences.mergeBufferChapters
+        quickSettings.moveBookmark.isChecked = prefs.moveBookmark
+        quickSettings.markRead.isChecked = prefs.markChaptersRead
+        quickSettings.mergeChapters.isChecked = prefs.mergeBufferChapters
+        quickSettings.keepScreenOn.isChecked = prefs.keepScreenOn
         refreshTimerState()
+        if (prefs.keepScreenOn) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     private fun refreshTimerState() {
@@ -358,6 +392,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
                 TTSService.EVENT_SENTENCE_LIST -> setRecycleView(extras)
                 TTSService.COMMAND_UPDATE_TIMER -> updateTimerCallback.send(if (extras.getBoolean("active")) 1 else 0, extras)
                 TTSService.EVENT_LINKED_PAGES -> updateLinkedPages(extras.getParcelableArrayList(TTSService.LINKED_PAGES)?:ArrayList())
+                TTSService.EVENT_TEXT_RANGE -> setTextRanges(extras)
             }
         }
 
@@ -401,11 +436,19 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
         quickSettings.noLinkedPages.visibility = if (pages.size == 0) View.VISIBLE else View.GONE
     }
 
+    private fun setTextRanges(extras: Bundle) {
+        sentenceRangeStart = extras.getInt(TTSService.TEXT_RANGE_START)
+        sentenceRangeEnd = extras.getInt(TTSService.TEXT_RANGE_END)
+        adapter.notifyItemChanged(lastSentence, "range")
+    }
+
     private fun updatePosition(oldPosition: Int) {
         val layout = (contentBinding.sentencesView.layoutManager as LinearLayoutManager)
         val visibleStart = layout.findFirstCompletelyVisibleItemPosition()
         val visibleEnd = layout.findLastCompletelyVisibleItemPosition()
         val shouldAutoScroll = !layout.isSmoothScrolling && (oldPosition in visibleStart..visibleEnd || oldPosition == -1)
+
+        sentenceRangeStart = -1
 
         if (oldPosition != -1) adapter.notifyItemChanged(oldPosition)
         adapter.notifyItemChanged(lastSentence)
@@ -439,11 +482,30 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
 
     override fun bind(item: String, itemView: View, position: Int) {
         val binding = ListitemSentenceBinding.bind(itemView)
-        binding.sentenceContents.applyFont(assets).text = item
         binding.sentenceLayout.setBackgroundColor(ContextCompat.getColor(this,
             if (lastSentence == position) R.color.colorLightBlue
             else android.R.color.transparent
         ))
+        if (lastSentence == position && sentenceRangeStart != -1) {
+            val span = SpannableString(item)
+            span.setSpan(UnderlineSpan(), sentenceRangeStart.coerceIn(0, item.length), sentenceRangeEnd.coerceIn(0, item.length), 0)
+            binding.sentenceContents.applyFont(assets).text = span
+        } else {
+            binding.sentenceContents.applyFont(assets).text = item
+        }
+    }
+
+    override fun bind(item: String, itemView: View, position: Int, payloads: MutableList<Any>?) {
+        if (payloads?.contains("range") == true) {
+            val span = SpannableString(item)
+            span.setSpan(UnderlineSpan(), sentenceRangeStart.coerceIn(0, item.length), sentenceRangeEnd.coerceIn(0, item.length), 0)
+            itemView.findViewById<TextView>(R.id.sentenceContents)?.text = span
+        } else if (payloads?.contains("active") == true) {
+            itemView.findViewById<TextView>(R.id.sentenceContents)?.setBackgroundColor(ContextCompat.getColor(this,
+                if (lastSentence == position) R.color.colorLightBlue
+                else android.R.color.transparent
+            ))
+        } else super.bind(item, itemView, position, payloads)
     }
 
     override fun onItemClick(item: String, position: Int) {

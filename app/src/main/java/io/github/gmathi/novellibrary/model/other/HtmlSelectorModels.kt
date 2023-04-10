@@ -1,5 +1,9 @@
 package io.github.gmathi.novellibrary.model.other
 
+import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
+import org.jsoup.select.Elements
+
 /**
  * @param selector The CSS selector used to find the content unless Content subQuery is used.
  * @param appendTitleHeader Whether to append the document title to the cleaned up page unless Header is present and found.
@@ -22,10 +26,18 @@ data class SelectorQuery(val selector: String, val appendTitleHeader: Boolean = 
  * @param optional Allows query to be missing from the page. If mandatory query is not found, while SelectorQuery is discarded and not used for the website.
  * @param multiple Whether only first found query result is injected in reader mode or all of them.
  * @param extraProcessing An optional list of extra processing commands for this subQuery.
+ * @param customSelector Built-in selector exclusive callback to select the contents of the sub-query.
+ * For websites that don't have easily distinctive elements and need some custom selector implementation.
  */
 data class SelectorSubQuery(val selector: String, val role: SubqueryRole,
                             val optional: Boolean = true, val multiple: Boolean = true,
-                            val extraProcessing: List<SubQueryProcessingCommandInfo> = emptyList()
+                            val extraProcessing: List<SubQueryProcessingCommandInfo> = emptyList(),
+                            val customSelector: ((doc: Element) -> Elements)? = null,
 )
+
+fun SelectorSubQuery.select(doc: Element): Elements {
+    return customSelector?.invoke(doc) ?: if (selector.isEmpty()) Elements()
+    else doc.select(selector)
+}
 
 data class SubQueryProcessingCommandInfo(val command: SubQueryProcessingCommand, val value: String = "")

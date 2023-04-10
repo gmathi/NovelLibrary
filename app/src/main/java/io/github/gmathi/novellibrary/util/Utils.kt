@@ -405,7 +405,7 @@ object Utils {
             doc.head().children().remove()
 //            doc.head().html("")
         }
-        doc.select("br").forEach {
+        doc.select("br,p,hr").forEach {
             it.after("\n")
         }
 
@@ -416,6 +416,12 @@ object Utils {
                 doc.select(it.lookup).remove()
             }
         }
+
+        // Unwrap various notation to simplify processing.
+        val notations = doc.select("em,strong,italic,s,i,a")
+        // HACK: unwrap seem to strip whitespaces before/after the tag, so we have to ensure they have spacing within the tag.
+        notations.forEach { el -> el.prependText(" "); el.appendText(" ") }
+        notations.unwrap()
 
         val textFilters = filters.filter { it.target == TTSFilterTarget.TextChunk }.map { it.compile(doc) }
 
@@ -434,7 +440,7 @@ object Utils {
             // Perform a limited trim operation on excessive spacing, causing "     " to turn into just " " as well as changing \n\n\n\n into \n
             .replace("""([\s ])+""".toRegex(RegexOption.MULTILINE)) { it.groups[0]?.value ?: "" }
             // Shorten long repeating characters such as =====, -----, -=-=-=-=-, ***** or !!!!!!!!
-            .replace("""((?>[◆◇＝_~=*#|+<>\-] ?){4,}|\.{4,}|!{4,}|\?{4,})""".toRegex()) { it.value.replace(" ", "").substring(0, 3) }
+            .replace("""((?>[◆◇＝_~=*#|+<>\-─＊] ?){4,}|\.{4,}|!{4,}|\?{4,})""".toRegex()) { it.value.replace(" ", "").substring(0, 3) }
             .trim()
 
         textFilters.forEach { filter ->
