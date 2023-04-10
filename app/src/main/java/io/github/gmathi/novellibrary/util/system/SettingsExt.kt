@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.util.system
 
 import android.content.SharedPreferences
+import android.util.TypedValue
 import android.view.View
 import android.widget.CompoundButton
 import androidx.core.content.ContextCompat
@@ -12,6 +13,7 @@ import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBind
 import io.github.gmathi.novellibrary.model.ui.ListitemSetting
 import io.github.gmathi.novellibrary.model.ui.SettingItemClickCallback
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
+import kotlin.math.roundToInt
 
 /**
  * Initial setting item binding cleanup
@@ -21,6 +23,8 @@ fun BaseActivity.bindSettingListitemDefaults(itemBinding: ListitemTitleSubtitleW
     itemBinding.widgetChevron.visibility = View.INVISIBLE
     itemBinding.widgetSwitch.visibility = View.INVISIBLE
     itemBinding.currentValue.visibility = View.INVISIBLE
+    itemBinding.subtitle.visibility = View.VISIBLE
+    itemBinding.widget.visibility = View.VISIBLE
     itemBinding.currentValue.text = ""
 
     //(itemBinding.root as ViewGroup).enabled(true)
@@ -54,6 +58,14 @@ fun ListitemTitleSubtitleWidgetBinding.bindChevron() {
  */
 fun<T> ListitemSetting<T>.bindChevron(closure: SettingItemClickCallback<T, ListitemTitleSubtitleWidgetBinding>):ListitemSetting<T> {
     return this.onBind { _, view, _ -> view.bindChevron() }.onClick(closure)
+}
+
+fun<T> ListitemSetting<T>.bindHeader(): ListitemSetting<T> {
+    return this.onBind { _, view, _ ->
+        view.subtitle.visibility = View.GONE
+        view.widget.visibility = View.GONE
+        view.root.minimumHeight = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40F, view.root.resources.displayMetrics).roundToInt()
+    }
 }
 
 inline fun<reified T> SharedPreferences.getJson(key: String, def: String): T =

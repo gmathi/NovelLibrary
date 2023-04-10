@@ -11,6 +11,7 @@ import java.util.*
 
 data class TTSPreferences(val context: Context, val prefs: SharedPreferences) {
 
+    //#region Processing
     // Whether to attempt detection and merging of pages.
     var mergeBufferChapters: Boolean
         get() = prefs.getBoolean("ttsMergeBufferChapters", false)
@@ -24,14 +25,6 @@ data class TTSPreferences(val context: Context, val prefs: SharedPreferences) {
         get() = prefs.getBoolean("ttsUseLongestPage", false)
         set(value) = prefs.edit().putBoolean("ttsUseLongestPage", value).apply()
 
-    var pitch: Float
-        get() = prefs.getFloat("ttsPitch", 1.0f)
-        set(value) = prefs.edit().putFloat("ttsPitch", value).apply()
-
-    var speechRate: Float
-        get() = prefs.getFloat("ttsSpeechRate", 1.0f)
-        set(value) = prefs.edit().putFloat("ttsSpeechRate", value).apply()
-
     var markChaptersRead: Boolean
         get() = prefs.getBoolean("ttsMarkChaptersRead", true)
         set(value) = prefs.edit().putBoolean("ttsMarkChaptersRead", value).apply()
@@ -40,25 +33,82 @@ data class TTSPreferences(val context: Context, val prefs: SharedPreferences) {
         get() = prefs.getBoolean("ttsMoveBookmark", false)
         set(value) = prefs.edit().putBoolean("ttsMoveBookmark", value).apply()
 
+    var stripHeader: Boolean
+        get() = prefs.getBoolean("ttsStripHeader", false)
+        set(value) = prefs.edit().putBoolean("ttsStripHeader", value).apply()
+
+    //#endregion
+
+    //#region UI
+
+    var keepScreenOn: Boolean
+        get() = prefs.getBoolean("ttsKeepScreenOn", false)
+        set(value) = prefs.edit().putBoolean("ttsKeepScreenOn", value).apply()
+
+    //#endregion
+
+    //#region FX/Playback
+
+    var useLegacyPlayer: Boolean
+        get() = prefs.getBoolean("ttsUseLegacyPlayer", false)
+        set(value) = prefs.edit().putBoolean("ttsUseLegacyPlayer", value).apply()
+
     var language: Locale?
         get() = prefs.getString("ttsLanguage", null)?.let { Locale.forLanguageTag(it) }
         set(value) = prefs.edit().putString("ttsLanguage", value?.toLanguageTag()).apply()
 
-    var stripHeader: Boolean
-        get() = prefs.getBoolean("ttsStripHeader", false)
-        set(value) = prefs.edit().putBoolean("ttsStripHeader", value).apply()
+    var pitch: Float
+        get() = prefs.getFloat("ttsPitch", 1.0f)
+        set(value) = prefs.edit().putFloat("ttsPitch", value).apply()
+
+    var speechRate: Float
+        get() = prefs.getFloat("ttsSpeechRate", 1.0f)
+        set(value) = prefs.edit().putFloat("ttsSpeechRate", value).apply()
+
+    // TODO: 3-state: off, downpitch dialogue, downpitch speaker
+    var downpitchDialogue: Boolean
+        get() = prefs.getBoolean("ttsDownpitchDialogue", false)
+        set(value) = prefs.edit().putBoolean("ttsDownpitchDialogue", value).apply()
+
+    var downpitchAmount: Float
+        get() = prefs.getFloat("ttsDownpitchAmount", 0.95f)
+        set(value) = prefs.edit().putFloat("ttsDownpitchAmount", value).apply()
+
+    var echoEffect: Boolean
+        get() = prefs.getBoolean("ttsEchoEffect", false)
+        set(value) = prefs.edit().putBoolean("ttsEchoEffect", value).apply()
 
     var chapterChangeSFX: Boolean
         get() = prefs.getBoolean("ttsChapterChangeSFX", true)
         set(value) = prefs.edit().putBoolean("ttsChapterChangeSFX", value).apply()
 
-    var stopTimer: Long
-        get() = prefs.getLong("ttsStopTimer", 60L)
-        set(value) = prefs.edit().putLong("ttsStopTimer", value).apply()
+    var announceFinalChapter: Boolean
+        get() = prefs.getBoolean("ttsAnnounceFinalChapter", true)
+        set(value) = prefs.edit().putBoolean("ttsAnnounceFinalChapter", value).apply()
 
-    var downpitchDialogue: Boolean
-        get() = prefs.getBoolean("ttsDownpitchDialogue", false)
-        set(value) = prefs.edit().putBoolean("ttsDownpitchDialogue", value).apply()
+    //#endregion
+
+    //#region Remote control
+
+    var rewindSentences: Int
+        get() = prefs.getInt("ttsRewindSentences", 1)
+        set(value) = prefs.edit().putInt("ttsRewindSentences", value).apply()
+
+    var forwardSentences: Int
+        get() = prefs.getInt("ttsForwardSentences", 1)
+        set(value) = prefs.edit().putInt("ttsForwardSentences", value).apply()
+
+    var swapRewindSkip: Boolean
+        get() = prefs.getBoolean("ttsSwapRewindSkip", false)
+        set(value) = prefs.edit().putBoolean("ttsSwapRewindSkip", value).apply()
+
+    var rewindToSkip: Boolean
+        get() = prefs.getBoolean("ttsRewindToSkip", true)
+        set(value) = prefs.edit().putBoolean("ttsRewindToSkip", value).apply()
+
+    //#endregion
+
+    //#region Filters
 
     // The names of currently active filter sets.
     var filters: List<String>
@@ -76,4 +126,17 @@ data class TTSPreferences(val context: Context, val prefs: SharedPreferences) {
         get() = prefs.getJson("ttsFilterList", "[]")
         set(value) = prefs.edit().putJson("ttsFilterList", value).apply()
 
+    //#endregion
+
+    //#region Misc
+
+    var stopTimer: Long
+        get() = prefs.getLong("ttsStopTimer", 60L)
+        set(value) = prefs.edit().putLong("ttsStopTimer", value).apply()
+
+    var stopOnLoadError: Boolean
+        get() = prefs.getBoolean("ttsStopOnLoadError", true)
+        set(value) = prefs.edit().putBoolean("ttsStopOnLoadError", value).apply()
+
+    //#endregion
 }
