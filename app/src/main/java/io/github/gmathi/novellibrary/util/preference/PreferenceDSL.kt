@@ -110,7 +110,7 @@ var Preference.summaryRes: Int
 var Preference.iconTint: Int
     get() = 0 // set only
     set(value) {
-        DrawableCompat.setTint(icon, value)
+        icon?.let { DrawableCompat.setTint(it, value) }
     }
 
 var ListPreference.entriesRes: Array<Int>

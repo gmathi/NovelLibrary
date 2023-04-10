@@ -174,6 +174,9 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<Long>, Do
                             binding.playPauseImage.tag = Download.STATUS_IN_QUEUE
                             binding.novelProgressText.text = "Collecting Novel Information…"
                         }
+                        else -> {
+
+                        }
                     }
 
                 }

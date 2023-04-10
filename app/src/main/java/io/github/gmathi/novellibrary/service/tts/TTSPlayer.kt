@@ -159,10 +159,6 @@ class TTSPlayer(private val context: Context,
     //private var webLoadingJobIndex = -1
     //private var webLoadingJob: Job? = null
 
-    override fun getLifecycle(): Lifecycle? {
-        TODO("Not yet implemented")
-    }
-
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             tts.addEarcon(SCENE_CHANGE_EARCON, R.raw.scene_change)

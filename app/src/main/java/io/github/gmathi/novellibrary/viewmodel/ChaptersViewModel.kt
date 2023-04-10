@@ -51,9 +51,6 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     private lateinit var _ctx: WeakReference<Context>
     override fun getContext(): Context? = _ctx.get()
 
-    private lateinit var _lifecycle: WeakReference<LifecycleOwner>
-    override fun getLifecycle(): Lifecycle? = _lifecycle.get()?.lifecycle
-
     var chapters: ArrayList<WebPage>? = null
     var chapterSettings: ArrayList<WebPageSettings>? = null
 

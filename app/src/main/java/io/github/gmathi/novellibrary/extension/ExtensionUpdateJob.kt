@@ -1,6 +1,9 @@
 package io.github.gmathi.novellibrary.extension
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.*
@@ -32,6 +35,9 @@ class ExtensionUpdateJob(private val context: Context, workerParams: WorkerParam
     }
 
     private fun createUpdateNotification(names: List<String>) {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            return
+        }
         NotificationManagerCompat.from(context).apply {
             notify(
                 Notifications.ID_UPDATES_TO_EXTS,
@@ -47,7 +53,6 @@ class ExtensionUpdateJob(private val context: Context, workerParams: WorkerParam
                     setContentText(extNames)
                     setStyle(NotificationCompat.BigTextStyle().bigText(extNames))
                     setSmallIcon(R.drawable.ic_extension_white_vector)
-//                    setContentIntent(NotificationReceiver.openExtensionsPendingActivity(context))
                     setAutoCancel(true)
                 }
             )
@@ -56,8 +61,7 @@ class ExtensionUpdateJob(private val context: Context, workerParams: WorkerParam
 
     companion object {
         private const val TAG = "ExtensionUpdate"
-
-        @ExperimentalExpeditedWork
+        
         fun setupTask(context: Context, forceAutoUpdateJob: Boolean? = null) {
             val dataCenter = Injekt.get<DataCenter>()
             val autoUpdateJob = forceAutoUpdateJob ?: dataCenter.automaticExtUpdates

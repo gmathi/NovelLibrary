@@ -52,6 +52,8 @@ internal class ExtensionInstallReceiver(private val listener: Listener) :
                     when (val result = getExtensionFromIntent(context, intent)) {
                         is LoadResult.Success -> listener.onExtensionInstalled(result.extension)
                         is LoadResult.Untrusted -> listener.onExtensionUntrusted(result.extension)
+                        else -> {
+                        }
                     }
                 }
             }
@@ -62,6 +64,7 @@ internal class ExtensionInstallReceiver(private val listener: Listener) :
                         // Not needed as a package can't be upgraded if the signature is different
                         is LoadResult.Untrusted -> {
                         }
+                        else -> {}
                     }
                 }
             }

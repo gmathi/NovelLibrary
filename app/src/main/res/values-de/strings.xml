@@ -255,7 +255,7 @@
     <string name="cloud_flare_bypass_failure_title">Cloudflare umgehen fehlgeschlagen</string>
 
     <string name="backup_and_restore">Sichern &amp; Wiederherstellen</string>
-    <string name="backup_and_restore_description">Sicherung & Wiederherstellung mit einem ZIP-Archiv</string>
+    <string name="backup_and_restore_description">Sicherung &amp; Wiederherstellung mit einem ZIP-Archiv</string>
 
     <string name="internal_clear_data">Zwischenspeicher &amp; Daten leeren</string>
     <string name="internal_clear_data_description">Leert den Zwischenspeicher, Dateien und Datenbanken (Auto-generierte Ordner eingeschlossen)</string>
@@ -317,7 +317,6 @@
     <string name="locale_Tagalog">Tagalog</string>
     <string name="locale_latin">Latin</string>
     <string name="locale_pirate">Pirate</string>
-    <string name="volume_scroll_length">Scrolldistanz</string>
     <string name="volume_scroll_length_description">Ändere die Distanz, die beim Benutzen der Lautstärkeknöpfe gescrollt wird</string>
     <string name="reverse">Umkehren</string>
     <string name="about_us_content">Dieses Projekt ist ein Open-Source Projekt, erstellt mit Liebe von der Novelleser*innen Community. Wenn du uns helfen möchtest, kontaktiere uns doch über Discord!</string>

@@ -164,7 +164,7 @@ internal fun <T> CancellableContinuation<T>.unsubscribeOnCancellation(sub: Subsc
 fun <T : Any> Observable<T>.asFlow(): Flow<T> = callbackFlow {
     val observer = object : Observer<T> {
         override fun onNext(t: T) {
-            offer(t)
+            trySend(t).isSuccess
         }
 
         override fun onError(e: Throwable) {

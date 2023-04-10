@@ -13,7 +13,6 @@ fun WebView.setDefaultSettings() {
         javaScriptEnabled = true
         domStorageEnabled = true
         databaseEnabled = true
-        setAppCacheEnabled(true)
         useWideViewPort = false
         loadWithOverviewMode = false
         cacheMode = WebSettings.LOAD_DEFAULT

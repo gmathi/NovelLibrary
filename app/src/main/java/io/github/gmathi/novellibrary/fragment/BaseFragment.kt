@@ -44,4 +44,6 @@ open class BaseFragment : Fragment(), DataAccessor {
         })
         cf.getCookies()
     }
+
+
 }

@@ -38,5 +38,12 @@ object WhatsChanged {
             "✨ Minor Bug Fixes for TTS!!\n" +
             "⚠️️ Other minor bug fixes!\n"
 
+    const val VERSION_23 = "" + //0.23 Updates!
+            "✨ Major Improvement on TTS!!\n" +
+            "✨ Major Improvement on Reader Mode!!\n" +
+            "✨ Updated German Translations!\n" +
+            "⚠️️ Fix CloudFlare pass through\n" +
+            "⚠️️ Few Bug Fixes"
+
 
 }

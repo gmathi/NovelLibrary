@@ -374,6 +374,9 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                             when (info.state) {
                                 State.SUCCEEDED -> showDialog(iconRes = R.drawable.ic_check_circle_white_vector, content = info.outputData.getString(WORK_KEY_RESULT))
                                 State.FAILED, State.CANCELLED -> showDialog(iconRes = R.drawable.ic_close_white_vector, content = info.outputData.getString(WORK_KEY_RESULT))
+                                else -> {
+
+                                }
                             }
                             observable.removeObservers(this)
                         }
