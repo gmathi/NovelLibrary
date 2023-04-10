@@ -3,60 +3,58 @@ package io.github.gmathi.novellibrary.service.tts
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-import android.media.AudioManager
-import android.media.MediaPlayer
+import android.media.*
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.speech.tts.Voice
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.widget.Toast
+import androidx.collection.CircularArray
 import androidx.lifecycle.Lifecycle
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.google.firebase.analytics.FirebaseAnalytics
-import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
-import io.github.gmathi.novellibrary.model.other.LinkedPage
-import io.github.gmathi.novellibrary.model.other.TTSCleanDocument
-import io.github.gmathi.novellibrary.model.other.TTSFilterTarget
+import io.github.gmathi.novellibrary.model.other.*
 import io.github.gmathi.novellibrary.model.source.SourceManager
-import io.github.gmathi.novellibrary.network.GET
-import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Utils.getFormattedText
-import io.github.gmathi.novellibrary.util.getLinkedPagesCompat
 import io.github.gmathi.novellibrary.util.lang.*
-import io.github.gmathi.novellibrary.util.network.asJsoup
-import io.github.gmathi.novellibrary.util.network.safeExecute
-import io.github.gmathi.novellibrary.util.showToastWithMain
-import io.github.gmathi.novellibrary.util.system.DataAccessor
-import io.github.gmathi.novellibrary.util.system.markChapterRead
-import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
+import io.github.gmathi.novellibrary.util.*
+import io.github.gmathi.novellibrary.util.system.*
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.android.awaitFrame
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.OkHttpClient
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import uy.kohesive.injekt.injectLazy
 import java.io.File
+import java.nio.ByteBuffer
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.math.ceil
+import kotlin.math.min
 
 class TTSPlayer(private val context: Context,
                 private val mediaSession: MediaSessionCompat,
-                private val stateBuilder: PlaybackStateCompat.Builder) : TextToSpeech.OnInitListener, DataAccessor {
+                private val stateBuilder: PlaybackStateCompat.Builder) : DataAccessor, TTSWrapper.TTSWrapperCallback {
 
     companion object {
 
@@ -69,10 +67,16 @@ class TTSPlayer(private val context: Context,
 
         const val TYPE_EARCON = "earcon"
         const val TYPE_SENTENCE = "sentence"
+        const val TYPE_DIALOGUE = "dialogue"
+        const val TYPE_DIALOGUE_PARTIAL = "dialogue_partial"
         const val TYPE_CHAPTER_CHANGE_EARCON = "chapter_change_earcon"
+        const val TYPE_SPECIAL = "special"
+        const val TYPE_FINAL_CHAPTER = "final_chapter"
 
         const val SCENE_CHANGE_EARCON = "◇ ◇ ◇"
         const val CHAPTER_CHANGE_EARCON = "##next_chapter##"
+
+        const val QUEUE_SIZE = 0
     }
 
     override val firebaseAnalytics: FirebaseAnalytics = FirebaseAnalytics.getInstance(context)
@@ -88,7 +92,7 @@ class TTSPlayer(private val context: Context,
     }
 
     // TTS
-    private val tts: TextToSpeech = TextToSpeech(context, this)
+    private val tts: TTSWrapper = TTSWrapper(context, this, dataCenter.ttsPreferences.useLegacyPlayer)
     private var ttsReady = false
     // This is required to make hardware media keys to be delivered to the app. Otherwise it just doesn't work.
     // God bless the dangled mess of android media session.
@@ -116,7 +120,29 @@ class TTSPlayer(private val context: Context,
     private lateinit var title: String
     private lateinit var rawText: String
     var lineNumber: Int = 0
-    var lines: MutableList<String> = mutableListOf()
+    var queuedLine: Int = 0
+    var lines: MutableList<TTSLine> = mutableListOf()
+    var cacheNextChapterLine: Int = -1
+
+    data class TTSLine(val line: String, val mode: TTSReadMode = TTSReadMode.ModeRegular, val speaker: String? = null, val sequential: Boolean = false) {
+        fun getDisplayString(): String {
+            return if (mode == TTSReadMode.ModeDialogue && speaker != null) {
+                "$line $speaker"
+            } else line
+        }
+    }
+    enum class TTSReadMode {
+        ModeRegular,
+        ModeDialogue,
+        ModeSceneChange,
+    }
+    enum class TTSLoadStatus {
+        Cached,
+        Loaded,
+        Fetching,
+        ErrOffline,
+        ErrNoChapter,
+    }
 
     private var desiredState: Int = STATE_STOP
     private var currentState: Int = STATE_STOP
@@ -124,8 +150,14 @@ class TTSPlayer(private val context: Context,
     // Web loader
     private val client: OkHttpClient
         get() = networkHelper.cloudflareClient
-    private var webLoadingJobIndex = -1
-    private var webLoadingJob: Job? = null
+
+    private inner class LoadingJob(val index: Int, var forCaching: Boolean) {
+        var job: Job? = null
+    }
+    private val webLoadingJobs = mutableListOf<LoadingJob>()
+    private var primaryWebLoadingJob: LoadingJob? = null
+    //private var webLoadingJobIndex = -1
+    //private var webLoadingJob: Job? = null
 
     override fun getLifecycle(): Lifecycle? {
         TODO("Not yet implemented")
@@ -133,8 +165,8 @@ class TTSPlayer(private val context: Context,
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            tts.addEarcon(SCENE_CHANGE_EARCON, BuildConfig.APPLICATION_ID, R.raw.scene_change)
-            tts.addEarcon(CHAPTER_CHANGE_EARCON, BuildConfig.APPLICATION_ID, R.raw.chapter_change)
+            tts.addEarcon(SCENE_CHANGE_EARCON, R.raw.scene_change)
+            tts.addEarcon(CHAPTER_CHANGE_EARCON, R.raw.chapter_change)
             selectLanguage()
             ttsReady = true
             Log.d(TAG, "TTS initialized")
@@ -147,23 +179,39 @@ class TTSPlayer(private val context: Context,
         }
     }
 
-    init {
-        tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-            override fun onDone(utteranceId: String?) {
-                if (currentState == STATE_PLAY) {
-                    if (utteranceId != TYPE_CHAPTER_CHANGE_EARCON)
-                        lineNumber++
-                    speakLine()
+
+    override fun onRangeStart(utteranceId: String, start: Int, end: Int) {
+//        mediaSession.sendSessionEvent(TTSService.EVENT_TEXT_RANGE, Bundle().apply {
+//            putInt(TTSService.TEXT_RANGE_START, start)
+//            putInt(TTSService.TEXT_RANGE_END, end)
+//        })
+    }
+
+    override fun onStart(utteranceId: String) {}
+    override fun onStop(utteranceId: String, interrupted: Boolean) {}
+    override fun onDone(utteranceId: String) {
+        when (utteranceId) {
+            TYPE_CHAPTER_CHANGE_EARCON -> if (primaryWebLoadingJob == null) speakLine()
+            TYPE_DIALOGUE_PARTIAL -> {
+                // Do nothing
+            }
+            TYPE_FINAL_CHAPTER -> stop()
+            TYPE_SPECIAL -> {
+                if (dataCenter.ttsPreferences.stopOnLoadError || !dataCenter.readAloudNextChapter) {
+                    setData("Chapter not loaded", "Error", arrayListOf()) // TODO: Rewind to previous chapter instead
+                    stop()
                 }
-             }
-
-            override fun onError(utteranceId: String?) {
-                Log.e(TAG, "Error playing TTS $utteranceId")
+                else nextChapter(true)
             }
-
-            override fun onStart(utteranceId: String?) {
+            else -> {
+                lineNumber++
+                speakLine()
             }
-        })
+        }
+    }
+
+    override fun onError(utteranceId: String, errorCode: Int) {
+        Log.e(TAG, "Error playing TTS for utterance $utteranceId with error code: $errorCode")
     }
 
     //#region Startup
@@ -242,7 +290,7 @@ class TTSPlayer(private val context: Context,
         this.translatorSourceName = source
         this.chapterIndex = chapterIndex
         this.chapterCount = trackCount
-        Log.d(TAG, "Loaded novel data: ${novel.name}, $source, $chapterIndex, $trackCount")
+//        Log.d(TAG, "Loaded novel data: ${novel.name}, $source, $chapterIndex, $trackCount")
 
         dataCenter.internalPut {
             putLong(TTSService.STATE_NOVEL_ID, novel.id)
@@ -262,7 +310,7 @@ class TTSPlayer(private val context: Context,
     }
 
     fun setData(text: String, title: String, linkedPages: ArrayList<LinkedPage>) {
-        Log.d(TAG, "Setting raw text data for chapter '$title'")
+//        Log.d(TAG, "Setting raw text data for chapter '$title'")
         this.rawText = text
         this.title = title
         this.linkedPages = linkedPages
@@ -271,6 +319,8 @@ class TTSPlayer(private val context: Context,
         metadata.displaySubtitle = title
         metadata.duration = lines.count().toLong() * 1000L
         metadata.trackNumber = (chapterIndex+1).toLong()
+        // Enable caching only for chapters longer than 42 lines
+        cacheNextChapterLine = if (lines.count() > 42) lines.count() shr 1 else -1
     }
 
     //#endregion
@@ -292,17 +342,31 @@ class TTSPlayer(private val context: Context,
         Log.d(TAG, "TTSPlayer.start()")
         updateVoiceConfig()
         mediaSession.setMetadata(metadata.build())
+        queuedLine = lineNumber
         speakLine(TextToSpeech.QUEUE_ADD)
     }
 
     fun goto(line:Int) {
         if (isDisposed) return
+        if (dataCenter.ttsPreferences.rewindToSkip) {
+            if (line < 0 && lineNumber == 0) {
+                previousChapter() // TODO: Skip to last sentences?
+                return
+            }
+            if (line >= lines.count() && lineNumber == lines.count() - 1) {
+                nextChapter()
+                return
+            }
+        }
+
         lineNumber = line.coerceIn(0, lines.count() - 1)
         Log.d(TAG, "Going to line $line")
         if (currentState != STATE_PLAY) {
             start()
-        } else
+        } else {
+            queuedLine = lineNumber
             speakLine(TextToSpeech.QUEUE_FLUSH)
+        }
     }
 
     fun stop(withState: Int = PlaybackStateCompat.STATE_PAUSED) {
@@ -310,9 +374,10 @@ class TTSPlayer(private val context: Context,
         desiredState = STATE_STOP
         if (currentState == STATE_STOP) return
         if (currentState != STATE_LOADING) currentState = STATE_STOP
-        Log.d(TAG, "TTSPlayer.stop()")
+//        Log.d(TAG, "TTSPlayer.stop()")
         if (silence.isPlaying) silence.stop()
         tts.stop()
+        queuedLine = lineNumber
         setPlaybackState(withState)
     }
 
@@ -325,8 +390,10 @@ class TTSPlayer(private val context: Context,
         tts.stop()
         tts.shutdown()
 
-        webLoadingJobIndex = -1
-        webLoadingJob?.cancel()
+        webLoadingJobs.forEach {
+            it.job?.cancel()
+        }
+        webLoadingJobs.clear()
 
         desiredState = STATE_DISPOSE
         currentState = STATE_DISPOSE
@@ -336,55 +403,115 @@ class TTSPlayer(private val context: Context,
         isDisposed = true
     }
 
-    fun previousChapter() {
+    fun previousChapter(withEarcon: Boolean = false) {
         if (isDisposed) return
-        Log.d(TAG, "Playing previous chapter")
+//        Log.d(TAG, "Playing previous chapter")
         currentState = STATE_LOADING
         desiredState = STATE_PLAY
-        tts.stop()
         setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
-        loadChapter(chapterIndex - 1)
+        when(loadChapter(chapterIndex-1)) {
+            TTSLoadStatus.ErrNoChapter -> {
+                if (dataCenter.ttsPreferences.announceFinalChapter) {
+                    doSpeak("Already at first chapter!", TextToSpeech.QUEUE_ADD, TYPE_FINAL_CHAPTER)
+                } else stop()
+            }
+            TTSLoadStatus.Cached, TTSLoadStatus.Loaded -> {
+                if (withEarcon && dataCenter.ttsPreferences.chapterChangeSFX) sendChapterChangeEarconToTTS(TextToSpeech.QUEUE_FLUSH)
+                else tts.stop()
+                start()
+            }
+            TTSLoadStatus.Fetching -> {
+                if (withEarcon && dataCenter.ttsPreferences.chapterChangeSFX) sendChapterChangeEarconToTTS(TextToSpeech.QUEUE_FLUSH)
+                else tts.stop()
+            }
+            TTSLoadStatus.ErrOffline -> stop()
+        }
     }
 
     fun loadCurrentChapter() {
         if (isDisposed) return
-        Log.d(TAG, "Loading current chapter")
+//        Log.d(TAG, "Loading current chapter")
         currentState = STATE_LOADING
         desiredState = STATE_PLAY
-        tts.stop()
         setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
-        loadChapter(chapterIndex)
+        when(loadChapter(chapterIndex)) {
+            TTSLoadStatus.ErrNoChapter -> {
+                doSpeak("Trying to read a chapter that does not exists!", TextToSpeech.QUEUE_ADD, TYPE_FINAL_CHAPTER)
+                stop()
+            }
+            TTSLoadStatus.Cached, TTSLoadStatus.Loaded -> {
+//                Log.d(TAG, "Chapter is loaded, proceeding to read...")
+                tts.stop()
+                start()
+            }
+            TTSLoadStatus.Fetching -> tts.stop()
+            TTSLoadStatus.ErrOffline -> stop()
+        }
     }
 
     fun loadLinkedPage(url: String) {
-        Log.d(TAG, "Requested to load a linked page!")
+//        Log.d(TAG, "Requested to load a linked page!")
         currentState = STATE_LOADING
         desiredState = STATE_PLAY
-        tts.stop()
         setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
-        loadChapter(chapterIndex, false, url)
         // TODO: Preserve list of linked pages
+        when(loadChapter(chapterIndex, false, url)) {
+            TTSLoadStatus.ErrNoChapter -> {
+                doSpeak("Somehow failed to load linked page!", TextToSpeech.QUEUE_ADD, TYPE_FINAL_CHAPTER)
+                stop()
+            }
+            TTSLoadStatus.Cached, TTSLoadStatus.Loaded -> {
+                tts.stop()
+                start()
+            }
+            TTSLoadStatus.Fetching -> tts.stop()
+            TTSLoadStatus.ErrOffline -> stop()
+        }
     }
 
     fun gotoChapter(chapter: Int) {
         if (isDisposed) return
-        Log.d(TAG, "Playing chapter with index $chapter")
+//        Log.d(TAG, "Playing chapter with index $chapter")
         currentState = STATE_LOADING
         desiredState = STATE_PLAY
-        tts.stop()
         setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
-        loadChapter(chapter)
+        when(loadChapter(chapter)) {
+            TTSLoadStatus.ErrNoChapter -> {
+                doSpeak("Trying to go to chapter that does not exists!", TextToSpeech.QUEUE_ADD, TYPE_FINAL_CHAPTER)
+                stop()
+            }
+            TTSLoadStatus.Cached, TTSLoadStatus.Loaded -> {
+                tts.stop()
+                start()
+            }
+            TTSLoadStatus.Fetching -> tts.stop()
+            TTSLoadStatus.ErrOffline -> stop()
+        }
     }
 
     fun nextChapter(withEarcon: Boolean = false) {
         if (isDisposed) return
-        Log.d(TAG, "Playing next chapter (change earcon: $withEarcon)")
+//        Log.d(TAG, "Playing next chapter (change earcon: $withEarcon)")
         currentState = STATE_LOADING
         desiredState = STATE_PLAY
         setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
-        if (withEarcon && dataCenter.ttsPreferences.chapterChangeSFX) sendToTTS(CHAPTER_CHANGE_EARCON, TextToSpeech.QUEUE_FLUSH)
-        else tts.stop()
-        loadChapter(chapterIndex + 1)
+        when(loadChapter(chapterIndex+1)) {
+            TTSLoadStatus.ErrNoChapter -> {
+                if (dataCenter.ttsPreferences.announceFinalChapter) {
+                    doSpeak("Final chapter has been read, no more chapters available to read.", TextToSpeech.QUEUE_ADD, TYPE_FINAL_CHAPTER)
+                } else stop()
+            }
+            TTSLoadStatus.Cached, TTSLoadStatus.Loaded -> {
+                if (withEarcon && dataCenter.ttsPreferences.chapterChangeSFX) sendChapterChangeEarconToTTS(TextToSpeech.QUEUE_FLUSH)
+                else tts.stop()
+                start()
+            }
+            TTSLoadStatus.Fetching -> {
+                if (withEarcon && dataCenter.ttsPreferences.chapterChangeSFX) sendChapterChangeEarconToTTS(TextToSpeech.QUEUE_FLUSH)
+                else tts.stop()
+            }
+            TTSLoadStatus.ErrOffline -> stop()
+        }
     }
 
     fun clearChapterCache() {
@@ -395,36 +522,70 @@ class TTSPlayer(private val context: Context,
 
     //#region Playback
 
-    fun speakLine(queueMode:Int = TextToSpeech.QUEUE_ADD) {
+    private fun speakLine(queueMode:Int = TextToSpeech.QUEUE_ADD) {
         if (lines.isNotEmpty() && lineNumber < lines.size) {
-            sendToTTS(lines[lineNumber], queueMode)
-            setPlaybackState(PlaybackStateCompat.STATE_PLAYING) // Update state
-        } else {
-            if (dataCenter.ttsPreferences.markChaptersRead) {
-                dbHelper.getWebPage(novel.id, translatorSourceName, chapterIndex)?.let {
-                    markChapterRead(it, true)
+            if (lineNumber == cacheNextChapterLine) loadChapter(chapterIndex+1, true)
+            var mode = queueMode
+            while (queuedLine < lines.size && lineNumber + QUEUE_SIZE >= queuedLine) {
+                val line = lines[queuedLine]
+                when (line.mode) {
+                    TTSReadMode.ModeRegular -> doSpeak(line.line, mode, TYPE_SENTENCE)
+                    TTSReadMode.ModeDialogue -> {
+                        val noSpeaker = line.speaker.isNullOrEmpty()
+                        if (dataCenter.ttsPreferences.downpitchDialogue) {
+                            val pitch = dataCenter.ttsPreferences.pitch
+                            tts.setPitch(pitch * dataCenter.ttsPreferences.downpitchAmount)
+                            doSpeak(line.line, mode, if (noSpeaker) TYPE_DIALOGUE else TYPE_DIALOGUE_PARTIAL)
+                            tts.setPitch(pitch)
+                            if (!noSpeaker) doSpeak(line.speaker!!, TextToSpeech.QUEUE_ADD, TYPE_DIALOGUE, line.line.length)
+                        } else {
+                            doSpeak(line.line, mode, if (noSpeaker) TYPE_DIALOGUE else TYPE_DIALOGUE_PARTIAL)
+                            if (!noSpeaker) doSpeak(line.speaker!!, TextToSpeech.QUEUE_ADD, TYPE_DIALOGUE)
+                        }
+                    }
+                    TTSReadMode.ModeSceneChange -> tts.playEarcon(SCENE_CHANGE_EARCON, mode, ttsBundle(TYPE_EARCON), TYPE_EARCON)
                 }
+                mode = TextToSpeech.QUEUE_ADD
+                queuedLine++
             }
-            if (dataCenter.readAloudNextChapter) {
-                nextChapter(true)
-            } else {
-                stop(PlaybackStateCompat.STATE_NONE)
-            }
+            onNextLine()
+        } else {
+            onLastLine()
         }
     }
 
-    private fun sendToTTS(text: String, queueMode: Int) {
+    private fun onNextLine() {
+        setPlaybackState(PlaybackStateCompat.STATE_PLAYING)
+    }
+
+    private fun onLastLine() {
+        if (dataCenter.ttsPreferences.markChaptersRead) {
+            dbHelper.getWebPage(novel.id, translatorSourceName, chapterIndex)?.let {
+                markChapterRead(it, true)
+            }
+        }
+        if (dataCenter.readAloudNextChapter) {
+            nextChapter(true)
+        } else {
+            stop(PlaybackStateCompat.STATE_NONE)
+        }
+    }
+
+    private fun ttsBundle(type: String, rangeOffset: Int = 0): Bundle {
         val params = Bundle()
         params.putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_MUSIC)
+//        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, type)
+        if (rangeOffset != 0) params.putInt("offset", rangeOffset)
+        return params
+    }
 
-        if (text == SCENE_CHANGE_EARCON || text == CHAPTER_CHANGE_EARCON) {
-            val earconType = if (text == CHAPTER_CHANGE_EARCON) TYPE_CHAPTER_CHANGE_EARCON else TYPE_EARCON
-            params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, earconType)
-            tts.playEarcon(SCENE_CHANGE_EARCON, queueMode, params, earconType)
-        } else {
-            params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, TYPE_EARCON)
-            tts.speak(text, queueMode, params, TYPE_SENTENCE)
-        }
+    private fun sendChapterChangeEarconToTTS(queueMode: Int) {
+        // TODO: Fix lineNumber displayed incorrectly in UI when earcon still plays but chapter already loaded/cached
+        tts.playEarcon(CHAPTER_CHANGE_EARCON, queueMode, ttsBundle(TYPE_CHAPTER_CHANGE_EARCON), TYPE_CHAPTER_CHANGE_EARCON)
+    }
+
+    private fun doSpeak(text: String, queueMode: Int, id: String, rangeOffset: Int = 0) {
+        tts.speak(text, queueMode, ttsBundle(id, rangeOffset), id)
     }
 
     private fun setPlaybackState(state: Int) {
@@ -437,43 +598,44 @@ class TTSPlayer(private val context: Context,
 
     //#region Chapter loading
 
-    private fun loadChapter(index: Int, forCaching: Boolean = false, url: String? = null): Boolean {
+    private fun loadChapter(index: Int, forCaching: Boolean = false, url: String? = null): TTSLoadStatus {
         chapterCache.find { it.chapterIndex == index }?.let {
             if (!forCaching) {
-                Log.d(TAG, "Already cached chapter $index")
+//                Log.d(TAG, "Already cached chapter $index")
                 updateChapterIndex(index)
                 setData(it.text, it.title, it.bufferLinks)
-                start()
+                //start()
             }
-            return@loadChapter true
+            return@loadChapter TTSLoadStatus.Cached
         }
-        val webPage = dbHelper.getWebPage(novel.id, translatorSourceName, index) ?: return false
-        val webPageSettings = dbHelper.getWebPageSettings(webPage.url) ?: return false
+        val webPage = dbHelper.getWebPage(novel.id, translatorSourceName, index) ?: return TTSLoadStatus.ErrNoChapter
+        val webPageSettings = dbHelper.getWebPageSettings(webPage.url) ?: return TTSLoadStatus.ErrNoChapter
 
         if (webPageSettings.filePath != null) {
             val clean = loadFromFile(webPageSettings, index, url)
             if (clean == null) {
-                if (networkHelper.isConnectedToNetwork()) loadFromWeb(webPageSettings, index, url)
-                else return false
+                return if (networkHelper.isConnectedToNetwork()) loadFromWeb(webPageSettings, index, url, forCaching)
+                else TTSLoadStatus.ErrOffline
             } else {
                 cacheChapter(clean)
                 if (!forCaching) {
                     updateChapterIndex(index)
                     setData(clean.text, clean.title, clean.bufferLinks)
-                    start()
+                    //start()
+                    return TTSLoadStatus.Loaded
                 }
+                return TTSLoadStatus.Cached
             }
         } else if (!networkHelper.isConnectedToNetwork()) {
             // Can't load chapter if no network
-            return false
+            return TTSLoadStatus.ErrOffline
         } else {
             if (!forCaching) {
                 updateChapterIndex(index)
                 mediaSession.setMetadata(metadata.build())
             }
-            loadFromWeb(webPageSettings, index, url)
+            return loadFromWeb(webPageSettings, index, url, forCaching)
         }
-        return true
     }
 
     private fun updateChapterIndex(index: Int) {
@@ -545,14 +707,34 @@ class TTSPlayer(private val context: Context,
         }
     }
 
-    private fun loadFromWeb(webPageSettings: WebPageSettings, index: Int, linkedUrl:String?) {
-        if (webLoadingJobIndex == index) return
-        setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
+    private fun loadFromWeb(webPageSettings: WebPageSettings, index: Int, linkedUrl:String?, forCaching: Boolean): TTSLoadStatus {
+        val existingJob = webLoadingJobs.find { it.index == index }
+        if (!forCaching) {
+            // Cancel and remove current primary job
+            if (primaryWebLoadingJob != null && primaryWebLoadingJob != existingJob) {
+                primaryWebLoadingJob!!.job?.cancel()
+                primaryWebLoadingJob!!.forCaching = true
+                webLoadingJobs.remove(primaryWebLoadingJob!!)
+                // TODO: Don't cancel but rather mark as caching job?
+            }
+            setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
+        }
+        if (existingJob != null) {
+            // Unmark it as caching job in order to properly switch to it when job finishes
+            if (!forCaching) {
+                existingJob.forCaching = false
+                primaryWebLoadingJob = existingJob
+            }
+            return TTSLoadStatus.Fetching
+        }
+
         val url = linkedUrl ?: webPageSettings.url
         Log.d(TAG, "Loading from web $index ${webPageSettings.title} ${webPageSettings.url}")
-        webLoadingJobIndex = index
-        webLoadingJob?.cancel()
-        webLoadingJob = launchIO {
+
+        val job = LoadingJob(index, forCaching)
+        primaryWebLoadingJob = job
+        webLoadingJobs.add(job)
+        job.job = launchIO {
             try {
                 val doc = withIOContext { getWebPageDocument(url) }
                 val clean = cleanDocumentText(doc, index)
@@ -580,6 +762,8 @@ class TTSPlayer(private val context: Context,
                         pageTexts.forEach { s -> text += "\r\n\r\n" + s }
                     }
                 }
+                if (job == primaryWebLoadingJob) primaryWebLoadingJob = null
+                webLoadingJobs.remove(job)
                 cacheChapter(TTSCleanDocument(text, clean.bufferLinks, clean.title, clean.chapterIndex))
 
                 if (chapterIndex == index && desiredState == STATE_PLAY) {
@@ -590,10 +774,18 @@ class TTSPlayer(private val context: Context,
                     start()
                 } // else -> loaded for caching
             } catch (e: Exception) {
-                Log.e(TAG, "Unable to read chapter ${webPageSettings.url}", e)
-                context.showToastWithMain("Unable to read chapter", Toast.LENGTH_LONG)
+                Log.e(TAG, "Unable to load chapter ${webPageSettings.url}", e)
+                if (job == primaryWebLoadingJob) primaryWebLoadingJob = null
+                webLoadingJobs.remove(job)
+                if (!job.forCaching) {
+                    context.showToastWithMain("Unable to read chapter", Toast.LENGTH_LONG)
+                    doSpeak("Unable to read next chapter!", TextToSpeech.QUEUE_FLUSH, TYPE_SPECIAL)
+                } else {
+                    context.showToastWithMain("Unable to cache next chapter", Toast.LENGTH_LONG)
+                }
             }
         }
+        return TTSLoadStatus.Fetching
     }
 
     private fun cacheChapter(clean: TTSCleanDocument) {
@@ -622,6 +814,7 @@ class TTSPlayer(private val context: Context,
     private fun processRawText() {
         lines.clear()
         lineNumber = 0
+        queuedLine = 0
         val extractedLines: ArrayList<String> = ArrayList()
         rawText.split("\n").filter { it.isNotBlank() }.mapTo(extractedLines) { it.trim() }
 
@@ -650,6 +843,25 @@ class TTSPlayer(private val context: Context,
             return index
         }
 
+        // TODO: Detect dialogue prior line-splitting
+        // TODO: Handle <div><i></i></div> as "inner dialogue"
+        // TODO: Improve dialogue detection
+        // Detects:
+        // "dialogue"
+        // "dialogue" [speaker]
+        val dialogueRegex = """^\s*("+.+"+|\p{Pi}+.+\p{Pf}+|\p{Ps}+.+\p{Pe}+)(?: *(\p{Ps}+.{1,30}\p{Pe}+))?\s*$""".toRegex()
+        fun makeLine(text: String, sequential: Boolean) {
+            val dialogue = dialogueRegex.matchEntire(text)
+            if (dialogue != null) {
+                lines.add(TTSLine(dialogue.groupValues[1], TTSReadMode.ModeDialogue, dialogue.groupValues[2], sequential))
+            } else {
+                lines.add(TTSLine(text,
+                    mode = if(text == SCENE_CHANGE_EARCON) TTSReadMode.ModeSceneChange else TTSReadMode.ModeRegular,
+                    sequential = sequential
+                ))
+            }
+        }
+
         // Limit the character count to manageable and reasonable values.
         // Even if TTS engine says it can process more at once, it doesn't mean we want it to,
         // since it will produce audible pauses. Processing in smaller chunks is better.
@@ -660,7 +872,7 @@ class TTSPlayer(private val context: Context,
             lineToBreak = lineToBreak.trim()
 
             if (lineToBreak.length < characterLimit) {
-                lines.add(lineToBreak)
+                makeLine(lineToBreak, false)
                 return@forEach
             }
 
@@ -669,6 +881,7 @@ class TTSPlayer(private val context: Context,
             val sentenceEndRegex = """[.!?;"'」』”»“‘)\]](?>[\s\r]|$)""".toRegex()
 
             //Break a single big line in to multiple lines
+            var sequentialMarker = false
             while (lineToBreak.isNotEmpty()) {
                 var index = findSplitIndex(lineToBreak, characterLimit, sentenceEndRegex)
                 // If we can't split the sentence within boundaries by using common sentence finishers
@@ -678,16 +891,17 @@ class TTSPlayer(private val context: Context,
                 if (index == -1) {
                     // Last ditch: Couldn't find any way to split, just cut it.
                     while (lineToBreak.length > characterLimit) {
-                        lines.add(lineToBreak.substring(0, characterLimit))
+                        makeLine(lineToBreak.substring(0, characterLimit), sequentialMarker)
+                        sequentialMarker = true
                         lineToBreak = lineToBreak.substring(characterLimit)
                     }
-                    lines.add(lineToBreak)
                     return@forEach
                 } else {
-                    lines.add(lineToBreak.substring(0, index + 1))
+                    makeLine(lineToBreak.substring(0, index + 1), sequentialMarker)
+                    sequentialMarker = true
                     lineToBreak = lineToBreak.substring(index + 1).trim()
                     if (lineToBreak.length < characterLimit) {
-                        lines.add(lineToBreak)
+                        makeLine(lineToBreak, true)
                         return@forEach
                     }
                 }
@@ -702,7 +916,7 @@ class TTSPlayer(private val context: Context,
 
     fun sendSentences() {
         mediaSession.sendSessionEvent(TTSService.EVENT_SENTENCE_LIST, Bundle().apply {
-            putStringArrayList(TTSService.KEY_SENTENCES, lines.toCollection(ArrayList()))
+            putStringArrayList(TTSService.KEY_SENTENCES, lines.mapTo(ArrayList()) { it.getDisplayString() })
         })
     }
 
@@ -719,9 +933,9 @@ class TTSPlayer(private val context: Context,
 
     fun selectLanguage(): Boolean {
         val locale = dataCenter.ttsPreferences.language ?: Locale.getDefault()
-        val result = tts.setLanguage(locale)
+        val result = tts.setLanguage(locale, true)
         return if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-            context.showToastWithMain("Language ${locale.displayName} is not available.", Toast.LENGTH_SHORT)
+            context.showToastWithMain("Language ${locale.displayName} is not available.", Toast.LENGTH_LONG)
             false
         } else true
     }

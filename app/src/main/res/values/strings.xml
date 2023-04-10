@@ -777,6 +777,33 @@
     <string name="tts_discard_first_page_description">Only works with link merging: Completely ignore content of the initial page if it contains buffer links. (For chapters behind "click here for actual chapter")</string>
     <string name="tts_use_longest_page">Only read the page with most text</string>
     <string name="tts_use_longest_page_description">Only works with link merging: When loading linked pages, only use the one that has the most text in it. Doesn\'t discard original page.</string>
+    <string name="tts_downpitch_dialogue">Downpitch dialogue</string>
+    <string name="tts_downpitch_dialogue_description">EXPERIMENTAL! Lowers the pitch of the dialogue sentences. Not guaranteed to work.</string>
+    <string name="tts_use_legacy_player">Use legacy TTS player.</string>
+    <string name="tts_use_legacy_player_description">Use the legacy variant of the TTS player. Feature set of 0.22.1, no guarantees of new features working (needs TTS restart!).</string>
+    <string name="tts_keep_screen_on">Keep the screen on</string>
+    <string name="tts_keep_screen_on_short">Screen on</string>
+    <string name="tts_keep_screen_on_description">Prevent the screen from dimming when TTS controls are open.</string>
+    <string name="tts_rewind_amount">Number of sentences to rewind</string>
+    <string name="tts_rewind_amount_description">How many sentences to rewind when the rewind button is pressed.</string>
+    <string name="tts_forward_amount">Number of sentences to forward</string>
+    <string name="tts_forward_amount_description">How many sentences to jump forward when pressing the forward button is pressed.</string>
+    <string name="tts_swap_rewind_skip">Swap rewind/skip actions</string>
+    <string name="tts_swap_rewind_skip_description">Swap the behavior of rewind/skip buttons on remote controller (does not affect app UI, affects notification).</string>
+    <string name="tts_rewind_to_skip">Jump chapter on excessive rewind/forward</string>
+    <string name="tts_rewind_to_skip_description">Jump to previous/next chapter when pressing rewind/forward while on first/last sentences.</string>
+    <string name="tts_stop_on_error">Stop on load error</string>
+    <string name="tts_stop_on_error_description">Whether to stop playback or try to load next chapter when chapter fails to load.</string>
+    <string name="tts_announce_last_chapter">Announce last chapter</string>
+    <string name="tts_announce_last_chapter_description">Use TTS to announce when last chapter has finished reading and no more chapters can be read.</string>
+
+    <string name="empty" />
+    <string name="tts_header_playback">Playback</string>
+    <string name="tts_header_remote">Remote control</string>
+    <string name="tts_header_processing">Processing</string>
+    <string name="tts_header_filters">Filters</string>
+    <string name="tts_header_misc">Misc</string>
+
     <string name="scroll_current_into_view">Scroll current sentence into view</string>
     <string name="cover">Cover</string>
     <string name="auto_stop_timer">Auto-stop timer</string>

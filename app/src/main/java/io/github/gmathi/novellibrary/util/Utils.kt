@@ -416,7 +416,12 @@ object Utils {
                 doc.select(it.lookup).remove()
             }
         }
-        doc.select("em,strong,italic,s,i,a").unwrap()
+
+        // Unwrap various notation to simplify processing.
+        val notations = doc.select("em,strong,italic,s,i,a")
+        // HACK: unwrap seem to strip whitespaces before/after the tag, so we have to ensure they have spacing within the tag.
+        notations.forEach { el -> el.prependText(" "); el.appendText(" ") }
+        notations.unwrap()
 
         val textFilters = filters.filter { it.target == TTSFilterTarget.TextChunk }.map { it.compile(doc) }
 

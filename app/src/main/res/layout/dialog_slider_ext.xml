@@ -7,43 +7,52 @@
     android:layout_height="wrap_content"
     android:padding="@dimen/default_padding_list_item">
 
-    <io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
-        android:id="@+id/seekBar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="2dp"
-        custom:layout_constraintBottom_toBottomOf="parent"
-        custom:layout_constraintEnd_toStartOf="@+id/toggleModeButton"
-        custom:layout_constraintStart_toStartOf="parent"
-        custom:layout_constraintTop_toTopOf="parent"
-        custom:maxValue="100"
-        custom:minValue="0" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="8dp">
 
-    <EditText
-        android:id="@+id/seekBarCustomNumber"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="2dp"
-        android:ems="10"
-        android:importantForAutofill="no"
-        android:inputType="number"
-        android:minHeight="48dp"
-        android:visibility="gone"
-        custom:layout_constraintBottom_toBottomOf="parent"
-        custom:layout_constraintEnd_toStartOf="@+id/toggleModeButton"
-        custom:layout_constraintStart_toStartOf="parent"
-        custom:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:id="@+id/sliderValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minEms="2"
+            android:textAlignment="center"
+            tools:text="100%" />
 
-    <ImageButton
-        android:id="@+id/toggleModeButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="@string/toggle_slider_number"
-        android:minHeight="48dp"
-        custom:layout_constraintBottom_toBottomOf="parent"
-        custom:layout_constraintEnd_toEndOf="parent"
-        custom:layout_constraintTop_toTopOf="parent"
-        custom:srcCompat="@drawable/ic_baseline_edit_24" />
+        <io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
+            android:id="@+id/seekBar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="2dp"
+            android:layout_weight="1"
+            custom:maxValue="100"
+            custom:minValue="0" />
+
+        <EditText
+            android:id="@+id/seekBarCustomNumber"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="2dp"
+            android:layout_weight="1"
+            android:ems="10"
+            android:importantForAutofill="no"
+            android:inputType="number"
+            android:minHeight="48dp"
+            android:visibility="gone"
+            tools:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/toggleModeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/toggle_slider_number"
+            android:minHeight="48dp"
+            custom:srcCompat="@drawable/ic_baseline_edit_24" />
+    </LinearLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -78,29 +78,29 @@ class GenericSelectorQueryCleaner(
 //                    SubQueryRole.RFooter -> {}
                     SubqueryRole.RShare -> {
                         applyCommands(subQuery, elements)
-                        elements.remove()
+                        elements.forEach { if (it.hasParent()) it.remove() }
                         return@forEachIndexed
                     }
                     SubqueryRole.RComments ->
                         if (!dataCenter.showChapterComments) {
                             applyCommands(subQuery, elements)
-                            elements.remove()
+                            elements.forEach { if (it.hasParent()) it.remove() }
                             return@forEachIndexed
                         }
                     SubqueryRole.RMeta -> {
                         applyCommands(subQuery, elements)
-                        elements.remove()
+                        elements.forEach { if (it.hasParent()) it.remove() }
                         return@forEachIndexed
                     }
                     SubqueryRole.RNavigation ->
                         if (!dataCenter.enableDirectionalLinks) {
                             applyCommands(subQuery, elements)
-                            elements.remove()
+                            elements.forEach { if (it.hasParent()) it.remove() }
                             return@forEachIndexed
                         }
                     SubqueryRole.RBlacklist -> {
                         applyCommands(subQuery, elements)
-                        elements.remove()
+                        elements.forEach { if (it.hasParent()) it.remove() }
                         return@forEachIndexed
                     }
                     SubqueryRole.RWhitelist -> {

@@ -79,6 +79,12 @@
 
     <TableRow
         android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:gravity="center_vertical"
+        android:background="?android:attr/listDivider">
+    </TableRow>
+    <TableRow
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:minHeight="48dp">
@@ -115,6 +121,12 @@
 
     </TableRow>
 
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:gravity="center_vertical"
+        android:background="?android:attr/listDivider">
+    </TableRow>
     <TableRow
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -168,6 +180,12 @@
 
     <TableRow
         android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:gravity="center_vertical"
+        android:background="?android:attr/listDivider">
+    </TableRow>
+    <TableRow
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:minHeight="28dp">
@@ -215,6 +233,37 @@
 
     </TableRow>
     <!-- TODO: Add actions like reload page -->
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:gravity="center_vertical"
+        android:background="?android:attr/listDivider">
+    </TableRow>
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:minHeight="28dp">
+
+        <TextView
+            android:layout_weight="1"
+            android:text="@string/tts_keep_screen_on" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/keepScreenOn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent" />
+
+    </TableRow>
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:gravity="center_vertical"
+        android:background="?android:attr/listDivider">
+    </TableRow>
+
     <TableRow>
         <TextView
             android:layout_weight="1"

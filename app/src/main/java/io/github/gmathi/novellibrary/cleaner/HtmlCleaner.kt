@@ -31,6 +31,8 @@ import java.io.FileOutputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.net.SocketException
+import kotlin.math.ceil
+import kotlin.math.floor
 
 
 open class HtmlCleaner protected constructor() {
@@ -49,7 +51,31 @@ open class HtmlCleaner protected constructor() {
         // Fairly generic selectors for specific content types
         private const val genericCommentsSubquery = "#comments,.comments,#disqus_thread"
         private const val genericShareSubquery = ".sd-block,.sharedaddy"
-        private const val genericMetaSubquery = ".byline,.posted-on,.cat-links,.tags-links,.entry-author,.post-date,.post-info,.post-meta,.entry-meta"
+        private const val genericMetaSubquery = ".byline,.posted-on,.cat-links,.tags-links,.entry-author,.post-date,.post-info,.post-meta,.entry-meta,.meta-in-content"
+
+        private fun genericTLNoteFilter(doc: Element, contentQuery: String): Elements {
+            // If there's 2 hrs - it has TL comment, otherwise it's just separator, but since we already processed .entry-title it should be safe to yeet it.
+            // 42 is magic number because I doubt they'll do THAT long of a TL comment.
+            val totalCount = doc.selectFirst(contentQuery).childrenSize()
+            val minimum = ceil(totalCount * .1f).toInt().coerceAtMost(42)
+            val maximum = totalCount - minimum
+            val hrs = doc.select("$contentQuery>hr")
+            return if (hrs.size > 0) {
+
+                val hr1 = hrs.lastOrNull { it.siblingIndex() < minimum }?.siblingIndex() ?: -1
+                val hr2 = hrs.firstOrNull { it.siblingIndex() > maximum }?.siblingIndex() ?: Int.MAX_VALUE
+        //                    val hr = doc.selectFirst(".entry-content>p:matches(enjoy.+this.+chapter~) + hr")?.siblingIndex() ?: -1
+
+                val els = doc.select("$contentQuery>p,$contentQuery>div").filter { el ->
+                    val index = el.siblingIndex()
+                    // anything before <hr> tag is a huge TL note.
+                    // Same for last <hr> tags
+                    index < hr1 || index > hr2
+                }
+
+                Elements(els)
+            } else Elements()
+        }
 
         private val imageAttributes = listOf(
             "data-orig-file",
@@ -70,6 +96,7 @@ open class HtmlCleaner protected constructor() {
             // RHeader, RContent, RPage, RFooter, RNavigation, RMeta, RShare, RComments
             // Make sure to put host-restricted queries first, since they likely trigger some other selector.
 
+            //#region Site-specific queries
             SelectorQuery(
                 ".nv__main", host = "activetranslations.xyz", subQueries = listOf(
                     SelectorSubQuery(".nv-page-title", SubqueryRole.RHeader, optional = false, multiple = false),
@@ -126,6 +153,31 @@ open class HtmlCleaner protected constructor() {
                         SubQueryProcessingCommandInfo(SubQueryProcessingCommand.AddAttribute, "alt=my image")
                     )
                 ),
+            )),
+
+            // Better TTS support for Shirokus. Mark header, navigation and TL comments as non-read.
+            // They have long as hell TL comments, holy cramoly.
+            SelectorQuery(".entry-content", host="shirokuns.com", subQueries = listOf(
+                SelectorSubQuery(".entry-title", SubqueryRole.RHeader, optional = false, multiple = false),
+                SelectorSubQuery(".entry-content", SubqueryRole.RContent, optional = false, multiple = false),
+                SelectorSubQuery(".entry-content>p:contains(Patreon Supporter)", SubqueryRole.RBlacklist),
+                SelectorSubQuery(".entry-content>p:contains(Table Of Content)", SubqueryRole.RNavigation),
+                SelectorSubQuery("", SubqueryRole.RBlacklist, optional = true, multiple = true) { doc ->
+                    // If there's 2 hrs - it has TL comment, otherwise it's just separator, but since we already processed .entry-title it should be safe to yeet it.
+                    // 42 is magic number because I doubt they'll do THAT long of a TL comment.
+                    val hr = doc.select(".entry-content>hr").last { it.siblingIndex() < 42 }?.siblingIndex() ?: -1
+//                    val hr = doc.selectFirst(".entry-content>p:matches(enjoy.+this.+chapter~) + hr")?.siblingIndex() ?: -1
+                    val els = doc.select(".entry-content>p,.entry-content>div,.entry-content>table").filter { el ->
+                        val txt = el.text()
+                        el.siblingIndex() < hr || // anything before <hr> tag is a huge TL note.
+                                txt.isEmpty() ||
+                                txt == "&nbsp;" || // Reduce clutter
+                                txt.startsWith("(TLN") || txt.startsWith("( TLN") || // Remove all obnoxious TLNs because 99% cases they bring no value.
+                                txt.contains("patron supporters") // Shilling
+                    }
+
+                    Elements(els)
+                }
             )),
 
             // Scrambled fonts
@@ -215,17 +267,71 @@ open class HtmlCleaner protected constructor() {
                 SelectorSubQuery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
             )),
 
+            SelectorQuery(".entry-content", host="fanstranslations.com", subQueries = listOf(
+                SelectorSubQuery("#chapter-heading", SubqueryRole.RHeader, optional = false, multiple = false),
+                SelectorSubQuery(".reading-content", SubqueryRole.RContent, optional = true, multiple = false),
+                SelectorSubQuery(".alert-warning", SubqueryRole.RBlacklist, optional = true, multiple = false), // Announcements of "we picked up that and that novel"
+                SelectorSubQuery("p:containsOwn(~Edited)", SubqueryRole.RBlacklist, optional = true, multiple = true),
+                SelectorSubQuery("p:contains(wait to read more)", SubqueryRole.RBlacklist, optional = true, multiple = true),
+                SelectorSubQuery("p:contains(check out our new novel)", SubqueryRole.RBlacklist, optional = true, multiple = true),
+            )),
+
             // Github, DIY Translations as an example
             SelectorQuery("div#readme", host = "github.com"),
 
-            // https://novelonomicon.com/
+            SelectorQuery("div.reader-content", host = "travistranslations.com", subQueries = listOf(
+                SelectorSubQuery("div.header h2", SubqueryRole.RHeader, optional = true, multiple = false),
+                SelectorSubQuery("div.reader-content", SubqueryRole.RContent, optional = false, multiple = false),
+                SelectorSubQuery(genericMetaSubquery, SubqueryRole.RMeta, optional = true, multiple = true),
+                SelectorSubQuery(genericShareSubquery, SubqueryRole.RShare, optional = true, multiple = true),
+                SelectorSubQuery("", SubqueryRole.RRealChapter, optional=true, multiple=false) { doc ->
+                    val xdata = doc.select("div.reader-content>div[x-data]").firstOrNull() ?: return@SelectorSubQuery Elements()
+
+                    val reg = """\((['"])(.+)\1\)$""".toRegex().find(xdata.attr("x-data"))
+                    val url = reg?.groups?.get(2)?.value
+                    xdata.empty()
+                    xdata.append("<a href=\"$url\">Read full chapter</a>")
+                    return@SelectorSubQuery xdata.select("a")
+                },
+                SelectorSubQuery("", SubqueryRole.RBlacklist, optional = true, multiple = true) { doc ->
+                    genericTLNoteFilter(doc, ".reader-content")
+                },
+                SelectorSubQuery("", SubqueryRole.RBlacklist, optional = true, multiple = true) { doc ->
+                    doc.select(".reader-content>.code-block").remove()
+
+                    // If there's 2 hrs - it has TL comment, otherwise it's just separator, but since we already processed .entry-title it should be safe to yeet it.
+                    // 42 is magic number because I doubt they'll do THAT long of a TL comment.
+//                    val hr = doc.selectFirst(".entry-content>p:matches(enjoy.+this.+chapter~) + hr")?.siblingIndex() ?: -1
+                    val els = doc.select(".reader-content>p,.reader-content>div").filter { el ->
+                        val txt = el.text()
+                        txt.isEmpty() ||
+                        txt == "&nbsp;" || // Reduce clutter
+                        txt.contains("read only at Travis") // Shilling
+                    }
+
+                    Elements(els)
+                }
+            )),
+
+            SelectorQuery("div.text_story", host="lightnovelstranslations.com", subQueries = listOf(
+                SelectorSubQuery("div.text_story>h2", SubqueryRole.RHeader, optional = true, multiple = false),
+                SelectorSubQuery("div.text_story", SubqueryRole.RContent, optional = false, multiple = false),
+                SelectorSubQuery(".menu_story_content", SubqueryRole.RNavigation, optional = true, multiple = false),
+                SelectorSubQuery(genericMetaSubquery, SubqueryRole.RMeta, optional = true, multiple = true),
+                SelectorSubQuery(genericShareSubquery, SubqueryRole.RShare, optional = true, multiple = true),
+                SelectorSubQuery("", SubqueryRole.RBlacklist, optional = true, multiple = true) { doc ->
+                    genericTLNoteFilter(doc, "div.text_story")
+                },
+            )),
+
+            //#endregion
+
+            // https://novelonomicon.com/ (revised)
             SelectorQuery(
-                "div#content[role='main']", subQueries = listOf(
-                    SelectorSubQuery("h1.entry-title", SubqueryRole.RHeader, optional = true, multiple = false),
-                    SelectorSubQuery("div.entry-content", SubqueryRole.RContent, optional = true, multiple = false),
-                    SelectorSubQuery(".entry-footer,.entry-bottom", SubqueryRole.RFooter, optional = true, multiple = false),
+                ".tdb_single_content .tdb-block-inner", subQueries = listOf(
+                    SelectorSubQuery(".tdb_single_content .tdb-block-inner>p>strong", SubqueryRole.RHeader, optional = true, multiple = false),
+                    SelectorSubQuery(".tdb_single_content .tdb-block-inner", SubqueryRole.RContent, optional = true, multiple = false),
                     SelectorSubQuery(genericMetaSubquery, SubqueryRole.RMeta, optional = true, multiple = true),
-                    SelectorSubQuery(".post-navigation", SubqueryRole.RNavigation, optional = true, multiple = false),
                     SelectorSubQuery(genericShareSubquery, SubqueryRole.RShare, optional = true, multiple = true),
                     SelectorSubQuery(genericCommentsSubquery, SubqueryRole.RComments, optional = true, multiple = false),
                 )
