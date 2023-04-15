@@ -12,6 +12,7 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import android.view.KeyEvent
 import androidx.core.app.NotificationManagerCompat
 import androidx.media.MediaBrowserServiceCompat
 import androidx.media.session.MediaButtonReceiver
@@ -26,7 +27,6 @@ import io.github.gmathi.novellibrary.util.lang.*
 import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import kotlinx.coroutines.*
 import java.util.*
-import kotlin.collections.HashMap
 
 class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeListener {
 
@@ -102,6 +102,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
     lateinit var player: TTSPlayer
     var initialized: Boolean = false
 
+    @SuppressLint("RestrictedApi")
     override fun onCreate() {
         super.onCreate()
 
@@ -172,12 +173,27 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
 
         player = TTSPlayer(this, mediaSession, stateBuilder)
 
+        // androidx `MediaButtonReceiver.buildMediaButtonPendingIntent` uses 0 flags, and that crashes on Api 31+
+        // So we have to do it manually
+        // All hail trashy android API
+        val mbrComponentX = MediaButtonReceiver.getMediaButtonReceiverComponent(this)
+        fun mediaButtonReceiverIntent(@PlaybackStateCompat.MediaKeyAction action: Long): PendingIntent {
+            val keyCode = PlaybackStateCompat.toKeyCode(action)
+            val intent = Intent(Intent.ACTION_MEDIA_BUTTON)
+            intent.component = mbrComponentX
+            intent.putExtra(Intent.EXTRA_KEY_EVENT, KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
+            return PendingIntent.getBroadcast(this, keyCode, intent,
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE
+                else 0
+            )
+        }
+
         val pendingIntents = HashMap<String, PendingIntent>()
-        pendingIntents[ACTION_PLAY] = MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PLAY)
-        pendingIntents[ACTION_PAUSE] = MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PAUSE)
-        pendingIntents[ACTION_STOP] = MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_STOP)
-        pendingIntents[ACTION_NEXT] = MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
-        pendingIntents[ACTION_PREVIOUS] = MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
+        pendingIntents[ACTION_PLAY] = mediaButtonReceiverIntent(PlaybackStateCompat.ACTION_PLAY)
+        pendingIntents[ACTION_PAUSE] = mediaButtonReceiverIntent(PlaybackStateCompat.ACTION_PAUSE)
+        pendingIntents[ACTION_STOP] = mediaButtonReceiverIntent(PlaybackStateCompat.ACTION_STOP)
+        pendingIntents[ACTION_NEXT] = mediaButtonReceiverIntent(PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
+        pendingIntents[ACTION_PREVIOUS] = mediaButtonReceiverIntent(PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
         pendingIntents[ACTION_OPEN_CONTROLS] = createPendingIntent(ACTION_OPEN_CONTROLS)
 
         notificationBuilder = TTSNotificationBuilder(this, pendingIntents)
