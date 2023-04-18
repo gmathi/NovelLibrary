@@ -73,7 +73,7 @@ class AndroidCookieJar : CookieJar {
         val parts = cookies.split(";".toRegex()).dropLastWhile { it.isEmpty() }.filter {
             lookup?.containsMatchIn(it) ?: false
         }
-        return if (parts.count() != 0) {
+        return if (parts.isNotEmpty()) {
             dataCenter.setLoginCookiesString(hostName, parts.joinToString(";"))
             true
         } else {

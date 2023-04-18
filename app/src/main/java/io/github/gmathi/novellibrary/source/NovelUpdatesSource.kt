@@ -211,7 +211,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
         val document = response.asJsoup()
         return document.select("div.checkbox").map { element ->
             TranslatorSource(
-                element.selectFirst("input.grp-filter-attr[value]").attr("value").toLong(),
+                element.selectFirst("input.grp-filter-attr[value]")?.attr("value")?.toLong() ?: 0L,
                 element.text()
             )
         }

@@ -43,12 +43,11 @@ class BakaTsukiCleaner : HtmlCleaner() {
     }
 
     private fun removeDirectionalLinks(contentElement: Element?) {
-        contentElement?.getElementsByTag("a")?.filter {
-            it.text().contains("Previous Chapter", ignoreCase = true)
-                    || it.text().contains("Next Chapter", ignoreCase = true)
-                    || it.text().contains("Project Page", ignoreCase = true)
-                    || it.text().contains("Index", ignoreCase = true)
-
+        contentElement?.getElementsByTag("a")?.filterIndexed { index, element ->
+            element.text().contains("Previous Chapter", ignoreCase = true)
+                    || element.text().contains("Next Chapter", ignoreCase = true)
+                    || element.text().contains("Project Page", ignoreCase = true)
+                    || element.text().contains("Index", ignoreCase = true)
         }?.forEach { it?.remove() }
         contentElement?.getElementsByTag("table")?.lastOrNull()?.remove()
     }

@@ -2,6 +2,8 @@ package io.github.gmathi.novellibrary.network
 
 import android.content.Context
 import android.net.ConnectivityManager
+import coil.ImageLoader
+import coil.disk.DiskCache
 import coil.util.CoilUtils
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.network.interceptor.CloudflareInterceptor
@@ -47,8 +49,6 @@ class NetworkHelper(private val context: Context) {
         }
 
     val client by lazy { baseClientBuilder.cache(Cache(cacheDir, cacheSize)).build() }
-
-    val coilClient by lazy { baseClientBuilder.cache(CoilUtils.createDefaultCache(context)).build() }
 
     val cloudflareClient by lazy {
         client.newBuilder()

@@ -44,10 +44,10 @@ class FoxTellerProxy : BaseProxyHelper() {
 
         val xsrf = cookieMap["XSRF-TOKEN"]
         val session = cookieMap["foxteller_session"] ?: xsrf
-        val csrf = doc.selectFirst("meta[name=\"csrf-token\"]").attr("content")
+        val csrf = doc.selectFirst("meta[name=\"csrf-token\"]")?.attr("content")
 
         // remove chapter loading script as we load ourselves
-        doc.selectFirst("script[src*=chapter.js]").remove()
+        doc.selectFirst("script[src*=chapter.js]")?.remove()
 
         val dem = mutableMapOf<String, String>()
         doc.getElementsByTag("script").forEach { script ->
@@ -68,7 +68,7 @@ class FoxTellerProxy : BaseProxyHelper() {
             .add("X-Requested-With", "XMLHttpRequest")
             .add("Content-Type", "application/json;charset=utf-8")
             .add("X-XSRF-TOKEN", xsrf ?: "")
-            .add("X-CSRF-TOKEN", csrf)
+            .add("X-CSRF-TOKEN", csrf ?: "")
             .add("TE", "trailers")
             .add("Cookie", cookieString)
             .build()
@@ -84,8 +84,8 @@ class FoxTellerProxy : BaseProxyHelper() {
 
         if (chapterResponse.code != 200) {
             val content = doc.getElementById("chapter-content")
-            content.children().remove()
-            content.append("<p><b>ERROR: Could not load chapter content (${chapterResponse.code}).</b></p>")
+            content?.children()?.remove()
+            content?.append("<p><b>ERROR: Could not load chapter content (${chapterResponse.code}).</b></p>")
             return doc
         }
 
@@ -97,9 +97,9 @@ class FoxTellerProxy : BaseProxyHelper() {
         chapter = Base64.decode(chapter, Base64.DEFAULT).decodeToString()
 
         val content = doc.getElementById("chapter-content")
-        content.textNodes().firstOrNull()?.remove()
-        content.children().remove()
-        content.append(chapter)
+        content?.textNodes()?.firstOrNull()?.remove()
+        content?.children()?.remove()
+        content?.append(chapter)
 
         return doc
     }

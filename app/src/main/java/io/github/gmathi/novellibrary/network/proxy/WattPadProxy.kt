@@ -26,12 +26,12 @@ class WattPadProxy : BaseProxyHelper() {
         if (url != null) {
             try {
                 val secondHalfContent = Jsoup.connect(url).execute().body()
-                contentElem.append(secondHalfContent)
+                contentElem?.append(secondHalfContent)
             } catch (e: Exception) {
                 Logs.error("WattPadProxy", "Url: $url", e)
             }
         } else
-            contentElem.append("<br/><p><b>ERROR: Failed to load second half of chapter.</b></p>")
+            contentElem?.append("<br/><p><b>ERROR: Failed to load second half of chapter.</b></p>")
         return doc
     }
 

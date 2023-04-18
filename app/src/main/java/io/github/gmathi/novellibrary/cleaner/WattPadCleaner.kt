@@ -18,7 +18,7 @@ class WattPadCleaner : HtmlCleaner() {
         titleElem?.siblingElements()?.remove() // metadata after title
         preElem?.select("span.comment-marker")?.remove() // comments??
         preElem?.unwrap() // move contents of pre to its parent (pre is monospace with no wrapping)
-        articleElem?.children()?.filter { !it.hasClass("container") }?.forEach { it.remove() } // novel info and next page or something
+        articleElem?.children()?.filterIndexed { _, ele -> !ele.hasClass("container") }?.forEach { it.remove() } // novel info and next page or something
 
         // remove ALL other unneeded elements (the nuclear option)
         var it: Element? = articleElem

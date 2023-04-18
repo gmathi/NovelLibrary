@@ -38,7 +38,7 @@ import io.github.gmathi.novellibrary.util.storage.getOrCreateFile
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.safety.Cleaner
-import org.jsoup.safety.Whitelist
+import org.jsoup.safety.Safelist
 import uy.kohesive.injekt.injectLazy
 import java.io.*
 import java.net.MalformedURLException
@@ -426,7 +426,7 @@ object Utils {
         val textFilters = filters.filter { it.target == TTSFilterTarget.TextChunk }.map { it.compile(doc) }
 
         applyFilters(doc.body(), filters.filter { it.target == TTSFilterTarget.Element }.map { it.compile(doc) })
-        val cleaner = Cleaner(Whitelist.none())
+        val cleaner = Cleaner(Safelist.none())
         val cleanDoc = cleaner.clean(doc)
         cleanDoc.outputSettings(Document.OutputSettings().prettyPrint(false))
         var text = cleanDoc.body().html()
