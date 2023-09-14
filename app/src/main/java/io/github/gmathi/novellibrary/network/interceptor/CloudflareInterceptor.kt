@@ -54,14 +54,14 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
         initWebView
 
-        val response = chain.proceed(originalRequest)
-
-        // Check if Cloudflare anti-bot is on
-        if (response.code != 503 || response.header("Server") !in SERVER_CHECK) {
-            return response
-        }
-
         try {
+            val response = chain.proceed(originalRequest)
+
+            // Check if Cloudflare anti-bot is on
+            if (response.code != 503 || response.header("Server") !in SERVER_CHECK) {
+                return response
+            }
+
             response.close()
             networkHelper.cookieManager.remove(originalRequest.url, COOKIE_NAMES, 0)
             val oldCookie = networkHelper.cookieManager.get(originalRequest.url)

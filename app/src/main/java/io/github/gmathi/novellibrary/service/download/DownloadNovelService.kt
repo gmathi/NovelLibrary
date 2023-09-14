@@ -216,8 +216,10 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
         novelDetailsBundle.putInt("currentNavId", R.id.nav_library)
         novelDetailsBundle.putBoolean("showDownloads", true)
         novelDetailsIntent.putExtras(novelDetailsBundle)
-
-        val pendingIntent = PendingIntent.getActivity(context, DOWNLOAD_NOTIFICATION_ID, novelDetailsIntent, 0)
+        val pendingIntentFlags:Int =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT }
+            else { PendingIntent.FLAG_UPDATE_CURRENT }
+        val pendingIntent = PendingIntent.getActivity(context, DOWNLOAD_NOTIFICATION_ID, novelDetailsIntent, pendingIntentFlags)
         val channelId = getString(R.string.downloads_notification_channel_id)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManagerCompat.from(applicationContext)

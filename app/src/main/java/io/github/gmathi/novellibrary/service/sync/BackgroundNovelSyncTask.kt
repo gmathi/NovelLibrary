@@ -117,11 +117,14 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
             val novelDetailsBundle = Bundle()
             novelDetailsBundle.putInt("currentNavId", R.id.nav_library)
             novelDetailsIntent.putExtras(novelDetailsBundle)
+            val pendingIntentFlags:Int =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT }
+                else { PendingIntent.FLAG_CANCEL_CURRENT }
             val contentIntent = PendingIntent.getActivity(
                 context,
                 0,
                 novelDetailsIntent,
-                PendingIntent.FLAG_CANCEL_CURRENT
+                pendingIntentFlags
             )
 
             if (novelsList.isNotEmpty())
@@ -229,7 +232,10 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
         novelDetailsBundle.putInt("currentNavId", R.id.nav_library)
         novelDetailsBundle.putSerializable("novel", novel)
         novelDetailsIntent.putExtras(novelDetailsBundle)
-        return PendingIntent.getActivity(this.applicationContext, novel.hashCode(), novelDetailsIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val pendingIntentFlags:Int =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT }
+            else { PendingIntent.FLAG_UPDATE_CURRENT }
+        return PendingIntent.getActivity(this.applicationContext, novel.hashCode(), novelDetailsIntent, pendingIntentFlags)
     }
 
 //endregion
