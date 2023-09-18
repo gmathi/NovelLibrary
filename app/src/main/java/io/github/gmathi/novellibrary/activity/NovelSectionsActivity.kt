@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.activity
 
-import io.github.gmathi.novellibrary.network.sync.NovelSync
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.Menu
@@ -22,10 +21,11 @@ import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.databinding.ActivityNovelSectionsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemNovelSectionBinding
-import io.github.gmathi.novellibrary.util.FAC
 import io.github.gmathi.novellibrary.extensions.showEmpty
 import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.model.database.NovelSection
+import io.github.gmathi.novellibrary.network.sync.NovelSync
+import io.github.gmathi.novellibrary.util.FAC
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
@@ -112,10 +112,12 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                         onItemRename(position)
                         true
                     }
+
                     R.id.action_novel_section_remove -> {
                         onItemRemove(position)
                         true
                     }
+
                     else -> {
                         true
                     }

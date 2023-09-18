@@ -1,14 +1,17 @@
 package io.github.gmathi.novellibrary.service.sync
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -192,6 +195,16 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
 
         val first = createNotificationBuilder(context.getString(R.string.app_name), context.getString(R.string.group_update_notification_text), contentIntent)
         first.setGroupSummary(true).setGroup(UPDATE_NOTIFICATION_GROUP)
+
+        //Check Permissions
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
         notificationManager.notify(NOTIFICATION_ID, first.build())
 
         novelsList.forEach { novel ->

@@ -3,8 +3,6 @@ package io.github.gmathi.novellibrary.activity.settings
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import androidx.core.content.ContextCompat
@@ -18,8 +16,6 @@ import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
-import io.github.gmathi.novellibrary.network.PREF_DOH_CLOUDFLARE
-import io.github.gmathi.novellibrary.network.PREF_DOH_GOOGLE
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont

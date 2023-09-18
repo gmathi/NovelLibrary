@@ -63,7 +63,6 @@ import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
 import org.greenrobot.eventbus.EventBus
 import java.io.File
 import java.util.*
-import kotlin.collections.ArrayList
 
 
 class ReaderDBPagerActivity :
@@ -225,7 +224,10 @@ class ReaderDBPagerActivity :
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val action = event.action
         val keyCode = event.keyCode
-        val webView = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as WebPageDBFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
+        val webView = (binding.viewPager.adapter?.instantiateItem(
+            binding.viewPager,
+            binding.viewPager.currentItem
+        ) as WebPageDBFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
         return when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.enableVolumeScroll) {
@@ -237,6 +239,7 @@ class ReaderDBPagerActivity :
                 }
                 dataCenter.enableVolumeScroll
             }
+
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.enableVolumeScroll) {
                     val anim = ObjectAnimator.ofInt(
@@ -247,6 +250,7 @@ class ReaderDBPagerActivity :
                 }
                 dataCenter.enableVolumeScroll
             }
+
             else -> super.dispatchKeyEvent(event)
         }
     }
@@ -417,10 +421,12 @@ class ReaderDBPagerActivity :
                     bindingList.list.adapter?.notifyItemRangeChanged(NIGHT_MODE, 2)
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
                 }
+
                 NIGHT_MODE -> {
                     dataCenter.isDarkTheme = isChecked
                     EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
                 }
+
                 JAVA_SCRIPT -> {
                     dataCenter.javascriptDisabled = !isChecked
                     if (!dataCenter.javascriptDisabled && dataCenter.readerMode)

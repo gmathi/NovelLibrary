@@ -40,21 +40,23 @@ class MetaDataActivity : BaseActivity(), GenericAdapter.Listener<Map.Entry<Strin
     }
 
     private fun setRecyclerView() {
-        @Suppress("UNCHECKED_CAST")
-        adapter = GenericAdapter(items = (ArrayList(novel.metadata.entries) as ArrayList<Map.Entry<String, String?>>), layoutResId = R.layout.listitem_metadata, listener = this)
+        @Suppress("UNCHECKED_CAST") adapter = GenericAdapter(
+            items = (ArrayList(novel.metadata.entries) as ArrayList<Map.Entry<String, String?>>),
+            layoutResId = R.layout.listitem_metadata,
+            listener = this
+        )
         binding.contentRecyclerView.recyclerView.setDefaults(adapter)
         binding.contentRecyclerView.swipeRefreshLayout.setOnRefreshListener { binding.contentRecyclerView.swipeRefreshLayout.isRefreshing = false }
     }
 
     override fun bind(item: Map.Entry<String, String?>, itemView: View, position: Int) {
         val binding = ListitemMetadataBinding.bind(itemView)
-        binding.metadataKey.applyFont(assets).text = item.key.toUpperCase(Locale.getDefault())
+        binding.metadataKey.applyFont(assets).text = item.key.uppercase(Locale.getDefault())
         binding.metadataValue.applyFont(assets)
         if (item.value != null) {
             binding.metadataValue.movementMethod = TextViewLinkHandler(this)
-            @Suppress("DEPRECATION")
-            binding.metadataValue.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-                Html.fromHtml(item.value, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(item.value)
+            @Suppress("DEPRECATION") binding.metadataValue.text =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) Html.fromHtml(item.value, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(item.value)
         }
     }
 

@@ -33,18 +33,13 @@ class DownloadNovelThread(
         try {
             var download = dbHelper.getDownloadItemInQueue(novelId)
             threadPool = Executors.newFixedThreadPool(10) as ThreadPoolExecutor
-//            val fasterDownloads = DataCenter(context).experimentalDownload
 
             while (download != null && !interrupted()) {
 
-                if (!NetworkHelper(context).isConnectedToNetwork()) throw InterruptedException(Constants.NO_NETWORK)
+                if (!NetworkHelper(context).isConnectedToNetwork())
+                    throw InterruptedException(Constants.NO_NETWORK)
 
-//                if (!fasterDownloads)
-                // .get at the end makes it a synchronous task
                 threadPool?.submit(DownloadWebPageThread(context, download, dbHelper, this@DownloadNovelThread))?.get()
-//                else
-                // Put all in at the same time - TODO:// Problem with multitasking when adding 1000+ chapters at the same time. Need to streamline it for multitasking
-//                    threadPool?.submit(DownloadWebPageThread(context, download, dbHelper, this@DownloadNovelThread))
 
                 //Check if thread was shutdown
                 if (interrupted()) {
@@ -56,14 +51,7 @@ class DownloadNovelThread(
 
             threadPool?.shutdown()
             try {
-//                if (!fasterDownloads)
                 threadPool?.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)
-//                else {
-//                    if (threadPool != null)
-//                        while (!threadPool!!.awaitTermination(1, TimeUnit.MINUTES) && !isInterrupted) {
-//                            Thread.sleep(60000)
-//                        }
-//                }
 
                 if (dbHelper.getRemainingDownloadsCountForNovel(novelId) == 0)
                     downloadListener.handleEvent(DownloadNovelEvent(EventType.DELETE, novelId))
@@ -74,8 +62,6 @@ class DownloadNovelThread(
                 Logs.warning(TAG, "Thread pool executor interrupted~")
             }
 
-        } catch (e: InterruptedException) {
-            threadPool?.shutdownNow()
         } catch (e: Exception) {
             threadPool?.shutdownNow()
         }

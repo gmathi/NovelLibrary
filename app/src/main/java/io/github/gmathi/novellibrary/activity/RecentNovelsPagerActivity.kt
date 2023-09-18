@@ -22,15 +22,14 @@ class RecentNovelsPagerActivity : AppCompatActivity() {
     }
 
     private fun setViewPager() {
-        while (supportFragmentManager.backStackEntryCount > 0)
-            supportFragmentManager.popBackStack()
+        while (supportFragmentManager.backStackEntryCount > 0) supportFragmentManager.popBackStack()
 
-        val navPageAdapter =
-            GenericFragmentStatePagerAdapter(
-                supportFragmentManager,
-                arrayOf(getString(R.string.title_activity_recently_updated_novels), getString(R.string.title_activity_recently_viewed_novels)),
-                2, RecentNovelsPageListener()
-            )
+        val navPageAdapter = GenericFragmentStatePagerAdapter(
+            supportFragmentManager,
+            arrayOf(getString(R.string.title_activity_recently_updated_novels), getString(R.string.title_activity_recently_viewed_novels)),
+            2,
+            RecentNovelsPageListener()
+        )
 
         binding.content.viewPager.offscreenPageLimit = 3
         binding.content.viewPager.adapter = navPageAdapter

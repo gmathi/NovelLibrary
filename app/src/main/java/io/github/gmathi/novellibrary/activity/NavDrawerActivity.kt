@@ -5,9 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
-import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.LinearLayout
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
@@ -22,16 +20,20 @@ import com.google.firebase.auth.FirebaseAuth
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.databinding.ActivityNavDrawerBinding
-import io.github.gmathi.novellibrary.databinding.NavHeaderNavDrawerBinding
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.WhatsChanged
-import io.github.gmathi.novellibrary.util.system.*
+import io.github.gmathi.novellibrary.util.system.openInBrowser
+import io.github.gmathi.novellibrary.util.system.startChaptersActivity
+import io.github.gmathi.novellibrary.util.system.startExtensionsPagerActivity
+import io.github.gmathi.novellibrary.util.system.startNovelDownloadsActivity
+import io.github.gmathi.novellibrary.util.system.startRecentNovelsPagerActivity
+import io.github.gmathi.novellibrary.util.system.startSettingsActivity
 import org.cryse.widget.persistentsearch.PersistentSearchView
-import java.util.*
+import java.util.Date
 import kotlin.random.Random
 
 
@@ -85,7 +87,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             MaterialDialog(this).show {
                 title(text = "\uD83C\uDF89 What's New ${BuildConfig.VERSION_NAME}!")
                 message(
-                    text = WhatsChanged.VERSION_23
+                    text = WhatsChanged.VERSION_24
                 )
                 positiveButton(text = "Ok")
             }
@@ -141,19 +143,24 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_library -> {
                 replaceFragment(LibraryPagerFragment(), LibraryPagerFragment::class.toString())
             }
+
             R.id.nav_search -> {
                 replaceFragment(SearchFragment(), SearchFragment::class.toString())
             }
+
             R.id.nav_downloads -> {
                 startNovelDownloadsActivity()
                 //replaceFragment(DownloadFragment(), DownloadFragment::class.toString())
             }
+
             R.id.nav_settings -> {
                 startSettingsActivity()
             }
+
             R.id.nav_recent_novels -> {
                 startRecentNovelsPagerActivity()
             }
+
             R.id.nav_extensions -> {
                 startExtensionsPagerActivity()
             }
@@ -194,6 +201,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                     // ...
                 }
             }
+
             resultCode == Constants.OPEN_DOWNLOADS_RES_CODE -> loadFragment(R.id.nav_downloads)
             requestCode == Constants.IWV_ACT_REQ_CODE -> checkIntentForNotificationData()
             else -> super.onActivityResult(requestCode, resultCode, data)

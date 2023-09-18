@@ -14,13 +14,15 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.text.SpannableString
 import android.text.style.UnderlineSpan
-import android.util.Log
-import android.view.*
+import android.view.ContextThemeWrapper
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.TableRow
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.core.text.clearSpans
 import androidx.core.view.children
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
@@ -37,7 +39,6 @@ import io.github.gmathi.novellibrary.databinding.ListitemSentenceBinding
 import io.github.gmathi.novellibrary.extensions.isPlaying
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.LinkedPage
-import io.github.gmathi.novellibrary.service.tts.TTSPlayer
 import io.github.gmathi.novellibrary.service.tts.TTSService
 import io.github.gmathi.novellibrary.util.fromHumanPercentage
 import io.github.gmathi.novellibrary.util.lang.duration
@@ -65,7 +66,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
     var isServiceConnected = false
 
     lateinit var adapter: GenericAdapter<String>
-    var lastSentence:Int = -1
+    var lastSentence: Int = -1
     var hasSentences = false
     var sentenceRangeStart: Int = -1
     var sentenceRangeEnd: Int = -1
@@ -74,7 +75,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
     var translatorSource: String? = null
     var chapterIndex: Int = 0
     var linkedPages = ArrayList<LinkedPage>()
-    private var linkedPageButtons:MutableMap<Int, String> = mutableMapOf()
+    private var linkedPageButtons: MutableMap<Int, String> = mutableMapOf()
 
     private var stopTimer: Long = 0L
     private var lastMinutes: Long = 0L
@@ -140,38 +141,28 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
         contentBinding.ttsNovelName.isSelected = true
 
         contentBinding.prevChapterButton.setOnClickListener {
-            if (dataCenter.ttsPreferences.swapRewindSkip)
-                controller?.transportControls?.rewind()
-            else
-                controller?.transportControls?.skipToPrevious()
+            if (dataCenter.ttsPreferences.swapRewindSkip) controller?.transportControls?.rewind()
+            else controller?.transportControls?.skipToPrevious()
         }
         contentBinding.nextChapterButton.setOnClickListener {
-            if (dataCenter.ttsPreferences.swapRewindSkip)
-                controller?.transportControls?.fastForward()
-            else
-                controller?.transportControls?.skipToNext()
+            if (dataCenter.ttsPreferences.swapRewindSkip) controller?.transportControls?.fastForward()
+            else controller?.transportControls?.skipToNext()
         }
         contentBinding.prevSentenceButton.setOnClickListener {
-            if (dataCenter.ttsPreferences.swapRewindSkip)
-                controller?.transportControls?.skipToPrevious()
-            else
-                controller?.transportControls?.rewind()
+            if (dataCenter.ttsPreferences.swapRewindSkip) controller?.transportControls?.skipToPrevious()
+            else controller?.transportControls?.rewind()
         }
         contentBinding.nextSentenceButton.setOnClickListener {
-            if (dataCenter.ttsPreferences.swapRewindSkip)
-                controller?.transportControls?.skipToNext()
-            else
-                controller?.transportControls?.fastForward()
+            if (dataCenter.ttsPreferences.swapRewindSkip) controller?.transportControls?.skipToNext()
+            else controller?.transportControls?.fastForward()
         }
         contentBinding.playButton.setOnClickListener {
             if (controller?.playbackState?.state == PlaybackStateCompat.STATE_NONE) {
                 if (novel != null) {
                     startTTSService(novel!!.id, translatorSource, chapterIndex)
                 }
-            } else if (controller?.playbackState?.isPlaying == true)
-                controller?.transportControls?.pause()
-            else
-                controller?.transportControls?.play()
+            } else if (controller?.playbackState?.isPlaying == true) controller?.transportControls?.pause()
+            else controller?.transportControls?.play()
         }
         contentBinding.scrollIntoViewButton.setOnClickListener {
             scrollToPosition(lastSentence, true)
@@ -262,11 +253,15 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
                 controller?.sendCommand(TTSService.COMMAND_UPDATE_TIMER, Bundle().apply {
                     putBoolean("reset", true)
                 }, updateTimerCallback)
-                quickSettings.autoStopTimerPick.text = getString(R.string.set_auto_stop_timer, dataCenter.ttsPreferences.stopTimer / 60, dataCenter.ttsPreferences.stopTimer % 60)
+                quickSettings.autoStopTimerPick.text =
+                    getString(R.string.set_auto_stop_timer, dataCenter.ttsPreferences.stopTimer / 60, dataCenter.ttsPreferences.stopTimer % 60)
             }
-            TimePickerDialog(this, listener, (dataCenter.ttsPreferences.stopTimer / 60).toInt(), (dataCenter.ttsPreferences.stopTimer % 60).toInt(), true).show()
+            TimePickerDialog(
+                this, listener, (dataCenter.ttsPreferences.stopTimer / 60).toInt(), (dataCenter.ttsPreferences.stopTimer % 60).toInt(), true
+            ).show()
         }
-        quickSettings.autoStopTimerPick.text = getString(R.string.set_auto_stop_timer, dataCenter.ttsPreferences.stopTimer / 60, dataCenter.ttsPreferences.stopTimer % 60)
+        quickSettings.autoStopTimerPick.text =
+            getString(R.string.set_auto_stop_timer, dataCenter.ttsPreferences.stopTimer / 60, dataCenter.ttsPreferences.stopTimer % 60)
 
         quickSettings.autoStopTimerSwitch.setOnCheckedChangeListener { _, b ->
             controller?.sendCommand(TTSService.COMMAND_UPDATE_TIMER, Bundle().apply {
@@ -327,9 +322,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
                 novel = dbHelper.getNovel(novelId)
                 translatorSource = metadata.getString(TTSService.TRANSLATOR_SOURCE_NAME)
                 novel?.let { novel ->
-                    Glide.with(this@TextToSpeechControlsActivity)
-                        .load(novel.imageUrl?.getGlideUrl())
-                        .apply(RequestOptions.circleCropTransform())
+                    Glide.with(this@TextToSpeechControlsActivity).load(novel.imageUrl?.getGlideUrl()).apply(RequestOptions.circleCropTransform())
                         .into(contentBinding.ttsNovelCover)
                 }
             }
@@ -359,15 +352,19 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
                     drawable = R.drawable.ic_pause_white_vector
                     label = getString(R.string.pause)
                 }
+
                 PlaybackStateCompat.STATE_PAUSED -> {
                 }
+
                 PlaybackStateCompat.STATE_NONE -> {
                     drawable = R.drawable.ic_stop_white_vector
                 }
+
                 PlaybackStateCompat.STATE_BUFFERING -> {
                     drawable = R.drawable.ic_file_download_white_vector
                     label = getString(R.string.loading)
                 }
+
                 else -> {}
             }
 
@@ -391,7 +388,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
             when (event) {
                 TTSService.EVENT_SENTENCE_LIST -> setRecycleView(extras)
                 TTSService.COMMAND_UPDATE_TIMER -> updateTimerCallback.send(if (extras.getBoolean("active")) 1 else 0, extras)
-                TTSService.EVENT_LINKED_PAGES -> updateLinkedPages(extras.getParcelableArrayList(TTSService.LINKED_PAGES)?:ArrayList())
+                TTSService.EVENT_LINKED_PAGES -> updateLinkedPages(extras.getParcelableArrayList(TTSService.LINKED_PAGES) ?: ArrayList())
                 TTSService.EVENT_TEXT_RANGE -> setTextRanges(extras)
             }
         }
@@ -482,10 +479,12 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
 
     override fun bind(item: String, itemView: View, position: Int) {
         val binding = ListitemSentenceBinding.bind(itemView)
-        binding.sentenceLayout.setBackgroundColor(ContextCompat.getColor(this,
-            if (lastSentence == position) R.color.colorLightBlue
-            else android.R.color.transparent
-        ))
+        binding.sentenceLayout.setBackgroundColor(
+            ContextCompat.getColor(
+                this, if (lastSentence == position) R.color.colorLightBlue
+                else android.R.color.transparent
+            )
+        )
         if (lastSentence == position && sentenceRangeStart != -1) {
             val span = SpannableString(item)
             span.setSpan(UnderlineSpan(), sentenceRangeStart.coerceIn(0, item.length), sentenceRangeEnd.coerceIn(0, item.length), 0)
@@ -501,10 +500,12 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
             span.setSpan(UnderlineSpan(), sentenceRangeStart.coerceIn(0, item.length), sentenceRangeEnd.coerceIn(0, item.length), 0)
             itemView.findViewById<TextView>(R.id.sentenceContents)?.text = span
         } else if (payloads?.contains("active") == true) {
-            itemView.findViewById<TextView>(R.id.sentenceContents)?.setBackgroundColor(ContextCompat.getColor(this,
-                if (lastSentence == position) R.color.colorLightBlue
-                else android.R.color.transparent
-            ))
+            itemView.findViewById<TextView>(R.id.sentenceContents)?.setBackgroundColor(
+                ContextCompat.getColor(
+                    this, if (lastSentence == position) R.color.colorLightBlue
+                    else android.R.color.transparent
+                )
+            )
         } else super.bind(item, itemView, position, payloads)
     }
 
@@ -538,11 +539,12 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId) {
+        when (item.itemId) {
             android.R.id.home -> finish()
             R.id.action_open_reader -> {
                 openReader()
             }
+
             R.id.action_open_settings -> {
                 binding.root.openDrawer(binding.quickSettings)
                 //startTTSSettingsActivity()
@@ -557,7 +559,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
             val novelId = meta.getLong(TTSService.NOVEL_ID)
             val novel = dbHelper.getNovel(novelId) ?: return false
 
-            var translator:String? = meta.getString(TTSService.TRANSLATOR_SOURCE_NAME)
+            var translator: String? = meta.getString(TTSService.TRANSLATOR_SOURCE_NAME)
             if (translator == "") translator = null
             dbHelper.getWebPage(novelId, translator, meta.getLong(TTSService.CHAPTER_INDEX).toInt())?.let { chapter ->
                 updateNovelBookmark(novel, chapter)
