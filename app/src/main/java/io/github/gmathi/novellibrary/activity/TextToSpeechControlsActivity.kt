@@ -68,13 +68,13 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
     lateinit var adapter: GenericAdapter<String>
     var lastSentence: Int = -1
     var hasSentences = false
-    var sentenceRangeStart: Int = -1
-    var sentenceRangeEnd: Int = -1
+    private var sentenceRangeStart: Int = -1
+    private var sentenceRangeEnd: Int = -1
 
     var novel: Novel? = null
     var translatorSource: String? = null
     var chapterIndex: Int = 0
-    var linkedPages = ArrayList<LinkedPage>()
+    private var linkedPages = ArrayList<LinkedPage>()
     private var linkedPageButtons: MutableMap<Int, String> = mutableMapOf()
 
     private var stopTimer: Long = 0L

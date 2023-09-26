@@ -77,16 +77,13 @@ class RecentlyUpdatedNovelsFragment : BaseFragment(), GenericAdapter.Listener<Re
         try {
             searchResults = ArrayList()
             val document = WebPageDocumentFetcher.document("https://www.novelupdates.com/")
-            document.body().select("table#myTable > tbody > tr")?.forEach { element ->
-                val aHrefElements = element.select("a[title]")
-                if (aHrefElements != null && aHrefElements.size == 3) {
-                    val item = RecentlyUpdatedItem()
-                    item.novelUrl = element.selectFirst("a[href]")?.attr("abs:href")
-                    item.novelName = element.selectFirst("a[title]")?.attr("title")
-                    item.chapterName = element.selectFirst("a.chp-release")?.text()
-                    item.publisherName = aHrefElements[2].attr("title")
-                    searchResults.add(item)
-                }
+            document.body().select("table#myTable > tbody > tr").forEach { element ->
+                val item = RecentlyUpdatedItem()
+                item.novelUrl = element.selectFirst("a[href]")?.attr("abs:href")
+                item.novelName = element.child(0).text()
+                item.chapterName = element.child(1).text()
+                item.publisherName = element.child(2).text()
+                searchResults.add(item)
             }
         } catch (e: Exception) {
             e.printStackTrace()
