@@ -127,46 +127,48 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
     }
 
     private fun addObservers() {
-        vm.loadingStatus.observe(this) { newStatus ->
-            //Update loading status
-            when (newStatus) {
-                Constants.Status.START -> {
-                    binding.activityChaptersPager.progressLayout.showLoading(loadingText = getString(R.string.loading))
-                }
-
-                Constants.Status.EMPTY_DATA -> {
-                    binding.activityChaptersPager.progressLayout.showEmpty(
-                        resId = R.raw.monkey_logo,
-                        isLottieAnimation = true,
-                        emptyText = getString(R.string.empty_chapters)
-                    )
-                }
-
-                Constants.Status.NETWORK_ERROR -> {
-                    binding.activityChaptersPager.progressLayout.showError(
-                        errorText = getString(R.string.failed_to_load_url),
-                        buttonText = getString(R.string.try_again)
-                    ) {
-                        vm.getData()
+        vm.loadingStatus.observe(this) {
+            it?.let { newStatus ->
+                //Update loading status
+                when (newStatus) {
+                    Constants.Status.START -> {
+                        binding.activityChaptersPager.progressLayout.showLoading(loadingText = getString(R.string.loading))
                     }
-                }
 
-                Constants.Status.NO_INTERNET -> {
-                    binding.activityChaptersPager.progressLayout.noInternetError {
-                        vm.getData()
+                    Constants.Status.EMPTY_DATA -> {
+                        binding.activityChaptersPager.progressLayout.showEmpty(
+                            resId = R.raw.monkey_logo,
+                            isLottieAnimation = true,
+                            emptyText = getString(R.string.empty_chapters)
+                        )
                     }
-                }
 
-                Constants.Status.DONE -> {
-                    isSyncing = false
-                    binding.activityChaptersPager.progressLayout.showContent()
-                    setViewPager()
+                    Constants.Status.NETWORK_ERROR -> {
+                        binding.activityChaptersPager.progressLayout.showError(
+                            errorText = getString(R.string.failed_to_load_url),
+                            buttonText = getString(R.string.try_again)
+                        ) {
+                            vm.getData()
+                        }
+                    }
 
-                    //TODO: Recreate menu for those instance where the chapters can be empty.
-                }
+                    Constants.Status.NO_INTERNET -> {
+                        binding.activityChaptersPager.progressLayout.noInternetError {
+                            vm.getData()
+                        }
+                    }
 
-                else -> {
-                    binding.activityChaptersPager.progressLayout.updateLoadingStatus(newStatus)
+                    Constants.Status.DONE -> {
+                        isSyncing = false
+                        binding.activityChaptersPager.progressLayout.showContent()
+                        setViewPager()
+
+                        //TODO: Recreate menu for those instance where the chapters can be empty.
+                    }
+
+                    else -> {
+                        binding.activityChaptersPager.progressLayout.updateLoadingStatus(newStatus)
+                    }
                 }
             }
         }
@@ -186,7 +188,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                 }
 
                 else -> {
-                    setProgressDialogValue(progress.toInt())
+                    progress.toIntOrNull()?.let { setProgressDialogValue(it) }
                 }
             }
         }
@@ -577,7 +579,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
             snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, message)
                 .setProgressMax(maxProgress)
         } else {
-            showSnackbar(message)
+            showSnackBar(message)
         }
     }
 
@@ -587,13 +589,13 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
         }
     }
 
-    private fun showSnackbar(message: String) {
-        val snackbar = Snackbar.make(
+    private fun showSnackBar(message: String) {
+        val snackBar = Snackbar.make(
             findViewById(android.R.id.content),
             message,
             Snackbar.LENGTH_SHORT
         )
-        snackbar.show()
+        snackBar.show()
     }
     //endregion
 
