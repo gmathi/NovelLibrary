@@ -14,14 +14,14 @@ if (keystorePropertiesFile.exists() && keystorePropertiesFile.canRead()) {
 
 android {
     compileSdkVersion=34
-    buildToolsVersion='33.0.1'
+    buildToolsVersion='34.0.0'
     defaultConfig {
         applicationId "io.github.gmathi.novellibrary"
         minSdkVersion 21
         targetSdkVersion 34
         multiDexEnabled true
-        versionCode 113
-        versionName "0.24.beta"
+        versionCode 114
+        versionName "0.24.1.beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -81,6 +81,7 @@ android {
     buildFeatures {
         dataBinding true
         viewBinding true
+        buildConfig true
     }
     sourceSets {
         mirror {
