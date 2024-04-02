@@ -135,11 +135,11 @@ class GenericSelectorQueryCleaner(
         else markDirectionalLinks(constructedContent)
 
         if (!hasHeader && query.appendTitleHeader)
-            constructedContent.first().prepend("<h4 data-role=\"${SubqueryRole.RHeader}\">${getTitle(doc)}</h4><br>")
+            constructedContent.first()?.prepend("<h4 data-role=\"${SubqueryRole.RHeader}\">${getTitle(doc)}</h4><br>")
 
         if (!dataCenter.showChapterComments) {
-            doc.getElementsByClass("comments-container")?.remove()
-            doc.getElementsByClass("respond-container")?.remove()
+            doc.getElementsByClass("comments-container").remove()
+            doc.getElementsByClass("respond-container").remove()
         }
         
         body.children().remove()
@@ -246,16 +246,16 @@ class GenericSelectorQueryCleaner(
     private fun markDirectionalLinks(contentElement: Elements) {
         contentElement.forEach { element ->
             element.getElementsByTag("a")
-                ?.filter { isDirectionalLink(it) }
-                ?.forEach { it.attr("tts-disable", "true") }
+                .filterIndexed { _, node ->  isDirectionalLink(node) }
+                .forEach { it.attr("tts-disable", "true") }
         }
     }
 
     private fun removeDirectionalLinks(contentElement: Elements) {
         contentElement.forEach { element ->
             element.getElementsByTag("a")
-                ?.filter { isDirectionalLink(it) }
-                ?.forEach { it?.remove() }
+                .filterIndexed { _, node ->  isDirectionalLink(node) }
+                .forEach { it?.remove() }
         }
     }
 }

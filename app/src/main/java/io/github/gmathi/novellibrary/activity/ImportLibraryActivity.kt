@@ -97,10 +97,20 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         binding.contentImportLibrary.headerLayout.setOnClickListener {
             if (binding.contentImportLibrary.importUrlLayout.visibility == View.GONE) {
                 binding.contentImportLibrary.importUrlLayout.visibility = View.VISIBLE
-                binding.contentImportLibrary.upButton.setImageDrawable(ContextCompat.getDrawable(this@ImportLibraryActivity, R.drawable.ic_arrow_drop_up_white_vector))
+                binding.contentImportLibrary.upButton.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        this@ImportLibraryActivity,
+                        R.drawable.ic_arrow_drop_up_white_vector
+                    )
+                )
             } else {
                 binding.contentImportLibrary.importUrlLayout.visibility = View.GONE
-                binding.contentImportLibrary.upButton.setImageDrawable(ContextCompat.getDrawable(this@ImportLibraryActivity, R.drawable.ic_arrow_drop_down_white_vector))
+                binding.contentImportLibrary.upButton.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        this@ImportLibraryActivity,
+                        R.drawable.ic_arrow_drop_down_white_vector
+                    )
+                )
             }
         }
     }
@@ -109,7 +119,11 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_import_list, listener = this)
         binding.contentImportLibrary.recyclerView.setDefaultsNoAnimation(adapter)
         binding.contentImportLibrary.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
-        binding.contentImportLibrary.progressLayout.showEmpty(resId = R.raw.no_data_blob, emptyText = "Add a URL to see your reading list here", isLottieAnimation = true)
+        binding.contentImportLibrary.progressLayout.showEmpty(
+            resId = R.raw.no_data_blob,
+            emptyText = "Add a URL to see your reading list here",
+            isLottieAnimation = true
+        )
     }
 
     @Suppress("BlockingMethodInNonBlockingContext")
@@ -118,10 +132,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
             binding.contentImportLibrary.progressLayout.showLoading()
             try {
                 var responseString = withContext(Dispatchers.IO) { getNovelListResponse() } ?: throw Exception(NETWORK_ERROR)
-                responseString = responseString.replace("\\\"", "\"")
-                    .replace("\\n", "")
-                    .replace("\\t", "")
-                    .replace("\\/", "/")
+                responseString = responseString.replace("\\\"", "\"").replace("\\n", "").replace("\\t", "").replace("\\/", "/")
 
                 val doc: Document = Jsoup.parse(responseString)
                 val novels = doc.body().select("a.mb-box-btn") ?: throw Exception(NETWORK_ERROR)
@@ -130,12 +141,11 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
                     val importListItems = ArrayList<ImportListItem>()
                     novels.mapTo(importListItems) {
                         val importItem = ImportListItem(it.attr("href"))
-                        importItem.novelName = it.getElementsByClass("title")?.firstOrNull()?.text()
-                        val styleAttr = it.getElementsByClass("icon-thumb")?.firstOrNull()?.attr("style")
-                        if (styleAttr != null && styleAttr.length > 26)
-                            importItem.novelImageUrl = styleAttr.substring(22, styleAttr.length - 3)
-                        importItem.currentlyReadingChapterName = it.getElementsByClass("cr_status")?.firstOrNull()?.text()
-                        importItem.currentlyReading = it.getElementsByClass("cr_status")?.firstOrNull()?.parent()?.text()
+                        importItem.novelName = it.getElementsByClass("title").firstOrNull()?.text()
+                        val styleAttr = it.getElementsByClass("icon-thumb").firstOrNull()?.attr("style")
+                        if (styleAttr != null && styleAttr.length > 26) importItem.novelImageUrl = styleAttr.substring(22, styleAttr.length - 3)
+                        importItem.currentlyReadingChapterName = it.getElementsByClass("cr_status").firstOrNull()?.text()
+                        importItem.currentlyReading = it.getElementsByClass("cr_status").firstOrNull()?.parent()?.text()
                         importItem.isAlreadyInLibrary = dbHelper.getNovelByUrl(importItem.novelUrl) != null
                         importItem
                     }
@@ -158,12 +168,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         val url = getUrl() ?: return null
         val userId = getUserIdFromUrl(url)
         val adminUrl = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
-        val formBody: RequestBody = FormBody.Builder()
-            .add("action", "nu_prevew")
-            .add("pagenum", "0")
-            .add("intUserID", userId)
-            .add("isMobile", "yes")
-            .build()
+        val formBody: RequestBody = FormBody.Builder().add("action", "nu_prevew").add("pagenum", "0").add("intUserID", userId).add("isMobile", "yes").build()
         val request = POST(adminUrl, body = formBody)
         return client.newCall(request).safeExecute().body?.string()
     }
@@ -177,10 +182,8 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         val url = binding.contentImportLibrary.readingListUrlEditText.text?.toString() ?: return null
         return try {
             val uri = Uri.parse(url) ?: return null
-            if (uri.scheme!!.startsWith("http") && uri.host!!.contains(HostNames.NOVEL_UPDATES))
-                url
-            else
-                null
+            if (uri.scheme!!.startsWith("http") && uri.host!!.contains(HostNames.NOVEL_UPDATES)) url
+            else null
         } catch (e: Exception) {
             toast(e.localizedMessage ?: "Error parsing url!")
             null
@@ -196,10 +199,8 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         binding.checkbox.setOnCheckedChangeListener(null)
         binding.checkbox.isChecked = updateSet.contains(item)
         binding.checkbox.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked)
-                addToUpdateSet(item)
-            else
-                removeFromUpdateSet(item)
+            if (isChecked) addToUpdateSet(item)
+            else removeFromUpdateSet(item)
         }
 
         if (item.isAlreadyInLibrary) {
@@ -218,10 +219,8 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
     }
 
     override fun onItemClick(item: ImportListItem, position: Int) {
-        if (updateSet.contains(item))
-            removeFromUpdateSet(item)
-        else
-            addToUpdateSet(item)
+        if (updateSet.contains(item)) removeFromUpdateSet(item)
+        else addToUpdateSet(item)
         adapter.updateItem(item)
     }
 
@@ -229,8 +228,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
 
     private fun selectAll() {
         adapter.items.forEach {
-            if (!it.isAlreadyInLibrary)
-                addToUpdateSet(it)
+            if (!it.isAlreadyInLibrary) addToUpdateSet(it)
         }
         adapter.notifyItemRangeChanged(0, adapter.items.size)
     }
@@ -264,9 +262,11 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
             R.id.action_add_to_library -> {
                 startImport()
             }
+
             R.id.action_select_all -> {
                 selectAll()
             }
+
             R.id.action_clear_selection -> {
                 clearSelection()
             }
@@ -305,8 +305,10 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         actionMode?.finish()
 
         val snackProgressBarManager = Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this)
-        val snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, getString(R.string.importing, getString(R.string.please_wait)))
-            .setAction(getString(R.string.cancel), object : SnackProgressBar.OnActionClickListener {
+        val snackProgressBar = SnackProgressBar(
+            SnackProgressBar.TYPE_HORIZONTAL,
+            getString(R.string.importing, getString(R.string.please_wait))
+        ).setAction(getString(R.string.cancel), object : SnackProgressBar.OnActionClickListener {
                 @SuppressLint("NotifyDataSetChanged")
                 override fun onActionClick() {
                     run {
@@ -315,8 +317,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
                         snackProgressBarManager.disable()
                     }
                 }
-            })
-            .setProgressMax(novelsToImport.count())
+            }).setProgressMax(novelsToImport.count())
         snackProgressBarManager.show(snackProgressBar, SnackProgressBarManager.LENGTH_INDEFINITE)
 
         job = lifecycleScope.launch {

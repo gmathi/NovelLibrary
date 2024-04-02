@@ -20,7 +20,6 @@ import androidx.lifecycle.lifecycleScope
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
 import com.bumptech.glide.Glide
-import com.google.firebase.analytics.ktx.logEvent
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
@@ -29,7 +28,6 @@ import io.github.gmathi.novellibrary.databinding.ActivityNovelDetailsBinding
 import io.github.gmathi.novellibrary.databinding.ContentNovelDetailsBinding
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.*
@@ -118,9 +116,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                     return@launch
                 }
 
-                if (e.message?.contains(getString(R.string.information_cloudflare_bypass_failure)) == true
-                    || e.message?.contains("HTTP error 503") == true && retryCounter < 2
-                ) {
+                if (e.message?.contains(getString(R.string.information_cloudflare_bypass_failure)) == true || e.message?.contains("HTTP error 503") == true && retryCounter < 2) {
                     resolveCloudflare(novel.url) { success, _, errorMessage ->
                         if (success) {
                             toast("Cloudflare Success")
@@ -128,7 +124,10 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                             getNovelInfo()
                         } else {
                             toast("Cloudflare Failed")
-                            contentBinding.progressLayout.showError(errorText = errorMessage ?: getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again)) {
+                            contentBinding.progressLayout.showError(
+                                errorText = errorMessage ?: getString(R.string.failed_to_load_url),
+                                buttonText = getString(R.string.try_again)
+                            ) {
                                 contentBinding.progressLayout.showLoading()
                                 getNovelInfo()
                             }
@@ -139,8 +138,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 }
 
                 //Copy the error to clipboard
-                if (!isDestroyed && !isFinishing)
-                    Utils.copyErrorToClipboard(e, this@NovelDetailsActivity)
+                if (!isDestroyed && !isFinishing) Utils.copyErrorToClipboard(e, this@NovelDetailsActivity)
 
                 if (novel.id == -1L) {
                     contentBinding.progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again)) {
@@ -174,8 +172,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         setNovelAuthor()
 
         contentBinding.novelDetailsStatus.applyFont(assets).text = "N/A"
-        if (novel.metadata["Year"] != null)
-            contentBinding.novelDetailsStatus.applyFont(assets).text = novel.metadata["Year"]
+        if (novel.metadata["Year"] != null) contentBinding.novelDetailsStatus.applyFont(assets).text = novel.metadata["Year"]
 
         setLicensingInfo()
         setNovelRating()
@@ -193,10 +190,14 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
     private fun setNovelImage() {
         if (!novel.imageUrl.isNullOrBlank()) {
-            Glide.with(this)
-                .load(novel.imageUrl?.getGlideUrl())
-                .into(contentBinding.novelDetailsImage)
-            contentBinding.novelDetailsImage.setOnClickListener { startImagePreviewActivity(novel.imageUrl, novel.imageFilePath, contentBinding.novelDetailsImage) }
+            Glide.with(this).load(novel.imageUrl?.getGlideUrl()).into(contentBinding.novelDetailsImage)
+            contentBinding.novelDetailsImage.setOnClickListener {
+                startImagePreviewActivity(
+                    novel.imageUrl,
+                    novel.imageFilePath,
+                    contentBinding.novelDetailsImage
+                )
+            }
         }
     }
 
@@ -204,25 +205,24 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         val author = novel.metadata["Author(s)"]
         if (author != null) {
             contentBinding.novelDetailsAuthor.movementMethod = TextViewLinkHandler(this)
-            @Suppress("DEPRECATION")
-            contentBinding.novelDetailsAuthor.applyFont(assets).text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-                Html.fromHtml(author, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(author)
+            @Suppress("DEPRECATION") contentBinding.novelDetailsAuthor.applyFont(assets).text =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) Html.fromHtml(author, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(author)
             return
         }
-        val authors = novel.authors?.joinToString {","} ?: return
+        val authors = novel.authors?.joinToString { "," } ?: return
         contentBinding.novelDetailsAuthor.movementMethod = TextViewLinkHandler(this)
-        @Suppress("DEPRECATION")
-        contentBinding.novelDetailsAuthor.applyFont(assets).text = authors
+        @Suppress("DEPRECATION") contentBinding.novelDetailsAuthor.applyFont(assets).text = authors
     }
 
     @Suppress("DEPRECATION")
     private fun setLicensingInfo() {
         if (novel.metadata["English Publisher"] ?: "" != "" || novel.metadata["Licensed (in English)"] == "Yes") {
-            val publisher = if (novel.metadata["English Publisher"] == null || novel.metadata["English Publisher"] == "") "an unknown publisher" else novel.metadata["English Publisher"]
+            val publisher =
+                if (novel.metadata["English Publisher"] == null || novel.metadata["English Publisher"] == "") "an unknown publisher" else novel.metadata["English Publisher"]
             val warningLabel = getString(R.string.licensed_warning, publisher)
             contentBinding.novelDetailsLicensedAlert.movementMethod = TextViewLinkHandler(this)
-            contentBinding.novelDetailsLicensedAlert.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-                Html.fromHtml(warningLabel, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(warningLabel)
+            contentBinding.novelDetailsLicensedAlert.text =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) Html.fromHtml(warningLabel, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(warningLabel)
             contentBinding.novelDetailsLicensedLayout.visibility = View.VISIBLE
         } else {
             contentBinding.novelDetailsLicensedLayout.visibility = View.GONE
@@ -371,12 +371,10 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
     private fun addNovelToHistory() {
         try {
-            var history = dbHelper.getLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY)
-                ?: "[]"
+            var history = dbHelper.getLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY) ?: "[]"
             var historyList: ArrayList<Novel> = Gson().fromJson(history, object : TypeToken<ArrayList<Novel>>() {}.type)
             historyList.removeAll { novel.name == it.name }
-            if (historyList.size > 99)
-                historyList = ArrayList(historyList.take(99))
+            if (historyList.size > 99) historyList = ArrayList(historyList.take(99))
             historyList.add(novel)
             history = Gson().toJson(historyList)
             dbHelper.createOrUpdateLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY, history)

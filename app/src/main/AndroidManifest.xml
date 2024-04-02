@@ -7,7 +7,8 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /> <!-- Storage -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" /> <!-- For background jobs -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -15,26 +16,16 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" /> <!-- For managing extensions -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" /> <!-- To view extension packages in API 30+ -->
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
-<!--    <permission android:name="android.permission.QUERY_ALL_PACKAGES" />-->
     <queries>
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE"/>
         </intent>
     </queries>
-<!--    <queries>-->
-<!--        <intent>-->
-<!--            <action android:name="android.intent.action.VIEW" />-->
-<!--            <category android:name="android.intent.category.BROWSABLE" />-->
-<!--            <data android:scheme="https" />-->
-<!--        </intent>-->
-<!--        <intent>-->
-<!--            <action android:name="android.intent.action.VIEW" />-->
-<!--            <data android:scheme="http" />-->
-<!--        </intent>-->
-<!--        <package android:name="io.github.gmathi.novellibrary" />-->
-<!--    </queries>-->
+
 
     <application
         android:name=".NovelLibraryApplication"
@@ -49,7 +40,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
-        tools:ignore="UnusedAttribute">
+        tools:ignore="UnusedAttribute"
+        android:dataExtractionRules="@xml/data_extraction_rules">
         <!-- <activity -->
         <!-- android:name=".activity.settings.GoogleBackupActivity" -->
         <!-- android:label="@string/title_activity_google_backup" -->
@@ -278,6 +270,7 @@
         <service
             android:name=".service.tts.TTSService"
             android:enabled="true"
+            android:foregroundServiceType="mediaPlayback"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />

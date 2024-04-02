@@ -45,5 +45,12 @@ object WhatsChanged {
             "⚠️️ Fix CloudFlare pass through\n" +
             "⚠️️ Few Bug Fixes"
 
+    const val VERSION_24 = "" + //0.23 Updates!
+            "⚠️️ Fix Download Notifications\n" +
+            "⚠️️ Fix NU Import Reading List"
+
+    const val VERSION_25 = "" + //0.23 Updates!
+            "⚠️️ Fix NU Search\n"
+
 
 }

@@ -32,11 +32,6 @@ abstract class BaseActivity : AppCompatActivity(), DataAccessor {
         super.attachBaseContext(LocaleManager.updateContextLocale(newBase))
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        // Obtain the FirebaseAnalytics instance.
-    }
-
     fun resolveCloudflare(url: String, completionBlock: (success: Boolean, url: String, errorMessage: String?) -> Unit) {
         val cf = Cloudflare(this, url);
         cf.user_agent = HttpSource.DEFAULT_USER_AGENT

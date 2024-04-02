@@ -7,7 +7,6 @@ import com.bumptech.glide.Glide
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.databinding.ActivityImagePreviewBinding
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
-import io.github.gmathi.novellibrary.util.Utils
 import java.io.File
 
 

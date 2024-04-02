@@ -22,14 +22,15 @@ class WuxiaWorldCleaner : HtmlCleaner() {
         contentElement?.classNames()?.forEach { contentElement.removeClass(it) }
 
         if (!dataCenter.enableDirectionalLinks)
-            doc.getElementsByTag("a")?.filter { it.text() == "Next Chapter" || it.text() == "Previous Chapter" }?.forEach { it.remove() }
+            doc.getElementsByTag("a").filterIndexed { _, ele -> ele.text() == "Next Chapter" || ele.text() == "Previous Chapter" }
+                .forEach { it.remove() }
     }
 
     override fun getLinkedChapters(doc: Document): ArrayList<LinkedPage> {
 
         val links = ArrayList<String>()
         val otherLinks = doc.selectFirst("div.fr-view")?.getElementsByAttributeValueContaining("href", HostNames.WUXIA_WORLD)
-        if (otherLinks != null && otherLinks.isNotEmpty()) {
+        if (!otherLinks.isNullOrEmpty()) {
             otherLinks.mapTo(links) { it.attr("href") }
         }
         return links.mapTo(ArrayList()) { LinkedPage(it, it) }

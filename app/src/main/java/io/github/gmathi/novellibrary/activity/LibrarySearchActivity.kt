@@ -17,11 +17,10 @@ import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.database.updateNovelSectionId
 import io.github.gmathi.novellibrary.databinding.ActivityLibrarySearchBinding
 import io.github.gmathi.novellibrary.databinding.ListitemLibraryBinding
-import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.NovelSectionEvent
 import io.github.gmathi.novellibrary.network.sync.NovelSync
-import io.github.gmathi.novellibrary.util.*
+import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.lang.addToLibrarySearchHistory
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
@@ -30,6 +29,7 @@ import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.util.view.SimpleAnimationListener
 import io.github.gmathi.novellibrary.util.view.SuggestionsBuilder
+import io.github.gmathi.novellibrary.util.view.setDefaults
 import org.cryse.widget.persistentsearch.PersistentSearchView
 import org.cryse.widget.persistentsearch.SearchItem
 import org.greenrobot.eventbus.EventBus
@@ -168,10 +168,12 @@ class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
                         startNovelDetailsActivity(item, false)
                         true
                     }
+
                     R.id.action_novel_assign_novel_section -> {
                         showNovelSectionsList(position)
                         true
                     }
+
                     else -> {
                         true
                     }

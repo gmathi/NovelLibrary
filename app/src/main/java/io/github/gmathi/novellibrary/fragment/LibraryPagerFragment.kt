@@ -20,7 +20,7 @@ class LibraryPagerFragment : BaseFragment() {
 
     private val novelSections: ArrayList<NovelSection> = ArrayList()
 
-    private lateinit var binding: FragmentLibraryPagerBinding
+    private var binding: FragmentLibraryPagerBinding? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,16 +33,17 @@ class LibraryPagerFragment : BaseFragment() {
         return view
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        binding.toolbar.title = getString(R.string.title_library)
-        (activity as NavDrawerActivity).setToolbar(binding.toolbar)
-
-        setViewPager()
-
-        binding.contentLibraryPager.novelSectionSettings.setOnClickListener {
-            startActivityForResult(Intent(activity, NovelSectionsActivity::class.java), Constants.NOVEL_SECTIONS_ACT_REQ_CODE)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding?.apply {
+            toolbar.title = getString(R.string.title_library)
+            (activity as NavDrawerActivity).setToolbar(toolbar)
+            setViewPager()
+            contentLibraryPager.novelSectionSettings.setOnClickListener {
+                startActivityForResult(Intent(activity, NovelSectionsActivity::class.java), Constants.NOVEL_SECTIONS_ACT_REQ_CODE)
+            }
         }
+
     }
 
     private fun setViewPager() {
@@ -59,15 +60,22 @@ class LibraryPagerFragment : BaseFragment() {
         })
 
         val navPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, LibraryPageListener(novelSections))
-        binding.contentLibraryPager.viewPager.offscreenPageLimit = 3
-        binding.contentLibraryPager.viewPager.adapter = navPageAdapter
-        binding.contentLibraryPager.tabStrip.setViewPager(binding.contentLibraryPager.viewPager)
+        binding?.apply {
+            contentLibraryPager.apply {
+                viewPager.apply {
+                    offscreenPageLimit = 3
+                    adapter = navPageAdapter
+                }
+                tabStrip.setViewPager(viewPager)
+            }
+        }
     }
 
     fun getLibraryFragment(): LibraryFragment? {
-        val viewPager = (binding.contentLibraryPager.viewPager.adapter as? GenericFragmentStatePagerAdapter) ?: return null
+        val viewPager = (binding?.contentLibraryPager?.viewPager?.adapter as? GenericFragmentStatePagerAdapter) ?: return null
         val listener = (viewPager.listener as? LibraryPageListener) ?: return null
-        return listener.getCurrentFragment(binding.contentLibraryPager.viewPager.currentItem) as? LibraryFragment
+        val currentItem = binding?.contentLibraryPager?.viewPager?.currentItem ?: return null
+        return listener.getCurrentFragment(currentItem) as? LibraryFragment
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

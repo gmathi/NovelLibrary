@@ -40,7 +40,6 @@ import io.github.gmathi.novellibrary.util.system.startDownloadNovelService
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel
 import org.greenrobot.eventbus.EventBus
 import java.util.*
-import kotlin.collections.ArrayList
 
 
 class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListener {
@@ -128,34 +127,48 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
     }
 
     private fun addObservers() {
-        vm.loadingStatus.observe(this) { newStatus ->
-            //Update loading status
-            when (newStatus) {
-                Constants.Status.START -> {
-                    binding.activityChaptersPager.progressLayout.showLoading(loadingText = getString(R.string.loading))
-                }
-                Constants.Status.EMPTY_DATA -> {
-                    binding.activityChaptersPager.progressLayout.showEmpty(resId = R.raw.monkey_logo, isLottieAnimation = true, emptyText = getString(R.string.empty_chapters))
-                }
-                Constants.Status.NETWORK_ERROR -> {
-                    binding.activityChaptersPager.progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again)) {
-                        vm.getData()
+        vm.loadingStatus.observe(this) {
+            it?.let { newStatus ->
+                //Update loading status
+                when (newStatus) {
+                    Constants.Status.START -> {
+                        binding.activityChaptersPager.progressLayout.showLoading(loadingText = getString(R.string.loading))
                     }
-                }
-                Constants.Status.NO_INTERNET -> {
-                    binding.activityChaptersPager.progressLayout.noInternetError {
-                        vm.getData()
-                    }
-                }
-                Constants.Status.DONE -> {
-                    isSyncing = false
-                    binding.activityChaptersPager.progressLayout.showContent()
-                    setViewPager()
 
-                    //TODO: Recreate menu for those instance where the chapters can be empty.
-                }
-                else -> {
-                    binding.activityChaptersPager.progressLayout.updateLoadingStatus(newStatus)
+                    Constants.Status.EMPTY_DATA -> {
+                        binding.activityChaptersPager.progressLayout.showEmpty(
+                            resId = R.raw.monkey_logo,
+                            isLottieAnimation = true,
+                            emptyText = getString(R.string.empty_chapters)
+                        )
+                    }
+
+                    Constants.Status.NETWORK_ERROR -> {
+                        binding.activityChaptersPager.progressLayout.showError(
+                            errorText = getString(R.string.failed_to_load_url),
+                            buttonText = getString(R.string.try_again)
+                        ) {
+                            vm.getData()
+                        }
+                    }
+
+                    Constants.Status.NO_INTERNET -> {
+                        binding.activityChaptersPager.progressLayout.noInternetError {
+                            vm.getData()
+                        }
+                    }
+
+                    Constants.Status.DONE -> {
+                        isSyncing = false
+                        binding.activityChaptersPager.progressLayout.showContent()
+                        setViewPager()
+
+                        //TODO: Recreate menu for those instance where the chapters can be empty.
+                    }
+
+                    else -> {
+                        binding.activityChaptersPager.progressLayout.updateLoadingStatus(newStatus)
+                    }
                 }
             }
         }
@@ -166,14 +179,16 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                 Constants.Status.START -> {
                     showProgressDialog()
                 }
+
                 Constants.Status.DONE -> {
                     isChaptersProcessing = false
                     snackProgressBar = null
                     snackProgressBarManager.dismiss()
                     EventBus.getDefault().post(ChapterActionModeEvent(eventType = EventType.COMPLETE))
                 }
+
                 else -> {
-                    setProgressDialogValue(progress.toInt())
+                    progress.toIntOrNull()?.let { setProgressDialogValue(it) }
                 }
             }
         }
@@ -196,7 +211,12 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
         }
 
         val navPageAdapter =
-            GenericFragmentStatePagerAdapter(supportFragmentManager, translatorSourceNames.toTypedArray(), translatorSourceNames.size, ChaptersPageListener(vm.novel, translatorSourceNames))
+            GenericFragmentStatePagerAdapter(
+                supportFragmentManager,
+                translatorSourceNames.toTypedArray(),
+                translatorSourceNames.size,
+                ChaptersPageListener(vm.novel, translatorSourceNames)
+            )
         binding.activityChaptersPager.viewPager.offscreenPageLimit = 3
         binding.activityChaptersPager.viewPager.adapter = navPageAdapter
         binding.activityChaptersPager.tabStrip.setViewPager(binding.activityChaptersPager.viewPager)
@@ -240,6 +260,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                 if (devCounter == 40) dataCenter.isDeveloper = true
                 return true
             }
+
             R.id.action_download -> {
                 confirmDialog(getString(R.string.download_all_chapters_dialog_content), { dialog ->
                     val publisher = vm.novel.metadata["English Publisher"]
@@ -270,11 +291,13 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                 })
                 return true
             }
+
             R.id.action_add_to_library -> {
                 vm.addNovelToLibrary()
                 invalidateOptionsMenu()
                 return true
             }
+
             R.id.action_sort -> {
                 if (vm.novel.metadata["chapterOrder"] == "des")
                     vm.novel.metadata["chapterOrder"] = "asc"
@@ -337,6 +360,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                     mode?.finish()
                 })
             }
+
             R.id.action_read -> {
                 confirmDialog(getString(R.string.mark_chapters_read_dialog_content), { dialog ->
                     setProgressDialog("Marking chapters as read…", dataSet.size)
@@ -345,6 +369,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                     mode?.finish()
                 })
             }
+
             R.id.action_unfav -> {
                 confirmDialog(getString(R.string.unfavorite_chapters_read_dialog_content), { dialog ->
                     setProgressDialog("Removing chapters from favorites…", dataSet.size)
@@ -353,6 +378,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                     mode?.finish()
                 })
             }
+
             R.id.action_fav -> {
                 confirmDialog(getString(R.string.favorite_chapters_read_dialog_content), { dialog ->
                     setProgressDialog("Marking chapters as favorites…", dataSet.size)
@@ -400,6 +426,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                     }
                 })
             }
+
             R.id.action_select_interval -> {
                 val translatorSourceName = translatorSourceNames[binding.activityChaptersPager.viewPager.currentItem]
                 if (translatorSourceName == ALL_TRANSLATOR_SOURCES) {
@@ -424,6 +451,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                     }
                 }
             }
+
             R.id.action_select_all -> {
                 val translatorSourceName = translatorSourceNames[binding.activityChaptersPager.viewPager.currentItem]
                 if (translatorSourceName == ALL_TRANSLATOR_SOURCES) {
@@ -433,6 +461,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                 }
                 EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceName, EventType.UPDATE))
             }
+
             R.id.action_clear_selection -> {
                 val translatorSourceName = translatorSourceNames[binding.activityChaptersPager.viewPager.currentItem]
                 if (translatorSourceName == ALL_TRANSLATOR_SOURCES) {
@@ -443,10 +472,12 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                 removeFromDataSet(webPages = vm.chapters!!.filter { it.translatorSourceName == translatorSourceName })
                 EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceName, EventType.UPDATE))
             }
+
             R.id.action_share_chapter -> {
                 val urls = dataSet.joinToString(separator = ", ") { it.url }
                 shareUrl(urls)
             }
+
             R.id.action_delete -> {
                 setProgressDialog("Deleting downloaded chapters…", dataSet.size)
                 vm.updateChapters(ArrayList(dataSet), ChaptersViewModel.Action.DELETE_DOWNLOADS)
@@ -548,7 +579,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
             snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, message)
                 .setProgressMax(maxProgress)
         } else {
-            showSnackbar(message)
+            showSnackBar(message)
         }
     }
 
@@ -558,13 +589,13 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
         }
     }
 
-    private fun showSnackbar(message: String) {
-        val snackbar = Snackbar.make(
+    private fun showSnackBar(message: String) {
+        val snackBar = Snackbar.make(
             findViewById(android.R.id.content),
             message,
             Snackbar.LENGTH_SHORT
         )
-        snackbar.show()
+        snackBar.show()
     }
     //endregion
 

@@ -1,34 +1,45 @@
 package io.github.gmathi.novellibrary.service.download
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.app.*
-import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.os.Binder
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.view.View
-import android.widget.RemoteViews
+import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.ServiceCompat
+import androidx.core.content.ContextCompat
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.getNovel
+import io.github.gmathi.novellibrary.database.getRemainingDownloadsCountForNovel
 import io.github.gmathi.novellibrary.database.updateDownloadStatus
 import io.github.gmathi.novellibrary.model.database.Download
+import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
 import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.lang.launchIO
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.ThreadPoolExecutor
 
 
-class DownloadNovelService : IntentService(TAG), DownloadListener {
+class DownloadNovelService : Service(), DownloadListener {
 
     private var threadListMap = HashMap<Long, DownloadNovelThread?>()
     private val futures = ArrayList<Future<Any>>()
@@ -43,212 +54,255 @@ class DownloadNovelService : IntentService(TAG), DownloadListener {
 
         const val MAX_PARALLEL_DOWNLOADS = 5
 
-        @JvmStatic
-        val DOWNLOAD_NOTIFICATION_ID = Utils.getUniqueNotificationId()
-
         const val NOVEL_ID = "novel_id"
         const val ACTION_START = "action_start"
         const val ACTION_PAUSE = "action_pause"
         const val ACTION_REMOVE = "action_remove"
+
+        private const val DOWNLOAD_NOTIFICATION_GROUP = "downloadNotificationGroup"
+        private val NOTIFICATION_ID by lazy { Utils.getUniqueNotificationId() }
     }
 
+    //region TemplateCode
     private val binder = DownloadNovelBinder()
 
     @Volatile
     var downloadListener: DownloadListener? = null
 
     inner class DownloadNovelBinder : Binder() {
-        // Return this instance of LocalService so clients can call public methods
+        /** Return this instance of LocalService so clients can call public methods */
         fun getService(): DownloadNovelService = this@DownloadNovelService
     }
 
-    //region Lifecycle functions
+    override fun onBind(intent: Intent): IBinder = binder
+
+    /** Only called when an Activity is trying to reconnect to this service */
+    override fun onRebind(intent: Intent?) {
+        super.onRebind(intent)
+    }
+
+    /**  Only called when an Activity is trying to disconnect to this service */
+    override fun onUnbind(intent: Intent?): Boolean {
+        return true //true - so it calls rebind
+    }
+    //endregion
+
     override fun onCreate() {
         super.onCreate()
-        Logs.debug(TAG, "onCreate")
         dbHelper = DBHelper.getInstance(this)
         threadPool = Executors.newFixedThreadPool(MAX_PARALLEL_DOWNLOADS) as ThreadPoolExecutor
     }
 
-    //Only called when an Activity is trying to connect to this service
-    override fun onBind(intent: Intent): IBinder {
-        Logs.debug(TAG, "onBind")
-        return binder
-    }
-
-    //Only called when the Service is called as Background Service
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Logs.debug(TAG, "onStartCommand")
-        if (intent?.action != null && intent.action == "stop") {
-            threadListMap.forEach {
-                downloadListener?.handleEvent(DownloadNovelEvent(EventType.PAUSED, it.key))
-                if (it.value != null && !it.value!!.isInterrupted)
-                    it.value!!.interrupt()
+        launchIO {
+            val novelId = intent?.getLongExtra(NOVEL_ID, -1L) ?: return@launchIO
+            addNovelToDownload(novelId)
+            notifyFirst()
+            withContext(Dispatchers.IO) {
+                while (futures.isNotEmpty()) {
+                    futures[0].get()
+                    futures.removeAt(0)
+                }
+                threadPool.shutdown()
             }
-            threadListMap.clear()
-            stopForeground(true)
-        } else {
-            startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "${getString(R.string.downloading)}…"))
         }
         return super.onStartCommand(intent, flags, startId)
     }
 
-    override fun onHandleIntent(intent: Intent?) {
-        Logs.debug(TAG, "onHandleIntent")
+    private fun addNovelToDownload(novelId: Long?) {
+        novelId?.let {
+            val downloadNovelThread = DownloadNovelThread(
+                this@DownloadNovelService, novelId, dbHelper, this@DownloadNovelService
+            )
+            threadListMap[novelId] = downloadNovelThread
 
-        val novelId = intent?.getLongExtra(NOVEL_ID, -1L) ?: return
-        val novel = dbHelper.getNovel(novelId) ?: return
-
-        val downloadNovelThread = DownloadNovelThread(this, novel.id, dbHelper, this@DownloadNovelService)
-        threadListMap[novelId] = downloadNovelThread
-        startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "${getString(R.string.downloading)}: ${novel.name}"))
-        if (threadPool.isTerminating || threadPool.isShutdown)
-            threadPool = Executors.newFixedThreadPool(MAX_PARALLEL_DOWNLOADS) as ThreadPoolExecutor
-        futures.add(threadPool.submit(downloadNovelThread, null as Any?))
-
-        while (futures.isNotEmpty()) {
-            futures[0].get()
-            futures.removeAt(0)
+            if (threadPool.isTerminating || threadPool.isShutdown) threadPool = Executors.newFixedThreadPool(MAX_PARALLEL_DOWNLOADS) as ThreadPoolExecutor
+            futures.add(threadPool.submit(downloadNovelThread, null as Any?))
         }
-        threadPool.shutdown()
     }
-
 
     fun handleNovelDownload(novelId: Long, action: String) {
-        Logs.debug(TAG, "handleNovelDownload")
-
         //android.os.Debug.waitForDebugger()
-        if (action == ACTION_START) {
-            var downloadNovelThread = threadListMap[novelId]
-            if (downloadNovelThread != null && downloadNovelThread.isAlive) {
-                return
+        when (action) {
+            ACTION_START -> {
+                threadListMap[novelId]?.let {
+                    if (it.isAlive) return
+                }
+                addNovelToDownload(novelId)
+                val downloadNovelEvent = if (futures.size > 5) DownloadNovelEvent(EventType.INSERT, novelId)
+                else DownloadNovelEvent(EventType.RUNNING, novelId)
+                downloadListener?.handleEvent(downloadNovelEvent)
+                notify(downloadNovelEvent = downloadNovelEvent)
             }
 
-            downloadNovelThread = DownloadNovelThread(this, novelId, dbHelper, this@DownloadNovelService)
-            threadListMap[novelId] = downloadNovelThread
-            if (threadPool.isTerminating || threadPool.isShutdown)
-                threadPool = Executors.newFixedThreadPool(MAX_PARALLEL_DOWNLOADS) as ThreadPoolExecutor
-            futures.add(threadPool.submit(downloadNovelThread, null as Any?))
+            ACTION_PAUSE, ACTION_REMOVE -> {
+                threadListMap[novelId]?.let {
+                    if (it.isAlive) it.interrupt()
+                    threadPool.remove(it)
+                    threadPool.purge()
+                    threadListMap[novelId] = null
+                    threadListMap.remove(novelId)
+                }
 
-            if (futures.size > 5)
-                downloadListener?.handleEvent(DownloadNovelEvent(EventType.INSERT, novelId))
-            else
-                downloadListener?.handleEvent(DownloadNovelEvent(EventType.RUNNING, novelId))
-
-            startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "${getString(R.string.downloading)}: " + threadListMap.keys.joinToString(", ")))
-
-        } else if (action == ACTION_PAUSE || action == ACTION_REMOVE) {
-            val downloadNovelThread = threadListMap[novelId]
-            if (downloadNovelThread != null && downloadNovelThread.isAlive) {
-                downloadNovelThread.interrupt()
+                if (threadListMap.isEmpty()) {
+                    stopService()
+                } else {
+                    notify(downloadNovelEvent = DownloadNovelEvent(EventType.PAUSED, novelId))
+                }
             }
-            threadPool.remove(downloadNovelThread)
-            threadPool.purge()
-            threadListMap[novelId] = null
-            threadListMap.remove(novelId)
 
-            if (threadListMap.isEmpty()) {
-                stopForeground(true)
-                //stopSelf()
-            } else {
-                startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "${getString(R.string.downloading)}: " + threadListMap.keys.joinToString(", ")))
+            else -> {
+                // Do Nothing
             }
         }
-    }
-
-
-    //Only called when an Activity is trying to reconnect to this service
-    override fun onRebind(intent: Intent?) {
-        Logs.debug(TAG, "onRebind")
-        super.onRebind(intent)
-    }
-
-    //Only called when an Activity is trying to disconnect to this service
-    override fun onUnbind(intent: Intent?): Boolean {
-        Logs.debug(TAG, "onUnbind")
-        return true //true - so it calls rebind
     }
 
     //Called on bound (Activity) & background service
     override fun onDestroy() {
         Logs.debug(TAG, "onDestroy")
         dbHelper.updateDownloadStatus(Download.STATUS_PAUSED)
-        stopForeground(true)
+        stopService()
         super.onDestroy()
     }
 
-    //endregion
 
     //region DownloadListener Implementation
-
     override fun handleEvent(downloadNovelEvent: DownloadNovelEvent) {
-        if (downloadNovelEvent.type == EventType.COMPLETE || downloadNovelEvent.type == EventType.DELETE) {
-            threadListMap.remove(downloadNovelEvent.novelId)
-            if (threadListMap.isNotEmpty())
-                startForeground(DOWNLOAD_NOTIFICATION_ID, getNotification(this, "${getString(R.string.downloading)}: " + threadListMap.keys.joinToString(", ")))
-            else
-                stopForeground(true)
+        when (downloadNovelEvent.type) {
+            EventType.COMPLETE, EventType.DELETE -> {
+                threadListMap.remove(downloadNovelEvent.novelId)
+                if (threadListMap.isNotEmpty()) notify(downloadNovelEvent = downloadNovelEvent)
+                else stopService()
+            }
+
+            else -> {
+                // Do Nothing
+            }
         }
         downloadListener?.handleEvent(downloadNovelEvent)
     }
 
     override fun handleEvent(downloadWebPageEvent: DownloadWebPageEvent) {
+        if (downloadWebPageEvent.type == EventType.RUNNING) notify(downloadWebPageEvent = downloadWebPageEvent)
         downloadListener?.handleEvent(downloadWebPageEvent)
     }
 
-    //endregion
-    private fun getNotification(context: Context, status: String): Notification {
+    private fun createNotificationBuilder(
+        title: String, message: String, contentIntent: PendingIntent
+    ): NotificationCompat.Builder {
+        val largeIcon = BitmapFactory.decodeResource(
+            applicationContext.resources, R.drawable.ic_library_add_white_vector
+        )
+        val mBuilder = NotificationCompat.Builder(
+            this@DownloadNovelService, getString(R.string.downloads_notification_channel_id)
+        ).setContentTitle(title).setContentText(message).setLargeIcon(largeIcon).setContentIntent(contentIntent)
+            .setColor(ContextCompat.getColor(applicationContext, R.color.alice_blue)).setAutoCancel(true)
+        mBuilder.setSmallIcon(R.drawable.ic_book_white_vector)
+        return mBuilder
+    }
 
-        // Add Pause button intent in notification.
-        val stopIntent = Intent(this, DownloadNovelService::class.java)
-        stopIntent.action = "stop"//ACTION_STOP
-        //val pendingStopIntent = PendingIntent.getService(this, 0, stopIntent, 0)
-
-        val view = RemoteViews(context.packageName, R.layout.notification_download_small)
-        view.setTextViewText(R.id.novelName, "Novel Library")
-        view.setTextViewText(R.id.chapterName, status)
-        view.setViewVisibility(R.id.containerActions, View.GONE)
-
-        val novelDetailsIntent = Intent(this, NavDrawerActivity::class.java)
+    private fun createNovelDetailsPendingIntent(novel: Novel): PendingIntent {
+        val novelDetailsIntent = Intent(this@DownloadNovelService, NavDrawerActivity::class.java)
         novelDetailsIntent.action = Constants.Action.MAIN_ACTION
         novelDetailsIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val novelDetailsBundle = Bundle()
         novelDetailsBundle.putInt("currentNavId", R.id.nav_library)
-        novelDetailsBundle.putBoolean("showDownloads", true)
+        novelDetailsBundle.putSerializable("novel", novel)
         novelDetailsIntent.putExtras(novelDetailsBundle)
-
-        val pendingIntent = PendingIntent.getActivity(context, DOWNLOAD_NOTIFICATION_ID, novelDetailsIntent, 0)
-        val channelId = getString(R.string.downloads_notification_channel_id)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationManagerCompat.from(applicationContext)
-                .createNotificationChannel(
-                    NotificationChannel(
-                        channelId,
-                        getString(R.string.downloads_notification_channel_name),
-                        NotificationManager.IMPORTANCE_LOW
-                    ).apply {
-                        description = getString(R.string.downloads_notification_channel_description)
-                        setSound(null, null)
-                        enableVibration(false)
-                    }
-                )
-        }
-
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Notification.Builder(context, channelId)
-                .setSmallIcon(R.drawable.ic_file_download_white)
-                .setCustomContentView(view)
-                .setContentIntent(pendingIntent)
-                .build()
+        val pendingIntentFlags: Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         } else {
-            @Suppress("DEPRECATION")
-            Notification.Builder(context)
-                .setSmallIcon(R.drawable.ic_file_download_white)
-                .setContent(view)
-                .setContentIntent(pendingIntent)
-                .build()
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+        return PendingIntent.getActivity(
+            applicationContext, novel.hashCode(), novelDetailsIntent, pendingIntentFlags
+        )
+    }
+
+    private fun createNovelLibraryHomePendingIntent(): PendingIntent {
+        val novelDetailsIntent = Intent(this@DownloadNovelService, NavDrawerActivity::class.java)
+        novelDetailsIntent.action = Constants.Action.MAIN_ACTION
+        novelDetailsIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        val novelDetailsBundle = Bundle()
+        novelDetailsBundle.putInt("currentNavId", R.id.nav_library)
+        novelDetailsIntent.putExtras(novelDetailsBundle)
+        val pendingIntentFlags: Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+        return PendingIntent.getActivity(
+            applicationContext, 0, novelDetailsIntent, pendingIntentFlags
+        )
+    }
+
+    private fun stopService() {
+        ServiceCompat.stopForeground(this@DownloadNovelService, ServiceCompat.STOP_FOREGROUND_REMOVE)
+    }
+
+    private fun notify(downloadNovelEvent: DownloadNovelEvent? = null, downloadWebPageEvent: DownloadWebPageEvent? = null) {
+        //Check Notification Post Permissions
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            return
         }
 
+        val notificationManager = NotificationManagerCompat.from(this@DownloadNovelService)
+        if (downloadNovelEvent?.type == EventType.PAUSED) {
+            notificationManager.cancel((NOTIFICATION_ID + downloadNovelEvent.novelId + 1).toInt())
+        }
+
+        val eventNovelId = downloadNovelEvent?.novelId ?: downloadWebPageEvent?.download?.novelId
+        if (eventNovelId != null) {
+            val remainingDownloadsCount = dbHelper.getRemainingDownloadsCountForNovel(eventNovelId)
+            val status = if (downloadWebPageEvent != null && downloadWebPageEvent.type == EventType.RUNNING) {
+                "Remaining: $remainingDownloadsCount, Current: ${downloadWebPageEvent.download.chapter}"
+            } else {
+                "Remaining: $remainingDownloadsCount"
+            }
+            postNotification(notificationManager, eventNovelId, status)
+        } else {
+            threadListMap.keys.forEach { novelId ->
+                val remainingDownloadsCount = dbHelper.getRemainingDownloadsCountForNovel(novelId)
+                val status = "Remaining: $remainingDownloadsCount"
+                postNotification(notificationManager, novelId, status)
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun postNotification(notificationManager: NotificationManagerCompat, novelId: Long, status: String) {
+        val novel = dbHelper.getNovel(novelId) ?: return
+        val notificationBuilder = createNotificationBuilder(
+            novel.name, status, createNovelDetailsPendingIntent(novel)
+        )
+        notificationBuilder.setGroup(DOWNLOAD_NOTIFICATION_GROUP)
+        notificationManager.notify((NOTIFICATION_ID + novel.id + 1).toInt(), notificationBuilder.build())
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    private fun isNotificationVisible(notificationId: Int): Boolean {
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as? NotificationManager ?: return false
+        val notifications = notificationManager.activeNotifications
+        for (notification in notifications) {
+            if (notification.id == NOTIFICATION_ID) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun notifyFirst() {
+        //Check Notification Post Permissions
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            return
+        }
+
+        val first = createNotificationBuilder(
+            getString(R.string.app_name), getString(R.string.group_download_notification_text), createNovelLibraryHomePendingIntent()
+        )
+        first.setGroupSummary(true).setGroup(DOWNLOAD_NOTIFICATION_GROUP)
+        startForeground(NOTIFICATION_ID, first.build())
+        notify()
     }
 
 }

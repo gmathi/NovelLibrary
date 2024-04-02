@@ -3,19 +3,24 @@ package io.github.gmathi.novellibrary.cleaner
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
-import android.util.Log
 import android.webkit.URLUtil
 import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
-import io.github.gmathi.novellibrary.model.other.*
+import io.github.gmathi.novellibrary.model.other.LinkedPage
+import io.github.gmathi.novellibrary.model.other.SelectorQuery
+import io.github.gmathi.novellibrary.model.other.SelectorSubQuery
+import io.github.gmathi.novellibrary.model.other.SubQueryProcessingCommand
+import io.github.gmathi.novellibrary.model.other.SubQueryProcessingCommandInfo
+import io.github.gmathi.novellibrary.model.other.SubqueryRole
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
-import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
+import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.lang.writableFileName
 import io.github.gmathi.novellibrary.util.network.getFileName
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -32,7 +37,6 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.net.SocketException
 import kotlin.math.ceil
-import kotlin.math.floor
 
 
 open class HtmlCleaner protected constructor() {
@@ -56,7 +60,7 @@ open class HtmlCleaner protected constructor() {
         private fun genericTLNoteFilter(doc: Element, contentQuery: String): Elements {
             // If there's 2 hrs - it has TL comment, otherwise it's just separator, but since we already processed .entry-title it should be safe to yeet it.
             // 42 is magic number because I doubt they'll do THAT long of a TL comment.
-            val totalCount = doc.selectFirst(contentQuery).childrenSize()
+            val totalCount = doc.selectFirst(contentQuery)?.childrenSize() ?: 0
             val minimum = ceil(totalCount * .1f).toInt().coerceAtMost(42)
             val maximum = totalCount - minimum
             val hrs = doc.select("$contentQuery>hr")
@@ -403,7 +407,6 @@ open class HtmlCleaner protected constructor() {
             //SelectorQuery("article.story-part"),
             SelectorQuery("div#chapter"), // HostedNovel
             SelectorQuery("div.chapter"), //HostedNovel
-            //TODO: Xiaxia novel, needs more analysis to fix pre-formatting (jsoup not supporting)
             SelectorQuery("section#StoryContent"),
             SelectorQuery("div.content-container"),
             SelectorQuery("article.article-content"),
@@ -411,6 +414,7 @@ open class HtmlCleaner protected constructor() {
             SelectorQuery("div.legacy-journal"), // Sample: deviantart journals (NU group: darksilencer)
             SelectorQuery("article.entry-content"), //GitHub
             SelectorQuery("article"),
+            SelectorQuery("div.content-inner"), // NovelBuddy
         )
 
         private const val TAG = "HtmlHelper"
@@ -488,8 +492,8 @@ open class HtmlCleaner protected constructor() {
     open fun removeCSS(doc: Document, clearHead: Boolean = true) {
         doc.getElementsByTag("link").remove()
         if (clearHead) {
-            doc.head()?.getElementsByTag("style")?.remove()
-            doc.head()?.getElementsByTag("link")?.remove()
+            doc.head().getElementsByTag("style").remove()
+            doc.head().getElementsByTag("link").remove()
         }
         doc.getElementById("custom-background-css")?.remove()
     }
@@ -605,7 +609,7 @@ open class HtmlCleaner protected constructor() {
         val file: File
         try {
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: $uri")
-            val fileName = (uri.lastPathSegment ?: "" + uri.query).writableFileName()
+            val fileName = ((uri.lastPathSegment ?: ("" + uri.query))).writableFileName()
             file = File(dir, fileName)
         } catch (e: Exception) {
             Logs.debug(TAG, "Exception Downloading Image: $uri")
@@ -915,7 +919,7 @@ open class HtmlCleaner protected constructor() {
     fun cleanClassAndIds(contentElement: Element?) {
         if (contentElement == null) return
         if (!keepContentClasses)
-            contentElement.classNames()?.forEach { contentElement.removeClass(it) }
+            contentElement.classNames().forEach { contentElement.removeClass(it) }
 
         if (!keepContentIds && contentElement.hasAttr("id"))
             contentElement.removeAttr("id")
@@ -923,7 +927,7 @@ open class HtmlCleaner protected constructor() {
         when (contentElement.tagName()) {
             "img" -> {
                 // Fix images that use data- and lazy-src attributes to load
-                contentElement.attr("src", getImageUrl(contentElement))
+                contentElement.attr("src", getImageUrl(contentElement) ?: "")
                 // Some websites use srcset to "hide" images from scrapers, and sometimes those images are links to actual chapter.
                 // Example: lazytranslations use a 1x1 gif image to hide them.
                 contentElement.removeAttr("srcset")

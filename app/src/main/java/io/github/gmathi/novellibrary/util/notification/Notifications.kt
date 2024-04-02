@@ -154,7 +154,16 @@ object Notifications {
                 CHANNEL_CRASH_LOGS,
                 context.getString(R.string.channel_crash_logs),
                 NotificationManager.IMPORTANCE_HIGH
-            )
+            ),
+            NotificationChannel(
+                context.getString(R.string.downloads_notification_channel_id),
+                context.getString(R.string.downloads_notification_channel_name),
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = context.getString(R.string.downloads_notification_channel_description)
+                setSound(null, null)
+                enableVibration(false)
+            }
         ).forEach(context.notificationManager::createNotificationChannel)
 
         // Delete old notification channels

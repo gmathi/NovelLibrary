@@ -1,36 +1,20 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-
-buildscript {
-    ext.kotlin_version = '1.8.0'
-
-    repositories {
-        mavenCentral()
-        maven { url "https://maven.google.com" }
-        maven { url "https://jitpack.io" }
-        maven { url 'https://maven.fabric.io/public' }
-        jcenter()
-        google()
-    }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:7.4.2'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.gms:google-services:4.3.15'
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.4'
-    }
+plugins {
+    id 'com.android.application' version '8.3.1' apply false
+    id 'org.jetbrains.kotlin.android' version '1.8.10' apply false
+    id 'com.google.gms.google-services' version '4.3.15' apply false
+    id 'com.google.firebase.crashlytics' version '2.9.9' apply false
+    id 'com.google.devtools.ksp' version '1.8.10-1.0.9' apply false
 }
 
-allprojects {
-    repositories {
-        mavenCentral()
-        maven { url "https://maven.google.com" }
-        maven { url "https://jitpack.io" }
-        maven { url 'https://maven.fabric.io/public' }
-        jcenter()
-        google()
-    }
+repositories {
+    google()
+    mavenCentral()
+    maven { url "https://maven.google.com" }
+    maven { url "https://jitpack.io" }
+    maven { url 'https://maven.fabric.io/public' }
+    jcenter()
 }
 
-task clean(type: Delete) {
+tasks.register('clean', Delete) {
     delete rootProject.buildDir
 }
