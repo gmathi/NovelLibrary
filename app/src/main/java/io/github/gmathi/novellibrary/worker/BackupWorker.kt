@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.worker
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -92,7 +93,12 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
                 .setTicker("${getString(R.string.app_name)} ${getString(R.string.backup)}")
                 .setContentTitle("${getString(R.string.app_name)} ${getString(R.string.backup)}")
 
-            setForeground(ForegroundInfo(nm.notificationId, nm.builder.build()))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                setForeground(ForegroundInfo(nm.notificationId, nm.builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE))
+            } else {
+                setForeground(ForegroundInfo(nm.notificationId, nm.builder.build()))
+            }
+
             nm.newIndeterminateProgress()
 
             val shouldSimpleTextBackup = inputData.getBoolean(KEY_SHOULD_BACKUP_SIMPLE_TEX, true)

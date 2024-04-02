@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.*
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo
 import android.graphics.BitmapFactory
 import android.os.Binder
 import android.os.Build
@@ -279,18 +280,6 @@ class DownloadNovelService : Service(), DownloadListener {
         notificationManager.notify((NOTIFICATION_ID + novel.id + 1).toInt(), notificationBuilder.build())
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
-    private fun isNotificationVisible(notificationId: Int): Boolean {
-        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as? NotificationManager ?: return false
-        val notifications = notificationManager.activeNotifications
-        for (notification in notifications) {
-            if (notification.id == NOTIFICATION_ID) {
-                return true
-            }
-        }
-        return false
-    }
-
     private fun notifyFirst() {
         //Check Notification Post Permissions
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -301,7 +290,11 @@ class DownloadNovelService : Service(), DownloadListener {
             getString(R.string.app_name), getString(R.string.group_download_notification_text), createNovelLibraryHomePendingIntent()
         )
         first.setGroupSummary(true).setGroup(DOWNLOAD_NOTIFICATION_GROUP)
-        startForeground(NOTIFICATION_ID, first.build())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, first.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(NOTIFICATION_ID, first.build())
+        }
         notify()
     }
 

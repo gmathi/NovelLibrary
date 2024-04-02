@@ -19,6 +19,7 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <queries>
         <intent>
@@ -78,17 +79,19 @@
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
-        </service> <!-- android:name=".service.download.DownloadService" -->
-        <!-- android:enabled="true" -->
-        <!-- android:exported="false" /> -->
+        </service>
+
         <service
             android:name=".service.download.DownloadNovelService"
             android:enabled="true"
-            android:exported="false" /> <!-- <service -->
-        <!-- android:name=".service.sync.SyncNovelsService" -->
-        <!-- android:enabled="true" -->
-        <!-- android:exported="false"> -->
-        <!-- </service> -->
+            android:foregroundServiceType="specialUse"
+            android:exported="false" />
+
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="specialUse"
+            tools:node="merge" />
+
         <activity
             android:name=".activity.NavDrawerActivity"
             android:label="@string/title_activity_nav_drawer"

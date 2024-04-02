@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.service.tts
 import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.*
+import android.content.pm.ServiceInfo
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
@@ -22,6 +23,7 @@ import io.github.gmathi.novellibrary.activity.TextToSpeechControlsActivity
 import io.github.gmathi.novellibrary.activity.settings.TTSSettingsActivity
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.extensions.isPlaying
+import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.service.tts.TTSNotificationBuilder.Companion.TTS_NOTIFICATION_ID
 import io.github.gmathi.novellibrary.util.lang.*
 import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
@@ -297,7 +299,11 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         if (isHooked) {
             if (!isForeground) {
                 startService(Intent(applicationContext, TTSService::class.java))
-                startForeground(TTS_NOTIFICATION_ID, notificationBuilder.buildNotification(mediaSession.sessionToken))
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    startForeground(TTS_NOTIFICATION_ID, notificationBuilder.buildNotification(mediaSession.sessionToken), ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+                } else {
+                    startForeground(TTS_NOTIFICATION_ID, notificationBuilder.buildNotification(mediaSession.sessionToken))
+                }
                 isForeground = true
             }
             if (!noisyReceiverHooked) {
@@ -328,6 +334,11 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
 
         startService(Intent(applicationContext, TTSService::class.java))
         mediaSession.isActive = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(TTS_NOTIFICATION_ID, notificationBuilder.buildNotification(mediaSession.sessionToken), ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+        } else {
+            startForeground(TTS_NOTIFICATION_ID, notificationBuilder.buildNotification(mediaSession.sessionToken))
+        }
         startForeground(TTS_NOTIFICATION_ID, notificationBuilder.buildNotification(mediaSession.sessionToken))
         notification.start()
         stopTimer.start()

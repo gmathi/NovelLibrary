@@ -49,12 +49,11 @@ class NovelUpdatesSource : ParsedHttpSource() {
 
     //region Search Novel
     override fun searchNovelsRequest(page: Int, query: String, filters: FilterList): Request {
-        val encodedQuery = URLEncoder.encode(query, "UTF-8")
         val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
         val formBody: RequestBody = FormBody.Builder()
             .add("action", "nd_ajaxsearchmain")
             .add("strType", "desktop")
-            .add("strOne", encodedQuery)
+            .add("strOne", query)
             .add("strSearchType", "series")
             .build()
         return POST(url, body = formBody)

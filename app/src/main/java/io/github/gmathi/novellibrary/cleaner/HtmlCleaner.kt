@@ -612,7 +612,6 @@ open class HtmlCleaner protected constructor() {
             val fileName = ((uri.lastPathSegment ?: ("" + uri.query))).writableFileName()
             file = File(dir, fileName)
         } catch (e: Exception) {
-            Logs.debug(TAG, "Exception Downloading Image: $uri")
             return null
         }
         return file
@@ -628,7 +627,6 @@ open class HtmlCleaner protected constructor() {
             val os = FileOutputStream(file)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os)
         } catch (e: Exception) {
-            Logs.error(TAG, "Exception Downloading Image: $uri", e)
             return null
         }
         return file

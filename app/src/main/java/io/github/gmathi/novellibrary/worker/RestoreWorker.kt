@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.worker
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -20,6 +21,7 @@ import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.createNovel
 import io.github.gmathi.novellibrary.database.createNovelSection
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.service.tts.TTSNotificationBuilder
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.DATABASES_DIR
 import io.github.gmathi.novellibrary.util.Constants.FILES_DIR
@@ -94,7 +96,12 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                 .setTicker("${getString(R.string.app_name)} ${getString(R.string.restore)}")
                 .setContentTitle("${getString(R.string.app_name)} ${getString(R.string.restore)}")
 
-            setForeground(ForegroundInfo(nm.notificationId, nm.builder.build()))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                setForeground(ForegroundInfo(nm.notificationId, nm.builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE))
+            } else {
+                setForeground(ForegroundInfo(nm.notificationId, nm.builder.build()))
+            }
+
             nm.newIndeterminateProgress()
 
             val shouldSimpleTextRestore = inputData.getBoolean(KEY_SHOULD_RESTORE_SIMPLE_TEX, true)

@@ -50,7 +50,8 @@ object WhatsChanged {
             "⚠️️ Fix NU Import Reading List"
 
     const val VERSION_25 = "" + //0.23 Updates!
-            "⚠️️ Fix NU Search\n"
+            "⚠️️ Fix NU Search\n" +
+            "⚠️️ Fix Backup & Restore crash"
 
 
 }
