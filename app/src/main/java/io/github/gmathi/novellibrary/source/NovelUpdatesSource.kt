@@ -50,27 +50,45 @@ class NovelUpdatesSource : ParsedHttpSource() {
     //region Search Novel
     override fun searchNovelsRequest(page: Int, query: String, filters: FilterList): Request {
         val encodedQuery = URLEncoder.encode(query, "UTF-8")
-        val url = "$baseUrl/page/$page/?s=${encodedQuery.replace(" ", "+")}"
-        return GET(url, headers)
+        val url = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
+        val formBody: RequestBody = FormBody.Builder()
+            .add("action", "nd_ajaxsearchmain")
+            .add("strType", "desktop")
+            .add("strOne", encodedQuery)
+            .add("strSearchType", "series")
+            .build()
+        return POST(url, body = formBody)
+    }
+    override fun searchNovelsParse(response: Response): NovelsPage {
+        val document = response.asJsoup()
+
+        val novels = ArrayList<Novel>()
+        document.select(searchNovelsSelector()).forEach { element ->
+            try {
+                val novel = searchNovelsFromElement(element)
+                novels.add(novel)
+            } catch (e: Exception) {
+                //Do Nothing
+            }
+        }
+
+        val hasNextPage = searchNovelsNextPageSelector().let { selector ->
+            document.select(selector).first()
+        } != null
+
+        return NovelsPage(novels ?: emptyList(), false)
     }
 
     override fun searchNovelsFromElement(element: Element): Novel {
-        val url = element.selectFirst("div.search_title > a")?.attr("abs:href")
-            ?: throw Exception(INVALID_NOVEL)
+        val url = element.attr("abs:href") ?: throw Exception(INVALID_NOVEL)
         val novel = Novel(url, id)
-        element.selectFirst("div.search_title > a")?.text()?.let { novel.name = it }
-        novel.imageUrl = element.selectFirst("div.search_img_nu img[src]")?.attr("abs:src")
-        val originText = element.select("div.search_ratings>span").text()
-        if (!originText.isNullOrEmpty()) novel.metadata["OriginMarker"] = originText
-        val ratingText = element.select("div.search_ratings").text()
-        if (ratingText.contains("(")) {
-            novel.rating = ratingText.split("(")[1].trim().replace("(", "").replace(")", "")
-        } else
-            novel.rating = "N/A"
+        novel.name = element.text()
+        novel.imageUrl = element.selectFirst("img[src]")?.attr("abs:src")
+        novel.rating = "N/A"
         return novel
     }
 
-    override fun searchNovelsSelector() = "div.search_main_box_nu"
+    override fun searchNovelsSelector() = "a.a_search"
     override fun searchNovelsNextPageSelector() = "div.digg_pagination a.next.page-numbers"
 //endregion
 

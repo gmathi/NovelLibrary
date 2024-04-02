@@ -49,5 +49,8 @@ object WhatsChanged {
             "⚠️️ Fix Download Notifications\n" +
             "⚠️️ Fix NU Import Reading List"
 
+    const val VERSION_25 = "" + //0.23 Updates!
+            "⚠️️ Fix NU Search\n"
+
 
 }
