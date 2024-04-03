@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.source
 
 import android.os.Build
+import androidx.core.net.toUri
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.TranslatorSource
 import io.github.gmathi.novellibrary.model.database.WebPage
@@ -12,19 +13,23 @@ import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.POST
 import io.github.gmathi.novellibrary.network.asObservableSuccess
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.Exceptions
 import io.github.gmathi.novellibrary.util.Exceptions.INVALID_NOVEL
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_IMPLEMENTATION
 import io.github.gmathi.novellibrary.util.lang.addPageNumberToUrl
 import io.github.gmathi.novellibrary.util.lang.awaitSingle
 import io.github.gmathi.novellibrary.util.network.asJsoup
-import okhttp3.*
+import okhttp3.FormBody
+import okhttp3.Headers
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
 import rx.Observable
 import rx.schedulers.Schedulers
-import java.net.URLEncoder
+import java.net.URI
 
 
 class NovelUpdatesSource : ParsedHttpSource() {
@@ -58,6 +63,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
             .build()
         return POST(url, body = formBody)
     }
+
     override fun searchNovelsParse(response: Response): NovelsPage {
         val document = response.asJsoup()
 
@@ -75,7 +81,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
             document.select(selector).first()
         } != null
 
-        return NovelsPage(novels ?: emptyList(), false)
+        return NovelsPage(novels, false)
     }
 
     override fun searchNovelsFromElement(element: Element): Novel {
@@ -99,23 +105,23 @@ class NovelUpdatesSource : ParsedHttpSource() {
         novel.rating = document.body().selectFirst("span.uvotes")?.text()?.substring(1, 4)
         novel.genres = document.body().selectFirst("#seriesgenre")?.children()?.map { it.text() }
 
-        document.select(".genre")?.let { elements ->
-            elements.select("#authtag")?.joinToString(", ") { it.outerHtml() }?.let { novel.metadata["Author(s)"] = it }
-            elements.select("[gid]")?.joinToString(", ") { it.outerHtml() }?.let { novel.metadata["Genre(s)"] = it }
-            elements.select("#artiststag")?.joinToString(", ") { it.outerHtml() }?.let { novel.metadata["Artist(s)"] = it }
-            elements.select("#etagme")?.joinToString(", ") { it.outerHtml() }?.let { novel.metadata["Tags"] = it }
-            elements.select(".type")?.firstOrNull()?.outerHtml()?.let { novel.metadata["Type"] = it }
-            elements.select("a[lid].lang")?.firstOrNull()?.outerHtml()?.let { novel.metadata["Language"] = it }
-            elements.select("#myopub")?.joinToString(", ") { it.outerHtml() }?.let { novel.metadata["Original Publisher"] = it }
-            elements.select("#myepub")?.joinToString(", ") { it.outerHtml() }?.let { novel.metadata["English Publisher"] = it }
+        document.select(".genre").let { elements ->
+            elements.select("#authtag").joinToString(", ") { it.outerHtml() }.let { novel.metadata["Author(s)"] = it }
+            elements.select("[gid]").joinToString(", ") { it.outerHtml() }.let { novel.metadata["Genre(s)"] = it }
+            elements.select("#artiststag").joinToString(", ") { it.outerHtml() }.let { novel.metadata["Artist(s)"] = it }
+            elements.select("#etagme").joinToString(", ") { it.outerHtml() }.let { novel.metadata["Tags"] = it }
+            elements.select(".type").firstOrNull()?.outerHtml()?.let { novel.metadata["Type"] = it }
+            elements.select("a[lid].lang").firstOrNull()?.outerHtml()?.let { novel.metadata["Language"] = it }
+            elements.select("#myopub").joinToString(", ") { it.outerHtml() }.let { novel.metadata["Original Publisher"] = it }
+            elements.select("#myepub").joinToString(", ") { it.outerHtml() }.let { novel.metadata["English Publisher"] = it }
         }
 
-        document.select("#edityear")?.firstOrNull()?.text()?.let { novel.metadata["Year"] = it }
-        document.select("#editstatus")?.firstOrNull()?.text()?.let { novel.metadata["Status in Country of Origin"] = it }
-        document.select("#showlicensed")?.firstOrNull()?.text()?.let { novel.metadata["Licensed (in English)"] = it }
-        document.select("#showtranslated")?.firstOrNull()?.text()?.let { novel.metadata["Completely Translated"] = it }
-        document.select("#editassociated")?.firstOrNull()?.text()?.let { novel.metadata["Associated Names"] = it }
-        document.select("#mypostid")?.firstOrNull()?.attr("value")?.let {
+        document.select("#edityear").firstOrNull()?.text()?.let { novel.metadata["Year"] = it }
+        document.select("#editstatus").firstOrNull()?.text()?.let { novel.metadata["Status in Country of Origin"] = it }
+        document.select("#showlicensed").firstOrNull()?.text()?.let { novel.metadata["Licensed (in English)"] = it }
+        document.select("#showtranslated").firstOrNull()?.text()?.let { novel.metadata["Completely Translated"] = it }
+        document.select("#editassociated").firstOrNull()?.text()?.let { novel.metadata["Associated Names"] = it }
+        document.select("#mypostid").firstOrNull()?.attr("value")?.let {
             novel.externalNovelId = it
             novel.metadata["PostId"] = it
         }
@@ -133,36 +139,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
     }
 
     override suspend fun getChapterList(novel: Novel): List<WebPage> {
-        val translatorSources = getTranslatorSourcesList(novel)
-        val allChapters = getChapterListForSource(novel, null)
-        val translatorSourcesMap = HashMap<String, String>()
-        val observableList = translatorSources.map { fetchChapterListWithSources(novel, it) }
-        val translatorSourceListOfChapterList = Observable
-            .from(observableList)
-            .flatMap { task -> task.observeOn(Schedulers.io()) }
-            .toList().awaitSingle()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            translatorSourceListOfChapterList.parallelStream().forEach { translatorSourceOnlyChapterList ->
-                translatorSourcesMap.putAll(createTranslatorSourceMap(translatorSourceOnlyChapterList))
-            }
-        } else {
-            translatorSourceListOfChapterList.forEach { translatorSourceOnlyChapterList ->
-                translatorSourcesMap.putAll(createTranslatorSourceMap(translatorSourceOnlyChapterList))
-            }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            allChapters.parallelStream().forEach {
-                it.translatorSourceName = translatorSourcesMap[it.url]
-            }
-        } else {
-            allChapters.forEach {
-                it.translatorSourceName = translatorSourcesMap[it.url]
-            }
-        }
-
-        return allChapters
+        return getChaptersFromDoc(novel)
     }
 
     private fun createTranslatorSourceMap(translatorSourceOnlyChapterList: List<WebPage>): HashMap<String, String> {
@@ -294,7 +271,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
         url?.let {
             return GET(url.addPageNumberToUrl(page, "pg"), headers)
         }
-        throw Exception(Exceptions.MISSING_IMPLEMENTATION)
+        throw Exception(MISSING_IMPLEMENTATION)
     }
 
     override fun popularNovelsSelector(): String = "div.search_main_box_nu"
@@ -341,6 +318,79 @@ class NovelUpdatesSource : ParsedHttpSource() {
     override fun latestUpdatesNextPageSelector(): String = throw Exception(MISSING_IMPLEMENTATION)
 
 //endregion
+
+
+    //region old code revival
+
+    private fun fetchChapterListForPage(url: String): Observable<Document> {
+        return client.newCall(GET(url, headers))
+            .asObservableSuccess()
+            .map { response ->
+                response.asJsoup()
+            }
+    }
+
+    private suspend fun getChaptersFromDoc(novel: Novel): List<WebPage> {
+        val chapters = ArrayList<WebPage>()
+        try {
+            val document = fetchChapterListForPage(novel.url).awaitSingle()
+            chapters.addAll(getNUChapterUrlsFromDoc(document))
+            val pageUrls = getNUPageUrlsNew(document)
+            if (pageUrls.isNotEmpty()) {
+                val observableList = pageUrls.map { fetchChapterListForPage(it) }
+                val allChaptersFromPagesList = Observable
+                    .from(observableList)
+                    .flatMap { task -> task.observeOn(Schedulers.io()) }
+                    .toList().awaitSingle()
+                allChaptersFromPagesList.forEach { chapters.addAll(getNUChapterUrlsFromDoc(it)) }
+            }
+        } catch (e: Exception) {
+            // Do Nothing
+        }
+        chapters.reversed().forEachIndexed { index, chapter ->
+            chapter.novelId = novel.id
+            chapter.orderId = index.toLong()
+        }
+
+        return chapters.reversed()
+    }
+
+    private fun getNUChapterUrlsFromDoc(doc: Document): ArrayList<WebPage> {
+        val chapters = ArrayList<WebPage>()
+        val tableRowElements = doc.body().select("table#myTable > tbody > tr")
+        tableRowElements.mapTo(chapters) {
+            val translatorSource = it.select("a").firstOrNull()?.text()
+            val chapElement = it.select("a.chp-release")
+            val webPage = WebPage(chapElement.attr("abs:href"), chapElement.text())
+            webPage.translatorSourceName = translatorSource
+            webPage
+        }
+        return chapters
+    }
+
+    private fun getNUPageUrlsNew(doc: Document): ArrayList<String> {
+        val uri = URI(doc.location())
+        val basePath = "${uri.scheme}://${uri.host}${uri.path}"
+        val pageUrls = ArrayList<String>()
+        val pageElements = doc.body().select("div.digg_pagination > a[href]")
+        var maxPageNum = 1
+        pageElements.forEach {
+            try {
+                val pageNum = it.attr("abs:href").toUri().getQueryParameter("pg")?.toIntOrNull() ?: return@forEach
+                if (maxPageNum < pageNum)
+                    maxPageNum = pageNum
+            } catch (_: Exception) {
+                //Do Nothing
+            }
+        }
+        if (maxPageNum == 2) {
+            pageUrls.add("$basePath?pg=2")
+        } else if (maxPageNum > 2)
+            (2..maxPageNum).mapTo(pageUrls) { "$basePath?pg=$it" }
+
+        return pageUrls
+    }
+    //endregion
 
 
     companion object {

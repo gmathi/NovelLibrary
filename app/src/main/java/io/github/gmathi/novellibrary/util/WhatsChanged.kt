@@ -51,7 +51,8 @@ object WhatsChanged {
 
     const val VERSION_25 = "" + //0.23 Updates!
             "⚠️️ Fix NU Search\n" +
-            "⚠️️ Fix Backup & Restore crash"
+            "⚠️️ Fix Backup & Restore crash" +
+            "✨ Chapters loading fixed, but it will take longer time to load depending on number of chapters it has\n"
 
 
 }
