@@ -76,6 +76,7 @@ class DataCenter(context: Context) {
         private const val AUTO_SCROLL_LENGTH = "autoScrollLength"
         private const val AUTO_SCROLL_INTERVAL = "autoScrollInterval"
         private const val ENABLE_AUTO_SCROLL = "enableAutoScroll"
+        private const val USE_NU_API_FETCH = "useNUAPIFetch"
 
         //Backup
         private const val LAST_LOCAL_BACKUP_TIMESTAMP = "lastLocalBackupTimestamp"
@@ -491,4 +492,8 @@ class DataCenter(context: Context) {
     var autoScrollInterval: Int
         get() = prefs.getInt(AUTO_SCROLL_INTERVAL, Constants.AUTO_SCROLL_INTERVAL_DEFAULT)
         set(value) = prefs.edit().putInt(AUTO_SCROLL_INTERVAL, value).apply()
+
+    var useNUAPIFetch: Boolean
+        get() = prefs.getBoolean(USE_NU_API_FETCH, true)
+        set(value) = prefs.edit().putBoolean(USE_NU_API_FETCH, value).apply()
 }

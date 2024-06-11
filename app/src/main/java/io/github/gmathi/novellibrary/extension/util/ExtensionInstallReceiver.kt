@@ -4,10 +4,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.RECEIVER_EXPORTED
 import io.github.gmathi.novellibrary.extension.model.Extension
 import io.github.gmathi.novellibrary.extension.model.LoadResult
 import io.github.gmathi.novellibrary.util.lang.launchNow
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -25,7 +28,7 @@ internal class ExtensionInstallReceiver(private val listener: Listener) :
      * Registers this broadcast receiver
      */
     fun register(context: Context) {
-        context.registerReceiver(this, filter)
+        ContextCompat.registerReceiver(context, this, filter, RECEIVER_EXPORTED)
     }
 
     /**
@@ -94,6 +97,7 @@ internal class ExtensionInstallReceiver(private val listener: Listener) :
      * @param context The application context.
      * @param intent The intent containing the package name of the extension.
      */
+    @OptIn(DelicateCoroutinesApi::class)
     private suspend fun getExtensionFromIntent(context: Context, intent: Intent?): LoadResult {
         val pkgName = getPackageNameFromIntent(intent)
             ?: return LoadResult.Error("Package name not found")

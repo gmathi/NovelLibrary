@@ -6,6 +6,7 @@ import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.TranslatorSource
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.other.NovelsPage
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.filter.FilterList
 import io.github.gmathi.novellibrary.model.source.online.ParsedHttpSource
 import io.github.gmathi.novellibrary.network.GET
@@ -30,6 +31,7 @@ import org.jsoup.nodes.TextNode
 import rx.Observable
 import rx.schedulers.Schedulers
 import java.net.URI
+import kotlin.math.max
 
 
 class NovelUpdatesSource : ParsedHttpSource() {
@@ -139,7 +141,43 @@ class NovelUpdatesSource : ParsedHttpSource() {
     }
 
     override suspend fun getChapterList(novel: Novel): List<WebPage> {
-        return getChaptersFromDoc(novel)
+        return if (dataCenter.useNUAPIFetch)
+            getChaptersFromAPI(novel)
+        else
+            getChaptersFromDoc(novel)
+    }
+
+    private suspend fun getChaptersFromAPI(novel: Novel): List<WebPage> {
+        val translatorSources = getTranslatorSourcesList(novel)
+        val allChapters = getChapterListForSource(novel, null)
+        val translatorSourcesMap = HashMap<String, String>()
+        val observableList = translatorSources.map { fetchChapterListWithSources(novel, it) }
+        val translatorSourceListOfChapterList = Observable
+            .from(observableList)
+            .flatMap { task -> task.observeOn(Schedulers.io()) }
+            .toList().awaitSingle()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            translatorSourceListOfChapterList.parallelStream().forEach { translatorSourceOnlyChapterList ->
+                translatorSourcesMap.putAll(createTranslatorSourceMap(translatorSourceOnlyChapterList))
+            }
+        } else {
+            translatorSourceListOfChapterList.forEach { translatorSourceOnlyChapterList ->
+                translatorSourcesMap.putAll(createTranslatorSourceMap(translatorSourceOnlyChapterList))
+            }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            allChapters.parallelStream().forEach {
+                it.translatorSourceName = translatorSourcesMap[it.url]
+            }
+        } else {
+            allChapters.forEach {
+                it.translatorSourceName = translatorSourcesMap[it.url]
+            }
+        }
+
+        return allChapters
     }
 
     private fun createTranslatorSourceMap(translatorSourceOnlyChapterList: List<WebPage>): HashMap<String, String> {
@@ -389,6 +427,21 @@ class NovelUpdatesSource : ParsedHttpSource() {
             (2..maxPageNum).mapTo(pageUrls) { "$basePath?pg=$it" }
 
         return pageUrls
+    }
+
+    private fun getMaxPageNum(doc: Document): Int {
+        val pageElements = doc.body().select("div.digg_pagination > a[href]")
+        var maxPageNum = 1
+        pageElements.forEach {
+            try {
+                val pageNum = it.attr("abs:href").toUri().getQueryParameter("pg")?.toIntOrNull() ?: return@forEach
+                if (maxPageNum < pageNum)
+                    maxPageNum = pageNum
+            } catch (_: Exception) {
+                //Do Nothing
+            }
+        }
+        return maxPageNum
     }
     //endregion
 

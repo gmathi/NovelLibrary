@@ -55,4 +55,10 @@ object WhatsChanged {
             "✨ Chapters loading fixed, but it will take longer time to load depending on number of chapters it has\n"
 
 
+    const val VERSION_26 = "" + //0.23 Updates!
+            "⚠️️ Fix Extension Crash\n" +
+            "⚠️️ Fix Downloads not showing up\n" +
+            "✨ Chapters loading fixed, and new flag in general settings to play with\n"
+
+
 }

@@ -37,6 +37,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         private const val POSITION_ENABLE_SCROLLING_TEXT = 4
         private const val POSITION_SHOW_CHAPTERS_LEFT_BADGE = 5
         private const val POSITION_DNS_OVER_HTTPS = 6
+        private const val POSITION_NU_API_FETCH = 7
 
     }
 
@@ -120,6 +121,12 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemBinding.widgetSwitch.visibility = View.VISIBLE
                 itemBinding.widgetSwitch.isChecked = dataCenter.showChaptersLeftBadge
                 itemBinding.widgetSwitch.setOnCheckedChangeListener { _, isChecked -> dataCenter.showChaptersLeftBadge = isChecked }
+            }
+
+            POSITION_NU_API_FETCH -> {
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.useNUAPIFetch
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.useNUAPIFetch = value }
             }
 
         }

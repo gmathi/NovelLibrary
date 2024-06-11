@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Environment
+import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import com.jakewharton.rxrelay.PublishRelay
@@ -102,7 +103,7 @@ internal class ExtensionInstaller(private val context: Context) {
             .map {
                 downloadManager.query(query).use { cursor ->
                     cursor.moveToFirst()
-                    cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
+                    cursor.getInt(with(cursor) { getColumnIndex(DownloadManager.COLUMN_STATUS) })
                 }
             }
             // Ignore duplicate results
@@ -189,7 +190,7 @@ internal class ExtensionInstaller(private val context: Context) {
             isRegistered = true
 
             val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-            context.registerReceiver(this, filter)
+            ContextCompat.registerReceiver(context, this, filter, ContextCompat.RECEIVER_EXPORTED)
         }
 
         /**
@@ -226,7 +227,7 @@ internal class ExtensionInstaller(private val context: Context) {
             downloadManager.query(query).use { cursor ->
                 if (cursor.moveToFirst()) {
                     val localUri = cursor.getString(
-                        cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI)
+                        with(cursor) { getColumnIndex(DownloadManager.COLUMN_LOCAL_URI) }
                     ).removePrefix(FILE_SCHEME)
 
                     installApk(id, File(localUri).getUriCompat(context))

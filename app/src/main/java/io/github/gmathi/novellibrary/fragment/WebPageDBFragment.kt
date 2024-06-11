@@ -193,11 +193,12 @@ class WebPageDBFragment : BaseFragment() {
                     url?.let {
 
                         //If url is an image
-                        if (url.endsWith(".jpg", true) || url.endsWith(".jpeg", true) || url.endsWith(".png"))
+                        if (url.endsWith(".jpg", true) || url.endsWith(".jpeg", true) || url.endsWith(".png") || url.startsWith("file"))
                             return false //default loading
 
                         downloadWebPage(url)
                         return true
+
                     }
 
                 //If everything else fails, default loading of the WebView

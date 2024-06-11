@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.model.source.online
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.other.NovelsPage
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.CatalogueSource
 import io.github.gmathi.novellibrary.model.source.filter.FilterList
 import io.github.gmathi.novellibrary.network.GET
@@ -29,6 +30,11 @@ abstract class HttpSource : CatalogueSource {
      * Network service.
      */
     protected val network: NetworkHelper by injectLazy()
+
+    /**
+     * Network service.
+     */
+    protected val dataCenter: DataCenter by injectLazy()
 
     /**
      * Base url of the website without the trailing slash, like: http://mysite.com
