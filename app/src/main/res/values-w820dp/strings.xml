@@ -14,4 +14,5 @@
     <string name="scrolling_text">Scrolling Text</string>
     <string name="scrolling_text_description">Enable scrolling text on novel titles and other items where text is too large to fit on the screen</string>
     <string name="auto_read_next_chapter">Auto Read Next Chapter</string>
+    <string name="reader_menu">Reader Menu</string>
 </resources>

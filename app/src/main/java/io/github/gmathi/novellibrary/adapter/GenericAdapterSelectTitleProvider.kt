@@ -3,11 +3,10 @@ package io.github.gmathi.novellibrary.adapter
 import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
-import com.futuremind.recyclerviewfastscroll.SectionTitleProvider
 import io.github.gmathi.novellibrary.util.view.inflate
 import java.util.*
 
-class GenericAdapterSelectTitleProvider<T>(val items: ArrayList<T>, val layoutResId: Int, val listener: Listener<T>) : RecyclerView.Adapter<GenericAdapterSelectTitleProvider.ViewHolder<T>>(), SectionTitleProvider {
+class GenericAdapterSelectTitleProvider<T>(val items: ArrayList<T>, val layoutResId: Int, val listener: Listener<T>) : RecyclerView.Adapter<GenericAdapterSelectTitleProvider.ViewHolder<T>>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder<T>(parent.inflate(layoutResId))
 
@@ -15,7 +14,7 @@ class GenericAdapterSelectTitleProvider<T>(val items: ArrayList<T>, val layoutRe
 
     override fun getItemCount() = items.size
 
-    override fun getSectionTitle(position: Int): String = listener.getSectionTitle(position)
+    fun getSectionTitle(position: Int): String = listener.getSectionTitle(position)
 
     class ViewHolder<T>(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(item: T, listener: Listener<T>, position: Int) {

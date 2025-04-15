@@ -3,9 +3,6 @@ package io.github.gmathi.novellibrary.viewmodel
 //import android.content.Context
 //import android.webkit.MimeTypeMap
 //import androidx.lifecycle.*
-//import com.github.johnpersano.supertoasts.library.Style
-//import com.github.johnpersano.supertoasts.library.SuperActivityToast
-//import com.github.johnpersano.supertoasts.library.utils.PaletteUtils
 //import io.github.gmathi.novellibrary.R
 //import io.github.gmathi.novellibrary.dataCenter
 //import io.github.gmathi.novellibrary.util.storage.getReadableSize

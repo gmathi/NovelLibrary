@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.ImageView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
@@ -80,6 +81,8 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
 
         newIconsImageView = binding.navigationView.getHeaderView(0).findViewWithTag<ImageView>("icon")
         newIconsImageView.setOnClickListener { setNewImageInNavigationHeaderView() }
+
+        onBackPress()
     }
 
     private fun showWhatsNewDialog() {
@@ -95,33 +98,38 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    override fun onBackPressed() {
-        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            binding.drawerLayout.closeDrawer(GravityCompat.START)
-        } else {
-            val existingSearchFrag = supportFragmentManager.findFragmentByTag(SearchFragment::class.toString())
-            if (existingSearchFrag != null) {
-                val searchView = existingSearchFrag.view?.findViewById<PersistentSearchView>(R.id.searchView)
-                if (searchView != null && (searchView.isEditing || searchView.isSearching)) {
-                    (existingSearchFrag as SearchFragment).closeSearch()
-                    return
+    private fun onBackPress() {
+        onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    binding.drawerLayout.closeDrawer(GravityCompat.START)
+                } else {
+                    val existingSearchFrag = supportFragmentManager.findFragmentByTag(SearchFragment::class.toString())
+                    if (existingSearchFrag != null) {
+                        val searchView = existingSearchFrag.view?.findViewById<PersistentSearchView>(R.id.searchView)
+                        if (searchView != null && (searchView.isEditing || searchView.isSearching)) {
+                            (existingSearchFrag as SearchFragment).closeSearch()
+                            return
+                        }
+                    }
+
+                    (supportFragmentManager.findFragmentByTag(LibraryPagerFragment::class.toString()) as? LibraryPagerFragment)?.let {
+                        if (it.getLibraryFragment()?.isSyncing() == true) {
+                            return
+                        }
+                    }
+
+                    if (snackBar != null && snackBar!!.isShown)
+                        finish()
+                    else {
+                        if (snackBar == null)
+                            snackBar = Snackbar.make(binding.appBarNavDrawer.navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
+                        snackBar?.show()
+                    }
                 }
             }
 
-            (supportFragmentManager.findFragmentByTag(LibraryPagerFragment::class.toString()) as? LibraryPagerFragment)?.let {
-                if (it.getLibraryFragment()?.isSyncing() == true) {
-                    return
-                }
-            }
-
-            if (snackBar != null && snackBar!!.isShown)
-                finish()
-            else {
-                if (snackBar == null)
-                    snackBar = Snackbar.make(binding.appBarNavDrawer.navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
-                snackBar?.show()
-            }
-        }
+        })
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

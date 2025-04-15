@@ -6,13 +6,11 @@ import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.lifecycleScope
+import android.widget.CompoundButton
 import androidx.recyclerview.widget.DividerItemDecoration
-import com.hanks.library.AnimateCheckBox
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ChaptersPagerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapterSelectTitleProvider
-import io.github.gmathi.novellibrary.database.updateNovel
 import io.github.gmathi.novellibrary.databinding.FragmentSourceChaptersBinding
 import io.github.gmathi.novellibrary.databinding.ListitemChapterBinding
 import io.github.gmathi.novellibrary.extensions.*
@@ -21,7 +19,6 @@ import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.other.ChapterActionModeEvent
 import io.github.gmathi.novellibrary.model.other.EventType
-import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.ALL_TRANSLATOR_SOURCES
 import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
@@ -34,8 +31,7 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
 class ChaptersFragment : BaseFragment(),
-        GenericAdapterSelectTitleProvider.Listener<WebPage>,
-        AnimateCheckBox.OnCheckedChangeListener {
+    GenericAdapterSelectTitleProvider.Listener<WebPage>, CompoundButton.OnCheckedChangeListener {
 
     companion object {
 
@@ -62,7 +58,7 @@ class ChaptersFragment : BaseFragment(),
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val result = inflater.inflate(R.layout.fragment_source_chapters, container, false)
-                ?: return null
+            ?: return null
         binding = FragmentSourceChaptersBinding.bind(result)
         return result
     }
@@ -71,7 +67,7 @@ class ChaptersFragment : BaseFragment(),
         super.onActivityCreated(savedInstanceState)
         novel = requireArguments().getParcelable<Novel>(NOVEL) as Novel
         translatorSourceName = requireArguments().getString(TRANSLATOR_SOURCE_NAME)
-                ?: ALL_TRANSLATOR_SOURCES
+            ?: ALL_TRANSLATOR_SOURCES
         binding.progressLayout.showLoading()
         setRecyclerView()
         setData()
@@ -82,7 +78,6 @@ class ChaptersFragment : BaseFragment(),
         binding.recyclerView.isVerticalScrollBarEnabled = true
         binding.recyclerView.setDefaultsNoAnimation(adapter)
         this.context?.let { binding.recyclerView.addItemDecoration(CustomDividerItemDecoration(it, DividerItemDecoration.VERTICAL)) }
-        binding.fastScrollView.setRecyclerView(binding.recyclerView)
         binding.swipeRefreshLayout.isEnabled = false
     }
 
@@ -102,8 +97,10 @@ class ChaptersFragment : BaseFragment(),
                 if (shouldScrollToBookmark)
                     scrollToBookmark()
                 else if (shouldScrollToFirstUnread)
-                    scrollToFirstUnread(activity.vm.chapterSettings
-                            ?: throw Error("Invalid Chapter Settings"))
+                    scrollToFirstUnread(
+                        activity.vm.chapterSettings
+                            ?: throw Error("Invalid Chapter Settings")
+                    )
                 if (activity.dataSet.isNotEmpty()) {
                     lastKnownRecyclerState?.let { binding.recyclerView.layoutManager?.onRestoreInstanceState(it) }
                 }
@@ -155,17 +152,6 @@ class ChaptersFragment : BaseFragment(),
             itemBinding.availableOfflineImageView.visibility = View.VISIBLE
             itemBinding.availableOfflineImageView.animation = null
         } else {
-//            if (Download.STATUS_IN_QUEUE.toString() == webPageSettings?.metadata[Constants.DOWNLOADING]) {
-//                if (item.id != -1L && DownloadService.chapters.contains(item)) {
-//                    itemView.greenView.visibility = View.VISIBLE
-//                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@OldChaptersActivity, R.color.white))
-//                    itemView.greenView.startAnimation(AnimationUtils.loadAnimation(this@OldChaptersActivity, R.anim.alpha_animation))
-//                } else {
-//                    itemView.greenView.visibility = View.VISIBLE
-//                    itemView.greenView.setBackgroundColor(ContextCompat.getColor(this@OldChaptersActivity, R.color.Red))
-//                    itemView.greenView.animation = null
-//                }
-//            } else
             itemBinding.availableOfflineImageView.visibility = View.GONE
         }
 
@@ -180,9 +166,9 @@ class ChaptersFragment : BaseFragment(),
             else
                 itemBinding.chapterTitle.text = "${item.chapterName}: $it"
         }
-
-        itemBinding.chapterCheckBox.isChecked = (activity as? ChaptersPagerActivity)?.dataSet?.contains(item)
-                ?: false
+        itemBinding.chapterCheckBox.setOnCheckedChangeListener(null)
+        itemBinding.chapterCheckBox.isChecked = (activity as? ChaptersPagerActivity)?.dataSet?.any { it.orderId == item.orderId }
+            ?: false
         itemBinding.chapterCheckBox.tag = item
         itemBinding.chapterCheckBox.setOnCheckedChangeListener(this@ChaptersFragment)
 
@@ -199,7 +185,8 @@ class ChaptersFragment : BaseFragment(),
         }
     }
 
-    override fun onCheckedChanged(buttonView: View?, isChecked: Boolean) {
+
+    override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
         val webPage = (buttonView?.tag as WebPage?) ?: return
         val chaptersPagerActivity = (activity as? ChaptersPagerActivity) ?: return
 

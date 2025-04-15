@@ -95,13 +95,18 @@ fun String.writableOldFileName(): String {
 
 fun String.getGlideUrl(): GlideUrl {
     val dataCenter: DataCenter by injectLazy()
-    val url = URL(this)
-    val hostName = url.host.replace("www.", "").replace("m.", "").trim()
+    var hostName = ""
+    try {
+        val url = URL(this)
+        hostName = url.host.replace("www.", "").replace("m.", "").trim()
+    } catch (_: Exception) { }
+
     val builder = LazyHeaders.Builder()
-        .addHeader("User-Agent", HostNames.USER_AGENT)
-        .addHeader("Cookie", CookieManager.getInstance().getCookie(this) ?: CookieManager.getInstance().getCookie(".$hostName") ?: "")
+            .addHeader("User-Agent", HostNames.USER_AGENT)
+            .addHeader("Cookie", CookieManager.getInstance().getCookie(this) ?: CookieManager.getInstance().getCookie(".$hostName") ?: "")
 
     return GlideUrl(this, builder.build())
+
 }
 
 private fun String?.contains(chapter: String?): Boolean {

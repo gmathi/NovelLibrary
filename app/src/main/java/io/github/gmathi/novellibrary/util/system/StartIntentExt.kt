@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import io.github.gmathi.novellibrary.R
@@ -33,6 +35,17 @@ inline fun <reified T : Activity> Activity.startActivityForResult(requestCode: I
 
 inline fun <reified T : Activity> Activity.startActivityForResult(bundle: Bundle, requestCode: Int) =
     startActivityForResult(Intent(this, T::class.java).putExtras(bundle), requestCode)
+
+inline fun <reified T : BaseActivity> BaseActivity.startActivityForResult(bundle: Bundle, crossinline onResult: (ActivityResult) -> Unit) {
+    val resultContract = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        onResult(it)
+    }
+    resultContract.launch(Intent(this, T::class.java).putExtras(bundle))
+}
+
+
 
 inline fun <reified T : Activity> Fragment.startActivity() =
     startActivity(Intent(context, T::class.java))

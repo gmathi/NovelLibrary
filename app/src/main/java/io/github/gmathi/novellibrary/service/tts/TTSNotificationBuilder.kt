@@ -81,11 +81,10 @@ class TTSNotificationBuilder(private val context: Context, private val pendingIn
         }
 
         val controller = MediaControllerCompat(context, sessionToken)
-        val description = controller.metadata.description
+        val description = controller.metadata?.description
         val playbackState = controller.playbackState
 
         val builder = NotificationCompat.Builder(context, TTS_CHANNEL_ID)
-
         builder.addAction(skipToPreviousAction)
         if (playbackState.isPlaying) {
             builder.addAction(pauseAction)
@@ -100,36 +99,27 @@ class TTSNotificationBuilder(private val context: Context, private val pendingIn
             builder.setLargeIcon(drawable.bitmap)
         }
 
-
         val mediaStyle = androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
             .setCancelButtonIntent(stopPendingIntent)
             .setMediaSession(sessionToken)
             .setShowActionsInCompactView(1)
             .setShowCancelButton(true)
-//        val smallView = RemoteViews("io.github.gmathi.novellibrary", R.layout.notification_tts)
-//        smallView.setTextViewText(R.id.notificationTitle, description.title)
-//        smallView.setTextViewText(R.id.notificationDescription, description.subtitle)
-//
-//        val bigView = RemoteViews("io.github.gmathi.novellibrary", R.layout.notification_tts_large)
-//        bigView.setTextViewText(R.id.notificationTitle, description.title)
-//        bigView.setTextViewText(R.id.notificationDescription, description.subtitle)
-        // TODO: Find a reason why RemoteViews causes crashes
 
-        return builder.setContentIntent(controller.sessionActivity)
+        builder.setContentIntent(controller.sessionActivity)
             .setStyle(mediaStyle)
-            .setLargeIcon(description.iconBitmap)
             .setSmallIcon(R.drawable.ic_queue_music_white_vector)
-//            .setCustomContentView(smallView)
-//            .setCustomBigContentView(bigView)
-            .setContentText(description.subtitle)
-            .setContentTitle(description.title)
-            .setDeleteIntent(stopPendingIntent)
+
+        description?.let {
+            builder.setLargeIcon(it.iconBitmap)
+                .setContentText(it.subtitle)
+                .setContentTitle(it.title)
+        }
+
+        return builder.setDeleteIntent(stopPendingIntent)
             .setOnlyAlertOnce(true)
             .setColorized(true)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .build()
-
-
     }
 
     private fun shouldCreateNowPlayingChannel() =

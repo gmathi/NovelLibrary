@@ -231,4 +231,21 @@
         <item name="android:timePickerMode">spinner</item>
     </style>
 
+    <style name="ReaderFAB" parent="Widget.Design.FloatingActionButton">
+        <item name="shapeAppearanceOverlay">@style/ReaderFABOverLay</item>
+    </style>
+
+    <style name="ReaderFABOverLay" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerSizeTopLeft">20%</item>
+        <item name="cornerSizeTopRight">0%</item>
+        <item name="cornerSizeBottomLeft">20%</item>
+        <item name="cornerSizeBottomRight">0%</item>
+
+        <item name="cornerFamilyTopLeft">rounded</item>
+        <item name="cornerFamilyTopRight">rounded</item>
+        <item name="cornerFamilyBottomLeft">rounded</item>
+        <item name="cornerFamilyBottomRight">rounded</item>
+
+    </style>
+
 </resources>

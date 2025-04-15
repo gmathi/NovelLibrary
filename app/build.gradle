@@ -1,9 +1,10 @@
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.android' version '2.0.21'  // Apply here directly
     id 'com.google.gms.google-services'
     id 'com.google.firebase.crashlytics'
     id 'com.google.devtools.ksp'
+    id 'kotlin-kapt'
 }
 
 def keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -13,15 +14,15 @@ if (keystorePropertiesFile.exists() && keystorePropertiesFile.canRead()) {
 }
 
 android {
-    compileSdkVersion=34
-    buildToolsVersion='34.0.0'
+    compileSdkVersion=35
+    buildToolsVersion='35.0.0'
     defaultConfig {
         applicationId "io.github.gmathi.novellibrary"
-        minSdkVersion 21
-        targetSdkVersion 34
+        minSdkVersion 23
+        targetSdkVersion 35
         multiDexEnabled true
-        versionCode 118
-        versionName "0.26.beta"
+        versionCode 119
+        versionName "0.26.1.beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -48,7 +49,7 @@ android {
         }
     }
 
-    flavorDimensions "mode"
+    flavorDimensions = ["mode"]
     productFlavors {
         mirror {
             // Flavor adds a suffix to the package name, so the
@@ -96,20 +97,20 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.browser:browser:1.6.0'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.2'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
+    implementation 'androidx.browser:browser:1.8.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.8.7'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7'
 
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.cardview:cardview:1.0.0'
-    implementation 'com.google.android.material:material:1.9.0'
-    implementation 'androidx.vectordrawable:vectordrawable:1.1.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.vectordrawable:vectordrawable:1.2.0'
     implementation 'androidx.preference:preference-ktx:1.2.1'
 
     implementation 'androidx.multidex:multidex:2.0.1'
@@ -119,12 +120,8 @@ dependencies {
 
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
     implementation 'com.github.medyo:fancybuttons:1.8.3'
-    implementation 'com.github.johnpersano:supertoasts:2.0'
 
-    implementation 'com.hanks.animatecheckbox:library:0.1'
-    implementation 'com.yarolegovich:sliding-root-nav:1.1.1'
     implementation 'com.ogaclejapan.smarttablayout:library:2.0.0@aar'
-    implementation 'com.futuremind.recyclerfastscroll:fastscroll:0.2.5'
     implementation 'jp.wasabeef:recyclerview-animators:4.0.2'
     implementation 'nl.dionsegijn:konfetti:1.3.2'
 
@@ -144,9 +141,9 @@ dependencies {
 
     implementation "com.google.android.gms:play-services-gcm:17.0.0"
     implementation "com.google.android.gms:play-services-drive:17.0.0"
-    implementation 'com.google.android.gms:play-services-auth:20.7.0'
+    implementation 'com.google.android.gms:play-services-auth:21.3.0'
 
-    def work_version = '2.8.1'
+    def work_version = '2.10.0'
     // Job scheduling
     implementation "androidx.work:work-runtime-ktx:$work_version"
     implementation "androidx.work:work-gcm:$work_version"
@@ -189,7 +186,7 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.16.0'
     ksp 'com.github.bumptech.glide:ksp:4.16.0'
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.20"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21"
 
     final kotlinx_coroutines_version = '1.7.3'
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version"
@@ -210,18 +207,16 @@ dependencies {
     implementation 'com.github.tingyik90:snackprogressbar:6.4.2'
 
     // Import the BoM for the Firebase platform
-    implementation platform('com.google.firebase:firebase-bom:32.2.3')
+    implementation platform('com.google.firebase:firebase-bom:33.12.0')
 
-    implementation 'com.google.firebase:firebase-analytics-ktx:21.3.0'
+    implementation 'com.google.firebase:firebase-analytics-ktx:22.4.0'
 
     implementation 'com.google.firebase:firebase-core:21.1.1'
-    implementation 'com.google.firebase:firebase-config-ktx:21.4.1'
-    implementation 'com.google.firebase:firebase-crashlytics-ktx:18.4.1'
-    implementation 'com.google.firebase:firebase-messaging-ktx:23.2.1'
-    implementation 'com.google.firebase:firebase-auth-ktx:22.1.1'
-    implementation 'com.google.firebase:firebase-analytics-ktx:21.3.0'
-
-    implementation 'com.zhkrb.cloudflare-scrape-android:scrape-webview:0.0.4'
+    implementation 'com.google.firebase:firebase-config-ktx:22.1.0'
+    implementation 'com.google.firebase:firebase-crashlytics-ktx:19.4.2'
+    implementation 'com.google.firebase:firebase-messaging-ktx:24.1.1'
+    implementation 'com.google.firebase:firebase-auth-ktx:23.2.0'
+    implementation 'com.google.firebase:firebase-analytics-ktx:22.4.0'
 
     // Markdown parser for websites that use markdown
     implementation 'org.jetbrains:markdown:0.5.0'
@@ -259,5 +254,4 @@ repositories {
     maven { url "https://maven.google.com" }
     maven { url "https://jitpack.io" }
     maven { url 'https://maven.fabric.io/public' }
-    jcenter()
 }

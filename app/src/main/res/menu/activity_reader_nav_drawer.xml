@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:showIn="navigation_view">
+
+    <item
+        android:id="@+id/title_reader"
+        app:actionViewClass="android.widget.Switch"
+        android:icon="@drawable/ic_book_white_vector"
+        android:title="@string/title_reader" />
+
+    <item
+        android:id="@+id/title_java_script"
+        app:actionViewClass="android.widget.Switch"
+        android:icon="@drawable/ic_code_white_vector"
+        android:title="@string/title_java_script" />
+
+    <item
+        android:id="@+id/title_fonts"
+        android:icon="@drawable/ic_fonts_vector"
+        android:title="@string/title_fonts" />
+
+
+    <item
+        android:id="@+id/title_fonts_size"
+        android:icon="@drawable/ic_text_fields_white_vector"
+        android:title="@string/title_fonts_size" />
+
+    <item
+        android:id="@+id/title_open_in_browser"
+        android:icon="@drawable/ic_open_in_browser_white_vector"
+        android:title="@string/title_open_in_browser" />
+
+    <item
+        android:id="@+id/title_more_settings"
+        android:icon="@drawable/ic_settings_white_vector"
+        android:title="@string/title_more_settings" />
+
+    <item
+        android:id="@+id/title_read_aloud"
+        android:icon="@drawable/ic_queue_music_white_vector"
+        android:title="@string/title_read_aloud" />
+
+
+</menu>

@@ -72,7 +72,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
         } catch (e: Exception) {
             // Because OkHttp's enqueue only handles IOExceptions, wrap the exception so that
             // we don't crash the entire app
-            //throw IOException(e)
+            // throw IOException(e)
             return chain.proceed(originalRequest)
         }
     }

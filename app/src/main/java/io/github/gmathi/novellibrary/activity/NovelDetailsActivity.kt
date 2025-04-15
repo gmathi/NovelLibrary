@@ -15,6 +15,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.afollestad.materialdialogs.MaterialDialog
@@ -117,23 +118,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 }
 
                 if (e.message?.contains(getString(R.string.information_cloudflare_bypass_failure)) == true || e.message?.contains("HTTP error 503") == true && retryCounter < 2) {
-                    resolveCloudflare(novel.url) { success, _, errorMessage ->
-                        if (success) {
-                            toast("Cloudflare Success")
-                            retryCounter++
-                            getNovelInfo()
-                        } else {
-                            toast("Cloudflare Failed")
-                            contentBinding.progressLayout.showError(
-                                errorText = errorMessage ?: getString(R.string.failed_to_load_url),
-                                buttonText = getString(R.string.try_again)
-                            ) {
-                                contentBinding.progressLayout.showLoading()
-                                getNovelInfo()
-                            }
-                            contentBinding.swipeRefreshLayout.isRefreshing = false
-                        }
-                    }
+                    showToast("Cloudflare Issue, Try again!")
                     return@launch
                 }
 
@@ -205,20 +190,20 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         val author = novel.metadata["Author(s)"]
         if (author != null) {
             contentBinding.novelDetailsAuthor.movementMethod = TextViewLinkHandler(this)
-            @Suppress("DEPRECATION") contentBinding.novelDetailsAuthor.applyFont(assets).text =
+            contentBinding.novelDetailsAuthor.applyFont(assets).text =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) Html.fromHtml(author, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(author)
             return
         }
         val authors = novel.authors?.joinToString { "," } ?: return
         contentBinding.novelDetailsAuthor.movementMethod = TextViewLinkHandler(this)
-        @Suppress("DEPRECATION") contentBinding.novelDetailsAuthor.applyFont(assets).text = authors
+        contentBinding.novelDetailsAuthor.applyFont(assets).text = authors
     }
 
-    @Suppress("DEPRECATION")
     private fun setLicensingInfo() {
-        if (novel.metadata["English Publisher"] ?: "" != "" || novel.metadata["Licensed (in English)"] == "Yes") {
-            val publisher =
-                if (novel.metadata["English Publisher"] == null || novel.metadata["English Publisher"] == "") "an unknown publisher" else novel.metadata["English Publisher"]
+        var publisher = novel.metadata["English Publisher"] ?: ""
+        val isLicensed = novel.metadata["Licensed (in English)"] == "Yes"
+        if (publisher != "" || isLicensed) {
+            if (publisher.isEmpty()) publisher = "an unknown publisher"
             val warningLabel = getString(R.string.licensed_warning, publisher)
             contentBinding.novelDetailsLicensedAlert.movementMethod = TextViewLinkHandler(this)
             contentBinding.novelDetailsLicensedAlert.text =

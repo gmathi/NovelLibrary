@@ -60,11 +60,6 @@
     "link": "https://github.com/metalabdesign/AsyncAwait"
   },
   {
-    "name": "SuperToasts Library v2.0",
-    "description": "A library that extends the Android toast framework.",
-    "link": "https://github.com/JohnPersano/SuperToasts"
-  },
-  {
     "name": "Konfetti 🎊 v1.0.2",
     "description": "Celebrate more with this lightweight confetti particle system 🎊 Create realistic confetti by implementing this easy to use library.",
     "link": "https://github.com/DanielMartinus/Konfetti"

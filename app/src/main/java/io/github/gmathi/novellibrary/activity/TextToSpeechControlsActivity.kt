@@ -304,12 +304,14 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
     }
 
     fun initController() {
-        controller?.registerCallback(ctrlCallback)
-        ctrlCallback.onMetadataChanged(controller?.metadata)
-        ctrlCallback.onPlaybackStateChanged(controller?.playbackState)
-        controller?.sendCommand(TTSService.COMMAND_REQUEST_SENTENCES, null, null)
-        controller?.sendCommand(TTSService.COMMAND_REQUEST_LINKED_PAGES, null, null)
-        refreshTimerState()
+        controller?.let {
+            it.registerCallback(ctrlCallback)
+            ctrlCallback.onMetadataChanged(it.metadata)
+            ctrlCallback.onPlaybackStateChanged(it.playbackState)
+            it.sendCommand(TTSService.COMMAND_REQUEST_SENTENCES, null, null)
+            it.sendCommand(TTSService.COMMAND_REQUEST_LINKED_PAGES, null, null)
+            refreshTimerState()
+        }
     }
 
     private inner class TTSController : MediaControllerCompat.Callback() {
@@ -321,8 +323,8 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
             if (novel?.id != novelId) {
                 novel = dbHelper.getNovel(novelId)
                 translatorSource = metadata.getString(TTSService.TRANSLATOR_SOURCE_NAME)
-                novel?.let { novel ->
-                    Glide.with(this@TextToSpeechControlsActivity).load(novel.imageUrl?.getGlideUrl()).apply(RequestOptions.circleCropTransform())
+                novel?.imageUrl?.let { image ->
+                    Glide.with(this@TextToSpeechControlsActivity).load(image.getGlideUrl()).apply(RequestOptions.circleCropTransform())
                         .into(contentBinding.ttsNovelCover)
                 }
             }

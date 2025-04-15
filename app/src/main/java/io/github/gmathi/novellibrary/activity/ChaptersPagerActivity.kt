@@ -201,7 +201,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
             supportFragmentManager.popBackStack()
 
         translatorSourceNames.clear()
-        val chapters = vm.chapters ?: throw Error("Chapters cannot be null")
+        val chapters = vm.chapters ?: return
         val sourcesList = chapters.distinctBy { it.translatorSourceName }.mapNotNull { it.translatorSourceName }
 
         if (vm.showSources && sourcesList.isNotEmpty()) {

@@ -351,4 +351,5 @@
     <string name="information_webview_outdated">Please update the WebView app for better compatibility</string>
 
     <string name="source_not_installed">Source not installed: %1$s</string>
+    <string name="reader_menu">Reader Menu</string>
 </resources>

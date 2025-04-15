@@ -18,7 +18,7 @@
         app:srcCompat="@drawable/ic_bookmark_orange_vector" />
 
 
-    <com.hanks.library.AnimateCheckBox
+    <CheckBox
         android:id="@+id/chapterCheckBox"
         android:layout_width="60dp"
         android:layout_height="60dp"
@@ -26,25 +26,7 @@
         android:layout_centerVertical="true"
         android:layout_marginStart="@dimen/default_card_view_margin"
         android:padding="15dp"
-        app:animDuration="50"
-        app:checkedColor="#00f"
-        app:lineColor="#fff"
-        app:lineWidth="1.2dp"
-        app:unCheckColor="#ff0"
         tools:checked="true" />
-
-    <!--    <ImageView-->
-    <!--        android:id="@+id/favoriteView"-->
-    <!--        android:layout_width="24dp"-->
-    <!--        android:layout_height="24dp"-->
-    <!--        android:layout_alignParentTop="true"-->
-    <!--        android:layout_alignParentEnd="true"-->
-    <!--        android:layout_marginTop="4dp"-->
-    <!--        android:tint="@color/red"-->
-    <!--        android:layout_marginEnd="@dimen/default_margin"-->
-    <!--        android:scaleType="centerInside"-->
-    <!--        app:srcCompat="@drawable/ic_favorite"-->
-    <!--        tools:src="@drawable/ic_favorite" />-->
 
     <LinearLayout
         android:id="@+id/iconsView"

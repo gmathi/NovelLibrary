@@ -825,4 +825,5 @@
 
     <string name="nu_api_fetch">Use API for Chapters</string>
     <string name="nu_api_fetch_description">Download chapters using API instead of Doc for NU</string>
+    <string name="reader_menu">Reader Menu</string>
 </resources>

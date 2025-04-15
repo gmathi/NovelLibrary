@@ -71,3 +71,6 @@ app/src/main/assets/translations.json
 app/normal/release/*
 .DS_Store
 .idea/deploymentTargetDropDown.xml
+.idea/caches/deviceStreaming.xml
+.idea/appInsightsSettings.xml
+.idea/appInsightsSettings.xml

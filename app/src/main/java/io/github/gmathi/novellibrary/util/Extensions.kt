@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.util
 
+import android.app.Activity
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
@@ -8,6 +9,7 @@ import com.github.salomonbrys.kotson.fromJson
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.other.LinkedPage
+import org.checkerframework.checker.units.qual.Length
 
 // General extensions that don't fit some specific extension category.
 
@@ -32,4 +34,8 @@ fun WebPageSettings.getLinkedPagesCompat():ArrayList<LinkedPage> {
         val list = ArrayList<LinkedPage>()
         Gson().fromJson<ArrayList<String>>(str).mapIndexedTo(list) { idx, s -> LinkedPage(s, "legacy $idx", false) }
     }
+}
+
+fun Activity.showToast(message: String, length: Int = Toast.LENGTH_LONG) {
+    Toast.makeText(this, message, length).show()
 }

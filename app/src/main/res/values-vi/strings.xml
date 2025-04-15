@@ -438,5 +438,6 @@
     <string name="show_chapters_left_badge_description">
         Thay vì hiển thị số lượng chương mới thì sẽ hiển thị số chương còn lại dựa theo chương đã đọc gần đây nhất. Huy hiệu màu đỏ vẫn sẽ thông báo có chương mới.
     </string>
+    <string name="reader_menu">Reader Menu</string>
 
 </resources>

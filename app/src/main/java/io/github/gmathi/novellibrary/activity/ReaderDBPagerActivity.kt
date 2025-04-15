@@ -11,19 +11,18 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
-import android.view.View
-import android.view.View.*
+import android.view.MenuItem
+import android.view.View.INVISIBLE
+import android.view.View.TEXT_ALIGNMENT_CENTER
 import android.view.WindowManager
 import android.webkit.MimeTypeMap
 import android.webkit.WebView
 import android.widget.CompoundButton
 import android.widget.TextView
-import androidx.core.content.ContextCompat
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.GravityCompat
 import androidx.documentfile.provider.DocumentFile
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.LayoutParams.MATCH_PARENT
-import androidx.recyclerview.widget.RecyclerView.LayoutParams.WRAP_CONTENT
 import androidx.viewpager.widget.ViewPager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.WhichButton
@@ -32,25 +31,19 @@ import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
 import com.afollestad.materialdialogs.list.checkItem
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
-import com.yarolegovich.slidingrootnav.SlideGravity
-import com.yarolegovich.slidingrootnav.SlidingRootNav
-import com.yarolegovich.slidingrootnav.SlidingRootNavBuilder
+import com.google.android.material.navigation.NavigationView
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.adapter.DrawerAdapter
+import io.github.gmathi.novellibrary.activity.settings.reader.ReaderSettingsActivity
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.WebPageFragmentPageListener
-import io.github.gmathi.novellibrary.database.*
+import io.github.gmathi.novellibrary.database.getAllWebPages
+import io.github.gmathi.novellibrary.database.getWebPage
+import io.github.gmathi.novellibrary.database.getWebPageSettingsByRedirectedUrl
 import io.github.gmathi.novellibrary.databinding.ActivityReaderPagerBinding
-import io.github.gmathi.novellibrary.databinding.ItemOptionBinding
-import io.github.gmathi.novellibrary.databinding.MenuLeftDrawerBinding
-import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
-import io.github.gmathi.novellibrary.model.ui.DrawerItem
-import io.github.gmathi.novellibrary.model.ui.ReaderMenu
-import io.github.gmathi.novellibrary.model.ui.SimpleItem
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
 import io.github.gmathi.novellibrary.util.FAC
@@ -58,18 +51,23 @@ import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.Utils.getFormattedText
 import io.github.gmathi.novellibrary.util.lang.launchUI
-import io.github.gmathi.novellibrary.util.system.*
+import io.github.gmathi.novellibrary.util.system.intentOf
+import io.github.gmathi.novellibrary.util.system.logNovelEvent
+import io.github.gmathi.novellibrary.util.system.openInBrowser
+import io.github.gmathi.novellibrary.util.system.showAlertDialog
+import io.github.gmathi.novellibrary.util.system.startTTSActivity
+import io.github.gmathi.novellibrary.util.system.startTTSService
+import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
+import io.github.gmathi.novellibrary.util.system.updateNovelLastRead
 import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
 import org.greenrobot.eventbus.EventBus
 import java.io.File
-import java.util.*
+import java.util.Random
 
 
 class ReaderDBPagerActivity :
     BaseActivity(),
-    ViewPager.OnPageChangeListener,
-    DrawerAdapter.OnItemSelectedListener,
-    SimpleItem.Listener<ReaderMenu> {
+    ViewPager.OnPageChangeListener, NavigationView.OnNavigationItemSelectedListener {
 
 
     companion object {
@@ -96,7 +94,7 @@ class ReaderDBPagerActivity :
         private val AVAILABLE_FONTS = linkedMapOf<String, String>()
     }
 
-    private lateinit var slidingRootNav: SlidingRootNav
+
     private lateinit var screenTitles: Array<String>
     private lateinit var screenIcons: Array<Drawable?>
 
@@ -107,13 +105,14 @@ class ReaderDBPagerActivity :
     private var webPages: List<WebPage> = ArrayList()
 
     lateinit var binding: ActivityReaderPagerBinding
-    private lateinit var bindingList: MenuLeftDrawerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityReaderPagerBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+
 
         if (dataCenter.keepScreenOn)
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -148,17 +147,25 @@ class ReaderDBPagerActivity :
         }
 
         //Set up the Slide-Out Reader Menu.
-        slideMenuSetup(savedInstanceState)
-        screenIcons = loadScreenIcons()
-        screenTitles = loadScreenTitles()
-        slideMenuAdapterSetup()
+        drawerSetup()
         binding.menuNav.setOnClickListener {
-            toggleSlideRootNab()
+            binding.drawerLayout.openDrawer(GravityCompat.END)
         }
 
         // Easy access to open reader menu button
         if (!dataCenter.isReaderModeButtonVisible)
             binding.menuNav.visibility = INVISIBLE
+
+        onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                val currentFrag = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as WebPageDBFragment)
+                when {
+                    currentFrag.history.isNotEmpty() -> currentFrag.goBack()
+                    //currentFrag.readerWebView.canGoBack() -> currentFrag.readerWebView.goBack()
+                    else -> finish()
+                }
+            }
+        })
     }
 
     private fun updateBookmark(webPage: WebPage) {
@@ -214,13 +221,6 @@ class ReaderDBPagerActivity :
             openInBrowser(url)
     }
 
-    private fun share() {
-        val url = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as WebPageDBFragment?)?.getUrl()
-        if (url != null) {
-            shareUrl(url)
-        }
-    }
-
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val action = event.action
         val keyCode = event.keyCode
@@ -255,16 +255,6 @@ class ReaderDBPagerActivity :
         }
     }
 
-
-    override fun onBackPressed() {
-        val currentFrag = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as WebPageDBFragment)
-        when {
-            currentFrag.history.isNotEmpty() -> currentFrag.goBack()
-            //currentFrag.readerWebView.canGoBack() -> currentFrag.readerWebView.goBack()
-            else -> super.onBackPressed()
-        }
-    }
-
     fun checkUrl(url: String): Boolean {
         val webPageSettings = dbHelper.getWebPageSettingsByRedirectedUrl(url) ?: return false
         val webPage = dbHelper.getWebPage(webPageSettings.url) ?: return false
@@ -278,67 +268,25 @@ class ReaderDBPagerActivity :
         }
     }
 
-    private fun slideMenuSetup(savedInstanceState: Bundle?) {
-        val slidingRootNavBuilder = SlidingRootNavBuilder(this)
-            .withMenuOpened(false)
-            .withContentClickableWhenMenuOpened(true)
-            .withSavedState(savedInstanceState)
-            .withGravity(SlideGravity.RIGHT)
-            .withMenuLayout(R.layout.menu_left_drawer)
-        slidingRootNav = slidingRootNavBuilder.inject()
+    private fun drawerSetup() {
+        binding.drawerLayout.closeDrawers()
+        binding.navigationView.apply {
+            setNavigationItemSelectedListener(this@ReaderDBPagerActivity)
 
-        val view = slidingRootNav.layout.getChildAt(0)
-        bindingList = MenuLeftDrawerBinding.bind(view)
-    }
+            val readerSwitch = menu.findItem(R.id.title_reader).actionView as CompoundButton
+            readerSwitch.isChecked = dataCenter.readerMode
+            readerSwitch.setOnCheckedChangeListener { _, isChecked ->
+                dataCenter.readerMode = isChecked
+                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+            }
 
-    private fun slideMenuAdapterSetup() {
-        @Suppress("UNCHECKED_CAST")
-        val adapter = DrawerAdapter(
-            listOf(
-                createItemFor(READER_MODE).setSwitchOn(true),
-                createItemFor(NIGHT_MODE).setSwitchOn(true),
-                createItemFor(JAVA_SCRIPT).setSwitchOn(true),
-                createItemFor(FONTS),
-                createItemFor(FONT_SIZE),
-                createItemFor(OPEN_IN_BROWSER),
-                createItemFor(MORE_SETTINGS),
-                createItemFor(READ_ALOUD)
-
-            ) as List<DrawerItem<DrawerAdapter.ViewHolder>>
-        )
-        adapter.setListener(this)
-
-        bindingList.list.isNestedScrollingEnabled = false
-        bindingList.list.layoutManager = LinearLayoutManager(this)
-        bindingList.list.adapter = adapter
-    }
-
-    private fun createItemFor(position: Int): DrawerItem<SimpleItem.ViewHolder> {
-        return SimpleItem(ReaderMenu(screenIcons[position]!!, screenTitles[position]), this)
-    }
-
-    private fun toggleSlideRootNab() {
-        if (slidingRootNav.isMenuOpened)
-            slidingRootNav.closeMenu()
-        else
-            slidingRootNav.openMenu()
-    }
-
-    private fun loadScreenTitles(): Array<String> {
-        return resources.getStringArray(R.array.reader_mode_menu_titles_list)
-    }
-
-    private fun loadScreenIcons(): Array<Drawable?> {
-        val ta = resources.obtainTypedArray(R.array.reader_mode_menu_icons_list)
-        val icons = arrayOfNulls<Drawable>(ta.length())
-        for (i in 0 until ta.length()) {
-            val id = ta.getResourceId(i, 0)
-            if (id != 0) {
-                icons[i] = ContextCompat.getDrawable(this, id)
+            val jsSwitch = menu.findItem(R.id.title_java_script).actionView as CompoundButton
+            jsSwitch.isChecked = !dataCenter.javascriptDisabled
+            jsSwitch.setOnCheckedChangeListener { _, isChecked ->
+                dataCenter.javascriptDisabled = !isChecked
+                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCRIPT))
             }
         }
-        ta.recycle()
-        return icons
     }
 
     private fun createTypeface(path: String = dataCenter.fontPath): Typeface {
@@ -351,17 +299,16 @@ class ReaderDBPagerActivity :
     /**
      *     Handle Slide Menu Nav Options
      */
-    override fun onItemSelected(position: Int) {
-        slidingRootNav.closeMenu()
-        when (position) {
-            FONTS -> changeFontStyle()
-            FONT_SIZE -> changeTextSize()
-            OPEN_IN_BROWSER -> inBrowser()
-            MORE_SETTINGS -> startReaderSettingsActivity()
-            READ_ALOUD -> {
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.title_fonts -> changeFontStyle()
+            R.id.title_fonts_size -> changeTextSize()
+            R.id.title_open_in_browser -> inBrowser()
+            R.id.title_more_settings -> readerSettingsActivityContract.launch(intentOf<ReaderSettingsActivity>())
+            R.id.title_read_aloud -> {
                 if (dataCenter.readerMode) {
                     val webPageDBFragment = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as? WebPageDBFragment)
-                    val audioText = webPageDBFragment?.doc?.getFormattedText() ?: return
+                    val audioText = webPageDBFragment?.doc?.getFormattedText() ?: return true
                     val title = webPageDBFragment.doc?.title() ?: ""
                     val chapterIndex = (if (dataCenter.japSwipe) webPages.reversed() else webPages).indexOf(webPages[binding.viewPager.currentItem])
 
@@ -373,68 +320,7 @@ class ReaderDBPagerActivity :
                 }
             }
         }
-    }
-
-    /**
-     *     For Reader Mode & Night Mode toggle
-     */
-    override fun bind(item: ReaderMenu, itemView: View, position: Int, simpleItem: SimpleItem) {
-        if (itemView.visibility == GONE) {
-            itemView.visibility = VISIBLE
-            itemView.layoutParams = RecyclerView.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
-        }
-
-        val itemBinding = ItemOptionBinding.bind(itemView)
-
-        itemBinding.title.text = item.title
-        itemBinding.icon.setImageDrawable(item.icon)
-        itemBinding.itemSwitch.setOnCheckedChangeListener(null)
-
-        if (simpleItem.isSwitchOn() && position == READER_MODE) {
-            itemBinding.itemSwitch.visibility = VISIBLE
-            itemBinding.itemSwitch.isChecked = dataCenter.readerMode
-        } else if (simpleItem.isSwitchOn() && position == NIGHT_MODE) {
-            if (!dataCenter.readerMode) {
-                itemView.visibility = GONE
-                itemView.layoutParams = RecyclerView.LayoutParams(0, 0)
-            } else {
-                itemBinding.itemSwitch.visibility = VISIBLE
-                itemBinding.itemSwitch.isChecked = dataCenter.isDarkTheme
-            }
-        } else if (simpleItem.isSwitchOn() && position == JAVA_SCRIPT) {
-            if (dataCenter.readerMode) {
-                itemView.visibility = GONE
-                itemView.layoutParams = RecyclerView.LayoutParams(0, 0)
-            } else {
-                itemBinding.itemSwitch.visibility = VISIBLE
-                itemBinding.itemSwitch.isChecked = !dataCenter.javascriptDisabled
-            }
-        } else
-            itemBinding.itemSwitch.visibility = GONE
-
-        itemBinding.itemSwitch.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
-            when (position) {
-                READER_MODE -> {
-                    dataCenter.readerMode = isChecked
-                    if (isChecked && !dataCenter.javascriptDisabled)
-                        dataCenter.javascriptDisabled = true
-                    bindingList.list.adapter?.notifyItemRangeChanged(NIGHT_MODE, 2)
-                    EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
-                }
-
-                NIGHT_MODE -> {
-                    dataCenter.isDarkTheme = isChecked
-                    EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
-                }
-
-                JAVA_SCRIPT -> {
-                    dataCenter.javascriptDisabled = !isChecked
-                    if (!dataCenter.javascriptDisabled && dataCenter.readerMode)
-                        dataCenter.readerMode = false
-                    EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCRIPT))
-                }
-            }
-        }
+        return true
     }
 
     @SuppressLint("CheckResult")
@@ -517,42 +403,45 @@ class ReaderDBPagerActivity :
             .putExtra(Intent.EXTRA_MIME_TYPES, FONT_MIME_TYPES)
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-//                        .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-        startActivityForResult(intent, Constants.ADD_FONT_REQUEST_CODE)
+        addFontActivityContract.launch(intent)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
+    private val iwvActivityContract = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        Handler(Looper.getMainLooper()).post {
+            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+        }
+    }
 
-        when (requestCode) {
-            Constants.IWV_ACT_REQ_CODE -> {
-                Handler(Looper.getMainLooper()).post {
-                    EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
-                }
-            }
+    private val addFontActivityContract = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        try {
+            // Check for different conditions / edge-cases.
+            if (it.resultCode != Activity.RESULT_OK) return@registerForActivityResult
+            val uri = it.data?.data ?: return@registerForActivityResult
+            val document = DocumentFile.fromSingleUri(baseContext, uri) ?: return@registerForActivityResult
+            if (!document.isFile) return@registerForActivityResult
 
-            Constants.ADD_FONT_REQUEST_CODE -> try {
-                // Check for different conditions / edge-cases.
-                if (resultCode != Activity.RESULT_OK) return
-                val uri = data?.data ?: return
-                val document = DocumentFile.fromSingleUri(baseContext, uri) ?: return
-                if (!document.isFile) return
+            // After the checks are complete, we copy the font for the reader to use
+            val fontsDir = File(getExternalFilesDir(null) ?: filesDir, "Fonts/")
+            if (!fontsDir.exists()) fontsDir.mkdir()
+            val file = File(fontsDir, document.name ?: "RandomFontName${Random().nextInt()}")
+            Utils.copyFile(contentResolver, document, file)
+            AVAILABLE_FONTS[file.nameWithoutExtension.replace('_', ' ')] = file.path
+            dataCenter.fontPath = file.path
+            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+        } catch (e: Exception) {
+            Logs.error(TAG, "Unable to copy font", e)
+        }
+    }
 
-                // After the checks are complete, we copy the font for the reader to use
-                val fontsDir = File(getExternalFilesDir(null) ?: filesDir, "Fonts/")
-                if (!fontsDir.exists()) fontsDir.mkdir()
-                val file = File(fontsDir, document.name ?: "RandomFontName${Random().nextInt()}")
-                Utils.copyFile(contentResolver, document, file)
-                AVAILABLE_FONTS[file.nameWithoutExtension.replace('_', ' ')] = file.path
-                dataCenter.fontPath = file.path
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
-            } catch (e: Exception) {
-                Logs.error(TAG, "Unable to copy font", e)
-            }
-
-            Constants.READER_SETTINGS_ACT_REQ_CODE -> {
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
-            }
+    private val readerSettingsActivityContract = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        Handler(Looper.getMainLooper()).post {
+            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
         }
     }
 
@@ -560,6 +449,8 @@ class ReaderDBPagerActivity :
         super.onResume()
         updateNovelLastRead(novel)
     }
+
+
 
 
 }
