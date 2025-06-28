@@ -60,7 +60,7 @@ import io.github.gmathi.novellibrary.util.system.startTTSService
 import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import io.github.gmathi.novellibrary.util.system.updateNovelLastRead
 import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
-import org.greenrobot.eventbus.EventBus
+import io.github.gmathi.novellibrary.util.event.ModernEventBus
 import java.io.File
 import java.util.Random
 
@@ -198,11 +198,20 @@ class ReaderDBPagerActivity :
         MaterialDialog(this).show {
             title(R.string.text_size)
             customView(R.layout.dialog_slider, scrollable = true)
-            getCustomView().findViewById<TwoWaySeekBar>(R.id.seekBar)?.setOnSeekBarChangedListener { _, progress ->
-                dataCenter.textSize = progress.toInt()
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
-            }
-            getCustomView().findViewById<TwoWaySeekBar>(R.id.seekBar)?.setProgress(dataCenter.textSize.toDouble())
+            val customView = getCustomView()
+            val seekBar = customView.findViewById<TwoWaySeekBar>(R.id.seekBar)
+            seekBar.max = 100
+            seekBar.progress = dataCenter.textSize
+            seekBar.setOnSeekBarChangeListener(object : TwoWaySeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: TwoWaySeekBar?, progress: Int, fromUser: Boolean) {
+                    dataCenter.textSize = progress
+                    ModernEventBus.postAsync(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
+                }
+
+                override fun onStartTrackingTouch(seekBar: TwoWaySeekBar?) {}
+                override fun onStopTrackingTouch(seekBar: TwoWaySeekBar?) {}
+            })
+            positiveButton(R.string.okay)
         }
     }
 
@@ -277,14 +286,14 @@ class ReaderDBPagerActivity :
             readerSwitch.isChecked = dataCenter.readerMode
             readerSwitch.setOnCheckedChangeListener { _, isChecked ->
                 dataCenter.readerMode = isChecked
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+                ModernEventBus.postAsync(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
             }
 
             val jsSwitch = menu.findItem(R.id.title_java_script).actionView as CompoundButton
             jsSwitch.isChecked = !dataCenter.javascriptDisabled
             jsSwitch.setOnCheckedChangeListener { _, isChecked ->
                 dataCenter.javascriptDisabled = !isChecked
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCRIPT))
+                ModernEventBus.postAsync(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCRIPT))
             }
         }
     }
@@ -370,8 +379,7 @@ class ReaderDBPagerActivity :
             }
             positiveButton(R.string.okay) { _ ->
                 dataCenter.fontPath = AVAILABLE_FONTS[selectedFont] ?: ""
-                EventBus.getDefault()
-                    .post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+                ModernEventBus.postAsync(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
             }
             negativeButton(R.string.cancel)
         }
@@ -410,7 +418,7 @@ class ReaderDBPagerActivity :
         ActivityResultContracts.StartActivityForResult()
     ) {
         Handler(Looper.getMainLooper()).post {
-            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+            ModernEventBus.postAsync(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
         }
     }
 
@@ -431,7 +439,7 @@ class ReaderDBPagerActivity :
             Utils.copyFile(contentResolver, document, file)
             AVAILABLE_FONTS[file.nameWithoutExtension.replace('_', ' ')] = file.path
             dataCenter.fontPath = file.path
-            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+            ModernEventBus.postAsync(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
         } catch (e: Exception) {
             Logs.error(TAG, "Unable to copy font", e)
         }
@@ -441,7 +449,7 @@ class ReaderDBPagerActivity :
         ActivityResultContracts.StartActivityForResult()
     ) {
         Handler(Looper.getMainLooper()).post {
-            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
+            ModernEventBus.postAsync(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
         }
     }
 

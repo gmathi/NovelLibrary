@@ -30,9 +30,9 @@ import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.util.view.SimpleAnimationListener
 import io.github.gmathi.novellibrary.util.view.SuggestionsBuilder
 import io.github.gmathi.novellibrary.util.view.setDefaults
+import io.github.gmathi.novellibrary.util.event.ModernEventBus
 import org.cryse.widget.persistentsearch.PersistentSearchView
 import org.cryse.widget.persistentsearch.SearchItem
-import org.greenrobot.eventbus.EventBus
 
 class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
@@ -212,7 +212,7 @@ class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
                 val novelInAdapter = adapter.items[position]
                 dbHelper.updateNovelSectionId(novelInAdapter.id, id)
-                EventBus.getDefault().post(NovelSectionEvent(id))
+                ModernEventBus.postAsync(NovelSectionEvent(id))
                 NovelSync.getInstance(novelInAdapter)?.applyAsync(lifecycleScope) {
                     if (dataCenter.getSyncAddNovels(it.host)) it.updateNovel(
                         novelInAdapter,

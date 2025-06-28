@@ -15,11 +15,6 @@
     "link": "https://github.com/wasabeef/recyclerview-animators"
   },
   {
-    "name": "EventBus v3.1.1",
-    "description": "Android optimized event bus that simplifies communication between Activities, Fragments, Threads, Services, etc. Less code, better quality",
-    "link": "https://github.com/greenrobot/EventBus"
-  },
-  {
     "name": "SmartTabLayout v2.0.0",
     "description": "A custom ViewPager title strip which gives continuous feedback to the user when scrolling.",
     "link": "https://github.com/ogaclejapan/SmartTabLayout"

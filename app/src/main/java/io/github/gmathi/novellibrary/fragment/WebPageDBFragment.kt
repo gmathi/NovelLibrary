@@ -33,13 +33,11 @@ import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.getLinkedPagesCompat
 import io.github.gmathi.novellibrary.util.view.extensions.setDefaultSettings
+import io.github.gmathi.novellibrary.util.event.ModernEventBus
 import kotlinx.coroutines.*
 import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
@@ -80,14 +78,13 @@ class WebPageDBFragment : BaseFragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        if (savedInstanceState == null)
-            EventBus.getDefault().register(this)
 
         //Verify activity is still loaded in
         val activity = activity as? ReaderDBPagerActivity ?: return
 
         setOnScrollVisibleButtons()
         setWebView()
+        setupEventSubscriptions()
 
         // Get data from args or savedInstance in case of device rotation
         @Suppress("UNCHECKED_CAST")
@@ -111,6 +108,33 @@ class WebPageDBFragment : BaseFragment() {
         loadData()
         binding.swipeRefreshLayout.setOnRefreshListener { loadData(true) }
 
+    }
+
+    private fun setupEventSubscriptions() {
+        // Subscribe to reader settings events
+        subscribeToReaderSettingsEvents { event ->
+            when (event.setting) {
+                ReaderSettingsEvent.NIGHT_MODE -> {
+                    applyTheme()
+                }
+                ReaderSettingsEvent.READER_MODE -> {
+                    binding.readerWebView.loadUrl("about:blank")
+                    binding.readerWebView.clearHistory()
+                    binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
+                    loadData()
+                }
+                ReaderSettingsEvent.TEXT_SIZE -> {
+                    changeTextSize()
+                }
+                ReaderSettingsEvent.JAVA_SCRIPT -> {
+                    binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
+                    loadData()
+                }
+                ReaderSettingsEvent.FONT -> {
+                    loadData()
+                }
+            }
+        }
     }
 
     @Suppress("DEPRECATION")
@@ -487,31 +511,6 @@ class WebPageDBFragment : BaseFragment() {
         return readerActivity.checkUrl(url)
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onReaderSettingsChanged(event: ReaderSettingsEvent) {
-        when (event.setting) {
-            ReaderSettingsEvent.NIGHT_MODE -> {
-                applyTheme()
-            }
-            ReaderSettingsEvent.READER_MODE -> {
-                binding.readerWebView.loadUrl("about:blank")
-                binding.readerWebView.clearHistory()
-                binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
-                loadData()
-            }
-            ReaderSettingsEvent.TEXT_SIZE -> {
-                changeTextSize()
-            }
-            ReaderSettingsEvent.JAVA_SCRIPT -> {
-                binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
-                loadData()
-            }
-            ReaderSettingsEvent.FONT -> {
-                loadData()
-            }
-        }
-    }
-
     override fun onPause() {
         super.onPause()
         if (this::webPageSettings.isInitialized)
@@ -522,7 +521,6 @@ class WebPageDBFragment : BaseFragment() {
     }
 
     override fun onDestroy() {
-        EventBus.getDefault().unregister(this)
         if (job != null && job!!.isActive) job!!.cancel()
         super.onDestroy()
     }
