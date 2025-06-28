@@ -18,11 +18,13 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.ALL_TRANSLATOR_SOURCES
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.system.DataAccessor
-import io.github.gmathi.novellibrary.util.event.ModernEventBus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import uy.kohesive.injekt.injectLazy
 import java.lang.ref.WeakReference
 
@@ -50,296 +52,243 @@ class ChaptersFragmentViewModel(private val state: SavedStateHandle) : ViewModel
     }
 
     override lateinit var firebaseAnalytics: FirebaseAnalytics
-    override lateinit var dataCenter: DataCenter
-    override lateinit var sourceManager: SourceManager
-    override lateinit var networkHelper: NetworkHelper
-    override lateinit var dbHelper: io.github.gmathi.novellibrary.database.DBHelper
 
-    private val chaptersRepository: ChaptersRepository by injectLazy()
+    override val dataCenter: DataCenter by injectLazy()
+    override val sourceManager: SourceManager by injectLazy()
+    override val networkHelper: NetworkHelper by injectLazy()
 
-    // UI State
-    private val _uiState = MutableLiveData<ChaptersFragmentUiState>()
-    val uiState: LiveData<ChaptersFragmentUiState> = _uiState
+    // Repository for data operations
+    private val repository: ChaptersRepository by injectLazy()
 
-    // Chapters data
+    private lateinit var _ctx: WeakReference<Context>
+    override fun getContext(): Context? = _ctx.get()
+
+    // Reference to parent ViewModel
+    private var parentViewModel: ChaptersViewModel? = null
+
+    // LiveData for UI state management
+    private val _uiState = MutableLiveData<ChaptersUiState>()
+    val uiState: LiveData<ChaptersUiState> = _uiState
+
     private val _chapters = MutableLiveData<List<WebPage>>()
     val chapters: LiveData<List<WebPage>> = _chapters
 
-    // Chapter settings
     private val _chapterSettings = MutableLiveData<List<WebPageSettings>>()
     val chapterSettings: LiveData<List<WebPageSettings>> = _chapterSettings
 
-    // Action mode state
-    private val _actionModeState = MutableLiveData<ActionModeState>()
-    val actionModeState: LiveData<ActionModeState> = _actionModeState
-
-    // Selection state
     private val _selectedChapters = MutableLiveData<Set<WebPage>>()
     val selectedChapters: LiveData<Set<WebPage>> = _selectedChapters
 
-    init {
-        setupEventSubscriptions()
-    }
+    private val _scrollToPosition = MutableLiveData<Int>()
+    val scrollToPosition: LiveData<Int> = _scrollToPosition
 
-    private fun setupEventSubscriptions() {
-        // Subscribe to chapter action mode events
-        subscribeToChapterActionModeEvents { event ->
-            Logs.info(TAG, "Received ChapterActionModeEvent: ${event.eventType} for source: ${event.translatorSourceName}")
-            
-            when (event.eventType) {
-                EventType.UPDATE -> {
-                    // Check if this event is for our current source
-                    if (event.translatorSourceName == translatorSourceName || event.translatorSourceName == ALL_TRANSLATOR_SOURCES) {
-                        // Refresh chapters data
-                        loadChapters()
-                    }
-                }
-                EventType.COMPLETE -> {
-                    // Action mode completed, clear selection
-                    clearSelection()
-                }
-                else -> {
-                    // Handle other event types if needed
-                }
-            }
-        }
-    }
+    private val _actionModeProgress = MutableLiveData<String>()
+    val actionModeProgress: LiveData<String> = _actionModeProgress
 
-    /**
-     * Initialize the ViewModel with novel and translator source
-     */
-    fun init(novel: Novel, translatorSourceName: String, context: Context) {
+    // Internal state
+    private var lastKnownRecyclerState: android.os.Parcelable? = null
+    private var selectedChaptersSet = mutableSetOf<WebPage>()
+
+    fun init(novel: Novel, translatorSourceName: String, lifecycleOwner: LifecycleOwner, context: Context, parentViewModel: ChaptersViewModel? = null) {
         setNovel(novel)
         setTranslatorSourceName(translatorSourceName)
-        
-        // Initialize dependencies
+        this._ctx = WeakReference(context)
+        this.parentViewModel = parentViewModel
+        lifecycleOwner.lifecycle.addObserver(this)
         firebaseAnalytics = Firebase.analytics
-        dataCenter = DataCenter(context)
-        sourceManager = SourceManager(context)
-        networkHelper = NetworkHelper(context)
-        dbHelper = io.github.gmathi.novellibrary.database.DBHelper(context)
         
-        // Load initial data
+        // Register for EventBus
+        EventBus.getDefault().register(this)
+        
+        // Initialize UI state
+        _uiState.value = ChaptersUiState.Loading
         loadChapters()
     }
 
-    /**
-     * Load chapters for the current novel and translator source
-     */
-    fun loadChapters() {
+    fun loadChapters(forceUpdate: Boolean = false) {
         viewModelScope.launch {
             try {
-                _uiState.value = ChaptersFragmentUiState.Loading
+                _uiState.value = ChaptersUiState.Loading
                 
-                val chapters = if (translatorSourceName == ALL_TRANSLATOR_SOURCES) {
-                    chaptersRepository.getChaptersForNovel(novel.id)
-                } else {
-                    chaptersRepository.getChaptersForNovelAndSource(novel.id, translatorSourceName)
+                // Get chapters from parent ViewModel or database
+                val chaptersList = getChaptersFromParent() ?: getChaptersFromDatabase()
+                
+                if (chaptersList.isNullOrEmpty()) {
+                    if (!repository.isNetworkConnected()) {
+                        _uiState.value = ChaptersUiState.NoInternet
+                        return@launch
+                    }
+                    _uiState.value = ChaptersUiState.Empty
+                    return@launch
                 }
-                
-                val settings = chaptersRepository.getChapterSettingsForNovel(novel.id)
-                
-                _chapters.value = chapters
-                _chapterSettings.value = settings
-                
-                if (chapters.isEmpty()) {
-                    _uiState.value = ChaptersFragmentUiState.Empty
+
+                // Filter chapters by translator source if needed
+                val filteredChapters = if (translatorSourceName == ALL_TRANSLATOR_SOURCES) {
+                    chaptersList
                 } else {
-                    _uiState.value = ChaptersFragmentUiState.Success
+                    chaptersList.filter { it.translatorSourceName == translatorSourceName }
                 }
-                
+
+                // Apply chapter order
+                val orderedChapters = if (novel.metadata["chapterOrder"] == "des") {
+                    filteredChapters.reversed()
+                } else {
+                    filteredChapters
+                }
+
+                _chapters.value = orderedChapters
+                _uiState.value = ChaptersUiState.Success
+
+                // Auto-scroll logic
+                handleAutoScroll()
+
             } catch (e: Exception) {
                 Logs.error(TAG, "Error loading chapters", e)
-                _uiState.value = ChaptersFragmentUiState.Error(e.message ?: "Failed to load chapters")
+                _uiState.value = ChaptersUiState.Error(e.message ?: "Unknown error occurred")
             }
         }
     }
 
-    /**
-     * Refresh chapters data
-     */
-    fun refreshChapters() {
+    private suspend fun getChaptersFromParent(): List<WebPage>? = withContext(Dispatchers.IO) {
+        // Get chapters from parent ViewModel if available
+        parentViewModel?.chapters?.let { chapters ->
+            parentViewModel?.chapterSettings?.let { settings ->
+                _chapterSettings.postValue(settings)
+            }
+            return@withContext chapters
+        }
+        return@withContext null
+    }
+
+    private suspend fun getChaptersFromDatabase(): List<WebPage> = withContext(Dispatchers.IO) {
+        if (novel.id != -1L) {
+            val (chapters, settings) = repository.getChaptersFromDatabase(novel.id)
+            _chapterSettings.postValue(settings)
+            return@withContext chapters
+        }
+        return@withContext emptyList()
+    }
+
+    private fun handleAutoScroll() {
+        if (novel.currentChapterUrl != null) {
+            val chaptersList = _chapters.value ?: return
+            val index = chaptersList.indexOfFirst { it.url == novel.currentChapterUrl }
+            if (index != -1) {
+                _scrollToPosition.value = index
+            }
+        }
+    }
+
+    fun scrollToFirstUnread() {
+        val chaptersList = _chapters.value ?: return
+        val settingsList = _chapterSettings.value ?: return
+        
+        if (novel.currentChapterUrl != null) {
+            val index = if (novel.metadata["chapterOrder"] == "des") {
+                chaptersList.indexOfLast { chapter -> 
+                    settingsList.firstOrNull { it.url == chapter.url && !it.isRead } != null 
+                }
+            } else {
+                chaptersList.indexOfFirst { chapter -> 
+                    settingsList.firstOrNull { it.url == chapter.url && !it.isRead } != null 
+                }
+            }
+            if (index != -1) {
+                _scrollToPosition.value = index
+            }
+        }
+    }
+
+    fun onChapterClicked(webPage: WebPage) {
+        // Handle chapter click - this would typically navigate to reader
+        // The actual navigation logic should be handled by the Fragment
+    }
+
+    fun onChapterLongClicked(webPage: WebPage): Boolean {
+        toggleChapterSelection(webPage)
+        return true
+    }
+
+    fun toggleChapterSelection(webPage: WebPage) {
+        if (selectedChaptersSet.contains(webPage)) {
+            selectedChaptersSet.remove(webPage)
+        } else {
+            selectedChaptersSet.add(webPage)
+        }
+        _selectedChapters.value = selectedChaptersSet.toSet()
+    }
+
+    fun clearSelection() {
+        selectedChaptersSet.clear()
+        _selectedChapters.value = emptySet()
+    }
+
+    fun isChapterSelected(webPage: WebPage): Boolean {
+        return selectedChaptersSet.contains(webPage)
+    }
+
+    fun getChapterSettings(webPage: WebPage): WebPageSettings? {
+        return _chapterSettings.value?.firstOrNull { it.url == webPage.url }
+    }
+
+    fun saveRecyclerState(state: android.os.Parcelable?) {
+        lastKnownRecyclerState = state
+    }
+
+    fun getRecyclerState(): android.os.Parcelable? {
+        return lastKnownRecyclerState
+    }
+
+    fun updateParentViewModel(parentViewModel: ChaptersViewModel) {
+        this.parentViewModel = parentViewModel
+        // Reload chapters when parent ViewModel is updated
         loadChapters()
     }
 
-    /**
-     * Toggle chapter selection
-     */
-    fun toggleChapterSelection(webPage: WebPage) {
-        val currentSelection = _selectedChapters.value?.toMutableSet() ?: mutableSetOf()
-        
-        if (currentSelection.contains(webPage)) {
-            currentSelection.remove(webPage)
-        } else {
-            currentSelection.add(webPage)
-        }
-        
-        _selectedChapters.value = currentSelection
-        updateActionModeState()
-    }
-
-    /**
-     * Select all chapters
-     */
-    fun selectAllChapters() {
-        val allChapters = _chapters.value ?: return
-        _selectedChapters.value = allChapters.toSet()
-        updateActionModeState()
-    }
-
-    /**
-     * Clear chapter selection
-     */
-    fun clearSelection() {
-        _selectedChapters.value = emptySet()
-        updateActionModeState()
-    }
-
-    /**
-     * Update action mode state based on selection
-     */
-    private fun updateActionModeState() {
-        val selectedCount = _selectedChapters.value?.size ?: 0
-        
-        _actionModeState.value = if (selectedCount > 0) {
-            ActionModeState.Active(selectedCount)
-        } else {
-            ActionModeState.Inactive
-        }
-    }
-
-    /**
-     * Mark chapters as read
-     */
-    fun markChaptersAsRead(webPages: List<WebPage>, markRead: Boolean) {
-        viewModelScope.launch {
-            try {
-                _uiState.value = ChaptersFragmentUiState.Loading
-                
-                chaptersRepository.markChaptersAsRead(webPages, markRead)
-                
-                // Refresh data
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onChapterActionModeEvent(event: ChapterActionModeEvent) {
+        when (event.eventType) {
+            EventType.COMPLETE -> {
                 loadChapters()
-                
-                _uiState.value = ChaptersFragmentUiState.Success
-                
-            } catch (e: Exception) {
-                Logs.error(TAG, "Error marking chapters as read", e)
-                _uiState.value = ChaptersFragmentUiState.Error(e.message ?: "Failed to update chapters")
+            }
+            EventType.UPDATE -> {
+                if (event.translatorSourceName == translatorSourceName || translatorSourceName == ALL_TRANSLATOR_SOURCES) {
+                    loadChapters()
+                }
+            }
+            EventType.DOWNLOAD -> {
+                // Update specific chapter if needed
+                val chaptersList = _chapters.value?.toMutableList() ?: return
+                val index = chaptersList.indexOfFirst { it.url == event.url }
+                if (index != -1) {
+                    // Trigger item update
+                    _chapters.value = chaptersList
+                }
             }
         }
     }
 
-    /**
-     * Mark chapters as favorite
-     */
-    fun markChaptersAsFavorite(webPages: List<WebPage>, markFavorite: Boolean) {
-        viewModelScope.launch {
-            try {
-                _uiState.value = ChaptersFragmentUiState.Loading
-                
-                chaptersRepository.markChaptersAsFavorite(webPages, markFavorite)
-                
-                // Refresh data
-                loadChapters()
-                
-                _uiState.value = ChaptersFragmentUiState.Success
-                
-            } catch (e: Exception) {
-                Logs.error(TAG, "Error marking chapters as favorite", e)
-                _uiState.value = ChaptersFragmentUiState.Error(e.message ?: "Failed to update chapters")
-            }
-        }
+    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+    fun onPause() {
+        // Save any necessary state
     }
 
-    /**
-     * Add chapters to download queue
-     */
-    fun addChaptersToDownloadQueue(webPages: List<WebPage>) {
-        viewModelScope.launch {
-            try {
-                _uiState.value = ChaptersFragmentUiState.Loading
-                
-                chaptersRepository.addChaptersToDownloadQueue(webPages, novel)
-                
-                // Clear selection after adding to download queue
-                clearSelection()
-                
-                _uiState.value = ChaptersFragmentUiState.Success
-                
-            } catch (e: Exception) {
-                Logs.error(TAG, "Error adding chapters to download queue", e)
-                _uiState.value = ChaptersFragmentUiState.Error(e.message ?: "Failed to add chapters to download queue")
-            }
-        }
-    }
-
-    /**
-     * Delete downloaded chapters
-     */
-    fun deleteDownloadedChapters(webPages: List<WebPage>) {
-        viewModelScope.launch {
-            try {
-                _uiState.value = ChaptersFragmentUiState.Loading
-                
-                chaptersRepository.deleteDownloadedChapters(webPages)
-                
-                // Refresh data
-                loadChapters()
-                
-                _uiState.value = ChaptersFragmentUiState.Success
-                
-            } catch (e: Exception) {
-                Logs.error(TAG, "Error deleting downloaded chapters", e)
-                _uiState.value = ChaptersFragmentUiState.Error(e.message ?: "Failed to delete chapters")
-            }
-        }
-    }
-
-    /**
-     * Get chapter settings for a specific chapter
-     */
-    fun getChapterSettings(webPageUrl: String): WebPageSettings? {
-        return _chapterSettings.value?.find { it.url == webPageUrl }
-    }
-
-    /**
-     * Check if a chapter is selected
-     */
-    fun isChapterSelected(webPage: WebPage): Boolean {
-        return _selectedChapters.value?.contains(webPage) ?: false
-    }
-
-    /**
-     * Get selected chapters count
-     */
-    fun getSelectedChaptersCount(): Int {
-        return _selectedChapters.value?.size ?: 0
-    }
-
-    /**
-     * Get selected chapters
-     */
-    fun getSelectedChapters(): List<WebPage> {
-        return _selectedChapters.value?.toList() ?: emptyList()
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+    fun onResume() {
+        loadChapters()
     }
 
     override fun onCleared() {
         super.onCleared()
-        // Cleanup if needed
+        EventBus.getDefault().unregister(this)
     }
 
-    // UI State sealed classes
-    sealed class ChaptersFragmentUiState {
-        object Idle : ChaptersFragmentUiState()
-        object Loading : ChaptersFragmentUiState()
-        object Success : ChaptersFragmentUiState()
-        object Empty : ChaptersFragmentUiState()
-        data class Error(val message: String) : ChaptersFragmentUiState()
-    }
-
-    sealed class ActionModeState {
-        object Inactive : ActionModeState()
-        data class Active(val selectedCount: Int) : ActionModeState()
+    // UI State sealed class
+    sealed class ChaptersUiState {
+        object Loading : ChaptersUiState()
+        object Success : ChaptersUiState()
+        object Empty : ChaptersUiState()
+        object NoInternet : ChaptersUiState()
+        data class Error(val message: String) : ChaptersUiState()
     }
 } 
