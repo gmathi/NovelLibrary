@@ -23,9 +23,11 @@ fun <T> RecyclerView.setDefaults(adapter: GenericAdapter<T>): RecyclerView {
     return this
 }
 
-fun RecyclerView.setDefaultsNoAnimation(adapter: RecyclerView.Adapter<*>): RecyclerView {
-    this.setHasFixedSize(true)
-    this.layoutManager = SnappingLinearLayoutManager(context)
-    this.adapter = adapter
+fun RecyclerView.setDefaultsNoAnimation(adapter: RecyclerView.Adapter<*>?): RecyclerView {
+    if (adapter != null) {
+        this.setHasFixedSize(true)
+        this.layoutManager = SnappingLinearLayoutManager(context)
+        this.adapter = adapter
+    }
     return this
 }

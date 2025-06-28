@@ -1,6 +1,21 @@
 package io.github.gmathi.novellibrary.data.repository
 
 import io.github.gmathi.novellibrary.database.DBHelper
+import io.github.gmathi.novellibrary.database.getAllWebPages
+import io.github.gmathi.novellibrary.database.getAllWebPageSettings
+import io.github.gmathi.novellibrary.database.deleteWebPages
+import io.github.gmathi.novellibrary.database.deleteWebPage
+import io.github.gmathi.novellibrary.database.updateChaptersCount
+import io.github.gmathi.novellibrary.database.updateNovelMetaData
+import io.github.gmathi.novellibrary.database.createWebPage
+import io.github.gmathi.novellibrary.database.createWebPageSettings
+import io.github.gmathi.novellibrary.database.updateNewReleasesCount
+import io.github.gmathi.novellibrary.database.getNovel
+import io.github.gmathi.novellibrary.database.updateWebPageSettingsReadStatus
+import io.github.gmathi.novellibrary.database.updateWebPageSettings
+import io.github.gmathi.novellibrary.database.deleteWebPageSettings
+import io.github.gmathi.novellibrary.database.getWebPageSettings
+import io.github.gmathi.novellibrary.database.runTransaction
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
@@ -49,7 +64,7 @@ class ChaptersRepository {
         chapters: List<WebPage>, 
         forceUpdate: Boolean = false,
         progressCallback: ((String) -> Unit)? = null
-    ) = withContext(Dispatchers.IO) {
+    ): Boolean = withContext(Dispatchers.IO) {
         try {
             progressCallback?.invoke("Adding/Updating Cache…")
 
@@ -74,9 +89,10 @@ class ChaptersRepository {
                     dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id), writableDatabase)
                 }
             }
+            true
         } catch (e: Exception) {
             Logs.error(TAG, "Error saving chapters to database", e)
-            throw e
+            false
         }
     }
 

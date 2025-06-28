@@ -6,6 +6,7 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import io.github.gmathi.novellibrary.data.repository.ChaptersRepository
+import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
@@ -56,6 +57,7 @@ class ChaptersFragmentViewModel(private val state: SavedStateHandle) : ViewModel
     override val dataCenter: DataCenter by injectLazy()
     override val sourceManager: SourceManager by injectLazy()
     override val networkHelper: NetworkHelper by injectLazy()
+    override val dbHelper: DBHelper by injectLazy()
 
     // Repository for data operations
     private val repository: ChaptersRepository by injectLazy()
@@ -264,6 +266,22 @@ class ChaptersFragmentViewModel(private val state: SavedStateHandle) : ViewModel
                     // Trigger item update
                     _chapters.value = chaptersList
                 }
+            }
+            EventType.DELETE -> {
+                // Handle delete event
+                loadChapters()
+            }
+            EventType.INSERT -> {
+                // Handle insert event
+                loadChapters()
+            }
+            EventType.PAUSED -> {
+                // Handle paused event
+                // No specific action needed for paused downloads
+            }
+            EventType.RUNNING -> {
+                // Handle running event
+                // No specific action needed for running downloads
             }
         }
     }
