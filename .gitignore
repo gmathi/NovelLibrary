@@ -41,6 +41,12 @@ captures/
 .idea/libraries
 .idea/codeStyles
 
+# Android Studio IDE files
+.idea/*
+
+# Kotlin cache files
+.kotlin/*
+
 # Keystore files
 *.jks
 *.keystore
