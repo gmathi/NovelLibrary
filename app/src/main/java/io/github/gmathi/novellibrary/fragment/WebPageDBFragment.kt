@@ -25,6 +25,7 @@ import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.other.LinkedPage
+import io.github.gmathi.novellibrary.model.other.ModernEventBus
 import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
@@ -37,9 +38,6 @@ import kotlinx.coroutines.*
 import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
@@ -80,8 +78,6 @@ class WebPageDBFragment : BaseFragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        if (savedInstanceState == null)
-            EventBus.getDefault().register(this)
 
         //Verify activity is still loaded in
         val activity = activity as? ReaderDBPagerActivity ?: return
@@ -487,27 +483,31 @@ class WebPageDBFragment : BaseFragment() {
         return readerActivity.checkUrl(url)
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onReaderSettingsChanged(event: ReaderSettingsEvent) {
-        when (event.setting) {
-            ReaderSettingsEvent.NIGHT_MODE -> {
-                applyTheme()
-            }
-            ReaderSettingsEvent.READER_MODE -> {
-                binding.readerWebView.loadUrl("about:blank")
-                binding.readerWebView.clearHistory()
-                binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
-                loadData()
-            }
-            ReaderSettingsEvent.TEXT_SIZE -> {
-                changeTextSize()
-            }
-            ReaderSettingsEvent.JAVA_SCRIPT -> {
-                binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
-                loadData()
-            }
-            ReaderSettingsEvent.FONT -> {
-                loadData()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.lifecycleScope.launch {
+            ModernEventBus.readerSettingsEvents.collect { event ->
+                when (event.setting) {
+                    ReaderSettingsEvent.NIGHT_MODE -> {
+                        applyTheme()
+                    }
+                    ReaderSettingsEvent.READER_MODE -> {
+                        binding.readerWebView.loadUrl("about:blank")
+                        binding.readerWebView.clearHistory()
+                        binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
+                        loadData()
+                    }
+                    ReaderSettingsEvent.TEXT_SIZE -> {
+                        changeTextSize()
+                    }
+                    ReaderSettingsEvent.JAVA_SCRIPT -> {
+                        binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
+                        loadData()
+                    }
+                    ReaderSettingsEvent.FONT -> {
+                        loadData()
+                    }
+                }
             }
         }
     }
@@ -522,7 +522,6 @@ class WebPageDBFragment : BaseFragment() {
     }
 
     override fun onDestroy() {
-        EventBus.getDefault().unregister(this)
         if (job != null && job!!.isActive) job!!.cancel()
         super.onDestroy()
     }

@@ -43,6 +43,7 @@ import io.github.gmathi.novellibrary.databinding.ActivityReaderPagerBinding
 import io.github.gmathi.novellibrary.fragment.WebPageDBFragment
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
+import io.github.gmathi.novellibrary.model.other.ModernEventBus
 import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
@@ -60,7 +61,6 @@ import io.github.gmathi.novellibrary.util.system.startTTSService
 import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import io.github.gmathi.novellibrary.util.system.updateNovelLastRead
 import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
-import org.greenrobot.eventbus.EventBus
 import java.io.File
 import java.util.Random
 
@@ -200,7 +200,7 @@ class ReaderDBPagerActivity :
             customView(R.layout.dialog_slider, scrollable = true)
             getCustomView().findViewById<TwoWaySeekBar>(R.id.seekBar)?.setOnSeekBarChangedListener { _, progress ->
                 dataCenter.textSize = progress.toInt()
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
+                ModernEventBus.postReaderSettingsEvent(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
             }
             getCustomView().findViewById<TwoWaySeekBar>(R.id.seekBar)?.setProgress(dataCenter.textSize.toDouble())
         }
@@ -277,14 +277,14 @@ class ReaderDBPagerActivity :
             readerSwitch.isChecked = dataCenter.readerMode
             readerSwitch.setOnCheckedChangeListener { _, isChecked ->
                 dataCenter.readerMode = isChecked
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+                ModernEventBus.postReaderSettingsEvent(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
             }
 
             val jsSwitch = menu.findItem(R.id.title_java_script).actionView as CompoundButton
             jsSwitch.isChecked = !dataCenter.javascriptDisabled
             jsSwitch.setOnCheckedChangeListener { _, isChecked ->
                 dataCenter.javascriptDisabled = !isChecked
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCRIPT))
+                ModernEventBus.postReaderSettingsEvent(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCRIPT))
             }
         }
     }
@@ -370,8 +370,7 @@ class ReaderDBPagerActivity :
             }
             positiveButton(R.string.okay) { _ ->
                 dataCenter.fontPath = AVAILABLE_FONTS[selectedFont] ?: ""
-                EventBus.getDefault()
-                    .post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+                ModernEventBus.postReaderSettingsEvent(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
             }
             negativeButton(R.string.cancel)
         }
@@ -410,7 +409,7 @@ class ReaderDBPagerActivity :
         ActivityResultContracts.StartActivityForResult()
     ) {
         Handler(Looper.getMainLooper()).post {
-            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+            ModernEventBus.postReaderSettingsEvent(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
         }
     }
 
@@ -431,7 +430,7 @@ class ReaderDBPagerActivity :
             Utils.copyFile(contentResolver, document, file)
             AVAILABLE_FONTS[file.nameWithoutExtension.replace('_', ' ')] = file.path
             dataCenter.fontPath = file.path
-            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+            ModernEventBus.postReaderSettingsEvent(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
         } catch (e: Exception) {
             Logs.error(TAG, "Unable to copy font", e)
         }
@@ -441,7 +440,7 @@ class ReaderDBPagerActivity :
         ActivityResultContracts.StartActivityForResult()
     ) {
         Handler(Looper.getMainLooper()).post {
-            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
+            ModernEventBus.postReaderSettingsEvent(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
         }
     }
 

@@ -23,11 +23,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 import uy.kohesive.injekt.injectLazy
 import java.lang.ref.WeakReference
+import io.github.gmathi.novellibrary.model.other.ModernEventBus
 
 class ChaptersFragmentViewModel(private val state: SavedStateHandle) : ViewModel(), LifecycleObserver, DataAccessor {
 
@@ -99,12 +97,34 @@ class ChaptersFragmentViewModel(private val state: SavedStateHandle) : ViewModel
         lifecycleOwner.lifecycle.addObserver(this)
         firebaseAnalytics = Firebase.analytics
         
-        // Register for EventBus
-        EventBus.getDefault().register(this)
-        
         // Initialize UI state
         _uiState.value = ChaptersUiState.Loading
         loadChapters()
+
+        viewModelScope.launch {
+            ModernEventBus.chapterEvents.collect { event ->
+                when (event.eventType) {
+                    EventType.COMPLETE -> {
+                        loadChapters()
+                    }
+                    EventType.UPDATE -> {
+                        if (event.translatorSourceName == translatorSourceName || translatorSourceName == ALL_TRANSLATOR_SOURCES) {
+                            loadChapters()
+                        }
+                    }
+                    EventType.DOWNLOAD -> {
+                        val chaptersList = _chapters.value?.toMutableList() ?: return@collect
+                        val index = chaptersList.indexOfFirst { it.url == event.url }
+                        if (index != -1) {
+                            _chapters.value = chaptersList
+                        }
+                    }
+                    EventType.DELETE -> loadChapters()
+                    EventType.INSERT -> loadChapters()
+                    EventType.PAUSED, EventType.RUNNING -> {}
+                }
+            }
+        }
     }
 
     fun loadChapters(forceUpdate: Boolean = false) {
@@ -247,45 +267,6 @@ class ChaptersFragmentViewModel(private val state: SavedStateHandle) : ViewModel
         loadChapters()
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onChapterActionModeEvent(event: ChapterActionModeEvent) {
-        when (event.eventType) {
-            EventType.COMPLETE -> {
-                loadChapters()
-            }
-            EventType.UPDATE -> {
-                if (event.translatorSourceName == translatorSourceName || translatorSourceName == ALL_TRANSLATOR_SOURCES) {
-                    loadChapters()
-                }
-            }
-            EventType.DOWNLOAD -> {
-                // Update specific chapter if needed
-                val chaptersList = _chapters.value?.toMutableList() ?: return
-                val index = chaptersList.indexOfFirst { it.url == event.url }
-                if (index != -1) {
-                    // Trigger item update
-                    _chapters.value = chaptersList
-                }
-            }
-            EventType.DELETE -> {
-                // Handle delete event
-                loadChapters()
-            }
-            EventType.INSERT -> {
-                // Handle insert event
-                loadChapters()
-            }
-            EventType.PAUSED -> {
-                // Handle paused event
-                // No specific action needed for paused downloads
-            }
-            EventType.RUNNING -> {
-                // Handle running event
-                // No specific action needed for running downloads
-            }
-        }
-    }
-
     @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
     fun onPause() {
         // Save any necessary state
@@ -298,7 +279,6 @@ class ChaptersFragmentViewModel(private val state: SavedStateHandle) : ViewModel
 
     override fun onCleared() {
         super.onCleared()
-        EventBus.getDefault().unregister(this)
     }
 
     // UI State sealed class

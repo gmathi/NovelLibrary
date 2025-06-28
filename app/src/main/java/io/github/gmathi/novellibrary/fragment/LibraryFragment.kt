@@ -31,6 +31,7 @@ import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
+import io.github.gmathi.novellibrary.model.other.ModernEventBus
 import io.github.gmathi.novellibrary.model.other.NovelEvent
 import io.github.gmathi.novellibrary.model.other.NovelSectionEvent
 import io.github.gmathi.novellibrary.network.sync.NovelSync
@@ -43,9 +44,6 @@ import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaults
 import kotlinx.coroutines.*
-import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -454,9 +452,19 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     //endregion
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.lifecycleScope.launch {
+            ModernEventBus.novelSectionEvents.collect { novelSectionEvent ->
+                if (novelSectionEvent.novelSectionId == novelSectionId) {
+                    setData()
+                }
+            }
+        }
+    }
+
     override fun onStart() {
         super.onStart()
-        EventBus.getDefault().register(this)
     }
 
     override fun onResume() {
@@ -470,13 +478,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     override fun onStop() {
-        EventBus.getDefault().unregister(this)
         super.onStop()
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onNovelEvent(event: NovelEvent) {
-        print(event.novelId)
     }
 
     private fun startReader(novel: Novel) {
@@ -597,21 +599,13 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun assignNovelToSection(novel: Novel, novelSections: ArrayList<NovelSection>, novelSectionId: Long) {
         dbHelper.updateNovelSectionId(novel.id, novelSectionId)
-        EventBus.getDefault().post(NovelSectionEvent(novelSectionId))
+        ModernEventBus.postNovelSectionEvent(NovelSectionEvent(novelSectionId))
         NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { novelSync ->
             if (dataCenter.getSyncAddNovels(novelSync.host)) {
                 novelSync.updateNovel(novel, novelSections.firstOrNull { section -> section.id == novelSectionId })
             }
         }
 
-    }
-
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onNovelSectionEvent(novelSectionEvent: NovelSectionEvent) {
-        if (novelSectionEvent.novelSectionId == novelSectionId) {
-            setData()
-        }
     }
 
     //region - Action Mode for Library

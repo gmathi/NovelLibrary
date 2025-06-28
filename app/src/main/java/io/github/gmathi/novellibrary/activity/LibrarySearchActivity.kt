@@ -18,6 +18,7 @@ import io.github.gmathi.novellibrary.database.updateNovelSectionId
 import io.github.gmathi.novellibrary.databinding.ActivityLibrarySearchBinding
 import io.github.gmathi.novellibrary.databinding.ListitemLibraryBinding
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.other.ModernEventBus
 import io.github.gmathi.novellibrary.model.other.NovelSectionEvent
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
@@ -32,7 +33,6 @@ import io.github.gmathi.novellibrary.util.view.SuggestionsBuilder
 import io.github.gmathi.novellibrary.util.view.setDefaults
 import org.cryse.widget.persistentsearch.PersistentSearchView
 import org.cryse.widget.persistentsearch.SearchItem
-import org.greenrobot.eventbus.EventBus
 
 class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
@@ -212,7 +212,7 @@ class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
                 val novelInAdapter = adapter.items[position]
                 dbHelper.updateNovelSectionId(novelInAdapter.id, id)
-                EventBus.getDefault().post(NovelSectionEvent(id))
+                ModernEventBus.postNovelSectionEvent(NovelSectionEvent(id))
                 NovelSync.getInstance(novelInAdapter)?.applyAsync(lifecycleScope) {
                     if (dataCenter.getSyncAddNovels(it.host)) it.updateNovel(
                         novelInAdapter,

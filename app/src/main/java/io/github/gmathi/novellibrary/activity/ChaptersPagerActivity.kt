@@ -38,7 +38,7 @@ import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.system.shareUrl
 import io.github.gmathi.novellibrary.util.system.startDownloadNovelService
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel
-import org.greenrobot.eventbus.EventBus
+import io.github.gmathi.novellibrary.model.other.ModernEventBus
 import java.util.*
 
 
@@ -184,7 +184,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                     isChaptersProcessing = false
                     snackProgressBar = null
                     snackProgressBarManager.dismiss()
-                    EventBus.getDefault().post(ChapterActionModeEvent(eventType = EventType.COMPLETE))
+                    ModernEventBus.postChapterEvent(ChapterActionModeEvent(eventType = EventType.COMPLETE))
                 }
 
                 else -> {
@@ -303,7 +303,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                     vm.novel.metadata["chapterOrder"] = "asc"
                 else
                     vm.novel.metadata["chapterOrder"] = "des"
-                EventBus.getDefault().post(ChapterActionModeEvent(eventType = EventType.COMPLETE))
+                ModernEventBus.postChapterEvent(ChapterActionModeEvent(eventType = EventType.COMPLETE))
                 if (vm.novel.id != -1L)
                     dbHelper.updateNovel(vm.novel)
                 return true
@@ -437,7 +437,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                         val lastIndex = chaptersForSource.indexOf(selectedChaptersForSource.last())
                         val subList = chaptersForSource.subList(firstIndex, lastIndex)
                         addToDataSet(subList)
-                        EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceName, EventType.UPDATE))
+                        ModernEventBus.postChapterEvent(ChapterActionModeEvent(translatorSourceName, EventType.UPDATE))
                     }
                 } else {
                     val chaptersForSource = vm.chapters!!.filter { it.translatorSourceName == translatorSourceName }.sortedBy { it.orderId }
@@ -447,7 +447,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                         val lastIndex = chaptersForSource.indexOf(selectedChaptersForSource.last())
                         val subList = chaptersForSource.subList(firstIndex, lastIndex)
                         addToDataSet(subList)
-                        EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceName, EventType.UPDATE))
+                        ModernEventBus.postChapterEvent(ChapterActionModeEvent(translatorSourceName, EventType.UPDATE))
                     }
                 }
             }
@@ -459,7 +459,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                 } else {
                     addToDataSet(webPages = vm.chapters!!.filter { it.translatorSourceName == translatorSourceName })
                 }
-                EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceName, EventType.UPDATE))
+                ModernEventBus.postChapterEvent(ChapterActionModeEvent(translatorSourceName, EventType.UPDATE))
             }
 
             R.id.action_clear_selection -> {
@@ -470,7 +470,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                     removeFromDataSet(webPages = vm.chapters!!.filter { it.translatorSourceName == translatorSourceName })
                 }
                 removeFromDataSet(webPages = vm.chapters!!.filter { it.translatorSourceName == translatorSourceName })
-                EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceName, EventType.UPDATE))
+                ModernEventBus.postChapterEvent(ChapterActionModeEvent(translatorSourceName, EventType.UPDATE))
             }
 
             R.id.action_share_chapter -> {
@@ -500,7 +500,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
     override fun onDestroyActionMode(mode: ActionMode?) {
         dataSet.clear()
         actionMode = null
-        EventBus.getDefault().post(ChapterActionModeEvent(eventType = EventType.COMPLETE))
+        ModernEventBus.postChapterEvent(ChapterActionModeEvent(eventType = EventType.COMPLETE))
     }
 
     //endregion
@@ -623,8 +623,6 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
 
     override fun handleEvent(downloadWebPageEvent: DownloadWebPageEvent) {
         //TODO: Make WebPageSettings get created at adapter set time
-//        if (downloadWebPageEvent.download.novelId == vm.novel.id) {
-//            EventBus.getDefault().post(ChapterActionModeEvent(url = downloadWebPageEvent.webPageUrl, eventType = EventType.COMPLETE))
-//        }
+        // EventBus migration completed - using ModernEventBus instead
     }
 }
