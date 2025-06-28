@@ -57,7 +57,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
+        // setHasOptionsMenu is deprecated, using modern menu approach
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -77,13 +77,32 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey("results")) {
                 @Suppress("UNCHECKED_CAST")
-                adapter.updateData(savedInstanceState.getSerializable("results") as java.util.ArrayList<Novel>)
-                return
+                val results = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    savedInstanceState.getSerializable("results", ArrayList::class.java) as? ArrayList<Novel>
+                } else {
+                    @Suppress("DEPRECATION")
+                    savedInstanceState.getSerializable("results") as? ArrayList<Novel>
+                }
+                results?.let {
+                    adapter.updateData(it)
+                    return
+                }
             }
         }
 
-        binding.progressLayout.showLoading()
-        searchNovels()
+        // Ensure fragment is active before starting search
+        if (isFragmentActive()) {
+            binding.progressLayout.showLoading()
+            searchNovels()
+        } else {
+            // Delay the search until the fragment is active
+            view.post {
+                if (isFragmentActive()) {
+                    binding.progressLayout.showLoading()
+                    searchNovels()
+                }
+            }
+        }
     }
 
     private fun setRecyclerView() {
@@ -109,16 +128,27 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
             try {
                 val source = sourceManager.get(sourceId) as? CatalogueSource ?: throw Exception("$MISSING_SOURCE_ID: $sourceId")
+                
                 val novelsPage = withContext(Dispatchers.IO) { source.getSearchNovels(currentPageNumber, searchTerm) }
+                
                 if (isFragmentActive()) {
                     loadSearchResults(novelsPage)
                     isPageLoading.lazySet(false)
+                } else {
+                    // Fragment not active, skipping results update
                 }
-
 
             } catch (e: Exception) {
                 if (isFragmentActive()) {
-                    binding.progressLayout.showError(errorText = getString(R.string.connection_error), buttonText = getString(R.string.try_again)) {
+                    val errorMessage = when {
+                        e.message?.contains("404") == true -> "Search endpoint not found. The website may have changed their search functionality."
+                        e.message?.contains("403") == true -> "Access denied. The website may be blocking requests."
+                        e.message?.contains("500") == true -> "Server error. Please try again later."
+                        e.message?.contains("timeout") == true -> "Request timed out. Please check your connection."
+                        else -> getString(R.string.connection_error)
+                    }
+                    
+                    binding.progressLayout.showError(errorText = errorMessage, buttonText = getString(R.string.try_again)) {
                         binding.progressLayout.showLoading()
                         currentPageNumber = 1
                         searchNovels()
@@ -132,7 +162,10 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
     private fun loadSearchResults(novelsPage: NovelsPage) {
         val results: ArrayList<Novel> = ArrayList(novelsPage.novels)
-        if (!novelsPage.hasNextPage) adapter.loadMoreListener = null
+        
+        if (!novelsPage.hasNextPage) {
+            adapter.loadMoreListener = null
+        }
 
         if (results.isNotEmpty() && !adapter.items.containsAll(results)) {
             if (currentPageNumber == 1) {
@@ -197,7 +230,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
                 itemBinding.novelRatingBar.rating = rating
                 ratingText = "(" + String.format("%.1f", rating) + ")"
             } catch (e: Exception) {
-                Logs.warning(TAG, "Rating: " + item.rating, e)
+                // Rating: " + item.rating, e)
             }
             itemBinding.novelRatingText.text = ratingText
         }
