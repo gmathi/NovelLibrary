@@ -75,9 +75,8 @@ class WebPageDBFragment : BaseFragment() {
         return view
     }
 
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         //Verify activity is still loaded in
         val activity = activity as? ReaderDBPagerActivity ?: return
@@ -106,7 +105,33 @@ class WebPageDBFragment : BaseFragment() {
         // Load data from webPage into webView
         loadData()
         binding.swipeRefreshLayout.setOnRefreshListener { loadData(true) }
-
+        
+        // Set up ModernEventBus listener for reader settings events
+        viewLifecycleOwner.lifecycleScope.launch {
+            ModernEventBus.readerSettingsEvents.collect { event ->
+                when (event.setting) {
+                    ReaderSettingsEvent.NIGHT_MODE -> {
+                        applyTheme()
+                    }
+                    ReaderSettingsEvent.READER_MODE -> {
+                        binding.readerWebView.loadUrl("about:blank")
+                        binding.readerWebView.clearHistory()
+                        binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
+                        loadData()
+                    }
+                    ReaderSettingsEvent.TEXT_SIZE -> {
+                        changeTextSize()
+                    }
+                    ReaderSettingsEvent.JAVA_SCRIPT -> {
+                        binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
+                        loadData()
+                    }
+                    ReaderSettingsEvent.FONT -> {
+                        loadData()
+                    }
+                }
+            }
+        }
     }
 
     @Suppress("DEPRECATION")
@@ -481,35 +506,6 @@ class WebPageDBFragment : BaseFragment() {
 
         val readerActivity = (activity as ReaderDBPagerActivity?) ?: return false
         return readerActivity.checkUrl(url)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewLifecycleOwner.lifecycleScope.launch {
-            ModernEventBus.readerSettingsEvents.collect { event ->
-                when (event.setting) {
-                    ReaderSettingsEvent.NIGHT_MODE -> {
-                        applyTheme()
-                    }
-                    ReaderSettingsEvent.READER_MODE -> {
-                        binding.readerWebView.loadUrl("about:blank")
-                        binding.readerWebView.clearHistory()
-                        binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
-                        loadData()
-                    }
-                    ReaderSettingsEvent.TEXT_SIZE -> {
-                        changeTextSize()
-                    }
-                    ReaderSettingsEvent.JAVA_SCRIPT -> {
-                        binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
-                        loadData()
-                    }
-                    ReaderSettingsEvent.FONT -> {
-                        loadData()
-                    }
-                }
-            }
-        }
     }
 
     override fun onPause() {

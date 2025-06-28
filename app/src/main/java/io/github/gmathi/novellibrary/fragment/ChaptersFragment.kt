@@ -58,11 +58,16 @@ class ChaptersFragment : BaseFragment(),
         return result
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         
         // Get arguments
-        novel = requireArguments().getParcelable<Novel>(NOVEL) as Novel
+        novel = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            requireArguments().getParcelable(NOVEL, Novel::class.java) as Novel
+        } else {
+            @Suppress("DEPRECATION")
+            requireArguments().getParcelable<Novel>(NOVEL) as Novel
+        }
         translatorSourceName = requireArguments().getString(TRANSLATOR_SOURCE_NAME)
             ?: ALL_TRANSLATOR_SOURCES
 
@@ -79,19 +84,17 @@ class ChaptersFragment : BaseFragment(),
 
     private fun setupRecyclerView() {
         adapter = GenericAdapterSelectTitleProvider(
-            items = ArrayList(), 
-            layoutResId = R.layout.listitem_chapter, 
+            items = ArrayList(),
+            layoutResId = R.layout.listitem_chapter,
             listener = this
         )
-        
         binding.recyclerView.apply {
             isVerticalScrollBarEnabled = true
-            setDefaultsNoAnimation(adapter)
+            setDefaultsNoAnimation(this@ChaptersFragment.adapter)
             context?.let { 
                 addItemDecoration(CustomDividerItemDecoration(it, DividerItemDecoration.VERTICAL)) 
             }
         }
-        
         binding.swipeRefreshLayout.isEnabled = false
     }
 

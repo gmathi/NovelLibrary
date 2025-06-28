@@ -104,13 +104,22 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         return view
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         novelSectionId = requireArguments().getLong(NOVEL_SECTION_ID)
 
         setRecyclerView()
         binding.progressLayout.showLoading()
         setData()
+        
+        // Set up ModernEventBus listener for novel section events
+        viewLifecycleOwner.lifecycleScope.launch {
+            ModernEventBus.novelSectionEvents.collect { novelSectionEvent ->
+                if (novelSectionEvent.novelSectionId == novelSectionId) {
+                    setData()
+                }
+            }
+        }
     }
 
     private fun setRecyclerView() {
@@ -451,17 +460,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     //endregion
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewLifecycleOwner.lifecycleScope.launch {
-            ModernEventBus.novelSectionEvents.collect { novelSectionEvent ->
-                if (novelSectionEvent.novelSectionId == novelSectionId) {
-                    setData()
-                }
-            }
-        }
-    }
 
     override fun onStart() {
         super.onStart()

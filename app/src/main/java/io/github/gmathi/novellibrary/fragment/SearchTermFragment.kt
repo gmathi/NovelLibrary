@@ -66,8 +66,8 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
         return view
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         searchTerm = arguments?.getString("searchTerm")!!
         sourceId = arguments?.getLong("sourceId")!!
