@@ -26,8 +26,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.children
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.getNovel
@@ -42,7 +40,6 @@ import io.github.gmathi.novellibrary.model.other.LinkedPage
 import io.github.gmathi.novellibrary.service.tts.TTSService
 import io.github.gmathi.novellibrary.util.fromHumanPercentage
 import io.github.gmathi.novellibrary.util.lang.duration
-import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.lang.trackNumber
 import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.util.system.startTTSService
@@ -54,6 +51,7 @@ import io.github.gmathi.novellibrary.util.view.setDefaultsNoAnimation
 import okhttp3.internal.format
 import kotlin.math.ceil
 import kotlin.math.round
+import io.github.gmathi.novellibrary.util.ImageLoaderHelper
 
 class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     companion object {
@@ -324,8 +322,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
                 novel = dbHelper.getNovel(novelId)
                 translatorSource = metadata.getString(TTSService.TRANSLATOR_SOURCE_NAME)
                 novel?.imageUrl?.let { image ->
-                    Glide.with(this@TextToSpeechControlsActivity).load(image.getGlideUrl()).apply(RequestOptions.circleCropTransform())
-                        .into(contentBinding.ttsNovelCover)
+                    ImageLoaderHelper.loadCircleImage(this@TextToSpeechControlsActivity, contentBinding.ttsNovelCover, image)
                 }
             }
             chapterIndex = metadata.trackNumber.toInt() - 1

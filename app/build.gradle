@@ -44,20 +44,14 @@ android {
 
         release {
             signingConfig signingConfigs.release
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
     flavorDimensions = ["mode"]
     productFlavors {
-        mirror {
-            // Flavor adds a suffix to the package name, so the
-            // build can be installed alongside the main build.
-            dimension "mode"
-            applicationIdSuffix ".mirror"
-        }
-
         canary {
             // Flavor to enable leekCanary.
             dimension "mode"
@@ -84,15 +78,7 @@ android {
         viewBinding true
         buildConfig true
     }
-    sourceSets {
-        mirror {
-            res {
-                srcDirs 'src\\mirror\\res'
-            }
-        }
-    }
     namespace 'io.github.gmathi.novellibrary'
-
 }
 
 dependencies {
@@ -182,8 +168,10 @@ dependencies {
 
     canaryImplementation 'com.squareup.leakcanary:leakcanary-android:2.12'
 
-    implementation 'com.github.bumptech.glide:glide:4.16.0'
-    ksp 'com.github.bumptech.glide:ksp:4.16.0'
+    // Image library - Using Coil for modern Kotlin image loading
+    final coilVersion = '2.4.0'
+    implementation("io.coil-kt:coil:$coilVersion")
+    implementation("io.coil-kt:coil-gif:$coilVersion")
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21"
 
@@ -196,12 +184,6 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinSerializationVersion"
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation "com.github.salomonbrys.kotson:kotson:2.5.0"
-
-    // Image library
-    final coilVersion = '2.4.0'
-    implementation("io.coil-kt:coil:$coilVersion")
-    implementation("io.coil-kt:coil-gif:$coilVersion")
-
 
     implementation 'com.github.tingyik90:snackprogressbar:6.4.2'
 

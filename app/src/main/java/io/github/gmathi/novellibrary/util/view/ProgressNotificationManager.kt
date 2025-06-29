@@ -59,6 +59,9 @@ class ProgressNotificationManager(context: Context,
     private var max: Int = 100
     private var progress: Int = 0
 
+    private val notificationJob = Job()
+    private val notificationScope = CoroutineScope(Dispatchers.Main + notificationJob)
+
     private fun normalize(progress: Int): Int =
         (progress.toDouble() * normalizationLength / max).roundToInt()
 
@@ -115,7 +118,7 @@ class ProgressNotificationManager(context: Context,
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             createNotificationChannel()
-        GlobalScope.launch {
+        notificationScope.launch {
             while (!notificationQueue.isClosed()) {
                 updateNotification(notificationQueue.take())
                 delay(updateRate * NotificationQueue.globalChannelCount.get())
@@ -129,6 +132,7 @@ class ProgressNotificationManager(context: Context,
     }
 
     override fun close() {
+        notificationJob.cancel()
         notificationQueue.close()
     }
 

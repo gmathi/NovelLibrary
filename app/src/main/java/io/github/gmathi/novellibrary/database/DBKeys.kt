@@ -38,6 +38,14 @@ object DBKeys {
     //Index names
     internal const val INDEX_WEB_PAGE = "web_page_url_novel_id_index"
     internal const val INDEX_WEB_PAGE_SETTINGS = "web_page_settings_url_index"
+    internal const val INDEX_NOVEL_SECTION_ORDER = "novel_section_order_index"
+    internal const val INDEX_NOVEL_URL = "novel_url_index"
+    internal const val INDEX_NOVEL_SECTION_ID = "novel_section_id_index"
+    internal const val INDEX_WEB_PAGE_NOVEL_ORDER = "web_page_novel_order_index"
+    internal const val INDEX_WEB_PAGE_TRANSLATOR = "web_page_translator_index"
+    internal const val INDEX_DOWNLOAD_NOVEL = "download_novel_index"
+    internal const val INDEX_DOWNLOAD_STATUS = "download_status_index"
+    internal const val INDEX_NOVEL_GENRE = "novel_genre_index"
 
     // Common column names
     internal const val KEY_ID = "id"
@@ -198,5 +206,37 @@ object DBKeys {
             "CREATE INDEX $INDEX_WEB_PAGE_SETTINGS ON $TABLE_WEB_PAGE_SETTINGS($KEY_URL, $KEY_NOVEL_ID)"
             )
 
+    // Additional indexes for better performance
+    internal const val CREATE_INDEX_NOVEL_SECTION_ORDER = (
+            "CREATE INDEX $INDEX_NOVEL_SECTION_ORDER ON $TABLE_NOVEL($KEY_NOVEL_SECTION_ID, $KEY_ORDER_ID)"
+            )
+
+    internal const val CREATE_INDEX_NOVEL_URL = (
+            "CREATE INDEX $INDEX_NOVEL_URL ON $TABLE_NOVEL($KEY_URL)"
+            )
+
+    internal const val CREATE_INDEX_NOVEL_SECTION_ID = (
+            "CREATE INDEX $INDEX_NOVEL_SECTION_ID ON $TABLE_NOVEL($KEY_NOVEL_SECTION_ID)"
+            )
+
+    internal const val CREATE_INDEX_WEB_PAGE_NOVEL_ORDER = (
+            "CREATE INDEX $INDEX_WEB_PAGE_NOVEL_ORDER ON $TABLE_WEB_PAGE($KEY_NOVEL_ID, $KEY_ORDER_ID)"
+            )
+
+    internal const val CREATE_INDEX_WEB_PAGE_TRANSLATOR = (
+            "CREATE INDEX $INDEX_WEB_PAGE_TRANSLATOR ON $TABLE_WEB_PAGE($KEY_NOVEL_ID, $KEY_TRANSLATOR_SOURCE_NAME)"
+            )
+
+    internal const val CREATE_INDEX_DOWNLOAD_NOVEL = (
+            "CREATE INDEX $INDEX_DOWNLOAD_NOVEL ON $TABLE_DOWNLOAD($KEY_NOVEL_ID)"
+            )
+
+    internal const val CREATE_INDEX_DOWNLOAD_STATUS = (
+            "CREATE INDEX $INDEX_DOWNLOAD_STATUS ON $TABLE_DOWNLOAD($KEY_STATUS)"
+            )
+
+    internal const val CREATE_INDEX_NOVEL_GENRE = (
+            "CREATE INDEX $INDEX_NOVEL_GENRE ON $TABLE_NOVEL_GENRE($KEY_NOVEL_ID, $KEY_GENRE_ID)"
+            )
 
 }

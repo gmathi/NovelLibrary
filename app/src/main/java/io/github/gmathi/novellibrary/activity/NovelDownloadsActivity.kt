@@ -9,11 +9,11 @@ import android.os.Bundle
 import android.os.IBinder
 import android.view.MenuItem
 import android.view.View
+import android.widget.ImageView
 import androidx.annotation.UiThread
+import androidx.appcompat.app.AppCompatActivity
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.*
@@ -25,8 +25,8 @@ import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.service.download.DownloadListener
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
+import io.github.gmathi.novellibrary.util.ImageLoaderHelper
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.view.setDefaultsNoAnimation
 import io.github.gmathi.novellibrary.util.system.startDownloadNovelService
 
@@ -82,12 +82,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<Long>, Do
     override fun bind(item: Long, itemView: View, position: Int) {
         val binding = ListitemDownloadQueueOldBinding.bind(itemView)
         val novel = dbHelper.getNovel(novelId = item)
-        if (!novel?.imageUrl.isNullOrBlank()) {
-            Glide.with(this)
-                .load(novel!!.imageUrl!!.getGlideUrl())
-                .apply(RequestOptions.circleCropTransform())
-                .into(binding.novelImageView)
-        }
+        ImageLoaderHelper.loadRoundedImage(this, binding.novelImageView, novel?.imageUrl, 8f)
         binding.novelTitleTextView.text = novel?.name
         //val downloadedPages = dbHelper.getDownloadedChapterCount(novel!!.id)
 
@@ -264,6 +259,5 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<Long>, Do
             bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
         }
     }
-
 
 }

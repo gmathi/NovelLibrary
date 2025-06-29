@@ -20,7 +20,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
-import com.bumptech.glide.Glide
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
@@ -31,7 +30,6 @@ import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.Exceptions
-import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.*
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
@@ -39,6 +37,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.min
+import android.widget.ImageView
+import io.github.gmathi.novellibrary.util.ImageLoaderHelper
 
 
 class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener {
@@ -176,16 +176,14 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     }
 
     private fun setNovelImage() {
-        if (!novel.imageUrl.isNullOrBlank()) {
-            Glide.with(this).load(novel.imageUrl?.getGlideUrl()).into(contentBinding.novelDetailsImage)
-            contentBinding.novelDetailsImage.setOnClickListener {
-                startImagePreviewActivity(
-                    novel.imageUrl,
-                    novel.imageFilePath,
-                    contentBinding.novelDetailsImage
-                )
-            }
+        contentBinding.novelDetailsImage.setOnClickListener {
+            startImagePreviewActivity(
+                novel.imageUrl,
+                novel.imageFilePath,
+                contentBinding.novelDetailsImage
+            )
         }
+        ImageLoaderHelper.loadRoundedImage(this, contentBinding.novelDetailsImage, novel.imageUrl, 12f)
     }
 
     private fun setNovelAuthor() {

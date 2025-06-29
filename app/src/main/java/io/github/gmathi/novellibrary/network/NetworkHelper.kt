@@ -7,6 +7,7 @@ import coil.disk.DiskCache
 import coil.util.CoilUtils
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.network.interceptor.CloudflareInterceptor
+import io.github.gmathi.novellibrary.network.interceptor.DeduplicationInterceptor
 import io.github.gmathi.novellibrary.network.interceptor.UserAgentInterceptor
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import okhttp3.Cache
@@ -20,7 +21,7 @@ class NetworkHelper(private val context: Context) {
 
     private val dataCenter: DataCenter by injectLazy()
     private val cacheDir = File(context.cacheDir, "network_cache")
-    private val cacheSize = 5L * 1024 * 1024 // 5 MiB
+    private val cacheSize = 50L * 1024 * 1024 // 50 MiB (increased from 5 MiB)
 
     val cookieManager = AndroidCookieJar()
 
@@ -31,6 +32,7 @@ class NetworkHelper(private val context: Context) {
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
                 .addInterceptor(UserAgentInterceptor())
+                .addInterceptor(DeduplicationInterceptor()) // Add request deduplication
 
             if (BuildConfig.DEBUG) {
                 val httpLoggingInterceptor = HttpLoggingInterceptor().apply {

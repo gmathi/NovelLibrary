@@ -15,9 +15,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.collection.CircularArray
 import androidx.lifecycle.Lifecycle
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
+import coil.ImageLoader
+import coil.request.ImageRequest
+import coil.target.Target
 import com.google.firebase.analytics.FirebaseAnalytics
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
@@ -256,21 +256,47 @@ class TTSPlayer(private val context: Context,
 //            mediaSession.setQueue(queue)
         }
         if (!novel.imageUrl.isNullOrBlank()) {
-            Glide.with(context).asBitmap().load(novel.imageUrl!!.getGlideUrl()).into(object : CustomTarget<Bitmap>() {
-                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                    Log.d(TAG, "Novel art loaded successfully")
-                    albumArt = resource
-                    metadata.albumArt = resource
-                    mediaSession.setMetadata(metadata.build())
-                    buildQueue()
-                }
-
-                override fun onLoadCleared(placeholder: Drawable?) {}
-                override fun onLoadFailed(errorDrawable: Drawable?) {
-                    Log.d(TAG, "Failed to load novel art")
-                    buildQueue()
-                }
-            })
+            // Use Coil instead of Glide for image loading
+            val imageRequest = ImageRequest.Builder(context)
+                .data(novel.imageUrl)
+                .target(object : Target {
+                    override fun onStart(placeholder: Drawable?) {}
+                    
+                    override fun onSuccess(result: Drawable) {
+                        // Convert Drawable to Bitmap for media session
+                        if (result is android.graphics.drawable.BitmapDrawable) {
+                            Log.d(TAG, "Novel art loaded successfully")
+                            albumArt = result.bitmap
+                            metadata.albumArt = result.bitmap
+                            mediaSession.setMetadata(metadata.build())
+                            buildQueue()
+                        } else {
+                            // Convert other drawables to bitmap
+                            val bitmap = android.graphics.Bitmap.createBitmap(
+                                result.intrinsicWidth, 
+                                result.intrinsicHeight, 
+                                android.graphics.Bitmap.Config.ARGB_8888
+                            )
+                            val canvas = android.graphics.Canvas(bitmap)
+                            result.setBounds(0, 0, canvas.width, canvas.height)
+                            result.draw(canvas)
+                            
+                            Log.d(TAG, "Novel art loaded successfully")
+                            albumArt = bitmap
+                            metadata.albumArt = bitmap
+                            mediaSession.setMetadata(metadata.build())
+                            buildQueue()
+                        }
+                    }
+                    
+                    override fun onError(error: Drawable?) {
+                        Log.d(TAG, "Failed to load novel art")
+                        buildQueue()
+                    }
+                })
+                .build()
+            
+            ImageLoader(context).enqueue(imageRequest)
         } else {
             buildQueue()
         }

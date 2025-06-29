@@ -3,13 +3,12 @@ package io.github.gmathi.novellibrary.activity
 import android.animation.Animator
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
 import androidx.appcompat.widget.PopupMenu
 import androidx.lifecycle.lifecycleScope
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
 import com.afollestad.materialdialogs.list.listItems
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.getAllNovelSections
@@ -22,8 +21,8 @@ import io.github.gmathi.novellibrary.model.other.ModernEventBus
 import io.github.gmathi.novellibrary.model.other.NovelSectionEvent
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.ImageLoaderHelper
 import io.github.gmathi.novellibrary.util.lang.addToLibrarySearchHistory
-import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
 import io.github.gmathi.novellibrary.util.system.startChaptersActivity
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
@@ -139,14 +138,7 @@ class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
     override fun bind(item: Novel, itemView: View, position: Int) {
         val itemBinding = ListitemLibraryBinding.bind(itemView)
-        itemBinding.novelImageView.setImageResource(android.R.color.transparent)
-
-        if (!item.imageUrl.isNullOrBlank()) {
-            Glide.with(this)
-                .load(item.imageUrl?.getGlideUrl())
-                .apply(RequestOptions.circleCropTransform())
-                .into(itemBinding.novelImageView)
-        }
+        ImageLoaderHelper.loadCircleImage(this, itemBinding.novelImageView, item.imageUrl)
 
         itemBinding.novelTitleTextView.text = item.name
         itemBinding.novelTitleTextView.isSelected = dataCenter.enableScrollingText
@@ -265,6 +257,5 @@ class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
             isDateSorted = !isDateSorted
         }
     }
-
 
 }

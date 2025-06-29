@@ -7,6 +7,11 @@ import android.webkit.WebView
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LifecycleObserver
+import coil.ImageLoader
+import coil.ImageLoaderFactory
+import coil.disk.DiskCache
+import coil.memory.MemoryCache
+import coil.util.CoilUtils
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
@@ -37,7 +42,7 @@ import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 
 
-open class NovelLibraryApplication : Application(), LifecycleObserver {
+open class NovelLibraryApplication : Application(), LifecycleObserver, ImageLoaderFactory {
     companion object {
         private const val TAG = "NovelLibraryApplication"
     }
@@ -155,4 +160,22 @@ open class NovelLibraryApplication : Application(), LifecycleObserver {
         Notifications.createChannels(this)
     }
 
+    override fun newImageLoader(): ImageLoader {
+        return ImageLoader.Builder(this)
+            .memoryCache {
+                MemoryCache.Builder(this)
+                    .maxSizePercent(0.25) // 25% of available memory
+                    .build()
+            }
+            .diskCache {
+                DiskCache.Builder()
+                    .directory(File(cacheDir, "image_cache"))
+                    .maxSizePercent(0.02) // 2% of available disk space
+                    .build()
+            }
+            .respectCacheHeaders(false) // Always cache images
+            .crossfade(true) // Enable crossfade animations
+            .crossfade(300) // 300ms crossfade duration
+            .build()
+    }
 }

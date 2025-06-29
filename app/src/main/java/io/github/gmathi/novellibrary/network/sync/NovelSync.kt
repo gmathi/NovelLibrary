@@ -56,10 +56,14 @@ abstract class NovelSync {
     }
 
     fun applyAsync(scope: CoroutineScope? = null, block: (NovelSync) -> Unit) {
-        if (scope == null)
-            GlobalScope.launch { withContext(Dispatchers.IO) { block(this@NovelSync) } }
-        else
+        if (scope == null) {
+            // Use a supervised scope to prevent cancellation of other coroutines
+            CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { 
+                block(this@NovelSync) 
+            }
+        } else {
             scope.launch { withContext(Dispatchers.IO) { block(this@NovelSync) } }
+        }
     }
 
     // Login

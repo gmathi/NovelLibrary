@@ -13,11 +13,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.commit
 import com.afollestad.materialdialogs.MaterialDialog
-import com.bumptech.glide.Glide
-import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.firebase.ui.auth.IdpResponse
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.databinding.ActivityNavDrawerBinding
@@ -25,6 +25,7 @@ import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.fragment.SearchFragment
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.ImageLoaderHelper
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.WhatsChanged
 import io.github.gmathi.novellibrary.util.system.openInBrowser
@@ -239,11 +240,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun setNewImageInNavigationHeaderView() {
         val randomNumber = Random(Date().time).nextInt(12) + 1 //since we have only 12 images to rotate from.
         val uri = Uri.parse("file:///android_asset/album_arts/$randomNumber.png")
-        Glide.with(this)
-            .asBitmap()
-            .load(uri)
-            .into(newIconsImageView)
+        ImageLoaderHelper.loadCircleImage(this, newIconsImageView, uri.toString())
     }
-
 
 }

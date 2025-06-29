@@ -16,8 +16,6 @@ import com.afollestad.materialdialogs.DialogCallback
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
 import com.afollestad.materialdialogs.list.listItems
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
@@ -37,7 +35,6 @@ import io.github.gmathi.novellibrary.model.other.NovelSectionEvent
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.source.NovelUpdatesSource
 import io.github.gmathi.novellibrary.util.*
-import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
@@ -163,14 +160,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun bind(item: Novel, itemView: View, position: Int) {
         val itemBinding = ListitemLibraryBinding.bind(itemView)
-        itemBinding.novelImageView.setImageResource(android.R.color.transparent)
-
-        if (!item.imageUrl.isNullOrBlank()) {
-            Glide.with(this)
-                .load(item.imageUrl?.getGlideUrl())
-                .apply(RequestOptions.circleCropTransform())
-                .into(itemBinding.novelImageView)
-        }
+        
+        // Load image with automatic placeholder handling
+        ImageLoaderHelper.loadCircleImage(requireContext(), itemBinding.novelImageView, item.imageUrl)
 
         itemBinding.novelTitleTextView.text = item.name
         itemBinding.novelTitleTextView.isSelected = dataCenter.enableScrollingText
@@ -198,19 +190,16 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     R.id.action_reset_novel -> {
                         if (networkHelper.isConnectedToNetwork()) {
                             val novel: Novel = adapter.items[position]
-                            // We cannot block the main thread since we end up using Network methods later in dbHelper.resetNovel()
-                            // Instead of using async{} which is deprecated, we can use GlobalScope.Launch {} which uses the Kotlin Coroutines
-                            // We run resetNovel in GlobalScope, wait for it with .join() (which is why we need runBlocking{})
-                            // then we syncNovels() so that it shows in Library
-                            runBlocking {
-                                GlobalScope.launch {
-                                    try {
+                            // Use lifecycleScope instead of GlobalScope to prevent memory leaks
+                            lifecycleScope.launch {
+                                try {
+                                    withContext(Dispatchers.IO) {
                                         this@LibraryFragment.resetNovel(novel)
-                                    } catch (e: Exception) {
-                                        Logs.error("LibraryFragment", "resetNovel: $novel", e)
                                     }
-                                }.join()
-                                setData()
+                                    setData()
+                                } catch (e: Exception) {
+                                    Logs.error("LibraryFragment", "resetNovel: $novel", e)
+                                }
                             }
                         } else {
                             showAlertDialog(message = "You need to be connected to Internet to Hard Reset.")

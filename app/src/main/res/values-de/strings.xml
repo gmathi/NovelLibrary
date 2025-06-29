@@ -141,7 +141,7 @@
     <string name="faster_downloads">Schnellere Downloads</string>
     <string name="faster_downloads_description">Experimentell: Sehr schnelle Downloads aber führt evtl. zu Abstürzen</string>
     <string name="first_screen_library">Bibliothek als Homescreen setzen</string>
-    <string name="first_screen_library_description">Falls ausgeschaltet, “Suche” als neuer Homescreen</string>
+    <string name="first_screen_library_description">Falls ausgeschaltet, "Suche" als neuer Homescreen</string>
     <string name="clean_pages">Bereinige Kapitel</string>
     <string name="clean_pages_description">Bereinige Kapitel vor dem Laden.</string>
     <string name="failed_to_load_url">Die Inhalte konnten nicht geladen werden!</string>
@@ -174,7 +174,7 @@
     <string name="download_paused">Pausiert</string>
     <string name="status">Status</string>
     <string name="manage_downloads">Downloads verwalten</string>
-    <string name="manage_downloads_dialog_content">Neue Downloads können durch das Navigieren zu “Downloads” über das Navigationsschubmenü verwaltet werden</string>
+    <string name="manage_downloads_dialog_content">Neue Downloads können durch das Navigieren zu "Downloads" über das Navigationsschubmenü verwaltet werden</string>
     <string name="take_me_there">Nehmen Sie mich dort</string>
     <string name="collection_chapters_info">Sammlung der Kapitelinformationen</string>
     <string name="download_all_new_chapters_dialog_content">Verwalten Sie neue Downloads mit dem Download-Manager. Alle neu veröffentlichten Kapitel herunterladen?</string>
@@ -194,7 +194,7 @@
     <string name="swipe_right_for_next_chapter">Von links nach rechts wischen</string>
     <string name="swipe_right_for_next_chapter_description">Für das nächste Kapitel nach rechts wischen</string>
     <string name="no_bookmark_found_dialog_title">Mit dem Lesen anfangen?</string>
-    <string name="no_bookmark_found_dialog_description">Sieht aus, als hättest du ‘%s’ noch nicht gelesen, warum fängst du jetzt nicht damit an?</string>
+    <string name="no_bookmark_found_dialog_description">Sieht aus, als hättest du \'%s\' noch nicht gelesen, warum fängst du jetzt nicht damit an?</string>
     <string name="sync_interval">Synchronisierungsintervall</string>
     <string name="sync_interval_description">Überprüfen Sie das Aktualisierungsintervall</string>
 
@@ -555,7 +555,7 @@
     <string name="scroll_current_into_view">Scrolle derzeitigen Satz in den sichtbaren Bereich</string>
     <string name="cover">Umschlag</string> <!-- I presume novel cover? -->
     <string name="auto_stop_timer">Stoppe den Timer automatisch</string>
-    <string name="set_auto_stop_timer">Setze Timer (%02d:%02d)</string>
+    <string name="set_auto_stop_timer" formatted="false">Setze Timer (%02d:%02d)</string>
     <string name="enable_timer">Timer aktiviert</string>
     <string name="off">Aus</string>
     <string name="toggle_slider_number">Wechsle zwischen Slider-/Nummerneingaben</string>

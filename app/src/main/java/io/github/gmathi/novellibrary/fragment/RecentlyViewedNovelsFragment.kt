@@ -2,11 +2,10 @@ package io.github.gmathi.novellibrary.fragment
 
 import android.os.Bundle
 import android.view.*
+import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.afollestad.materialdialogs.MaterialDialog
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
@@ -17,6 +16,7 @@ import io.github.gmathi.novellibrary.databinding.ContentRecyclerViewBinding
 import io.github.gmathi.novellibrary.databinding.ListitemNovelBinding
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.ImageLoaderHelper
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.util.view.setDefaults
@@ -53,13 +53,7 @@ class RecentlyViewedNovelsFragment : BaseFragment(), GenericAdapter.Listener<Nov
 
     override fun bind(item: Novel, itemView: View, position: Int) {
         val itemBinding = ListitemNovelBinding.bind(itemView)
-        itemBinding.novelImageView.setImageResource(android.R.color.transparent)
-        if (!item.imageUrl.isNullOrBlank()) {
-            Glide.with(this)
-                .load(item.imageUrl)
-                .apply(RequestOptions.circleCropTransform())
-                .into(itemBinding.novelImageView)
-        }
+        ImageLoaderHelper.loadCircleImage(requireContext(), itemBinding.novelImageView, item.imageUrl)
 
         //Other Data Fields
         itemBinding.novelTitleTextView.text = item.name

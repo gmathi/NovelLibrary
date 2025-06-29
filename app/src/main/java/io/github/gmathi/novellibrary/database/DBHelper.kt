@@ -43,8 +43,17 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
         db.execSQL(DBKeys.CREATE_TABLE_NOVEL_SECTION)
         db.execSQL(DBKeys.CREATE_TABLE_LARGE_PREFERENCE)
 
+        // Create indexes for better performance
         db.execSQL(DBKeys.CREATE_INDEX_WEB_PAGE)
         db.execSQL(DBKeys.CREATE_INDEX_WEB_PAGE_SETTINGS)
+        db.execSQL(DBKeys.CREATE_INDEX_NOVEL_SECTION_ORDER)
+        db.execSQL(DBKeys.CREATE_INDEX_NOVEL_URL)
+        db.execSQL(DBKeys.CREATE_INDEX_NOVEL_SECTION_ID)
+        db.execSQL(DBKeys.CREATE_INDEX_WEB_PAGE_NOVEL_ORDER)
+        db.execSQL(DBKeys.CREATE_INDEX_WEB_PAGE_TRANSLATOR)
+        db.execSQL(DBKeys.CREATE_INDEX_DOWNLOAD_NOVEL)
+        db.execSQL(DBKeys.CREATE_INDEX_DOWNLOAD_STATUS)
+        db.execSQL(DBKeys.CREATE_INDEX_NOVEL_GENRE)
 
         insertDefaultValues(db)
     }

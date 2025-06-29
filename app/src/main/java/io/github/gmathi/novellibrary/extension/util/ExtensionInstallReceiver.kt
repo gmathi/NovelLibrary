@@ -8,12 +8,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.RECEIVER_EXPORTED
 import io.github.gmathi.novellibrary.extension.model.Extension
 import io.github.gmathi.novellibrary.extension.model.LoadResult
-import io.github.gmathi.novellibrary.util.lang.launchNow
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /**
  * Broadcast receiver that listens for the system's packages installed, updated or removed, and only
@@ -23,6 +21,9 @@ import kotlinx.coroutines.async
  */
 internal class ExtensionInstallReceiver(private val listener: Listener) :
     BroadcastReceiver() {
+
+    // Use SupervisorJob to handle exceptions gracefully and prevent cancellation of other coroutines
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     /**
      * Registers this broadcast receiver
@@ -51,21 +52,25 @@ internal class ExtensionInstallReceiver(private val listener: Listener) :
 
         when (intent.action) {
             Intent.ACTION_PACKAGE_ADDED -> {
-                if (!isReplacing(intent)) launchNow {
-                    when (val result = getExtensionFromIntent(context, intent)) {
-                        is LoadResult.Success -> listener.onExtensionInstalled(result.extension)
-                        is LoadResult.Untrusted -> listener.onExtensionUntrusted(result.extension)
-                        else -> {
+                if (!isReplacing(intent)) {
+                    scope.launch(Dispatchers.Main) {
+                        when (val result = getExtensionFromIntent(context, intent)) {
+                            is LoadResult.Success -> listener.onExtensionInstalled(result.extension)
+                            is LoadResult.Untrusted -> listener.onExtensionUntrusted(result.extension)
+                            else -> {
+                                // Handle error case if needed
+                            }
                         }
                     }
                 }
             }
             Intent.ACTION_PACKAGE_REPLACED -> {
-                launchNow {
+                scope.launch(Dispatchers.Main) {
                     when (val result = getExtensionFromIntent(context, intent)) {
                         is LoadResult.Success -> listener.onExtensionUpdated(result.extension)
                         // Not needed as a package can't be upgraded if the signature is different
                         is LoadResult.Untrusted -> {
+                            // Handle untrusted case if needed
                         }
                         else -> {}
                     }
@@ -97,11 +102,12 @@ internal class ExtensionInstallReceiver(private val listener: Listener) :
      * @param context The application context.
      * @param intent The intent containing the package name of the extension.
      */
-    @OptIn(DelicateCoroutinesApi::class)
     private suspend fun getExtensionFromIntent(context: Context, intent: Intent?): LoadResult {
         val pkgName = getPackageNameFromIntent(intent)
             ?: return LoadResult.Error("Package name not found")
-        return GlobalScope.async(Dispatchers.Default, CoroutineStart.DEFAULT) { ExtensionLoader.loadExtensionFromPkgName(context, pkgName) }.await()
+        return kotlinx.coroutines.withContext(Dispatchers.Default) { 
+            ExtensionLoader.loadExtensionFromPkgName(context, pkgName) 
+        }
     }
 
     /**

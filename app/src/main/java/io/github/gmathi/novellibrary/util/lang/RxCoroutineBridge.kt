@@ -186,7 +186,7 @@ fun <T : Any> Flow<T>.asObservable(backpressureMode: Emitter.BackpressureMode = 
          * ATOMIC is used here to provide stable behaviour of subscribe+dispose pair even if
          * asObservable is already invoked from unconfined
          */
-            val job = GlobalScope.launch(Dispatchers.Unconfined, start = CoroutineStart.ATOMIC) {
+            val job = CoroutineScope(Dispatchers.Unconfined + SupervisorJob()).launch(start = CoroutineStart.ATOMIC) {
                 try {
                     collect { emitter.onNext(it) }
                     emitter.onCompleted()

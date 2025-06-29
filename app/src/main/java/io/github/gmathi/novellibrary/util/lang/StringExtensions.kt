@@ -1,8 +1,6 @@
 package io.github.gmathi.novellibrary.util.lang
 
 import android.webkit.CookieManager
-import com.bumptech.glide.load.model.GlideUrl
-import com.bumptech.glide.load.model.LazyHeaders
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import uy.kohesive.injekt.injectLazy
@@ -91,22 +89,6 @@ fun String.writableOldFileName(): String {
     if (fileName.length > 150)
         fileName = fileName.substring(0, 150)
     return fileName
-}
-
-fun String.getGlideUrl(): GlideUrl {
-    val dataCenter: DataCenter by injectLazy()
-    var hostName = ""
-    try {
-        val url = URL(this)
-        hostName = url.host.replace("www.", "").replace("m.", "").trim()
-    } catch (_: Exception) { }
-
-    val builder = LazyHeaders.Builder()
-            .addHeader("User-Agent", HostNames.USER_AGENT)
-            .addHeader("Cookie", CookieManager.getInstance().getCookie(this) ?: CookieManager.getInstance().getCookie(".$hostName") ?: "")
-
-    return GlideUrl(this, builder.build())
-
 }
 
 private fun String?.contains(chapter: String?): Boolean {

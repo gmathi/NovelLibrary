@@ -366,8 +366,8 @@
     <string name="general">General</string>
     <string name="faster_downloads">Faster Downloads</string>
     <string name="faster_downloads_description">Experimental: Downloads really fast but your device may lag/freeze while downloading.</string>
-    <string name="first_screen_library">Make “Library” main screen</string>
-    <string name="first_screen_library_description">If turned off “Search” will be main screen instead.</string>
+    <string name="first_screen_library">Make "Library" main screen</string>
+    <string name="first_screen_library_description">If turned off "Search" will be main screen instead.</string>
     <string name="clean_pages">Clean Chapters</string>
     <string name="clean_pages_description">Clean chapters before loading them.</string>
     <string name="failed_to_load_url">Failed getting content!</string>
@@ -400,7 +400,7 @@
     <string name="download_paused">Paused</string>
     <string name="status">Status</string>
     <string name="manage_downloads">Manage Downloads</string>
-    <string name="manage_downloads_dialog_content">Novel downloads can be managed by navigating to “Downloads” through the navigation drawer menu</string>
+    <string name="manage_downloads_dialog_content">Novel downloads can be managed by navigating to "Downloads" through the navigation drawer menu</string>
     <string name="take_me_there">Take me there</string>
     <string name="collection_chapters_info">Collecting Chapters Information</string>
     <string name="download_all_new_chapters_dialog_content">Manage novel downloads using download manager. Download all new chapters released?</string>
@@ -420,7 +420,7 @@
     <string name="swipe_right_for_next_chapter">Left to Right Swipe</string>
     <string name="swipe_right_for_next_chapter_description">Swipe right for next chapter</string>
     <string name="no_bookmark_found_dialog_title">Start Reading?</string>
-    <string name="no_bookmark_found_dialog_description">Looks like you haven\'t read ‘%s’ yet, why don\'t you start now?</string>
+    <string name="no_bookmark_found_dialog_description">Looks like you haven\'t read \'%s\' yet, why don\'t you start now?</string>
     <string name="sync_interval">Sync Interval</string>
     <string name="sync_interval_description">Check for novel updates interval</string>
 
@@ -432,7 +432,7 @@
     <string name="show_reader_scroll">Show Scrollbar</string>
     <string name="show_reader_scroll_description">Shows the vertical scrollbar on the right edge of the screen to track your progress of the chapter</string>
     <string name="show_comments_section">Show Comments</string>
-    <string name="show_comments_section_description">Shows the chapter’s comments section in the reader mode. (Limited Websites Supported)</string>
+    <string name="show_comments_section_description">Shows the chapter\'s comments section in the reader mode. (Limited Websites Supported)</string>
     <string name="backup">Back up</string>
     <string name="restore">Restore</string>
     <string name="import_reading_list">Import Reading List</string>
@@ -508,7 +508,7 @@
     <string name="add_novel_section_title">Add Novel Section</string>
     <string name="add_novel_section_description">Enter the name for new Novel Section:</string>
     <string name="novel_section_name">Novel Section Name</string>
-    <string name="novel_section_empty_message">Add \"Novel Sections\" &amp; categorize your novels</string>
+    <string name="novel_section_empty_message">Add "Novel Sections" &amp; categorize your novels</string>
     <string name="novel_section_name_error">Novel Section name cannot be a existing one or empty</string>
     <string name="assign_novel_section">Assign Novel Section</string>
     <string name="move_up_down">Move Up/Down</string>
@@ -809,7 +809,7 @@
     <string name="scroll_current_into_view">Scroll current sentence into view</string>
     <string name="cover">Cover</string>
     <string name="auto_stop_timer">Auto-stop timer</string>
-    <string name="set_auto_stop_timer">Set timer (%02d:%02d)</string>
+    <string name="set_auto_stop_timer" formatted="false">Set timer (%02d:%02d)</string>
     <string name="enable_timer">Timer enabled</string>
     <string name="off">Off</string>
     <string name="toggle_slider_number">Switch between slider/number inputs</string>

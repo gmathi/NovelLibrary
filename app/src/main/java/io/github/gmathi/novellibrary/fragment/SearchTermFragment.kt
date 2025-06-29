@@ -4,10 +4,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ContentRecyclerViewBinding
@@ -19,7 +18,7 @@ import io.github.gmathi.novellibrary.model.source.CatalogueSource
 import io.github.gmathi.novellibrary.network.*
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_SOURCE_ID
-import io.github.gmathi.novellibrary.util.lang.getGlideUrl
+import io.github.gmathi.novellibrary.util.ImageLoaderHelper
 import io.github.gmathi.novellibrary.util.system.isFragmentActive
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.util.view.setDefaults
@@ -198,14 +197,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
     override fun bind(item: Novel, itemView: View, position: Int) {
         val itemBinding = ListitemNovelBinding.bind(itemView)
-        itemBinding.novelImageView.setImageResource(android.R.color.transparent)
-
-        if (!item.imageUrl.isNullOrBlank()) {
-            Glide.with(this)
-                .load(item.imageUrl?.getGlideUrl())
-                .apply(RequestOptions.circleCropTransform())
-                .into(itemBinding.novelImageView)
-        }
+        ImageLoaderHelper.loadCircleImage(requireContext(), itemBinding.novelImageView, item.imageUrl)
 
         //Other Data Fields
         itemBinding.novelTitleTextView.text = item.name

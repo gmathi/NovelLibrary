@@ -5,9 +5,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
-import com.bumptech.glide.Glide
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ContentRecyclerViewBinding
@@ -20,7 +20,7 @@ import io.github.gmathi.novellibrary.extension.model.InstallStep
 import io.github.gmathi.novellibrary.extension.util.getApplicationIcon
 import io.github.gmathi.novellibrary.extensions.showEmpty
 import io.github.gmathi.novellibrary.extensions.showLoading
-import io.github.gmathi.novellibrary.util.lang.getGlideUrl
+import io.github.gmathi.novellibrary.util.ImageLoaderHelper
 import io.github.gmathi.novellibrary.util.system.LocaleHelper
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.setDefaults
@@ -86,22 +86,12 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
         val binding = ListitemExtensionCardBinding.bind(itemView)
         val extension = item.extension
 
+        //Image
+        val iconUrl = (extension as? Extension.Available)?.iconUrl
+        ImageLoaderHelper.loadCircleImage(requireContext(), binding.image, iconUrl)
 
-
+        //Text
         binding.run {
-
-            //Image
-            Glide.with(itemView.context).clear(image)
-            if (extension is Extension.Available) {
-                Glide.with(itemView.context)
-                    .load(extension.iconUrl.getGlideUrl())
-                    .into(binding.image)
-            } else {
-                extension.getApplicationIcon(itemView.context)?.let { image.setImageDrawable(it) }
-            }
-
-
-            //Text
             extTitle.text = extension.name
             version.text = extension.versionName
             lang.text = LocaleHelper.getSourceDisplayName(extension.lang, itemView.context)
@@ -113,22 +103,22 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
                 extension.isNsfw && dataCenter.showNSFWSource && extension is Extension.Installed -> "${itemView.context.getString(R.string.ext_installed)}: ${itemView.context.getString(R.string.ext_nsfw_short)}"
                 else -> ""
             }.toUpperCase(Locale.getDefault())
+        }
 
-            //Button
-            bindButton(item, this)
-            extButton.setOnClickListener {
-                when (extension) {
-                    is Extension.Available -> extensionManager.installExtension(extension).subscribeToInstallUpdate(extension)
-                    is Extension.Untrusted -> {
-                        extensionManager.trustSignature(extension.signatureHash)// Do Nothing //openTrustDialog(extension)
-                    }
-                    is Extension.Installed -> {
-                        //Do Nothing
-                        if (!extension.hasUpdate) {
-                            extensionManager.uninstallExtension(extension.pkgName)
-                        } else {
-                            extensionManager.updateExtension(extension).subscribeToInstallUpdate(extension)
-                        }
+        //Button
+        bindButton(item, binding)
+        binding.extButton.setOnClickListener {
+            when (extension) {
+                is Extension.Available -> extensionManager.installExtension(extension).subscribeToInstallUpdate(extension)
+                is Extension.Untrusted -> {
+                    extensionManager.trustSignature(extension.signatureHash)// Do Nothing //openTrustDialog(extension)
+                }
+                is Extension.Installed -> {
+                    //Do Nothing
+                    if (!extension.hasUpdate) {
+                        extensionManager.uninstallExtension(extension.pkgName)
+                    } else {
+                        extensionManager.updateExtension(extension).subscribeToInstallUpdate(extension)
                     }
                 }
             }
@@ -181,7 +171,6 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
     override fun onItemClick(item: ExtensionItem, position: Int) {
         //Do Nothing
     }
-
 
     // Processing
     private fun bindToExtensionsObservable(): Subscription {
