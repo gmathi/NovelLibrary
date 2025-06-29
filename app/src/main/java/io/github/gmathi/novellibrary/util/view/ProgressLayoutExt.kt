@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.extensions
 import android.view.View
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.util.view.ProgressLayout
+import io.github.gmathi.novellibrary.util.Exceptions
 
 
 fun ProgressLayout.showLoading(
@@ -61,9 +62,10 @@ fun ProgressLayout.noInternetError(onClickListener: View.OnClickListener) {
     )
 }
 
-fun ProgressLayout.dataFetchError(onClickListener: View.OnClickListener) {
+fun ProgressLayout.dataFetchError(exception: Exception? = null, onClickListener: View.OnClickListener) {
+    val errorText = exception?.let { Exceptions.getErrorMessage(it, context) } ?: context.getString(R.string.failed_to_load_url)
     showError(
-        errorText = context.getString(R.string.failed_to_load_url),
+        errorText = errorText,
         buttonText = context.getString(R.string.try_again),
         onClickListener = onClickListener
     )

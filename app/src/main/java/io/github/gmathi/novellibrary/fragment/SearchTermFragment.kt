@@ -140,14 +140,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
             } catch (e: Exception) {
                 if (isFragmentActive()) {
-                    val errorMessage = when {
-                        e.message?.contains("404") == true -> "Search endpoint not found. The website may have changed their search functionality."
-                        e.message?.contains("403") == true -> "Access denied. The website may be blocking requests."
-                        e.message?.contains("500") == true -> "Server error. Please try again later."
-                        e.message?.contains("timeout") == true -> "Request timed out. Please check your connection."
-                        else -> getString(R.string.connection_error)
-                    }
-                    
+                    val errorMessage = Exceptions.getErrorMessage(e, requireContext())
                     binding.progressLayout.showError(errorText = errorMessage, buttonText = getString(R.string.try_again)) {
                         binding.progressLayout.showLoading()
                         currentPageNumber = 1

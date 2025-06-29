@@ -30,6 +30,7 @@ import io.github.gmathi.novellibrary.databinding.ContentNovelDetailsBinding
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.*
+import io.github.gmathi.novellibrary.util.Exceptions
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.*
@@ -126,7 +127,8 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 if (!isDestroyed && !isFinishing) Utils.copyErrorToClipboard(e, this@NovelDetailsActivity)
 
                 if (novel.id == -1L) {
-                    contentBinding.progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again)) {
+                    val errorMessage = Exceptions.getErrorMessage(e, this@NovelDetailsActivity)
+                    contentBinding.progressLayout.showError(errorText = errorMessage, buttonText = getString(R.string.try_again)) {
                         contentBinding.progressLayout.showLoading()
                         getNovelInfo()
                     }

@@ -31,6 +31,7 @@ import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
+import io.github.gmathi.novellibrary.util.Exceptions
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.getLinkedPagesCompat
 import io.github.gmathi.novellibrary.util.view.extensions.setDefaultSettings
@@ -354,10 +355,11 @@ class WebPageDBFragment : BaseFragment() {
 
                 //If document fails to load and the fragment is still alive
                 if (doc == null) {
-                    if (isResumed && !isRemoving && !isDetached)
-                        binding.progressLayout.dataFetchError {
+                    if (isResumed && !isRemoving && !isDetached) {
+                        binding.progressLayout.dataFetchError(Exception("Failed to load document")) {
                             downloadWebPage(url)
                         }
+                    }
                     return@download
                 }
 
@@ -414,10 +416,11 @@ class WebPageDBFragment : BaseFragment() {
             } catch (e: Exception) {
 
                 e.printStackTrace()
-                if (isResumed && !isRemoving && !isDetached)
-                    binding.progressLayout.dataFetchError {
+                if (isResumed && !isRemoving && !isDetached) {
+                    binding.progressLayout.dataFetchError(e) {
                         downloadWebPage(url)
                     }
+                }
             }
         }
     }
