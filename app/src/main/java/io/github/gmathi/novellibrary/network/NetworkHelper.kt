@@ -32,7 +32,7 @@ class NetworkHelper(private val context: Context) {
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
                 .addInterceptor(UserAgentInterceptor())
-                .addInterceptor(DeduplicationInterceptor()) // Add request deduplication
+                //.addInterceptor(DeduplicationInterceptor()) // Add request deduplication
 
             if (BuildConfig.DEBUG) {
                 val httpLoggingInterceptor = HttpLoggingInterceptor().apply {

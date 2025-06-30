@@ -7,6 +7,10 @@ import android.webkit.WebView
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.disk.DiskCache
@@ -29,6 +33,8 @@ import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.notification.Notifications
 import io.github.gmathi.novellibrary.util.lang.LocaleManager
+import io.github.gmathi.novellibrary.database.DatabaseCache
+import io.github.gmathi.novellibrary.util.storage.CacheManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.InjektScope
 import uy.kohesive.injekt.injectLazy
@@ -42,7 +48,7 @@ import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 
 
-open class NovelLibraryApplication : Application(), LifecycleObserver, ImageLoaderFactory {
+open class NovelLibraryApplication : Application(), ImageLoaderFactory {
     companion object {
         private const val TAG = "NovelLibraryApplication"
     }
@@ -80,6 +86,59 @@ open class NovelLibraryApplication : Application(), LifecycleObserver, ImageLoad
 
         setRemoteConfig(dataCenter)
         setupNotificationChannels()
+        
+        // Setup process lifecycle observer for proper cache management
+        setupProcessLifecycleObserver()
+    }
+
+    /**
+     * Setup process lifecycle observer to handle cache cleanup when app is swiped out
+     */
+    private fun setupProcessLifecycleObserver() {
+        ProcessLifecycleOwner.get().lifecycle.addObserver(AppLifecycleObserver())
+        Logs.debug(TAG, "Process lifecycle observer setup completed")
+    }
+
+    /**
+     * Lifecycle observer for handling app lifecycle events
+     */
+    private inner class AppLifecycleObserver : DefaultLifecycleObserver {
+        
+        override fun onStart(owner: LifecycleOwner) {
+            super.onStart(owner)
+            Logs.debug(TAG, "App coming to foreground")
+            // Optionally warm up cache or perform other initialization
+        }
+        
+        override fun onStop(owner: LifecycleOwner) {
+            super.onStop(owner)
+            Logs.debug(TAG, "App going to background - preparing for potential termination")
+            // Optionally perform lightweight cleanup here
+        }
+        
+        override fun onDestroy(owner: LifecycleOwner) {
+            super.onDestroy(owner)
+            Logs.debug(TAG, "App process being destroyed - cleaning up caches")
+            cleanupCaches()
+        }
+    }
+
+    /**
+     * Clean up all caches when app is being destroyed
+     */
+    private fun cleanupCaches() {
+        try {
+            // Cleanup database cache
+            DatabaseCache.getInstance().shutdown()
+            Logs.debug(TAG, "Database cache cleanup completed")
+            
+            // Cleanup file cache manager
+            CacheManager.getInstance(applicationContext).shutdown()
+            Logs.debug(TAG, "Cache manager cleanup completed")
+            
+        } catch (e: Exception) {
+            Logs.error(TAG, "Error during cache cleanup", e)
+        }
     }
 
     private fun cleanupDatabase() {
