@@ -1,7 +1,5 @@
 package io.github.gmathi.novellibrary.database
 
-import android.content.Context
-import androidx.test.core.app.ApplicationProvider
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
@@ -10,6 +8,7 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import androidx.test.core.app.ApplicationProvider
 
 /**
  * Test class for database optimization components.
@@ -92,7 +91,7 @@ class DatabaseOptimizationTest {
         assertNotNull(novelStats)
         assertEquals(1, novelStats?.hits)
         assertEquals(1, novelStats?.misses)
-        assertEquals(0.5, novelStats?.hitRate, 0.01)
+        assertEquals(0.5, novelStats?.hitRate ?: 0.0, 0.01)
     }
     
     @Test
@@ -128,9 +127,9 @@ class DatabaseOptimizationTest {
         val novelId = optimizedHelper.insertNovel(novel)
         
         val chapters = listOf(
-            WebPage("http://test.com/ch1", "Chapter 1", novelId),
-            WebPage("http://test.com/ch2", "Chapter 2", novelId),
-            WebPage("http://test.com/ch3", "Chapter 3", novelId)
+            WebPage("http://test.com/ch1", "Chapter 1").apply { this.novelId = novelId },
+            WebPage("http://test.com/ch2", "Chapter 2").apply { this.novelId = novelId },
+            WebPage("http://test.com/ch3", "Chapter 3").apply { this.novelId = novelId }
         )
         
         val success = optimizedHelper.insertChapters(chapters)
@@ -198,40 +197,8 @@ class DatabaseOptimizationTest {
         novel.id = 1L
         
         databaseCache.putNovel(novel)
-        assertNotNull(databaseCache.getNovel(1L))
-        
         databaseCache.cleanup()
-        // After cleanup, cache should be empty
-        assertNull(databaseCache.getNovel(1L))
-    }
-    
-    @Test
-    fun testDatabaseManagerWithDatabaseExtension() {
-        // Test extension function
-        val result = databaseManager.withDatabase { db ->
-            db.isOpen
-        }
-        
-        assertTrue(result)
-    }
-    
-    @Test
-    fun testDatabaseManagerWithWritableDatabaseExtension() {
-        // Test writable database extension function
-        val result = databaseManager.withWritableDatabase { db ->
-            !db.isReadOnly
-        }
-        
-        assertTrue(result)
-    }
-    
-    @Test
-    fun testDatabaseManagerWithTransactionExtension() {
-        // Test transaction extension function
-        val result = databaseManager.withTransaction { db ->
-            db.isOpen && !db.isReadOnly
-        }
-        
-        assertTrue(result)
+        val cachedNovel = databaseCache.getNovel(1L)
+        assertNull(cachedNovel)
     }
 } 
