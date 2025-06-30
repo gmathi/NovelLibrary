@@ -20,6 +20,7 @@ import okhttp3.ConnectionPool
 import okhttp3.Dispatcher
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicLong
+import io.github.gmathi.novellibrary.network.interceptor.RateLimitInterceptor
 
 // Add Priority enum
 enum class RequestPriority(val value: Int) {
@@ -71,9 +72,12 @@ class NetworkHelper(private val context: Context) {
 
     val cookieManager = AndroidCookieJar()
 
+    var rateLimitPerSecond: Int = 5
+
     private val baseClientBuilder: OkHttpClient.Builder
         get() {
             val builder = OkHttpClient.Builder()
+                .addInterceptor(RateLimitInterceptor(rateLimitPerSecond))
                 .cookieJar(cookieManager)
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
