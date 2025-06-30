@@ -16,6 +16,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.util.concurrent.TimeUnit
+import okhttp3.ConnectionPool
 
 class NetworkHelper(private val context: Context) {
 
@@ -32,7 +33,8 @@ class NetworkHelper(private val context: Context) {
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
                 .addInterceptor(UserAgentInterceptor())
-                //.addInterceptor(DeduplicationInterceptor()) // Add request deduplication
+                .addInterceptor(DeduplicationInterceptor()) // Enable request deduplication
+                .connectionPool(ConnectionPool(10, 5, TimeUnit.MINUTES)) // Optimize connection pool
 
             if (BuildConfig.DEBUG) {
                 val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
