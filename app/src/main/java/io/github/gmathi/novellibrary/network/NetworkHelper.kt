@@ -22,6 +22,7 @@ import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicLong
 import io.github.gmathi.novellibrary.network.interceptor.RateLimitInterceptor
 import io.github.gmathi.novellibrary.network.interceptor.RetryInterceptor
+import io.github.gmathi.novellibrary.network.interceptor.CacheControlInterceptor
 
 // Add Priority enum
 enum class RequestPriority(val value: Int) {
@@ -88,6 +89,7 @@ class NetworkHelper(private val context: Context) {
                 // Optimized connection pool: 20 idle, 2 min keep-alive for bursty but short-lived requests
                 .connectionPool(ConnectionPool(20, 2, TimeUnit.MINUTES))
                 .dispatcher(dispatcher) // Use custom dispatcher
+                .addInterceptor(CacheControlInterceptor()) // Custom cache control (only 200 responses)
                 .addInterceptor(RetryInterceptor(maxNetworkRetries)) // Add retry logic as last interceptor
 
             if (BuildConfig.DEBUG) {
