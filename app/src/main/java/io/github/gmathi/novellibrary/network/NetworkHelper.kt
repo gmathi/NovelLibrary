@@ -21,6 +21,7 @@ import okhttp3.Dispatcher
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicLong
 import io.github.gmathi.novellibrary.network.interceptor.RateLimitInterceptor
+import io.github.gmathi.novellibrary.network.interceptor.RetryInterceptor
 
 // Add Priority enum
 enum class RequestPriority(val value: Int) {
@@ -73,6 +74,7 @@ class NetworkHelper(private val context: Context) {
     val cookieManager = AndroidCookieJar()
 
     var rateLimitPerSecond: Int = 5
+    var maxNetworkRetries: Int = 3
 
     private val baseClientBuilder: OkHttpClient.Builder
         get() {
@@ -83,8 +85,10 @@ class NetworkHelper(private val context: Context) {
                 .readTimeout(30, TimeUnit.SECONDS)
                 .addInterceptor(UserAgentInterceptor())
                 .addInterceptor(DeduplicationInterceptor()) // Enable request deduplication
-                .connectionPool(ConnectionPool(10, 5, TimeUnit.MINUTES)) // Optimize connection pool
+                // Optimized connection pool: 20 idle, 2 min keep-alive for bursty but short-lived requests
+                .connectionPool(ConnectionPool(20, 2, TimeUnit.MINUTES))
                 .dispatcher(dispatcher) // Use custom dispatcher
+                .addInterceptor(RetryInterceptor(maxNetworkRetries)) // Add retry logic as last interceptor
 
             if (BuildConfig.DEBUG) {
                 val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
@@ -125,6 +129,30 @@ class NetworkHelper(private val context: Context) {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
         val netInfo = connectivityManager?.activeNetworkInfo
         return netInfo != null && netInfo.isConnected
+    }
+
+    /**
+     * Returns a new Request.Builder with cacheable headers (default: 1 day).
+     */
+    fun cacheableRequestBuilder(request: okhttp3.Request, maxAgeSeconds: Int = 86400): okhttp3.Request.Builder {
+        return request.newBuilder()
+            .header("Cache-Control", "public, max-age=$maxAgeSeconds")
+    }
+
+    /**
+     * Returns a new Request.Builder with force-refresh headers (bypass cache).
+     */
+    fun forceRefreshRequestBuilder(request: okhttp3.Request): okhttp3.Request.Builder {
+        return request.newBuilder()
+            .header("Cache-Control", "no-cache, max-age=0")
+    }
+
+    /**
+     * Returns a new Request.Builder for offline-only cache usage.
+     */
+    fun offlineOnlyRequestBuilder(request: okhttp3.Request): okhttp3.Request.Builder {
+        return request.newBuilder()
+            .header("Cache-Control", "only-if-cached, max-stale=86400")
     }
 
 }
