@@ -6,6 +6,7 @@ import io.github.gmathi.novellibrary.extension.model.LoadResult
 import io.github.gmathi.novellibrary.extension.util.ExtensionLoader
 import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.network.RequestPriority
 import io.github.gmathi.novellibrary.network.await
 import io.github.gmathi.novellibrary.network.parseAs
 import io.github.gmathi.novellibrary.model.preference.DataCenter
@@ -24,8 +25,7 @@ internal class ExtensionGithubApi {
 
     suspend fun findExtensions(): List<Extension.Available> {
         return withIOContext {
-            networkService.client
-                .newCall(GET("${REPO_URL_PREFIX}index.json"))
+            networkService.newCallWithPriority(GET("${REPO_URL_PREFIX}index.json"), RequestPriority.NORMAL)
                 .await()
                 .parseAs<JsonArray>()
                 .let { parseResponse(it) }

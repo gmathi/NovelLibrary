@@ -19,8 +19,7 @@ internal class AppUpdateGithubApi {
 
     private suspend fun getLatestUpdate(): LatestUpdate {
         return withIOContext {
-            networkService.client
-                .newCall(GET("${RELEASES_URL_PREFIX}latest.json"))
+            networkService.newCallWithPriority(GET("${RELEASES_URL_PREFIX}latest.json"), RequestPriority.NORMAL)
                 .await()
                 .parseAs<JsonObject>()
                 .let { parseResponse(it) }

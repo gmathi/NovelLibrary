@@ -8,6 +8,7 @@ import io.github.gmathi.novellibrary.model.source.CatalogueSource
 import io.github.gmathi.novellibrary.model.source.filter.FilterList
 import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.network.RequestPriority
 import io.github.gmathi.novellibrary.network.asObservableSuccess
 import okhttp3.Headers
 import okhttp3.OkHttpClient
@@ -89,7 +90,7 @@ abstract class HttpSource : CatalogueSource {
      * @param page the page number to retrieve.
      */
     override fun fetchPopularNovels(page: Int): Observable<NovelsPage> {
-        return client.newCall(popularNovelsRequest(page))
+        return network.newCallWithPriority(popularNovelsRequest(page), RequestPriority.NORMAL)
             .asObservableSuccess()
             .map { response ->
                 popularNovelsParse(response)
@@ -120,7 +121,7 @@ abstract class HttpSource : CatalogueSource {
      * @param filters the list of filters to apply.
      */
     override fun fetchSearchNovels(page: Int, query: String, filters: FilterList): Observable<NovelsPage> {
-        return client.newCall(searchNovelsRequest(page, query, filters))
+        return network.newCallWithPriority(searchNovelsRequest(page, query, filters), RequestPriority.NORMAL)
             .asObservableSuccess()
             .map { response ->
                 searchNovelsParse(response)
@@ -150,7 +151,7 @@ abstract class HttpSource : CatalogueSource {
      * @param page the page number to retrieve.
      */
     override fun fetchLatestUpdates(page: Int): Observable<NovelsPage> {
-        return client.newCall(latestUpdatesRequest(page))
+        return network.newCallWithPriority(latestUpdatesRequest(page), RequestPriority.NORMAL)
             .asObservableSuccess()
             .map { response ->
                 latestUpdatesParse(response)
@@ -179,7 +180,7 @@ abstract class HttpSource : CatalogueSource {
      * @param novel the novel to be updated.
      */
     override fun fetchNovelDetails(novel: Novel): Observable<Novel> {
-        return client.newCall(novelDetailsRequest(novel))
+        return network.newCallWithPriority(novelDetailsRequest(novel), RequestPriority.NORMAL)
             .asObservableSuccess()
             .map { response ->
                 novelDetailsParse(novel, response)
@@ -212,7 +213,7 @@ abstract class HttpSource : CatalogueSource {
      */
     override fun fetchChapterList(novel: Novel): Observable<List<WebPage>> {
         // return if novel is licensed.
-        return client.newCall(chapterListRequest(novel))
+        return network.newCallWithPriority(chapterListRequest(novel), RequestPriority.NORMAL)
             .asObservableSuccess()
             .map { response ->
                 chapterListParse(novel, response)

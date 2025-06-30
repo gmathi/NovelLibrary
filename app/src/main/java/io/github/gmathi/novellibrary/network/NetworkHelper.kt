@@ -17,8 +17,53 @@ import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.util.concurrent.TimeUnit
 import okhttp3.ConnectionPool
+import okhttp3.Dispatcher
+import java.util.concurrent.*
+import java.util.concurrent.atomic.AtomicLong
+
+// Add Priority enum
+enum class RequestPriority(val value: Int) {
+    HIGH(3),
+    NORMAL(2),
+    LOW(1)
+}
+
+// PriorityTask for queueing
+private class PriorityFutureTask<T>(
+    val priority: RequestPriority,
+    callable: Callable<T>
+) : FutureTask<T>(callable), Comparable<PriorityFutureTask<*>> {
+    override fun compareTo(other: PriorityFutureTask<*>): Int = other.priority.value - this.priority.value
+}
+
+// PriorityExecutorService
+class PriorityExecutorService(
+    corePoolSize: Int,
+    maxPoolSize: Int,
+    keepAliveTime: Long,
+    unit: TimeUnit
+) : ThreadPoolExecutor(
+    corePoolSize,
+    maxPoolSize,
+    keepAliveTime,
+    unit,
+    PriorityBlockingQueue<Runnable>()
+) {
+    override fun <T> newTaskFor(callable: Callable<T>): RunnableFuture<T> {
+        return PriorityFutureTask(RequestPriority.NORMAL, callable)
+    }
+    fun <T> submit(task: Callable<T>, priority: RequestPriority): Future<T> {
+        val priorityTask = PriorityFutureTask(priority, task)
+        execute(priorityTask)
+        return priorityTask
+    }
+}
 
 class NetworkHelper(private val context: Context) {
+
+    // Add a custom PriorityExecutorService for OkHttp Dispatcher
+    private val priorityExecutor = PriorityExecutorService(4, 8, 60L, TimeUnit.SECONDS)
+    private val dispatcher = Dispatcher(priorityExecutor)
 
     private val dataCenter: DataCenter by injectLazy()
     private val cacheDir = File(context.cacheDir, "network_cache")
@@ -35,6 +80,7 @@ class NetworkHelper(private val context: Context) {
                 .addInterceptor(UserAgentInterceptor())
                 .addInterceptor(DeduplicationInterceptor()) // Enable request deduplication
                 .connectionPool(ConnectionPool(10, 5, TimeUnit.MINUTES)) // Optimize connection pool
+                .dispatcher(dispatcher) // Use custom dispatcher
 
             if (BuildConfig.DEBUG) {
                 val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
@@ -58,6 +104,14 @@ class NetworkHelper(private val context: Context) {
         client.newBuilder()
             .addInterceptor(CloudflareInterceptor(context))
             .build()
+    }
+
+    /**
+     * Enqueue a request with a given priority
+     */
+    fun newCallWithPriority(request: okhttp3.Request, priority: RequestPriority = RequestPriority.NORMAL): okhttp3.Call {
+        val prioritizedRequest = request.newBuilder().tag(RequestPriority::class.java, priority).build()
+        return client.newCall(prioritizedRequest)
     }
 
     /**

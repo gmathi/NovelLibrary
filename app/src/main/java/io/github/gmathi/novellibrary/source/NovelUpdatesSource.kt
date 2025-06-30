@@ -32,6 +32,8 @@ import rx.Observable
 import rx.schedulers.Schedulers
 import java.net.URI
 import kotlin.math.max
+import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.network.RequestPriority
 
 
 class NovelUpdatesSource : ParsedHttpSource() {
@@ -221,7 +223,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
     }
 
     private fun fetchTranslatorSourcesList(novel: Novel): Observable<List<TranslatorSource>> {
-        return client.newCall(translatorSourcesRequest(novel))
+        return network.newCallWithPriority(translatorSourcesRequest(novel), RequestPriority.NORMAL)
             .asObservableSuccess()
             .map { response ->
                 translatorSourcesParse(response)
@@ -257,7 +259,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
     }
 
     private fun fetchChapterListWithSources(novel: Novel, translatorSource: TranslatorSource?): Observable<List<WebPage>> {
-        return client.newCall(chapterListWithSourcesRequest(novel, translatorSource))
+        return network.newCallWithPriority(chapterListWithSourcesRequest(novel, translatorSource), RequestPriority.NORMAL)
             .asObservableSuccess()
             .map { response ->
                 chapterListParse(novel, response, translatorSource)
@@ -294,7 +296,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
     }
 
     private fun fetchPopularNovels(rank: String?, url: String?, page: Int): Observable<NovelsPage> {
-        return client.newCall(popularNovelsRequest(rank, url, page))
+        return network.newCallWithPriority(popularNovelsRequest(rank, url, page), RequestPriority.NORMAL)
             .asObservableSuccess()
             .map { response ->
                 popularNovelsParse(response)
@@ -361,7 +363,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
     //region old code revival
 
     private fun fetchChapterListForPage(url: String): Observable<Document> {
-        return client.newCall(GET(url, headers))
+        return network.newCallWithPriority(GET(url, headers), RequestPriority.NORMAL)
             .asObservableSuccess()
             .map { response ->
                 response.asJsoup()

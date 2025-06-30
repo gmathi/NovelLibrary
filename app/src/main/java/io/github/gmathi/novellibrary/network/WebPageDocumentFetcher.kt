@@ -13,6 +13,7 @@ import okhttp3.Request
 import okhttp3.Response
 import org.jsoup.nodes.Document
 import uy.kohesive.injekt.injectLazy
+import io.github.gmathi.novellibrary.network.RequestPriority
 
 @Suppress("unused")
 object WebPageDocumentFetcher {
@@ -58,7 +59,7 @@ object WebPageDocumentFetcher {
 //    }
 
     fun connect(request: Request): Response {
-        return client.newCall(request).safeExecute()
+        return networkHelper.newCallWithPriority(request, RequestPriority.NORMAL).safeExecute()
     }
 
     fun document(response: Response): Document {
