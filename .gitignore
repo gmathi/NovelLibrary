@@ -74,3 +74,12 @@ app/normal/release/*
 .idea/caches/deviceStreaming.xml
 .idea/appInsightsSettings.xml
 .idea/appInsightsSettings.xml
+
+# IntelliJ / Android Studio project folder
+.idea/
+
+# Kotlin compiler working directory
+.kotlin/
+
+# Cursor editor artifacts
+.cursor/
