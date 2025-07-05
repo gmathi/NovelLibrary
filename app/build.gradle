@@ -1,10 +1,9 @@
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android' version '2.0.21'  // Apply here directly
+    id 'org.jetbrains.kotlin.android'
     id 'com.google.gms.google-services'
     id 'com.google.firebase.crashlytics'
     id 'com.google.devtools.ksp'
-    id 'kotlin-kapt'
 }
 
 def keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -14,12 +13,12 @@ if (keystorePropertiesFile.exists() && keystorePropertiesFile.canRead()) {
 }
 
 android {
-    compileSdkVersion=35
-    buildToolsVersion='35.0.0'
+    compileSdkVersion=29
+    buildToolsVersion='29.0.3'
     defaultConfig {
         applicationId "io.github.gmathi.novellibrary"
         minSdkVersion 23
-        targetSdkVersion 35
+        targetSdkVersion 29
         multiDexEnabled true
         versionCode 119
         versionName "0.26.1.beta"
@@ -29,10 +28,12 @@ android {
 
     signingConfigs {
         release {
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-            storeFile file(keystoreProperties['storeFile'])
-            storePassword keystoreProperties['storePassword']
+            if (keystorePropertiesFile.exists() && keystorePropertiesFile.canRead()) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
         }
     }
 
@@ -43,7 +44,9 @@ android {
         }
 
         release {
-            signingConfig signingConfigs.release
+            if (keystorePropertiesFile.exists() && keystorePropertiesFile.canRead()) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -99,8 +102,8 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
     implementation 'androidx.browser:browser:1.8.0'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.8.7'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.9.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.0'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
@@ -158,7 +161,7 @@ dependencies {
     implementation "uy.kohesive.injekt:injekt-core:1.16.1"
 
     // Network client
-    final okhttp_version = '5.0.0-alpha.2'
+    final okhttp_version = '4.12.0'
     implementation "com.squareup.okhttp3:okhttp:$okhttp_version"
     implementation "com.squareup.okhttp3:logging-interceptor:$okhttp_version"
     implementation "com.squareup.okhttp3:okhttp-dnsoverhttps:$okhttp_version"
@@ -188,11 +191,11 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21"
 
-    final kotlinx_coroutines_version = '1.7.3'
+    final kotlinx_coroutines_version = '1.8.1'
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinx_coroutines_version"
 
-    final kotlinSerializationVersion = '1.6.0'
+    final kotlinSerializationVersion = '1.7.3'
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinSerializationVersion"
     implementation 'com.google.code.gson:gson:2.10.1'
