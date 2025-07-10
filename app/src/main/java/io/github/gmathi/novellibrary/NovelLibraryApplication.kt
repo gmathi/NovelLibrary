@@ -45,35 +45,49 @@ open class NovelLibraryApplication : Application(), LifecycleObserver {
     override fun onCreate() {
         super.onCreate()
 
+        // Initialize dependency injection first
         Injekt = InjektScope(DefaultRegistrar())
         Injekt.importModule(AppModule(this))
 
+        // Enable vector drawables
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
-        cleanupDatabase()
 
-        val imagesDir = File(filesDir, "images")
-        if (!imagesDir.exists())
-            imagesDir.mkdir()
+        // Defer heavy operations to background thread
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            cleanupDatabase()
+            
+            val imagesDir = File(filesDir, "images")
+            if (!imagesDir.exists())
+                imagesDir.mkdir()
+        }
 
         val dataCenter: DataCenter by injectLazy()
 
+        // Set preferences synchronously (light operation)
         setPreferences(dataCenter)
 
-        try {
-            enableSSLSocket()
-        } catch (e: Exception) {
-            Logs.error(TAG, "enableSSLSocket(): ${e.localizedMessage}", e)
-        }
+        // Defer network setup to background
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            try {
+                enableSSLSocket()
+            } catch (e: Exception) {
+                Logs.error(TAG, "enableSSLSocket(): ${e.localizedMessage}", e)
+            }
 
-        //BugFix for <5.0 devices
-        //https://stackoverflow.com/questions/29916962/javax-net-ssl-sslhandshakeexception-javax-net-ssl-sslprotocolexception-ssl-han
-        updateAndroidSecurityProvider()
+            //BugFix for <5.0 devices
+            //https://stackoverflow.com/questions/29916962/javax-net-ssl-sslhandshakeexception-javax-net-ssl-sslprotocolexception-ssl-han
+            updateAndroidSecurityProvider()
+        }
 
         if (BuildConfig.DEBUG) {
             WebView.setWebContentsDebuggingEnabled(true)
         }
 
-        setRemoteConfig(dataCenter)
+        // Defer remote config to background
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            setRemoteConfig(dataCenter)
+        }
+        
         setupNotificationChannels()
     }
 

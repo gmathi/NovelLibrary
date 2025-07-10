@@ -70,24 +70,25 @@ class GenericAdapter<T>(val items: ArrayList<T>, val layoutResId: Int, val liste
 
     @SuppressLint("NotifyDataSetChanged")
     fun updateData(newItems: ArrayList<T>) {
-        //Empty Current List --> Add All
-        if (items.size == 0) {
-            items.addAll(newItems)
-            notifyItemRangeInserted(0, items.size)
-            return
+        // Use DiffUtil for efficient updates
+        val diffCallback = object : androidx.recyclerview.widget.DiffUtil.Callback() {
+            override fun getOldListSize(): Int = items.size
+            override fun getNewListSize(): Int = newItems.size
+            
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                // Implement based on your item's unique identifier
+                return items[oldItemPosition] == newItems[newItemPosition]
+            }
+            
+            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return items[oldItemPosition] == newItems[newItemPosition]
+            }
         }
-
-        //Empty New List --> Remove All
-        if (newItems.size == 0) {
-            val size = items.size
-            items.clear()
-            notifyItemRangeRemoved(0, size)
-            return
-        }
-
+        
+        val diffResult = androidx.recyclerview.widget.DiffUtil.calculateDiff(diffCallback)
         items.clear()
         items.addAll(newItems)
-        notifyDataSetChanged()
+        diffResult.dispatchUpdatesTo(this)
     }
 
     fun addItems(newItems: ArrayList<T>) {
