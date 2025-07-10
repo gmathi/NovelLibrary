@@ -74,3 +74,106 @@ app/normal/release/*
 .idea/caches/deviceStreaming.xml
 .idea/appInsightsSettings.xml
 .idea/appInsightsSettings.xml
+
+# Additional Android-specific patterns
+# Android Studio 3.1+ generated files
+.idea/caches/
+.idea/modules.xml
+.idea/navEditor.xml
+
+# Android Profiling
+*.hprof
+
+# Temporary files
+*.tmp
+*.temp
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+
+# Backup files
+*.bak
+*.backup
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Bundle artifacts
+*.bundle
+
+# CocoaPods
+Pods/
+
+# Carthage
+Carthage/Build/
+
+# Accio dependency management
+Dependencies/
+.accio/
+
+# fastlane
+# It is recommended to not store the screenshots in the git repo. Instead, use fastlane to re-generate the
+# screenshots whenever they are needed.
+# For more information about the recommended setup visit:
+# https://docs.fastlane.tools/best-practices/source-control/
+
+# Version control
+vcs.xml
+
+# lint
+lint/intermediates/
+lint/generated/
+lint/outputs/
+lint/tmp/
+
+# Android Studio will place build artifacts here
+/mobile/build/
+
+# Gradle wrapper jar file
+gradle/wrapper/gradle-wrapper.jar
+
+# Avoid ignoring Gradle wrapper jar file
+!gradle/wrapper/gradle-wrapper.jar
+
+# Avoid ignore Gradle wrappper properties
+!gradle/wrapper/gradle-wrapper.properties
+
+# Cache of project
+.gradletasknamecache
+
+# # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
+# gradle/wrapper/gradle-wrapper.properties
+
+# Crashlytics plugin (for Android Studio and IntelliJ)
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+# Editor directories and files
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
