@@ -30,6 +30,7 @@ import io.github.gmathi.novellibrary.util.Constants.SIMPLE_NOVEL_BACKUP_FILE_NAM
 import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.Utils.recursiveCopy
+import io.github.gmathi.novellibrary.util.storage.DiskUtil
 import io.github.gmathi.novellibrary.util.system.NotificationReceiver
 import io.github.gmathi.novellibrary.util.view.ProgressNotificationManager
 import kotlinx.coroutines.Dispatchers
@@ -215,9 +216,9 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
             } catch (e: Exception) {
                 message =
                     if ("No space left on device" == e.localizedMessage) {
-                        val databasesDirSize = Utils.getFolderSize(currentDBsDir)
-                        val filesDirSize = Utils.getFolderSize(currentFilesDir)
-                        val sharedPrefsDirSize = Utils.getFolderSize(currentSharedPrefsDir)
+                        val databasesDirSize = DiskUtil.getDirectorySize(currentDBsDir)
+                        val filesDirSize = DiskUtil.getDirectorySize(currentFilesDir)
+                        val sharedPrefsDirSize = DiskUtil.getDirectorySize(currentSharedPrefsDir)
 
                         val formattedSize = Formatter.formatFileSize(
                             applicationContext,

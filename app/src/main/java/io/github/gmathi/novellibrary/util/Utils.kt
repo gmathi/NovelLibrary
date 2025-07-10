@@ -113,16 +113,23 @@ object Utils {
         context.sendBroadcast(localIntent)
     }
 
+    /**
+     * Copies data from input stream to file using a buffer
+     */
+    @Throws(IOException::class)
+    private fun copyStreamToFile(inputStream: InputStream, outputStream: OutputStream) {
+        val buffer = ByteArray(BUFFER_SIZE)
+        var bytesRead: Int
+        while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+            outputStream.write(buffer, 0, bytesRead)
+        }
+    }
+
     @Throws(IOException::class)
     fun copyFile(inputStream: InputStream, dst: File) {
-        inputStream.use {
+        inputStream.use { inStream ->
             FileOutputStream(dst).use { outStream ->
-                val buffer = ByteArray(BUFFER_SIZE)
-                var bytesRead: Int = inputStream.read(buffer)
-                while (bytesRead != -1) {
-                    outStream.write(buffer, 0, bytesRead)
-                    bytesRead = inputStream.read(buffer)
-                }
+                copyStreamToFile(inStream, outStream)
             }
         }
     }
@@ -136,27 +143,16 @@ object Utils {
     fun copyFile(contentResolver: ContentResolver, src: File, dst: DocumentFile) {
         FileInputStream(src).use { inStream ->
             contentResolver.openOutputStream(dst.uri)?.use { outStream ->
-                val buffer = ByteArray(BUFFER_SIZE)
-                var bytesRead = inStream.read(buffer)
-                while (bytesRead != -1) {
-                    outStream.write(buffer, 0, bytesRead)
-                    bytesRead = inStream.read(buffer)
-                }
+                copyStreamToFile(inStream, outStream)
             }
         }
-
     }
 
     @Throws(IOException::class)
     fun copyFile(contentResolver: ContentResolver, src: DocumentFile, dst: File) {
         contentResolver.openInputStream(src.uri)?.use { inStream ->
             FileOutputStream(dst).use { outStream ->
-                val buffer = ByteArray(BUFFER_SIZE)
-                var bytesRead = inStream.read(buffer)
-                while (bytesRead != -1) {
-                    outStream.write(buffer, 0, bytesRead)
-                    bytesRead = inStream.read(buffer)
-                }
+                copyStreamToFile(inStream, outStream)
             }
         }
     }
@@ -221,17 +217,12 @@ object Utils {
 
     @Throws(IOException::class)
     private fun zipFile(file: File, outStream: ZipOutputStream, basePathLength: Int, log: Boolean = false) {
-        BufferedInputStream(file.inputStream(), BUFFER_SIZE).use {
+        BufferedInputStream(file.inputStream(), BUFFER_SIZE).use { inStream ->
             val entry = ZipEntry(file.path.substring(basePathLength))
             if (log) Log.i(TAG, "zip: file=${file.name}, entry=${entry.name}")
             entry.time = file.lastModified() // to keep modification time after unzipping
             outStream.putNextEntry(entry)
-            val data = ByteArray(BUFFER_SIZE)
-            var count = it.read(data, 0, BUFFER_SIZE)
-            while (count != -1) {
-                outStream.write(data, 0, count)
-                count = it.read(data, 0, BUFFER_SIZE)
-            }
+            copyStreamToFile(inStream, outStream)
         }
     }
 
@@ -248,9 +239,9 @@ object Utils {
 
     @Throws(IOException::class)
     fun unzip(contentResolver: ContentResolver, uri: Uri, dir: File) {
-        contentResolver.openInputStream(uri)?.let {
-            val inputStream = ZipInputStream(BufferedInputStream(it))
-            var entry = inputStream.nextEntry
+        contentResolver.openInputStream(uri)?.let { inputStream ->
+            val zipInputStream = ZipInputStream(BufferedInputStream(inputStream))
+            var entry = zipInputStream.nextEntry
             while (entry != null) {
                 if (entry.isDirectory) {
                     val subDir = File(dir, entry.name)
@@ -259,16 +250,11 @@ object Utils {
                 } else {
                     val file = File(dir, entry.name)
                     file.createFileIfNotExists()
-                    file.outputStream().use {
-                        val data = ByteArray(BUFFER_SIZE)
-                        var count = inputStream.read(data, 0, BUFFER_SIZE)
-                        while (count != -1) {
-                            it.write(data, 0, count)
-                            count = inputStream.read(data, 0, BUFFER_SIZE)
-                        }
+                    file.outputStream().use { outStream ->
+                        copyStreamToFile(zipInputStream, outStream)
                     }
                 }
-                entry = inputStream.nextEntry
+                entry = zipInputStream.nextEntry
             }
         }
     }
@@ -285,7 +271,9 @@ object Utils {
      * @param dir
      * the directory on primary storage
      * @return the size of the directory
+     * @deprecated Use DiskUtil.getDirectorySize() instead
      */
+    @Deprecated("Use DiskUtil.getDirectorySize() instead")
     fun getFolderSize(dir: File): Long {
         if (dir.exists()) {
             var result: Long = 0
@@ -324,11 +312,13 @@ object Utils {
     }
 
     @Suppress("DEPRECATION")
+    @Deprecated("Use Context.isServiceRunning() extension function instead")
     fun isServiceRunning(context: Context, serviceQualifiedName: String): Boolean {
         val manager = context.getSystemService(ACTIVITY_SERVICE) as ActivityManager
         return manager.getRunningServices(Integer.MAX_VALUE).any { serviceQualifiedName == it.service.className }
     }
 
+    @Deprecated("Use UIUtils.showConfirmDialog() instead")
     fun dialogBuilder(
         activity: AppCompatActivity,
         title: String? = null,

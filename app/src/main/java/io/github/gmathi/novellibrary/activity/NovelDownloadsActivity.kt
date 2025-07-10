@@ -29,6 +29,7 @@ import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.view.setDefaultsNoAnimation
 import io.github.gmathi.novellibrary.util.system.startDownloadNovelService
+import io.github.gmathi.novellibrary.util.system.isServiceRunning
 
 
 class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<Long>, DownloadListener {
@@ -91,7 +92,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<Long>, Do
         binding.novelTitleTextView.text = novel?.name
         //val downloadedPages = dbHelper.getDownloadedChapterCount(novel!!.id)
 
-        if (dbHelper.hasDownloadsInQueue(item) && Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME)) {
+        if (dbHelper.hasDownloadsInQueue(item) && isServiceRunning(DownloadNovelService::class.java)) {
             binding.playPauseImage.setImageResource(R.drawable.ic_pause_white_vector)
             binding.playPauseImage.tag = Download.STATUS_IN_QUEUE
             //val remainingDownloadsCount = dbHelper.getRemainingDownloadsCountForNovel(item)
@@ -108,7 +109,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<Long>, Do
                     binding.playPauseImage.setImageResource(R.drawable.ic_pause_white_vector)
                     binding.playPauseImage.tag = Download.STATUS_IN_QUEUE
                     dbHelper.updateDownloadStatusNovelId(Download.STATUS_IN_QUEUE, item)
-                    if (Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME)) {
+                    if (isServiceRunning(DownloadNovelService::class.java)) {
                         downloadNovelService?.handleNovelDownload(item, DownloadNovelService.ACTION_START)
                     } else {
                         startDownloadNovelService(item)
@@ -120,7 +121,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<Long>, Do
                     binding.playPauseImage.tag = Download.STATUS_PAUSED
                     dbHelper.updateDownloadStatusNovelId(Download.STATUS_PAUSED, item)
                     binding.novelProgressText.text = getString(R.string.download_paused)
-                    if (Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME))
+                    if (isServiceRunning(DownloadNovelService::class.java))
                         downloadNovelService?.handleNovelDownload(item, DownloadNovelService.ACTION_PAUSE)
                 }
             }
@@ -190,7 +191,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<Long>, Do
                 this@NovelDownloadsActivity.run {
                     dbHelper.deleteDownloads(novelId)
                     adapter.removeItem(novelId)
-                    if (isServiceConnected && Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME))
+                    if (isServiceConnected && isServiceRunning(DownloadNovelService::class.java))
                         downloadNovelService?.handleNovelDownload(novelId, DownloadNovelService.ACTION_REMOVE)
                     dialog.dismiss()
                 }
@@ -231,7 +232,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<Long>, Do
                 }
                 EventType.DELETE -> {
                     adapter.removeItem(downloadNovelEvent.novelId)
-                    if (isServiceConnected && Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME))
+                    if (isServiceConnected && isServiceRunning(DownloadNovelService::class.java))
                         downloadNovelService?.handleNovelDownload(downloadNovelEvent.novelId, DownloadNovelService.ACTION_REMOVE)
                 }
                 else -> {
@@ -244,7 +245,7 @@ class NovelDownloadsActivity : BaseActivity(), GenericAdapter.Listener<Long>, Do
     override fun onStart() {
         super.onStart()
         // Bind to LocalService
-        val isServiceRunning = Utils.isServiceRunning(this@NovelDownloadsActivity, DownloadNovelService.QUALIFIED_NAME)
+        val isServiceRunning = isServiceRunning(DownloadNovelService::class.java)
         if (isServiceRunning) {
             bindService()
         }

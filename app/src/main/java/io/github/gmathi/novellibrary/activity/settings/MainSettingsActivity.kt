@@ -28,6 +28,7 @@ import io.github.gmathi.novellibrary.databinding.ListitemSettingsBinding
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.util.system.*
+import io.github.gmathi.novellibrary.util.showToast
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import nl.dionsegijn.konfetti.models.Shape
 import nl.dionsegijn.konfetti.models.Size
@@ -127,8 +128,7 @@ class MainSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                         getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     val clip = ClipData.newPlainText("Debug-info", systemInfo)
                     clipboard.setPrimaryClip(clip)
-                    Toast.makeText(this@MainSettingsActivity, "Debug-info copied to clipboard!", Toast.LENGTH_SHORT)
-                        .show()
+                                showToast("Debug-info copied to clipboard!", Toast.LENGTH_SHORT)
                 }
                 cancelable(false)
             }

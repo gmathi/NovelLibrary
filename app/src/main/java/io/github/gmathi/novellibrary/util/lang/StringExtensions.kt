@@ -75,6 +75,9 @@ fun String.addToLibrarySearchHistory() {
     }
 }
 
+/**
+ * Creates a writable filename by replacing invalid characters with hyphens
+ */
 fun String.writableFileName(): String {
     val regex = Regex("[^a-zA-Z0-9.-]")
     var fileName = this.replace(regex, "-")
@@ -86,6 +89,10 @@ fun String.writableFileName(): String {
     return fileName
 }
 
+/**
+ * @deprecated Use writableFileName() instead
+ */
+@Deprecated("Use writableFileName() instead")
 fun String.writableOldFileName(): String {
     var fileName = this.replace(Regex.fromLiteral("[^a-zA-Z0-9.-]"), "_").replace("/", "_").replace(" ", "")
     if (fileName.length > 150)

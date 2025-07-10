@@ -13,6 +13,7 @@ import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.util.UIUtils
 import io.github.gmathi.novellibrary.util.Utils
 
 fun AppCompatActivity.hideSoftKeyboard() {
@@ -21,7 +22,7 @@ fun AppCompatActivity.hideSoftKeyboard() {
 }
 
 fun AppCompatActivity.toast(message: String) {
-    Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    UIUtils.showToast(this, message, Toast.LENGTH_LONG)
 }
 
 fun AppCompatActivity.snackBar(view: View, message: String) {
@@ -29,13 +30,9 @@ fun AppCompatActivity.snackBar(view: View, message: String) {
         .setAction("Action", null).show()
 }
 
+@Deprecated("Use Context.openInBrowser() extension function instead")
 fun AppCompatActivity.openInBrowser(url: String) {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-    try {
-        startActivity(intent)
-    } catch (ex: ActivityNotFoundException) {
-        this.toast("No Application Found!")
-    }
+    UIUtils.openInBrowser(this, url)
 }
 
 fun AppCompatActivity.sendEmail(email: String, subject: String, body: String) {
@@ -65,13 +62,7 @@ fun AppCompatActivity.shareUrl(url: String) {
 }
 
 fun Activity.showAlertDialog(title: String? = null, message: String? = null, @DrawableRes icon: Int = R.drawable.ic_warning_white_vector) {
-    if (title.isNullOrBlank() && message.isNullOrBlank()) return
-    val builder = MaterialDialog(this).show {
-        icon(icon)
-        title?.let { title(text = it) }
-        message?.let { message(text = it) }
-        positiveButton(R.string.okay)
-    }
+    UIUtils.showAlertDialog(this as AppCompatActivity, title, message, icon)
 }
 
 /**

@@ -19,6 +19,7 @@ import io.github.gmathi.novellibrary.util.lang.LocaleManager.Companion.changeLoc
 import io.github.gmathi.novellibrary.util.lang.LocaleManager.Companion.translated
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaults
+import io.github.gmathi.novellibrary.util.showToast
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -136,8 +137,8 @@ class LanguageActivity : BaseActivity(), GenericAdapter.Listener<String> {
             val total = translated(this)
             if (translated == -1 || total == -1)
                 return
-            val percentage = String.format("%.2f", translated.toDouble() / total * 100)
-            Toast.makeText(this, resources.getString(R.string.translated, translated, total, percentage), Toast.LENGTH_LONG).show()
+            val percentage = String.format(Locale.ROOT, "%.2f", translated.toDouble() / total * 100)
+            showToast(resources.getString(R.string.translated, translated, total, percentage), Toast.LENGTH_LONG)
         }
     }
 

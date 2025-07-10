@@ -34,9 +34,11 @@ import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.ALL_TRANSLATOR_SOURCES
 import io.github.gmathi.novellibrary.util.FAC
+import io.github.gmathi.novellibrary.util.UIUtils
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.system.shareUrl
 import io.github.gmathi.novellibrary.util.system.startDownloadNovelService
+import io.github.gmathi.novellibrary.util.system.isServiceRunning
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel
 import org.greenrobot.eventbus.EventBus
 import java.util.*
@@ -274,7 +276,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                         vm.chapters?.let {
                             setProgressDialog("Adding chapters to download queue…", it.size)
                             vm.updateChapters(it, ChaptersViewModel.Action.ADD_DOWNLOADS, callback = {
-                                if (Utils.isServiceRunning(this, DownloadNovelService.QUALIFIED_NAME)) {
+                                if (isServiceRunning(DownloadNovelService::class.java)) {
                                     downloadNovelService?.handleNovelDownload(vm.novel.id, DownloadNovelService.ACTION_START)
                                 } else {
                                     startDownloadNovelService(vm.novel.id)
@@ -408,7 +410,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                                 dialog.dismiss()
                                 setProgressDialog("Add to Downloads…", listToDownload.size)
                                 vm.updateChapters(listToDownload, ChaptersViewModel.Action.ADD_DOWNLOADS) {
-                                    if (Utils.isServiceRunning(this, DownloadNovelService.QUALIFIED_NAME)) {
+                                    if (isServiceRunning(DownloadNovelService::class.java)) {
                                         downloadNovelService?.handleNovelDownload(vm.novel.id, DownloadNovelService.ACTION_START)
                                     } else {
                                         startDownloadNovelService(vm.novel.id)
@@ -493,7 +495,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
     }
 
     override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
-        menu?.findItem(R.id.action_download)?.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        menu?.findItem(R.id.action_download)?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
         return true
     }
 
@@ -520,18 +522,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
     }
 
     private fun showAlertDialog(title: String? = null, message: String? = null) {
-        MaterialDialog(this).show {
-            icon(R.drawable.ic_warning_white_vector)
-            if (title.isNullOrBlank())
-                title(R.string.alert)
-            else
-                title(text = title)
-            message(text = message)
-            positiveButton(R.string.okay) {
-                it.dismiss()
-            }
-            lifecycleOwner(this@ChaptersPagerActivity)
-        }
+        UIUtils.showAlertDialog(this, title, message)
     }
 
     private fun showNotInLibraryDialog() {

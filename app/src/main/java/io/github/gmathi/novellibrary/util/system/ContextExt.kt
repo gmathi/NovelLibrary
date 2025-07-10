@@ -27,6 +27,7 @@ import androidx.core.graphics.red
 import androidx.core.net.toUri
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.util.UIUtils
 import kotlin.math.roundToInt
 
 /**
@@ -36,7 +37,7 @@ import kotlin.math.roundToInt
  * @param duration the duration of the toast. Defaults to short.
  */
 fun Context.toast(@StringRes resource: Int, duration: Int = Toast.LENGTH_SHORT) {
-    Toast.makeText(this, resource, duration).show()
+    UIUtils.showToast(this, resource, duration)
 }
 
 /**
@@ -46,7 +47,7 @@ fun Context.toast(@StringRes resource: Int, duration: Int = Toast.LENGTH_SHORT) 
  * @param duration the duration of the toast. Defaults to short.
  */
 fun Context.toast(text: String?, duration: Int = Toast.LENGTH_SHORT) {
-    Toast.makeText(this, text.orEmpty(), duration).show()
+    UIUtils.showToast(this, text.orEmpty(), duration)
 }
 
 /**
@@ -207,12 +208,5 @@ fun Context.isServiceRunning(serviceClass: Class<*>): Boolean {
  * Opens a URL in a custom tab.
  */
 fun Context.openInBrowser(url: String) {
-    try {
-        val intent = CustomTabsIntent.Builder()
-            .setToolbarColor(getResourceColor(R.attr.colorPrimary))
-            .build()
-        intent.launchUrl(this, url.toUri())
-    } catch (e: Exception) {
-        toast(e.message)
-    }
+    UIUtils.openInBrowser(this, url)
 }

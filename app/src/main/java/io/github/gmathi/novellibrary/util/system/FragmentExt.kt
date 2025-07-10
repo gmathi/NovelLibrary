@@ -10,6 +10,7 @@ import io.github.gmathi.novellibrary.activity.ReaderDBPagerActivity
 import io.github.gmathi.novellibrary.activity.WebViewActivity
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.UIUtils
 
 
 fun Fragment.hideSoftKeyboard() {
@@ -22,6 +23,6 @@ fun Fragment.isFragmentActive(): Boolean {
 }
 
 fun Fragment.showAlertDialog(title: String? = null, message: String? = null, icon: Int = R.drawable.ic_warning_white_vector) {
-    requireActivity().showAlertDialog(title, message, icon)
+    UIUtils.showAlertDialog(this, title, message, icon)
 }
 
