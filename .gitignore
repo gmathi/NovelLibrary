@@ -177,3 +177,6 @@ Desktop.ini
 .directory
 .Trash-*
 .nfs*
+
+# Ignore Kotlin compiler session files
+.kotlin/
