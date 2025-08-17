@@ -5,8 +5,6 @@ import io.github.gmathi.novellibrary.extension.ExtensionManager
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.source.NovelUpdatesSource
-import io.github.gmathi.novellibrary.util.lang.awaitSingle
-import rx.Observable
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -26,17 +24,12 @@ interface Source {
     val name: String
 
     /**
-     * Returns an observable with the updated details for a novel.
+     * Get the updated details for a novel.
      *
      * @param novel the novel to update.
      */
-    fun fetchNovelDetails(novel: Novel): Observable<Novel>
-
-    /**
-     * [1.x API] Get all the available chapters for a novel.
-     */
     suspend fun getNovelDetails(novel: Novel): Novel {
-        val downloadedNovel = fetchNovelDetails(novel).awaitSingle()
+        val downloadedNovel = fetchNovelDetails(novel)
         if (downloadedNovel.chaptersCount == 0L) {
             downloadedNovel.chaptersCount =
                 if (this is NovelUpdatesSource)
@@ -45,22 +38,18 @@ interface Source {
                     getChapterList(novel).count().toLong()
 
         }
-        return novel
+        return downloadedNovel
     }
 
     /**
-     * Returns an observable with all the available chapters for a novel.
-     *
-     * @param novel the novel to update.
+     * Internal method to fetch novel details - should be implemented by subclasses
      */
-    fun fetchChapterList(novel: Novel): Observable<List<WebPage>>
+    suspend fun fetchNovelDetails(novel: Novel): Novel
 
     /**
-     * [1.x API] Get all the available chapters for a novel.
+     * Get all the available chapters for a novel.
      */
-    suspend fun getChapterList(novel: Novel): List<WebPage> {
-        return fetchChapterList(novel).awaitSingle()
-    }
+    suspend fun getChapterList(novel: Novel): List<WebPage>
 
 }
 

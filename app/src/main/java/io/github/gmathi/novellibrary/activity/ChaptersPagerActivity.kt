@@ -38,6 +38,8 @@ import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.system.shareUrl
 import io.github.gmathi.novellibrary.util.system.startDownloadNovelService
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import java.util.*
 
@@ -127,8 +129,8 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
     }
 
     private fun addObservers() {
-        vm.loadingStatus.observe(this) {
-            it?.let { newStatus ->
+        lifecycleScope.launch {
+            vm.loadingStatus.collect { newStatus ->
                 //Update loading status
                 when (newStatus) {
                     Constants.Status.START -> {
@@ -173,22 +175,25 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
             }
         }
 
-        vm.actionModeProgress.observe(this) { progress ->
-            //Update Action mode actions status
-            when (progress) {
-                Constants.Status.START -> {
-                    showProgressDialog()
-                }
+        
+        lifecycleScope.launch {
+            vm.actionModeProgress.collect { progress ->
+                //Update Action mode actions status
+                when (progress) {
+                    Constants.Status.START -> {
+                        showProgressDialog()
+                    }
 
-                Constants.Status.DONE -> {
-                    isChaptersProcessing = false
-                    snackProgressBar = null
-                    snackProgressBarManager.dismiss()
-                    EventBus.getDefault().post(ChapterActionModeEvent(eventType = EventType.COMPLETE))
-                }
+                    Constants.Status.DONE -> {
+                        isChaptersProcessing = false
+                        snackProgressBar = null
+                        snackProgressBarManager.dismiss()
+                        EventBus.getDefault().post(ChapterActionModeEvent(eventType = EventType.COMPLETE))
+                    }
 
-                else -> {
-                    progress.toIntOrNull()?.let { setProgressDialogValue(it) }
+                    else -> {
+                        progress.toIntOrNull()?.let { setProgressDialogValue(it) }
+                    }
                 }
             }
         }

@@ -24,6 +24,7 @@ import android.widget.TableRow
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.children
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import com.bumptech.glide.Glide
@@ -51,6 +52,7 @@ import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import io.github.gmathi.novellibrary.util.toHumanPercentage
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaultsNoAnimation
+import kotlinx.coroutines.*
 import okhttp3.internal.format
 import kotlin.math.ceil
 import kotlin.math.round
@@ -79,15 +81,15 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
 
     private var stopTimer: Long = 0L
     private var lastMinutes: Long = 0L
-    lateinit var updateTimerRunnable: Runnable
+    private var timerUpdateJob: Job? = null
     private val updateTimerCallback = object : ResultReceiver(Handler(Looper.myLooper()!!)) {
         override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {
             quickSettings.autoStopTimerSwitch.isChecked = resultCode == 1
-            binding.root.removeCallbacks(updateTimerRunnable)
+            timerUpdateJob?.cancel()
             if (resultCode == 1) {
                 resultData?.getLong("time")?.let {
                     stopTimer = it
-                    binding.root.postOnAnimation(updateTimerRunnable)
+                    startTimerUpdates()
                 }
                 resultData?.getBoolean("active")?.let {
                     if (it) {
@@ -269,14 +271,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
             }, updateTimerCallback)
         }
 
-        updateTimerRunnable = Runnable {
-            val minutes = ceil((stopTimer - System.currentTimeMillis()).toDouble() / 60000).toLong().coerceAtLeast(0)
-            if (lastMinutes != minutes) {
-                lastMinutes = minutes
-                quickSettings.autoStopTimerStatus.text = format("%d:%02d", minutes / 60, minutes % 60)
-            }
-            binding.root.postOnAnimation(updateTimerRunnable)
-        }
+        // Timer updates are now handled by startTimerUpdates() coroutine
         //#endregion
 
         if (dataCenter.ttsPreferences.keepScreenOn) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -303,6 +298,20 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
         controller?.sendCommand(TTSService.COMMAND_UPDATE_TIMER, null, updateTimerCallback)
     }
 
+    private fun startTimerUpdates() {
+        timerUpdateJob?.cancel()
+        timerUpdateJob = lifecycleScope.launch {
+            while (isActive) {
+                val minutes = ceil((stopTimer - System.currentTimeMillis()).toDouble() / 60000).toLong().coerceAtLeast(0)
+                if (lastMinutes != minutes) {
+                    lastMinutes = minutes
+                    quickSettings.autoStopTimerStatus.text = format("%d:%02d", minutes / 60, minutes % 60)
+                }
+                delay(1000) // Update every second instead of every frame
+            }
+        }
+    }
+
     fun initController() {
         controller?.let {
             it.registerCallback(ctrlCallback)
@@ -321,11 +330,15 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
             if (metadata == null) return
             val novelId = metadata.getLong(TTSService.NOVEL_ID)
             if (novel?.id != novelId) {
-                novel = dbHelper.getNovel(novelId)
-                translatorSource = metadata.getString(TTSService.TRANSLATOR_SOURCE_NAME)
-                novel?.imageUrl?.let { image ->
-                    Glide.with(this@TextToSpeechControlsActivity).load(image.getGlideUrl()).apply(RequestOptions.circleCropTransform())
-                        .into(contentBinding.ttsNovelCover)
+                lifecycleScope.launch {
+                    novel = withContext(Dispatchers.IO) {
+                        dbHelper.getNovel(novelId)
+                    }
+                    translatorSource = metadata.getString(TTSService.TRANSLATOR_SOURCE_NAME)
+                    novel?.imageUrl?.let { image ->
+                        Glide.with(this@TextToSpeechControlsActivity).load(image.getGlideUrl()).apply(RequestOptions.circleCropTransform())
+                            .into(contentBinding.ttsNovelCover)
+                    }
                 }
             }
             chapterIndex = metadata.trackNumber.toInt() - 1
@@ -531,6 +544,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
 
     override fun onStop() {
         super.onStop()
+        timerUpdateJob?.cancel()
         controller?.unregisterCallback(ctrlCallback)
         browser.disconnect()
     }
@@ -555,22 +569,30 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
         return super.onOptionsItemSelected(item)
     }
 
-    private fun openReader(): Boolean {
+    private fun openReader() {
         if (controller?.metadata != null) {
             val meta = controller!!.metadata
             val novelId = meta.getLong(TTSService.NOVEL_ID)
-            val novel = dbHelper.getNovel(novelId) ?: return false
+            
+            lifecycleScope.launch {
+                val novel = withContext(Dispatchers.IO) {
+                    dbHelper.getNovel(novelId)
+                } ?: return@launch
 
-            var translator: String? = meta.getString(TTSService.TRANSLATOR_SOURCE_NAME)
-            if (translator == "") translator = null
-            dbHelper.getWebPage(novelId, translator, meta.getLong(TTSService.CHAPTER_INDEX).toInt())?.let { chapter ->
-                updateNovelBookmark(novel, chapter)
-                finishAfterTransition()
-                startReaderDBPagerActivity(novel, translator)
-                return true
+                var translator: String? = meta.getString(TTSService.TRANSLATOR_SOURCE_NAME)
+                if (translator == "") translator = null
+                
+                val chapter = withContext(Dispatchers.IO) {
+                    dbHelper.getWebPage(novelId, translator, meta.getLong(TTSService.CHAPTER_INDEX).toInt())
+                }
+                
+                chapter?.let {
+                    updateNovelBookmark(novel, it)
+                    finishAfterTransition()
+                    startReaderDBPagerActivity(novel, translator)
+                }
             }
         }
-        return false
     }
 
 }

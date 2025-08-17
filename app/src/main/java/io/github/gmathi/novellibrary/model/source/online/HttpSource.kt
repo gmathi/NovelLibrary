@@ -8,12 +8,11 @@ import io.github.gmathi.novellibrary.model.source.CatalogueSource
 import io.github.gmathi.novellibrary.model.source.filter.FilterList
 import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.network.NetworkHelper
-import io.github.gmathi.novellibrary.network.asObservableSuccess
+import io.github.gmathi.novellibrary.network.awaitSuccess
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import rx.Observable
 import uy.kohesive.injekt.injectLazy
 import java.net.URI
 import java.net.URISyntaxException
@@ -53,7 +52,7 @@ abstract class HttpSource : CatalogueSource {
      * Note the generated id sets the sign bit to 0.
      */
     override val id by lazy {
-        val key = "${name.toLowerCase(Locale.ROOT)}/$lang/$versionId"
+        val key = "${name.lowercase(Locale.ROOT)}/$lang/$versionId"
         val bytes = MessageDigest.getInstance("MD5").digest(key.toByteArray())
         (0..7).map { bytes[it].toLong() and 0xff shl 8 * (7 - it) }.reduce(Long::or) and Long.MAX_VALUE
     }
@@ -79,21 +78,18 @@ abstract class HttpSource : CatalogueSource {
     /**
      * Visible name of the source.
      */
-    override fun toString() = "$name (${lang.toUpperCase(Locale.ROOT)})"
+    override fun toString() = "$name (${lang.uppercase(Locale.ROOT)})"
 
 
     /**
-     * Returns an observable containing a page with a list of novels. Normally it's not needed to
+     * Returns a page with a list of novels. Normally it's not needed to
      * override this method.
      *
      * @param page the page number to retrieve.
      */
-    override fun fetchPopularNovels(page: Int): Observable<NovelsPage> {
-        return client.newCall(popularNovelsRequest(page))
-            .asObservableSuccess()
-            .map { response ->
-                popularNovelsParse(response)
-            }
+    override suspend fun getPopularNovels(page: Int): NovelsPage {
+        val response = client.newCall(popularNovelsRequest(page)).awaitSuccess()
+        return popularNovelsParse(response)
     }
 
     /**
@@ -112,19 +108,16 @@ abstract class HttpSource : CatalogueSource {
 
 
     /**
-     * Returns an observable containing a page with a list of novels. Normally it's not needed to
+     * Returns a page with a list of novels. Normally it's not needed to
      * override this method.
      *
      * @param page the page number to retrieve.
      * @param query the search query.
      * @param filters the list of filters to apply.
      */
-    override fun fetchSearchNovels(page: Int, query: String, filters: FilterList): Observable<NovelsPage> {
-        return client.newCall(searchNovelsRequest(page, query, filters))
-            .asObservableSuccess()
-            .map { response ->
-                searchNovelsParse(response)
-            }
+    override suspend fun getSearchNovels(page: Int, query: String, filters: FilterList): NovelsPage {
+        val response = client.newCall(searchNovelsRequest(page, query, filters)).awaitSuccess()
+        return searchNovelsParse(response)
     }
 
     /**
@@ -145,16 +138,13 @@ abstract class HttpSource : CatalogueSource {
 
 
     /**
-     * Returns an observable containing a page with a list of latest novel updates.
+     * Returns a page with a list of latest novel updates.
      *
      * @param page the page number to retrieve.
      */
-    override fun fetchLatestUpdates(page: Int): Observable<NovelsPage> {
-        return client.newCall(latestUpdatesRequest(page))
-            .asObservableSuccess()
-            .map { response ->
-                latestUpdatesParse(response)
-            }
+    override suspend fun getLatestUpdates(page: Int): NovelsPage {
+        val response = client.newCall(latestUpdatesRequest(page)).awaitSuccess()
+        return latestUpdatesParse(response)
     }
 
     /**
@@ -173,17 +163,14 @@ abstract class HttpSource : CatalogueSource {
 
 
     /**
-     * Returns an observable with the updated details for a novel. Normally it's not needed to
+     * Returns the updated details for a novel. Normally it's not needed to
      * override this method.
      *
      * @param novel the novel to be updated.
      */
-    override fun fetchNovelDetails(novel: Novel): Observable<Novel> {
-        return client.newCall(novelDetailsRequest(novel))
-            .asObservableSuccess()
-            .map { response ->
-                novelDetailsParse(novel, response)
-            }
+    override suspend fun fetchNovelDetails(novel: Novel): Novel {
+        val response = client.newCall(novelDetailsRequest(novel)).awaitSuccess()
+        return novelDetailsParse(novel, response)
     }
 
     /**
@@ -205,21 +192,14 @@ abstract class HttpSource : CatalogueSource {
 
 
     /**
-     * Returns an observable with the updated chapter list for a novel. Normally it's not needed to
+     * Returns the updated chapter list for a novel. Normally it's not needed to
      * override this method.
      *
      * @param novel the novel to look for chapters.
      */
-    override fun fetchChapterList(novel: Novel): Observable<List<WebPage>> {
-        // return if novel is licensed.
-        return client.newCall(chapterListRequest(novel))
-            .asObservableSuccess()
-            .map { response ->
-                chapterListParse(novel, response)
-            }
-//        } else {
-//            Observable.error(Exception("Licensed - No chapters to show"))
-//        }
+    override suspend fun getChapterList(novel: Novel): List<WebPage> {
+        val response = client.newCall(chapterListRequest(novel)).awaitSuccess()
+        return chapterListParse(novel, response)
     }
 
     /**

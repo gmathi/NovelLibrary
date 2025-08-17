@@ -27,92 +27,93 @@ import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.lang.launchUI
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.util.concurrent.TimeUnit
 
 class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
-    Worker(context, params) {
+    CoroutineWorker(context, params) {
 
-    override fun doWork(): Result {
+    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val dbHelper = DBHelper.getInstance(context)
 
         // Enable the below line only in debug mode for triggering breakpoints
         // android.os.Debug.waitForDebugger()
 
         try {
-            if (NetworkHelper(context).isConnectedToNetwork())
+            if (NetworkHelper(context).isConnectedToNetwork()) {
                 startNovelsSync(dbHelper)
+            }
         } catch (e: Exception) {
-            return Result.retry()
+            return@withContext Result.retry()
         }
-        return Result.success()
+        return@withContext Result.success()
     }
 
     @SuppressLint("UnspecifiedImmutableFlag")
-    private fun startNovelsSync(dbHelper: DBHelper) {
+    private suspend fun startNovelsSync(dbHelper: DBHelper) = withContext(Dispatchers.IO) {
         //For Testing - get a Novel and delete 5 chapters
         //dbHelper.getAllNovels().forEach { novel ->
         //            dbHelper.updateChaptersCount(novel.id, novel.chaptersCount - 5)
         //        }
 
-        launchUI {
-            Logs.debug(TAG, "start novel sync")
-            val totalCountMap: HashMap<Novel, Int> = HashMap()
-            val totalChaptersMap: HashMap<Novel, ArrayList<WebPage>> = HashMap()
-            val sourceManager = withContext(Dispatchers.IO) { SourceManager(context) }
-            val novels = dbHelper.getAllNovels()
-            novels.forEach { novel ->
-                try {
-                    val newChaptersList = withContext(Dispatchers.IO) { sourceManager.get(novel.sourceId)?.getChapterList(novel) } ?: ArrayList()
-                    var currentChaptersHashCode = (novel.metadata[Constants.MetaDataKeys.HASH_CODE] ?: "0").toInt()
-                    if (currentChaptersHashCode == 0)
-                        currentChaptersHashCode = dbHelper.getAllWebPages(novel.id).sumOf { it.hashCode() }
-                    val newChaptersHashCode = newChaptersList.sumOf { it.hashCode() }
-                    if (newChaptersList.isNotEmpty() && newChaptersHashCode != currentChaptersHashCode) {
-                        novel.metadata[Constants.MetaDataKeys.HASH_CODE] = newChaptersHashCode.toString()
-                        totalCountMap[novel] = newChaptersList.size
-                        totalChaptersMap[novel] = ArrayList(newChaptersList)
-                    }
-                } catch (e: Exception) {
-                    Logs.error(TAG, "Novel: $novel", e)
-                    return@forEach
+        Logs.debug(TAG, "start novel sync")
+        val totalCountMap: HashMap<Novel, Int> = HashMap()
+        val totalChaptersMap: HashMap<Novel, ArrayList<WebPage>> = HashMap()
+        val sourceManager = SourceManager(context)
+        val novels = dbHelper.getAllNovels()
+        
+        novels.forEach { novel ->
+            try {
+                val newChaptersList = sourceManager.get(novel.sourceId)?.getChapterList(novel) ?: ArrayList()
+                var currentChaptersHashCode = (novel.metadata[Constants.MetaDataKeys.HASH_CODE] ?: "0").toInt()
+                if (currentChaptersHashCode == 0)
+                    currentChaptersHashCode = dbHelper.getAllWebPages(novel.id).sumOf { it.hashCode() }
+                val newChaptersHashCode = newChaptersList.sumOf { it.hashCode() }
+                if (newChaptersList.isNotEmpty() && newChaptersHashCode != currentChaptersHashCode) {
+                    novel.metadata[Constants.MetaDataKeys.HASH_CODE] = newChaptersHashCode.toString()
+                    totalCountMap[novel] = newChaptersList.size
+                    totalChaptersMap[novel] = ArrayList(newChaptersList)
+                }
+            } catch (e: Exception) {
+                Logs.error(TAG, "Novel: $novel", e)
+                return@forEach
+            }
+        }
+
+        if (totalCountMap.isEmpty()) return@withContext
+
+        //Update DB with new chapters
+        totalChaptersMap.forEach {
+            val novel = it.key
+            val chapters = it.value
+            novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
+
+            dbHelper.writableDatabase.runTransaction { writableDatabase ->
+                dbHelper.updateNovelMetaData(novel, writableDatabase)
+                var newChaptersCount = chapters.size - novel.chaptersCount
+                if (newChaptersCount <= 0) { //Check if the chapters were deleted or updated.
+                    newChaptersCount = 0
+                }
+                val newReleasesCount = novel.newReleasesCount + newChaptersCount
+                dbHelper.updateChaptersAndReleasesCount(novel.id, chapters.size.toLong(), newReleasesCount, writableDatabase)
+                //Don't Auto-delete chapters, as they might be the one's that are downloaded.
+                //dbHelper.deleteWebPages(novel.id, writableDatabase)
+                for (i in 0 until chapters.size) {
+                    dbHelper.createWebPage(chapters[i], writableDatabase)
+                    dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id), writableDatabase)
                 }
             }
+        }
 
-            if (totalCountMap.isEmpty()) return@launchUI
+        val novelsList: ArrayList<Novel> = ArrayList()
+        totalCountMap.forEach {
+            val novel = dbHelper.getNovel(it.key.id)!!
+            if (novel.newReleasesCount > 0)
+                novelsList.add(novel)
+        }
 
-            //Update DB with new chapters
-            totalChaptersMap.forEach {
-                val novel = it.key
-                val chapters = it.value
-                novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
-
-                dbHelper.writableDatabase.runTransaction { writableDatabase ->
-                    dbHelper.updateNovelMetaData(novel, writableDatabase)
-                    var newChaptersCount = chapters.size - novel.chaptersCount
-                    if (newChaptersCount <= 0) { //Check if the chapters were deleted or updated.
-                        newChaptersCount = 0
-                    }
-                    val newReleasesCount = novel.newReleasesCount + newChaptersCount
-                    dbHelper.updateChaptersAndReleasesCount(novel.id, chapters.size.toLong(), newReleasesCount, writableDatabase)
-                    //Don't Auto-delete chapters, as they might be the one's that are downloaded.
-                    //dbHelper.deleteWebPages(novel.id, writableDatabase)
-                    for (i in 0 until chapters.size) {
-                        dbHelper.createWebPage(chapters[i], writableDatabase)
-                        dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id), writableDatabase)
-                    }
-                }
-            }
-
-            val novelsList: ArrayList<Novel> = ArrayList()
-            totalCountMap.forEach {
-                val novel = dbHelper.getNovel(it.key.id)!!
-                if (novel.newReleasesCount > 0)
-                    novelsList.add(novel)
-            }
-
+        // Switch to Main dispatcher for UI operations (notifications)
+        withContext(Dispatchers.Main) {
             val novelDetailsIntent = Intent(context, NavDrawerActivity::class.java)
             novelDetailsIntent.action = Constants.Action.MAIN_ACTION
             novelDetailsIntent.flags =
@@ -120,9 +121,12 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
             val novelDetailsBundle = Bundle()
             novelDetailsBundle.putInt("currentNavId", R.id.nav_library)
             novelDetailsIntent.putExtras(novelDetailsBundle)
-            val pendingIntentFlags:Int =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT }
-                else { PendingIntent.FLAG_CANCEL_CURRENT }
+            val pendingIntentFlags: Int =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT
+                } else {
+                    PendingIntent.FLAG_CANCEL_CURRENT
+                }
             val contentIntent = PendingIntent.getActivity(
                 context,
                 0,

@@ -12,13 +12,15 @@ import io.github.gmathi.novellibrary.model.source.online.ParsedHttpSource
 import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.POST
-import io.github.gmathi.novellibrary.network.asObservableSuccess
+import io.github.gmathi.novellibrary.network.awaitSuccess
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Exceptions.INVALID_NOVEL
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_IMPLEMENTATION
 import io.github.gmathi.novellibrary.util.lang.addPageNumberToUrl
-import io.github.gmathi.novellibrary.util.lang.awaitSingle
 import io.github.gmathi.novellibrary.util.network.asJsoup
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import okhttp3.FormBody
 import okhttp3.Headers
 import okhttp3.OkHttpClient
@@ -28,8 +30,6 @@ import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
-import rx.Observable
-import rx.schedulers.Schedulers
 import java.net.URI
 import kotlin.math.max
 
@@ -151,11 +151,9 @@ class NovelUpdatesSource : ParsedHttpSource() {
         val translatorSources = getTranslatorSourcesList(novel)
         val allChapters = getChapterListForSource(novel, null)
         val translatorSourcesMap = HashMap<String, String>()
-        val observableList = translatorSources.map { fetchChapterListWithSources(novel, it) }
-        val translatorSourceListOfChapterList = Observable
-            .from(observableList)
-            .flatMap { task -> task.observeOn(Schedulers.io()) }
-            .toList().awaitSingle()
+        val translatorSourceListOfChapterList = coroutineScope {
+            translatorSources.map { async { getChapterListForSource(novel, it) } }.awaitAll()
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             translatorSourceListOfChapterList.parallelStream().forEach { translatorSourceOnlyChapterList ->
@@ -217,15 +215,8 @@ class NovelUpdatesSource : ParsedHttpSource() {
 
     //region Translator Sources
     private suspend fun getTranslatorSourcesList(novel: Novel): List<TranslatorSource> {
-        return fetchTranslatorSourcesList(novel).awaitSingle()
-    }
-
-    private fun fetchTranslatorSourcesList(novel: Novel): Observable<List<TranslatorSource>> {
-        return client.newCall(translatorSourcesRequest(novel))
-            .asObservableSuccess()
-            .map { response ->
-                translatorSourcesParse(response)
-            }
+        val response = client.newCall(translatorSourcesRequest(novel)).awaitSuccess()
+        return translatorSourcesParse(response)
     }
 
     private fun translatorSourcesRequest(novel: Novel): Request {
@@ -253,15 +244,8 @@ class NovelUpdatesSource : ParsedHttpSource() {
     //region Chapters for Translator Source Only
 
     private suspend fun getChapterListForSource(novel: Novel, translatorSource: TranslatorSource?): List<WebPage> {
-        return fetchChapterListWithSources(novel, translatorSource).awaitSingle()
-    }
-
-    private fun fetchChapterListWithSources(novel: Novel, translatorSource: TranslatorSource?): Observable<List<WebPage>> {
-        return client.newCall(chapterListWithSourcesRequest(novel, translatorSource))
-            .asObservableSuccess()
-            .map { response ->
-                chapterListParse(novel, response, translatorSource)
-            }
+        val response = client.newCall(chapterListWithSourcesRequest(novel, translatorSource)).awaitSuccess()
+        return chapterListParse(novel, response, translatorSource)
     }
 
     private fun chapterListWithSourcesRequest(novel: Novel, translatorSource: TranslatorSource?): Request {
@@ -290,15 +274,8 @@ class NovelUpdatesSource : ParsedHttpSource() {
 
     //region Popular Novels by Rank
     suspend fun getPopularNovels(rank: String?, url: String?, page: Int): NovelsPage {
-        return fetchPopularNovels(rank, url, page).awaitSingle()
-    }
-
-    private fun fetchPopularNovels(rank: String?, url: String?, page: Int): Observable<NovelsPage> {
-        return client.newCall(popularNovelsRequest(rank, url, page))
-            .asObservableSuccess()
-            .map { response ->
-                popularNovelsParse(response)
-            }
+        val response = client.newCall(popularNovelsRequest(rank, url, page)).awaitSuccess()
+        return popularNovelsParse(response)
     }
 
     private fun popularNovelsRequest(rank: String?, url: String?, page: Int): Request {
@@ -360,26 +337,21 @@ class NovelUpdatesSource : ParsedHttpSource() {
 
     //region old code revival
 
-    private fun fetchChapterListForPage(url: String): Observable<Document> {
-        return client.newCall(GET(url, headers))
-            .asObservableSuccess()
-            .map { response ->
-                response.asJsoup()
-            }
+    private suspend fun fetchChapterListForPage(url: String): Document {
+        val response = client.newCall(GET(url, headers)).awaitSuccess()
+        return response.asJsoup()
     }
 
     private suspend fun getChaptersFromDoc(novel: Novel): List<WebPage> {
         val chapters = ArrayList<WebPage>()
         try {
-            val document = fetchChapterListForPage(novel.url).awaitSingle()
+            val document = fetchChapterListForPage(novel.url)
             chapters.addAll(getNUChapterUrlsFromDoc(document))
             val pageUrls = getNUPageUrlsNew(document)
             if (pageUrls.isNotEmpty()) {
-                val observableList = pageUrls.map { fetchChapterListForPage(it) }
-                val allChaptersFromPagesList = Observable
-                    .from(observableList)
-                    .flatMap { task -> task.observeOn(Schedulers.io()) }
-                    .toList().awaitSingle()
+                val allChaptersFromPagesList = coroutineScope {
+                    pageUrls.map { async { fetchChapterListForPage(it) } }.awaitAll()
+                }
                 allChaptersFromPagesList.forEach { chapters.addAll(getNUChapterUrlsFromDoc(it)) }
             }
         } catch (e: Exception) {

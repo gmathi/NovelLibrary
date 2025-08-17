@@ -6,7 +6,7 @@ import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.source.*
-import rx.Observable
+
 
 open class SourceManager(private val context: Context) {
 
@@ -55,12 +55,12 @@ open class SourceManager(private val context: Context) {
         override val name: String
             get() = id.toString()
 
-        override fun fetchNovelDetails(novel: Novel): Observable<Novel> {
-            return Observable.error(getSourceNotInstalledException())
+        override suspend fun fetchNovelDetails(novel: Novel): Novel {
+            throw getSourceNotInstalledException()
         }
 
-        override fun fetchChapterList(novel: Novel): Observable<List<WebPage>> {
-            return Observable.error(getSourceNotInstalledException())
+        override suspend fun getChapterList(novel: Novel): List<WebPage> {
+            throw getSourceNotInstalledException()
         }
 
         override fun toString(): String {

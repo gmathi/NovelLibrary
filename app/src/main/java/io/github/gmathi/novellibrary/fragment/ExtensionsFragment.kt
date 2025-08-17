@@ -24,14 +24,14 @@ import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.LocaleHelper
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.setDefaults
-import rx.Observable
-import rx.Subscription
-import rx.android.schedulers.AndroidSchedulers
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import androidx.lifecycle.lifecycleScope
+
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 import java.util.*
-import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 
 private typealias ExtensionTuple =
@@ -50,6 +50,7 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
 
     private var extensions = emptyList<ExtensionItem>()
     private var currentDownloads = hashMapOf<String, InstallStep>()
+    private var extensionsJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,7 +67,7 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
         super.onActivityCreated(savedInstanceState)
         setRecyclerView()
         extensionManager.findAvailableExtensions()
-        bindToExtensionsObservable()
+        bindToExtensionsFlow()
         binding.progressLayout.showLoading()
     }
 
@@ -77,7 +78,7 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
             recyclerView.addItemDecoration(CustomDividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))
             swipeRefreshLayout.setOnRefreshListener {
                 extensionManager.findAvailableExtensions()
-                bindToExtensionsObservable()
+                bindToExtensionsFlow()
             }
         }
     }
@@ -112,13 +113,13 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
                 extension.isNsfw && dataCenter.showNSFWSource -> itemView.context.getString(R.string.ext_nsfw_short)
                 extension.isNsfw && dataCenter.showNSFWSource && extension is Extension.Installed -> "${itemView.context.getString(R.string.ext_installed)}: ${itemView.context.getString(R.string.ext_nsfw_short)}"
                 else -> ""
-            }.toUpperCase(Locale.getDefault())
+            }.uppercase(Locale.getDefault())
 
             //Button
             bindButton(item, this)
             extButton.setOnClickListener {
                 when (extension) {
-                    is Extension.Available -> extensionManager.installExtension(extension).subscribeToInstallUpdate(extension)
+                    is Extension.Available -> collectInstallUpdates(extensionManager.installExtension(extension), extension)
                     is Extension.Untrusted -> {
                         extensionManager.trustSignature(extension.signatureHash)// Do Nothing //openTrustDialog(extension)
                     }
@@ -127,7 +128,10 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
                         if (!extension.hasUpdate) {
                             extensionManager.uninstallExtension(extension.pkgName)
                         } else {
-                            extensionManager.updateExtension(extension).subscribeToInstallUpdate(extension)
+                            lifecycleScope.launch {
+                                val updateFlow = extensionManager.updateExtension(extension)
+                                updateFlow?.let { collectInstallUpdates(it, extension) }
+                            }
                         }
                     }
                 }
@@ -182,28 +186,45 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
         //Do Nothing
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        extensionsJob?.cancel()
+    }
+
 
     // Processing
-    private fun bindToExtensionsObservable(): Subscription {
-        val installedObservable = extensionManager.getInstalledExtensionsObservable()
-        val untrustedObservable = extensionManager.getUntrustedExtensionsObservable()
-        val availableObservable = extensionManager.getAvailableExtensionsObservable()
-            .startWith(emptyList<Extension.Available>())
+    @OptIn(FlowPreview::class)
+    private fun bindToExtensionsFlow() {
+        extensionsJob?.cancel()
+        extensionsJob = lifecycleScope.launch {
+            try {
+                val installedFlow = extensionManager.installedExtensionsFlow
+                val untrustedFlow = extensionManager.untrustedExtensionsFlow
+                val availableFlow = extensionManager.availableExtensionsFlow
+                    .onStart { emit(emptyList<Extension.Available>()) }
 
-        return Observable.combineLatest(installedObservable, untrustedObservable, availableObservable) { installed, untrusted, available -> Triple(installed, untrusted, available) }
-            .debounce(100, TimeUnit.MILLISECONDS)
-            .map(::toItems)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe {
-                extensions = it
-                if (extensions.isEmpty()) {
-                    binding.progressLayout.showEmpty(emptyText = getString(R.string.empty_extensions))
-                } else {
-                    binding.progressLayout.showContent()
-                    adapter.updateData(ArrayList(extensions))
+                combine(installedFlow, untrustedFlow, availableFlow) { installed, untrusted, available ->
+                    Triple(installed, untrusted, available)
                 }
+                    .debounce(100)
+                    .map(::toItems)
+                    .flowOn(Dispatchers.Default)
+                    .collect { extensionItems ->
+                        extensions = extensionItems
+                        if (extensions.isEmpty()) {
+                            binding.progressLayout.showEmpty(emptyText = getString(R.string.empty_extensions))
+                        } else {
+                            binding.progressLayout.showContent()
+                            adapter.updateData(ArrayList(extensions))
+                        }
+                        binding.swipeRefreshLayout.isRefreshing = false
+                    }
+            } catch (e: Exception) {
+                // Handle error case
+                binding.progressLayout.showEmpty(emptyText = getString(R.string.empty_extensions))
                 binding.swipeRefreshLayout.isRefreshing = false
             }
+        }
     }
 
     @Synchronized
@@ -262,13 +283,21 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
         return items
     }
 
-    private fun Observable<InstallStep>.subscribeToInstallUpdate(extension: Extension) {
-        this.doOnNext { currentDownloads[extension.pkgName] = it }
-            .doOnUnsubscribe { currentDownloads.remove(extension.pkgName) }
-            .map { state -> updateInstallStep(extension, state) }
-            .subscribe {
-                it?.let { adapter.updateItem(it) }
+    private fun collectInstallUpdates(installFlow: Flow<InstallStep>, extension: Extension) {
+        lifecycleScope.launch {
+            try {
+                installFlow
+                    .onEach { currentDownloads[extension.pkgName] = it }
+                    .map { state -> updateInstallStep(extension, state) }
+                    .collect { extensionItem ->
+                        extensionItem?.let { adapter.updateItem(it) }
+                    }
+            } catch (e: Exception) {
+                // Handle installation error
+            } finally {
+                currentDownloads.remove(extension.pkgName)
             }
+        }
     }
 
     @Synchronized

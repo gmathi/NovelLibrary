@@ -7,53 +7,12 @@ import kotlinx.serialization.json.Json
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.internal.closeQuietly
-import rx.Observable
-import rx.Producer
-import rx.Subscription
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.fullType
 import java.io.IOException
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resumeWithException
 
 val jsonMime = "application/json; charset=utf-8".toMediaType()
-
-fun Call.asObservable(): Observable<Response> {
-    return Observable.unsafeCreate { subscriber ->
-        // Since Call is a one-shot type, clone it for each new subscriber.
-        val call = clone()
-
-        // Wrap the call in a helper which handles both unsubscription and backpressure.
-        val requestArbiter = object : AtomicBoolean(), Producer, Subscription {
-            override fun request(n: Long) {
-                if (n == 0L || !compareAndSet(false, true)) return
-
-                try {
-                    val response = call.execute()
-                    if (!subscriber.isUnsubscribed) {
-                        subscriber.onNext(response)
-                        subscriber.onCompleted()
-                    }
-                } catch (error: Exception) {
-                    if (!subscriber.isUnsubscribed) {
-                        subscriber.onError(error)
-                    }
-                }
-            }
-
-            override fun unsubscribe() {
-                call.cancel()
-            }
-
-            override fun isUnsubscribed(): Boolean {
-                return call.isCanceled()
-            }
-        }
-
-        subscriber.add(requestArbiter)
-        subscriber.setProducer(requestArbiter)
-    }
-}
 
 // Based on https://github.com/gildor/kotlin-coroutines-okhttp
 suspend fun Call.await(): Response {
@@ -89,13 +48,19 @@ suspend fun Call.await(): Response {
     }
 }
 
-fun Call.asObservableSuccess(): Observable<Response> {
-    return asObservable().doOnNext { response ->
-        if (!response.isSuccessful) {
-            response.close()
-            throw Exception("HTTP error ${response.code}")
-        }
+
+
+/**
+ * Coroutine-based replacement for asObservableSuccess().
+ * Executes the call and throws an exception if not successful.
+ */
+suspend fun Call.awaitSuccess(): Response {
+    val response = await()
+    if (!response.isSuccessful) {
+        response.close()
+        throw Exception("HTTP error ${response.code}")
     }
+    return response
 }
 
 fun OkHttpClient.newCallWithProgress(request: Request, listener: ProgressListener): Call {

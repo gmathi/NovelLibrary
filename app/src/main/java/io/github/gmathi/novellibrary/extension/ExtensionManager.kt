@@ -2,7 +2,6 @@ package io.github.gmathi.novellibrary.extension
 
 import android.content.Context
 import android.graphics.drawable.Drawable
-import com.jakewharton.rxrelay.BehaviorRelay
 import io.github.gmathi.novellibrary.extension.api.ExtensionGithubApi
 import io.github.gmathi.novellibrary.extension.model.Extension
 import io.github.gmathi.novellibrary.extension.model.InstallStep
@@ -17,7 +16,9 @@ import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.lang.launchNow
 import io.github.gmathi.novellibrary.util.system.toast
 import kotlinx.coroutines.async
-import rx.Observable
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -47,9 +48,10 @@ class ExtensionManager(
     private val installer by lazy { ExtensionInstaller(context) }
 
     /**
-     * Relay used to notify the installed extensions.
+     * StateFlow used to notify the installed extensions.
      */
-    private val installedExtensionsRelay = BehaviorRelay.create<List<Extension.Installed>>()
+    private val _installedExtensionsFlow = MutableStateFlow<List<Extension.Installed>>(emptyList())
+    val installedExtensionsFlow: Flow<List<Extension.Installed>> = _installedExtensionsFlow.asStateFlow()
 
     private val iconMap = mutableMapOf<String, Drawable>()
 
@@ -59,7 +61,7 @@ class ExtensionManager(
     var installedExtensions = emptyList<Extension.Installed>()
         private set(value) {
             field = value
-            installedExtensionsRelay.call(value)
+            _installedExtensionsFlow.value = value
         }
 
     fun getAppIconForSource(source: Source): Drawable? {
@@ -76,9 +78,10 @@ class ExtensionManager(
     }
 
     /**
-     * Relay used to notify the available extensions.
+     * StateFlow used to notify the available extensions.
      */
-    private val availableExtensionsRelay = BehaviorRelay.create<List<Extension.Available>>()
+    private val _availableExtensionsFlow = MutableStateFlow<List<Extension.Available>>(emptyList())
+    val availableExtensionsFlow: Flow<List<Extension.Available>> = _availableExtensionsFlow.asStateFlow()
 
     /**
      * List of the currently available extensions.
@@ -86,14 +89,15 @@ class ExtensionManager(
     var availableExtensions = emptyList<Extension.Available>()
         private set(value) {
             field = value
-            availableExtensionsRelay.call(value)
+            _availableExtensionsFlow.value = value
             updatedInstalledExtensionsStatuses(value)
         }
 
     /**
-     * Relay used to notify the untrusted extensions.
+     * StateFlow used to notify the untrusted extensions.
      */
-    private val untrustedExtensionsRelay = BehaviorRelay.create<List<Extension.Untrusted>>()
+    private val _untrustedExtensionsFlow = MutableStateFlow<List<Extension.Untrusted>>(emptyList())
+    val untrustedExtensionsFlow: Flow<List<Extension.Untrusted>> = _untrustedExtensionsFlow.asStateFlow()
 
     /**
      * List of the currently untrusted extensions.
@@ -101,7 +105,7 @@ class ExtensionManager(
     var untrustedExtensions = emptyList<Extension.Untrusted>()
         private set(value) {
             field = value
-            untrustedExtensionsRelay.call(value)
+            _untrustedExtensionsFlow.value = value
         }
 
     /**
@@ -136,26 +140,7 @@ class ExtensionManager(
             .map { it.extension }
     }
 
-    /**
-     * Returns the relay of the installed extensions as an observable.
-     */
-    fun getInstalledExtensionsObservable(): Observable<List<Extension.Installed>> {
-        return installedExtensionsRelay.asObservable()
-    }
 
-    /**
-     * Returns the relay of the available extensions as an observable.
-     */
-    fun getAvailableExtensionsObservable(): Observable<List<Extension.Available>> {
-        return availableExtensionsRelay.asObservable()
-    }
-
-    /**
-     * Returns the relay of the untrusted extensions as an observable.
-     */
-    fun getUntrustedExtensionsObservable(): Observable<List<Extension.Untrusted>> {
-        return untrustedExtensionsRelay.asObservable()
-    }
 
     /**
      * Finds the available extensions in the [api] and updates [availableExtensions].
@@ -209,26 +194,26 @@ class ExtensionManager(
     }
 
     /**
-     * Returns an observable of the installation process for the given extension. It will complete
+     * Returns a flow of the installation process for the given extension. It will complete
      * once the extension is installed or throws an error. The process will be canceled if
-     * unsubscribed before its completion.
+     * the coroutine is cancelled before its completion.
      *
      * @param extension The extension to be installed.
      */
-    fun installExtension(extension: Extension.Available): Observable<InstallStep> {
+    fun installExtension(extension: Extension.Available): Flow<InstallStep> {
         return installer.downloadAndInstall(api.getApkUrl(extension), extension)
     }
 
     /**
-     * Returns an observable of the installation process for the given extension. It will complete
+     * Returns a flow of the installation process for the given extension. It will complete
      * once the extension is updated or throws an error. The process will be canceled if
-     * unsubscribed before its completion.
+     * the coroutine is cancelled before its completion.
      *
      * @param extension The extension to be updated.
      */
-    fun updateExtension(extension: Extension.Installed): Observable<InstallStep> {
+    suspend fun updateExtension(extension: Extension.Installed): Flow<InstallStep>? {
         val availableExt = availableExtensions.find { it.pkgName == extension.pkgName }
-            ?: return Observable.empty()
+            ?: return null
         return installExtension(availableExt)
     }
 

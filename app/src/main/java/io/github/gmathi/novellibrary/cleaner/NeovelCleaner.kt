@@ -18,9 +18,9 @@ class NeovelCleaner() : HtmlCleaner() {
 
         doc.body().children().remove()
         doc.body().classNames().forEach { doc.body().removeClass(it) }
-        doc.body().append(contentElement?.outerHtml())
+        contentElement?.let { doc.body().append(it.outerHtml()) }
         if (dataCenter.showChapterComments) {
-            doc.body().append(commentsElement?.outerHtml())
+            commentsElement?.let { doc.body().append(it.outerHtml()) }
         }
 
     }

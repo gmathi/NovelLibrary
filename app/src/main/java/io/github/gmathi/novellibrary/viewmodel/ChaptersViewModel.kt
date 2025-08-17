@@ -22,6 +22,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.lang.ref.WeakReference
@@ -55,8 +58,12 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     var chapterSettings: ArrayList<WebPageSettings>? = null
 
     //Other variables
-    var loadingStatus = MutableLiveData<String>()
-    var actionModeProgress = MutableLiveData<String>()
+    private val _loadingStatus = MutableStateFlow("")
+    val loadingStatus: StateFlow<String> = _loadingStatus.asStateFlow()
+    
+    private val _actionModeProgress = MutableStateFlow("")
+    val actionModeProgress: StateFlow<String> = _actionModeProgress.asStateFlow()
+    
     var showSources: Boolean = false
 
     fun init(novel: Novel, lifecycleOwner: LifecycleOwner, context: Context) {
@@ -69,7 +76,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
 
     fun getData(forceUpdate: Boolean = false) {
         viewModelScope.launch {
-            loadingStatus.value = Constants.Status.START
+            _loadingStatus.value = Constants.Status.START
             withContext(Dispatchers.IO) {
                 if (novel.id != -1L) {
                     dbHelper.getNovel(novel.id)?.let { setNovel(it) }
@@ -79,17 +86,17 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             getChapters(forceUpdate = forceUpdate)
 
             if (chapters == null && !networkHelper.isConnectedToNetwork()) {
-                loadingStatus.postValue(Constants.Status.NO_INTERNET)
+                _loadingStatus.value = Constants.Status.NO_INTERNET
                 return@launch
             }
 
             if (chapters == null) {
-                loadingStatus.value = Constants.Status.NETWORK_ERROR
+                _loadingStatus.value = Constants.Status.NETWORK_ERROR
                 return@launch
             }
 
             if (chapters.isNullOrEmpty()) { //we already did null check above
-                loadingStatus.value = Constants.Status.EMPTY_DATA
+                _loadingStatus.value = Constants.Status.EMPTY_DATA
                 return@launch
             }
 
@@ -99,7 +106,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
                     addToDB(forceUpdate)
                 }
             }
-            loadingStatus.value = Constants.Status.DONE
+            _loadingStatus.value = Constants.Status.DONE
         }
     }
 
@@ -109,7 +116,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             novel.metadata[Constants.MetaDataKeys.SHOW_SOURCES] = showSources.toString()
             withContext(Dispatchers.IO) { dbHelper.updateNovelMetaData(novel) }
         }
-        loadingStatus.postValue(Constants.Status.DONE)
+        _loadingStatus.value = Constants.Status.DONE
     }
 
     private suspend fun getChapters(forceUpdate: Boolean) = withContext(Dispatchers.IO) {
@@ -121,7 +128,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
 
         try {
             if (!forceUpdate && novel.id != -1L) {
-                loadingStatus.postValue("Checking Cache…")
+                _loadingStatus.value = "Checking Cache…"
                 val chapters = dbHelper.getAllWebPages(novel.id)
                 val chapterSettings = dbHelper.getAllWebPageSettings(novel.id)
 
@@ -136,9 +143,9 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             }
 
             if (showSources)
-                loadingStatus.postValue("Downloading Chapters by Source…")
+                _loadingStatus.value = "Downloading Chapters by Source…"
             else
-                loadingStatus.postValue("Downloading Chapters…")
+                _loadingStatus.value = "Downloading Chapters…"
 
             val source = sourceManager.get(novel.sourceId) ?: throw Exception(MISSING_SOURCE_ID)
             val fetchedChapters = source.getChapterList(novel)
@@ -153,7 +160,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     }
 
     private suspend fun addToDB(forceUpdate: Boolean) = withContext(Dispatchers.IO) {
-        loadingStatus.postValue("Adding/Updating Cache…")
+        _loadingStatus.value = "Adding/Updating Cache…"
 
         //DB transaction for faster insertions
         dbHelper.writableDatabase.runTransaction { writableDatabase ->
@@ -176,7 +183,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             dbHelper.updateNovelMetaData(novel)
 
             for (i in 0 until chaptersCount) {
-                loadingStatus.postValue("Caching Chapters: $i/$chaptersCount")
+                _loadingStatus.value = "Caching Chapters: $i/$chaptersCount"
                 dbHelper.createWebPage(chaptersList[i], writableDatabase)
                 dbHelper.createWebPageSettings(WebPageSettings(chaptersList[i].url, novel.id), writableDatabase)
             }
@@ -188,7 +195,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
 
     fun addNovelToLibrary() {
         if (novel.id != -1L) return
-        loadingStatus.value = Constants.Status.START
+        _loadingStatus.value = Constants.Status.START
         addNewNovel(novel)
         if (novel.id == -1L) return
         chapters?.forEach { it.novelId = novel.id }
@@ -198,7 +205,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
     private fun addNovelChaptersToDB() {
         viewModelScope.launch {
             addToDB(true)
-            loadingStatus.value = Constants.Status.DONE
+            _loadingStatus.value = Constants.Status.DONE
         }
     }
 
@@ -224,7 +231,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         webPages.forEach {
             withContext(Dispatchers.IO) {
                 deleteDownloadedChapter(it)
-                actionModeProgress.postValue(counter++.toString())
+                _actionModeProgress.value = counter++.toString()
             }
         }
     }
@@ -263,7 +270,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
                 val download = Download(it.url, novel.name, novel.id, it.chapterName)
                 download.orderId = it.orderId.toInt()
                 dbHelper.createDownload(download, writableDatabase)
-                actionModeProgress.postValue(counter++.toString())
+                _actionModeProgress.value = counter++.toString()
             }
         }
     }
@@ -276,7 +283,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             chapters.forEach { webPage ->
                 val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@runTransaction
                 dbHelper.updateWebPageSettingsReadStatus(webPageSettings, markRead, writableDatabase)
-                actionModeProgress.postValue(counter++.toString())
+                _actionModeProgress.value = counter++.toString()
             }
         }
         chapterSettings = dbHelper.getAllWebPageSettings(novel.id)
@@ -291,16 +298,16 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
                 val webPageSettings = chaptersSettingsList.firstOrNull { it.url == webPage.url } ?: return@runTransaction
                 webPageSettings.metadata[Constants.MetaDataKeys.IS_FAVORITE] = favoriteStatus.toString()
                 dbHelper.updateWebPageSettings(webPageSettings, writableDatabase)
-                actionModeProgress.postValue(counter++.toString())
+                _actionModeProgress.value = counter++.toString()
             }
         }
     }
 
     private fun actionModeScope(block: suspend CoroutineScope.() -> Unit) {
         viewModelScope.launch {
-            actionModeProgress.value = Constants.Status.START
+            _actionModeProgress.value = Constants.Status.START
             block()
-            actionModeProgress.value = Constants.Status.DONE
+            _actionModeProgress.value = Constants.Status.DONE
         }
     }
 
