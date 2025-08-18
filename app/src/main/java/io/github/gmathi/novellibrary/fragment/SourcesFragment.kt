@@ -17,14 +17,15 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaults
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import javax.inject.Inject
 
 class SourcesFragment : BaseFragment(), GenericAdapter.Listener<HttpSource> {
 
     companion object {
         fun newInstance() = SourcesFragment()
     }
+
+    @Inject lateinit var extensionManager: ExtensionManager
 
     private lateinit var binding: ContentRecyclerViewBinding
     private lateinit var adapter: GenericAdapter<HttpSource>
@@ -62,7 +63,7 @@ class SourcesFragment : BaseFragment(), GenericAdapter.Listener<HttpSource> {
         itemBinding.icon.visibility = View.GONE
 
 
-        val drawable = Injekt.get<ExtensionManager>().getAppIconForSource(item, itemView.context)
+        val drawable = extensionManager.getAppIconForSource(item, itemView.context)
         if (drawable != null) {
             itemBinding.icon.visibility = View.VISIBLE
             itemBinding.icon.setImageDrawable(drawable)

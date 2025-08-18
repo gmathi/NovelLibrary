@@ -30,8 +30,8 @@ import androidx.lifecycle.lifecycleScope
 
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 import java.util.*
+import javax.inject.Inject
 import kotlin.collections.ArrayList
 
 private typealias ExtensionTuple =
@@ -43,7 +43,7 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
         fun newInstance() = ExtensionsFragment()
     }
 
-    private val extensionManager: ExtensionManager by injectLazy()
+    @Inject lateinit var extensionManager: ExtensionManager
 
     private lateinit var binding: ContentRecyclerViewBinding
     private lateinit var adapter: GenericAdapter<ExtensionItem>

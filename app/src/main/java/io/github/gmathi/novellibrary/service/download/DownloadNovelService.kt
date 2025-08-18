@@ -17,6 +17,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import dagger.hilt.android.AndroidEntryPoint
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
@@ -37,8 +38,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class DownloadNovelService : Service(), DownloadListener {
 
     private var downloadServiceMap = HashMap<Long, CoroutineDownloadService?>()
@@ -46,7 +48,8 @@ class DownloadNovelService : Service(), DownloadListener {
     private val _downloadProgressFlow = MutableSharedFlow<DownloadWebPageEvent>()
     val downloadProgressFlow: SharedFlow<DownloadWebPageEvent> = _downloadProgressFlow.asSharedFlow()
 
-    private lateinit var dbHelper: DBHelper
+    @Inject
+    lateinit var dbHelper: DBHelper
 
     //static components
     companion object {
@@ -90,7 +93,7 @@ class DownloadNovelService : Service(), DownloadListener {
 
     override fun onCreate() {
         super.onCreate()
-        dbHelper = DBHelper.getInstance(this)
+        // dbHelper is now injected by Hilt
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

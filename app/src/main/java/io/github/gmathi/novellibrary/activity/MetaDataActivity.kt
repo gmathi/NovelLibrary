@@ -55,8 +55,12 @@ class MetaDataActivity : BaseActivity(), GenericAdapter.Listener<Map.Entry<Strin
         binding.metadataValue.applyFont(assets)
         if (item.value != null) {
             binding.metadataValue.movementMethod = TextViewLinkHandler(this)
-            @Suppress("DEPRECATION") binding.metadataValue.text =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) Html.fromHtml(item.value, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(item.value)
+            @Suppress("DEPRECATION")
+            binding.metadataValue.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                Html.fromHtml(item.value, Html.FROM_HTML_MODE_LEGACY)
+            } else {
+                Html.fromHtml(item.value)
+            }
         }
     }
 

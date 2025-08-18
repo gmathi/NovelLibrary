@@ -9,7 +9,7 @@ import com.afollestad.materialdialogs.customview.getCustomView
 import com.afollestad.materialdialogs.input.getInputField
 import com.afollestad.materialdialogs.input.input
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.ktx.logEvent
+import com.google.firebase.analytics.logEvent
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.settings.BaseSettingsActivity
 import io.github.gmathi.novellibrary.model.ui.ListitemSetting
@@ -98,7 +98,7 @@ class ReaderSettingsActivity : BaseSettingsActivity<ReaderSettingsActivity, Read
                         prefill = dataCenter.userSpecifiedSelectorQueries,
                         inputType = InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_CLASS_TEXT
                     )
-                    positiveButton(R.string.fui_button_text_save) { widget ->
+                    positiveButton(com.firebase.ui.auth.R.string.fui_button_text_save) { widget ->
                         dataCenter.userSpecifiedSelectorQueries = widget.getInputField().text.toString()
                         firebaseAnalytics.logEvent(FAC.Event.SELECTOR_QUERY) {
                             param(FirebaseAnalytics.Param.VALUE, widget.getInputField().text.toString())

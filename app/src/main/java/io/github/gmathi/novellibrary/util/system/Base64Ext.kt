@@ -21,13 +21,13 @@ fun ByteArray.encodeBase64(): ByteArray {
         if (position + 2 < this.size) b = b or (this[position + 2].toInt() and 0xFF) else padding++
         for (i in 0 until 4 - padding) {
             val c = b and 0xFC0000 shr 18
-            output.write(table[c].toInt())
+            output.write(table[c].code)
             b = b shl 6
         }
         position += 3
     }
     for (i in 0 until padding) {
-        output.write('='.toInt())
+        output.write('='.code)
     }
     return output.toByteArray()
 }
@@ -69,7 +69,7 @@ fun ByteArray.decodeBase64(): ByteArray {
         }
         while (count > 0) {
             val c = b and 0xFF0000 shr 16
-            output.write(c.toChar().toInt())
+            output.write(c.toChar().code)
             b = b shl 8
             count--
         }

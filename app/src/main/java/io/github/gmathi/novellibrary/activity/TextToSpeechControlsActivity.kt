@@ -426,7 +426,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
                 false
             } else true
         }
-        val themeWrapper = ContextThemeWrapper(this@TextToSpeechControlsActivity, R.style.Widget_AppCompat_Button_Borderless_Colored)
+        val themeWrapper = ContextThemeWrapper(this@TextToSpeechControlsActivity, androidx.appcompat.R.style.Widget_AppCompat_Button_Borderless_Colored)
         pages.forEach { page ->
             if (!linkedPageButtons.containsValue(page.href)) {
                 val row = TableRow(this@TextToSpeechControlsActivity)

@@ -3,8 +3,7 @@ package io.github.gmathi.novellibrary.viewmodel
 import android.content.Context
 import androidx.lifecycle.*
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.ktx.Firebase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.model.database.Download
 import io.github.gmathi.novellibrary.model.database.Novel
@@ -15,8 +14,6 @@ import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_SOURCE_ID
-import io.github.gmathi.novellibrary.util.system.DataAccessor
-import io.github.gmathi.novellibrary.util.system.addNewNovel
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel.Action.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,11 +22,20 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.lang.ref.WeakReference
+import javax.inject.Inject
+import com.google.firebase.analytics.logEvent
 
-class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), LifecycleObserver, DataAccessor {
+@HiltViewModel
+class ChaptersViewModel @Inject constructor(
+    private val state: SavedStateHandle,
+    private val dbHelper: DBHelper,
+    private val dataCenter: DataCenter,
+    private val networkHelper: NetworkHelper,
+    private val sourceManager: SourceManager,
+    private val firebaseAnalytics: FirebaseAnalytics
+) : ViewModel(), LifecycleObserver {
 
     companion object {
         const val TAG = "ChaptersViewModel"
@@ -44,15 +50,8 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         state.set(KEY_NOVEL, novel)
     }
 
-    override lateinit var firebaseAnalytics: FirebaseAnalytics
-
-    override val dbHelper: DBHelper by injectLazy()
-    override val dataCenter: DataCenter by injectLazy()
-    override val sourceManager: SourceManager by injectLazy()
-    override val networkHelper: NetworkHelper by injectLazy()
-
     private lateinit var _ctx: WeakReference<Context>
-    override fun getContext(): Context? = _ctx.get()
+    fun getContext(): Context? = _ctx.get()
 
     var chapters: ArrayList<WebPage>? = null
     var chapterSettings: ArrayList<WebPageSettings>? = null
@@ -70,7 +69,6 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         setNovel(novel)
         this._ctx = WeakReference(context)
         lifecycleOwner.lifecycle.addObserver(this)
-        firebaseAnalytics = Firebase.analytics
         this.showSources = novel.metadata[Constants.MetaDataKeys.SHOW_SOURCES]?.toBoolean() ?: false
     }
 
@@ -178,7 +176,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
             val chaptersCount = chaptersList.size
             dbHelper.updateChaptersCount(novel.id, chaptersCount.toLong(), writableDatabase)
 
-            val chaptersHash = chaptersList.sumBy { it.hashCode() }
+            val chaptersHash = chaptersList.sumOf { it.hashCode() }
             novel.metadata[Constants.MetaDataKeys.HASH_CODE] = chaptersHash.toString()
             dbHelper.updateNovelMetaData(novel)
 
@@ -200,6 +198,20 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         if (novel.id == -1L) return
         chapters?.forEach { it.novelId = novel.id }
         addNovelChaptersToDB()
+    }
+
+    private fun addNewNovel(novel: Novel) {
+        if (novel.id == -1L) {
+            novel.id = dbHelper.insertNovel(novel)
+            logNovelEvent(FAC.Event.ADD_NOVEL, novel)
+        }
+    }
+
+    private fun logNovelEvent(eventName: String, novel: Novel) {
+        firebaseAnalytics.logEvent(eventName) {
+            param(FAC.Param.NOVEL_NAME, novel.name)
+            param(FAC.Param.NOVEL_URL, novel.url)
+        }
     }
 
     private fun addNovelChaptersToDB() {

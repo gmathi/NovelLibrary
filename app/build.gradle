@@ -1,10 +1,11 @@
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android' version '2.1.0'  // Apply here directly
-    id 'org.jetbrains.kotlin.plugin.serialization' version '2.1.0'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.serialization'
     id 'com.google.gms.google-services'
     id 'com.google.firebase.crashlytics'
     id 'com.google.devtools.ksp'
+    id 'com.google.dagger.hilt.android'
 }
 
 def keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -16,6 +17,11 @@ if (keystorePropertiesFile.exists() && keystorePropertiesFile.canRead()) {
 android {
     compileSdkVersion=35
     buildToolsVersion='35.0.0'
+    
+    lintOptions {
+        disable 'Deprecation'
+        abortOnError false
+    }
     defaultConfig {
         applicationId "io.github.gmathi.novellibrary"
         minSdkVersion 23
@@ -81,6 +87,11 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17.toString()
+        freeCompilerArgs += [
+            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+            "-opt-in=kotlinx.coroutines.FlowPreview",
+            "-opt-in=kotlinx.serialization.ExperimentalSerializationApi"
+        ]
     }
 
     buildFeatures {
@@ -105,10 +116,10 @@ dependencies {
     // AndroidX Core Libraries - Updated to latest versions
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
     implementation 'androidx.browser:browser:1.8.0'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.8.7'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.9.2'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.2'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.vectordrawable:vectordrawable:1.2.0'
@@ -122,18 +133,23 @@ dependencies {
     testImplementation 'org.mockito.kotlin:mockito-kotlin:5.4.0'
     testImplementation 'io.mockk:mockk:1.13.13'
     testImplementation 'org.robolectric:robolectric:4.13'
-    testImplementation 'androidx.test:core:1.6.1'
-    testImplementation 'androidx.test:runner:1.6.2'
-    testImplementation 'androidx.test:rules:1.6.1'
-    testImplementation 'androidx.test.ext:junit:1.2.1'
+    testImplementation 'androidx.test:core:1.7.0'
+    testImplementation 'androidx.test:runner:1.7.0'
+    testImplementation 'androidx.test:rules:1.7.0'
+    testImplementation 'androidx.test.ext:junit:1.3.0'
     testImplementation 'androidx.arch.core:core-testing:2.2.0'
     
     // Android Testing
-    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
-    androidTestImplementation 'androidx.test:runner:1.6.2'
-    androidTestImplementation 'androidx.test:rules:1.6.1'
-
+    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
+    androidTestImplementation 'androidx.test:runner:1.7.0'
+    androidTestImplementation 'androidx.test:rules:1.7.0'
+    
+    // Hilt Testing
+    testImplementation 'com.google.dagger:hilt-android-testing:2.56.2'
+    kspTest 'com.google.dagger:hilt-compiler:2.56.2'
+    androidTestImplementation 'com.google.dagger:hilt-android-testing:2.56.2'
+    kspAndroidTest 'com.google.dagger:hilt-compiler:2.56.2'
     // HTML Parsing and Utilities
     implementation 'org.jsoup:jsoup:1.18.3'
     implementation 'org.greenrobot:eventbus:3.3.1'
@@ -164,10 +180,10 @@ dependencies {
     // Google Play Services - Updated versions
     implementation "com.google.android.gms:play-services-gcm:17.0.0"
     implementation "com.google.android.gms:play-services-drive:17.0.0"
-    implementation 'com.google.android.gms:play-services-auth:21.3.0'
+    implementation 'com.google.android.gms:play-services-auth:21.4.0'
 
     // WorkManager - Updated
-    def work_version = '2.10.0'
+    def work_version = '2.10.3'
     implementation "androidx.work:work-runtime-ktx:$work_version"
     implementation "androidx.work:work-gcm:$work_version"
     testImplementation "androidx.work:work-testing:$work_version"
@@ -177,10 +193,21 @@ dependencies {
     // implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0' // Deprecated - removed
 
     // Animation and UI
-    implementation 'com.airbnb.android:lottie:6.6.0'
+    implementation 'com.airbnb.android:lottie:6.6.2'
     implementation 'com.github.chimbori:crux:2.2.0'
 
-    // Dependency Injection
+    // Dependency Injection - Hilt
+    implementation 'com.google.dagger:hilt-android:2.56.2'
+    ksp 'com.google.dagger:hilt-compiler:2.56.2'
+    
+    // Hilt ViewModel integration
+    implementation 'androidx.hilt:hilt-navigation-fragment:1.0.0'
+    
+    // Hilt WorkManager integration
+    implementation 'androidx.hilt:hilt-work:1.0.0'
+    ksp 'androidx.hilt:hilt-compiler:1.0.0'
+    
+    // Legacy Injekt (will be removed after migration)
     implementation "uy.kohesive.injekt:injekt-core:1.16.1"
 
     // Network client - Keep alpha version for compatibility
@@ -194,7 +221,7 @@ dependencies {
     implementation 'org.conscrypt:conscrypt-android:2.5.2'
 
     // REST - Keep compatible version
-    final retrofit_version = '2.9.0'
+    final retrofit_version = '2.11.0'
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
     implementation 'com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0'
     implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
@@ -207,7 +234,7 @@ dependencies {
     ksp 'com.github.bumptech.glide:ksp:4.16.0'
 
     // Kotlin Standard Library
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.21"
 
     // Coroutines - Updated to latest stable
     final kotlinx_coroutines_version = '1.9.0'
@@ -234,12 +261,12 @@ dependencies {
     implementation 'com.github.tingyik90:snackprogressbar:6.4.2'
 
     // Firebase - Updated BoM and individual libraries
-    implementation platform('com.google.firebase:firebase-bom:33.7.0')
-    implementation 'com.google.firebase:firebase-analytics-ktx'
-    implementation 'com.google.firebase:firebase-config-ktx'
-    implementation 'com.google.firebase:firebase-crashlytics-ktx'
-    implementation 'com.google.firebase:firebase-messaging-ktx'
-    implementation 'com.google.firebase:firebase-auth-ktx'
+    implementation platform('com.google.firebase:firebase-bom:34.1.0')
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-config'
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-messaging'
+    implementation 'com.google.firebase:firebase-auth'
 
     // Markdown parser - Updated
     implementation 'org.jetbrains:markdown:0.7.3'

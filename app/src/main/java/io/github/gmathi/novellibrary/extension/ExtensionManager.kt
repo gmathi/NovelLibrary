@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * The manager of extensions installed as another apk which extend the available sources. It handles
@@ -32,9 +34,10 @@ import uy.kohesive.injekt.api.get
  * @param context The application context.
  * @param preferences The application preferences.
  */
+@Singleton
 class ExtensionManager(
     private val context: Context,
-    private val dataCenter: DataCenter = Injekt.get()
+    private val dataCenter: DataCenter
 ) {
 
     /**

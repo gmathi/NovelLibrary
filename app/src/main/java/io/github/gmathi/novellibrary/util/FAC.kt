@@ -18,6 +18,12 @@ object FAC {
         const val RENAME_NOVEL_SECTION = "rename_novel_section"
 
         const val SELECTOR_QUERY = "selector_query"
+        const val NOVELS_LOADED = "novels_loaded"
+        const val ERROR_OCCURRED = "error_occurred"
+        const val NOVEL_SELECTED = "novel_selected"
+        const val SEARCH_PERFORMED = "search_performed"
+        const val NOVELS_REFRESHED = "novels_refreshed"
+        const val NOVEL_FAVORITE_TOGGLED = "novel_favorite_toggled"
     }
 
     object Param {

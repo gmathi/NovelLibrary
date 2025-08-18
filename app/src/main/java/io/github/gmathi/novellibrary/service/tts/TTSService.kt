@@ -17,7 +17,13 @@ import android.view.KeyEvent
 import androidx.core.app.NotificationManagerCompat
 import androidx.media.MediaBrowserServiceCompat
 import androidx.media.session.MediaButtonReceiver
+import dagger.hilt.android.AndroidEntryPoint
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.database.DBHelper
+import io.github.gmathi.novellibrary.model.preference.DataCenter
+import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.model.source.SourceManager
+import javax.inject.Inject
 import io.github.gmathi.novellibrary.activity.ReaderDBPagerActivity
 import io.github.gmathi.novellibrary.activity.TextToSpeechControlsActivity
 import io.github.gmathi.novellibrary.activity.settings.TTSSettingsActivity
@@ -30,6 +36,7 @@ import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import kotlinx.coroutines.*
 import java.util.*
 
+@AndroidEntryPoint
 class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeListener {
 
     companion object {
@@ -104,6 +111,18 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
     lateinit var player: TTSPlayer
     var initialized: Boolean = false
 
+    @Inject
+    lateinit var dataCenter: DataCenter
+    
+    @Inject
+    lateinit var dbHelper: DBHelper
+    
+    @Inject
+    lateinit var sourceManager: SourceManager
+    
+    @Inject
+    lateinit var networkHelper: NetworkHelper
+
     @SuppressLint("RestrictedApi")
     override fun onCreate() {
         super.onCreate()
@@ -173,7 +192,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
 
         }
 
-        player = TTSPlayer(this, mediaSession, stateBuilder)
+        player = TTSPlayer(this, mediaSession, stateBuilder, dataCenter, dbHelper, sourceManager, networkHelper)
 
         // androidx `MediaButtonReceiver.buildMediaButtonPendingIntent` uses 0 flags, and that crashes on Api 31+
         // So we have to do it manually
@@ -278,7 +297,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
     private fun actionStartup(extras: Bundle) {
         Log.d(TAG,"Booting up!")
         if (player.isDisposed) {
-            player = TTSPlayer(this, mediaSession, stateBuilder)
+            player = TTSPlayer(this, mediaSession, stateBuilder, dataCenter, dbHelper, sourceManager, networkHelper)
         }
         val startupText = player.setBundle(extras)
         initialized = true
@@ -387,7 +406,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
             if (hookSystem()) {
                 if (player.isDisposed) {
                     val old = player
-                    player = TTSPlayer(this@TTSService, mediaSession, stateBuilder)
+                    player = TTSPlayer(this@TTSService, mediaSession, stateBuilder, dataCenter, dbHelper, sourceManager, networkHelper)
                     player.setFrom(old)
                 }
                 player.start()

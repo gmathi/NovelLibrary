@@ -44,17 +44,22 @@ import kotlinx.coroutines.sync.withLock
 import okhttp3.OkHttpClient
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import uy.kohesive.injekt.injectLazy
+
 import java.io.File
 import java.nio.ByteBuffer
 import java.util.*
+import javax.inject.Inject
 import kotlin.collections.ArrayList
 import kotlin.math.ceil
 import kotlin.math.min
 
 class TTSPlayer(private val context: Context,
                 private val mediaSession: MediaSessionCompat,
-                private val stateBuilder: PlaybackStateCompat.Builder) : DataAccessor, TTSWrapper.TTSWrapperCallback {
+                private val stateBuilder: PlaybackStateCompat.Builder,
+                override var dataCenter: DataCenter,
+                override var dbHelper: DBHelper,
+                override var sourceManager: SourceManager,
+                override var networkHelper: NetworkHelper) : DataAccessor, TTSWrapper.TTSWrapperCallback {
 
     companion object {
 
@@ -79,11 +84,7 @@ class TTSPlayer(private val context: Context,
         const val QUEUE_SIZE = 0
     }
 
-    override val firebaseAnalytics: FirebaseAnalytics = FirebaseAnalytics.getInstance(context)
-    override val dataCenter: DataCenter by injectLazy()
-    override val dbHelper: DBHelper by injectLazy()
-    override val sourceManager: SourceManager by injectLazy()
-    override val networkHelper: NetworkHelper by injectLazy()
+    @Inject override lateinit var firebaseAnalytics: FirebaseAnalytics
 
     override fun getContext(): Context = this.context
 

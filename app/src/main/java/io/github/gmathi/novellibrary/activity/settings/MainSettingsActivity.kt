@@ -204,10 +204,10 @@ class MainSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             .setSpeed(1f, 5f)
             .setFadeOutEnabled(true)
             .setTimeToLive(2000L)
-            .addShapes(Shape.RECT, Shape.CIRCLE)
+            .addShapes(Shape.Square, Shape.Circle)
             .addSizes(Size(12))
             .setPosition(-50f, binding.viewKonfetti.width + 50f, -50f, -50f)
-            .stream(300, 5000L)
+            .streamMaxParticles(300, 5000)
     }
 
     private fun systemInfo(): String {

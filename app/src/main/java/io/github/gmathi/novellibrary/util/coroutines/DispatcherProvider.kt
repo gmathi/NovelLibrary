@@ -2,8 +2,6 @@ package io.github.gmathi.novellibrary.util.coroutines
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Interface for providing coroutine dispatchers.
@@ -20,8 +18,7 @@ interface DispatcherProvider {
  * Production implementation of DispatcherProvider.
  * Uses standard Kotlin coroutine dispatchers.
  */
-@Singleton
-class DefaultDispatcherProvider @Inject constructor() : DispatcherProvider {
+class DefaultDispatcherProvider : DispatcherProvider {
     override val main: CoroutineDispatcher = Dispatchers.Main
     override val io: CoroutineDispatcher = Dispatchers.IO
     override val default: CoroutineDispatcher = Dispatchers.Default

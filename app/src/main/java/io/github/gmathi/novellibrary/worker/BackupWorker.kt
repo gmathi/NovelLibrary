@@ -30,7 +30,8 @@ import io.github.gmathi.novellibrary.util.system.NotificationReceiver
 import io.github.gmathi.novellibrary.util.view.ProgressNotificationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import uy.kohesive.injekt.injectLazy
+import dagger.hilt.android.EntryPointAccessors
+import io.github.gmathi.novellibrary.di.WorkerEntryPoint
 import java.io.*
 import java.util.zip.ZipOutputStream
 
@@ -47,8 +48,9 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
         const val UNIQUE_WORK_NAME = "backup_work"
     }
 
-    private val dbHelper: DBHelper by injectLazy()
-    private val dataCenter: DataCenter by injectLazy()
+    private val entryPoint = EntryPointAccessors.fromApplication(applicationContext, WorkerEntryPoint::class.java)
+    private val dbHelper: DBHelper = entryPoint.dbHelper()
+    private val dataCenter: DataCenter = entryPoint.dataCenter()
 
     private val contentResolver
         get() = applicationContext.contentResolver

@@ -809,7 +809,7 @@
     <string name="scroll_current_into_view">Scroll current sentence into view</string>
     <string name="cover">Cover</string>
     <string name="auto_stop_timer">Auto-stop timer</string>
-    <string name="set_auto_stop_timer">Set timer (%02d:%02d)</string>
+    <string name="set_auto_stop_timer" formatted="false">Set timer (%02d:%02d)</string>
     <string name="enable_timer">Timer enabled</string>
     <string name="off">Off</string>
     <string name="toggle_slider_number">Switch between slider/number inputs</string>

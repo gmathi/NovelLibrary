@@ -33,7 +33,7 @@ class ChrysanthemumgardenCleaner : HtmlCleaner() {
         main.getElementsByClass("related-novels").remove()
         main.getElementsByClass("fixed-action-btn").forEach {
             val floatingButton = it.getElementsByClass("btn-floating")
-            if (floatingButton != null && floatingButton.hasClass("btn-large")) {
+            if (floatingButton.isNotEmpty() && floatingButton.hasClass("btn-large")) {
                 floatingButton.remove()
             }
         }

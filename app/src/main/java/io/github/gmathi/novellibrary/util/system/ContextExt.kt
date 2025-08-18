@@ -209,7 +209,7 @@ fun Context.isServiceRunning(serviceClass: Class<*>): Boolean {
 fun Context.openInBrowser(url: String) {
     try {
         val intent = CustomTabsIntent.Builder()
-            .setToolbarColor(getResourceColor(R.attr.colorPrimary))
+            .setToolbarColor(getResourceColor(androidx.appcompat.R.attr.colorPrimary))
             .build()
         intent.launchUrl(this, url.toUri())
     } catch (e: Exception) {

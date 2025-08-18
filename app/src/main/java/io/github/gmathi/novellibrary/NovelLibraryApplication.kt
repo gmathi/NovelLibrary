@@ -13,6 +13,7 @@ import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import dagger.hilt.android.HiltAndroidApp
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.deleteWebPageSettings
 import io.github.gmathi.novellibrary.database.deleteWebPages
@@ -24,29 +25,44 @@ import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.notification.Notifications
 import io.github.gmathi.novellibrary.util.lang.LocaleManager
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.InjektScope
-import uy.kohesive.injekt.injectLazy
-import uy.kohesive.injekt.registry.default.DefaultRegistrar
 import java.io.File
 import java.security.KeyManagementException
 import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
 import java.util.*
+import javax.inject.Inject
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 
 
+@HiltAndroidApp
 open class NovelLibraryApplication : Application(), LifecycleObserver {
     companion object {
         private const val TAG = "NovelLibraryApplication"
     }
 
+    @Inject
+    lateinit var dataCenter: DataCenter
+
+    @Inject
+    lateinit var dbHelper: DBHelper
+
+    @Inject
+    lateinit var migrationValidator: io.github.gmathi.novellibrary.util.migration.MigrationValidator
+
+    @Inject
+    lateinit var migrationLogger: io.github.gmathi.novellibrary.util.migration.MigrationLogger
+
     override fun onCreate() {
         super.onCreate()
 
-        Injekt = InjektScope(DefaultRegistrar())
-        Injekt.importModule(AppModule(this))
+        // Hilt handles dependency injection automatically
+        // Removed Injekt initialization:
+        // Injekt = InjektScope(DefaultRegistrar())
+        // Injekt.importModule(AppModule(this))
+
+        // Validate Hilt dependency injection
+        validateHiltMigration()
 
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
         cleanupDatabase()
@@ -54,8 +70,6 @@ open class NovelLibraryApplication : Application(), LifecycleObserver {
         val imagesDir = File(filesDir, "images")
         if (!imagesDir.exists())
             imagesDir.mkdir()
-
-        val dataCenter: DataCenter by injectLazy()
 
         setPreferences(dataCenter)
 
@@ -78,8 +92,6 @@ open class NovelLibraryApplication : Application(), LifecycleObserver {
     }
 
     private fun cleanupDatabase() {
-        val dbHelper: DBHelper by injectLazy()
-
         //Stray webPages to be deleted
         dbHelper.deleteWebPages(-1L)
         dbHelper.deleteWebPageSettings(-1L)
@@ -153,6 +165,31 @@ open class NovelLibraryApplication : Application(), LifecycleObserver {
 
     protected open fun setupNotificationChannels() {
         Notifications.createChannels(this)
+    }
+
+    /**
+     * Validates that Hilt dependency injection is working correctly.
+     * This is part of the migration validation process.
+     */
+    private fun validateHiltMigration() {
+        try {
+            migrationLogger.logPhaseStart("Application Startup Validation")
+            
+            val isValid = migrationValidator.validateDependencies()
+            
+            if (isValid) {
+                migrationLogger.logValidationResult("Application Dependencies", true, "All core dependencies validated successfully")
+                Logs.info(TAG, "Hilt migration validation passed - all dependencies properly injected")
+            } else {
+                migrationLogger.logValidationResult("Application Dependencies", false, "Some dependencies failed validation")
+                Logs.error(TAG, "Hilt migration validation failed - check dependency injection")
+            }
+            
+            migrationLogger.logPhaseComplete("Application Startup Validation")
+        } catch (e: Exception) {
+            migrationLogger.logError("Application Startup Validation", e)
+            Logs.error(TAG, "Error during Hilt migration validation", e)
+        }
     }
 
 }

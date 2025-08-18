@@ -35,7 +35,8 @@ import io.github.gmathi.novellibrary.util.view.ProgressNotificationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import uy.kohesive.injekt.injectLazy
+import dagger.hilt.android.EntryPointAccessors
+import io.github.gmathi.novellibrary.di.WorkerEntryPoint
 import java.io.*
 
 internal class RestoreWorker(context: Context, workerParameters: WorkerParameters) :
@@ -52,7 +53,8 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
         const val UNIQUE_WORK_NAME = "restore_work"
     }
 
-    private val dbHelper: DBHelper by injectLazy()
+    private val entryPoint = EntryPointAccessors.fromApplication(applicationContext, WorkerEntryPoint::class.java)
+    private val dbHelper: DBHelper = entryPoint.dbHelper()
 
     private val contentResolver
         get() = applicationContext.contentResolver

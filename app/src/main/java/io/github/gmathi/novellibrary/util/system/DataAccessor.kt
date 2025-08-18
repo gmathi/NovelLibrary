@@ -15,11 +15,11 @@ import io.github.gmathi.novellibrary.model.preference.DataCenter
  */
 interface DataAccessor {
 
-    val firebaseAnalytics: FirebaseAnalytics
-    val dataCenter: DataCenter
-    val dbHelper: DBHelper
-    val sourceManager: SourceManager
-    val networkHelper: NetworkHelper
+    var firebaseAnalytics: FirebaseAnalytics
+    var dataCenter: DataCenter
+    var dbHelper: DBHelper
+    var sourceManager: SourceManager
+    var networkHelper: NetworkHelper
     fun getContext(): Context?
 
 }

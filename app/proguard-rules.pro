@@ -41,3 +41,43 @@
 -keep class com.google.firebase.crashlytics.** { *; }
 -dontwarn com.google.firebase.crashlytics.**
 
+# Hilt rules
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class dagger.hilt.** { *; }
+-keep class javax.inject.** { *; }
+-keep class * extends dagger.hilt.android.internal.managers.ApplicationComponentManager { *; }
+-keep class * extends dagger.hilt.android.internal.managers.ActivityComponentManager { *; }
+-keep class * extends dagger.hilt.android.internal.managers.FragmentComponentManager { *; }
+-keep class * extends dagger.hilt.android.internal.managers.ServiceComponentManager { *; }
+-keep class * extends dagger.hilt.android.internal.managers.ViewComponentManager { *; }
+
+# Keep Hilt generated classes
+-keep class **_HiltModules { *; }
+-keep class **_HiltComponents { *; }
+-keep class **_Impl { *; }
+-keep class **_MembersInjector { *; }
+-keep class **_Factory { *; }
+
+# Keep classes annotated with Hilt annotations
+-keep @dagger.hilt.android.HiltAndroidApp class * { *; }
+-keep @dagger.hilt.android.AndroidEntryPoint class * { *; }
+-keep @dagger.hilt.android.lifecycle.HiltViewModel class * { *; }
+-keep @dagger.Module class * { *; }
+-keep @dagger.hilt.InstallIn class * { *; }
+
+# Keep constructor injection
+-keepclassmembers class * {
+    @javax.inject.Inject <init>(...);
+}
+
+# Keep field injection
+-keepclassmembers class * {
+    @javax.inject.Inject <fields>;
+}
+
+# Keep method injection
+-keepclassmembers class * {
+    @javax.inject.Inject <methods>;
+}
+

@@ -44,16 +44,16 @@ import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import uy.kohesive.injekt.injectLazy
 import java.net.URL
 import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
 
 
 class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportListItem>, ActionMode.Callback {
 
     lateinit var adapter: GenericAdapter<ImportListItem>
 
-    private val network: NetworkHelper by injectLazy()
+    @Inject lateinit var network: NetworkHelper
     private val client: OkHttpClient
         get() = network.cloudflareClient
 

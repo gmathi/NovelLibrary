@@ -1,18 +1,21 @@
 package io.github.gmathi.novellibrary.extension.util
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.ComponentActivity
+import dagger.hilt.android.AndroidEntryPoint
 import io.github.gmathi.novellibrary.extension.ExtensionManager
 import io.github.gmathi.novellibrary.util.system.toast
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import javax.inject.Inject
 
 /**
  * Activity used to install extensions, because we can only receive the result of the installation
  * with [startActivityForResult], which we need to update the UI.
  */
-class ExtensionInstallActivity : Activity() {
+@AndroidEntryPoint
+class ExtensionInstallActivity : ComponentActivity() {
+
+    @Inject lateinit var extensionManager: ExtensionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +45,6 @@ class ExtensionInstallActivity : Activity() {
         val downloadId = intent.extras!!.getLong(ExtensionInstaller.EXTRA_DOWNLOAD_ID)
         val success = resultCode == RESULT_OK
 
-        val extensionManager = Injekt.get<ExtensionManager>()
         extensionManager.setInstallationResult(downloadId, success)
     }
 

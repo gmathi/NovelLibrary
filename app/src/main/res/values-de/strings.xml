@@ -555,7 +555,7 @@
     <string name="scroll_current_into_view">Scrolle derzeitigen Satz in den sichtbaren Bereich</string>
     <string name="cover">Umschlag</string> <!-- I presume novel cover? -->
     <string name="auto_stop_timer">Stoppe den Timer automatisch</string>
-    <string name="set_auto_stop_timer">Setze Timer (%02d:%02d)</string>
+    <string name="set_auto_stop_timer" formatted="false">Setze Timer (%02d:%02d)</string>
     <string name="enable_timer">Timer aktiviert</string>
     <string name="off">Aus</string>
     <string name="toggle_slider_number">Wechsle zwischen Slider-/Nummerneingaben</string>

@@ -185,8 +185,7 @@ class ChaptersFragment : BaseFragment(),
         }
     }
 
-
-    override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
+    override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
         val webPage = (buttonView?.tag as WebPage?) ?: return
         val chaptersPagerActivity = (activity as? ChaptersPagerActivity) ?: return
 
@@ -239,6 +238,7 @@ class ChaptersFragment : BaseFragment(),
             adapter.items.firstOrNull { it.url == chapterActionModeEvent.url }?.let { adapter.updateItem(it) }
         }
     }
+
 
     //endregion
 }

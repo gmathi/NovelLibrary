@@ -3,6 +3,9 @@ package io.github.gmathi.novellibrary.viewmodel
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.firebase.analytics.FirebaseAnalytics
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
@@ -23,8 +26,12 @@ import org.junit.runner.RunWith
 import kotlin.test.assertEquals
 
 @ExperimentalCoroutinesApi
+@HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
 class ChaptersViewModelTest {
+
+    @get:Rule
+    val hiltRule = HiltAndroidRule(this)
 
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
@@ -38,6 +45,7 @@ class ChaptersViewModelTest {
     private lateinit var mockDataCenter: DataCenter
     private lateinit var mockSourceManager: SourceManager
     private lateinit var mockNetworkHelper: NetworkHelper
+    private lateinit var mockFirebaseAnalytics: FirebaseAnalytics
 
     private val testNovel = Novel(
         id = 1L,
@@ -48,6 +56,8 @@ class ChaptersViewModelTest {
 
     @Before
     fun setup() {
+        hiltRule.inject()
+        
         savedStateHandle = SavedStateHandle()
         savedStateHandle.set(ChaptersViewModel.KEY_NOVEL, testNovel)
 
@@ -55,15 +65,16 @@ class ChaptersViewModelTest {
         mockDataCenter = mockk(relaxed = true)
         mockSourceManager = mockk(relaxed = true)
         mockNetworkHelper = mockk(relaxed = true)
+        mockFirebaseAnalytics = mockk(relaxed = true)
 
-        // Mock the injections
-        mockkStatic("uy.kohesive.injekt.InjektKt")
-        every { DBHelper::class.java.injectLazy() } returns lazy { mockDbHelper }
-        every { DataCenter::class.java.injectLazy() } returns lazy { mockDataCenter }
-        every { SourceManager::class.java.injectLazy() } returns lazy { mockSourceManager }
-        every { NetworkHelper::class.java.injectLazy() } returns lazy { mockNetworkHelper }
-
-        viewModel = ChaptersViewModel(savedStateHandle)
+        viewModel = ChaptersViewModel(
+            savedStateHandle,
+            mockDbHelper,
+            mockDataCenter,
+            mockNetworkHelper,
+            mockSourceManager,
+            mockFirebaseAnalytics
+        )
     }
 
     @After
@@ -126,22 +137,24 @@ class ChaptersViewModelTest {
         // Given
         val novelWithoutId = testNovel.copy(id = -1L)
         savedStateHandle.set(ChaptersViewModel.KEY_NOVEL, novelWithoutId)
-        val viewModelWithNewNovel = ChaptersViewModel(savedStateHandle)
+        val viewModelWithNewNovel = ChaptersViewModel(
+            savedStateHandle,
+            mockDbHelper,
+            mockDataCenter,
+            mockNetworkHelper,
+            mockSourceManager,
+            mockFirebaseAnalytics
+        )
 
-        // Mock the addNewNovel function behavior
-        mockkStatic("io.github.gmathi.novellibrary.util.system.DataAccessorKt")
-        every { any<ChaptersViewModel>().addNewNovel(any()) } answers {
-            // Simulate successful novel addition
-            val novel = firstArg<Novel>()
-            novel.id = 1L
-        }
+        // Mock the insertNovel function behavior
+        every { mockDbHelper.insertNovel(any()) } returns 1L
 
         // When
         viewModelWithNewNovel.addNovelToLibrary()
 
         // Then
-        // Should update loading status
-        // Note: Testing requires collecting the StateFlow to verify state changes
+        verify { mockDbHelper.insertNovel(any()) }
+        verify { mockFirebaseAnalytics.logEvent(any(), any()) }
     }
 
     @Test

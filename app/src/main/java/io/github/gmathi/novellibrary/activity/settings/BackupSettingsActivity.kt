@@ -170,7 +170,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                             else -> 0
                         }
                         if (dataCenter.backupFrequency != backupFrequency) {
-                            val workRequest = if (backupFrequency != 0) periodicBackupWorkRequest(backupFrequency) else null
+                            val workRequest = if (backupFrequency != 0) periodicBackupWorkRequest(this@BackupSettingsActivity, backupFrequency) else null
                             WorkManager.getInstance(applicationContext).apply {
                                 if (workRequest == null) {
                                     backupFrequency = 0
@@ -268,7 +268,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                 }
 
                 val workRequest = oneTimeBackupWorkRequest(
-                    uri, simpleText, database, preferences, files
+                    this@BackupSettingsActivity, uri, simpleText, database, preferences, files
                 )
                 executeWorkRequest(workRequest)
             }
@@ -306,7 +306,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             val uri = it.data?.data
             if (uri != null) {
                 val workRequest: OneTimeWorkRequest = oneTimeRestoreWorkRequest(
-                    uri, simpleText, database, preferences, files
+                    this@BackupSettingsActivity, uri, simpleText, database, preferences, files
                 )
                 executeWorkRequest(workRequest)
             }

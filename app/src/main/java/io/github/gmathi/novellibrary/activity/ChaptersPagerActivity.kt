@@ -14,7 +14,7 @@ import com.afollestad.materialdialogs.DialogCallback
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.analytics.ktx.logEvent
+import com.google.firebase.analytics.logEvent
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
@@ -175,7 +175,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
             }
         }
 
-        
+
         lifecycleScope.launch {
             vm.actionModeProgress.collect { progress ->
                 //Update Action mode actions status
