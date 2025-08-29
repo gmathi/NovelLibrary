@@ -826,4 +826,11 @@
     <string name="nu_api_fetch">Use API for Chapters</string>
     <string name="nu_api_fetch_description">Download chapters using API instead of Doc for NU</string>
     <string name="reader_menu">Reader Menu</string>
+
+    <!-- Network Error Messages -->
+    <string name="error_network_timeout">Request timed out. The server is taking too long to respond.</string>
+    <string name="error_network_interrupted">Network request was interrupted.</string>
+    <string name="error_network_connection_failed">Failed to connect to server. Please check your internet connection.</string>
+    <string name="error_network_no_internet">No internet connection available. Please check your network settings.</string>
+    <string name="error_network_unknown">An unknown network error occurred.</string>
 </resources>

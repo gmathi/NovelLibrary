@@ -30,6 +30,8 @@ import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
 import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.other.EventType
+import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
@@ -50,6 +52,15 @@ class DownloadNovelService : Service(), DownloadListener {
 
     @Inject
     lateinit var dbHelper: DBHelper
+    
+    @Inject
+    lateinit var networkHelper: NetworkHelper
+    
+    @Inject
+    lateinit var webPageDocumentFetcher: WebPageDocumentFetcher
+    
+    @Inject
+    lateinit var dataCenter: io.github.gmathi.novellibrary.model.preference.DataCenter
 
     //static components
     companion object {
@@ -108,7 +119,7 @@ class DownloadNovelService : Service(), DownloadListener {
     private suspend fun addNovelToDownload(novelId: Long?) {
         novelId?.let {
             val downloadService = CoroutineDownloadService(
-                this@DownloadNovelService, novelId, dbHelper, this@DownloadNovelService
+                this@DownloadNovelService, novelId, dbHelper, this@DownloadNovelService, networkHelper, webPageDocumentFetcher, dataCenter
             )
             downloadServiceMap[novelId] = downloadService
 

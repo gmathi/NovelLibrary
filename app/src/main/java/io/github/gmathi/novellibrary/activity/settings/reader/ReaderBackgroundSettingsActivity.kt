@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.activity.settings.reader
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -17,7 +18,6 @@ import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBind
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaults
-import okhttp3.internal.toHexString
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -119,6 +119,7 @@ class ReaderBackgroundSettingsActivity : BaseActivity(), GenericAdapter.Listener
     }
 
 
+    @SuppressLint("CheckResult")
     override fun onItemClick(item: String, position: Int) {
         val colors = intArrayOf(Color.RED, green(), blue(), yellow(), magenta(), cyan(), gray(0x00), gray(0xFF))
         val subColors = arrayOf(

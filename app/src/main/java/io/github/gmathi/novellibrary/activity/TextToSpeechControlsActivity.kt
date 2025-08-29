@@ -53,7 +53,8 @@ import io.github.gmathi.novellibrary.util.toHumanPercentage
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaultsNoAnimation
 import kotlinx.coroutines.*
-import okhttp3.internal.format
+import java.lang.String.format
+import java.util.Locale
 import kotlin.math.ceil
 import kotlin.math.round
 
@@ -305,7 +306,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
                 val minutes = ceil((stopTimer - System.currentTimeMillis()).toDouble() / 60000).toLong().coerceAtLeast(0)
                 if (lastMinutes != minutes) {
                     lastMinutes = minutes
-                    quickSettings.autoStopTimerStatus.text = format("%d:%02d", minutes / 60, minutes % 60)
+                    quickSettings.autoStopTimerStatus.text = format(Locale.US, "%d:%02d", minutes / 60, minutes % 60)
                 }
                 delay(1000) // Update every second instead of every frame
             }

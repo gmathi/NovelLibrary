@@ -118,7 +118,9 @@ public class ProgressLayout extends RelativeLayout {
     }
 
     public void updateLoadingStatus(String value) {
-        loadingStateTextView.setText(value);
+        if (loadingStateTextView != null) {
+            loadingStateTextView.setText(value);
+        }
     }
 
     public void showEmpty(@Nullable @RawRes Integer rawId, @Nullable @DrawableRes Integer drawableId, @Nullable String message, @Nullable String buttonText, @Nullable OnClickListener onClickListener) {

@@ -1,11 +1,12 @@
 package io.github.gmathi.novellibrary.cleaner
 
 import io.github.gmathi.novellibrary.model.other.LinkedPage
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.nodes.Document
 
 
-class WuxiaWorldCleaner : HtmlCleaner() {
+class WuxiaWorldCleaner(dataCenter: DataCenter) : HtmlCleaner(dataCenter) {
 
 
     override fun additionalProcessing(doc: Document) {

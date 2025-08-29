@@ -1,0 +1,20 @@
+// Build Performance Monitoring Script for Hilt Migration
+// This script tracks build times and provides performance metrics
+
+def buildMetricsFile = file("${project.buildDir}/build-metrics.json")
+
+// Task to analyze build performance
+tasks.register('analyzeBuildPerformance') {
+    doLast {
+        if (buildMetricsFile.exists()) {
+            def metrics = new groovy.json.JsonSlurper().parse(buildMetricsFile)
+            println "=== Build Performance Analysis ==="
+            println "Build Duration: ${metrics.buildDuration}ms"
+            println "Memory Usage: ${metrics.maxMemory / 1024 / 1024}MB"
+            println "Processors: ${metrics.processors}"
+            println "=================================="
+        } else {
+            println "No build metrics found. Run a build first."
+        }
+    }
+}

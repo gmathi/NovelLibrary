@@ -16,6 +16,8 @@ import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.RecentlyUpdatedItem
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Constants
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
@@ -24,7 +26,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@AndroidEntryPoint
 class RecentlyUpdatedNovelsFragment : BaseFragment(), GenericAdapter.Listener<RecentlyUpdatedItem> {
+
+    @Inject
+    lateinit var webPageDocumentFetcher: WebPageDocumentFetcher
 
     companion object {
         fun newInstance() = RecentlyUpdatedNovelsFragment()
@@ -76,7 +82,7 @@ class RecentlyUpdatedNovelsFragment : BaseFragment(), GenericAdapter.Listener<Re
         var searchResults: ArrayList<RecentlyUpdatedItem>? = null
         try {
             searchResults = ArrayList()
-            val document = WebPageDocumentFetcher.document("https://www.novelupdates.com/")
+            val document = webPageDocumentFetcher.document("https://www.novelupdates.com/")
             document.body().select("table#myTable > tbody > tr").forEach { element ->
                 val item = RecentlyUpdatedItem()
                 item.novelUrl = element.selectFirst("a[href]")?.attr("abs:href")

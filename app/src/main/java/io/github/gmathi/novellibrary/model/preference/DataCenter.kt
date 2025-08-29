@@ -117,6 +117,15 @@ class DataCenter(context: Context) {
 
         //Extensions
         const val AUTOMATIC_EXT_UPDATES = "automaticExtUpdates"
+        
+        //Network Timeout Configuration
+        const val NETWORK_CONNECT_TIMEOUT = "networkConnectTimeout"
+        const val NETWORK_READ_TIMEOUT = "networkReadTimeout"
+        const val NETWORK_WRITE_TIMEOUT = "networkWriteTimeout"
+        const val NETWORK_CALL_TIMEOUT = "networkCallTimeout"
+        const val NETWORK_MAX_RETRIES = "networkMaxRetries"
+        const val NETWORK_RETRY_DELAY = "networkRetryDelay"
+        const val ENABLE_SLOW_NETWORK_MODE = "enableSlowNetworkMode"
     }
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -496,4 +505,33 @@ class DataCenter(context: Context) {
     var useNUAPIFetch: Boolean
         get() = prefs.getBoolean(USE_NU_API_FETCH, true)
         set(value) = prefs.edit().putBoolean(USE_NU_API_FETCH, value).apply()
+
+    // Network timeout configuration properties
+    var networkConnectTimeout: Long
+        get() = prefs.getLong(NETWORK_CONNECT_TIMEOUT, 0L)
+        set(value) = prefs.edit().putLong(NETWORK_CONNECT_TIMEOUT, value).apply()
+
+    var networkReadTimeout: Long
+        get() = prefs.getLong(NETWORK_READ_TIMEOUT, 0L)
+        set(value) = prefs.edit().putLong(NETWORK_READ_TIMEOUT, value).apply()
+
+    var networkWriteTimeout: Long
+        get() = prefs.getLong(NETWORK_WRITE_TIMEOUT, 0L)
+        set(value) = prefs.edit().putLong(NETWORK_WRITE_TIMEOUT, value).apply()
+
+    var networkCallTimeout: Long
+        get() = prefs.getLong(NETWORK_CALL_TIMEOUT, 0L)
+        set(value) = prefs.edit().putLong(NETWORK_CALL_TIMEOUT, value).apply()
+
+    var networkMaxRetries: Int
+        get() = prefs.getInt(NETWORK_MAX_RETRIES, 0)
+        set(value) = prefs.edit().putInt(NETWORK_MAX_RETRIES, value).apply()
+
+    var networkRetryDelay: Long
+        get() = prefs.getLong(NETWORK_RETRY_DELAY, 0L)
+        set(value) = prefs.edit().putLong(NETWORK_RETRY_DELAY, value).apply()
+
+    var enableSlowNetworkMode: Boolean
+        get() = prefs.getBoolean(ENABLE_SLOW_NETWORK_MODE, false)
+        set(value) = prefs.edit().putBoolean(ENABLE_SLOW_NETWORK_MODE, value).apply()
 }

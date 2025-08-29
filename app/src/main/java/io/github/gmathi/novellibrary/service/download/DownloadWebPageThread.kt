@@ -21,14 +21,14 @@ import org.jsoup.nodes.Document
 import java.io.File
 
 
-class DownloadWebPageThread(val context: Context, val download: Download, val dbHelper: DBHelper, private val downloadListener: DownloadListener) : Thread(), DownloadListener {
+class DownloadWebPageThread(val context: Context, val download: Download, val dbHelper: DBHelper, private val downloadListener: DownloadListener, private val networkHelper: NetworkHelper, private val webPageDocumentFetcher: WebPageDocumentFetcher, private val dataCenter: io.github.gmathi.novellibrary.model.preference.DataCenter) : Thread(), DownloadListener {
 
     companion object {
         private const val TAG = "DownloadWebPageThread"
     }
 
     private lateinit var novelDir: File
-    private val networkHelper: NetworkHelper = NetworkHelper(context)
+    // NetworkHelper is now injected via constructor
 
     override fun run() {
         try {
@@ -61,7 +61,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
     private fun downloadChapter(webPageSettings: WebPageSettings, webPage: WebPage): Boolean {
         val doc: Document
         try {
-            doc = WebPageDocumentFetcher.document(webPageSettings.url)
+            doc = webPageDocumentFetcher.document(webPageSettings.url)
         } catch (e: Exception) {
             Logs.error(TAG, "Error getting WebPage: ${webPageSettings.url}")
             return false
@@ -70,7 +70,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         val uri = Uri.parse(doc.location())
         if (uri.host.isNullOrBlank()) return false
 
-        val htmlHelper = HtmlCleaner.getInstance(doc, uri.host ?: doc.location())
+        val htmlHelper = HtmlCleaner.getInstance(doc, uri.host ?: doc.location(), dataCenter)
         htmlHelper.downloadResources(doc, novelDir)
 
         val file = htmlHelper.convertDocToFile(doc, File(novelDir, uri.getFileName())) ?: return false
@@ -105,7 +105,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
         val doc: Document
         try {
-            doc = WebPageDocumentFetcher.document(otherChapterLink)
+            doc = webPageDocumentFetcher.document(otherChapterLink)
         } catch (e: Exception) {
             Logs.error(TAG, "Error getting internal links: $otherChapterLink")
             e.printStackTrace()
@@ -116,7 +116,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
         if (uri.host.isNullOrBlank()) return null
 
         val webPageSettings = WebPageSettings(otherChapterLink, novelId)
-        val htmlHelper = HtmlCleaner.getInstance(doc, uri.host ?: doc.location())
+        val htmlHelper = HtmlCleaner.getInstance(doc, uri.host ?: doc.location(), dataCenter)
         htmlHelper.downloadResources(doc, novelDir)
 
         val file = htmlHelper.convertDocToFile(doc, File(novelDir, uri.getFileName())) ?: return null

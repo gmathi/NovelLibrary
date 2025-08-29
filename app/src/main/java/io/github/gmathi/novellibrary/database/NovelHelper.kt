@@ -230,12 +230,11 @@ fun DBHelper.updateChaptersCount(novelId: Long, chaptersCount: Long, db: SQLiteD
 }
 
 
-suspend fun DBHelper.resetNovel(novel: Novel) = coroutineScope {
+suspend fun DBHelper.resetNovel(novel: Novel, sourceManager: SourceManager) = coroutineScope {
     // Completely delete all novel data and start fresh. Hard reset mode ;p
     cleanupNovelData(novel)
 
     // Notice: Cannot run getNovelDetails on MainThread
-    val sourceManager: SourceManager by injectLazy()
     val newNovel =  sourceManager.get(novel.sourceId)?.getNovelDetails(novel)
     newNovel?.novelSectionId = novel.novelSectionId
     newNovel?.orderId = novel.orderId

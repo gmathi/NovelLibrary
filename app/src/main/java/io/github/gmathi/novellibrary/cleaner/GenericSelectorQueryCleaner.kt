@@ -1,16 +1,17 @@
 package io.github.gmathi.novellibrary.cleaner
 
 import io.github.gmathi.novellibrary.model.other.*
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.network.HostNames
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
 
 class GenericSelectorQueryCleaner(
-    private val url: String, private val query: SelectorQuery,
+    private val url: String, private val query: SelectorQuery, dataCenter: DataCenter,
     override var keepContentStyle: Boolean = query.keepContentStyle, override var keepContentIds: Boolean = query.keepContentIds,
     override var keepContentClasses: Boolean = query.keepContentClasses
-) : HtmlCleaner() {
+) : HtmlCleaner(dataCenter) {
 
     companion object {
         val DIRECTIONAL_LINKS = listOf(

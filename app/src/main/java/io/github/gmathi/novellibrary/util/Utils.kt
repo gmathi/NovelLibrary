@@ -39,7 +39,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.safety.Cleaner
 import org.jsoup.safety.Safelist
-import uy.kohesive.injekt.injectLazy
+
 import java.io.*
 import java.net.MalformedURLException
 import java.net.URL
@@ -56,8 +56,7 @@ object Utils {
     private const val TAG = "UTILS"
     private const val BUFFER_SIZE = 16384
 
-    private val dbHelper: DBHelper by injectLazy()
-    private val dataCenter: DataCenter by injectLazy()
+
 
     fun getImage(image: ByteArray): Bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
 
@@ -386,7 +385,8 @@ object Utils {
         Logs.info("MeasuredTime", "$diff")
     }
 
-    fun Document.getFormattedText(): String {
+    fun Document.getFormattedText(dataCenter: io.github.gmathi.novellibrary.model.preference.DataCenter): String {
+        
         val doc = clone()
         val body = doc.body()
         body.select("[tts-disable=\"true\"]").remove()

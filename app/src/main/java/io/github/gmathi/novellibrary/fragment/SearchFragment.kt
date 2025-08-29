@@ -18,6 +18,7 @@ import io.github.gmathi.novellibrary.databinding.FragmentSearchBinding
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.source.getPreferenceKey
 import io.github.gmathi.novellibrary.util.FAC
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.lang.addToNovelSearchHistory
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
 import io.github.gmathi.novellibrary.util.view.SimpleAnimationListener
@@ -88,7 +89,7 @@ class SearchFragment : BaseFragment() {
         binding.searchView.setSearchListener(object : PersistentSearchView.SearchListener {
 
             override fun onSearch(query: String?) {
-                query?.addToNovelSearchHistory()
+                query?.addToNovelSearchHistory(dataCenter)
                 if (query != null) {
                     searchNovels(query)
                     binding.searchView.setSuggestionBuilder(SuggestionsBuilder(dataCenter.loadNovelSearchHistory()))
@@ -158,9 +159,16 @@ class SearchFragment : BaseFragment() {
         searchMode = true
         this.searchTerm = searchTerm
 
-        val sources = sourceManager.getOnlineSources().filter {
-            dataCenter.isSourceEnabled(it.getPreferenceKey())
+        val allOnlineSources = sourceManager.getOnlineSources()
+        Logs.debug("SearchFragment", "All online sources: ${allOnlineSources.map { "${it.name} (id: ${it.id})" }}")
+        
+        val sources = allOnlineSources.filter {
+            val isEnabled = dataCenter.isSourceEnabled(it.getPreferenceKey())
+            Logs.debug("SearchFragment", "Source ${it.name} (${it.getPreferenceKey()}) enabled: $isEnabled")
+            isEnabled
         }
+        
+        Logs.debug("SearchFragment", "Enabled sources for search: ${sources.map { "${it.name} (id: ${it.id})" }}")
 
         val sourceNames = sources.map { it.name }
 

@@ -57,7 +57,7 @@ fun DataAccessor.deleteNovel(novel: Novel) = getContext()?.let { deleteNovel(nov
  * Perform a hard reset on a novel.
  */
 suspend fun DataAccessor.resetNovel(novel: Novel) {
-    dbHelper.resetNovel(novel)
+    dbHelper.resetNovel(novel, sourceManager)
 }
 
 /**

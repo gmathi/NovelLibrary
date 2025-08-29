@@ -308,7 +308,7 @@ class ReaderDBPagerActivity :
             R.id.title_read_aloud -> {
                 if (dataCenter.readerMode) {
                     val webPageDBFragment = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as? WebPageDBFragment)
-                    val audioText = webPageDBFragment?.doc?.getFormattedText() ?: return true
+                    val audioText = webPageDBFragment?.doc?.getFormattedText(dataCenter) ?: return true
                     val title = webPageDBFragment.doc?.title() ?: ""
                     val chapterIndex = (if (dataCenter.japSwipe) webPages.reversed() else webPages).indexOf(webPages[binding.viewPager.currentItem])
 

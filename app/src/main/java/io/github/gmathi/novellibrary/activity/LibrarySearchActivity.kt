@@ -33,7 +33,9 @@ import io.github.gmathi.novellibrary.util.view.setDefaults
 import org.cryse.widget.persistentsearch.PersistentSearchView
 import org.cryse.widget.persistentsearch.SearchItem
 import org.greenrobot.eventbus.EventBus
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
 
     lateinit var adapter: GenericAdapter<Novel>
@@ -63,7 +65,7 @@ class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
         binding.searchView.setSearchListener(object : PersistentSearchView.SearchListener {
 
             override fun onSearch(query: String?) {
-                query?.addToLibrarySearchHistory()
+                query?.addToLibrarySearchHistory(dataCenter)
             }
 
             override fun onSearchEditOpened() {

@@ -19,8 +19,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,15 +34,12 @@ import javax.inject.Singleton
  * @param preferences The application preferences.
  */
 @Singleton
-class ExtensionManager(
-    private val context: Context,
-    private val dataCenter: DataCenter
+class ExtensionManager @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val dataCenter: DataCenter,
+    private val extensionLoader: ExtensionLoader,
+    private val api: ExtensionGithubApi
 ) {
-
-    /**
-     * API where all the available extensions can be found.
-     */
-    private val api = ExtensionGithubApi()
 
     /**
      * The installer which installs, updates and uninstalls the extensions.
@@ -122,14 +118,14 @@ class ExtensionManager(
     fun init(sourceManager: SourceManager) {
         this.sourceManager = sourceManager
         initExtensions()
-        ExtensionInstallReceiver(InstallationListener()).register(context)
+        ExtensionInstallReceiver(InstallationListener(), extensionLoader).register(context)
     }
 
     /**
      * Loads and registers the installed extensions.
      */
     private fun initExtensions() {
-        val extensions = ExtensionLoader.loadExtensions(context)
+        val extensions = extensionLoader.loadExtensions(context)
 
         installedExtensions = extensions
             .filterIsInstance<LoadResult.Success>()
@@ -249,7 +245,7 @@ class ExtensionManager(
         val untrustedSignatures = untrustedExtensions.map { it.signatureHash }.toSet()
         if (signature !in untrustedSignatures) return
 
-        ExtensionLoader.trustedSignatures += signature
+        extensionLoader.trustedSignatures += signature
         dataCenter.trustedSignatures = (dataCenter.trustedSignatures + signature) as MutableSet<String>
 
         val nowTrustedExtensions = untrustedExtensions.filter { it.signatureHash == signature }
@@ -259,7 +255,7 @@ class ExtensionManager(
         launchNow {
             nowTrustedExtensions
                 .map { extension ->
-                    async { ExtensionLoader.loadExtensionFromPkgName(ctx, extension.pkgName) }
+                    async { extensionLoader.loadExtensionFromPkgName(ctx, extension.pkgName) }
                 }
                 .map { it.await() }
                 .forEach { result ->

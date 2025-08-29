@@ -15,35 +15,44 @@ import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.lang.Hash
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
-import uy.kohesive.injekt.injectLazy
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Class that handles the loading of the extensions installed in the system.
  */
 @SuppressLint("PackageManagerGetSignatures")
-internal object ExtensionLoader {
+@Singleton
+class ExtensionLoader @Inject constructor(
+    private val dataCenter: DataCenter
+) {
 
-    private val dataCenter: DataCenter by injectLazy()
     private val loadNsfwSource by lazy {
         dataCenter.showNSFWSource
     }
 
-    private const val EXTENSION_FEATURE = "novellibrary.extension"
-    private const val METADATA_SOURCE_CLASS = "novellibrary.extension.class"
-    private const val METADATA_SOURCE_FACTORY = "novellibrary.extension.factory"
-    private const val METADATA_NSFW = "novellibrary.extension.nsfw"
-    const val LIB_VERSION_MIN = 1.0
-    const val LIB_VERSION_MAX = 1.0
+    companion object {
+        private const val EXTENSION_FEATURE = "novellibrary.extension"
+        private const val METADATA_SOURCE_CLASS = "novellibrary.extension.class"
+        private const val METADATA_SOURCE_FACTORY = "novellibrary.extension.factory"
+        private const val METADATA_NSFW = "novellibrary.extension.nsfw"
+        const val LIB_VERSION_MIN = 1.0
+        const val LIB_VERSION_MAX = 1.0
 
-    private const val PACKAGE_FLAGS = PackageManager.GET_CONFIGURATIONS or PackageManager.GET_SIGNATURES
+        private const val PACKAGE_FLAGS = PackageManager.GET_CONFIGURATIONS or PackageManager.GET_SIGNATURES
 
-    // novellibrary's key
-    private const val officialSignature = "e8db103a37baf2d3eb38cdd72403ef55d910305f8e0f11be2890945a83a9f837"
+        // novellibrary's key
+        private const val officialSignature = "e8db103a37baf2d3eb38cdd72403ef55d910305f8e0f11be2890945a83a9f837"
+    }
 
     /**
      * List of the trusted signatures.
      */
-    var trustedSignatures = mutableSetOf<String>() + dataCenter.trustedSignatures + officialSignature
+    var trustedSignatures = mutableSetOf<String>()
+        get() = field.takeIf { it.isNotEmpty() } ?: run {
+            field = (mutableSetOf<String>() + dataCenter.trustedSignatures + officialSignature).toMutableSet()
+            field
+        }
 
     /**
      * Return a list of all the installed extensions initialized concurrently.

@@ -22,6 +22,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import javax.inject.Inject
 import io.github.gmathi.novellibrary.activity.ReaderDBPagerActivity
@@ -122,6 +123,9 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
     
     @Inject
     lateinit var networkHelper: NetworkHelper
+    
+    @Inject
+    lateinit var webPageDocumentFetcher: WebPageDocumentFetcher
 
     @SuppressLint("RestrictedApi")
     override fun onCreate() {
@@ -192,7 +196,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
 
         }
 
-        player = TTSPlayer(this, mediaSession, stateBuilder, dataCenter, dbHelper, sourceManager, networkHelper)
+        player = TTSPlayer(this, mediaSession, stateBuilder, dataCenter, dbHelper, sourceManager, networkHelper, webPageDocumentFetcher)
 
         // androidx `MediaButtonReceiver.buildMediaButtonPendingIntent` uses 0 flags, and that crashes on Api 31+
         // So we have to do it manually
@@ -297,7 +301,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
     private fun actionStartup(extras: Bundle) {
         Log.d(TAG,"Booting up!")
         if (player.isDisposed) {
-            player = TTSPlayer(this, mediaSession, stateBuilder, dataCenter, dbHelper, sourceManager, networkHelper)
+            player = TTSPlayer(this, mediaSession, stateBuilder, dataCenter, dbHelper, sourceManager, networkHelper, webPageDocumentFetcher)
         }
         val startupText = player.setBundle(extras)
         initialized = true
@@ -406,7 +410,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
             if (hookSystem()) {
                 if (player.isDisposed) {
                     val old = player
-                    player = TTSPlayer(this@TTSService, mediaSession, stateBuilder, dataCenter, dbHelper, sourceManager, networkHelper)
+                    player = TTSPlayer(this@TTSService, mediaSession, stateBuilder, dataCenter, dbHelper, sourceManager, networkHelper, webPageDocumentFetcher)
                     player.setFrom(old)
                 }
                 player.start()

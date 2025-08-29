@@ -108,8 +108,18 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
             }
 
             try {
+                Logs.debug(TAG, "Searching novels with sourceId: $sourceId, searchTerm: $searchTerm")
+                
+                // Debug: Log available sources
+                val availableSources = sourceManager.getOnlineSources()
+                Logs.debug(TAG, "Available online sources: ${availableSources.map { "${it.name} (id: ${it.id})" }}")
+                
                 val source = sourceManager.get(sourceId) as? CatalogueSource ?: throw Exception("$MISSING_SOURCE_ID: $sourceId")
+                Logs.debug(TAG, "Found source: ${source.name} for sourceId: $sourceId")
+                
                 val novelsPage = withContext(Dispatchers.IO) { source.getSearchNovels(currentPageNumber, searchTerm) }
+                Logs.debug(TAG, "Search completed. Found ${novelsPage.novels.size} novels")
+                
                 if (isFragmentActive()) {
                     loadSearchResults(novelsPage)
                     isPageLoading.lazySet(false)
@@ -117,6 +127,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
 
             } catch (e: Exception) {
+                Logs.error(TAG, "Search failed for sourceId: $sourceId, searchTerm: $searchTerm", e)
                 if (isFragmentActive()) {
                     binding.progressLayout.showError(errorText = getString(R.string.connection_error), buttonText = getString(R.string.try_again)) {
                         binding.progressLayout.showLoading()

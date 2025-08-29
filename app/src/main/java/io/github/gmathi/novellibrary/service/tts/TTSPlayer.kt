@@ -59,7 +59,8 @@ class TTSPlayer(private val context: Context,
                 override var dataCenter: DataCenter,
                 override var dbHelper: DBHelper,
                 override var sourceManager: SourceManager,
-                override var networkHelper: NetworkHelper) : DataAccessor, TTSWrapper.TTSWrapperCallback {
+                override var networkHelper: NetworkHelper,
+                private val webPageDocumentFetcher: WebPageDocumentFetcher) : DataAccessor, TTSWrapper.TTSWrapperCallback {
 
     companion object {
 
@@ -794,14 +795,14 @@ class TTSPlayer(private val context: Context,
     }
 
     private fun getWebPageDocument(url: String): Document {
-        return WebPageDocumentFetcher.document(url)
+        return webPageDocumentFetcher.document(url)
     }
 
     private fun cleanDocumentText(doc: Document, index: Int): TTSCleanDocument {
-        val htmlHelper = HtmlCleaner.getInstance(doc)
+        val htmlHelper = HtmlCleaner.getInstance(doc, doc.location(), dataCenter)
         htmlHelper.removeJS(doc)
         htmlHelper.additionalProcessing(doc)
-        return TTSCleanDocument(doc.getFormattedText(), htmlHelper.getLinkedChapters(doc), doc.title(), index)
+        return TTSCleanDocument(doc.getFormattedText(dataCenter), htmlHelper.getLinkedChapters(doc), doc.title(), index)
     }
 
     //#endregion

@@ -170,7 +170,7 @@ class ImportLibraryActivity : BaseActivity(), GenericAdapter.Listener<ImportList
         val adminUrl = "https://www.novelupdates.com/wp-admin/admin-ajax.php"
         val formBody: RequestBody = FormBody.Builder().add("action", "nu_prevew").add("pagenum", "0").add("intUserID", userId).add("isMobile", "yes").build()
         val request = POST(adminUrl, body = formBody)
-        return client.newCall(request).safeExecute().body?.string()
+        return client.newCall(request).safeExecute(dataCenter).body?.string()
     }
 
     private fun getUserIdFromUrl(urlString: String): String {

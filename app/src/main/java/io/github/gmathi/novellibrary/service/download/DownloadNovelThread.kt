@@ -8,6 +8,7 @@ import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
 import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import java.util.concurrent.Executors
@@ -19,8 +20,10 @@ class DownloadNovelThread(
     val context: Context,
     val novelId: Long,
     val dbHelper: DBHelper,
-    private val downloadListener: DownloadListener
-
+    private val downloadListener: DownloadListener,
+    private val networkHelper: NetworkHelper,
+    private val webPageDocumentFetcher: WebPageDocumentFetcher,
+    private val dataCenter: io.github.gmathi.novellibrary.model.preference.DataCenter
 ) : Thread(), DownloadListener {
 
     private var threadPool: ThreadPoolExecutor? = null
@@ -36,10 +39,10 @@ class DownloadNovelThread(
 
             while (download != null && !interrupted()) {
 
-                if (!NetworkHelper(context).isConnectedToNetwork())
+                if (!networkHelper.isConnectedToNetwork())
                     throw InterruptedException(Constants.NO_NETWORK)
 
-                threadPool?.submit(DownloadWebPageThread(context, download, dbHelper, this@DownloadNovelThread))?.get()
+                threadPool?.submit(DownloadWebPageThread(context, download, dbHelper, this@DownloadNovelThread, networkHelper, webPageDocumentFetcher, dataCenter))?.get()
 
                 //Check if thread was shutdown
                 if (interrupted()) {

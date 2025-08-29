@@ -14,13 +14,16 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import uy.kohesive.injekt.injectLazy
 import java.util.Date
+import javax.inject.Inject
+import javax.inject.Singleton
 
-internal class ExtensionGithubApi {
-
-    private val networkService: NetworkHelper by injectLazy()
-    private val dataCenter: DataCenter by injectLazy()
+@Singleton
+class ExtensionGithubApi @Inject constructor(
+    private val networkService: NetworkHelper,
+    private val dataCenter: DataCenter,
+    private val extensionLoader: ExtensionLoader
+) {
 
     suspend fun findExtensions(): List<Extension.Available> {
         return withIOContext {
@@ -36,7 +39,7 @@ internal class ExtensionGithubApi {
         val extensions = findExtensions()
         dataCenter.lastExtCheck = Date().time
 
-        val installedExtensions = ExtensionLoader.loadExtensions(context)
+        val installedExtensions = extensionLoader.loadExtensions(context)
             .filterIsInstance<LoadResult.Success>()
             .map { it.extension }
 

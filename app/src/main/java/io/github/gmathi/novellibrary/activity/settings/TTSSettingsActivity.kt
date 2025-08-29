@@ -309,7 +309,7 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
                         .url(source.url + "?timestamp=" + System.currentTimeMillis())
                         .get()
                         .build()
-                    val response = networkHelper.client.newCall(request).safeExecute()
+                    val response = networkHelper.client.newCall(request).safeExecute(dataCenter)
                     response.body?.string()?.let {
                         cache[source.id] = Gson().fromJson(it)
                     }

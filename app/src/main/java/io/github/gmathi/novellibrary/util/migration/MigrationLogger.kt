@@ -99,4 +99,60 @@ class MigrationLogger @Inject constructor() {
         Logs.info(TAG, "  Total Duration: ${durationMs}ms")
         Logs.info(TAG, SEPARATOR)
     }
+    
+    /**
+     * Log dependency injection source (Hilt vs Injekt)
+     */
+    fun logDependencySource(dependency: String, source: String) {
+        Logs.debug(TAG, "Dependency $dependency resolved from $source")
+    }
+    
+    /**
+     * Log fallback to Hilt when Injekt fails
+     */
+    fun logFallbackToHilt(dependency: String, error: Exception) {
+        Logs.warning(TAG, "Falling back to Hilt for $dependency due to Injekt failure: ${error.message}")
+    }
+    
+    /**
+     * Log feature flag changes
+     */
+    fun logFlagChange(flag: String, enabled: Boolean) {
+        Logs.info(TAG, "Feature flag changed: $flag = $enabled")
+    }
+    
+    /**
+     * Log global migration state changes
+     */
+    fun logGlobalMigrationChange(enabled: Boolean) {
+        Logs.info(TAG, "Global migration ${if (enabled) "enabled" else "disabled"}")
+    }
+    
+    /**
+     * Log rollback mode changes
+     */
+    fun logRollbackModeChange(enabled: Boolean) {
+        Logs.warning(TAG, "Rollback mode ${if (enabled) "ACTIVATED" else "deactivated"}")
+    }
+    
+    /**
+     * Log when flags are reset to defaults
+     */
+    fun logFlagsReset() {
+        Logs.info(TAG, "All feature flags reset to default values")
+    }
+    
+    /**
+     * Log progressive rollout activation
+     */
+    fun logProgressiveRollout() {
+        Logs.info(TAG, "Progressive rollout activated - all Hilt components enabled")
+    }
+    
+    /**
+     * Log emergency rollback
+     */
+    fun logEmergencyRollback() {
+        Logs.error(TAG, "EMERGENCY ROLLBACK ACTIVATED - All components reverted to Injekt")
+    }
 }

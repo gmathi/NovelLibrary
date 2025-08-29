@@ -22,7 +22,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.test.assertEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -48,9 +49,9 @@ class ExampleViewModelTest {
     private lateinit var mockFirebaseAnalytics: FirebaseAnalytics
 
     private val testNovels = listOf(
-        Novel(id = 1L, name = "Test Novel 1", url = "https://test1.com"),
-        Novel(id = 2L, name = "Test Novel 2", url = "https://test2.com"),
-        Novel(id = 3L, name = "Another Novel", url = "https://test3.com")
+        Novel("Test Novel 1", "https://test1.com", 1L),
+        Novel("Test Novel 2", "https://test2.com", 2L),
+        Novel("Another Novel", "https://test3.com", 3L)
     )
 
     @Before
@@ -66,10 +67,7 @@ class ExampleViewModelTest {
         // Setup default mock behaviors
         every { mockNetworkHelper.isConnectedToNetwork() } returns true
         every { mockDbHelper.getAllNovels() } returns testNovels
-        every { mockDataCenter.appTheme } returns "dark"
         every { mockDataCenter.language } returns "en"
-        every { mockDataCenter.enableAutoBackup } returns true
-        every { mockDataCenter.enableSync } returns false
 
         viewModel = ExampleViewModel(
             savedStateHandle,

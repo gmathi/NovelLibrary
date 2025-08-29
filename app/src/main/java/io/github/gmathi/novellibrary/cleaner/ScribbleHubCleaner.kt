@@ -1,9 +1,10 @@
 package io.github.gmathi.novellibrary.cleaner
 
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import org.jsoup.nodes.Document
 
 
-class ScribbleHubCleaner : HtmlCleaner() {
+class ScribbleHubCleaner(dataCenter: DataCenter) : HtmlCleaner(dataCenter) {
 
 
     override fun additionalProcessing(doc: Document) {

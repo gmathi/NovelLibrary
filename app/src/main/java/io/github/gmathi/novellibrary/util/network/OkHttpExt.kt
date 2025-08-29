@@ -4,13 +4,12 @@ import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import okhttp3.Call
 import okhttp3.Response
-import uy.kohesive.injekt.injectLazy
+
 import java.io.IOException
 import java.util.regex.Pattern
 import javax.net.ssl.SSLPeerUnverifiedException
 
-fun Call.safeExecute(): Response {
-    val dataCenter: DataCenter by injectLazy()
+fun Call.safeExecute(dataCenter: DataCenter): Response {
     try {
         return execute()
     } catch (e: SSLPeerUnverifiedException) {

@@ -29,6 +29,8 @@ import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Constants
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.getLinkedPagesCompat
@@ -45,7 +47,11 @@ import org.jsoup.nodes.Document
 import java.io.File
 
 
+@AndroidEntryPoint
 class WebPageDBFragment : BaseFragment() {
+
+    @Inject
+    lateinit var webPageDocumentFetcher: WebPageDocumentFetcher
 
     private lateinit var webPage: WebPage
     private lateinit var webPageSettings: WebPageSettings
@@ -319,12 +325,12 @@ class WebPageDBFragment : BaseFragment() {
         job = lifecycleScope.launch download@{
             try {
 
-                doc = withContext(Dispatchers.IO) { WebPageDocumentFetcher.document(url) }
+                doc = withContext(Dispatchers.IO) { webPageDocumentFetcher.document(url) }
 
                 if (doc != null) {
 
                     if (doc!!.location().contains("rssbook") && doc!!.location().contains(HostNames.QIDIAN)) {
-                        doc = withContext(Dispatchers.IO) { WebPageDocumentFetcher.document(doc!!.location().replace("rssbook", "book")) }
+                        doc = withContext(Dispatchers.IO) { webPageDocumentFetcher.document(doc!!.location().replace("rssbook", "book")) }
                     }
 //                    if (doc!!.location().contains("/nu/") && doc!!.location().contains(HostNames.FLYING_LINES)) {
 //                        doc = withContext(Dispatchers.IO) { NovelApi.getDocumentWithUserAgent(doc!!.location().replace("/nu/", "/chapter/")) }
@@ -355,7 +361,7 @@ class WebPageDBFragment : BaseFragment() {
 
                 // Process the document and load it onto the webView
                 doc?.let { doc ->
-                    val htmlHelper = HtmlCleaner.getInstance(doc)
+                    val htmlHelper = HtmlCleaner.getInstance(doc, doc.location(), dataCenter)
                     htmlHelper.removeJS(doc)
                     htmlHelper.additionalProcessing(doc)
                     htmlHelper.setProperHrefUrls(doc)
@@ -367,8 +373,8 @@ class WebPageDBFragment : BaseFragment() {
                         htmlHelper.getLinkedChapters(doc).forEach { linkedUrl ->
                             if (alreadyDownloadedLinks.contains(linkedUrl.href)) return@forEach
                             try {
-                                val otherDoc = withContext(Dispatchers.IO) { WebPageDocumentFetcher.document(linkedUrl.href) }
-                                val helper = HtmlCleaner.getInstance(otherDoc)
+                                val otherDoc = withContext(Dispatchers.IO) { webPageDocumentFetcher.document(linkedUrl.href) }
+                                val helper = HtmlCleaner.getInstance(otherDoc, otherDoc.location(), dataCenter)
                                 helper.removeJS(otherDoc)
                                 helper.additionalProcessing(otherDoc)
                                 helper.setProperHrefUrls(otherDoc)
@@ -423,7 +429,7 @@ class WebPageDBFragment : BaseFragment() {
         try {
             binding.progressLayout.showLoading()
             binding.readerWebView.settings.javaScriptEnabled = true
-            val htmlHelper = HtmlCleaner.getInstance(doc)
+            val htmlHelper = HtmlCleaner.getInstance(doc, doc.location(), dataCenter)
             htmlHelper.removeJS(doc)
             htmlHelper.additionalProcessing(doc)
             htmlHelper.setProperHrefUrls(doc)
@@ -442,7 +448,7 @@ class WebPageDBFragment : BaseFragment() {
                         if (url == null) url = internalFilePath
                         val otherDoc = Jsoup.parse(input, "UTF-8", url)
                         if (otherDoc != null) {
-                            val helper = HtmlCleaner.getInstance(otherDoc)
+                            val helper = HtmlCleaner.getInstance(otherDoc, otherDoc.location(), dataCenter)
                             helper.removeJS(otherDoc)
                             helper.additionalProcessing(otherDoc)
                             doc.body().append(otherDoc.body().html())
@@ -463,7 +469,7 @@ class WebPageDBFragment : BaseFragment() {
 
     private fun applyTheme() {
         doc?.let {
-            HtmlCleaner.getInstance(it).toggleTheme(dataCenter.isDarkTheme, it)
+            HtmlCleaner.getInstance(it, it.location(), dataCenter).toggleTheme(dataCenter.isDarkTheme, it)
             loadCreatedDocument()
         }
     }

@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.github.gmathi.novellibrary.extension.ExtensionManager
+import io.github.gmathi.novellibrary.extension.util.ExtensionLoader
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import javax.inject.Singleton
@@ -17,8 +18,13 @@ object SourceModule {
 
     @Provides
     @Singleton
-    fun provideExtensionManager(@ApplicationContext context: Context, dataCenter: DataCenter): ExtensionManager {
-        return ExtensionManager(context, dataCenter)
+    fun provideExtensionManager(
+        @ApplicationContext context: Context,
+        dataCenter: DataCenter,
+        extensionLoader: ExtensionLoader,
+        api: io.github.gmathi.novellibrary.extension.api.ExtensionGithubApi
+    ): ExtensionManager {
+        return ExtensionManager(context, dataCenter, extensionLoader, api)
     }
 
     @Provides

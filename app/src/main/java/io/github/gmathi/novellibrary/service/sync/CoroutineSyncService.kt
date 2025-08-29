@@ -23,7 +23,8 @@ import kotlinx.coroutines.sync.withPermit
  */
 class CoroutineSyncService(
     private val context: Context,
-    private val dbHelper: DBHelper
+    private val dbHelper: DBHelper,
+    private val networkHelper: NetworkHelper
 ) {
     
     private val serviceDatabaseManager = ServiceDatabaseManager(dbHelper)
@@ -38,7 +39,7 @@ class CoroutineSyncService(
      * Perform background novel sync with structured concurrency
      */
     suspend fun performBackgroundSync(): SyncResult = withContext(Dispatchers.IO) {
-        if (!NetworkHelper(context).isConnectedToNetwork()) {
+        if (!networkHelper.isConnectedToNetwork()) {
             return@withContext SyncResult.NetworkError
         }
 

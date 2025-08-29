@@ -30,7 +30,6 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.parser.Tag
 import org.jsoup.select.Elements
-import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.io.FileOutputStream
 import java.math.BigDecimal
@@ -39,7 +38,7 @@ import java.net.SocketException
 import kotlin.math.ceil
 
 
-open class HtmlCleaner protected constructor() {
+open class HtmlCleaner protected constructor(protected val dataCenter: DataCenter) {
 
     companion object {
         // Usual text used for links leading to actual chapter text
@@ -419,21 +418,21 @@ open class HtmlCleaner protected constructor() {
 
         private const val TAG = "HtmlHelper"
 
-        fun getInstance(doc: Document, url: String = doc.location()): HtmlCleaner {
+        fun getInstance(doc: Document, url: String = doc.location(), dataCenter: DataCenter): HtmlCleaner {
             when {
-                url.contains(HostNames.WATTPAD) -> return WattPadCleaner()
-                url.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldCleaner()
-                url.contains(HostNames.QIDIAN) -> return QidianCleaner()
-                url.contains(HostNames.GOOGLE_DOCS) -> return GoogleDocsCleaner()
-                url.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsCleaner()
-                url.contains(HostNames.BAKA_TSUKI) -> return BakaTsukiCleaner()
-                url.contains(HostNames.SCRIBBLE_HUB) -> return ScribbleHubCleaner()
-                url.contains(HostNames.NEOVEL) -> return NeovelCleaner()
-                url.contains(HostNames.CHRYSANTHEMUMGARDEN) -> return ChrysanthemumgardenCleaner()
+                url.contains(HostNames.WATTPAD) -> return WattPadCleaner(dataCenter)
+                url.contains(HostNames.WUXIA_WORLD) -> return WuxiaWorldCleaner(dataCenter)
+                url.contains(HostNames.QIDIAN) -> return QidianCleaner(dataCenter)
+                url.contains(HostNames.GOOGLE_DOCS) -> return GoogleDocsCleaner(dataCenter)
+                url.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> return BlueSilverTranslationsCleaner(dataCenter)
+                url.contains(HostNames.BAKA_TSUKI) -> return BakaTsukiCleaner(dataCenter)
+                url.contains(HostNames.SCRIBBLE_HUB) -> return ScribbleHubCleaner(dataCenter)
+                url.contains(HostNames.NEOVEL) -> return NeovelCleaner(dataCenter)
+                url.contains(HostNames.CHRYSANTHEMUMGARDEN) -> return ChrysanthemumgardenCleaner(dataCenter)
             }
 
             val body = doc.body()
-            val lookup = getSelectorQueries().firstOrNull {
+            val lookup = getSelectorQueries(dataCenter).firstOrNull {
                 if ((it.host == null || url.contains(it.host)) && body.select(it.selector).isNotEmpty()) {
                     // Check non-optional subqueries to ensure we match the correct website.
                     // TODO: Optimise with running all queries at once and storing them, instead of rerunning them a second time inside cleaner
@@ -445,17 +444,16 @@ open class HtmlCleaner protected constructor() {
                     }
                 } else false
             }
-            if (lookup != null) return GenericSelectorQueryCleaner(url, lookup)
+            if (lookup != null) return GenericSelectorQueryCleaner(url, lookup, dataCenter)
 
             //Lastly let's check for cloud flare
             val contentElement = doc.body().getElementsByTag("a").firstOrNull { it.attr("href").contains("https://www.cloudflare.com/") && it.text().contains("DDoS protection by Cloudflare") }
-            if (contentElement != null) return CloudFlareDDoSTagCleaner()
+            if (contentElement != null) return CloudFlareDDoSTagCleaner(dataCenter)
 
-            return HtmlCleaner()
+            return HtmlCleaner(dataCenter)
         }
 
-        private fun getSelectorQueries(): List<SelectorQuery> {
-            val dataCenter: DataCenter by injectLazy()
+        private fun getSelectorQueries(dataCenter: DataCenter): List<SelectorQuery> {
             val htmlCleanerSelectorQueries = dataCenter.htmlCleanerSelectorQueries
             htmlCleanerSelectorQueries.addAll(defaultSelectorQueries)
 
@@ -467,7 +465,6 @@ open class HtmlCleaner protected constructor() {
         }
     }
 
-    val dataCenter: DataCenter by injectLazy()
     open var keepContentStyle = false
     open var keepContentIds = true
     open var keepContentClasses = false

@@ -23,13 +23,18 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import uy.kohesive.injekt.injectLazy
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class NetworkHelper(private val context: Context) {
-
-    private val dataCenter: DataCenter by injectLazy()
+@Singleton
+class NetworkHelper @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val dataCenter: DataCenter,
+    private val timeoutConfig: NetworkTimeoutConfig
+) {
     private val cacheDir = File(context.cacheDir, "network_cache")
     private val cacheSize = 5L * 1024 * 1024 // 5 MiB
 
@@ -39,10 +44,10 @@ class NetworkHelper(private val context: Context) {
         get() {
             val builder = OkHttpClient.Builder()
                 .cookieJar(cookieManager)
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .callTimeout(60, TimeUnit.SECONDS) // Overall timeout for coroutine operations
+                .connectTimeout(timeoutConfig.getConnectTimeout(), TimeUnit.SECONDS)
+                .readTimeout(timeoutConfig.getReadTimeout(), TimeUnit.SECONDS)
+                .writeTimeout(timeoutConfig.getWriteTimeout(), TimeUnit.SECONDS)
+                .callTimeout(timeoutConfig.getCallTimeout(), TimeUnit.SECONDS)
                 .addInterceptor(UserAgentInterceptor())
 
             if (BuildConfig.DEBUG) {

@@ -7,6 +7,7 @@ import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
 import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.service.database.ServiceDatabaseManager
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
@@ -22,7 +23,10 @@ class CoroutineDownloadService(
     private val context: Context,
     private val novelId: Long,
     private val dbHelper: DBHelper,
-    private val downloadListener: DownloadListener
+    private val downloadListener: DownloadListener,
+    private val networkHelper: NetworkHelper,
+    private val webPageDocumentFetcher: WebPageDocumentFetcher,
+    private val dataCenter: io.github.gmathi.novellibrary.model.preference.DataCenter
 ) : DownloadListener {
 
     private val serviceDatabaseManager = ServiceDatabaseManager(dbHelper)
@@ -58,7 +62,7 @@ class CoroutineDownloadService(
         
         while (download != null && serviceScope.isActive) {
             
-            if (!NetworkHelper(context).isConnectedToNetwork()) {
+            if (!networkHelper.isConnectedToNetwork()) {
                 throw CancellationException(Constants.NO_NETWORK)
             }
             
@@ -108,7 +112,7 @@ class CoroutineDownloadService(
         
         // Create and run the web page download thread in a coroutine
         withContext(Dispatchers.IO) {
-            val downloadThread = DownloadWebPageThread(context, download, dbHelper, this@CoroutineDownloadService)
+            val downloadThread = DownloadWebPageThread(context, download, dbHelper, this@CoroutineDownloadService, networkHelper, webPageDocumentFetcher, dataCenter)
             
             // Convert thread execution to coroutine
             val deferred = async(Dispatchers.IO) {

@@ -2,29 +2,21 @@ package io.github.gmathi.novellibrary.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.SavedStateHandle
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import dagger.hilt.android.testing.HiltAndroidRule
-import dagger.hilt.android.testing.HiltAndroidTest
 import io.github.gmathi.novellibrary.model.preference.DataCenter
+import io.github.gmathi.novellibrary.util.BaseHiltTest
+import io.github.gmathi.novellibrary.util.TestConfiguration
 import io.github.gmathi.novellibrary.util.coroutines.CoroutineTestRule
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runTest
 import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import javax.inject.Inject
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 
 @ExperimentalCoroutinesApi
-@HiltAndroidTest
-@RunWith(AndroidJUnit4::class)
-class GoogleBackupViewModelTest {
-
-    @get:Rule
-    val hiltRule = HiltAndroidRule(this)
+class GoogleBackupViewModelTest : BaseHiltTest() {
 
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
@@ -32,29 +24,27 @@ class GoogleBackupViewModelTest {
     @get:Rule
     val coroutineTestRule = CoroutineTestRule()
 
+    @Inject
+    lateinit var dataCenter: DataCenter
+
     private lateinit var viewModel: GoogleBackupViewModel
     private lateinit var savedStateHandle: SavedStateHandle
-    private lateinit var mockDataCenter: DataCenter
 
-    @Before
-    fun setup() {
-        hiltRule.inject()
-        
+    override fun onSetUp() {
         savedStateHandle = SavedStateHandle()
-        mockDataCenter = mockk(relaxed = true)
 
-        // Mock DataCenter properties
-        every { mockDataCenter.gdBackupInterval } returns "Daily"
-        every { mockDataCenter.gdAccountEmail } returns "test@example.com"
-        every { mockDataCenter.gdInternetType } returns "WiFi Only"
-        every { mockDataCenter.lastCloudBackupTimestamp } returns "Never"
+        // Configure mock DataCenter properties
+        every { dataCenter.gdBackupInterval } returns "Daily"
+        every { dataCenter.gdAccountEmail } returns "test@example.com"
+        every { dataCenter.gdInternetType } returns "WiFi Only"
+        every { dataCenter.lastCloudBackupTimestamp } returns "Never"
 
-        viewModel = GoogleBackupViewModel(savedStateHandle, mockDataCenter)
+        viewModel = GoogleBackupViewModel(savedStateHandle, dataCenter)
     }
 
     @After
     fun tearDown() {
-        unmockkAll()
+        clearAllMocks()
     }
 
     @Test
@@ -69,7 +59,7 @@ class GoogleBackupViewModelTest {
     }
 
     @Test
-    fun `getGoogleSettingsData should update LiveData with DataCenter values`() = runTest {
+    fun `getGoogleSettingsData should update LiveData with DataCenter values`() = TestConfiguration.runTestWithDispatcher {
         // When
         viewModel.onResume()
 
@@ -77,6 +67,9 @@ class GoogleBackupViewModelTest {
         assertEquals("Daily", viewModel.backupInterval.value)
         assertEquals("test@example.com", viewModel.googleAccountEmail.value)
         assertEquals("WiFi Only", viewModel.internetType.value)
+        verify { dataCenter.gdBackupInterval }
+        verify { dataCenter.gdAccountEmail }
+        verify { dataCenter.gdInternetType }
     }
 
     @Test

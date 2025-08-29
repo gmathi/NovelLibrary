@@ -3,7 +3,7 @@ package io.github.gmathi.novellibrary.util.system
 import android.content.Context
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.model.preference.DataCenter
-import uy.kohesive.injekt.injectLazy
+
 import java.util.Locale
 
 /**
@@ -12,20 +12,25 @@ import java.util.Locale
 @Suppress("DEPRECATION")
 object LocaleHelper {
 
-    private val dataCenter: DataCenter by injectLazy()
-
     private var systemLocale: Locale? = null
 
     /**
      * The application's locale. When it's null, the system locale is used.
      */
-    private var appLocale = getLocaleFromString(dataCenter.language)
+    private var appLocale: Locale? = null
 
     /**
      * The currently applied locale. Used to avoid losing the selected language after a non locale
      * configuration change to the application.
      */
     private var currentLocale: Locale? = null
+
+    /**
+     * Initialize the locale helper with DataCenter
+     */
+    fun initialize(dataCenter: DataCenter) {
+        appLocale = getLocaleFromString(dataCenter.language)
+    }
 
     /**
      * Returns the locale for the value stored in preferences, or null if it's system language.

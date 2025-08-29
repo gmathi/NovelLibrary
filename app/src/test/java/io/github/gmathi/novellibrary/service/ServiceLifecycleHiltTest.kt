@@ -10,7 +10,7 @@ import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
-import io.github.gmathi.novellibrary.source.SourceManager
+import io.github.gmathi.novellibrary.model.source.SourceManager
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

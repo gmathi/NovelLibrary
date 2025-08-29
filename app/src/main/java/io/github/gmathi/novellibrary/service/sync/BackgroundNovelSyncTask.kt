@@ -24,6 +24,8 @@ import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.di.WorkerEntryPoint
+import dagger.hilt.android.EntryPointAccessors
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Utils
@@ -34,13 +36,15 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        val dbHelper = DBHelper.getInstance(context)
+        val entryPoint = EntryPointAccessors.fromApplication(context, WorkerEntryPoint::class.java)
+        val dbHelper = entryPoint.dbHelper()
+        val networkHelper = entryPoint.networkHelper()
 
         // Enable the below line only in debug mode for triggering breakpoints
         // android.os.Debug.waitForDebugger()
 
         try {
-            if (NetworkHelper(context).isConnectedToNetwork()) {
+            if (networkHelper.isConnectedToNetwork()) {
                 startNovelsSync(dbHelper)
             }
         } catch (e: Exception) {

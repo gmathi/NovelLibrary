@@ -1,9 +1,10 @@
 package io.github.gmathi.novellibrary.cleaner
 
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
-class GoogleDocsCleaner : HtmlCleaner() {
+class GoogleDocsCleaner(dataCenter: DataCenter) : HtmlCleaner(dataCenter) {
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc)

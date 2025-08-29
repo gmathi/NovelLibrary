@@ -1,10 +1,11 @@
 package io.github.gmathi.novellibrary.cleaner
 
 import io.github.gmathi.novellibrary.model.other.LinkedPage
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
-class BakaTsukiCleaner : HtmlCleaner() {
+class BakaTsukiCleaner(dataCenter: DataCenter) : HtmlCleaner(dataCenter) {
 
     override fun additionalProcessing(doc: Document) {
         removeCSS(doc)

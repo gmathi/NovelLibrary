@@ -1,10 +1,11 @@
 package io.github.gmathi.novellibrary.cleaner
 
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import org.jsoup.nodes.Document
 import java.util.regex.Pattern
 
 
-class QidianCleaner : HtmlCleaner() {
+class QidianCleaner(dataCenter: DataCenter) : HtmlCleaner(dataCenter) {
 
     //This value is set in `removeJS()` which gets called in `WebPageDBFragment.kt : Line 354`
     private var continueReadingUrl: String? = null

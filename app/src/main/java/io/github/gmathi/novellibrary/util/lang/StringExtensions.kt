@@ -5,7 +5,7 @@ import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.model.LazyHeaders
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.model.preference.DataCenter
-import uy.kohesive.injekt.injectLazy
+
 import java.net.URL
 import kotlin.math.floor
 
@@ -57,8 +57,7 @@ fun String.takeBytes(n: Int): String {
 }
 
 
-fun String.addToNovelSearchHistory() {
-    val dataCenter: DataCenter by injectLazy()
+fun String.addToNovelSearchHistory(dataCenter: DataCenter) {
     val list = dataCenter.loadNovelSearchHistory()
     if (!list.contains(this)) {
         list.add(0, this)
@@ -66,8 +65,7 @@ fun String.addToNovelSearchHistory() {
     }
 }
 
-fun String.addToLibrarySearchHistory() {
-    val dataCenter: DataCenter by injectLazy()
+fun String.addToLibrarySearchHistory(dataCenter: DataCenter) {
     val list = dataCenter.loadLibrarySearchHistory()
     if (!list.contains(this)) {
         list.add(0, this)
@@ -94,7 +92,6 @@ fun String.writableOldFileName(): String {
 }
 
 fun String.getGlideUrl(): GlideUrl {
-    val dataCenter: DataCenter by injectLazy()
     var hostName = ""
     try {
         val url = URL(this)

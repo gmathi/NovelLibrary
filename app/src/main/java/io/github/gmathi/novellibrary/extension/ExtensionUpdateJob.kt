@@ -21,8 +21,11 @@ class ExtensionUpdateJob(private val context: Context, workerParams: WorkerParam
     CoroutineWorker(context, workerParams) {
 
     override suspend fun doWork(): Result = coroutineScope {
+        val entryPoint = EntryPointAccessors.fromApplication(applicationContext, WorkerEntryPoint::class.java)
+        val extensionGithubApi = entryPoint.extensionGithubApi()
+        
         val pendingUpdates = try {
-            ExtensionGithubApi().checkForUpdates(context)
+            extensionGithubApi.checkForUpdates(context)
         } catch (e: Exception) {
             return@coroutineScope Result.failure()
         }
