@@ -18,7 +18,6 @@ import io.github.gmathi.novellibrary.databinding.FragmentSearchBinding
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.source.getPreferenceKey
 import io.github.gmathi.novellibrary.util.FAC
-import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.lang.addToNovelSearchHistory
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
 import io.github.gmathi.novellibrary.util.view.SimpleAnimationListener
@@ -160,15 +159,10 @@ class SearchFragment : BaseFragment() {
         this.searchTerm = searchTerm
 
         val allOnlineSources = sourceManager.getOnlineSources()
-        Logs.debug("SearchFragment", "All online sources: ${allOnlineSources.map { "${it.name} (id: ${it.id})" }}")
         
         val sources = allOnlineSources.filter {
-            val isEnabled = dataCenter.isSourceEnabled(it.getPreferenceKey())
-            Logs.debug("SearchFragment", "Source ${it.name} (${it.getPreferenceKey()}) enabled: $isEnabled")
-            isEnabled
+            dataCenter.isSourceEnabled(it.getPreferenceKey())
         }
-        
-        Logs.debug("SearchFragment", "Enabled sources for search: ${sources.map { "${it.name} (id: ${it.id})" }}")
 
         val sourceNames = sources.map { it.name }
 
