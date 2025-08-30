@@ -6,9 +6,19 @@ import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.source.*
+import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.model.preference.DataCenter
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
 
-open class SourceManager(private val context: Context) {
+@Singleton
+open class SourceManager @Inject constructor(
+    @ApplicationContext
+    private val context: Context,
+    private val novelUpdatesSource: NovelUpdatesSource
+) {
 
     private val sourcesMap = mutableMapOf<Long, Source>()
 
@@ -46,8 +56,7 @@ open class SourceManager(private val context: Context) {
     }
 
     private fun createInternalSources(): List<Source> = listOf(
-        NovelUpdatesSource(),
-        WLNUpdatesSource()
+        novelUpdatesSource
     )
 
     private inner class StubSource(override val id: Long) : Source {

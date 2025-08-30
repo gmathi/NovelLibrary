@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.bumptech.glide.Glide
+import dagger.hilt.android.AndroidEntryPoint
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ContentRecyclerViewBinding
@@ -28,8 +29,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import androidx.lifecycle.lifecycleScope
 
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+
 import java.util.*
 import javax.inject.Inject
 import kotlin.collections.ArrayList
@@ -37,6 +37,7 @@ import kotlin.collections.ArrayList
 private typealias ExtensionTuple =
         Triple<List<Extension.Installed>, List<Extension.Untrusted>, List<Extension.Available>>
 
+@AndroidEntryPoint
 class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem> {
 
     companion object {
@@ -45,7 +46,8 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
 
     @Inject lateinit var extensionManager: ExtensionManager
 
-    private lateinit var binding: ContentRecyclerViewBinding
+    private var _binding: ContentRecyclerViewBinding? = null
+    private val binding get() = _binding!!
     private lateinit var adapter: GenericAdapter<ExtensionItem>
 
     private var extensions = emptyList<ExtensionItem>()
@@ -58,13 +60,12 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.content_recycler_view, container, false)
-        binding = ContentRecyclerViewBinding.bind(view)
-        return view
+        _binding = ContentRecyclerViewBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         setRecyclerView()
         extensionManager.findAvailableExtensions()
         bindToExtensionsFlow()
@@ -128,7 +129,7 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
                         if (!extension.hasUpdate) {
                             extensionManager.uninstallExtension(extension.pkgName)
                         } else {
-                            lifecycleScope.launch {
+                            viewLifecycleOwner.lifecycleScope.launch {
                                 val updateFlow = extensionManager.updateExtension(extension)
                                 updateFlow?.let { collectInstallUpdates(it, extension) }
                             }
@@ -189,6 +190,7 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
     override fun onDestroyView() {
         super.onDestroyView()
         extensionsJob?.cancel()
+        _binding = null
     }
 
 
@@ -196,7 +198,7 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
     @OptIn(FlowPreview::class)
     private fun bindToExtensionsFlow() {
         extensionsJob?.cancel()
-        extensionsJob = lifecycleScope.launch {
+        extensionsJob = viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val installedFlow = extensionManager.installedExtensionsFlow
                 val untrustedFlow = extensionManager.untrustedExtensionsFlow
@@ -211,25 +213,29 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
                     .flowOn(Dispatchers.Default)
                     .collect { extensionItems ->
                         extensions = extensionItems
-                        if (extensions.isEmpty()) {
-                            binding.progressLayout.showEmpty(emptyText = getString(R.string.empty_extensions))
-                        } else {
-                            binding.progressLayout.showContent()
-                            adapter.updateData(ArrayList(extensions))
+                        _binding?.let { binding ->
+                            if (extensions.isEmpty()) {
+                                binding.progressLayout.showEmpty(emptyText = getString(R.string.empty_extensions))
+                            } else {
+                                binding.progressLayout.showContent()
+                                adapter.updateData(ArrayList(extensions))
+                            }
+                            binding.swipeRefreshLayout.isRefreshing = false
                         }
-                        binding.swipeRefreshLayout.isRefreshing = false
                     }
             } catch (e: Exception) {
                 // Handle error case
-                binding.progressLayout.showEmpty(emptyText = getString(R.string.empty_extensions))
-                binding.swipeRefreshLayout.isRefreshing = false
+                _binding?.let { binding ->
+                    binding.progressLayout.showEmpty(emptyText = getString(R.string.empty_extensions))
+                    binding.swipeRefreshLayout.isRefreshing = false
+                }
             }
         }
     }
 
     @Synchronized
     private fun toItems(tuple: ExtensionTuple): List<ExtensionItem> {
-        val context = Injekt.get<Application>()
+        val context = requireContext().applicationContext
 //        val activeLangs = preferences.enabledLanguages().get()
         val showNsfwExtensions = dataCenter.showNSFWSource
 
@@ -284,7 +290,7 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
     }
 
     private fun collectInstallUpdates(installFlow: Flow<InstallStep>, extension: Extension) {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 installFlow
                     .onEach { currentDownloads[extension.pkgName] = it }

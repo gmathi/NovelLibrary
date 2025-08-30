@@ -1,92 +1,82 @@
 package io.github.gmathi.novellibrary.network.api
 
-import kotlinx.coroutines.test.runTest
-import org.junit.Test
+import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.mockk.every
+import io.mockk.mockk
+import okhttp3.OkHttpClient
 import org.junit.Assert.*
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class RetrofitServiceFactoryTest {
 
-    @Test
-    fun `test retrofit factory creates retrofit with correct base URL`() {
-        val baseUrl = "https://example.com/api/"
-        val client = okhttp3.OkHttpClient()
-        
-        val retrofit = Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+    private lateinit var networkHelper: NetworkHelper
+    private lateinit var retrofitServiceFactory: RetrofitServiceFactory
 
-        assertEquals(baseUrl, retrofit.baseUrl().toString())
-        assertSame(client, retrofit.callFactory())
-        
-        // Check that GsonConverterFactory is present
-        val converterFactories = retrofit.converterFactories()
-        assertTrue("GsonConverterFactory should be present", 
-            converterFactories.any { it is GsonConverterFactory })
+    @Before
+    fun setUp() {
+        networkHelper = mockk(relaxed = true) {
+            every { client } returns OkHttpClient()
+            every { cloudflareClient } returns OkHttpClient()
+        }
+        retrofitServiceFactory = RetrofitServiceFactory(networkHelper)
     }
 
     @Test
-    fun `test service creation with retrofit`() {
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://api.github.com/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+    fun `constructor injection works correctly`() {
+        // Given
+        val factory = RetrofitServiceFactory(networkHelper)
+        
+        // Then
+        assertNotNull(factory)
+    }
 
-        val service = retrofit.create(GitHubApiService::class.java)
-
+    @Test
+    fun `createGitHubApiService returns valid service`() {
+        // When
+        val service = retrofitServiceFactory.createGitHubApiService()
+        
+        // Then
         assertNotNull(service)
-        assertTrue("Service should be a GitHubApiService instance", 
-            service is GitHubApiService)
-        assertTrue("Service should be a proxy instance", 
-            java.lang.reflect.Proxy.isProxyClass(service.javaClass))
+        assertTrue(service is GitHubApiService)
     }
 
     @Test
-    fun `test multiple retrofit instances are independent`() {
-        val baseUrl = "https://example.com/api/"
-        val client1 = okhttp3.OkHttpClient()
-        val client2 = okhttp3.OkHttpClient()
+    fun `createCloudflareGitHubApiService returns valid service`() {
+        // When
+        val service = retrofitServiceFactory.createCloudflareGitHubApiService()
         
-        val retrofit1 = Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .client(client1)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            
-        val retrofit2 = Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .client(client2)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        // Retrofit instances should be different objects
-        assertNotSame(retrofit1, retrofit2)
-        
-        // But they should have the same base URL
-        assertEquals(retrofit1.baseUrl(), retrofit2.baseUrl())
-        
-        // And different clients
-        assertNotSame(retrofit1.callFactory(), retrofit2.callFactory())
+        // Then
+        assertNotNull(service)
+        assertTrue(service is GitHubApiService)
     }
 
     @Test
-    fun `test service instances are different objects`() {
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://api.github.com/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        val service1 = retrofit.create(GitHubApiService::class.java)
-        val service2 = retrofit.create(GitHubApiService::class.java)
-
-        // Services should be different instances (Retrofit creates new proxies)
-        assertNotSame(service1, service2)
+    fun `createRetrofit returns valid retrofit instance`() {
+        // Given
+        val baseUrl = "https://api.example.com/"
         
-        // But both should be GitHubApiService instances
-        assertTrue(service1 is GitHubApiService)
-        assertTrue(service2 is GitHubApiService)
+        // When
+        val retrofit = retrofitServiceFactory.createRetrofit(baseUrl)
+        
+        // Then
+        assertNotNull(retrofit)
+        assertEquals(baseUrl, retrofit.baseUrl().toString())
+    }
+
+    @Test
+    fun `createCloudflareRetrofit returns valid retrofit instance`() {
+        // Given
+        val baseUrl = "https://api.example.com/"
+        
+        // When
+        val retrofit = retrofitServiceFactory.createCloudflareRetrofit(baseUrl)
+        
+        // Then
+        assertNotNull(retrofit)
+        assertEquals(baseUrl, retrofit.baseUrl().toString())
     }
 }

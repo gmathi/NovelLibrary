@@ -5,7 +5,7 @@ import okhttp3.Response
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
-class WattPadProxy : BaseProxyHelper() {
+class WattPadProxy(networkHelper: io.github.gmathi.novellibrary.network.NetworkHelper) : BaseProxyHelper(networkHelper) {
 
     @ExperimentalStdlibApi
     override fun document(response: Response): Document {

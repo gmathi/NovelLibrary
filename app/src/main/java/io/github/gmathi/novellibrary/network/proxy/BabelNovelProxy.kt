@@ -6,7 +6,7 @@ import okhttp3.Response
 import org.jsoup.nodes.Document
 import java.net.URL
 
-class BabelNovelProxy : BaseProxyHelper() {
+class BabelNovelProxy(networkHelper: io.github.gmathi.novellibrary.network.NetworkHelper) : BaseProxyHelper(networkHelper) {
 
     @ExperimentalStdlibApi
     override fun document(response: Response): Document {

@@ -9,6 +9,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
+import io.github.gmathi.novellibrary.network.api.RetrofitServiceFactory
+import io.github.gmathi.novellibrary.network.interceptor.CloudflareInterceptor
 import kotlinx.serialization.json.Json
 import javax.inject.Singleton
 
@@ -28,6 +30,30 @@ object NetworkModule {
     @Singleton
     fun provideJson(): Json {
         return Json { ignoreUnknownKeys = true }
+    }
+
+    @Provides
+    @Singleton
+    fun provideCloudflareInterceptor(
+        @ApplicationContext context: Context
+    ): CloudflareInterceptor {
+        return CloudflareInterceptor(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAndroidCookieJar(
+        dataCenter: io.github.gmathi.novellibrary.model.preference.DataCenter
+    ): io.github.gmathi.novellibrary.network.AndroidCookieJar {
+        return io.github.gmathi.novellibrary.network.AndroidCookieJar(dataCenter)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRetrofitServiceFactory(
+        networkHelper: NetworkHelper
+    ): io.github.gmathi.novellibrary.network.api.RetrofitServiceFactory {
+        return io.github.gmathi.novellibrary.network.api.RetrofitServiceFactory(networkHelper)
     }
 
     @Provides

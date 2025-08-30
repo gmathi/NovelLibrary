@@ -11,39 +11,58 @@ import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.lang.containsCaseInsensitive
 import kotlinx.coroutines.*
-import uy.kohesive.injekt.injectLazy
-
-abstract class NovelSync {
+abstract class NovelSync(
+    protected val dbHelper: DBHelper,
+    protected val dataCenter: DataCenter,
+    protected val networkHelper: NetworkHelper,
+    protected val sourceManager: SourceManager
+) {
 
     companion object {
 
-        fun getInstance(novel: Novel, ignoreEnabled: Boolean = false): NovelSync? {
-            return getInstance(novel.url, ignoreEnabled)
+        fun getInstance(
+            novel: Novel, 
+            dbHelper: DBHelper,
+            dataCenter: DataCenter,
+            networkHelper: NetworkHelper,
+            sourceManager: SourceManager,
+            ignoreEnabled: Boolean = false
+        ): NovelSync? {
+            return getInstance(novel.url, dbHelper, dataCenter, networkHelper, sourceManager, ignoreEnabled)
         }
 
-        fun getInstance(url: String, ignoreEnabled: Boolean = false): NovelSync? {
-            val dataCenter: DataCenter by injectLazy()
+        fun getInstance(
+            url: String,
+            dbHelper: DBHelper,
+            dataCenter: DataCenter,
+            networkHelper: NetworkHelper,
+            sourceManager: SourceManager,
+            ignoreEnabled: Boolean = false
+        ): NovelSync? {
             return when {
-                url.containsCaseInsensitive(HostNames.NOVEL_UPDATES) && (ignoreEnabled || dataCenter.getSyncEnabled(HostNames.NOVEL_UPDATES)) -> return NovelUpdatesSync()
+                url.containsCaseInsensitive(HostNames.NOVEL_UPDATES) && (ignoreEnabled || dataCenter.getSyncEnabled(HostNames.NOVEL_UPDATES)) -> 
+                    NovelUpdatesSync(dbHelper, dataCenter, networkHelper, sourceManager)
                 else -> null
             }
         }
 
-        fun getAllInstances(ignoreEnabled: Boolean = false): List<NovelSync> {
+        fun getAllInstances(
+            dbHelper: DBHelper,
+            dataCenter: DataCenter,
+            networkHelper: NetworkHelper,
+            sourceManager: SourceManager,
+            ignoreEnabled: Boolean = false
+        ): List<NovelSync> {
             val list = ArrayList<NovelSync>()
-            val dataCenter: DataCenter by injectLazy()
-            if (ignoreEnabled || dataCenter.getSyncEnabled(HostNames.NOVEL_UPDATES)) list.add(NovelUpdatesSync())
+            if (ignoreEnabled || dataCenter.getSyncEnabled(HostNames.NOVEL_UPDATES)) {
+                list.add(NovelUpdatesSync(dbHelper, dataCenter, networkHelper, sourceManager))
+            }
             return list
         }
 
     }
 
     abstract val host: String
-
-    val dbHelper: DBHelper by injectLazy()
-    val dataCenter: DataCenter by injectLazy()
-    val networkHelper: NetworkHelper by injectLazy()
-    val sourceManager: SourceManager by injectLazy()
 
     fun forget() {
         dataCenter.deleteLoginCookieString(host)
@@ -92,5 +111,5 @@ abstract class NovelSync {
     // Remote -> App
     abstract fun getCategories(): List<String>
 //abstract fun getNovelsInCategory(category : NovelGenre)
-// TODO: Remote -> app sync
+// Note: Remote -> app sync functionality to be implemented in future versions
 }

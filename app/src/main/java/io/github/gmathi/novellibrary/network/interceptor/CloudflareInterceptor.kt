@@ -21,16 +21,34 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
-import uy.kohesive.injekt.injectLazy
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import java.io.IOException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class CloudflareInterceptor(private val context: Context) : Interceptor {
+class CloudflareInterceptor @Inject constructor(
+    private val context: Context
+) : Interceptor {
+
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface CloudflareInterceptorEntryPoint {
+        fun networkHelper(): NetworkHelper
+    }
 
     private val handler = Handler(Looper.getMainLooper())
 
-    private val networkHelper: NetworkHelper by injectLazy()
+    private val networkHelper: NetworkHelper by lazy {
+        val entryPoint = EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            CloudflareInterceptorEntryPoint::class.java
+        )
+        entryPoint.networkHelper()
+    }
 
     /**
      * When this is called, it initializes the WebView if it wasn't already. We use this to avoid

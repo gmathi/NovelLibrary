@@ -13,6 +13,7 @@ import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.POST
 import io.github.gmathi.novellibrary.network.awaitSuccess
+import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Exceptions.INVALID_NOVEL
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_IMPLEMENTATION
@@ -32,9 +33,19 @@ import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
 import java.net.URI
 import kotlin.math.max
+import javax.inject.Inject
+import javax.inject.Singleton
 
 
-class NovelUpdatesSource : ParsedHttpSource() {
+@Singleton
+class NovelUpdatesSource @Inject constructor(
+    private val networkHelper: NetworkHelper,
+    private val dataCenterHelper: DataCenter
+) : ParsedHttpSource() {
+    
+    init {
+        setNetworkAndData(networkHelper, dataCenterHelper)
+    }
 
     override val id: Long
         get() = Constants.SourceId.NOVEL_UPDATES

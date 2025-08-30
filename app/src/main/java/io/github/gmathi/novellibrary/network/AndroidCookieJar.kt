@@ -5,13 +5,16 @@ import io.github.gmathi.novellibrary.model.preference.DataCenter
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
-import uy.kohesive.injekt.injectLazy
 import java.net.URL
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AndroidCookieJar : CookieJar {
+@Singleton
+class AndroidCookieJar @Inject constructor(
+    private val dataCenter: DataCenter
+) : CookieJar {
 
     private val manager = CookieManager.getInstance()
-    private val dataCenter: DataCenter by injectLazy()
 
     override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
         val urlString = url.toString()

@@ -2,9 +2,9 @@
 
 ## Overview
 
-This design document outlines the comprehensive migration strategy for transforming the Novel Library Android application from a multi-activity architecture to a modern single activity architecture. The migration will consolidate 20+ activities into a single MainActivity while implementing clean architecture principles, Navigation Component, and advanced architectural patterns.
+This design document outlines the migration strategy for transforming the Novel Library Android application from a multi-activity architecture to a modern single activity architecture using Navigation Component. The migration builds upon the recently completed Hilt dependency injection migration and existing modern architecture infrastructure including coroutines, ViewModels, and UiState management.
 
-The current architecture uses multiple activities for different features (NavDrawerActivity as main, NovelDetailsActivity, ReaderDBPagerActivity, etc.) with fragment-based content within some activities. The new architecture will use a single MainActivity with Navigation Component managing all navigation between fragment destinations.
+The current architecture uses multiple activities for different features (NavDrawerActivity as main, NovelDetailsActivity, ReaderDBPagerActivity, etc.) with some fragment-based content. The new architecture will use a single MainActivity with Navigation Component managing all navigation between fragment destinations, leveraging the existing BaseFragment, BaseViewModel, and Hilt injection patterns.
 
 ## Architecture
 
@@ -30,59 +30,61 @@ The current architecture uses multiple activities for different features (NavDra
 ├─────────────────────────────────────────────────────────────┤
 │                    Presentation Layer                       │
 │  ┌─────────────────────────────────────────────────────────┐ │
-│  │  ViewModels + State Management + Navigation Logic      │ │
+│  │  @HiltViewModel + UiState + BaseViewModel + Coroutines │ │
 │  └─────────────────────────────────────────────────────────┘ │
 ├─────────────────────────────────────────────────────────────┤
-│                     Domain Layer                            │
+│                     Business Layer                          │
 │  ┌─────────────────────────────────────────────────────────┐ │
-│  │     Use Cases + Business Logic + Domain Models         │ │
+│  │     Existing Repositories + Hilt Injection             │ │
 │  └─────────────────────────────────────────────────────────┘ │
 ├─────────────────────────────────────────────────────────────┤
 │                      Data Layer                             │
 │  ┌─────────────────────────────────────────────────────────┐ │
-│  │  Repositories + Data Sources + Network + Database      │ │
+│  │  DBHelper + NetworkHelper + Hilt Modules               │ │
 │  └─────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Clean Architecture Layers
+### Architecture Layers (Building on Existing Infrastructure)
 
-#### 1. Presentation Layer
-- **MainActivity**: Single entry point managing global UI state
-- **Fragments**: Feature-specific UI components
-- **ViewModels**: UI state management and business logic coordination
-- **Navigation**: Centralized navigation logic using Navigation Component
-- **UI State**: Sealed classes representing different UI states
+#### 1. Presentation Layer (Enhanced with Navigation Component)
+- **MainActivity**: Single entry point with Navigation Component integration
+- **BaseFragment**: Existing @AndroidEntryPoint fragments with ViewBinding support
+- **BaseViewModel**: Existing @HiltViewModel with coroutines and UiState management
+- **Navigation**: Navigation Component with Safe Args for type-safe navigation
+- **UiState**: Existing sealed classes for consistent state representation
 
-#### 2. Domain Layer
-- **Use Cases**: Business logic encapsulation (ReadNovelUseCase, SearchNovelsUseCase, etc.)
-- **Domain Models**: Pure business entities
-- **Repository Interfaces**: Abstraction for data access
-- **Domain Events**: Cross-feature communication
+#### 2. Business Layer (Leveraging Existing Hilt Infrastructure)
+- **Existing Repositories**: DBHelper, NetworkHelper, SourceManager with Hilt injection
+- **Existing Services**: DownloadNovelService, TTSService with @AndroidEntryPoint
+- **Hilt Modules**: Existing DatabaseModule, NetworkModule, SourceModule, CoroutineModule
+- **EntryPoints**: Existing patterns for object class dependency access
 
-#### 3. Data Layer
-- **Repositories**: Implementation of domain interfaces
-- **Data Sources**: Local (Database) and Remote (Network) data sources
-- **Mappers**: Data transformation between layers
-- **Cache Management**: Intelligent caching strategies
+#### 3. Data Layer (Already Modernized)
+- **Hilt Injection**: Complete Hilt dependency injection throughout
+- **Coroutines**: Existing CoroutineScopes and DispatcherProvider infrastructure
+- **Database**: DBHelper with Hilt singleton scoping
+- **Network**: NetworkHelper with proper Hilt configuration
 
 ## Components and Interfaces
 
 ### Core Navigation Architecture
 
-#### MainActivity
+#### MainActivity (Building on BaseActivity)
 ```kotlin
+@AndroidEntryPoint
 class MainActivity : BaseActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
     private lateinit var appBarConfiguration: AppBarConfiguration
     
-    // Global UI state management
+    // Use existing Hilt ViewModel pattern
     private val mainViewModel: MainViewModel by viewModels()
     
     // Navigation setup and deep link handling
     // Global UI components (toolbar, bottom nav, drawer)
     // System UI management (status bar, navigation bar)
+    // Leverage existing BaseActivity Hilt injection
 }
 ```
 
@@ -117,39 +119,56 @@ class MainActivity : BaseActivity() {
 
 ### Fragment Architecture
 
-#### Base Fragment Structure
+#### Fragment Architecture (Using Existing BaseFragment)
 ```kotlin
-abstract class BaseFragment<VB : ViewBinding, VM : BaseViewModel> : Fragment() {
-    protected abstract val binding: VB
-    protected abstract val viewModel: VM
-    
-    // Common lifecycle management
-    // State observation setup
-    // Error handling
-    // Loading state management
+// Existing BaseFragment already has @AndroidEntryPoint and Hilt injection
+@AndroidEntryPoint
+open class BaseFragment : Fragment(), DataAccessor {
+    @Inject override lateinit var firebaseAnalytics: FirebaseAnalytics
+    @Inject override lateinit var dataCenter: DataCenter
+    @Inject override lateinit var dbHelper: DBHelper
+    @Inject override lateinit var sourceManager: SourceManager
+    @Inject override lateinit var networkHelper: NetworkHelper
 }
 ```
 
-#### Feature Fragment Example
+#### Feature Fragment Example (Following Architecture Guide)
 ```kotlin
-class LibraryFragment : BaseFragment<FragmentLibraryBinding, LibraryViewModel>() {
-    override val binding by viewBinding(FragmentLibraryBinding::bind)
-    override val viewModel: LibraryViewModel by viewModels()
+@AndroidEntryPoint
+class LibraryFragment : BaseFragment<FragmentLibraryBinding>() {
+    private val viewModel: LibraryViewModel by viewModels()
     
-    // Fragment-specific implementation
+    override fun getLayoutId() = R.layout.fragment_library
+    
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        observeViewModel()
+    }
+    
+    private fun observeViewModel() {
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is UiState.Loading -> showLoading()
+                is UiState.Success -> showContent(state.data)
+                is UiState.Error -> showError(state.message)
+            }
+        }
+    }
 }
 ```
 
 ### State Management Architecture
 
-#### UI State Representation
+#### State Management (Using Existing Infrastructure)
 ```kotlin
+// Existing UiState sealed class with extensions
 sealed class UiState<out T> {
     object Loading : UiState<Nothing>()
     data class Success<T>(val data: T) : UiState<T>()
-    data class Error(val exception: Throwable) : UiState<Nothing>()
+    data class Error(val message: String, val throwable: Throwable? = null) : UiState<Nothing>()
 }
 
+// Feature-specific state classes
 sealed class LibraryUiState {
     object Loading : LibraryUiState()
     data class Success(
@@ -161,32 +180,36 @@ sealed class LibraryUiState {
 }
 ```
 
-#### ViewModel Architecture
+#### ViewModel Architecture (Using Existing BaseViewModel)
 ```kotlin
-abstract class BaseViewModel : ViewModel() {
-    protected val _uiState = MutableStateFlow<UiState<*>>(UiState.Loading)
-    
-    // Common error handling
-    // Loading state management
-    // Coroutine scope management
-}
-
-class LibraryViewModel(
-    private val getLibraryNovelsUseCase: GetLibraryNovelsUseCase,
-    private val updateNovelUseCase: UpdateNovelUseCase
+// Existing BaseViewModel with coroutines and error handling
+@HiltViewModel
+class LibraryViewModel @Inject constructor(
+    private val dbHelper: DBHelper,
+    private val sourceManager: SourceManager
 ) : BaseViewModel() {
     
     private val _libraryState = MutableStateFlow<LibraryUiState>(LibraryUiState.Loading)
     val libraryState: StateFlow<LibraryUiState> = _libraryState.asStateFlow()
     
-    // Business logic implementation
+    fun loadLibraryNovels() {
+        executeWithLoading {
+            try {
+                val novels = dbHelper.getAllNovels()
+                _libraryState.value = LibraryUiState.Success(novels)
+            } catch (e: Exception) {
+                _libraryState.value = LibraryUiState.Error(e.message ?: "Unknown error")
+            }
+        }
+    }
 }
 ```
 
 ### Navigation Management
 
-#### Navigation Manager
+#### Navigation Manager (Hilt Singleton)
 ```kotlin
+@Singleton
 class NavigationManager @Inject constructor() {
     
     fun navigateToNovelDetails(navController: NavController, novelId: Long) {
@@ -201,12 +224,13 @@ class NavigationManager @Inject constructor() {
         )
     }
     
-    // Other navigation methods
+    // Other navigation methods with Safe Args
 }
 ```
 
-#### Deep Link Handling
+#### Deep Link Handling (Hilt Singleton)
 ```kotlin
+@Singleton
 class DeepLinkHandler @Inject constructor() {
     
     fun handleDeepLink(intent: Intent): NavDeepLinkRequest? {
@@ -270,22 +294,29 @@ data class NovelUiModel(
 }
 ```
 
-### Repository Interfaces
+### Data Access (Using Existing Hilt Infrastructure)
 ```kotlin
-interface NovelRepository {
-    suspend fun getLibraryNovels(): Flow<List<Novel>>
-    suspend fun getNovelDetails(novelId: Long): Novel?
-    suspend fun searchNovels(query: String): List<Novel>
-    suspend fun addToLibrary(novel: Novel)
-    suspend fun removeFromLibrary(novelId: Long)
-    suspend fun updateNovel(novel: Novel)
+// Leverage existing DBHelper with Hilt injection
+@Singleton
+class DBHelper @Inject constructor(/* existing dependencies */) {
+    // Existing methods already available
+    fun getAllNovels(): List<Novel>
+    fun getNovelDetails(novelId: Long): Novel?
+    fun searchNovels(query: String): List<Novel>
+    fun addToLibrary(novel: Novel)
+    fun removeFromLibrary(novelId: Long)
+    fun updateNovel(novel: Novel)
+    
+    fun getChapters(novelId: Long): List<Chapter>
+    fun getChapter(chapterId: Long): Chapter?
+    fun markAsRead(chapterId: Long)
+    // ... other existing methods
 }
 
-interface ChapterRepository {
-    suspend fun getChapters(novelId: Long): Flow<List<Chapter>>
-    suspend fun getChapter(chapterId: Long): Chapter?
-    suspend fun markAsRead(chapterId: Long)
-    suspend fun downloadChapter(chapterId: Long)
+// Use existing NetworkHelper for network operations
+@Singleton
+class NetworkHelper @Inject constructor(/* existing dependencies */) {
+    // Existing network methods
 }
 ```
 
@@ -451,42 +482,41 @@ class LibraryFragmentTest {
 }
 ```
 
-## Migration Strategy
+## Migration Strategy (Building on Existing Infrastructure)
 
-### Phase 1: Foundation Setup
-1. **Create MainActivity**: New single activity with Navigation Component setup
-2. **Setup Navigation Graph**: Define all destinations and navigation actions
-3. **Create Base Classes**: BaseFragment, BaseViewModel, and common utilities
-4. **Implement State Management**: UI state classes and error handling
-5. **Setup Dependency Injection**: Update DI modules for new architecture
+### Phase 1: Navigation Foundation
+1. **Create MainActivity**: New single activity extending existing BaseActivity with @AndroidEntryPoint
+2. **Setup Navigation Graph**: Define all destinations using existing fragment structure
+3. **Navigation Component Integration**: Add Navigation Component to existing project structure
+4. **Safe Args Setup**: Configure Safe Args for type-safe navigation parameters
 
-### Phase 2: Core Feature Migration
-1. **Library Feature**: Migrate LibraryPagerFragment and related components
-2. **Search Feature**: Migrate SearchFragment with proper navigation
-3. **Navigation Drawer**: Integrate drawer navigation with Navigation Component
-4. **Settings Foundation**: Create settings navigation graph structure
+### Phase 2: Core Fragment Migration
+1. **Library Feature**: Update existing LibraryFragment and LibraryPagerFragment for Navigation Component
+2. **Search Feature**: Update existing SearchFragment with Navigation Component integration
+3. **Navigation Drawer**: Integrate existing drawer with Navigation Component
+4. **ViewModels**: Create @HiltViewModel classes using existing BaseViewModel pattern
 
-### Phase 3: Complex Feature Migration
-1. **Novel Details**: Migrate NovelDetailsActivity to fragment
-2. **Reader**: Migrate ReaderDBPagerActivity to fragment with proper state management
-3. **Chapters**: Migrate ChaptersPagerActivity to fragment
-4. **Downloads**: Migrate NovelDownloadsActivity to fragment
+### Phase 3: Activity to Fragment Migration
+1. **Novel Details**: Convert NovelDetailsActivity to fragment using existing patterns
+2. **Reader**: Convert ReaderDBPagerActivity to fragment with existing ViewBinding
+3. **Chapters**: Convert ChaptersPagerActivity to fragment
+4. **Downloads**: Convert NovelDownloadsActivity to fragment
 
-### Phase 4: Advanced Features
-1. **Extensions**: Migrate ExtensionsPagerActivity to fragment
-2. **Settings Screens**: Migrate all settings activities to fragments
-3. **TTS Integration**: Integrate TextToSpeechControlsActivity functionality
-4. **Image Preview**: Migrate ImagePreviewActivity to fragment or dialog
+### Phase 4: Advanced Features Migration
+1. **Extensions**: Convert ExtensionsPagerActivity using existing ExtensionsFragment
+2. **Settings Screens**: Convert all settings activities to fragments
+3. **TTS Integration**: Integrate existing TTS service with fragment architecture
+4. **Image Preview**: Convert ImagePreviewActivity to fragment or dialog
 
-### Phase 5: Testing and Optimization
-1. **Comprehensive Testing**: Unit, integration, and UI tests
-2. **Performance Optimization**: Memory usage, navigation performance
-3. **Deep Link Migration**: Update all deep link handling
-4. **Intent Handling**: Migrate external intent handling
+### Phase 5: Testing and Integration
+1. **Hilt Testing**: Use existing @HiltAndroidTest infrastructure for fragment testing
+2. **Navigation Testing**: Add Navigation Component testing to existing test suite
+3. **Performance Validation**: Ensure no regressions with existing performance monitoring
+4. **Deep Link Migration**: Update existing deep link handling for single activity
 
-### Migration Safety Measures
-1. **Feature Flags**: Use feature flags to enable/disable new architecture
-2. **Gradual Rollout**: Migrate features incrementally with fallback options
+### Migration Safety (Leveraging Existing Infrastructure)
+1. **Existing Error Handling**: Use existing error handling and logging infrastructure
+2. **Existing Monitoring**: Leverage existing Firebase Analytics and crash reporting
 3. **Data Migration**: Ensure all user data and preferences are preserved
 4. **Rollback Plan**: Maintain ability to rollback to previous architecture
 5. **Monitoring**: Implement crash reporting and performance monitoring

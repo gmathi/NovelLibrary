@@ -2,7 +2,11 @@ package io.github.gmathi.novellibrary.di
 
 import android.content.Context
 import io.github.gmathi.novellibrary.database.DBHelper
+import io.github.gmathi.novellibrary.database.dao.NovelDao
+import io.github.gmathi.novellibrary.database.dao.impl.NovelDaoImpl
 import io.github.gmathi.novellibrary.model.preference.DataCenter
+import io.github.gmathi.novellibrary.model.source.SourceManager
+import org.mockito.Mockito.mock
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -95,6 +99,36 @@ class DatabaseModuleTest {
         assertTrue("provideDataCenter should have @Provides annotation", 
             method.isAnnotationPresent(dagger.Provides::class.java))
         assertTrue("provideDataCenter should have @Singleton annotation", 
+            method.isAnnotationPresent(javax.inject.Singleton::class.java))
+    }
+
+    @Test
+    fun `provideNovelDao returns valid instance`() {
+        // Given
+        val module = DatabaseModule
+        val dbHelper = mock(DBHelper::class.java)
+        val sourceManager = mock(SourceManager::class.java)
+
+        // When
+        val novelDao = module.provideNovelDao(dbHelper, sourceManager)
+
+        // Then
+        assertNotNull(novelDao)
+        assertTrue("NovelDao should be properly initialized", novelDao is NovelDao)
+        assertTrue("NovelDao should be NovelDaoImpl instance", novelDao is NovelDaoImpl)
+    }
+
+    @Test
+    fun `provideNovelDao method has correct annotations`() {
+        // Given
+        val method = DatabaseModule::class.java.getMethod("provideNovelDao", 
+            DBHelper::class.java, 
+            io.github.gmathi.novellibrary.model.source.SourceManager::class.java)
+
+        // Then
+        assertTrue("provideNovelDao should have @Provides annotation", 
+            method.isAnnotationPresent(dagger.Provides::class.java))
+        assertTrue("provideNovelDao should have @Singleton annotation", 
             method.isAnnotationPresent(javax.inject.Singleton::class.java))
     }
 }

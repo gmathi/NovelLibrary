@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.github.gmathi.novellibrary.database.DBHelper
+import io.github.gmathi.novellibrary.database.NovelHelper
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import javax.inject.Singleton
 
@@ -24,5 +25,24 @@ object DatabaseModule {
     @Singleton
     fun provideDataCenter(@ApplicationContext context: Context): DataCenter {
         return DataCenter(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNovelDao(
+        dbHelper: DBHelper,
+        sourceManager: io.github.gmathi.novellibrary.model.source.SourceManager
+    ): io.github.gmathi.novellibrary.database.dao.NovelDao {
+        return io.github.gmathi.novellibrary.database.dao.impl.NovelDaoImpl(dbHelper, sourceManager)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNovelHelper(
+        @ApplicationContext context: Context,
+        sourceManager: io.github.gmathi.novellibrary.model.source.SourceManager,
+        dbHelper: DBHelper
+    ): io.github.gmathi.novellibrary.database.NovelHelper {
+        return io.github.gmathi.novellibrary.database.NovelHelper(context, sourceManager, dbHelper)
     }
 }

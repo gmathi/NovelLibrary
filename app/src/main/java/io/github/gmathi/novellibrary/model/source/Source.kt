@@ -1,12 +1,13 @@
 package io.github.gmathi.novellibrary.model.source
 
+import android.content.Context
 import android.graphics.drawable.Drawable
+import dagger.hilt.android.EntryPointAccessors
+import io.github.gmathi.novellibrary.di.SourceEntryPoint
 import io.github.gmathi.novellibrary.extension.ExtensionManager
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.source.NovelUpdatesSource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 /**
  * A basic interface for creating a source. It could be an online source, a local source, etc...
@@ -53,6 +54,12 @@ interface Source {
 
 }
 
-fun Source.icon(): Drawable? = Injekt.get<ExtensionManager>().getAppIconForSource(this)
+fun Source.icon(context: Context): Drawable? {
+    val entryPoint = EntryPointAccessors.fromApplication(
+        context.applicationContext,
+        SourceEntryPoint::class.java
+    )
+    return entryPoint.extensionManager().getAppIconForSource(this)
+}
 
 fun Source.getPreferenceKey(): String = "source_$id"

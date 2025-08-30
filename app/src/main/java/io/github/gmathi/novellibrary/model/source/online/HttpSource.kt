@@ -13,7 +13,6 @@ import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import uy.kohesive.injekt.injectLazy
 import java.net.URI
 import java.net.URISyntaxException
 import java.security.MessageDigest
@@ -28,12 +27,12 @@ abstract class HttpSource : CatalogueSource {
     /**
      * Network service.
      */
-    protected val network: NetworkHelper by injectLazy()
+    protected lateinit var network: NetworkHelper
 
     /**
      * Network service.
      */
-    protected val dataCenter: DataCenter by injectLazy()
+    protected lateinit var dataCenter: DataCenter
 
     /**
      * Base url of the website without the trailing slash, like: http://mysite.com
@@ -265,6 +264,11 @@ abstract class HttpSource : CatalogueSource {
      * Returns the list of filters for the source.
      */
     override fun getFilterList() = FilterList()
+
+    fun setNetworkAndData(networkHelper: NetworkHelper, dataCenter: DataCenter) {
+        this.network = networkHelper
+        this.dataCenter = dataCenter
+    }
 
     companion object {
         const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36 Edg/129.0.0.0"

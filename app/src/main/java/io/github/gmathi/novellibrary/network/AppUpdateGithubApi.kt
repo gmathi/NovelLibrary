@@ -8,19 +8,22 @@ import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.lang.withIOContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
-import uy.kohesive.injekt.injectLazy
 import java.util.Date
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Exception thrown when app update operations fail
  */
 class AppUpdateException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
-internal class AppUpdateGithubApi {
-
-    private val networkService: NetworkHelper by injectLazy()
-    private val dataCenter: DataCenter by injectLazy()
-    private val gson: Gson by injectLazy()
+@Singleton
+internal class AppUpdateGithubApi @Inject constructor(
+    private val networkService: NetworkHelper,
+    private val dataCenter: DataCenter,
+    private val gson: Gson,
+    private val json: Json
+) {
 
     private suspend fun getLatestUpdate(): LatestUpdate {
         return withIOContext {
@@ -28,7 +31,7 @@ internal class AppUpdateGithubApi {
                 networkService.client
                     .newCall(GET("${RELEASES_URL_PREFIX}latest.json"))
                     .awaitSuccess()
-                    .parseAs<JsonObject>()
+                    .parseAs<JsonObject>(json)
                     .let { parseResponse(it) }
             } catch (e: Exception) {
                 throw AppUpdateException("Failed to fetch latest update information", e)

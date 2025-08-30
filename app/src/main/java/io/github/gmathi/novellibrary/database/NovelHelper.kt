@@ -1,19 +1,42 @@
 package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
+import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.NovelGenre
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.util.Logs
 import kotlinx.coroutines.coroutineScope
-import uy.kohesive.injekt.injectLazy
+import javax.inject.Inject
+import javax.inject.Singleton
+
 import java.util.*
 
 private const val LOG = "NovelHelper"
+
+@Singleton
+class NovelHelper @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val sourceManager: SourceManager,
+    private val dbHelper: DBHelper
+) {
+
+    suspend fun resetNovel(novel: Novel) = coroutineScope {
+        // Completely delete all novel data and start fresh. Hard reset mode ;p
+        dbHelper.cleanupNovelData(novel)
+
+        // Notice: Cannot run getNovelDetails on MainThread
+        val newNovel = sourceManager.get(novel.sourceId)?.getNovelDetails(novel)
+        newNovel?.novelSectionId = novel.novelSectionId
+        newNovel?.orderId = novel.orderId
+        if (newNovel != null) dbHelper.insertNovel(newNovel)
+    }
+}
 
 fun DBHelper.insertNovel(novel: Novel): Long {
     val novelId = createNovel(novel)
@@ -235,7 +258,7 @@ suspend fun DBHelper.resetNovel(novel: Novel, sourceManager: SourceManager) = co
     cleanupNovelData(novel)
 
     // Notice: Cannot run getNovelDetails on MainThread
-    val newNovel =  sourceManager.get(novel.sourceId)?.getNovelDetails(novel)
+    val newNovel = sourceManager.get(novel.sourceId)?.getNovelDetails(novel)
     newNovel?.novelSectionId = novel.novelSectionId
     newNovel?.orderId = novel.orderId
     if (newNovel != null) insertNovel(newNovel)

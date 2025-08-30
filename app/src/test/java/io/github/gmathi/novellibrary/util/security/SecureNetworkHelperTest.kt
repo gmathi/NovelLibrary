@@ -22,7 +22,7 @@ class SecureNetworkHelperTest {
     fun setup() {
         mockContext = mockk<Application>()
         mockValidator = mockk<DependencySecurityValidator>(relaxed = true)
-        secureNetworkHelper = SecureNetworkHelper(mockContext, mockValidator)
+        secureNetworkHelper = SecureNetworkHelper(mockContext, mockValidator, mockk())
     }
     
     @Test

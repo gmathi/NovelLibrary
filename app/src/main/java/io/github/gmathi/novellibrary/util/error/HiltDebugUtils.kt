@@ -40,10 +40,7 @@ class HiltDebugUtils @Inject constructor(
         appendLine("├── CoroutineModule")
         appendLine("│   ├── CoroutineScopes (@Singleton)")
         appendLine("│   └── DispatcherProvider (@Singleton)")
-        appendLine("└── MigrationModule")
-        appendLine("    ├── MigrationValidator (@Singleton)")
-        appendLine("    ├── MigrationLogger (@Singleton)")
-        appendLine("    └── MigrationFeatureFlags (@Singleton)")
+
         appendLine()
         appendLine("ActivityComponent (Activity Scope)")
         appendLine("└── [Activity-scoped dependencies]")
@@ -237,9 +234,7 @@ class HiltDebugUtils @Inject constructor(
             "CoroutineModule" -> {
                 bindings.addAll(listOf("CoroutineScopes", "DispatcherProvider"))
             }
-            "MigrationModule" -> {
-                bindings.addAll(listOf("MigrationValidator", "MigrationLogger", "MigrationFeatureFlags"))
-            }
+
             else -> {
                 issues.add("Unknown module: $moduleName")
             }

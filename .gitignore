@@ -41,6 +41,9 @@ captures/
 .idea/libraries
 .idea/codeStyles
 
+# Kiro IDE
+.kiro/
+
 # Keystore files
 *.jks
 *.keystore
@@ -177,3 +180,5 @@ Desktop.ini
 .directory
 .Trash-*
 .nfs*
+.kiro*
+docs

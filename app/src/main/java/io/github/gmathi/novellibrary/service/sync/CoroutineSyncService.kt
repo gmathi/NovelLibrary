@@ -24,10 +24,11 @@ import kotlinx.coroutines.sync.withPermit
 class CoroutineSyncService(
     private val context: Context,
     private val dbHelper: DBHelper,
-    private val networkHelper: NetworkHelper
+    private val networkHelper: NetworkHelper,
+    private val sourceManager: SourceManager
 ) {
     
-    private val serviceDatabaseManager = ServiceDatabaseManager(dbHelper)
+    private val serviceDatabaseManager = ServiceDatabaseManager(dbHelper, sourceManager)
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     
     companion object {
@@ -45,7 +46,7 @@ class CoroutineSyncService(
 
         try {
             val novels = serviceDatabaseManager.getAllNovels()
-            val sourceManager = SourceManager(context)
+            val sourceManager = this@CoroutineSyncService.sourceManager
             val syncResults = mutableMapOf<Novel, SyncNovelResult>()
             
             // Process novels with limited concurrency

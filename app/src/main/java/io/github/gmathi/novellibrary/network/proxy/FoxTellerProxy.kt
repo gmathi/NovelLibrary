@@ -15,7 +15,7 @@ import org.jsoup.nodes.Document
 import java.lang.Exception
 
 
-class FoxTellerProxy : BaseProxyHelper() {
+class FoxTellerProxy(networkHelper: io.github.gmathi.novellibrary.network.NetworkHelper) : BaseProxyHelper(networkHelper) {
 
     companion object {
         val aux_dem = "https://www.${HostNames.FOXTELLER}/aux_dem"

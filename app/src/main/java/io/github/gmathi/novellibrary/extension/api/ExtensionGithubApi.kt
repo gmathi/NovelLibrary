@@ -10,6 +10,7 @@ import io.github.gmathi.novellibrary.network.await
 import io.github.gmathi.novellibrary.network.parseAs
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.lang.withIOContext
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
@@ -22,7 +23,8 @@ import javax.inject.Singleton
 class ExtensionGithubApi @Inject constructor(
     private val networkService: NetworkHelper,
     private val dataCenter: DataCenter,
-    private val extensionLoader: ExtensionLoader
+    private val extensionLoader: ExtensionLoader,
+    private val json: Json
 ) {
 
     suspend fun findExtensions(): List<Extension.Available> {
@@ -30,7 +32,7 @@ class ExtensionGithubApi @Inject constructor(
             networkService.client
                 .newCall(GET("${REPO_URL_PREFIX}index.json"))
                 .await()
-                .parseAs<JsonArray>()
+                .parseAs<JsonArray>(json)
                 .let { parseResponse(it) }
         }
     }

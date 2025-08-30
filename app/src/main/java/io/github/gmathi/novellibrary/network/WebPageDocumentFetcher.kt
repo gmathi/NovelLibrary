@@ -67,10 +67,10 @@ class WebPageDocumentFetcher @Inject constructor(
     fun document(url: String, useProxy: Boolean = true): Document {
         var proxy: BaseProxyHelper? = null
         if (useProxy) {
-            proxy = BaseProxyHelper.getInstance(url)
+            proxy = BaseProxyHelper.getInstance(url, networkHelper)
         }
         val response = response(url, proxy)
-        val postProxy = if (useProxy) BasePostProxyHelper.getInstance(response) else null
+        val postProxy = if (useProxy) BasePostProxyHelper.getInstance(response, networkHelper) else null
         var doc = postProxy?.document(response) ?: proxy?.document(response) ?: document(response)
         if (doc.location().contains("rssbook") && doc.location().contains(HostNames.QIDIAN)) {
             doc = document(doc.location().replace("rssbook", "book"), useProxy)
@@ -118,13 +118,13 @@ class WebPageDocumentFetcher @Inject constructor(
         
         var proxy: BaseProxyHelper? = null
         if (useProxy) {
-            proxy = BaseProxyHelper.getInstance(url)
+            proxy = BaseProxyHelper.getInstance(url, networkHelper)
         }
         
         val response = responseAsync(url, proxy)
         coroutineContext.ensureActive() // Check for cancellation after network call
         
-        val postProxy = if (useProxy) BasePostProxyHelper.getInstance(response) else null
+        val postProxy = if (useProxy) BasePostProxyHelper.getInstance(response, networkHelper) else null
         var doc = postProxy?.document(response) ?: proxy?.document(response) ?: document(response)
         
         if (doc.location().contains("rssbook") && doc.location().contains(HostNames.QIDIAN)) {

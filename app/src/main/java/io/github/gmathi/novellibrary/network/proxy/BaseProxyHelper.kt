@@ -12,22 +12,23 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.jsoup.nodes.Document
-import uy.kohesive.injekt.injectLazy
+import javax.inject.Inject
 
 /**
  * @see io.github.gmathi.novellibrary.network.NovelApi.getDocumentWithParams
  */
-open class BaseProxyHelper {
+open class BaseProxyHelper @Inject constructor(
+    protected val networkHelper: NetworkHelper
+) {
 
-    val networkHelper: NetworkHelper by injectLazy()
     val client: OkHttpClient
         get() = networkHelper.cloudflareClient
 
     companion object {
-        fun getInstance(url: String): BaseProxyHelper? = when {
-            url.contains(HostNames.FOXTELLER) -> FoxTellerProxy()
-            url.contains(HostNames.WATTPAD) -> WattPadProxy()
-            url.contains(HostNames.BABEL_NOVEL) -> BabelNovelProxy()
+        fun getInstance(url: String, networkHelper: NetworkHelper): BaseProxyHelper? = when {
+            url.contains(HostNames.FOXTELLER) -> FoxTellerProxy(networkHelper)
+            url.contains(HostNames.WATTPAD) -> WattPadProxy(networkHelper)
+            url.contains(HostNames.BABEL_NOVEL) -> BabelNovelProxy(networkHelper)
             else -> null
         }
     }

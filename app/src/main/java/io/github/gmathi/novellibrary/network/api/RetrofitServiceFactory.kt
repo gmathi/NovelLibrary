@@ -3,14 +3,16 @@ package io.github.gmathi.novellibrary.network.api
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import uy.kohesive.injekt.injectLazy
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Factory for creating Retrofit service instances with proper coroutines configuration
  */
-object RetrofitServiceFactory {
-
-    private val networkHelper: NetworkHelper by injectLazy()
+@Singleton
+class RetrofitServiceFactory @Inject constructor(
+    private val networkHelper: NetworkHelper
+) {
 
     /**
      * Create a GitHub API service instance

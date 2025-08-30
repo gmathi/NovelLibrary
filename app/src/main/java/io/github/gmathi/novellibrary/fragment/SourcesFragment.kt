@@ -5,6 +5,7 @@ import android.view.*
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
+import dagger.hilt.android.AndroidEntryPoint
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.createOrUpdateLargePreference
@@ -19,6 +20,7 @@ import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaults
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class SourcesFragment : BaseFragment(), GenericAdapter.Listener<HttpSource> {
 
     companion object {
@@ -27,7 +29,8 @@ class SourcesFragment : BaseFragment(), GenericAdapter.Listener<HttpSource> {
 
     @Inject lateinit var extensionManager: ExtensionManager
 
-    private lateinit var binding: ContentRecyclerViewBinding
+    private var _binding: ContentRecyclerViewBinding? = null
+    private val binding get() = _binding!!
     private lateinit var adapter: GenericAdapter<HttpSource>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,13 +39,12 @@ class SourcesFragment : BaseFragment(), GenericAdapter.Listener<HttpSource> {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.content_recycler_view, container, false)
-        binding = ContentRecyclerViewBinding.bind(view)
-        return view
+        _binding = ContentRecyclerViewBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         setRecyclerView()
     }
 
@@ -114,5 +116,10 @@ class SourcesFragment : BaseFragment(), GenericAdapter.Listener<HttpSource> {
     override fun onResume() {
         super.onResume()
         adapter.updateData(ArrayList(sourceManager.getOnlineSources()))
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

@@ -62,7 +62,7 @@ class SyncSettingsSelectionActivity : BaseActivity(), GenericAdapter.Listener<St
             itemBinding.chevron.setImageResource(R.drawable.ic_info_white_vector)
             itemBinding.chevron.imageTintList = ContextCompat.getColorStateList(this, R.color.colorStateBlue)
         } else {
-            val loggedIn = getString(if (NovelSync.getInstance(host, true)?.loggedIn() == true) R.string.logged_in else R.string.not_logged_in)
+            val loggedIn = getString(if (NovelSync.getInstance(host, dbHelper, dataCenter, networkHelper, sourceManager, true)?.loggedIn() == true) R.string.logged_in else R.string.not_logged_in)
             val enabled = getString(if (dataCenter.getSyncEnabled(host)) R.string.enabled else R.string.disabled)
 
             itemBinding.subtitle.applyFont(assets).text = getString(R.string.sync_status_description, loggedIn, enabled)

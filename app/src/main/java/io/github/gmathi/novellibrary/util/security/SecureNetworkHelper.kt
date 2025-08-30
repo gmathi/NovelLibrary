@@ -36,7 +36,9 @@ class SecureNetworkHelper @Inject constructor(
             requireCertificatePinning = false
         )
         val timeoutConfig = NetworkTimeoutConfig(dataCenter)
-        NetworkHelper(context, dataCenter, timeoutConfig)
+        val cloudflareInterceptor = io.github.gmathi.novellibrary.network.interceptor.CloudflareInterceptor(context)
+        val cookieManager = io.github.gmathi.novellibrary.network.AndroidCookieJar(dataCenter)
+        NetworkHelper(context, dataCenter, timeoutConfig, cloudflareInterceptor, cookieManager)
     }
     
     /**

@@ -14,22 +14,23 @@ import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import uy.kohesive.injekt.injectLazy
+import javax.inject.Inject
 
 /**
  * @see io.github.gmathi.novellibrary.network.NovelApi.getDocumentWithParams
  */
-open class BasePostProxyHelper {
+open class BasePostProxyHelper @Inject constructor(
+    protected val networkHelper: NetworkHelper
+) {
 
-    val networkHelper: NetworkHelper by injectLazy()
     val client: OkHttpClient
         get() = networkHelper.cloudflareClient
 
     companion object {
-        fun getInstance(response: Response): BasePostProxyHelper? {
+        fun getInstance(response: Response, networkHelper: NetworkHelper): BasePostProxyHelper? {
             val url = response.request.url.toString()
             return when {
-                url.contains("inoveltranslation.com") -> object : JsonContentProxy<INovelTranslationJson>() {
+                url.contains("inoveltranslation.com") -> object : JsonContentProxy<INovelTranslationJson>(networkHelper) {
                     override fun extractJson(doc: Document): Document? {
                         """/chapters/(\d+)""".toRegex().find(doc.location())?.let { match ->
                             val jsonString = string(connect(request("https://api.inoveltranslation.com/chapters/${match.groups[1]!!.value}"))) ?: return null

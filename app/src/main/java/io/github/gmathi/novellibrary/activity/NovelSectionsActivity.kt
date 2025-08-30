@@ -167,7 +167,7 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                     if (novelSection.id != -1L) {
                         dbHelper.getAllNovels(novelSection.id).forEach {
                             dbHelper.updateNovelSectionId(it.id, -1L)
-                            NovelSync.getInstance(it)?.applyAsync(lifecycleScope) { sync ->
+                            NovelSync.getInstance(it, dbHelper, dataCenter, networkHelper, sourceManager)?.applyAsync(lifecycleScope) { sync ->
                                 if (dataCenter.getSyncAddNovels(sync.host)) sync.updateNovel(
                                     it,
                                     null
@@ -203,7 +203,7 @@ class NovelSectionsActivity : BaseActivity(), GenericAdapter.Listener<NovelSecti
                     setData()
                     val oldName = novelSection.name
                     lifecycleScope.launch {
-                        NovelSync.getAllInstances().forEach {
+                        NovelSync.getAllInstances(dbHelper, dataCenter, networkHelper, sourceManager).forEach {
                             withContext(Dispatchers.IO) {
                                 if (dataCenter.getSyncAddNovels(it.host)) it.renameSection(
                                     novelSection,

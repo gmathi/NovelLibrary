@@ -12,6 +12,8 @@ import io.github.gmathi.novellibrary.extension.model.LoadResult
 import io.github.gmathi.novellibrary.model.source.CatalogueSource
 import io.github.gmathi.novellibrary.model.source.Source
 import io.github.gmathi.novellibrary.model.preference.DataCenter
+import io.github.gmathi.novellibrary.model.source.online.HttpSource
+import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.lang.Hash
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -24,6 +26,7 @@ import javax.inject.Singleton
 @SuppressLint("PackageManagerGetSignatures")
 @Singleton
 class ExtensionLoader @Inject constructor(
+    private val network: NetworkHelper,
     private val dataCenter: DataCenter
 ) {
 
@@ -158,7 +161,10 @@ class ExtensionLoader @Inject constructor(
             .flatMap {
                 try {
                     when (val obj = Class.forName(it, false, classLoader).newInstance()) {
-                        is Source -> listOf(obj)
+                        is Source -> {
+                            (obj as? HttpSource)?.setNetworkAndData(network, dataCenter)
+                                listOf(obj)
+                        }
                         is SourceFactory -> {
                             if (isSourceNsfw(obj)) {
                                 emptyList()

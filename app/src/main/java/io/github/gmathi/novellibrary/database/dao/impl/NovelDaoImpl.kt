@@ -21,12 +21,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
-import uy.kohesive.injekt.injectLazy
+
 import java.util.*
 
 private const val LOG = "NovelDaoImpl"
 
-class NovelDaoImpl(private val dbHelper: DBHelper) : NovelDao {
+class NovelDaoImpl(
+    private val dbHelper: DBHelper,
+    private val sourceManager: SourceManager
+) : NovelDao {
     
     override suspend fun insertNovel(novel: Novel): Long = withContext(Dispatchers.IO) {
         val novelId = createNovel(novel)
@@ -233,7 +236,6 @@ class NovelDaoImpl(private val dbHelper: DBHelper) : NovelDao {
         dbHelper.cleanupNovelData(novel)
 
         // Notice: Cannot run getNovelDetails on MainThread
-        val sourceManager: SourceManager by injectLazy()
         val newNovel = sourceManager.get(novel.sourceId)?.getNovelDetails(novel)
         newNovel?.novelSectionId = novel.novelSectionId
         newNovel?.orderId = novel.orderId

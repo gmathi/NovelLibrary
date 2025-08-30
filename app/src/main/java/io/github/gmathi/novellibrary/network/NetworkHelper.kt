@@ -33,12 +33,12 @@ import javax.inject.Singleton
 class NetworkHelper @Inject constructor(
     @ApplicationContext private val context: Context,
     private val dataCenter: DataCenter,
-    private val timeoutConfig: NetworkTimeoutConfig
+    private val timeoutConfig: NetworkTimeoutConfig,
+    private val cloudflareInterceptor: CloudflareInterceptor,
+    val cookieManager: AndroidCookieJar
 ) {
     private val cacheDir = File(context.cacheDir, "network_cache")
     private val cacheSize = 5L * 1024 * 1024 // 5 MiB
-
-    val cookieManager = AndroidCookieJar()
 
     private val baseClientBuilder: OkHttpClient.Builder
         get() {
@@ -70,7 +70,7 @@ class NetworkHelper @Inject constructor(
 
     val cloudflareClient by lazy {
         client.newBuilder()
-            .addInterceptor(CloudflareInterceptor(context))
+            .addInterceptor(cloudflareInterceptor)
             .build()
     }
 
@@ -165,6 +165,17 @@ class NetworkHelper @Inject constructor(
      */
     suspend fun checkNetworkConnectivity(): Boolean {
         return isConnectedToNetwork()
+    }
+
+    companion object {
+        /**
+         * Static method to get NetworkHelper instance for external extensions.
+         * This provides backward compatibility for extensions that expect static access.
+         */
+        @JvmStatic
+        fun getInstance(): NetworkHelper {
+            return NetworkHelperProvider.getInstance()
+        }
     }
 
 }

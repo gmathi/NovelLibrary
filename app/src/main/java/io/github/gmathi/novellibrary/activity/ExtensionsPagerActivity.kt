@@ -3,11 +3,13 @@ package io.github.gmathi.novellibrary.activity
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import dagger.hilt.android.AndroidEntryPoint
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.ExtensionsPageListener
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.databinding.ActivityExtensionsPagerBinding
 
+@AndroidEntryPoint
 class ExtensionsPagerActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityExtensionsPagerBinding

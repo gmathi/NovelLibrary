@@ -5,7 +5,7 @@ import io.github.gmathi.novellibrary.util.network.asJsoup
 import okhttp3.Response
 import org.jsoup.nodes.Document
 
-abstract class JsonContentProxy<T> : BasePostProxyHelper() {
+abstract class JsonContentProxy<T>(networkHelper: io.github.gmathi.novellibrary.network.NetworkHelper) : BasePostProxyHelper(networkHelper) {
     abstract fun extractJson(doc: Document): Document?
 
     override fun document(response: Response): Document {

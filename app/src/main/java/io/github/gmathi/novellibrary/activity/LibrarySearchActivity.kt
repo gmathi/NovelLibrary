@@ -215,8 +215,8 @@ class LibrarySearchActivity : BaseActivity(), GenericAdapter.Listener<Novel> {
                 val novelInAdapter = adapter.items[position]
                 dbHelper.updateNovelSectionId(novelInAdapter.id, id)
                 EventBus.getDefault().post(NovelSectionEvent(id))
-                NovelSync.getInstance(novelInAdapter)?.applyAsync(lifecycleScope) {
-                    if (dataCenter.getSyncAddNovels(it.host)) it.updateNovel(
+                NovelSync.getInstance(novelInAdapter, dbHelper, dataCenter, networkHelper, sourceManager)?.applyAsync(lifecycleScope) { novelSync ->
+                    if (dataCenter.getSyncAddNovels(novelSync.host)) novelSync.updateNovel(
                         novelInAdapter,
                         novelSections.firstOrNull { section -> section.id == id })
                 }

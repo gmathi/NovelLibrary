@@ -12,8 +12,14 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.FormBody
 import java.net.URL
+import javax.inject.Inject
 
-class NovelUpdatesSync : NovelSync() {
+class NovelUpdatesSync @Inject constructor(
+    dbHelper: io.github.gmathi.novellibrary.database.DBHelper,
+    dataCenter: io.github.gmathi.novellibrary.model.preference.DataCenter,
+    networkHelper: io.github.gmathi.novellibrary.network.NetworkHelper,
+    sourceManager: io.github.gmathi.novellibrary.model.source.SourceManager
+) : NovelSync(dbHelper, dataCenter, networkHelper, sourceManager) {
 
     companion object {
         private const val BASE_URL = "https://${HostNames.NOVEL_UPDATES}"

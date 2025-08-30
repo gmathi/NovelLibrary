@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.service.download
 import android.content.Context
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.model.database.Download
+import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
 import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.other.EventType
@@ -26,10 +27,11 @@ class CoroutineDownloadService(
     private val downloadListener: DownloadListener,
     private val networkHelper: NetworkHelper,
     private val webPageDocumentFetcher: WebPageDocumentFetcher,
-    private val dataCenter: io.github.gmathi.novellibrary.model.preference.DataCenter
+    private val dataCenter: io.github.gmathi.novellibrary.model.preference.DataCenter,
+    private val sourceManager: SourceManager
 ) : DownloadListener {
 
-    private val serviceDatabaseManager = ServiceDatabaseManager(dbHelper)
+    private val serviceDatabaseManager = ServiceDatabaseManager(dbHelper, sourceManager)
     private val downloadJobs = mutableMapOf<String, Job>()
     private val eventChannel = Channel<DownloadWebPageEvent>(Channel.UNLIMITED)
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())

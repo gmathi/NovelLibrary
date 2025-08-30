@@ -102,7 +102,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
                 return@search
             }
             try {
-                val novelsPage = withContext(Dispatchers.IO) { NovelUpdatesSource().getPopularNovels(rank, url, currentPageNumber) }
+                val novelsPage = withContext(Dispatchers.IO) { NovelUpdatesSource(networkHelper, dataCenter).getPopularNovels(rank, url, currentPageNumber) }
                 if (isFragmentActive()) {
                     loadSearchResults(ArrayList(novelsPage.novels))
                     isPageLoading.lazySet(false)

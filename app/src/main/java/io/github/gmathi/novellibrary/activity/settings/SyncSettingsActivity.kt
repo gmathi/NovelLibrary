@@ -59,7 +59,7 @@ class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val sync = NovelSync.getInstance(intent.getStringExtra("url")!!, true)
+        val sync = NovelSync.getInstance(intent.getStringExtra("url")!!, dbHelper, dataCenter, networkHelper, sourceManager, true)
         if (sync == null) {
             finish()
             return

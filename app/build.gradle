@@ -217,8 +217,7 @@ dependencies {
     implementation 'androidx.hilt:hilt-work:1.2.0'
     ksp 'androidx.hilt:hilt-compiler:1.2.0'
 
-    // Temporary Injekt for migration bridge (will be removed in final cleanup)
-    implementation "uy.kohesive.injekt:injekt-core:1.16.1"
+
 
 
 
@@ -320,3 +319,7 @@ repositories {
 
 // Apply build performance monitoring
 apply from: '../scripts/build-performance-monitor.gradle'
+
+// Apply regression test tasks for Injekt cleanup validation
+apply from: 'src/test/java/io/github/gmathi/novellibrary/scripts/run_regression_tests.gradle'
+apply from: 'src/test/java/io/github/gmathi/novellibrary/scripts/validate_regression_setup.gradle'

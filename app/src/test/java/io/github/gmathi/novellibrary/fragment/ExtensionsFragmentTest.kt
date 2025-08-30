@@ -46,9 +46,8 @@ class ExtensionsFragmentTest {
         
         fragment = ExtensionsFragment()
         
-        // Mock the extension manager injection
-        mockkStatic("uy.kohesive.injekt.InjektKt")
-        every { io.github.gmathi.novellibrary.extension.ExtensionManager::class.java.injectLazy() } returns lazy { mockExtensionManager }
+        // Note: ExtensionManager is now injected via Hilt @Inject annotation
+        // Test should use @HiltAndroidTest for proper dependency injection testing
     }
 
     @After

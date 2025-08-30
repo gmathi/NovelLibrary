@@ -45,7 +45,7 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
 
         try {
             if (networkHelper.isConnectedToNetwork()) {
-                startNovelsSync(dbHelper)
+                startNovelsSync(dbHelper, entryPoint)
             }
         } catch (e: Exception) {
             return@withContext Result.retry()
@@ -54,7 +54,7 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
     }
 
     @SuppressLint("UnspecifiedImmutableFlag")
-    private suspend fun startNovelsSync(dbHelper: DBHelper) = withContext(Dispatchers.IO) {
+    private suspend fun startNovelsSync(dbHelper: DBHelper, entryPoint: WorkerEntryPoint) = withContext(Dispatchers.IO) {
         //For Testing - get a Novel and delete 5 chapters
         //dbHelper.getAllNovels().forEach { novel ->
         //            dbHelper.updateChaptersCount(novel.id, novel.chaptersCount - 5)
@@ -63,7 +63,8 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
         Logs.debug(TAG, "start novel sync")
         val totalCountMap: HashMap<Novel, Int> = HashMap()
         val totalChaptersMap: HashMap<Novel, ArrayList<WebPage>> = HashMap()
-        val sourceManager = SourceManager(context)
+        val sourceManager = entryPoint.sourceManager()
+        val dataCenter = entryPoint.dataCenter()
         val novels = dbHelper.getAllNovels()
         
         novels.forEach { novel ->

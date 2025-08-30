@@ -48,24 +48,25 @@ open class NovelLibraryApplication : Application(), LifecycleObserver {
     lateinit var dbHelper: DBHelper
 
     @Inject
-    lateinit var migrationValidator: io.github.gmathi.novellibrary.util.migration.MigrationValidator
+    lateinit var sourceManager: io.github.gmathi.novellibrary.model.source.SourceManager
 
     @Inject
-    lateinit var migrationLogger: io.github.gmathi.novellibrary.util.migration.MigrationLogger
+    lateinit var extensionManager: io.github.gmathi.novellibrary.extension.ExtensionManager
+
+    @Inject
+    lateinit var networkHelper: io.github.gmathi.novellibrary.network.NetworkHelper
+
+
 
     override fun onCreate() {
         super.onCreate()
 
         // Hilt handles dependency injection automatically
-        // Removed Injekt initialization:
-        // Injekt = InjektScope(DefaultRegistrar())
-        // Injekt.importModule(AppModule(this))
-
-        // Validate Hilt dependency injection
-        validateHiltMigration()
+        // All dependencies are injected via @Inject annotations
 
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
         cleanupDatabase()
+        initializeSourceComponents()
 
         val imagesDir = File(filesDir, "images")
         if (!imagesDir.exists())
@@ -95,6 +96,14 @@ open class NovelLibraryApplication : Application(), LifecycleObserver {
         //Stray webPages to be deleted
         dbHelper.deleteWebPages(-1L)
         dbHelper.deleteWebPageSettings(-1L)
+    }
+
+    private fun initializeSourceComponents() {
+        // Initialize NetworkHelper compatibility layer for external extensions
+        io.github.gmathi.novellibrary.network.initNetworkHelperCompat(networkHelper)
+        
+        // Initialize ExtensionManager with SourceManager
+        extensionManager.init(sourceManager)
     }
 
     private fun setPreferences(dataCenter: DataCenter) {
@@ -167,29 +176,6 @@ open class NovelLibraryApplication : Application(), LifecycleObserver {
         Notifications.createChannels(this)
     }
 
-    /**
-     * Validates that Hilt dependency injection is working correctly.
-     * This is part of the migration validation process.
-     */
-    private fun validateHiltMigration() {
-        try {
-            migrationLogger.logPhaseStart("Application Startup Validation")
-            
-            val isValid = migrationValidator.validateDependencies()
-            
-            if (isValid) {
-                migrationLogger.logValidationResult("Application Dependencies", true, "All core dependencies validated successfully")
-                Logs.info(TAG, "Hilt migration validation passed - all dependencies properly injected")
-            } else {
-                migrationLogger.logValidationResult("Application Dependencies", false, "Some dependencies failed validation")
-                Logs.error(TAG, "Hilt migration validation failed - check dependency injection")
-            }
-            
-            migrationLogger.logPhaseComplete("Application Startup Validation")
-        } catch (e: Exception) {
-            migrationLogger.logError("Application Startup Validation", e)
-            Logs.error(TAG, "Error during Hilt migration validation", e)
-        }
-    }
+
 
 }

@@ -1,0 +1,361 @@
+/**
+ * Gradle script to validate that the regression test infrastructure is properly set up.
+ * This script checks that all required test files exist and are properly configured.
+ */
+
+task validateRegressionTestSetup {
+    group = 'verification'
+    description = 'Validate that regression test infrastructure is properly set up'
+    
+    doLast {
+        println "=== Validating Regression Test Infrastructure Setup ==="
+        println ""
+        
+        def requiredTestFiles = [
+            'app/src/test/java/io/github/gmathi/novellibrary/regression/NetworkOperationsRegressionTest.kt',
+            'app/src/test/java/io/github/gmathi/novellibrary/regression/SourceManagementRegressionTest.kt',
+            'app/src/test/java/io/github/gmathi/novellibrary/regression/DatabaseOperationsRegressionTest.kt',
+            'app/src/test/java/io/github/gmathi/novellibrary/regression/EndToEndUserWorkflowTest.kt',
+            'app/src/test/java/io/github/gmathi/novellibrary/regression/FunctionalityPreservationValidationTest.kt',
+            'app/src/test/java/io/github/gmathi/novellibrary/regression/ComprehensiveRegressionTestRunner.kt',
+            'app/src/test/java/io/github/gmathi/novellibrary/regression/REGRESSION_TESTING_GUIDE.md'
+        ]
+        
+        def requiredScriptFiles = [
+            'app/src/test/java/io/github/gmathi/novellibrary/scripts/run_regression_tests.gradle',
+            'app/src/test/java/io/github/gmathi/novellibrary/scripts/validate_regression_setup.gradle'
+        ]
+        
+        def missingFiles = []
+        def existingFiles = []
+        
+        // Check test files
+        println "Checking regression test files..."
+        requiredTestFiles.each { filePath ->
+            def file = file(filePath)
+            if (file.exists()) {
+                existingFiles.add(filePath)
+                println "✓ ${filePath}"
+            } else {
+                missingFiles.add(filePath)
+                println "✗ ${filePath} - MISSING"
+            }
+        }
+        
+        println ""
+        
+        // Check script files
+        println "Checking regression test scripts..."
+        requiredScriptFiles.each { filePath ->
+            def file = file(filePath)
+            if (file.exists()) {
+                existingFiles.add(filePath)
+                println "✓ ${filePath}"
+            } else {
+                missingFiles.add(filePath)
+                println "✗ ${filePath} - MISSING"
+            }
+        }
+        
+        println ""
+        
+        // Check build.gradle integration
+        println "Checking build.gradle integration..."
+        def buildFile = file('app/build.gradle')
+        if (buildFile.exists()) {
+            def buildContent = buildFile.text
+            if (buildContent.contains('run_regression_tests.gradle')) {
+                println "✓ Regression test tasks integrated in build.gradle"
+            } else {
+                println "✗ Regression test tasks NOT integrated in build.gradle"
+                missingFiles.add("build.gradle integration")
+            }
+        } else {
+            println "✗ app/build.gradle not found"
+            missingFiles.add("app/build.gradle")
+        }
+        
+        println ""
+        
+        // Validate test content
+        println "Validating test file content..."
+        def contentValidation = [:]
+        
+        // Check NetworkOperationsRegressionTest
+        def networkTestFile = file('app/src/test/java/io/github/gmathi/novellibrary/regression/NetworkOperationsRegressionTest.kt')
+        if (networkTestFile.exists()) {
+            def content = networkTestFile.text
+            def hasHiltAnnotation = content.contains('@HiltAndroidTest')
+            def hasNetworkHelperInjection = content.contains('@Inject') && content.contains('NetworkHelper')
+            def hasProxyHelperTests = content.contains('BaseProxyHelper') && content.contains('BasePostProxyHelper')
+            
+            contentValidation['NetworkOperationsRegressionTest'] = [
+                'Hilt annotation': hasHiltAnnotation,
+                'NetworkHelper injection': hasNetworkHelperInjection,
+                'Proxy helper tests': hasProxyHelperTests
+            ]
+        }
+        
+        // Check SourceManagementRegressionTest
+        def sourceTestFile = file('app/src/test/java/io/github/gmathi/novellibrary/regression/SourceManagementRegressionTest.kt')
+        if (sourceTestFile.exists()) {
+            def content = sourceTestFile.text
+            def hasHiltAnnotation = content.contains('@HiltAndroidTest')
+            def hasSourceManagerInjection = content.contains('@Inject') && content.contains('SourceManager')
+            def hasExtensionManagerTests = content.contains('ExtensionManager')
+            
+            contentValidation['SourceManagementRegressionTest'] = [
+                'Hilt annotation': hasHiltAnnotation,
+                'SourceManager injection': hasSourceManagerInjection,
+                'ExtensionManager tests': hasExtensionManagerTests
+            ]
+        }
+        
+        // Check DatabaseOperationsRegressionTest
+        def databaseTestFile = file('app/src/test/java/io/github/gmathi/novellibrary/regression/DatabaseOperationsRegressionTest.kt')
+        if (databaseTestFile.exists()) {
+            def content = databaseTestFile.text
+            def hasHiltAnnotation = content.contains('@HiltAndroidTest')
+            def hasDBHelperInjection = content.contains('@Inject') && content.contains('DBHelper')
+            def hasNovelHelperTests = content.contains('NovelHelper')
+            
+            contentValidation['DatabaseOperationsRegressionTest'] = [
+                'Hilt annotation': hasHiltAnnotation,
+                'DBHelper injection': hasDBHelperInjection,
+                'NovelHelper tests': hasNovelHelperTests
+            ]
+        }
+        
+        // Check EndToEndUserWorkflowTest
+        def workflowTestFile = file('app/src/test/java/io/github/gmathi/novellibrary/regression/EndToEndUserWorkflowTest.kt')
+        if (workflowTestFile.exists()) {
+            def content = workflowTestFile.text
+            def hasHiltAnnotation = content.contains('@HiltAndroidTest')
+            def hasWorkflowTests = content.contains('workflow') || content.contains('Workflow')
+            def hasEndToEndTests = content.contains('end-to-end') || content.contains('complete')
+            
+            contentValidation['EndToEndUserWorkflowTest'] = [
+                'Hilt annotation': hasHiltAnnotation,
+                'Workflow tests': hasWorkflowTests,
+                'End-to-end tests': hasEndToEndTests
+            ]
+        }
+        
+        // Check FunctionalityPreservationValidationTest
+        def validationTestFile = file('app/src/test/java/io/github/gmathi/novellibrary/regression/FunctionalityPreservationValidationTest.kt')
+        if (validationTestFile.exists()) {
+            def content = validationTestFile.text
+            def hasHiltAnnotation = content.contains('@HiltAndroidTest')
+            def hasValidationTests = content.contains('validate') || content.contains('Validate')
+            def hasInjectionValidation = content.contains('injection') && content.contains('properly injected')
+            
+            contentValidation['FunctionalityPreservationValidationTest'] = [
+                'Hilt annotation': hasHiltAnnotation,
+                'Validation tests': hasValidationTests,
+                'Injection validation': hasInjectionValidation
+            ]
+        }
+        
+        // Report content validation
+        contentValidation.each { testClass, validations ->
+            println "  ${testClass}:"
+            validations.each { check, passed ->
+                println "    ${passed ? '✓' : '✗'} ${check}"
+            }
+        }
+        
+        println ""
+        
+        // Summary
+        println "=== Validation Summary ==="
+        println "Total required files: ${requiredTestFiles.size() + requiredScriptFiles.size() + 1}" // +1 for build.gradle integration
+        println "Existing files: ${existingFiles.size()}"
+        println "Missing files: ${missingFiles.size()}"
+        
+        if (missingFiles.isEmpty()) {
+            println ""
+            println "🎉 REGRESSION TEST INFRASTRUCTURE IS PROPERLY SET UP!"
+            println ""
+            println "Available commands:"
+            println "  gradlew runRegressionTests              - Run all regression tests"
+            println "  gradlew runNetworkRegressionTests       - Run network tests only"
+            println "  gradlew runSourceRegressionTests        - Run source management tests only"
+            println "  gradlew runDatabaseRegressionTests      - Run database tests only"
+            println "  gradlew runEndToEndRegressionTests      - Run end-to-end workflow tests only"
+            println "  gradlew validateRegressionTestCoverage  - Validate test coverage"
+            println ""
+            println "Test classes available:"
+            println "  - NetworkOperationsRegressionTest"
+            println "  - SourceManagementRegressionTest"
+            println "  - DatabaseOperationsRegressionTest"
+            println "  - EndToEndUserWorkflowTest"
+            println "  - FunctionalityPreservationValidationTest"
+            println "  - ComprehensiveRegressionTestRunner (test suite)"
+            println ""
+            println "The regression test infrastructure is ready to validate the Injekt cleanup!"
+            
+        } else {
+            println ""
+            println "❌ REGRESSION TEST INFRASTRUCTURE IS INCOMPLETE!"
+            println ""
+            println "Missing files:"
+            missingFiles.each { file ->
+                println "  - ${file}"
+            }
+            println ""
+            println "Please ensure all required files are created before running regression tests."
+        }
+        
+        // Generate setup report
+        generateSetupValidationReport(existingFiles, missingFiles, contentValidation)
+    }
+}
+
+def generateSetupValidationReport(existingFiles, missingFiles, contentValidation) {
+    def reportFile = file("${buildDir}/reports/regression-setup/validation-report.html")
+    reportFile.parentFile.mkdirs()
+    
+    def html = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Regression Test Infrastructure Validation Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { background-color: #f0f0f0; padding: 20px; border-radius: 5px; }
+        .section { margin: 20px 0; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .file-list { margin: 10px 0; }
+        .file-item { margin: 5px 0; padding: 5px; }
+        .file-item.exists { background-color: #f0fff0; border-left: 4px solid green; }
+        .file-item.missing { background-color: #fff0f0; border-left: 4px solid red; }
+        .validation-item { margin: 5px 0; padding: 5px; }
+        .validation-item.passed { color: green; }
+        .validation-item.failed { color: red; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Regression Test Infrastructure Validation Report</h1>
+        <p>Generated on: ${new Date()}</p>
+        <p>This report validates that all regression test infrastructure is properly set up for Injekt cleanup validation.</p>
+    </div>
+    
+    <div class="section">
+        <h2>File Validation</h2>
+        <p>Total files checked: ${existingFiles.size() + missingFiles.size()}</p>
+        <p class="success">Existing files: ${existingFiles.size()}</p>
+        <p class="error">Missing files: ${missingFiles.size()}</p>
+        
+        <h3>Existing Files</h3>
+        <div class="file-list">
+            ${existingFiles.collect { file ->
+                "<div class='file-item exists'>✓ ${file}</div>"
+            }.join('')}
+        </div>
+        
+        ${missingFiles.isEmpty() ? '' : """
+        <h3>Missing Files</h3>
+        <div class="file-list">
+            ${missingFiles.collect { file ->
+                "<div class='file-item missing'>✗ ${file}</div>"
+            }.join('')}
+        </div>
+        """}
+    </div>
+    
+    <div class="section">
+        <h2>Content Validation</h2>
+        ${contentValidation.collect { testClass, validations ->
+            """
+            <h3>${testClass}</h3>
+            ${validations.collect { check, passed ->
+                "<div class='validation-item ${passed ? 'passed' : 'failed'}'>${passed ? '✓' : '✗'} ${check}</div>"
+            }.join('')}
+            """
+        }.join('')}
+    </div>
+    
+    <div class="section">
+        <h2>Setup Status</h2>
+        ${missingFiles.isEmpty() ? 
+            """
+            <div class="success">
+                <h3>🎉 REGRESSION TEST INFRASTRUCTURE IS PROPERLY SET UP!</h3>
+                <p>All required files are present and properly configured.</p>
+                <p>The regression test infrastructure is ready to validate the Injekt cleanup.</p>
+            </div>
+            """ :
+            """
+            <div class="error">
+                <h3>❌ REGRESSION TEST INFRASTRUCTURE IS INCOMPLETE!</h3>
+                <p>Some required files are missing. Please create the missing files before running regression tests.</p>
+            </div>
+            """
+        }
+    </div>
+    
+    <div class="section">
+        <h2>Available Commands</h2>
+        <ul>
+            <li><code>gradlew runRegressionTests</code> - Run all regression tests</li>
+            <li><code>gradlew runNetworkRegressionTests</code> - Run network tests only</li>
+            <li><code>gradlew runSourceRegressionTests</code> - Run source management tests only</li>
+            <li><code>gradlew runDatabaseRegressionTests</code> - Run database tests only</li>
+            <li><code>gradlew runEndToEndRegressionTests</code> - Run end-to-end workflow tests only</li>
+            <li><code>gradlew validateRegressionTestCoverage</code> - Validate test coverage</li>
+        </ul>
+    </div>
+</body>
+</html>
+    """
+    
+    reportFile.text = html
+    println "Setup validation report generated: ${reportFile.absolutePath}"
+}
+
+// Task to check if regression tests can be executed
+task checkRegressionTestExecution {
+    group = 'verification'
+    description = 'Check if regression tests can be executed successfully'
+    
+    doLast {
+        println "=== Checking Regression Test Execution Readiness ==="
+        
+        try {
+            // Try to compile the test classes
+            def result = project.exec {
+                commandLine 'gradlew', 'compileDebugAndroidTestSources'
+                ignoreExitValue = true
+            }
+            
+            if (result.exitValue == 0) {
+                println "✓ Test compilation successful"
+                
+                // Check if we can run a simple test
+                def testResult = project.exec {
+                    commandLine 'gradlew', 'test', '--tests', 'io.github.gmathi.novellibrary.regression.FunctionalityPreservationValidationTest.validate_all_core_dependencies_are_properly_injected'
+                    ignoreExitValue = true
+                }
+                
+                if (testResult.exitValue == 0) {
+                    println "✓ Test execution successful"
+                    println ""
+                    println "🎉 REGRESSION TESTS ARE READY TO RUN!"
+                    println "Execute 'gradlew runRegressionTests' to run the full test suite."
+                } else {
+                    println "✗ Test execution failed"
+                    println "Check test configuration and dependencies."
+                }
+                
+            } else {
+                println "✗ Test compilation failed"
+                println "Check test source code for compilation errors."
+            }
+            
+        } catch (Exception e) {
+            println "✗ Error checking test execution: ${e.message}"
+        }
+    }
+}

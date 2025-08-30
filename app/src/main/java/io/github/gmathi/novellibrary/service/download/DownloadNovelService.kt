@@ -61,6 +61,9 @@ class DownloadNovelService : Service(), DownloadListener {
     
     @Inject
     lateinit var dataCenter: io.github.gmathi.novellibrary.model.preference.DataCenter
+    
+    @Inject
+    lateinit var sourceManager: io.github.gmathi.novellibrary.model.source.SourceManager
 
     //static components
     companion object {
@@ -119,7 +122,7 @@ class DownloadNovelService : Service(), DownloadListener {
     private suspend fun addNovelToDownload(novelId: Long?) {
         novelId?.let {
             val downloadService = CoroutineDownloadService(
-                this@DownloadNovelService, novelId, dbHelper, this@DownloadNovelService, networkHelper, webPageDocumentFetcher, dataCenter
+                this@DownloadNovelService, novelId, dbHelper, this@DownloadNovelService, networkHelper, webPageDocumentFetcher, dataCenter, sourceManager
             )
             downloadServiceMap[novelId] = downloadService
 

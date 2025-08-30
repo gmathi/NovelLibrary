@@ -232,7 +232,7 @@ class HiltCompileTimeValidator @Inject constructor(
             HiltModuleInfo("SourceModule", "SingletonComponent", listOf("SourceManager", "ExtensionManager")),
             HiltModuleInfo("AnalyticsModule", "SingletonComponent", listOf("FirebaseAnalytics")),
             HiltModuleInfo("CoroutineModule", "SingletonComponent", listOf("CoroutineScopes", "DispatcherProvider")),
-            HiltModuleInfo("MigrationModule", "SingletonComponent", listOf("MigrationValidator", "MigrationLogger")),
+
             HiltModuleInfo("ErrorHandlingModule", "SingletonComponent", listOf("HiltErrorHandler", "HiltDebugUtils"))
         )
     }
@@ -317,7 +317,7 @@ class HiltCompileTimeValidator @Inject constructor(
         return listOf(
             "DBHelper", "DataCenter", "NetworkHelper", "SourceManager", "ExtensionManager",
             "FirebaseAnalytics", "CoroutineScopes", "DispatcherProvider", "Gson", "Json",
-            "MigrationValidator", "MigrationLogger", "HiltErrorHandler", "HiltDebugUtils"
+            "HiltErrorHandler", "HiltDebugUtils"
         )
     }
     

@@ -598,7 +598,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     private fun assignNovelToSection(novel: Novel, novelSections: ArrayList<NovelSection>, novelSectionId: Long) {
         dbHelper.updateNovelSectionId(novel.id, novelSectionId)
         EventBus.getDefault().post(NovelSectionEvent(novelSectionId))
-        NovelSync.getInstance(novel)?.applyAsync(lifecycleScope) { novelSync ->
+        NovelSync.getInstance(novel, dbHelper, dataCenter, networkHelper, sourceManager)?.applyAsync(lifecycleScope) { novelSync ->
             if (dataCenter.getSyncAddNovels(novelSync.host)) {
                 novelSync.updateNovel(novel, novelSections.firstOrNull { section -> section.id == novelSectionId })
             }

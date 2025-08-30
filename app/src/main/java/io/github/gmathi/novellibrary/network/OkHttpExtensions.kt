@@ -7,8 +7,7 @@ import kotlinx.serialization.json.Json
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.internal.closeQuietly
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.fullType
+
 import java.io.IOException
 import kotlin.coroutines.resumeWithException
 
@@ -78,9 +77,8 @@ fun OkHttpClient.newCallWithProgress(request: Request, listener: ProgressListene
 }
 
 @ExperimentalSerializationApi
-inline fun <reified T> Response.parseAs(): T {
-    // Avoiding Injekt.get<Json>() due to compiler issues
-    val json = Injekt.getInstance<Json>(fullType<Json>().type)
+inline fun <reified T> Response.parseAs(json: Json): T {
+    // Uses Hilt-injected Json instance passed as parameter
     this.use {
         val responseBody = it.body?.string().orEmpty()
         return json.decodeFromString(responseBody)

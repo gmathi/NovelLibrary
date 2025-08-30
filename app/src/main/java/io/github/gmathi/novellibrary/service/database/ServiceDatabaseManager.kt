@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.service.database
 
 import io.github.gmathi.novellibrary.database.DBHelper
+import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.database.createWebPageSettings
 import io.github.gmathi.novellibrary.database.dao.DownloadDao
 import io.github.gmathi.novellibrary.database.dao.NovelDao
@@ -25,9 +26,12 @@ import kotlinx.coroutines.withContext
  * Service-specific database manager that provides coroutine-based database operations
  * for background services and workers
  */
-class ServiceDatabaseManager(private val dbHelper: DBHelper) {
+class ServiceDatabaseManager(
+    private val dbHelper: DBHelper,
+    private val sourceManager: SourceManager
+) {
     
-    private val novelDao: NovelDao = NovelDaoImpl(dbHelper)
+    private val novelDao: NovelDao = NovelDaoImpl(dbHelper, sourceManager)
     private val webPageDao: WebPageDao = WebPageDaoImpl(dbHelper)
     private val downloadDao: DownloadDao = DownloadDaoImpl(dbHelper)
     
