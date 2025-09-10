@@ -6,61 +6,115 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.GravityCompat
+import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.google.firebase.analytics.logEvent
+import dagger.hilt.android.AndroidEntryPoint
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.BaseActivity
-import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.NavPageListener
 import io.github.gmathi.novellibrary.adapter.SearchResultsListener
 import io.github.gmathi.novellibrary.databinding.FragmentSearchBinding
+import io.github.gmathi.novellibrary.model.SearchUiState
 import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.model.source.getPreferenceKey
 import io.github.gmathi.novellibrary.util.FAC
-import io.github.gmathi.novellibrary.util.lang.addToNovelSearchHistory
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
 import io.github.gmathi.novellibrary.util.view.SimpleAnimationListener
 import io.github.gmathi.novellibrary.util.view.SuggestionsBuilder
+import io.github.gmathi.novellibrary.viewmodel.SearchViewModel
 import org.cryse.widget.persistentsearch.PersistentSearchView
 import org.cryse.widget.persistentsearch.SearchItem
 
 
+@AndroidEntryPoint
 class SearchFragment : BaseFragment() {
 
-    lateinit var adapter: GenericAdapter<Novel>
-    var searchMode: Boolean = false
+    private val viewModel: SearchViewModel by viewModels()
+    
+    private var _binding: FragmentSearchBinding? = null
+    private val binding get() = _binding!!
+    
+    private var searchMode: Boolean = false
     private var searchTerm: String? = null
-
-    private lateinit var binding: FragmentSearchBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.fragment_search, container, false) ?: return null
-        binding = FragmentSearchBinding.bind(view)
-        return view
+    override fun getLayoutId() = R.layout.fragment_search
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentSearchBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        
         setSearchView()
-
+        observeViewModel()
+        
+        // Restore state if needed
         if (savedInstanceState != null) {
-            if (savedInstanceState.containsKey("searchTerm"))
-                searchTerm = savedInstanceState.getString("searchTerm")
-            if (savedInstanceState.containsKey("searchMode"))
-                searchMode = savedInstanceState.getBoolean("searchMode")
+            searchTerm = savedInstanceState.getString("searchTerm")
+            searchMode = savedInstanceState.getBoolean("searchMode")
+            viewModel.restoreSearchState(searchTerm, searchMode)
+        } else {
+            viewModel.initializeSearch()
         }
+    }
 
-        if (searchMode && searchTerm != null)
-            searchNovels(searchTerm!!)
-        else
+    private fun observeViewModel() {
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is SearchUiState.Initial -> {
+                    // Initialize the search view
+                    setViewPager()
+                }
+                is SearchUiState.Loading -> {
+                    // Show loading state if needed
+                }
+                is SearchUiState.Success -> {
+                    handleSearchSuccess(state)
+                }
+                is SearchUiState.Error -> {
+                    handleSearchError(state.message)
+                }
+            }
+        }
+    }
+
+    private fun handleSearchSuccess(state: SearchUiState.Success) {
+        // Update search suggestions
+        binding.searchView.setSuggestionBuilder(SuggestionsBuilder(ArrayList(state.searchHistory)))
+        
+        if (state.isSearchMode && !state.searchTerm.isNullOrBlank()) {
+            searchMode = true
+            searchTerm = state.searchTerm
+            displaySearchResults(state.searchTerm, state.sources)
+        } else {
+            searchMode = false
+            searchTerm = null
             setViewPager()
+        }
+    }
+
+    private fun handleSearchError(message: String) {
+        // Show error message to user
+        activity?.let { activity ->
+            androidx.appcompat.app.AlertDialog.Builder(activity)
+                .setTitle("Search Error")
+                .setMessage(message)
+                .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+                .show()
+        }
     }
 
     private fun setViewPager() {
@@ -76,22 +130,26 @@ class SearchFragment : BaseFragment() {
     }
 
     private fun setSearchView() {
-        //searchView.setHomeButtonVisibility(View.GONE)
         binding.searchView.setHomeButtonListener {
             hideSoftKeyboard()
-            if (activity != null && activity is NavDrawerActivity) {
-                (requireActivity() as NavDrawerActivity).binding.drawerLayout.openDrawer(GravityCompat.START)
+            // In single activity architecture, we don't need to access NavDrawerActivity
+            // The drawer is handled by MainActivity
+            try {
+                // Navigate back or open drawer through Navigation Component
+                if (!findNavController().navigateUp()) {
+                    activity?.onBackPressed()
+                }
+            } catch (e: Exception) {
+                // Fallback to activity back press
+                activity?.onBackPressed()
             }
         }
 
-        binding.searchView.setSuggestionBuilder(SuggestionsBuilder(dataCenter.loadNovelSearchHistory()))
         binding.searchView.setSearchListener(object : PersistentSearchView.SearchListener {
 
             override fun onSearch(query: String?) {
-                query?.addToNovelSearchHistory(dataCenter)
-                if (query != null) {
-                    searchNovels(query)
-                    binding.searchView.setSuggestionBuilder(SuggestionsBuilder(dataCenter.loadNovelSearchHistory()))
+                if (!query.isNullOrBlank()) {
+                    viewModel.searchNovels(query)
                     firebaseAnalytics.logEvent(FAC.Event.SEARCH_NOVEL) {
                         param(FAC.Param.SEARCH_TERM, query)
                     }
@@ -123,17 +181,17 @@ class SearchFragment : BaseFragment() {
             }
 
             override fun onSearchExit() {
-                if (searchMode)
-                    setViewPager()
-
+                if (searchMode) {
+                    viewModel.exitSearchMode()
+                }
             }
 
             override fun onSearchCleared() {
-                //Toast.makeText(context, "onSearchCleared", Toast.LENGTH_SHORT).show()
+                // Handle search cleared if needed
             }
 
             override fun onSearchTermChanged(term: String?) {
-                //Toast.makeText(context, "Search Exited", Toast.LENGTH_SHORT).show()
+                // Handle search term changes if needed
             }
 
             override fun onSuggestion(searchItem: SearchItem?): Boolean {
@@ -141,7 +199,6 @@ class SearchFragment : BaseFragment() {
             }
 
             override fun onSearchEditBackPressed(): Boolean {
-                //Toast.makeText(context, "onSearchEditBackPressed", Toast.LENGTH_SHORT).show()
                 if (binding.searchView.searchOpen) {
                     binding.searchView.closeSearch()
                     return true
@@ -152,40 +209,25 @@ class SearchFragment : BaseFragment() {
     }
 
 
-    private fun searchNovels(searchTerm: String) {
+    private fun displaySearchResults(searchTerm: String, sources: List<io.github.gmathi.novellibrary.model.source.Source>) {
         while (childFragmentManager.backStackEntryCount > 0)
             childFragmentManager.popBackStack()
-        searchMode = true
-        this.searchTerm = searchTerm
 
-        val allOnlineSources = sourceManager.getOnlineSources()
-        
-        val sources = allOnlineSources.filter {
-            dataCenter.isSourceEnabled(it.getPreferenceKey())
-        }
-
-        val sourceNames = sources.map { it.name }
-
-//        val titles = ArrayList<String>()
-//        titles.add("Novel-Updates")
-////        if (!dataCenter.lockRoyalRoad || dataCenter.isDeveloper)
-////            titles.add("RoyalRoad")
-////        if (!dataCenter.lockNovelFull || dataCenter.isDeveloper)
-//            titles.add("NovelFull")
-//        if (!dataCenter.lockScribble || dataCenter.isDeveloper)
-//            titles.add("ScribbleHub")
-//        titles.add("WLN-Updates")
-//        titles.add("LNMTL")
-//        titles.add("Neovel")
+        val sourceNames = ArrayList(sources.map { it.name })
 
         binding.viewPager.offscreenPageLimit = 2
-        binding.viewPager.adapter = GenericFragmentStatePagerAdapter(childFragmentManager, sourceNames.toTypedArray(), sourceNames.size, SearchResultsListener(searchTerm, sources))
+        binding.viewPager.adapter = GenericFragmentStatePagerAdapter(
+            childFragmentManager, 
+            sourceNames.toTypedArray(), 
+            sourceNames.size, 
+            SearchResultsListener(searchTerm, sources.filterIsInstance<io.github.gmathi.novellibrary.model.source.online.HttpSource>())
+        )
         binding.tabStrip.setViewPager(binding.viewPager)
     }
 
     fun closeSearch() {
         binding.searchView.closeSearch()
-        setViewPager()
+        viewModel.exitSearchMode()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

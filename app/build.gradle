@@ -6,6 +6,7 @@ plugins {
     id 'com.google.firebase.crashlytics'
     id 'com.google.devtools.ksp'
     id 'com.google.dagger.hilt.android'
+    id 'androidx.navigation.safeargs.kotlin'
 }
 
 def keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -216,6 +217,14 @@ dependencies {
     // Hilt WorkManager integration
     implementation 'androidx.hilt:hilt-work:1.2.0'
     ksp 'androidx.hilt:hilt-compiler:1.2.0'
+
+    // Navigation Component
+    def nav_version = '2.8.6'
+    implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
+    implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
+    
+    // Navigation Component testing
+    androidTestImplementation "androidx.navigation:navigation-testing:$nav_version"
 
 
 

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_search"
+            android:icon="@drawable/ic_youtube_searched_for_white_vector"
+            android:title="@string/title_search" />
+
+        <item
+            android:id="@+id/nav_library"
+            android:icon="@drawable/ic_book_white_vector"
+            android:title="@string/title_library" />
+
+        <item
+            android:id="@+id/nav_downloads"
+            android:icon="@drawable/ic_file_download_white_vector"
+            android:title="@string/title_downloads" />
+    </group>
+
+    <item android:title="@string/quick_access">
+        <menu>
+            <item
+                android:id="@+id/nav_recent_novels"
+                android:icon="@drawable/ic_update_white_vector"
+                android:title="@string/title_activity_recent_novels" />
+
+            <item
+                android:id="@+id/nav_extensions"
+                android:icon="@drawable/ic_extension_white_vector"
+                android:title="@string/title_activity_extensions" />
+        </menu>
+    </item>
+
+    <item android:title="@string/other">
+        <menu>
+            <item
+                android:id="@+id/nav_settings"
+                android:icon="@drawable/ic_settings_white_vector"
+                android:title="@string/title_activity_settings" />
+
+            <item
+                android:id="@+id/nav_discord_link"
+                android:icon="@drawable/discord_icon"
+                android:title="@string/join_us_on_discord" />
+        </menu>
+    </item>
+
+</menu>

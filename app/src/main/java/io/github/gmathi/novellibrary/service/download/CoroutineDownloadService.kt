@@ -187,6 +187,13 @@ class CoroutineDownloadService(
     fun getDownloadEventsFlow() = eventChannel.receiveAsFlow()
 
     /**
+     * Check if a specific chapter is currently being downloaded
+     */
+    fun isDownloadingChapter(chapterUrl: String): Boolean {
+        return downloadJobs.containsKey(chapterUrl)
+    }
+
+    /**
      * Clean up resources
      */
     fun cleanup() {

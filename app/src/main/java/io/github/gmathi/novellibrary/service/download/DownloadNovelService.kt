@@ -362,4 +362,11 @@ class DownloadNovelService : Service(), DownloadListener {
         downloadServiceMap[novelId]?.cancelDownload(webPageUrl)
     }
 
+    /**
+     * Check if a specific chapter is currently being downloaded
+     */
+    fun isChapterDownloading(novelId: Long, chapterUrl: String): Boolean {
+        return downloadServiceMap[novelId]?.isDownloadingChapter(chapterUrl) ?: false
+    }
+
 }

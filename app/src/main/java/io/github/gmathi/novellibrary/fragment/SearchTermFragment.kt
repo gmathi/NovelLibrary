@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
@@ -169,7 +170,14 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
     //region Adapter Listener Methods - onItemClick(), viewBinder()
 
     override fun onItemClick(item: Novel, position: Int) {
-        (activity as? AppCompatActivity)?.startNovelDetailsActivity(item, false)
+        // Navigate to novel details using Navigation Component
+        try {
+            val action = SearchFragmentDirections.actionSearchToNovelDetails(item.id)
+            parentFragment?.findNavController()?.navigate(action)
+        } catch (e: Exception) {
+            // Fallback to activity-based navigation if Navigation Component fails
+            (activity as? AppCompatActivity)?.startNovelDetailsActivity(item, false)
+        }
     }
 
     override fun bind(item: Novel, itemView: View, position: Int) {

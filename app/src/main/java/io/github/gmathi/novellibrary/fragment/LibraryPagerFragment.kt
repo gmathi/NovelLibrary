@@ -5,9 +5,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
+import dagger.hilt.android.AndroidEntryPoint
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.NavDrawerActivity
-import io.github.gmathi.novellibrary.activity.NovelSectionsActivity
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.LibraryPageListener
 import io.github.gmathi.novellibrary.database.getAllNovelSections
@@ -16,6 +16,7 @@ import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.util.Constants
 
 
+@AndroidEntryPoint
 class LibraryPagerFragment : BaseFragment() {
 
     private val novelSections: ArrayList<NovelSection> = ArrayList()
@@ -36,14 +37,14 @@ class LibraryPagerFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding?.apply {
-            toolbar.title = getString(R.string.title_library)
-            (activity as NavDrawerActivity).setToolbar(toolbar)
+            // Remove toolbar setup as MainActivity handles the toolbar in single activity architecture
+            toolbar.visibility = View.GONE
             setViewPager()
             contentLibraryPager.novelSectionSettings.setOnClickListener {
-                startActivityForResult(Intent(activity, NovelSectionsActivity::class.java), Constants.NOVEL_SECTIONS_ACT_REQ_CODE)
+                // Navigate to novel sections using Navigation Component
+                navigateToNovelSections()
             }
         }
-
     }
 
     private fun setViewPager() {
@@ -78,12 +79,45 @@ class LibraryPagerFragment : BaseFragment() {
         return listener.getCurrentFragment(currentItem) as? LibraryFragment
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == Constants.NOVEL_SECTIONS_ACT_REQ_CODE) {
-            setViewPager()
-        } else {
-            super.onActivityResult(requestCode, resultCode, data)
+    /**
+     * Navigate to novel sections using Navigation Component
+     */
+    private fun navigateToNovelSections() {
+        try {
+            // For now, show a dialog indicating this will be implemented as a fragment
+            // In the future, this should navigate to a NovelSectionsFragment
+            activity?.let { activity ->
+                androidx.appcompat.app.AlertDialog.Builder(activity)
+                    .setTitle("Novel Sections")
+                    .setMessage("Novel sections management will be available in a future update as part of the single activity architecture.")
+                    .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+                    .show()
+            }
+        } catch (e: Exception) {
+            // Log error but don't crash
+            activity?.let { activity ->
+                androidx.appcompat.app.AlertDialog.Builder(activity)
+                    .setTitle("Error")
+                    .setMessage("Navigation error: ${e.message}")
+                    .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+                    .show()
+            }
         }
+    }
+
+    /**
+     * Refresh the view pager when novel sections change
+     * This method can be called from other parts of the app when sections are updated
+     */
+    fun refreshViewPager() {
+        setViewPager()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh the view pager in case novel sections were changed
+        // This replaces the onActivityResult functionality
+        refreshViewPager()
     }
 
 }

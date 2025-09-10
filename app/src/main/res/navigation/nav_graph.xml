@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/libraryFragment">
+
+    <!-- Main Navigation Destinations -->
+    <fragment
+        android:id="@+id/libraryFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.LibraryFragment"
+        android:label="@string/title_library"
+        tools:layout="@layout/content_library">
+        
+        <argument
+            android:name="novelSectionId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+        
+        <action
+            android:id="@+id/action_library_to_novel_details"
+            app:destination="@id/novelDetailsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <action
+            android:id="@+id/action_library_to_chapters"
+            app:destination="@id/chaptersFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <action
+            android:id="@+id/action_library_to_reader"
+            app:destination="@id/readerFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <action
+            android:id="@+id/action_library_to_search"
+            app:destination="@id/searchFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/searchFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.SearchFragment"
+        android:label="@string/title_search"
+        tools:layout="@layout/fragment_search">
+        
+        <action
+            android:id="@+id/action_search_to_novel_details"
+            app:destination="@id/novelDetailsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <action
+            android:id="@+id/action_search_to_library"
+            app:destination="@id/libraryFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/extensionsFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.ExtensionsFragment"
+        android:label="@string/title_activity_extensions"
+        tools:layout="@layout/fragment_extensions">
+        
+        <action
+            android:id="@+id/action_extensions_to_search"
+            app:destination="@id/searchFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/downloadsFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.BaseFragment"
+        android:label="@string/title_downloads"
+        tools:layout="@layout/fragment_downloads">
+        
+        <action
+            android:id="@+id/action_downloads_to_novel_details"
+            app:destination="@id/novelDetailsFragment" />
+            
+        <action
+            android:id="@+id/action_downloads_to_reader"
+            app:destination="@id/readerFragment" />
+    </fragment>
+
+    <!-- Settings Navigation Graph -->
+    <include app:graph="@navigation/settings_nav_graph" />
+
+    <!-- Novel Details Flow -->
+    <fragment
+        android:id="@+id/novelDetailsFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.NovelDetailsFragment"
+        android:label="Novel Details"
+        tools:layout="@layout/fragment_novel_details">
+        
+        <argument
+            android:name="novelId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+            
+        <action
+            android:id="@+id/action_novel_details_to_chapters"
+            app:destination="@id/chaptersFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <action
+            android:id="@+id/action_novel_details_to_reader"
+            app:destination="@id/readerFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <action
+            android:id="@+id/action_novel_details_to_metadata"
+            app:destination="@id/metadataFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <deepLink app:uri="app://novellibrary/novel/{novelId}" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/chaptersFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.ChaptersMainFragment"
+        android:label="Chapters"
+        tools:layout="@layout/fragment_chapters_main">
+        
+        <argument
+            android:name="novelId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+            
+        <action
+            android:id="@+id/action_chapters_to_reader"
+            app:destination="@id/readerFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <action
+            android:id="@+id/action_chapters_to_novel_details"
+            app:destination="@id/novelDetailsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/readerFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.ReaderFragment"
+        android:label="Reader"
+        tools:layout="@layout/fragment_reader_main">
+        
+        <argument
+            android:name="novelId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+            
+        <argument
+            android:name="chapterId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+            
+        <argument
+            android:name="translatorSourceName"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+            
+        <action
+            android:id="@+id/action_reader_to_chapters"
+            app:destination="@id/chaptersFragment" />
+            
+        <action
+            android:id="@+id/action_reader_to_novel_details"
+            app:destination="@id/novelDetailsFragment" />
+            
+        <deepLink app:uri="app://novellibrary/reader/{novelId}/{chapterId}" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/metadataFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.BaseFragment"
+        android:label="Novel Metadata"
+        tools:layout="@layout/fragment_metadata">
+        
+        <argument
+            android:name="novel"
+            app:argType="io.github.gmathi.novellibrary.model.database.Novel" />
+    </fragment>
+
+</navigation>

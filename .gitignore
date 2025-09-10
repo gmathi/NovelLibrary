@@ -183,3 +183,4 @@ Desktop.ini
 .kiro*
 docs
 /.kiro
+.kiro/specs/single-activity-architecture/tasks.md

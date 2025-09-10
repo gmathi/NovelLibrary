@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/settings_nav_graph"
+    app:startDestination="@id/mainSettingsFragment">
+
+    <!-- Main Settings Entry Point -->
+    <fragment
+        android:id="@+id/mainSettingsFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.MainSettingsFragment"
+        android:label="@string/title_activity_settings"
+        tools:layout="@layout/fragment_main_settings">
+        
+        <!-- Navigation to General Settings -->
+        <action
+            android:id="@+id/action_main_settings_to_general_settings"
+            app:destination="@id/generalSettingsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <!-- Navigation to Reader Settings -->
+        <action
+            android:id="@+id/action_main_settings_to_reader_settings"
+            app:destination="@id/readerSettingsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <!-- Navigation to Backup Settings -->
+        <action
+            android:id="@+id/action_main_settings_to_backup_settings"
+            app:destination="@id/backupSettingsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <!-- Navigation to Sync Settings Selection -->
+        <action
+            android:id="@+id/action_main_settings_to_sync_settings_selection"
+            app:destination="@id/syncSettingsSelectionFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <!-- Navigation to TTS Settings -->
+        <action
+            android:id="@+id/action_main_settings_to_tts_settings"
+            app:destination="@id/ttsSettingsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <!-- Navigation to Language Settings -->
+        <action
+            android:id="@+id/action_main_settings_to_language"
+            app:destination="@id/languageFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <!-- Navigation to Mention Settings -->
+        <action
+            android:id="@+id/action_main_settings_to_mention_settings"
+            app:destination="@id/mentionSettingsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <!-- Navigation to Copyright -->
+        <action
+            android:id="@+id/action_main_settings_to_copyright"
+            app:destination="@id/copyrightFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <!-- Navigation to Contributions -->
+        <action
+            android:id="@+id/action_main_settings_to_contributions"
+            app:destination="@id/contributionsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <!-- Navigation to Libraries Used -->
+        <action
+            android:id="@+id/action_main_settings_to_libraries_used"
+            app:destination="@id/librariesUsedFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <!-- General Settings -->
+    <fragment
+        android:id="@+id/generalSettingsFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.GeneralSettingsFragment"
+        android:label="@string/general"
+        tools:layout="@layout/fragment_general_settings">
+        
+        <!-- Navigation to Backup Settings -->
+        <action
+            android:id="@+id/action_general_settings_to_backup_settings"
+            app:destination="@id/backupSettingsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <!-- Navigation to Language Settings -->
+        <action
+            android:id="@+id/action_general_settings_to_language"
+            app:destination="@id/languageFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <!-- Reader Settings -->
+    <fragment
+        android:id="@+id/readerSettingsFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.ReaderSettingsFragment"
+        android:label="@string/reader"
+        tools:layout="@layout/fragment_reader_settings">
+        
+        <!-- Navigation to Reader Background Settings -->
+        <action
+            android:id="@+id/action_reader_settings_to_background_settings"
+            app:destination="@id/readerBackgroundSettingsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <!-- Navigation to Scroll Behaviour Settings -->
+        <action
+            android:id="@+id/action_reader_settings_to_scroll_behaviour"
+            app:destination="@id/scrollBehaviourSettingsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <!-- Reader Background Settings -->
+    <fragment
+        android:id="@+id/readerBackgroundSettingsFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.ReaderBackgroundSettingsFragment"
+        android:label="Reader Background Settings"
+        tools:layout="@layout/fragment_reader_background_settings" />
+
+    <!-- Scroll Behaviour Settings -->
+    <fragment
+        android:id="@+id/scrollBehaviourSettingsFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.ScrollBehaviourSettingsFragment"
+        android:label="Scroll Behaviour Settings"
+        tools:layout="@layout/fragment_scroll_behaviour_settings" />
+
+    <!-- Backup Settings -->
+    <fragment
+        android:id="@+id/backupSettingsFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.BackupSettingsFragment"
+        android:label="@string/backup_and_restore"
+        tools:layout="@layout/fragment_backup_settings">
+        
+        <!-- Navigation to Google Backup -->
+        <action
+            android:id="@+id/action_backup_settings_to_google_backup"
+            app:destination="@id/googleBackupFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <!-- Google Backup Settings -->
+    <fragment
+        android:id="@+id/googleBackupFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.GoogleBackupFragment"
+        android:label="Google Backup Settings"
+        tools:layout="@layout/fragment_google_backup" />
+
+    <!-- Sync Settings Selection -->
+    <fragment
+        android:id="@+id/syncSettingsSelectionFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.SyncSettingsSelectionFragment"
+        android:label="@string/sync_settings"
+        tools:layout="@layout/fragment_sync_settings_selection">
+        
+        <!-- Navigation to Sync Settings with URL parameter -->
+        <action
+            android:id="@+id/action_sync_selection_to_sync_settings"
+            app:destination="@id/syncSettingsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <!-- Navigation to Sync Login -->
+        <action
+            android:id="@+id/action_sync_selection_to_sync_login"
+            app:destination="@id/syncLoginFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <!-- Sync Settings -->
+    <fragment
+        android:id="@+id/syncSettingsFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.SyncSettingsFragment"
+        android:label="@string/sync_settings"
+        tools:layout="@layout/fragment_sync_settings">
+        
+        <argument
+            android:name="url"
+            app:argType="string"
+            app:nullable="false" />
+            
+        <!-- Navigation to Sync Login -->
+        <action
+            android:id="@+id/action_sync_settings_to_sync_login"
+            app:destination="@id/syncLoginFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <!-- Sync Login -->
+    <fragment
+        android:id="@+id/syncLoginFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.SyncLoginFragment"
+        android:label="@string/sync_log_in_title"
+        tools:layout="@layout/fragment_sync_login">
+        
+        <argument
+            android:name="url"
+            app:argType="string"
+            app:nullable="false" />
+            
+        <argument
+            android:name="lookup"
+            app:argType="string"
+            app:nullable="false" />
+    </fragment>
+
+    <!-- TTS Settings -->
+    <fragment
+        android:id="@+id/ttsSettingsFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.TTSSettingsFragment"
+        android:label="Read Aloud Settings"
+        tools:layout="@layout/fragment_tts_settings" />
+
+    <!-- Language Settings -->
+    <fragment
+        android:id="@+id/languageFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.LanguageFragment"
+        android:label="@string/change_language"
+        tools:layout="@layout/fragment_language">
+        
+        <argument
+            android:name="changeLanguage"
+            app:argType="boolean"
+            android:defaultValue="false" />
+    </fragment>
+
+    <!-- Mention Settings -->
+    <fragment
+        android:id="@+id/mentionSettingsFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.MentionSettingsFragment"
+        android:label="@string/mentions"
+        tools:layout="@layout/fragment_mention_settings" />
+
+    <!-- Copyright -->
+    <fragment
+        android:id="@+id/copyrightFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.CopyrightFragment"
+        android:label="@string/copyright_notice"
+        tools:layout="@layout/fragment_copyright" />
+
+    <!-- Contributions -->
+    <fragment
+        android:id="@+id/contributionsFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.ContributionsFragment"
+        android:label="@string/contributions"
+        tools:layout="@layout/fragment_contributions" />
+
+    <!-- Libraries Used -->
+    <fragment
+        android:id="@+id/librariesUsedFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.LibrariesUsedFragment"
+        android:label="@string/libraries_used"
+        tools:layout="@layout/fragment_libraries_used" />
+
+    <!-- CloudFlare Bypass (if needed) -->
+    <fragment
+        android:id="@+id/cloudFlareBypassFragment"
+        android:name="io.github.gmathi.novellibrary.fragment.CloudFlareBypassFragment"
+        android:label="@string/cloud_flare_check"
+        tools:layout="@layout/fragment_cloudflare_bypass">
+        
+        <argument
+            android:name="hostName"
+            app:argType="string"
+            app:nullable="false" />
+    </fragment>
+
+</navigation>
