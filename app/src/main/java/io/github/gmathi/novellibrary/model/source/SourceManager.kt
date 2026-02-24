@@ -46,8 +46,7 @@ open class SourceManager(private val context: Context) {
     }
 
     private fun createInternalSources(): List<Source> = listOf(
-        NovelUpdatesSource(),
-        WLNUpdatesSource()
+        NovelUpdatesSource()
     )
 
     private inner class StubSource(override val id: Long) : Source {

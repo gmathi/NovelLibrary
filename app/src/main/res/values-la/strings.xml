@@ -353,7 +353,6 @@
     <string name="sync_fetching_chapter_list">Obtaining chapter lists: %1$d / %2$d\n%3$s</string>
 
     <string name="source_novel_updates">Novel-Updates</string>
-    <string name="source_wln_updates">WLN-Updates</string>
     <string name="source_lnmtl">LNMTL</string>
     <string name="source_royalroad">RoyalRoad</string>
     <string name="source_novelfull">NovelFull</string>

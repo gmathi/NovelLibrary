@@ -23,6 +23,7 @@ class NetworkHelper(private val context: Context) {
     private val cacheSize = 5L * 1024 * 1024 // 5 MiB
 
     val cookieManager = AndroidCookieJar()
+    val cloudflareCookieManager = CloudflareCookieManager()
 
     private val baseClientBuilder: OkHttpClient.Builder
         get() {

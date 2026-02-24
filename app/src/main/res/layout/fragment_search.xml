@@ -9,8 +9,10 @@
     tools:context=".activity.NavDrawerActivity">
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:fitsSystemWindows="true"
         android:theme="@style/AppTheme.AppBarOverlay">
         <!--Layout not displaying properly? add gravity to bottom-->
 

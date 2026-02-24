@@ -55,10 +55,19 @@ object WhatsChanged {
             "✨ Chapters loading fixed, but it will take longer time to load depending on number of chapters it has\n"
 
 
-    const val VERSION_26 = "" + //0.23 Updates!
+    const val VERSION_26 = "" + //0.26 Updates!
             "⚠️️ Fix Extension Crash\n" +
             "⚠️️ Fix Downloads not showing up\n" +
             "✨ Chapters loading fixed, and new flag in general settings to play with\n"
+
+    const val VERSION_1_0_0 = "" + //1.0.0 - First Official Release!
+            "🎉 First Official Release!\n" +
+            "✨ Enhanced Cloudflare Bypass - Improved detection and retry logic\n" +
+            "✨ Better Cookie Management - Thread-safe with automatic expiration\n" +
+            "✨ Extended Timeout - 15 seconds for complex challenges\n" +
+            "✨ Improved User Experience - Styled UI and clear error messages\n" +
+            "⚠️️ Fixed - Multiple Cloudflare error codes support (503, 403, 429)\n" +
+            "\uD83D\uDEE0️ Performance improvements with bypass caching\n"
 
 
 }

@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.content.Context
+import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.analytics.FirebaseAnalytics
 import io.github.gmathi.novellibrary.database.DBHelper
@@ -20,6 +21,12 @@ abstract class BaseActivity : AppCompatActivity(), DataAccessor {
     override val sourceManager: SourceManager by injectLazy()
     override val networkHelper: NetworkHelper by injectLazy()
     override fun getContext(): Context? = this
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Enable edge-to-edge display
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+    }
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleManager.updateContextLocale(newBase))

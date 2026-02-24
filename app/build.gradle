@@ -22,7 +22,7 @@ android {
         targetSdkVersion 35
         multiDexEnabled true
         versionCode 119
-        versionName "0.26.1.beta"
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -96,6 +96,12 @@ android {
         }
     }
     namespace 'io.github.gmathi.novellibrary'
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
 
 }
 

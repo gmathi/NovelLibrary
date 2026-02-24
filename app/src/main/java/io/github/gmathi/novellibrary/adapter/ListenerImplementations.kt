@@ -28,7 +28,7 @@ class SearchResultsListener(private val searchTerms: String, private val sources
     override fun getFragmentForItem(position: Int): Fragment {
 
         //This should not be triggered, but just in case if there is an edge case bug
-        if (position >= sources.size) return SearchTermFragment.newInstance(searchTerms, Constants.SourceId.WLN_UPDATES)
+        if (position >= sources.size) return SearchTermFragment.newInstance(searchTerms, Constants.SourceId.NOVEL_UPDATES)
 
         return SearchTermFragment.newInstance(searchTerms, sources[position].id)
     }

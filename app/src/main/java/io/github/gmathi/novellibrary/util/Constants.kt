@@ -120,7 +120,6 @@ object Constants {
 
     const val WORK_KEY_RESULT = "result"
 
-    const val WLN_UPDATES_API_URL = "https://www.${HostNames.WLN_UPDATES}/api"
     const val NEOVEL_API_URL = "https://${HostNames.NEOVEL}/"
     const val LNMTL_BASE_URL = "https://${HostNames.LNMTL}/"
 
@@ -141,7 +140,6 @@ object Constants {
 
     object SourceId {
         const val NOVEL_UPDATES = 1L
-        const val WLN_UPDATES = 2L
         const val NEOVEL = 3L
         const val LNMTL = 4L
         const val ROYAL_ROAD = 5L
