@@ -951,14 +951,14 @@ open class HtmlCleaner protected constructor() {
     }
 
     private fun getNodeColor(contentElement: Element): String? {
-        val colorRegex = COLOR_REGEX.matchEntire(contentElement.attr("style")) ?: return null
+        val colorMatch = COLOR_REGEX.matchEntire(contentElement.attr("style")) ?: return null
 
         if (!dataCenter.alternativeTextColors || !dataCenter.isDarkTheme) {
-            return colorRegex.groupValues[1]
+            return colorMatch.groupValues[1]
         }
 
         try {
-            val col = colorRegex.groupValues[1]
+            val col = colorMatch.groupValues[1]
             // Since #RGB and #RGBA are valid CSS colors, handle hex values manually.
             // They expand from #RGBA to #RRGGBBAA, duplicating the 4 bits of corresponding compressed color.
             // Color.parseColor is unable to parse those.
@@ -1005,18 +1005,21 @@ open class HtmlCleaner protected constructor() {
                     }
                     else -> {
                         // Most likely invalid color
-                        return colorRegex.groupValues[1]
+                        return colorMatch.groupValues[1]
                     }
                 }
 
             } else if (col.startsWith("rgb", true) || col.startsWith("hsl", true)) {
                 // rgb/rgba/hsl/hsla functional notations
-                val colorReg = FUNCTIONAL_COLOR_REGEX.matchEntire(col)
+                var notationResult = FUNCTIONAL_COLOR_REGEX.find(col)
 
-                val compA = processColorComponent(colorReg!!.groupValues[1])
-                val compB = processColorComponent(colorReg.next().groupValues[1])
-                val compC = processColorComponent(colorReg.next().groupValues[1])
-                val alpha = processColorComponent(colorReg.next().groupValues[1] ?: "1")
+                val compA = processColorComponent(notationResult!!.groupValues[1])
+                notationResult = notationResult.next()
+                val compB = processColorComponent(notationResult!!.groupValues[1])
+                notationResult = notationResult.next()
+                val compC = processColorComponent(notationResult!!.groupValues[1])
+                notationResult = notationResult.next()
+                val alpha = processColorComponent(notationResult?.groupValues?.get(1) ?: "1")
 
                 return if (col.startsWith("rgb"))
                     invertColor(compA, compB, compC, alpha)
@@ -1036,11 +1039,11 @@ open class HtmlCleaner protected constructor() {
             }
         } catch (e: IllegalArgumentException) {
             // Do not modify color if Color.parseColor yield no result (valid CSS color, but Color can't parse it)
-            return colorRegex.groupValues[1]
+            return colorMatch.groupValues[1]
         } catch (e: NullPointerException) {
             // Most likely caused by functional notation having math in it.
             // Or hsl notation using deg/rad/turn postfixes in hue value
-            return colorRegex.groupValues[1]
+            return colorMatch.groupValues[1]
         }
     }
 
