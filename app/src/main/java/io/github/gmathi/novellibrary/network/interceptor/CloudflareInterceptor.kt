@@ -22,15 +22,17 @@ import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
 import uy.kohesive.injekt.injectLazy
-import java.io.IOException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class CloudflareInterceptor(private val context: Context) : Interceptor {
 
     private val handler = Handler(Looper.getMainLooper())
-
     private val networkHelper: NetworkHelper by injectLazy()
+
+    // Cache for tracking bypass attempts to avoid repeated failures
+    private val bypassAttempts = mutableMapOf<String, Long>()
+    private val retryDelay = 5000L // 5 seconds
 
     /**
      * When this is called, it initializes the WebView if it wasn't already. We use this to avoid
@@ -58,27 +60,79 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
             val response = chain.proceed(originalRequest)
 
             // Check if Cloudflare anti-bot is on
-            if (response.code != 503 || response.header("Server") !in SERVER_CHECK) {
+            if (!isCloudflareChallenge(response)) {
                 return response
             }
 
             response.close()
+            
+            // Check if we should attempt bypass based on recent failures
+            val host = originalRequest.url.host
+            if (shouldSkipBypass(host)) {
+                throw Exception(context.getString(R.string.information_cloudflare_bypass_failure))
+            }
+
             networkHelper.cookieManager.remove(originalRequest.url, COOKIE_NAMES, 0)
             val oldCookie = networkHelper.cookieManager.get(originalRequest.url)
                 .firstOrNull { it.name == "cf_clearance" }
-            resolveWithWebView(originalRequest, oldCookie)
-
-            return chain.proceed(originalRequest)
+            
+            val bypassSuccess = resolveWithWebView(originalRequest, oldCookie)
+            
+            if (bypassSuccess) {
+                recordBypassSuccess(host)
+                return chain.proceed(originalRequest)
+            } else {
+                recordBypassFailure(host)
+                throw Exception(context.getString(R.string.information_cloudflare_bypass_failure))
+            }
         } catch (e: Exception) {
             // Because OkHttp's enqueue only handles IOExceptions, wrap the exception so that
             // we don't crash the entire app
-            // throw IOException(e)
             return chain.proceed(originalRequest)
         }
     }
 
+    /**
+     * Enhanced Cloudflare detection supporting multiple server headers and response patterns
+     */
+    private fun isCloudflareChallenge(response: Response): Boolean {
+        if (response.code != 503) return false
+        
+        val server = response.header("Server")?.lowercase()
+        if (server in SERVER_CHECK) return true
+        
+        // Additional checks for Cloudflare presence
+        val cfRay = response.header("CF-RAY")
+        val cfCacheStatus = response.header("CF-Cache-Status")
+        
+        return cfRay != null || cfCacheStatus != null
+    }
+
+    /**
+     * Check if we should skip bypass attempt based on recent failures
+     */
+    private fun shouldSkipBypass(host: String): Boolean {
+        val lastAttempt = bypassAttempts[host] ?: return false
+        val timeSinceLastAttempt = System.currentTimeMillis() - lastAttempt
+        return timeSinceLastAttempt < retryDelay
+    }
+
+    /**
+     * Record successful bypass attempt
+     */
+    private fun recordBypassSuccess(host: String) {
+        bypassAttempts.remove(host)
+    }
+
+    /**
+     * Record failed bypass attempt
+     */
+    private fun recordBypassFailure(host: String) {
+        bypassAttempts[host] = System.currentTimeMillis()
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
-    private fun resolveWithWebView(request: Request, oldCookie: Cookie?) {
+    private fun resolveWithWebView(request: Request, oldCookie: Cookie?): Boolean {
         // We need to lock this thread until the WebView finds the challenge solution url, because
         // OkHttp doesn't support asynchronous interceptors.
         val latch = CountDownLatch(1)
@@ -101,6 +155,15 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
             // Avoid sending empty User-Agent, Chromium WebView will reset to default if empty
             webview.settings.userAgentString = request.header("User-Agent")
                 ?: HttpSource.DEFAULT_USER_AGENT
+            
+            // Enhanced WebView settings for better Cloudflare bypass
+            webview.settings.apply {
+                javaScriptEnabled = true
+                domStorageEnabled = true
+                databaseEnabled = true
+                useWideViewPort = true
+                loadWithOverviewMode = true
+            }
 
             webview.webViewClient = object : WebViewClientCompat() {
                 override fun onPageFinished(view: WebView, url: String) {
@@ -129,7 +192,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
                     isMainFrame: Boolean
                 ) {
                     if (isMainFrame) {
-                        if (errorCode == 503) {
+                        if (errorCode in CLOUDFLARE_ERROR_CODES) {
                             // Found the Cloudflare challenge page.
                             challengeFound = true
                         } else {
@@ -145,7 +208,8 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
         // Wait a reasonable amount of time to retrieve the solution. The minimum should be
         // around 4 seconds but it can take more due to slow networks or server issues.
-        latch.await(12, TimeUnit.SECONDS)
+        // Increased timeout for more complex challenges
+        latch.await(15, TimeUnit.SECONDS)
 
         handler.post {
             if (!cloudflareBypassed) {
@@ -157,19 +221,19 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
             webView = null
         }
 
-        // Throw exception if we failed to bypass Cloudflare
-        if (!cloudflareBypassed) {
-            // Prompt user to update WebView if it seems too outdated
-            if (isWebViewOutdated) {
+        // Prompt user to update WebView if it seems too outdated
+        if (!cloudflareBypassed && isWebViewOutdated) {
+            launchUI {
                 context.toast(R.string.information_webview_outdated, Toast.LENGTH_LONG)
             }
-
-            throw Exception(context.getString(R.string.information_cloudflare_bypass_failure))
         }
+
+        return cloudflareBypassed
     }
 
     companion object {
-        private val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare")
-        private val COOKIE_NAMES = listOf("cf_clearance")
+        private val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare", "cf-ray")
+        private val COOKIE_NAMES = listOf("cf_clearance", "__cf_bm", "cf_chl_2", "cf_chl_prog")
+        private val CLOUDFLARE_ERROR_CODES = setOf(503, 403, 429)
     }
 }

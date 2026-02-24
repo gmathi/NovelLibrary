@@ -27,7 +27,7 @@ import java.io.IOException;
  * @author Jonathan Hedley, jonathan@hedley.net
  */
 public class HtmlToPlainText {
-    private static final String userAgent = "Mozilla/5.0 (jsoup)";
+    private static final String userAgent = "Mozilla/5.0 (Linux; Android 10; HD1913) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.46 Mobile Safari/537.36 EdgA/144.0.3719.115";
     private static final int timeout = 5 * 1000;
 
     public static void main(String... args) throws IOException {

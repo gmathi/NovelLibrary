@@ -87,7 +87,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
     }
 
     private fun setRecyclerView() {
-        val enableLoadMoreListener = (sourceId != Constants.SourceId.WLN_UPDATES && sourceId != Constants.SourceId.LNMTL)
+        val enableLoadMoreListener = (sourceId != Constants.SourceId.LNMTL)
         adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_novel, listener = this, loadMoreListener = if (enableLoadMoreListener) this else null)
         binding.recyclerView.setDefaults(adapter)
         binding.swipeRefreshLayout.setOnRefreshListener { searchNovels() }

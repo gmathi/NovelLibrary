@@ -31,14 +31,12 @@
 
     <string-array name="search_results_tab_titles" translatable="false">
         <item>@string/source_novel_updates</item>
-        <item>@string/source_wln_updates</item>
         <item>@string/source_lnmtl</item>
     </string-array>
 
     <string-array name="search_results_tab_titles_unlocked" translatable="false">
         <item>@string/source_novel_updates</item>
         <item>@string/source_royalroad</item>
-        <item>@string/source_wln_updates</item>
         <item>@string/source_lnmtl</item>
     </string-array>
 
@@ -46,7 +44,6 @@
         <item>@string/source_novel_updates</item>
         <item>@string/source_royalroad</item>
         <item>@string/source_novelfull</item>
-        <item>@string/source_wln_updates</item>
         <item>@string/source_lnmtl</item>
     </string-array>
 
@@ -613,7 +610,6 @@
     <string name="sync_fetching_chapter_list">Obtaining chapter lists: %1$d / %2$d\n%3$s</string>
 
     <string name="source_novel_updates">Novel-Updates</string>
-    <string name="source_wln_updates">WLN-Updates</string>
     <string name="source_lnmtl">LNMTL</string>
     <string name="source_royalroad">RoyalRoad</string>
     <string name="source_novelfull">NovelFull</string>

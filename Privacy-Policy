@@ -1,4 +1,148 @@
+# Privacy Policy for Novel Library
 
-We do not claim ownership in any of the content, including any text, data, information, and files.
+**Last Updated:** February 17, 2026
 
-Any use of your google account is only for backing up and restoring the data. We do not access any others files in you google drive.
+## Introduction
+
+This Privacy Policy governs the use of Novel Library (the "App"). By using the App, you agree to the collection and use of information in accordance with this policy.
+
+## Information Collection and Use
+
+### Data We Collect
+
+The App may collect the following types of information:
+
+- **Reading Progress Data**: Novels in your library, chapters read, bookmarks, and reading history
+- **App Preferences**: Theme settings, reader configurations, and app settings
+- **Device Information**: Device model, operating system version, and app version for crash reporting
+- **Firebase Analytics**: Anonymous usage statistics to improve app functionality
+
+### Google Account Integration
+
+- Google account access is used **exclusively** for backup and restore functionality
+- We only access the specific backup files created by the App in your Google Drive
+- We do not access, read, modify, or collect any other files or data from your Google Drive
+- You can revoke this access at any time through your Google Account settings
+
+### Third-Party Content
+
+- The App aggregates content from third-party websites through user-installed extensions
+- We do not host, store, or claim ownership of any novel content, text, images, or other materials accessed through the App
+- All content belongs to their respective copyright holders
+
+## Data Storage
+
+- Local data is stored on your device
+- Cloud backup (optional) is stored in your personal Google Drive account
+- We do not maintain servers that store your personal reading data
+
+## Third-Party Services
+
+The App uses the following third-party services:
+
+- **Firebase** (Analytics, Crashlytics, Cloud Messaging, Authentication)
+- **Google Drive API** (for backup/restore)
+- **Third-party novel source websites** (accessed through extensions)
+
+These services have their own privacy policies governing the use of your information.
+
+## DISCLAIMER OF LIABILITY
+
+### No Warranty
+
+THE APP IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
+
+### Content Disclaimer
+
+- We do not own, control, verify, or endorse any content accessed through the App
+- Users are solely responsible for their use of third-party content and compliance with applicable copyright laws
+- We are not responsible for the accuracy, legality, or appropriateness of any content accessed through extensions
+- The App is a content aggregator tool; users must ensure they have the right to access any content
+
+### Limitation of Liability
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW:
+
+1. **No Liability for Damages**: The developer/owner shall not be liable for any direct, indirect, incidental, special, consequential, or punitive damages arising from:
+   - Use or inability to use the App
+   - Unauthorized access to or alteration of your data
+   - Any content accessed through the App
+   - Any bugs, viruses, or malicious code
+   - Data loss or corruption
+   - Any other matter relating to the App
+
+2. **No Liability for Third-Party Content**: We are not liable for:
+   - Copyright infringement claims related to content accessed through the App
+   - Content accuracy, quality, or availability from third-party sources
+   - Actions taken by third-party websites or services
+   - Extension functionality or content provided by extensions
+
+3. **No Liability for User Actions**: Users are solely responsible for:
+   - Their use of the App and any consequences thereof
+   - Compliance with applicable laws and regulations
+   - Respecting intellectual property rights
+   - Any legal issues arising from content access or download
+
+4. **Maximum Liability**: In jurisdictions that do not allow the exclusion of certain warranties or limitation of liability, our liability shall be limited to the maximum extent permitted by law. In no event shall our total liability exceed the amount you paid for the App (which is zero for a free app).
+
+### Indemnification
+
+You agree to indemnify, defend, and hold harmless the developer/owner, contributors, and affiliates from any claims, damages, losses, liabilities, and expenses (including legal fees) arising from:
+- Your use of the App
+- Your violation of this Privacy Policy or any applicable laws
+- Your violation of any third-party rights, including copyright and intellectual property rights
+- Any content you access, download, or share through the App
+
+## User Responsibilities
+
+By using the App, you acknowledge and agree that:
+
+1. You are responsible for ensuring you have legal rights to access any content
+2. You will comply with all applicable copyright and intellectual property laws
+3. You will not use the App for any illegal purposes
+4. You understand the App is a tool and you bear all responsibility for how you use it
+5. You will not hold the developer/owner liable for any issues arising from your use
+
+## Extensions
+
+- Extensions are third-party add-ons not developed or maintained by us
+- We are not responsible for extension functionality, security, or content
+- Users install and use extensions at their own risk
+- Extension developers are solely responsible for their extensions
+
+## Data Security
+
+While we implement reasonable security measures, we cannot guarantee absolute security. You acknowledge that:
+- Internet transmission is never completely secure
+- You use the App at your own risk
+- We are not liable for any security breaches or data loss
+
+## Children's Privacy
+
+The App is not intended for users under 13 years of age. We do not knowingly collect information from children under 13.
+
+## Changes to This Privacy Policy
+
+We may update this Privacy Policy periodically. Changes will be posted within the App with an updated "Last Updated" date. Continued use of the App after changes constitutes acceptance of the updated policy.
+
+## Jurisdiction and Governing Law
+
+This Privacy Policy shall be governed by and construed in accordance with applicable laws. Any disputes shall be resolved in the appropriate courts, and you consent to the jurisdiction of such courts.
+
+## No Professional Relationship
+
+Use of the App does not create any professional, fiduciary, or advisory relationship between you and the developer/owner.
+
+## Severability
+
+If any provision of this Privacy Policy is found to be unenforceable or invalid, that provision shall be limited or eliminated to the minimum extent necessary, and the remaining provisions shall remain in full force and effect.
+
+## Contact Information
+
+For questions about this Privacy Policy, please contact us through:
+- GitHub Issues: https://github.com/gmathi/NovelLibrary/issues
+- Discord: https://discord.gg/qFZX4vdEdF
+
+## Acknowledgment
+
+BY USING THE APP, YOU ACKNOWLEDGE THAT YOU HAVE READ THIS PRIVACY POLICY, UNDERSTAND IT, AND AGREE TO BE BOUND BY ITS TERMS. IF YOU DO NOT AGREE, DO NOT USE THE APP.

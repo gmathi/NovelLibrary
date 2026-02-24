@@ -447,7 +447,6 @@ class NovelUpdatesSource : ParsedHttpSource() {
 
 
     companion object {
-        private const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
-                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.193 Safari/537.36"
+        private const val USER_AGENT = "Mozilla/5.0 (Linux; Android 10; HD1913) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.46 Mobile Safari/537.36 EdgA/144.0.3719.115"
     }
 }

@@ -13,7 +13,6 @@ object HostNames {
     const val GRAVITY_TALES = "gravitytales.com"
     const val WUXIA_WORLD = "wuxiaworld.com"
     const val WORD_PRESS = "wordpress.com"
-    const val WLN_UPDATES = "wlnupdates.com"
     const val QIDIAN = "webnovel.com"
     const val MOON_BUNNY_CAFE = "moonbunnycafe.com"
     const val BLUE_SILVER_TRANSLATIONS = "bluesilvertranslations.wordpress.com"
@@ -38,7 +37,6 @@ object HostNames {
         GRAVITY_TALES,
         WUXIA_WORLD,
         WORD_PRESS,
-        WLN_UPDATES,
         QIDIAN,
         LNMTL,
         WATTPAD,

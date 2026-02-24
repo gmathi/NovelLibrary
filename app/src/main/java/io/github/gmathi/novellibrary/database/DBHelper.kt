@@ -201,7 +201,6 @@ private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABAS
             novelUrl.contains(HostNames.NOVEL_UPDATES) -> Constants.SourceId.NOVEL_UPDATES
             novelUrl.contains(HostNames.ROYAL_ROAD) -> Constants.SourceId.ROYAL_ROAD
             novelUrl.contains(HostNames.ROYAL_ROAD_OLD) -> Constants.SourceId.ROYAL_ROAD
-            novelUrl.contains(HostNames.WLN_UPDATES) -> Constants.SourceId.WLN_UPDATES
             novelUrl.contains(HostNames.NEOVEL) -> Constants.SourceId.NEOVEL
             novelUrl.contains(HostNames.SCRIBBLE_HUB) -> Constants.SourceId.SCRIBBLE_HUB
             novelUrl.contains(HostNames.LNMTL) -> Constants.SourceId.LNMTL

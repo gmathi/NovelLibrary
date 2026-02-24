@@ -287,6 +287,6 @@ abstract class HttpSource : CatalogueSource {
     override fun getFilterList() = FilterList()
 
     companion object {
-        const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36 Edg/129.0.0.0"
+        const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Linux; Android 10; HD1913) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.46 Mobile Safari/537.36 EdgA/144.0.3719.115"
     }
 }
