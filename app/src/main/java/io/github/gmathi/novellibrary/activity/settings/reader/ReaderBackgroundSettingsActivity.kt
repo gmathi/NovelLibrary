@@ -17,11 +17,11 @@ import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBind
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaults
-import okhttp3.internal.toHexString
 import java.util.*
 import kotlin.collections.ArrayList
 
 
+@OptIn(ExperimentalStdlibApi::class)
 class ReaderBackgroundSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
 
     companion object {
@@ -95,19 +95,19 @@ class ReaderBackgroundSettingsActivity : BaseActivity(), GenericAdapter.Listener
 
         when (position) {
             POSITION_DAY_BACKGROUND -> {
-                itemBinding.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.dayModeBackgroundColor.toHexString().toUpperCase(Locale.ROOT))
+                itemBinding.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.dayModeBackgroundColor.toHexString().uppercase(Locale.ROOT))
                 drawable.setColor(dataCenter.dayModeBackgroundColor)
             }
             POSITION_DAY_TEXT -> {
-                itemBinding.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.dayModeTextColor.toHexString().toUpperCase(Locale.ROOT))
+                itemBinding.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.dayModeTextColor.toHexString().uppercase(Locale.ROOT))
                 drawable.setColor(dataCenter.dayModeTextColor)
             }
             POSITION_NIGHT_BACKGROUND -> {
-                itemBinding.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.nightModeBackgroundColor.toHexString().toUpperCase(Locale.ROOT))
+                itemBinding.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.nightModeBackgroundColor.toHexString().uppercase(Locale.ROOT))
                 drawable.setColor(dataCenter.nightModeBackgroundColor)
             }
             POSITION_NIGHT_TEXT -> {
-                itemBinding.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.nightModeTextColor.toHexString().toUpperCase(Locale.ROOT))
+                itemBinding.subtitle.applyFont(assets).text = getString(R.string.hex_color, dataCenter.nightModeTextColor.toHexString().uppercase(Locale.ROOT))
                 drawable.setColor(dataCenter.nightModeTextColor)
             }
         }

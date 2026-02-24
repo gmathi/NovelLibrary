@@ -186,8 +186,8 @@ class ChaptersFragment : BaseFragment(),
     }
 
 
-    override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
-        val webPage = (buttonView?.tag as WebPage?) ?: return
+    override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
+        val webPage = (buttonView.tag as WebPage?) ?: return
         val chaptersPagerActivity = (activity as? ChaptersPagerActivity) ?: return
 
         // If Novel is not in Library

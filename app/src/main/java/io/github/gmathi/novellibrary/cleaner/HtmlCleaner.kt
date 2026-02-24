@@ -159,7 +159,7 @@ open class HtmlCleaner protected constructor() {
                         }
                         Elements(elements)
                     }
-                ),
+                )),
 
                 // Optimized: Scrambled fonts with better CSS
                 SelectorQuery("div.entry-content", host = "secondlifetranslations.com", subQueries = listOf(
@@ -191,7 +191,7 @@ open class HtmlCleaner protected constructor() {
                         }
                         Elements(elements)
                     }
-                ),
+                )),
 
                 // Optimized: Page splitting support
                 SelectorQuery(".the-content", host="tigertranslations.org", subQueries = listOf(

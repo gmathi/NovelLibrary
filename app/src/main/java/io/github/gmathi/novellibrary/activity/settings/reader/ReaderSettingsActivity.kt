@@ -98,7 +98,7 @@ class ReaderSettingsActivity : BaseSettingsActivity<ReaderSettingsActivity, Read
                         prefill = dataCenter.userSpecifiedSelectorQueries,
                         inputType = InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE + InputType.TYPE_CLASS_TEXT
                     )
-                    positiveButton(R.string.fui_button_text_save) { widget ->
+                    positiveButton(android.R.string.ok) { widget ->
                         dataCenter.userSpecifiedSelectorQueries = widget.getInputField().text.toString()
                         firebaseAnalytics.logEvent(FAC.Event.SELECTOR_QUERY) {
                             param(FirebaseAnalytics.Param.VALUE, widget.getInputField().text.toString())

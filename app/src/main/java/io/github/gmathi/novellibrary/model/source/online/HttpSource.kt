@@ -53,7 +53,7 @@ abstract class HttpSource : CatalogueSource {
      * Note the generated id sets the sign bit to 0.
      */
     override val id by lazy {
-        val key = "${name.toLowerCase(Locale.ROOT)}/$lang/$versionId"
+        val key = "${name.lowercase(Locale.ROOT)}/$lang/$versionId"
         val bytes = MessageDigest.getInstance("MD5").digest(key.toByteArray())
         (0..7).map { bytes[it].toLong() and 0xff shl 8 * (7 - it) }.reduce(Long::or) and Long.MAX_VALUE
     }
@@ -79,7 +79,7 @@ abstract class HttpSource : CatalogueSource {
     /**
      * Visible name of the source.
      */
-    override fun toString() = "$name (${lang.toUpperCase(Locale.ROOT)})"
+    override fun toString() = "$name (${lang.uppercase(Locale.ROOT)})"
 
 
     /**

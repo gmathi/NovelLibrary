@@ -65,7 +65,7 @@ class GenericSelectorQueryCleaner(
                 if (!subQuery.multiple && elements.isNotEmpty()) {
                     val first = elements.first()
                     elements.clear()
-                    elements.add(first)
+                    first?.let { elements.add(it) }
                 }
 
                 when (subQuery.role) {

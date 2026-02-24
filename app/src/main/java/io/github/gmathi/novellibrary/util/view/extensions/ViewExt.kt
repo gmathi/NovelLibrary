@@ -68,7 +68,7 @@ inline fun View.popupMenu(
     noinline initMenu: (Menu.() -> Unit)? = null,
     noinline onMenuItemClick: MenuItem.() -> Boolean
 ): PopupMenu {
-    val popup = PopupMenu(context, this, Gravity.NO_GRAVITY, R.attr.actionOverflowMenuStyle, 0)
+    val popup = PopupMenu(context, this, Gravity.NO_GRAVITY, androidx.appcompat.R.attr.actionOverflowMenuStyle, 0)
     popup.menuInflater.inflate(menuRes, popup.menu)
 
     if (initMenu != null) {

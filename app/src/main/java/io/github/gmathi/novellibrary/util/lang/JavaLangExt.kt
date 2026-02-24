@@ -31,7 +31,7 @@ fun String?.containsCaseInsensitive(other: String?) =
     if (this == null && other == null) {
         true
     } else if (this != null && other != null) {
-        toLowerCase().contains(other.toLowerCase())
+        lowercase().contains(other.lowercase())
     } else {
         false
     }
@@ -82,3 +82,10 @@ fun String.fixMalformedWithHost(host: String?, protocol: String?): String {
 
 inline val String?.getUrlDomain: String?
     get() = this?.let { this.toHttpUrlOrNull()?.topPrivateDomain() }
+
+/**
+ * Helper extension to convert an Int color to hex string.
+ */
+@OptIn(ExperimentalStdlibApi::class)
+fun Int.toHexString(): String = this.toHexString(HexFormat.UpperCase)
+
