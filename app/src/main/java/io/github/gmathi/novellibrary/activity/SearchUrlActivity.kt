@@ -1,51 +1,43 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.os.Bundle
-import android.view.MenuItem
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
-import androidx.fragment.app.commit
-import io.github.gmathi.novellibrary.databinding.ActivitySearchResultsBinding
-import io.github.gmathi.novellibrary.fragment.SearchUrlFragment
+import androidx.activity.compose.setContent
+import androidx.activity.viewModels
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
+import io.github.gmathi.novellibrary.compose.SearchUrlScreen
+import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
+import io.github.gmathi.novellibrary.viewmodel.SearchUrlViewModel
 
 class SearchUrlActivity : BaseActivity() {
 
-    private lateinit var binding: ActivitySearchResultsBinding
+    private val viewModel: SearchUrlViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivitySearchResultsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.title = "Search: ${intent.getStringExtra("title")}"
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        val url = intent.getStringExtra("url") ?: return
-        val fragment = SearchUrlFragment.newInstance(rank = null, url = url)
-        replaceFragment(fragment)
-    }
+        val title = intent.getStringExtra("title") ?: "Search"
+        val url = intent.getStringExtra("url")
+        val rank = intent.getStringExtra("rank")
 
-    private fun replaceFragment(fragment: Fragment, tag: String = "SearchUrlFragment") {
-        val existingFrag = supportFragmentManager.findFragmentByTag(tag)
-        var replaceFrag = fragment
-        if (existingFrag != null) {
-            replaceFrag = existingFrag
+        setContent {
+            MaterialTheme {
+                Surface {
+                    LaunchedEffect(Unit) {
+                        viewModel.initialize(rank, url)
+                    }
+                    
+                    SearchUrlScreen(
+                        viewModel = viewModel,
+                        title = title,
+                        onNovelClick = { novel ->
+                            startNovelDetailsActivity(novel, false)
+                        },
+                        onBackClick = { finish() }
+                    )
+                }
+            }
         }
-
-        supportFragmentManager.commit(true) {
-            replace(binding.contentSearchResults.fragmentContainer.id, replaceFrag, tag)
-            setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-            addToBackStack(tag)
-        }
     }
-
-    override fun onBackPressed() {
-        finish()
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) finish()
-        return super.onOptionsItemSelected(item)
-    }
-
 }

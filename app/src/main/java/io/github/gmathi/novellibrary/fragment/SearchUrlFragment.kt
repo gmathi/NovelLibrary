@@ -93,15 +93,19 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
 
         lifecycleScope.launch search@{
 
-            if (!networkHelper.isConnectedToNetwork()) {
-                binding.progressLayout.noInternetError {
-                    binding.progressLayout.showLoading()
-                    currentPageNumber = 1
-                    searchNovels()
-                }
-                return@search
-            }
             try {
+                if (!networkHelper.isConnectedToNetwork()) {
+                    // Only show full-screen error if we have no data yet
+                    if (adapter.items.isEmpty()) {
+                        binding.progressLayout.noInternetError {
+                            binding.progressLayout.showLoading()
+                            currentPageNumber = 1
+                            searchNovels()
+                        }
+                    }
+                    return@search
+                }
+                
                 val novelsPage = withContext(Dispatchers.IO) { NovelUpdatesSource().getPopularNovels(rank, url, currentPageNumber) }
                 if (isFragmentActive()) {
                     loadSearchResults(ArrayList(novelsPage.novels))
@@ -110,17 +114,26 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
                 }
             } catch (e: Exception) {
                 if (isFragmentActive()) {
-                    var errorText = getString(R.string.connection_error)
-                    val isCloudFlareError = (e.localizedMessage?.contains("503") == true || e.localizedMessage?.contains("cloudflare", ignoreCase = true) == true)
-                    if (isCloudFlareError) {
-                        errorText = getString(R.string.connection_error_cloudflare)
-                    }
+                    // Only show full-screen error if we have no data loaded yet.
+                    // If we already have data (e.g. page 1 loaded), don't replace it with an error.
+                    if (adapter.items.isEmpty()) {
+                        var errorText = getString(R.string.connection_error)
+                        val isCloudFlareError = (e.localizedMessage?.contains("503") == true || e.localizedMessage?.contains("cloudflare", ignoreCase = true) == true)
+                        if (isCloudFlareError) {
+                            errorText = getString(R.string.connection_error_cloudflare)
+                        }
 
-                    binding.progressLayout.showError(errorText = errorText, buttonText = getString(R.string.try_again)) {
-                        binding.progressLayout.showLoading()
-                        currentPageNumber = 1
-                        searchNovels()
+                        binding.progressLayout.showError(errorText = errorText, buttonText = getString(R.string.try_again)) {
+                            binding.progressLayout.showLoading()
+                            currentPageNumber = 1
+                            searchNovels()
+                        }
+                    } else {
+                        // We have data but load-more failed — just stop pagination silently
+                        adapter.loadMoreListener = null
                     }
+                    isPageLoading.lazySet(false)
+                    binding.swipeRefreshLayout.isRefreshing = false
                 }
             }
         }

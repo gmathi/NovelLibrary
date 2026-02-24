@@ -65,9 +65,18 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
             }
 
             response.close()
-            
-            // Check if we should attempt bypass based on recent failures
+
             val host = originalRequest.url.host
+
+            // If we already have a cf_clearance cookie from a previous bypass (e.g. a concurrent
+            // request that already solved the challenge), just retry with that cookie.
+            val existingClearance = networkHelper.cookieManager.get(originalRequest.url)
+                .firstOrNull { it.name == "cf_clearance" }
+            if (existingClearance != null) {
+                return chain.proceed(originalRequest)
+            }
+
+            // Check if we should attempt bypass based on recent failures
             if (shouldSkipBypass(host)) {
                 throw Exception(context.getString(R.string.information_cloudflare_bypass_failure))
             }
@@ -75,9 +84,9 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
             networkHelper.cookieManager.remove(originalRequest.url, COOKIE_NAMES, 0)
             val oldCookie = networkHelper.cookieManager.get(originalRequest.url)
                 .firstOrNull { it.name == "cf_clearance" }
-            
+
             val bypassSuccess = resolveWithWebView(originalRequest, oldCookie)
-            
+
             if (bypassSuccess) {
                 recordBypassSuccess(host)
                 return chain.proceed(originalRequest)

@@ -120,11 +120,31 @@ inline fun ChipGroup.setChips(
         addView(chip)
     }
 }
-//
-//inline fun View.applyInsets(noinline block: (view: View, systemInsets: Insets) -> Unit) {
-//    ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
-//        val systemInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-//        block(view, systemInsets)
-//        insets
-//    }
-//}
+
+/**
+ * Applies window insets to this view.
+ *
+ * @param block function to execute with the view and system insets.
+ */
+inline fun View.applyInsets(noinline block: (view: View, systemInsets: Insets) -> Unit) {
+    ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+        val systemInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+        block(view, systemInsets)
+        insets
+    }
+}
+
+/**
+ * Applies top system window insets as padding to this view.
+ * Useful for toolbars and app bars to avoid overlap with status bar.
+ */
+inline fun View.applyTopSystemWindowInsetsPadding() {
+    applyInsets { view, insets ->
+        view.setPadding(
+            view.paddingLeft,
+            insets.top,
+            view.paddingRight,
+            view.paddingBottom
+        )
+    }
+}

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
     id 'kotlin-kapt'
     alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
@@ -85,6 +86,7 @@ android {
         dataBinding true
         viewBinding true
         buildConfig true
+        compose true
     }
     
     sourceSets {
@@ -116,6 +118,11 @@ dependencies {
     implementation libs.androidx.preference
     implementation libs.androidx.multidex
     
+    // Compose
+    implementation platform(libs.compose.bom)
+    implementation libs.bundles.compose
+    debugImplementation libs.compose.ui.tooling
+    
     // Material Design
     implementation libs.material
     
@@ -140,6 +147,7 @@ dependencies {
     
     // Image Loading
     implementation libs.bundles.image.loading
+    implementation libs.coil.compose
     ksp libs.glide.ksp
     
     // UI Components

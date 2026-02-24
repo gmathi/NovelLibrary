@@ -5,6 +5,7 @@ kotlin = "2.1.0"
 ksp = "2.1.0-1.0.29"
 googleServices = "4.4.2"
 crashlytics = "3.0.2"
+compose-compiler = "2.1.0"
 
 # AndroidX Core
 appcompat = "1.7.0"
@@ -14,6 +15,8 @@ lifecycle = "2.8.7"
 multidex = "2.0.1"
 preference = "1.2.1"
 work = "2.10.0"
+compose-bom = "2024.12.01"
+activity-compose = "1.9.3"
 
 # UI Components
 material = "1.12.0"
@@ -54,6 +57,7 @@ markdown = "0.7.3"
 # Image Loading
 glide = "4.16.0"
 coil = "2.7.0"
+coil-compose = "2.7.0"
 
 # Firebase
 firebaseBom = "33.12.0"
@@ -85,11 +89,23 @@ androidx-browser = { module = "androidx.browser:browser", version.ref = "browser
 androidx-lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-extensions = { module = "androidx.lifecycle:lifecycle-extensions", version = "2.2.0" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 androidx-legacy-support = { module = "androidx.legacy:legacy-support-v4", version.ref = "legacySupport" }
 androidx-cardview = { module = "androidx.cardview:cardview", version.ref = "cardview" }
 androidx-vectordrawable = { module = "androidx.vectordrawable:vectordrawable", version.ref = "vectordrawable" }
 androidx-preference = { module = "androidx.preference:preference-ktx", version.ref = "preference" }
 androidx-multidex = { module = "androidx.multidex:multidex", version.ref = "multidex" }
+
+# Compose
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
+compose-material = { module = "androidx.compose.material:material" }
+compose-material-icons = { module = "androidx.compose.material:material-icons-extended" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
 
 # Material Design
 material = { module = "com.google.android.material:material", version.ref = "material" }
@@ -134,6 +150,7 @@ glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 glide-ksp = { module = "com.github.bumptech.glide:ksp", version.ref = "glide" }
 coil = { module = "io.coil-kt:coil", version.ref = "coil" }
 coil-gif = { module = "io.coil-kt:coil-gif", version.ref = "coil" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil-compose" }
 
 # UI Components
 lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
@@ -181,12 +198,14 @@ androidx-espresso = { module = "androidx.test.espresso:espresso-core", version.r
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "compose-compiler" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics" }
 
 [bundles]
 androidx-lifecycle = ["androidx-lifecycle-livedata", "androidx-lifecycle-viewmodel", "androidx-lifecycle-extensions"]
+compose = ["compose-ui", "compose-ui-graphics", "compose-ui-tooling-preview", "compose-material3", "compose-material", "compose-material-icons", "androidx-activity-compose", "androidx-lifecycle-runtime-compose"]
 material-dialogs = ["material-dialogs-core", "material-dialogs-input", "material-dialogs-color", "material-dialogs-lifecycle"]
 network = ["okhttp", "okhttp-logging", "okhttp-dnsoverhttps", "okio", "retrofit", "retrofit-gson", "retrofit-rxjava", "retrofit-kotlinx-serialization", "conscrypt"]
 reactive = ["rxjava", "rxandroid", "rxrelay", "reactivenetwork"]
