@@ -51,7 +51,6 @@ import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import io.github.gmathi.novellibrary.util.toHumanPercentage
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaultsNoAnimation
-import okhttp3.internal.format
 import kotlin.math.ceil
 import kotlin.math.round
 
@@ -273,7 +272,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
             val minutes = ceil((stopTimer - System.currentTimeMillis()).toDouble() / 60000).toLong().coerceAtLeast(0)
             if (lastMinutes != minutes) {
                 lastMinutes = minutes
-                quickSettings.autoStopTimerStatus.text = format("%d:%02d", minutes / 60, minutes % 60)
+                quickSettings.autoStopTimerStatus.text = String.format("%d:%02d", minutes / 60, minutes % 60)
             }
             binding.root.postOnAnimation(updateTimerRunnable)
         }
@@ -413,7 +412,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
                 false
             } else true
         }
-        val themeWrapper = ContextThemeWrapper(this@TextToSpeechControlsActivity, R.style.Widget_AppCompat_Button_Borderless_Colored)
+        val themeWrapper = ContextThemeWrapper(this@TextToSpeechControlsActivity, com.google.android.material.R.style.Widget_Material3_Button_TextButton)
         pages.forEach { page ->
             if (!linkedPageButtons.containsValue(page.href)) {
                 val row = TableRow(this@TextToSpeechControlsActivity)

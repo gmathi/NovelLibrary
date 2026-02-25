@@ -112,7 +112,7 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
                 extension.isNsfw && dataCenter.showNSFWSource -> itemView.context.getString(R.string.ext_nsfw_short)
                 extension.isNsfw && dataCenter.showNSFWSource && extension is Extension.Installed -> "${itemView.context.getString(R.string.ext_installed)}: ${itemView.context.getString(R.string.ext_nsfw_short)}"
                 else -> ""
-            }.toUpperCase(Locale.getDefault())
+            }.uppercase(Locale.getDefault())
 
             //Button
             bindButton(item, this)

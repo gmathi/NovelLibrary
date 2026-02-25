@@ -387,7 +387,7 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
         if (preventConsume) return // Caused by addCmd during a callback
         synthesizing = null
         do {
-            if (queue.isEmpty) {
+            if (queue.isEmpty()) {
                 synthesizing = null
                 return
             }
@@ -421,7 +421,7 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
                 callback.onStop(synthesizing!!.utteranceId, false)
                 synthesizing = null
             }
-            while (!queue.isEmpty) {
+            while (!queue.isEmpty()) {
                 val cmd = queue.popFirst()
                 if (cmd is PlaybackCommand) callback.onStop(cmd.utteranceId, false)
                 else cmd.execute(this) // Setup commands, to ensure our config is updated.
@@ -531,7 +531,7 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
         suspend fun buffer() {
             mutex.withLock {
                 track?.let { track ->
-                    while (!data.isEmpty) {
+                    while (!data.isEmpty()) {
                         val buf = data.first
                         val remaining = min(bufferSize, buf.remaining())
                         val total = track.write(buf, buf.remaining(), AudioTrack.WRITE_NON_BLOCKING)
@@ -594,7 +594,7 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
             thread.priority = Thread.MAX_PRIORITY
             thread.start()
         }
-        if (synthesizing == null && !queue.isEmpty) consumeNext()
+        if (synthesizing == null && !queue.isEmpty()) consumeNext()
     }
 
     override fun onBeginSynthesis(utteranceId: String, sampleRateInHz: Int, audioFormat: Int, channelCount: Int) {
@@ -714,7 +714,7 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
                 }
             }
 
-            if (!markers.isEmpty) setMarker(markers.popFirst())
+            if (!markers.isEmpty()) setMarker(markers.popFirst())
             else {
                 if (nextMarker == marker) nextMarker = null
                 track.notificationMarkerPosition = 0

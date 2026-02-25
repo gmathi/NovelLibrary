@@ -89,9 +89,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         if (dataCenter.appVersionCode < BuildConfig.VERSION_CODE) {
             MaterialDialog(this).show {
                 title(text = "\uD83C\uDF89 What's New ${BuildConfig.VERSION_NAME}!")
-                message(
-                    text = WhatsChanged.VERSION_1_0_0
-                )
+                message(text = WhatsChanged.LATEST)
                 positiveButton(text = "Ok")
             }
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
