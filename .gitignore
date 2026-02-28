@@ -209,6 +209,7 @@ $RECYCLE.BIN/
 # ===========================
 .vscode/
 *.code-workspace
+.kiro/
 
 # ===========================
 # Other Package Managers
