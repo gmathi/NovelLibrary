@@ -18,8 +18,8 @@ import java.io.FileOutputStream
 class ModelAssetManager(private val context: Context) {
 
     companion object {
-        // Model file paths - using Kusal as default
-        private const val MODEL_DIR = "vits-piper-en_US-kusal-medium"
+        // Default model
+        private const val DEFAULT_MODEL_DIR = "vits-piper-en_US-kusal-medium"
         
         // Required model files (VITS-Piper doesn't need voices.bin)
         private val REQUIRED_MODEL_FILES = listOf(
@@ -37,29 +37,30 @@ class ModelAssetManager(private val context: Context) {
     }
 
     /**
-     * Check if all model files are present and valid.
+     * Check if all model files are present and valid for the specified model.
      * 
+     * @param modelDir Model directory name (e.g., "vits-piper-en_US-kusal-medium")
      * @return Current status of the asset pack
      */
-    fun getAssetStatus(): AssetStatus {
-        val modelDir = getModelDirectoryFile()
+    fun getAssetStatus(modelDir: String = DEFAULT_MODEL_DIR): AssetStatus {
+        val modelDirFile = getModelDirectoryFile(modelDir)
         
-        if (!modelDir.exists()) {
+        if (!modelDirFile.exists()) {
             return AssetStatus.NOT_DOWNLOADED
         }
         
         // Check for any .onnx file (VITS-Piper model)
-        val onnxFiles = modelDir.listFiles { file -> file.name.endsWith(".onnx") }
+        val onnxFiles = modelDirFile.listFiles { file -> file.name.endsWith(".onnx") }
         val hasOnnxModel = onnxFiles?.isNotEmpty() == true
         
         // Check all required model files
         val allFilesPresent = REQUIRED_MODEL_FILES.all { fileName ->
-            val file = File(modelDir, fileName)
+            val file = File(modelDirFile, fileName)
             file.exists() && file.length() > 0
         }
         
         // Check espeak-ng-data directory
-        val espeakDir = File(modelDir, ESPEAK_DATA_DIR)
+        val espeakDir = File(modelDirFile, ESPEAK_DATA_DIR)
         val espeakDataPresent = espeakDir.exists() && espeakDir.isDirectory && 
             (espeakDir.listFiles()?.isNotEmpty() == true)
         
@@ -73,43 +74,45 @@ class ModelAssetManager(private val context: Context) {
     /**
      * Get the directory path where model files are stored.
      * 
+     * @param modelDir Model directory name (e.g., "vits-piper-en_US-kusal-medium")
      * @return Absolute path to the model directory
      */
-    fun getModelDirectory(): String {
-        return getModelDirectoryFile().absolutePath
+    fun getModelDirectory(modelDir: String = DEFAULT_MODEL_DIR): String {
+        return getModelDirectoryFile(modelDir).absolutePath
     }
 
-    private fun getModelDirectoryFile(): File {
-        return File(context.filesDir, MODEL_DIR)
+    private fun getModelDirectoryFile(modelDir: String = DEFAULT_MODEL_DIR): File {
+        return File(context.filesDir, modelDir)
     }
     
     /**
      * Copy model files from APK assets to filesDir if not already present.
      * This is needed because Sherpa-ONNX requires filesystem paths, not asset paths.
      * 
+     * @param modelDir Model directory name (e.g., "vits-piper-en_US-kusal-medium")
      * @return Result indicating success or failure
      */
-    suspend fun copyModelsFromAssets(): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun copyModelsFromAssets(modelDir: String = DEFAULT_MODEL_DIR): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val modelDir = getModelDirectoryFile()
+            val modelDirFile = getModelDirectoryFile(modelDir)
             
             // If models already exist and are valid, skip copying
-            if (getAssetStatus() == AssetStatus.READY) {
+            if (getAssetStatus(modelDir) == AssetStatus.READY) {
                 android.util.Log.d("ModelAssetManager", "Models already present and valid, skipping copy")
                 return@withContext Result.success(Unit)
             }
             
-            android.util.Log.d("ModelAssetManager", "Starting model copy from assets to ${modelDir.absolutePath}")
+            android.util.Log.d("ModelAssetManager", "Starting model copy from assets to ${modelDirFile.absolutePath}")
             
             // Create model directory
-            if (!modelDir.exists()) {
-                val created = modelDir.mkdirs()
+            if (!modelDirFile.exists()) {
+                val created = modelDirFile.mkdirs()
                 android.util.Log.d("ModelAssetManager", "Created model directory: $created")
             }
             
-            // Copy all files from assets/vits-piper-en_US-kusal-medium/ to filesDir
+            // Copy all files from assets/[modelDir]/ to filesDir
             val assetManager = context.assets
-            val assetPath = MODEL_DIR
+            val assetPath = modelDir
             
             // Check if asset path exists
             val rootFiles = assetManager.list(assetPath)
@@ -155,12 +158,12 @@ class ModelAssetManager(private val context: Context) {
                 }
             }
             
-            copyAssetFolder(assetPath, modelDir)
+            copyAssetFolder(assetPath, modelDirFile)
             
             android.util.Log.d("ModelAssetManager", "Model copy completed, verifying...")
             
             // Verify the copy was successful
-            val status = getAssetStatus()
+            val status = getAssetStatus(modelDir)
             if (status != AssetStatus.READY) {
                 throw IllegalStateException("Model files not valid after copying from assets. Status: $status")
             }
@@ -176,10 +179,11 @@ class ModelAssetManager(private val context: Context) {
     /**
      * Get total disk space used by model files in bytes.
      * 
+     * @param modelDir Model directory name (e.g., "vits-piper-en_US-kusal-medium")
      * @return Total size in bytes
      */
-    fun getAssetSizeBytes(): Long {
-        return calculateDirectorySize(getModelDirectoryFile())
+    fun getAssetSizeBytes(modelDir: String = DEFAULT_MODEL_DIR): Long {
+        return calculateDirectorySize(getModelDirectoryFile(modelDir))
     }
 
     private fun calculateDirectorySize(directory: File): Long {
@@ -198,25 +202,39 @@ class ModelAssetManager(private val context: Context) {
      * Verify integrity of model files.
      * Checks that all required files are present with non-zero sizes.
      * 
+     * @param modelDir Model directory name (e.g., "vits-piper-en_US-kusal-medium")
      * @return true if all files are valid, false otherwise
      */
-    fun verifyIntegrity(): Boolean {
-        return getAssetStatus() == AssetStatus.READY
+    fun verifyIntegrity(modelDir: String = DEFAULT_MODEL_DIR): Boolean {
+        return getAssetStatus(modelDir) == AssetStatus.READY
     }
 
     /**
-     * Delete all model files from storage.
+     * Delete all model files from storage for the specified model.
      * Models will be re-copied from APK assets on next use.
      * 
+     * @param modelDir Model directory name (e.g., "vits-piper-en_US-kusal-medium")
      * @return true if deletion was successful, false otherwise
      */
-    fun deleteAssets(): Boolean {
-        val modelDir = getModelDirectoryFile()
+    fun deleteAssets(modelDir: String = DEFAULT_MODEL_DIR): Boolean {
+        val modelDirFile = getModelDirectoryFile(modelDir)
         
-        if (modelDir.exists()) {
-            return modelDir.deleteRecursively()
+        if (modelDirFile.exists()) {
+            return modelDirFile.deleteRecursively()
         }
         
         return true
+    }
+    
+    /**
+     * Get list of all available models in assets.
+     * 
+     * @return List of model directory names
+     */
+    fun getAvailableModels(): List<String> {
+        return listOf(
+            "vits-piper-en_US-kusal-medium",
+            "vits-piper-en_US-lessac-medium"
+        )
     }
 }

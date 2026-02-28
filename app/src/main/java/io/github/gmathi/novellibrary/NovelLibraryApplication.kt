@@ -75,6 +75,17 @@ open class NovelLibraryApplication : Application(), LifecycleObserver {
 
         setRemoteConfig(dataCenter)
         setupNotificationChannels()
+        
+        // Preload AI TTS model in background if AI TTS is enabled
+        if (dataCenter.ttsPreferences.ttsEngine == "ai_vits") {
+            try {
+                val preloader = io.github.gmathi.novellibrary.service.tts.AiTtsPreloader.getInstance(this, dataCenter)
+                preloader.preloadModel()
+                Logs.debug(TAG, "Started AI TTS model preloading")
+            } catch (e: Exception) {
+                Logs.error(TAG, "Failed to start AI TTS preloading", e)
+            }
+        }
     }
 
     private fun cleanupDatabase() {

@@ -69,6 +69,19 @@ fun AiTtsTestScreen(
                 )
             }
 
+            Column {
+                Text(
+                    text = "Pitch: ${"%.1f".format(uiState.pitch)}x",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Slider(
+                    value = uiState.pitch,
+                    onValueChange = { viewModel.updatePitch(it) },
+                    valueRange = 0.5f..2.0f,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)

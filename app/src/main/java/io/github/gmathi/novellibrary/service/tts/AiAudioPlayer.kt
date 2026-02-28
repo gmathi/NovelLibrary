@@ -41,6 +41,10 @@ class AiAudioPlayer(private val modelDir: String) {
     @Volatile var stopped: Boolean = false
         private set
     @Volatile private var destroyed: Boolean = false
+    
+    // Thread synchronization to prevent multiple concurrent speak() calls
+    private val speakLock = Any()
+    @Volatile private var isSpeaking: Boolean = false
 
     var speed: Float = 1.0f
     var callback: Callback? = null
@@ -112,28 +116,73 @@ class AiAudioPlayer(private val modelDir: String) {
      * R8 desugaring that cause native crashes in generateWithCallback().
      */
     fun speak(text: String, utteranceId: String) {
+        // Ensure only one speak() call is active at a time
+        synchronized(speakLock) {
+            if (isSpeaking) {
+                Log.w(TAG, "speak() called while already speaking, ignoring")
+                return
+            }
+            isSpeaking = true
+        }
+        
+        try {
+            speakInternal(text, utteranceId)
+        } finally {
+            synchronized(speakLock) {
+                isSpeaking = false
+            }
+        }
+    }
+    
+    private fun speakInternal(text: String, utteranceId: String) {
         val engine = tts ?: run {
+            Log.e(TAG, "speak() called but engine is null")
             callback?.onError(utteranceId, "Engine not initialized")
             return
         }
         val audioTrack = track ?: run {
+            Log.e(TAG, "speak() called but audioTrack is null")
             callback?.onError(utteranceId, "AudioTrack not initialized")
             return
         }
-        if (destroyed) return
+        if (destroyed) {
+            Log.d(TAG, "speak() called but player is destroyed")
+            return
+        }
+        if (text.isBlank()) {
+            Log.w(TAG, "speak() called with blank text, skipping")
+            callback?.onUtteranceDone(utteranceId)
+            return
+        }
+        
         stopped = false
 
         callback?.onUtteranceStart(utteranceId)
 
         try {
+            // Ensure AudioTrack is in correct state before writing
+            try {
+                if (audioTrack.playState != AudioTrack.PLAYSTATE_PLAYING) {
+                    audioTrack.flush()
+                    audioTrack.play()
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to prepare AudioTrack", e)
+            }
+
             // Use generate() instead of generateWithCallback() to avoid JNI
             // callback lambda crash with R8 desugaring. For line-by-line TTS
             // the latency difference is negligible.
+            Log.d(TAG, "Generating audio with speed=${speed}x")
             val audio = engine.generate(text = text, sid = 0, speed = speed)
             val samples = audio.samples
 
-            if (stopped || destroyed) return
+            if (stopped || destroyed) {
+                Log.d(TAG, "Stopped or destroyed after generation")
+                return
+            }
             if (samples.isEmpty()) {
+                Log.e(TAG, "Engine returned empty audio")
                 callback?.onError(utteranceId, "Engine returned empty audio")
                 return
             }
@@ -165,10 +214,16 @@ class AiAudioPlayer(private val modelDir: String) {
             try {
                 it.pause()
                 it.flush()
-                it.play() // re-arm for next utterance
+                // Don't call play() here - let the next speak() call handle it
             } catch (e: Exception) {
                 Log.w(TAG, "stop() track error", e)
             }
+        }
+        // Wait for any active speak() to finish
+        var attempts = 0
+        while (isSpeaking && attempts < 20) {
+            Thread.sleep(50)
+            attempts++
         }
     }
 

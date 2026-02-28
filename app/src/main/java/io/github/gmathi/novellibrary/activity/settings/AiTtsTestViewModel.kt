@@ -24,6 +24,7 @@ data class AiTtsTestUiState(
     val statusText: String = "Initializing…",
     val inputText: String = "Hello! This is a test of the AI text to speech engine.",
     val speed: Float = 1.0f,
+    val pitch: Float = 1.0f,
     val isSpeakEnabled: Boolean = false,
     val isStopEnabled: Boolean = false,
     val isSpeaking: Boolean = false
@@ -105,11 +106,32 @@ class AiTtsTestViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(speed = speed)
     }
 
+    fun updatePitch(pitch: Float) {
+        _uiState.value = _uiState.value.copy(pitch = pitch)
+    }
+
     fun speak() {
         val text = _uiState.value.inputText.trim()
-        if (text.isEmpty()) return
+        if (text.isEmpty()) {
+            updateStatus("Error: No text to speak")
+            return
+        }
 
-        val engine = tts ?: return
+        val engine = tts
+        if (engine == null) {
+            updateStatus("Error: TTS engine not initialized")
+            return
+        }
+        
+        // Stop any existing thread first
+        if (speakThread?.isAlive == true) {
+            stopRequested = true
+            speakThread?.join(1000) // Wait up to 1 second for thread to finish
+        }
+        
+        // Capture speed and pitch values before starting thread
+        val currentSpeed = _uiState.value.speed
+        val currentPitch = _uiState.value.pitch
 
         _uiState.value = _uiState.value.copy(
             isSpeakEnabled = false,
@@ -122,12 +144,16 @@ class AiTtsTestViewModel : ViewModel() {
         speakThread = Thread({
             var audioTrack: AudioTrack? = null
             try {
-                updateStatus("Generating audio (this may take a few seconds)…")
+                updateStatus("Generating audio (speed: ${String.format("%.1f", currentSpeed)}x)…")
 
-                val audio = engine.generate(text = text, sid = 0, speed = _uiState.value.speed)
+                // Use currentSpeed for synthesis (not 1.0f)
+                val audio = engine.generate(text = text, sid = 0, speed = currentSpeed)
                 val samples = audio.samples
 
-                if (stopRequested) return@Thread
+                if (stopRequested) {
+                    updateStatus("Stopped")
+                    return@Thread
+                }
                 if (samples.isEmpty()) {
                     updateStatus("ERROR: engine returned empty audio")
                     return@Thread
@@ -161,6 +187,19 @@ class AiTtsTestViewModel : ViewModel() {
                     .setTransferMode(AudioTrack.MODE_STREAM)
                     .build()
 
+                // Apply pitch adjustment via playback params (Android API 23+)
+                // Note: Speed is already applied during synthesis, so we only adjust pitch here
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                    try {
+                        val playbackParams = android.media.PlaybackParams()
+                        playbackParams.pitch = currentPitch
+                        audioTrack.playbackParams = playbackParams
+                        Log.i(TAG, "Applied pitch: ${currentPitch}x (speed ${currentSpeed}x applied during synthesis)")
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Failed to set playback parameters", e)
+                    }
+                }
+
                 audioTrack.play()
 
                 var offset = 0
@@ -176,6 +215,8 @@ class AiTtsTestViewModel : ViewModel() {
                 if (!stopRequested) {
                     audioTrack.stop()
                     updateStatus("Done! (${String.format("%.1f", secs)}s)")
+                } else {
+                    updateStatus("Stopped")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Speak error", e)
@@ -197,9 +238,9 @@ class AiTtsTestViewModel : ViewModel() {
 
     fun stopSpeaking() {
         stopRequested = true
-        updateStatus("Stopped")
+        speakThread?.interrupt()
+        updateStatus("Stopping…")
         _uiState.value = _uiState.value.copy(
-            isSpeakEnabled = true,
             isStopEnabled = false
         )
     }

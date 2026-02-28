@@ -65,6 +65,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         const val COMMAND_RELOAD_CHAPTER = "cmd_reload_chapter"
         const val ACTION_UPDATE_AI_VOICE = "update_ai_voice"
         const val ACTION_UPDATE_AI_SPEED = "update_ai_speed"
+        const val ACTION_SWITCH_AI_MODEL = "switch_ai_model"
         const val EVENT_SENTENCE_LIST = "event_$KEY_SENTENCES"
         const val EVENT_LINKED_PAGES = "event_$LINKED_PAGES"
         const val EVENT_TEXT_RANGE = "event_text_range"
@@ -533,6 +534,12 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
                     extras?.getFloat("speed")?.let { speed ->
                         Log.d(TAG, "Updating AI speed to: $speed")
                         player.updateAiSpeed(speed)
+                    }
+                }
+                ACTION_SWITCH_AI_MODEL -> {
+                    extras?.getString("modelId")?.let { modelId ->
+                        Log.d(TAG, "Switching AI model to: $modelId")
+                        player.switchAiModel(modelId)
                     }
                 }
             }

@@ -94,6 +94,11 @@ data class TTSPreferences(val context: Context, val prefs: SharedPreferences) {
         get() = prefs.getString("ttsEngine", "ai_vits") ?: "ai_vits"
         set(value) = prefs.edit().putString("ttsEngine", value).apply()
 
+    var aiModel: String
+        get() = prefs.getString("ttsAiModel", "vits-piper-en_US-kusal-medium") ?: "vits-piper-en_US-kusal-medium"
+        set(value) = prefs.edit().putString("ttsAiModel", value).apply()
+
+    @Deprecated("Use aiModel instead - voice presets don't apply to single-speaker models")
     var aiVoicePreset: Int
         get() = prefs.getInt("ttsAiVoicePreset", 0)
         set(value) = prefs.edit().putInt("ttsAiVoicePreset", value).apply()
