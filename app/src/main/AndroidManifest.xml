@@ -101,7 +101,6 @@
             android:theme="@style/DarkTheme_DarkSide">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -199,6 +198,12 @@
             android:label="@string/title_activity_tts_settings"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide"/>
+        <activity
+            android:name=".activity.settings.AiTtsTestActivity"
+            android:label="@string/title_activity_ai_tts_test"
+            android:screenOrientation="fullUser"
+            android:exported="true"
+            android:theme="@style/DarkTheme_DarkSide" />
         <activity
             android:name=".activity.settings.SyncLoginActivity"
             android:label="@string/title_activity_sync_login"

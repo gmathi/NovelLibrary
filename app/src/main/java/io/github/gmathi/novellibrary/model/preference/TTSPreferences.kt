@@ -88,6 +88,22 @@ data class TTSPreferences(val context: Context, val prefs: SharedPreferences) {
 
     //#endregion
 
+    //#region AI TTS
+
+    var ttsEngine: String
+        get() = prefs.getString("ttsEngine", "ai_vits") ?: "ai_vits"
+        set(value) = prefs.edit().putString("ttsEngine", value).apply()
+
+    var aiVoicePreset: Int
+        get() = prefs.getInt("ttsAiVoicePreset", 0)
+        set(value) = prefs.edit().putInt("ttsAiVoicePreset", value).apply()
+
+    var aiSpeed: Float
+        get() = prefs.getFloat("ttsAiSpeed", 1.0f)
+        set(value) = prefs.edit().putFloat("ttsAiSpeed", value).apply()
+
+    //#endregion
+
     //#region Remote control
 
     var rewindSentences: Int

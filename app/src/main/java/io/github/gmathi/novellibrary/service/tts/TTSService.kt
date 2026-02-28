@@ -63,6 +63,8 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         const val COMMAND_UPDATE_TIMER = "update_timer"
         const val COMMAND_LOAD_BUFFER_LINK = "cmd_load_buffer_link"
         const val COMMAND_RELOAD_CHAPTER = "cmd_reload_chapter"
+        const val ACTION_UPDATE_AI_VOICE = "update_ai_voice"
+        const val ACTION_UPDATE_AI_SPEED = "update_ai_speed"
         const val EVENT_SENTENCE_LIST = "event_$KEY_SENTENCES"
         const val EVENT_LINKED_PAGES = "event_$LINKED_PAGES"
         const val EVENT_TEXT_RANGE = "event_text_range"
@@ -212,6 +214,26 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         mediaSession.isActive = false
         mediaSession.release()
         super.onDestroy()
+    }
+
+    /**
+     * Handle low memory conditions by releasing AI TTS engine resources.
+     * The engine will be re-initialized on next synthesis request.
+     * 
+     * Requirements: 6.3
+     */
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        
+        when (level) {
+            ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW,
+            ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL,
+            ComponentCallbacks2.TRIM_MEMORY_MODERATE,
+            ComponentCallbacks2.TRIM_MEMORY_COMPLETE -> {
+                Log.d(TAG, "Low memory signal received (level: $level), releasing AI TTS engine")
+                player.releaseAiEngineOnLowMemory()
+            }
+        }
     }
 
 
@@ -376,6 +398,13 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         }
         resumeOnFocus = false
 
+        // Release AI engine when service is unhooked (app backgrounded with no playback)
+        // Requirements: 6.2
+        if (!player.isPlaying) {
+            Log.d(TAG, "Service unhooked with no active playback, releasing AI engine")
+            player.releaseAiEngineOnLowMemory()
+        }
+
         isHooked = false
         return true
     }
@@ -493,6 +522,18 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
                 COMMAND_RELOAD_CHAPTER -> {
                     player.clearChapterCache()
                     player.loadCurrentChapter()
+                }
+                ACTION_UPDATE_AI_VOICE -> {
+                    extras?.getInt("voiceId")?.let { voiceId ->
+                        Log.d(TAG, "Updating AI voice to: $voiceId")
+                        player.updateAiVoice(voiceId)
+                    }
+                }
+                ACTION_UPDATE_AI_SPEED -> {
+                    extras?.getFloat("speed")?.let { speed ->
+                        Log.d(TAG, "Updating AI speed to: $speed")
+                        player.updateAiSpeed(speed)
+                    }
                 }
             }
             super.onCommand(command, extras, cb)

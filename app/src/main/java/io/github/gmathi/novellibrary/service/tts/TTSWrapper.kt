@@ -187,33 +187,41 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
                 tts.tts.speak(text, TextToSpeech.QUEUE_ADD, params, utteranceId)
                 return false
             } else {
-                if (cached) {
-                    tts.initDefaultTrack(internalId)
-                    begin = tts.frame
-                    markers.forEach { tts.addMarkerUnsafe(it) }
-                    tts.frame += frames
-                    tts.writer.addList(audio)
-                    tts.synthesizing = null
-                    return true
-                } else {
-                    var retries = 0
-                    while (retries < 3) {
-                        try {
-                            if (tts.tts.synthesizeToFile(text, params, tts.devNull(), internalId) == TextToSpeech.ERROR) {
-                                // TTS engine bug: Randomly disconnect service for no reason
-                                tts.queue.addFirst(this)
-                                tts.synthesizing = null
-                                tts.restartTTS()
-                                return false
-                            }
-                            break
-                        } catch (crash: DeadObjectException) {
-                            // TTS engine bug: Randomly complain about dead objects
+                // System TTS path (AI TTS is handled by AiAudioPlayer in TTSPlayer)
+                return executeSystemSynthesis(tts)
+            }
+        }
+
+        /**
+         * Execute synthesis using the system TTS engine (existing logic).
+         */
+        private fun executeSystemSynthesis(tts: TTSWrapper): Boolean {
+            if (cached) {
+                tts.initDefaultTrack(internalId)
+                begin = tts.frame
+                markers.forEach { tts.addMarkerUnsafe(it) }
+                tts.frame += frames
+                tts.writer.addList(audio)
+                tts.synthesizing = null
+                return true
+            } else {
+                var retries = 0
+                while (retries < 3) {
+                    try {
+                        if (tts.tts.synthesizeToFile(text, params, tts.devNull(), internalId) == TextToSpeech.ERROR) {
+                            // TTS engine bug: Randomly disconnect service for no reason
+                            tts.queue.addFirst(this)
+                            tts.synthesizing = null
+                            tts.restartTTS()
+                            return false
                         }
-                        retries++
+                        break
+                    } catch (crash: DeadObjectException) {
+                        // TTS engine bug: Randomly complain about dead objects
                     }
-                    return false
+                    retries++
                 }
+                return false
             }
         }
 
@@ -601,6 +609,7 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
 //        Log.d(TTSPlayer.TAG, "onBeginSynthesis $utteranceId ${if (synthesizing?.internalId == utteranceId) "==" else "!="} ${synthesizing?.internalId}")
         if (legacyMode || synthesizing?.internalId != utteranceId) return
 
+        // Support both system TTS sample rates and AI TTS 24kHz
         if (track == null || track!!.sampleRate != sampleRateInHz || track!!.audioFormat != audioFormat || track!!.channelCount != channelCount) {
             // TODO: Don't do that right away, and instead delay until this utterance becomes active
             track?.release()
@@ -622,7 +631,7 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
             track!!.setPlaybackPositionUpdateListener(this)
             if (nextMarker != null) setMarker(nextMarker!!, true)
 
-//            Log.d(TTSPlayer.TAG, "Creating AudioTrack with sample rate $sampleRateInHz, format $audioFormat, and $channelCount channels, buf size ${bufferSize}.")
+            Log.d(TTSPlayer.TAG, "Creating AudioTrack with sample rate $sampleRateInHz, format $audioFormat, and $channelCount channels, buf size ${bufferSize}.")
         }
     }
 

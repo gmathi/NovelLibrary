@@ -83,6 +83,14 @@
         android:gravity="center_vertical"
         android:background="?android:attr/listDivider">
     </TableRow>
+    
+    <!-- AI TTS Playback Controls (Compose UI) -->
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/aiTtsControlsCompose"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+    
     <TableRow
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

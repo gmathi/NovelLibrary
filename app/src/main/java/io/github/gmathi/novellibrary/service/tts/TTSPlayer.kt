@@ -99,6 +99,11 @@ class TTSPlayer(private val context: Context,
     private val silence: MediaPlayer = MediaPlayer.create(context, R.raw.silence).apply {
         isLooping = true
     }
+    
+    // AI TTS engine mode
+    private var currentEngineMode: TtsEngineMode = TtsEngineMode.SYSTEM
+    private var aiEngineInitialized = false
+    private var aiPlayer: AiAudioPlayer? = null
 
     // Player metadata
     lateinit var novel: Novel
@@ -165,7 +170,11 @@ class TTSPlayer(private val context: Context,
             tts.addEarcon(CHAPTER_CHANGE_EARCON, R.raw.chapter_change)
             selectLanguage()
             ttsReady = true
-            Log.d(TAG, "TTS initialized")
+            
+            // Read engine mode preference and initialize if needed
+            currentEngineMode = TtsEngineMode.fromKey(dataCenter.ttsPreferences.ttsEngine)
+            
+            Log.d(TAG, "TTS initialized with engine mode: $currentEngineMode")
             if (desiredState == STATE_PLAY && currentState != STATE_PLAY) {
                 Log.d(TAG, "Play was called before TTS initialization: Starting now")
                 start()
@@ -334,9 +343,88 @@ class TTSPlayer(private val context: Context,
             Log.d(TAG, "Attempting to start prior TTS initialization: Waiting for init")
             return
         }
+        
+        // Always re-read engine mode from preferences so that changes made in
+        // settings while the service is alive are picked up on the next start().
+        currentEngineMode = TtsEngineMode.fromKey(dataCenter.ttsPreferences.ttsEngine)
+        
+        // Initialize AI engine if needed
+        if (currentEngineMode == TtsEngineMode.AI_VITS && !aiEngineInitialized) {
+            Log.d(TAG, "Starting AI TTS engine initialization via AiAudioPlayer")
+            launchIO {
+                try {
+                    val modelAssetManager = ModelAssetManager(context)
+                    
+                    val copyResult = modelAssetManager.copyModelsFromAssets()
+                    if (copyResult.isFailure) {
+                        val error = copyResult.exceptionOrNull()
+                        Log.e(TAG, "Failed to copy AI TTS model files: ${error?.message}", error)
+                        withUIContext {
+                            context.showToastWithMain("Failed to prepare AI TTS models: ${error?.message}", Toast.LENGTH_LONG)
+                            fallbackToSystemTts()
+                            continueStart()
+                        }
+                        return@launchIO
+                    }
+                    
+                    val assetStatus = modelAssetManager.getAssetStatus()
+                    if (assetStatus != ModelAssetManager.AssetStatus.READY) {
+                        Log.e(TAG, "AI TTS model files not ready. Status: $assetStatus")
+                        withUIContext {
+                            context.showToastWithMain("AI TTS model files are missing.", Toast.LENGTH_LONG)
+                            fallbackToSystemTts()
+                            continueStart()
+                        }
+                        return@launchIO
+                    }
+                    
+                    val modelDir = modelAssetManager.getModelDirectory()
+                    Log.d(TAG, "Creating AiAudioPlayer with model dir: $modelDir")
+                    
+                    val player = AiAudioPlayer(modelDir)
+                    val error = player.init()
+                    
+                    if (error != null) {
+                        Log.e(TAG, "AiAudioPlayer init failed: $error")
+                        player.destroy()
+                        withUIContext {
+                            context.showToastWithMain("AI TTS init failed: $error", Toast.LENGTH_LONG)
+                            fallbackToSystemTts()
+                            continueStart()
+                        }
+                        return@launchIO
+                    }
+                    
+                    player.speed = dataCenter.ttsPreferences.aiSpeed
+                    player.callback = aiPlayerCallback
+                    aiPlayer = player
+                    aiEngineInitialized = true
+                    
+                    withUIContext {
+                        Log.d(TAG, "AiAudioPlayer initialized successfully")
+                        continueStart()
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error initializing AI TTS", e)
+                    withUIContext {
+                        context.showToastWithMain("AI TTS error. Falling back to system TTS.", Toast.LENGTH_LONG)
+                        fallbackToSystemTts()
+                        continueStart()
+                    }
+                }
+            }
+            return
+        }
+        
+        continueStart()
+    }
+    
+    private fun continueStart() {
         currentState = STATE_PLAY
         Log.d(TAG, "TTSPlayer.start()")
-        updateVoiceConfig()
+        if (currentEngineMode == TtsEngineMode.SYSTEM) {
+            updateVoiceConfig()
+        }
         mediaSession.setMetadata(metadata.build())
         queuedLine = lineNumber
         speakLine(TextToSpeech.QUEUE_ADD)
@@ -372,6 +460,7 @@ class TTSPlayer(private val context: Context,
         if (currentState != STATE_LOADING) currentState = STATE_STOP
 //        Log.d(TAG, "TTSPlayer.stop()")
         if (silence.isPlaying) silence.stop()
+        aiPlayer?.stop()
         tts.stop()
         queuedLine = lineNumber
         setPlaybackState(withState)
@@ -384,6 +473,12 @@ class TTSPlayer(private val context: Context,
         silence.release()
 
         tts.stop()
+        
+        // Release AI player if initialized
+        aiPlayer?.destroy()
+        aiPlayer = null
+        aiEngineInitialized = false
+        
         tts.shutdown()
 
         webLoadingJobs.forEach {
@@ -519,6 +614,13 @@ class TTSPlayer(private val context: Context,
     //#region Playback
 
     private fun speakLine(queueMode:Int = TextToSpeech.QUEUE_ADD) {
+        // AI TTS path: use AiAudioPlayer on a dedicated thread
+        if (currentEngineMode == TtsEngineMode.AI_VITS && aiPlayer != null) {
+            speakLineAi()
+            return
+        }
+
+        // System TTS path (original)
         if (lines.isNotEmpty() && lineNumber < lines.size) {
             if (lineNumber == cacheNextChapterLine) loadChapter(chapterIndex+1, true)
             var mode = queueMode
@@ -547,6 +649,70 @@ class TTSPlayer(private val context: Context,
             onNextLine()
         } else {
             onLastLine()
+        }
+    }
+
+    /**
+     * AI TTS playback: speak the current line using AiAudioPlayer on a background thread.
+     * Each line is spoken one at a time. The AiAudioPlayer.Callback advances to the next line.
+     */
+    private fun speakLineAi() {
+        if (lines.isEmpty() || lineNumber >= lines.size) {
+            onLastLine()
+            return
+        }
+        if (lineNumber == cacheNextChapterLine) loadChapter(chapterIndex + 1, true)
+
+        val line = lines[lineNumber]
+        val text = when (line.mode) {
+            TTSReadMode.ModeDialogue -> {
+                if (line.speaker.isNullOrEmpty()) line.line
+                else "${line.line} ${line.speaker}"
+            }
+            TTSReadMode.ModeSceneChange -> null // skip scene changes in AI mode
+            TTSReadMode.ModeRegular -> line.line
+        }
+
+        if (text.isNullOrBlank()) {
+            // Skip blank/scene-change lines
+            lineNumber++
+            queuedLine = lineNumber
+            speakLineAi()
+            return
+        }
+
+        queuedLine = lineNumber
+        onNextLine()
+
+        val player = aiPlayer ?: return
+        // Stop any in-progress synthesis before starting a new one
+        player.stop()
+        // Speak on a background thread — AiAudioPlayer.speak() blocks until done
+        Thread({
+            player.speak(text, TYPE_SENTENCE)
+        }, "ai_tts_speak").start()
+    }
+
+    /** Callback from AiAudioPlayer — runs on the ai_tts_speak thread. */
+    private val aiPlayerCallback = object : AiAudioPlayer.Callback {
+        override fun onUtteranceStart(utteranceId: String) {
+            // nothing needed
+        }
+
+        override fun onUtteranceDone(utteranceId: String) {
+            if (desiredState != STATE_PLAY || isDisposed) return
+            // Advance to next line on the main thread
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                if (desiredState != STATE_PLAY || isDisposed) return@post
+                lineNumber++
+                speakLineAi()
+            }
+        }
+
+        override fun onError(utteranceId: String, message: String) {
+            Log.e(TAG, "AI TTS error: $message")
+            // Don't crash — just advance
+            onUtteranceDone(utteranceId)
         }
     }
 
@@ -934,6 +1100,125 @@ class TTSPlayer(private val context: Context,
             context.showToastWithMain("Language ${locale.displayName} is not available.", Toast.LENGTH_LONG)
             false
         } else true
+    }
+    
+    /**
+     * Update AI TTS voice preset in real-time.
+     * The new voice will be applied starting from the next synthesis request.
+     * 
+     * Requirements: 8.4
+     */
+    fun updateAiVoice(voiceId: Int) {
+        if (isDisposed) return
+        if (currentEngineMode != TtsEngineMode.AI_VITS) {
+            Log.w(TAG, "Cannot update AI voice when not using AI TTS engine")
+            return
+        }
+        
+        Log.d(TAG, "Updating AI voice to: $voiceId")
+        // VITS-Piper has only 1 speaker per model, so voice preset is stored but not applied
+        dataCenter.ttsPreferences.aiVoicePreset = voiceId
+    }
+    
+    /**
+     * Update AI TTS speed in real-time.
+     * The new speed will be applied starting from the next synthesis request.
+     * 
+     * Requirements: 8.5
+     */
+    fun updateAiSpeed(speed: Float) {
+        if (isDisposed) return
+        if (currentEngineMode != TtsEngineMode.AI_VITS) {
+            Log.w(TAG, "Cannot update AI speed when not using AI TTS engine")
+            return
+        }
+        
+        Log.d(TAG, "Updating AI speed to: $speed")
+        aiPlayer?.speed = speed
+        dataCenter.ttsPreferences.aiSpeed = speed
+    }
+    
+    /**
+     * Switch between AI TTS and system TTS engines.
+     * Stops current engine, initializes new engine, and resumes from current position.
+     * 
+     * Requirements: 4.4
+     */
+    fun switchEngine(newEngineMode: TtsEngineMode) {
+        if (isDisposed) return
+        if (currentEngineMode == newEngineMode) {
+            Log.d(TAG, "Engine mode already set to $newEngineMode")
+            return
+        }
+        
+        Log.d(TAG, "Switching engine from $currentEngineMode to $newEngineMode")
+        
+        // Preserve current reading position
+        val savedLineNumber = lineNumber
+        val savedChapterIndex = chapterIndex
+        
+        // Stop current playback
+        val wasPlaying = isPlaying
+        stop()
+        
+        // Release old engine if switching away from AI
+        if (currentEngineMode == TtsEngineMode.AI_VITS && aiEngineInitialized) {
+            aiPlayer?.destroy()
+            aiPlayer = null
+            aiEngineInitialized = false
+        }
+        
+        // Update engine mode
+        currentEngineMode = newEngineMode
+        
+        // Update preference
+        dataCenter.ttsPreferences.ttsEngine = newEngineMode.key
+        
+        // Restore reading position
+        lineNumber = savedLineNumber
+        chapterIndex = savedChapterIndex
+        
+        // Resume playback if it was playing
+        if (wasPlaying) {
+            start()
+        }
+    }
+    
+    /**
+     * Fall back to system TTS when AI TTS fails.
+     * Preserves reading position (lineNumber and chapterIndex).
+     * 
+     * Requirements: 7.4
+     */
+    private fun fallbackToSystemTts() {
+        Log.d(TAG, "Falling back to system TTS")
+        
+        // Release AI player
+        aiPlayer?.destroy()
+        aiPlayer = null
+        aiEngineInitialized = false
+        
+        // Switch to system TTS
+        currentEngineMode = TtsEngineMode.SYSTEM
+        
+        // Update preference
+        dataCenter.ttsPreferences.ttsEngine = TtsEngineMode.SYSTEM.key
+    }
+    
+    /**
+     * Release AI engine resources in response to low memory signal.
+     * The engine will be re-initialized on next synthesis request.
+     * 
+     * Requirements: 6.3
+     */
+    fun releaseAiEngineOnLowMemory() {
+        if (currentEngineMode == TtsEngineMode.AI_VITS && aiEngineInitialized) {
+            Log.d(TAG, "Releasing AI engine due to low memory")
+            aiPlayer?.destroy()
+            aiPlayer = null
+            aiEngineInitialized = false
+            // Engine will be re-initialized on next start() call
+        }
     }
 
     //#endregion
