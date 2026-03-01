@@ -33,7 +33,7 @@ class ExtensionsPagerActivity : AppCompatActivity() {
 
         binding.content.viewPager.offscreenPageLimit = 3
         binding.content.viewPager.adapter = navPageAdapter
-        binding.content.tabStrip.setViewPager(binding.content.viewPager)
+        binding.content.tabStrip.setupWithViewPager(binding.content.viewPager)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

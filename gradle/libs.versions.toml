@@ -26,7 +26,6 @@ legacySupport = "1.0.0"
 lottie = "6.6.2"
 photoview = "2.3.0"
 fancybuttons = "1.8.3"
-smarttablayout = "2.0.0"
 recyclerviewAnimators = "4.0.2"
 konfetti = "1.3.2"
 materialDialogs = "3.3.0"
@@ -156,7 +155,6 @@ coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil-compose
 lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
 photoview = { module = "com.github.chrisbanes:PhotoView", version.ref = "photoview" }
 fancybuttons = { module = "com.github.medyo:fancybuttons", version.ref = "fancybuttons" }
-smarttablayout = { module = "com.ogaclejapan.smarttablayout:library", version.ref = "smarttablayout" }
 recyclerview-animators = { module = "jp.wasabeef:recyclerview-animators", version.ref = "recyclerviewAnimators" }
 konfetti = { module = "nl.dionsegijn:konfetti", version.ref = "konfetti" }
 snackprogressbar = { module = "com.github.tingyik90:snackprogressbar", version.ref = "snackprogressbar" }

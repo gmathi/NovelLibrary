@@ -72,7 +72,7 @@ class SearchFragment : BaseFragment() {
         val navPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, NavPageListener())
         binding.viewPager.offscreenPageLimit = 3
         binding.viewPager.adapter = navPageAdapter
-        binding.tabStrip.setViewPager(binding.viewPager)
+        binding.tabStrip.setupWithViewPager(binding.viewPager)
     }
 
     private fun setSearchView() {
@@ -178,7 +178,7 @@ class SearchFragment : BaseFragment() {
 
         binding.viewPager.offscreenPageLimit = 2
         binding.viewPager.adapter = GenericFragmentStatePagerAdapter(childFragmentManager, sourceNames.toTypedArray(), sourceNames.size, SearchResultsListener(searchTerm, sources))
-        binding.tabStrip.setViewPager(binding.viewPager)
+        binding.tabStrip.setupWithViewPager(binding.viewPager)
     }
 
     fun closeSearch() {

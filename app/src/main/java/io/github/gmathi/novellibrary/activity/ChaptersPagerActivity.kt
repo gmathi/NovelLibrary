@@ -219,7 +219,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
             )
         binding.activityChaptersPager.viewPager.offscreenPageLimit = 3
         binding.activityChaptersPager.viewPager.adapter = navPageAdapter
-        binding.activityChaptersPager.tabStrip.setViewPager(binding.activityChaptersPager.viewPager)
+        binding.activityChaptersPager.tabStrip.setupWithViewPager(binding.activityChaptersPager.viewPager)
         scrollToBookmark()
     }
 

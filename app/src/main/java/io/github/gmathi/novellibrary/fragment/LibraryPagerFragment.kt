@@ -66,7 +66,7 @@ class LibraryPagerFragment : BaseFragment() {
                     offscreenPageLimit = 3
                     adapter = navPageAdapter
                 }
-                tabStrip.setViewPager(viewPager)
+                tabStrip.setupWithViewPager(viewPager)
             }
         }
     }

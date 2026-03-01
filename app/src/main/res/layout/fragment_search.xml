@@ -34,7 +34,7 @@
             app:persistentSV_searchCardElevation="2dp"/>
 
 
-        <com.ogaclejapan.smarttablayout.SmartTabLayout
+        <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabStrip"
             android:layout_width="wrap_content"
             android:layout_height="?actionBarSize"
@@ -43,13 +43,12 @@
             android:paddingBottom="4dp"
             android:paddingLeft="4dp"
             android:paddingRight="4dp"
-            app:stl_defaultTabTextColor="@color/white"
-            app:stl_defaultTabTextHorizontalPadding="24dp"
-            app:stl_indicatorColor="@color/colorAccent"
-            app:stl_indicatorCornerRadius="1.5dp"
-            app:stl_indicatorInterpolation="smart"
-            app:stl_indicatorThickness="3dp"
-            app:stl_underlineColor="@android:color/transparent"/>
+            app:tabTextColor="@color/white"
+            app:tabSelectedTextColor="@color/white"
+            app:tabIndicatorColor="@color/colorAccent"
+            app:tabIndicatorHeight="3dp"
+            app:tabMode="scrollable"
+            app:tabGravity="center" />
 
     </com.google.android.material.appbar.AppBarLayout>
 

@@ -154,13 +154,6 @@
     "copyright": "Copyright 2014 Netflix, Inc."
   },
   {
-    "name": "SmartTabLayout v2.0.0",
-    "description": "A custom ViewPager title strip which gives continuous feedback to the user when scrolling",
-    "link": "https://github.com/ogaclejapan/SmartTabLayout",
-    "license": "Apache 2.0",
-    "copyright": "Copyright 2015 ogaclejapan"
-  },
-  {
     "name": "SnackProgressBar v6.4.2",
     "description": "Enhanced Snackbar for Android with progress bar and queue system",
     "link": "https://github.com/tingyik90/snackprogressbar",

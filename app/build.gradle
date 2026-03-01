@@ -154,7 +154,6 @@ dependencies {
     implementation libs.lottie
     implementation libs.photoview
     implementation libs.fancybuttons
-    implementation libs.smarttablayout
     implementation libs.recyclerview.animators
     implementation libs.konfetti
     implementation libs.snackprogressbar
