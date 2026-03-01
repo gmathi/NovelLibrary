@@ -12,7 +12,7 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.logEvent
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.settings.BaseSettingsActivity
-import io.github.gmathi.novellibrary.model.ui.ListitemSetting
+import io.github.gmathi.novellibrary.common.model.ListitemSetting
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MAX
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MIN
 import io.github.gmathi.novellibrary.util.FAC

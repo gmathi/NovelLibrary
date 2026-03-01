@@ -10,10 +10,11 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.color.colorChooser
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.common.R as CommonR
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.common.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
-import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
+import io.github.gmathi.novellibrary.common.databinding.ListitemTitleSubtitleWidgetBinding
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaults
@@ -74,7 +75,7 @@ class ReaderBackgroundSettingsActivity : BaseActivity(), GenericAdapter.Listener
 
     private fun setRecyclerView() {
         settingsItems = ArrayList(resources.getStringArray(R.array.reader_background_color_options).asList())
-        adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
+        adapter = GenericAdapter(items = settingsItems, layoutResId = CommonR.layout.listitem_title_subtitle_widget, listener = this)
         binding.contentRecyclerView.recyclerView.setDefaults(adapter)
         binding.contentRecyclerView.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
         binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false

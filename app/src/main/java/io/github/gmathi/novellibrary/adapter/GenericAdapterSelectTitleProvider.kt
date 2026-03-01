@@ -3,7 +3,7 @@ package io.github.gmathi.novellibrary.adapter
 import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
-import io.github.gmathi.novellibrary.util.view.inflate
+import io.github.gmathi.novellibrary.util.view.extensions.inflate
 import java.util.*
 
 class GenericAdapterSelectTitleProvider<T>(val items: ArrayList<T>, val layoutResId: Int, val listener: Listener<T>) : RecyclerView.Adapter<GenericAdapterSelectTitleProvider.ViewHolder<T>>() {

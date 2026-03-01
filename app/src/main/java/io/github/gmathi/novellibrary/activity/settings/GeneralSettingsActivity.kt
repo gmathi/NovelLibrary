@@ -12,10 +12,11 @@ import com.afollestad.materialdialogs.callbacks.onDismiss
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.common.R as CommonR
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.common.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
-import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
+import io.github.gmathi.novellibrary.common.databinding.ListitemTitleSubtitleWidgetBinding
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
@@ -72,7 +73,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         }
         settingsItemsDescription = items
 
-        adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
+        adapter = GenericAdapter(items = settingsItems, layoutResId = CommonR.layout.listitem_title_subtitle_widget, listener = this)
         binding.contentRecyclerView.recyclerView.setDefaults(adapter)
         binding.contentRecyclerView.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
         binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false

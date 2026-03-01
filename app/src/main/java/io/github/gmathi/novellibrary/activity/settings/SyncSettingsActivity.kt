@@ -10,12 +10,13 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.common.R as CommonR
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.common.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
-import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
+import io.github.gmathi.novellibrary.common.databinding.ListitemTitleSubtitleWidgetBinding
 import io.github.gmathi.novellibrary.network.sync.NovelSync
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
@@ -24,6 +25,7 @@ import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.util.system.startSyncLoginActivity
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.util.R as UtilR
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
@@ -81,7 +83,7 @@ class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private fun setRecyclerView() {
         settingsItems = ArrayList(resources.getStringArray(R.array.sync_options).asList())
         settingsItemsDescriptions = ArrayList(resources.getStringArray(R.array.sync_options_descriptions).asList())
-        adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
+        adapter = GenericAdapter(items = settingsItems, layoutResId = CommonR.layout.listitem_title_subtitle_widget, listener = this)
         binding.contentRecyclerView.recyclerView.setDefaults(adapter)
         binding.contentRecyclerView.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
         binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false
@@ -121,7 +123,7 @@ class SyncSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     itemBinding.widgetChevron.imageTintList = ContextCompat.getColorStateList(this, R.color.colorStateGreen)
                     itemBinding.subtitle.text = getString(R.string.logged_in)
                 } else {
-                    itemBinding.widgetChevron.setImageResource(R.drawable.ic_warning_white_vector)
+                    itemBinding.widgetChevron.setImageResource(UtilR.drawable.ic_warning_white_vector)
                     itemBinding.widgetChevron.imageTintList = ContextCompat.getColorStateList(this, R.color.colorStateOrange)
                     itemBinding.subtitle.text = getString(R.string.not_logged_in)
                 }

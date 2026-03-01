@@ -28,6 +28,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.CompiledTTSFilter
+import io.github.gmathi.novellibrary.util.R as UtilR
 import io.github.gmathi.novellibrary.model.other.TTSFilterTarget
 import io.github.gmathi.novellibrary.model.other.TTSFilterType
 import io.github.gmathi.novellibrary.model.preference.DataCenter
@@ -333,7 +334,7 @@ object Utils {
         activity: AppCompatActivity,
         title: String? = null,
         content: String? = null,
-        @DrawableRes iconRes: Int = R.drawable.ic_warning_white_vector
+        @DrawableRes iconRes: Int = UtilR.drawable.ic_warning_white_vector
     ) = MaterialDialog(activity).show {
         if (title != null)
             title(text = title)

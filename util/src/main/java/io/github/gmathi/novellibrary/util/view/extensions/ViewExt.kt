@@ -1,6 +1,6 @@
 @file:Suppress("NOTHING_TO_INLINE")
 
-package io.github.gmathi.novellibrary.util.view
+package io.github.gmathi.novellibrary.util.view.extensions
 
 import android.graphics.Point
 import android.view.Gravity

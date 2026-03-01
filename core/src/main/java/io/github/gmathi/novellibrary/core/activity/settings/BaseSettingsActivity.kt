@@ -12,7 +12,7 @@ abstract class BaseSettingsActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setupSettingsRecyclerView()
+        // Don't call setupSettingsRecyclerView() here - let subclasses call it after initializing their views
     }
 
     /**
@@ -26,6 +26,7 @@ abstract class BaseSettingsActivity : BaseActivity() {
     /**
      * Setup the RecyclerView for displaying settings.
      * Subclasses must implement this to configure the RecyclerView with adapter and decorations.
+     * Subclasses should call this after initializing their view binding.
      */
     protected abstract fun setupSettingsRecyclerView()
 

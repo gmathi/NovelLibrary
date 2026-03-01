@@ -7,13 +7,14 @@ import android.view.View
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.google.firebase.analytics.FirebaseAnalytics
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.common.R as CommonR
 import io.github.gmathi.novellibrary.common.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
-import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
+import io.github.gmathi.novellibrary.common.databinding.ListitemTitleSubtitleWidgetBinding
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.SourceManager
-import io.github.gmathi.novellibrary.model.ui.ListitemSetting
+import io.github.gmathi.novellibrary.common.model.ListitemSetting
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.lang.LocaleManager
 import io.github.gmathi.novellibrary.util.system.bindSettingListitemDefaults
@@ -41,6 +42,9 @@ open class BaseSettingsActivity<V, T: ListitemSetting<V>>(val options: List<T>) 
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        
+        // Call setupSettingsRecyclerView after binding is initialized
+        setupSettingsRecyclerView()
     }
 
     override fun setupEdgeToEdge() {
@@ -61,7 +65,7 @@ open class BaseSettingsActivity<V, T: ListitemSetting<V>>(val options: List<T>) 
     }
 
     override fun setupSettingsRecyclerView() {
-        adapter = GenericAdapter(items = ArrayList(options), layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
+        adapter = GenericAdapter(items = ArrayList(options), layoutResId = CommonR.layout.listitem_title_subtitle_widget, listener = this)
         binding.contentRecyclerView.recyclerView.setDefaults(adapter)
         binding.contentRecyclerView.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
         binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false

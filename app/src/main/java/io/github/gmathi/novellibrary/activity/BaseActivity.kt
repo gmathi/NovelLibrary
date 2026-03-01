@@ -9,7 +9,7 @@ import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.lang.LocaleManager
-import io.github.gmathi.novellibrary.util.view.applyTopSystemWindowInsetsPadding
+import io.github.gmathi.novellibrary.util.view.extensions.applyTopSystemWindowInsetsPadding
 import uy.kohesive.injekt.injectLazy
 
 
