@@ -1,97 +1,170 @@
 [
   {
-    "name": "Alerter",
-    "description": "An Android Alerting Library.",
-    "link": "https://github.com/Tapadoo/Alerter"
+    "name": "Coil v2.7.0",
+    "description": "An image loading library for Android backed by Kotlin Coroutines",
+    "link": "https://github.com/coil-kt/coil",
+    "license": "Apache 2.0",
+    "copyright": "Copyright 2023 Coil Contributors"
   },
   {
-    "name": "Android Asynchronous Http Client",
-    "description": "A Callback-Based Http Client Library for Android.",
-    "link": "http://loopj.com/android-async-http/"
+    "name": "Conscrypt v2.5.3",
+    "description": "Java security provider that implements parts of the Java Cryptography Extension and Java Secure Socket Extension",
+    "link": "https://github.com/google/conscrypt",
+    "license": "Apache 2.0",
+    "copyright": "Copyright (C) 2017 The Android Open Source Project"
   },
   {
-    "name": "AnimateCheckBox v0.1",
-    "description": "A custom view in Android with a animation when CheckBox status changed 😄",
-    "link": "https://github.com/hanks-zyh/AnimateCheckBox"
+    "name": "Crux v2.2.0",
+    "description": "Library for extracting article content from web pages",
+    "link": "https://github.com/chimbori/crux",
+    "license": "Apache 2.0",
+    "copyright": "Copyright 2016, Chimbori"
   },
   {
-    "name": "Async/Await v1.0.0",
-    "description": "async/await for Android built upon coroutines introduced in Kotlin 1.1",
-    "link": "https://github.com/metalabdesign/AsyncAwait"
+    "name": "EventBus v3.3.1",
+    "description": "Android optimized event bus that simplifies communication between Activities, Fragments, Threads, Services, etc",
+    "link": "https://github.com/greenrobot/EventBus",
+    "license": "Apache 2.0",
+    "copyright": "Copyright (C) 2012-2020 Markus Junginger, greenrobot"
   },
   {
-    "name": "Drag Select Recycler View v1.0.0",
-    "description": "Easy to implement Google Photos style multi-selection for RecyclerViews.",
-    "link": "https://github.com/afollestad/drag-select-recyclerview"
+    "name": "Fancy Buttons v1.8.3",
+    "description": "Android library to create fancy buttons with icons and custom fonts",
+    "link": "https://github.com/medyo/Fancybuttons",
+    "license": "MIT",
+    "copyright": "Copyright (c) 2015 Mehdi Sakout"
   },
   {
-    "name": "EventBus v3.1.1",
-    "description": "Android optimized event bus that simplifies communication between Activities, Fragments, Threads, Services, etc. Less code, better quality",
-    "link": "https://github.com/greenrobot/EventBus"
-  },
-  {
-    "name": "Glide v4.11.0",
+    "name": "Glide v4.16.0",
     "description": "An image loading and caching library for Android focused on smooth scrolling",
-    "link": "https://github.com/bumptech/glide"
+    "link": "https://github.com/bumptech/glide",
+    "license": "BSD, MIT, Apache 2.0",
+    "copyright": "Copyright 2014 Google, Inc."
   },
   {
-    "name": "google-gson v2.8.6",
-    "description": "A Java serialization/deserialization library to convert Java Objects into JSON and back",
-    "link": "https://github.com/google/gson"
+    "name": "Injekt v1.16.1",
+    "description": "Dependency injection library for Kotlin",
+    "link": "https://github.com/kohesive/injekt",
+    "license": "Apache 2.0",
+    "copyright": "Copyright (c) 2015 Kohesive"
   },
   {
-    "name": "jsoup: Java HTML Parser v1.12.2",
-    "description": "jsoup is a Java library for working with real-world HTML. It provides a very convenient API for extracting and manipulating data, using the best of DOM, CSS, and jquery-like methods.",
-    "link": "https://jsoup.org/"
+    "name": "jsoup v1.18.3",
+    "description": "Java HTML parser library for working with real-world HTML. Provides a convenient API for extracting and manipulating data",
+    "link": "https://jsoup.org/",
+    "license": "MIT",
+    "copyright": "Copyright (c) 2009-2024 Jonathan Hedley"
   },
   {
-    "name": "Konfetti 🎊 v1.0.2",
-    "description": "Celebrate more with this lightweight confetti particle system 🎊 Create realistic confetti by implementing this easy to use library.",
-    "link": "https://github.com/DanielMartinus/Konfetti"
+    "name": "Konfetti v1.3.2",
+    "description": "Lightweight confetti particle system for Android. Create realistic confetti animations",
+    "link": "https://github.com/DanielMartinus/Konfetti",
+    "license": "ISC",
+    "copyright": "Copyright (c) 2018 Dion Segijn"
   },
   {
-    "name": "Material Dialogs: Core v0.9.6.0",
-    "description": "A beautiful, fluid, and customizable dialogs API.",
-    "link": "https://github.com/afollestad/material-dialogs"
+    "name": "Kotson v2.5.0",
+    "description": "Kotlin bindings for JSON manipulation via Gson",
+    "link": "https://github.com/SalomonBrys/Kotson",
+    "license": "MIT",
+    "copyright": "Copyright (c) 2015 Salomon BRYS"
   },
   {
-    "name": "Material Tap Target Prompt",
-    "description": "A Tap Target implementation in Android based on Material Design Onboarding guidelines.",
-    "link": "https://github.com/sjwall/MaterialTapTargetPrompt"
+    "name": "LeakCanary v2.14",
+    "description": "A memory leak detection library for Android",
+    "link": "https://github.com/square/leakcanary",
+    "license": "Apache 2.0",
+    "copyright": "Copyright 2015 Square, Inc."
   },
   {
-    "name": "OkHttp v4.4.0",
-    "description": "An HTTP+HTTP/2 client for Android and Java applications.",
-    "link": "http://square.github.io/okhttp/"
+    "name": "Lottie v6.6.2",
+    "description": "Android library that parses Adobe After Effects animations exported as json and renders them natively",
+    "link": "https://github.com/airbnb/lottie-android",
+    "license": "Apache 2.0",
+    "copyright": "Copyright 2018 Airbnb, Inc."
   },
   {
-    "name": "Persistent Search v1.0.4",
-    "description": "A library that implements Google Play like PersistentSearch view.",
-    "link": "https://github.com/crysehillmes/PersistentSearchView"
+    "name": "Material Dialogs v3.3.0",
+    "description": "A beautiful, fluid, and customizable dialogs API for Kotlin & Android",
+    "link": "https://github.com/afollestad/material-dialogs",
+    "license": "Apache 2.0",
+    "copyright": "Copyright (c) 2014-2020 Aidan Follestad"
   },
   {
-    "name": "PhotoView v2.1.2",
-    "description": "PhotoView aims to help produce an easily usable implementation of a zooming Android ImageView.",
-    "link": "https://github.com/chrisbanes/PhotoView"
+    "name": "OkHttp v5.0.0-alpha.14",
+    "description": "An HTTP client for Android and Java applications with support for HTTP/2 and HTTP/3",
+    "link": "https://square.github.io/okhttp/",
+    "license": "Apache 2.0",
+    "copyright": "Copyright 2019 Square, Inc."
   },
   {
-    "name": "Progress Layout v1.0.1",
-    "description": "An extension of RelativeLayout that helps show loading, empty and error layout.",
-    "link": "https://github.com/nguyenhoanglam/ProgressLayout"
+    "name": "Persistent Search View v1.0.4",
+    "description": "An Android library designed to simplify the process of implementing search-related functionality",
+    "link": "https://github.com/mars885/persistent-search-view",
+    "license": "Apache 2.0",
+    "copyright": "Copyright 2021 Paul Rybitskyi"
   },
   {
-    "name": "RecyclerView Animators v2.2.6",
-    "description": "RecyclerView Animators is an Android library that allows developers to easily create RecyclerView with animations.",
-    "link": "https://github.com/wasabeef/recyclerview-animators"
+    "name": "PhotoView v2.3.0",
+    "description": "PhotoView aims to help produce an easily usable implementation of a zooming Android ImageView",
+    "link": "https://github.com/chrisbanes/PhotoView",
+    "license": "Apache 2.0",
+    "copyright": "Copyright 2018 Chris Banes"
   },
   {
-    "name": "SlidingRootNav",
-    "description": "DrawerLayout-like ViewGroup, where a \"drawer\" is hidden under the content view, which can be shifted to make the drawer visible.",
-    "link": "https://github.com/yarolegovich/SlidingRootNav"
+    "name": "ReactiveNetwork v0.13.0",
+    "description": "Android library listening network connection state and Internet connectivity",
+    "link": "https://github.com/pwittchen/ReactiveNetwork",
+    "license": "Apache 2.0",
+    "copyright": "Copyright 2016 Piotr Wittchen"
+  },
+  {
+    "name": "RecyclerView Animators v4.0.2",
+    "description": "RecyclerView Animators is an Android library that allows developers to easily create RecyclerView with animations",
+    "link": "https://github.com/wasabeef/recyclerview-animators",
+    "license": "Apache 2.0",
+    "copyright": "Copyright (C) 2015 Wasabeef"
+  },
+  {
+    "name": "Retrofit v2.11.0",
+    "description": "A type-safe HTTP client for Android and Java",
+    "link": "https://square.github.io/retrofit/",
+    "license": "Apache 2.0",
+    "copyright": "Copyright 2013 Square, Inc."
+  },
+  {
+    "name": "RxAndroid v1.2.1",
+    "description": "RxJava bindings for Android",
+    "link": "https://github.com/ReactiveX/RxAndroid",
+    "license": "Apache 2.0",
+    "copyright": "Copyright 2015 The RxAndroid authors"
+  },
+  {
+    "name": "RxJava v1.3.8",
+    "description": "Reactive Extensions for the JVM – a library for composing asynchronous and event-based programs",
+    "link": "https://github.com/ReactiveX/RxJava",
+    "license": "Apache 2.0",
+    "copyright": "Copyright (c) 2016-present, RxJava Contributors"
+  },
+  {
+    "name": "RxRelay v1.2.0",
+    "description": "RxJava types that are both an Observable and a Consumer",
+    "link": "https://github.com/JakeWharton/RxRelay",
+    "license": "Apache 2.0",
+    "copyright": "Copyright 2014 Netflix, Inc."
   },
   {
     "name": "SmartTabLayout v2.0.0",
-    "description": "A custom ViewPager title strip which gives continuous feedback to the user when scrolling.",
-    "link": "https://github.com/ogaclejapan/SmartTabLayout"
+    "description": "A custom ViewPager title strip which gives continuous feedback to the user when scrolling",
+    "link": "https://github.com/ogaclejapan/SmartTabLayout",
+    "license": "Apache 2.0",
+    "copyright": "Copyright 2015 ogaclejapan"
+  },
+  {
+    "name": "SnackProgressBar v6.4.2",
+    "description": "Enhanced Snackbar for Android with progress bar and queue system",
+    "link": "https://github.com/tingyik90/snackprogressbar",
+    "license": "Apache 2.0",
+    "copyright": "Copyright 2017-2021 Saw Ting Yik"
   }
 ]
