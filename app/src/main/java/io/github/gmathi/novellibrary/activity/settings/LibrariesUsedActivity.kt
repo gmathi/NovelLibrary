@@ -9,7 +9,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
-import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.common.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ActivityLibrariesUsedBinding
 import io.github.gmathi.novellibrary.databinding.ListitemSettingsBinding
 import io.github.gmathi.novellibrary.util.system.openInBrowser

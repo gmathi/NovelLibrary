@@ -2,13 +2,12 @@ package io.github.gmathi.novellibrary.activity
 
 import android.os.Bundle
 import android.view.MenuItem
-import androidx.appcompat.app.AppCompatActivity
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.RecentNovelsPageListener
 import io.github.gmathi.novellibrary.databinding.ActivityRecentNovelsPagerBinding
 
-class RecentNovelsPagerActivity : AppCompatActivity() {
+class RecentNovelsPagerActivity : BaseActivity() {
 
     private lateinit var binding: ActivityRecentNovelsPagerBinding
 

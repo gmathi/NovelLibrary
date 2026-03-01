@@ -10,7 +10,7 @@ import com.google.firebase.analytics.ktx.logEvent
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
-import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.common.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.NavPageListener
 import io.github.gmathi.novellibrary.adapter.SearchResultsListener

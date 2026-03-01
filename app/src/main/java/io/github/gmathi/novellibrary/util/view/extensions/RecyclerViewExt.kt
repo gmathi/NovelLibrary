@@ -2,7 +2,7 @@ package io.github.gmathi.novellibrary.util.view
 
 import android.view.animation.OvershootInterpolator
 import androidx.recyclerview.widget.RecyclerView
-import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.common.adapter.GenericAdapter
 import jp.wasabeef.recyclerview.animators.SlideInRightAnimator
 
 /**

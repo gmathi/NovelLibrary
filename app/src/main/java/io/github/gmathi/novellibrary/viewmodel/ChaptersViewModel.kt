@@ -15,7 +15,7 @@ import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_SOURCE_ID
-import io.github.gmathi.novellibrary.util.system.DataAccessor
+import io.github.gmathi.novellibrary.core.system.DataAccessor
 import io.github.gmathi.novellibrary.util.system.addNewNovel
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel.Action.*
 import kotlinx.coroutines.CoroutineScope

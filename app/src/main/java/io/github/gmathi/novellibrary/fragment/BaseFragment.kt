@@ -2,19 +2,17 @@ package io.github.gmathi.novellibrary.fragment
 
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import com.google.android.material.appbar.AppBarLayout
 import com.google.firebase.analytics.FirebaseAnalytics
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
-import io.github.gmathi.novellibrary.util.system.DataAccessor
 import io.github.gmathi.novellibrary.util.view.applyTopSystemWindowInsetsPadding
 import uy.kohesive.injekt.injectLazy
 
 
-open class BaseFragment : Fragment(), DataAccessor {
+open class BaseFragment : io.github.gmathi.novellibrary.core.fragment.BaseFragment() {
 
     override val firebaseAnalytics: FirebaseAnalytics by injectLazy()
     override val dataCenter: DataCenter by injectLazy()

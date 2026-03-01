@@ -21,6 +21,7 @@ import com.bumptech.glide.request.transition.Transition
 import com.google.firebase.analytics.FirebaseAnalytics
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
+import io.github.gmathi.novellibrary.core.system.DataAccessor
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage

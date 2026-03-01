@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.common.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.getNovelByUrl
 import io.github.gmathi.novellibrary.database.insertNovel
 import io.github.gmathi.novellibrary.databinding.ActivityImportLibraryBinding

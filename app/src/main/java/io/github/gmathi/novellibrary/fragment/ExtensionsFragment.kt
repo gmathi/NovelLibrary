@@ -9,7 +9,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.bumptech.glide.Glide
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.common.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ContentRecyclerViewBinding
 import io.github.gmathi.novellibrary.databinding.ListitemExtensionCardBinding
 import io.github.gmathi.novellibrary.extension.ExtensionManager

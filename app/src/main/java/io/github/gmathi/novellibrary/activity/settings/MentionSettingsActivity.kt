@@ -7,7 +7,7 @@ import android.view.MenuItem
 import android.view.View
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.*
-import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.common.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemSettingsBinding
 import io.github.gmathi.novellibrary.util.system.startContributionsActivity

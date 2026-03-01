@@ -61,6 +61,9 @@ android {
 }
 
 dependencies {
+    // Foundation modules
+    implementation project(':core')
+    
     // AndroidX Core
     implementation libs.androidx.appcompat
     implementation libs.androidx.constraintlayout

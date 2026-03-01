@@ -10,7 +10,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.common.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.createOrUpdateLargePreference
 import io.github.gmathi.novellibrary.database.getLargePreference
 import io.github.gmathi.novellibrary.databinding.ContentRecyclerViewBinding

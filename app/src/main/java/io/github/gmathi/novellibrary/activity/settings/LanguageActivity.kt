@@ -10,7 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.BaseActivity
-import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.common.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ActivityLanguageBinding
 import io.github.gmathi.novellibrary.databinding.ListitemImageTitleSubtitleBinding
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT

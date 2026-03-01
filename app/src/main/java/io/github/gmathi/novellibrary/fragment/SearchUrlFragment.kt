@@ -9,7 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.common.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ContentRecyclerViewBinding
 import io.github.gmathi.novellibrary.databinding.ListitemNovelBinding
 import io.github.gmathi.novellibrary.extensions.*
