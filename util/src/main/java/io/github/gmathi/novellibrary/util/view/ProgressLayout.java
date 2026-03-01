@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import io.github.gmathi.novellibrary.R;
+import io.github.gmathi.novellibrary.util.R;
 
 import static android.animation.ValueAnimator.INFINITE;
 

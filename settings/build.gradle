@@ -1,0 +1,86 @@
+plugins {
+    id 'com.android.library'
+    alias(libs.plugins.kotlin.android)
+    id 'kotlin-kapt'
+}
+
+android {
+    namespace 'io.github.gmathi.novellibrary.settings'
+    compileSdk 36
+    buildToolsVersion '36.0.0'
+    
+    defaultConfig {
+        minSdk 23
+        targetSdk 36
+        
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+    
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    
+    flavorDimensions = ["mode"]
+    productFlavors {
+        mirror {
+            dimension "mode"
+        }
+
+        canary {
+            dimension "mode"
+        }
+
+        normal {
+            dimension "mode"
+            getIsDefault().set(true)
+        }
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17.toString()
+    }
+    
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+    
+    testOptions {
+        unitTests.all {
+            useJUnitPlatform()
+        }
+    }
+}
+
+dependencies {
+    // AndroidX Core
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.preference
+    implementation libs.androidx.cardview
+    
+    // Material Design
+    implementation libs.material
+    
+    // Kotlin
+    implementation libs.bundles.kotlinx
+    
+    // Utilities
+    implementation libs.eventbus
+    
+    // Testing
+    testImplementation libs.junit
+    testImplementation 'io.kotest:kotest-runner-junit5:5.8.0'
+    testImplementation 'io.kotest:kotest-assertions-core:5.8.0'
+    testImplementation 'io.kotest:kotest-property:5.8.0'
+    testImplementation 'io.mockk:mockk:1.13.8'
+    testImplementation 'io.mockk:mockk-android:1.13.8'
+}

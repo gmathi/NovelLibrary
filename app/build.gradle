@@ -24,7 +24,7 @@ android {
         minSdk 23
         targetSdk 36
         multiDexEnabled true
-        versionCode 119
+        versionCode 120
         versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -106,6 +106,14 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+    
+    // Foundation modules
+    implementation project(':core')
+    implementation project(':common')
+    implementation project(':util')
+    
+    // Settings module
+    implementation project(':settings')
     
     // AndroidX
     implementation libs.androidx.appcompat

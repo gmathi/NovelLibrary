@@ -17,4 +17,8 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "NovelLibrary"
+include ':core'
+include ':util'
+include ':common'
 include ':app'
+include ':settings'
