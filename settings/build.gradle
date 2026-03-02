@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.library'
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
     id 'kotlin-kapt'
 }
 
@@ -51,6 +52,7 @@ android {
     buildFeatures {
         viewBinding true
         buildConfig true
+        compose true
     }
     
     testOptions {
@@ -63,6 +65,15 @@ android {
 dependencies {
     // Foundation modules
     implementation project(':core')
+    
+    // Jetpack Compose
+    implementation platform(libs.compose.bom)
+    implementation libs.compose.ui
+    implementation libs.compose.ui.tooling.preview
+    implementation libs.compose.material3
+    implementation libs.compose.material.icons
+    implementation libs.androidx.activity.compose
+    implementation libs.androidx.lifecycle.runtime.compose
     
     // AndroidX Core
     implementation libs.androidx.appcompat
@@ -86,4 +97,12 @@ dependencies {
     testImplementation 'io.kotest:kotest-property:5.8.0'
     testImplementation 'io.mockk:mockk:1.13.8'
     testImplementation 'io.mockk:mockk-android:1.13.8'
+    
+    // Compose Testing
+    androidTestImplementation platform(libs.compose.bom)
+    androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.androidx.espresso
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
+    debugImplementation libs.compose.ui.tooling
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
 }
