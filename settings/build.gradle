@@ -56,8 +56,11 @@ android {
     }
     
     testOptions {
-        unitTests.all {
-            useJUnitPlatform()
+        unitTests {
+            includeAndroidResources = true
+            all {
+                it.useJUnitPlatform()
+            }
         }
     }
 }
@@ -74,6 +77,10 @@ dependencies {
     implementation libs.compose.material.icons
     implementation libs.androidx.activity.compose
     implementation libs.androidx.lifecycle.runtime.compose
+    implementation 'androidx.navigation:navigation-compose:2.7.7'
+    
+    // DataStore
+    implementation libs.androidx.datastore.preferences
     
     // AndroidX Core
     implementation libs.androidx.appcompat
@@ -97,6 +104,11 @@ dependencies {
     testImplementation 'io.kotest:kotest-property:5.8.0'
     testImplementation 'io.mockk:mockk:1.13.8'
     testImplementation 'io.mockk:mockk-android:1.13.8'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0'
+    testImplementation 'app.cash.turbine:turbine:1.0.0'
+    testImplementation 'androidx.test:core:1.5.0'
+    testImplementation 'androidx.test.ext:junit:1.1.5'
+    testImplementation 'org.robolectric:robolectric:4.11.1'
     
     // Compose Testing
     androidTestImplementation platform(libs.compose.bom)

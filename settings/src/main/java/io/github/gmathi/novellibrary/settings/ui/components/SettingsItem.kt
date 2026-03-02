@@ -61,8 +61,8 @@ fun SettingsItem(
                     imageVector = icon,
                     contentDescription = null,
                     modifier = Modifier
-                        .size(24.dp)
-                        .padding(end = 16.dp),
+                        .padding(end = 24.dp)
+                        .size(24.dp),
                     tint = if (enabled) {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     } else {
