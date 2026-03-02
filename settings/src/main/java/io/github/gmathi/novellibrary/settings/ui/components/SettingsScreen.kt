@@ -18,10 +18,11 @@ import androidx.compose.ui.tooling.preview.Preview
 /**
  * Base layout for all settings screens.
  * 
- * Provides a consistent scaffold with top app bar, navigation, and scrollable content
- * area for all settings screens. Follows Material 3 design guidelines.
+ * Provides a consistent scaffold with collapsing large top app bar and scrollable content.
+ * Follows Android System Settings design with Material 3.
+ * The large title collapses to a smaller size when scrolling down.
  * 
- * @param title The screen title shown in the top app bar
+ * @param title The screen title shown in the top app bar (large when not scrolled)
  * @param onNavigateBack Callback invoked when the back button is pressed
  * @param modifier Modifier for the scaffold
  * @param actions Optional actions to display in the top app bar
@@ -36,16 +37,16 @@ fun SettingsScreen(
     actions: @Composable RowScope.() -> Unit = {},
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
+            LargeTopAppBar(
                 title = {
                     Text(
                         text = title,
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.headlineMedium
                     )
                 },
                 navigationIcon = {
@@ -58,7 +59,7 @@ fun SettingsScreen(
                 },
                 actions = actions,
                 scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
+                colors = TopAppBarDefaults.largeTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     scrolledContainerColor = MaterialTheme.colorScheme.surface,
                     navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
