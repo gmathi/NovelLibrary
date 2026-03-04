@@ -22,7 +22,7 @@ import java.io.IOException
  * accessors that emit updates whenever settings change. Errors during read/write
  * operations are handled gracefully with fallback to default values.
  */
-class SettingsDataStore(private val context: Context) {
+class SettingsDataStore(private val context: Context) : ISettingsDataStore {
     
     companion object {
         // DataStore instance
@@ -92,168 +92,168 @@ class SettingsDataStore(private val context: Context) {
     /**
      * Reader mode (clean pages) enabled/disabled.
      */
-    val readerMode: Flow<Boolean> = context.dataStore.data
+    override val readerMode: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[READER_MODE] ?: false }
     
     /**
      * Text size for reader.
      */
-    val textSize: Flow<Int> = context.dataStore.data
+    override val textSize: Flow<Int> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[TEXT_SIZE] ?: 0 }
     
     /**
      * Japanese swipe direction enabled/disabled.
      */
-    val japSwipe: Flow<Boolean> = context.dataStore.data
+    override val japSwipe: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[JAP_SWIPE] ?: true }
     
     /**
      * Show reader scroll indicator.
      */
-    val showReaderScroll: Flow<Boolean> = context.dataStore.data
+    override val showReaderScroll: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[SHOW_READER_SCROLL] ?: true }
     
     /**
      * Show chapter comments.
      */
-    val showChapterComments: Flow<Boolean> = context.dataStore.data
+    override val showChapterComments: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[SHOW_CHAPTER_COMMENTS] ?: false }
     
     /**
      * Enable volume button scrolling.
      */
-    val enableVolumeScroll: Flow<Boolean> = context.dataStore.data
+    override val enableVolumeScroll: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[ENABLE_VOLUME_SCROLL] ?: true }
     
     /**
      * Volume scroll length.
      */
-    val volumeScrollLength: Flow<Int> = context.dataStore.data
+    override val volumeScrollLength: Flow<Int> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[VOLUME_SCROLL_LENGTH] ?: 100 }
     
     /**
      * Keep screen on while reading.
      */
-    val keepScreenOn: Flow<Boolean> = context.dataStore.data
+    override val keepScreenOn: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[KEEP_SCREEN_ON] ?: true }
     
     /**
      * Enable immersive mode (hide system UI).
      */
-    val enableImmersiveMode: Flow<Boolean> = context.dataStore.data
+    override val enableImmersiveMode: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[ENABLE_IMMERSIVE_MODE] ?: true }
     
     /**
      * Show navigation bar at chapter end.
      */
-    val showNavbarAtChapterEnd: Flow<Boolean> = context.dataStore.data
+    override val showNavbarAtChapterEnd: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[SHOW_NAVBAR_AT_CHAPTER_END] ?: true }
     
     /**
      * Keep original text color from web page.
      */
-    val keepTextColor: Flow<Boolean> = context.dataStore.data
+    override val keepTextColor: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[KEEP_TEXT_COLOR] ?: false }
     
     /**
      * Use alternative text colors.
      */
-    val alternativeTextColors: Flow<Boolean> = context.dataStore.data
+    override val alternativeTextColors: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[ALTERNATIVE_TEXT_COLORS] ?: false }
     
     /**
      * Limit image width in reader.
      */
-    val limitImageWidth: Flow<Boolean> = context.dataStore.data
+    override val limitImageWidth: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[LIMIT_IMAGE_WIDTH] ?: false }
     
     /**
      * Font path for reader.
      */
-    val fontPath: Flow<String> = context.dataStore.data
+    override val fontPath: Flow<String> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[FONT_PATH] ?: "default" }
     
     /**
      * Enable cluster pages.
      */
-    val enableClusterPages: Flow<Boolean> = context.dataStore.data
+    override val enableClusterPages: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[ENABLE_CLUSTER_PAGES] ?: false }
     
     /**
      * Enable directional links.
      */
-    val enableDirectionalLinks: Flow<Boolean> = context.dataStore.data
+    override val enableDirectionalLinks: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[ENABLE_DIRECTIONAL_LINKS] ?: false }
     
     /**
      * Reader mode button visibility.
      */
-    val isReaderModeButtonVisible: Flow<Boolean> = context.dataStore.data
+    override val isReaderModeButtonVisible: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[IS_READER_MODE_BUTTON_VISIBLE] ?: true }
     
     /**
      * Day mode background color.
      */
-    val dayModeBackgroundColor: Flow<Int> = context.dataStore.data
+    override val dayModeBackgroundColor: Flow<Int> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[DAY_MODE_BACKGROUND_COLOR] ?: -1 }
     
     /**
      * Night mode background color.
      */
-    val nightModeBackgroundColor: Flow<Int> = context.dataStore.data
+    override val nightModeBackgroundColor: Flow<Int> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[NIGHT_MODE_BACKGROUND_COLOR] ?: -16777216 }
     
     /**
      * Day mode text color.
      */
-    val dayModeTextColor: Flow<Int> = context.dataStore.data
+    override val dayModeTextColor: Flow<Int> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[DAY_MODE_TEXT_COLOR] ?: -16777216 }
     
     /**
      * Night mode text color.
      */
-    val nightModeTextColor: Flow<Int> = context.dataStore.data
+    override val nightModeTextColor: Flow<Int> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[NIGHT_MODE_TEXT_COLOR] ?: -1 }
     
     /**
      * Enable auto scroll.
      */
-    val enableAutoScroll: Flow<Boolean> = context.dataStore.data
+    override val enableAutoScroll: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[ENABLE_AUTO_SCROLL] ?: true }
     
     /**
      * Auto scroll length.
      */
-    val autoScrollLength: Flow<Int> = context.dataStore.data
+    override val autoScrollLength: Flow<Int> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[AUTO_SCROLL_LENGTH] ?: 100 }
     
     /**
      * Auto scroll interval.
      */
-    val autoScrollInterval: Flow<Int> = context.dataStore.data
+    override val autoScrollInterval: Flow<Int> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[AUTO_SCROLL_INTERVAL] ?: 100 }
     
@@ -264,49 +264,49 @@ class SettingsDataStore(private val context: Context) {
     /**
      * Dark theme enabled/disabled.
      */
-    val isDarkTheme: Flow<Boolean> = context.dataStore.data
+    override val isDarkTheme: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[IS_DARK_THEME] ?: true }
     
     /**
      * App language.
      */
-    val language: Flow<String> = context.dataStore.data
+    override val language: Flow<String> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[LANGUAGE] ?: "System Default" }
     
     /**
      * JavaScript enabled/disabled.
      */
-    val javascriptDisabled: Flow<Boolean> = context.dataStore.data
+    override val javascriptDisabled: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[JAVASCRIPT_DISABLED] ?: false }
     
     /**
      * Load library screen on startup.
      */
-    val loadLibraryScreen: Flow<Boolean> = context.dataStore.data
+    override val loadLibraryScreen: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[LOAD_LIBRARY_SCREEN] ?: false }
     
     /**
      * Enable notifications.
      */
-    val enableNotifications: Flow<Boolean> = context.dataStore.data
+    override val enableNotifications: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[ENABLE_NOTIFICATIONS] ?: true }
     
     /**
      * Show chapters left badge.
      */
-    val showChaptersLeftBadge: Flow<Boolean> = context.dataStore.data
+    override val showChaptersLeftBadge: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[SHOW_CHAPTERS_LEFT_BADGE] ?: false }
     
     /**
      * Developer mode enabled/disabled.
      */
-    val isDeveloper: Flow<Boolean> = context.dataStore.data
+    override val isDeveloper: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[IS_DEVELOPER] ?: false }
     
@@ -317,14 +317,14 @@ class SettingsDataStore(private val context: Context) {
     /**
      * Read aloud next chapter automatically.
      */
-    val readAloudNextChapter: Flow<Boolean> = context.dataStore.data
+    override val readAloudNextChapter: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[READ_ALOUD_NEXT_CHAPTER] ?: true }
     
     /**
      * Enable scrolling text during TTS.
      */
-    val enableScrollingText: Flow<Boolean> = context.dataStore.data
+    override val enableScrollingText: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[ENABLE_SCROLLING_TEXT] ?: true }
     
@@ -335,70 +335,70 @@ class SettingsDataStore(private val context: Context) {
     /**
      * Show backup hint.
      */
-    val showBackupHint: Flow<Boolean> = context.dataStore.data
+    override val showBackupHint: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[SHOW_BACKUP_HINT] ?: true }
     
     /**
      * Show restore hint.
      */
-    val showRestoreHint: Flow<Boolean> = context.dataStore.data
+    override val showRestoreHint: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[SHOW_RESTORE_HINT] ?: true }
     
     /**
      * Backup frequency in hours.
      */
-    val backupFrequency: Flow<Int> = context.dataStore.data
+    override val backupFrequency: Flow<Int> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[BACKUP_FREQUENCY] ?: 0 }
     
     /**
      * Last backup timestamp in milliseconds.
      */
-    val lastBackup: Flow<Long> = context.dataStore.data
+    override val lastBackup: Flow<Long> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[LAST_BACKUP] ?: 0 }
     
     /**
      * Last local backup timestamp string.
      */
-    val lastLocalBackupTimestamp: Flow<String> = context.dataStore.data
+    override val lastLocalBackupTimestamp: Flow<String> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[LAST_LOCAL_BACKUP_TIMESTAMP] ?: "N/A" }
     
     /**
      * Last cloud backup timestamp string.
      */
-    val lastCloudBackupTimestamp: Flow<String> = context.dataStore.data
+    override val lastCloudBackupTimestamp: Flow<String> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[LAST_CLOUD_BACKUP_TIMESTAMP] ?: "N/A" }
     
     /**
      * Last backup size string.
      */
-    val lastBackupSize: Flow<String> = context.dataStore.data
+    override val lastBackupSize: Flow<String> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[LAST_BACKUP_SIZE] ?: "N/A" }
     
     /**
      * Google Drive backup interval.
      */
-    val gdBackupInterval: Flow<String> = context.dataStore.data
+    override val gdBackupInterval: Flow<String> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[GD_BACKUP_INTERVAL] ?: "Never" }
     
     /**
      * Google Drive account email.
      */
-    val gdAccountEmail: Flow<String> = context.dataStore.data
+    override val gdAccountEmail: Flow<String> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[GD_ACCOUNT_EMAIL] ?: "-" }
     
     /**
      * Google Drive internet type preference.
      */
-    val gdInternetType: Flow<String> = context.dataStore.data
+    override val gdInternetType: Flow<String> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[GD_INTERNET_TYPE] ?: "WiFi or cellular" }
     
@@ -409,7 +409,7 @@ class SettingsDataStore(private val context: Context) {
     /**
      * Get sync enabled status for a specific service.
      */
-    fun getSyncEnabled(serviceName: String): Flow<Boolean> {
+    override fun getSyncEnabled(serviceName: String): Flow<Boolean> {
         val key = booleanPreferencesKey("sync_enable_$serviceName")
         return context.dataStore.data
             .catch { exception -> handleException(exception) }
@@ -419,7 +419,7 @@ class SettingsDataStore(private val context: Context) {
     /**
      * Get sync add novels setting for a specific service.
      */
-    fun getSyncAddNovels(serviceName: String): Flow<Boolean> {
+    override fun getSyncAddNovels(serviceName: String): Flow<Boolean> {
         val key = booleanPreferencesKey("sync_add_novels_$serviceName")
         return context.dataStore.data
             .catch { exception -> handleException(exception) }
@@ -429,7 +429,7 @@ class SettingsDataStore(private val context: Context) {
     /**
      * Get sync delete novels setting for a specific service.
      */
-    fun getSyncDeleteNovels(serviceName: String): Flow<Boolean> {
+    override fun getSyncDeleteNovels(serviceName: String): Flow<Boolean> {
         val key = booleanPreferencesKey("sync_delete_novels_$serviceName")
         return context.dataStore.data
             .catch { exception -> handleException(exception) }
@@ -439,7 +439,7 @@ class SettingsDataStore(private val context: Context) {
     /**
      * Get sync bookmarks setting for a specific service.
      */
-    fun getSyncBookmarks(serviceName: String): Flow<Boolean> {
+    override fun getSyncBookmarks(serviceName: String): Flow<Boolean> {
         val key = booleanPreferencesKey("sync_bookmarks_$serviceName")
         return context.dataStore.data
             .catch { exception -> handleException(exception) }
@@ -453,7 +453,7 @@ class SettingsDataStore(private val context: Context) {
     /**
      * Update a boolean setting.
      */
-    suspend fun updateBoolean(key: Preferences.Key<Boolean>, value: Boolean) {
+    override suspend fun updateBoolean(key: Preferences.Key<Boolean>, value: Boolean) {
         try {
             context.dataStore.edit { preferences ->
                 preferences[key] = value
@@ -467,7 +467,7 @@ class SettingsDataStore(private val context: Context) {
     /**
      * Update an integer setting.
      */
-    suspend fun updateInt(key: Preferences.Key<Int>, value: Int) {
+    override suspend fun updateInt(key: Preferences.Key<Int>, value: Int) {
         try {
             context.dataStore.edit { preferences ->
                 preferences[key] = value
@@ -481,7 +481,7 @@ class SettingsDataStore(private val context: Context) {
     /**
      * Update a long setting.
      */
-    suspend fun updateLong(key: Preferences.Key<Long>, value: Long) {
+    override suspend fun updateLong(key: Preferences.Key<Long>, value: Long) {
         try {
             context.dataStore.edit { preferences ->
                 preferences[key] = value
@@ -495,7 +495,7 @@ class SettingsDataStore(private val context: Context) {
     /**
      * Update a string setting.
      */
-    suspend fun updateString(key: Preferences.Key<String>, value: String) {
+    override suspend fun updateString(key: Preferences.Key<String>, value: String) {
         try {
             context.dataStore.edit { preferences ->
                 preferences[key] = value
@@ -509,7 +509,7 @@ class SettingsDataStore(private val context: Context) {
     /**
      * Update a sync setting for a specific service.
      */
-    suspend fun updateSyncSetting(keyName: String, value: Boolean) {
+    override suspend fun updateSyncSetting(keyName: String, value: Boolean) {
         try {
             val key = booleanPreferencesKey(keyName)
             context.dataStore.edit { preferences ->

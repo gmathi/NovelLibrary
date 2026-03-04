@@ -1,13 +1,14 @@
 package io.github.gmathi.novellibrary.settings.data.repository
 
 import android.content.Context
+import io.github.gmathi.novellibrary.settings.data.datastore.ISettingsDataStore
 import io.github.gmathi.novellibrary.settings.data.datastore.SettingsDataStore
 import kotlinx.coroutines.flow.Flow
 
 /**
  * Repository layer for settings data access using DataStore.
  * 
- * This repository wraps SettingsDataStore and provides a clean API for accessing
+ * This repository wraps ISettingsDataStore and provides a clean API for accessing
  * and updating settings. It exposes settings as Flows for reactive updates and
  * provides suspend functions for write operations.
  * 
@@ -15,9 +16,12 @@ import kotlinx.coroutines.flow.Flow
  * (DataStore) from the rest of the application. This allows for easier testing
  * and potential future changes to the storage mechanism.
  */
-class SettingsRepositoryDataStore(context: Context) {
+class SettingsRepositoryDataStore(private val dataStore: ISettingsDataStore) {
     
-    private val dataStore = SettingsDataStore(context)
+    /**
+     * Constructor that creates a SettingsDataStore from a Context.
+     */
+    constructor(context: Context) : this(SettingsDataStore(context))
     
     //region Reader Settings
     

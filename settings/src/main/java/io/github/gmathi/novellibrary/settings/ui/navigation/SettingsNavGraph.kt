@@ -6,8 +6,17 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import io.github.gmathi.novellibrary.settings.ui.screens.AdvancedSettingsScreen
+import io.github.gmathi.novellibrary.settings.ui.screens.BackupAndSyncScreen
+import io.github.gmathi.novellibrary.settings.ui.screens.GeneralSettingsScreen
 import io.github.gmathi.novellibrary.settings.ui.screens.MainSettingsScreen
+import io.github.gmathi.novellibrary.settings.ui.screens.ReaderSettingsScreen
+import io.github.gmathi.novellibrary.settings.viewmodel.AdvancedSettingsViewModel
+import io.github.gmathi.novellibrary.settings.viewmodel.BackupSettingsViewModel
+import io.github.gmathi.novellibrary.settings.viewmodel.GeneralSettingsViewModel
 import io.github.gmathi.novellibrary.settings.viewmodel.MainSettingsViewModel
+import io.github.gmathi.novellibrary.settings.viewmodel.ReaderSettingsViewModel
+import io.github.gmathi.novellibrary.settings.viewmodel.SyncSettingsViewModel
 
 /**
  * Navigation routes for settings screens.
@@ -39,6 +48,11 @@ sealed class SettingsRoute(val route: String) {
  *   └── About
  * 
  * @param mainSettingsViewModel ViewModel for the main settings screen
+ * @param readerSettingsViewModel ViewModel for the reader settings screen
+ * @param generalSettingsViewModel ViewModel for the general settings screen
+ * @param backupSettingsViewModel ViewModel for the backup settings screen
+ * @param syncSettingsViewModel ViewModel for the sync settings screen
+ * @param advancedSettingsViewModel ViewModel for the advanced settings screen
  * @param navController Navigation controller for managing navigation
  * @param onNavigateBack Callback to exit settings and return to app
  * @param modifier Modifier for the navigation host
@@ -46,6 +60,11 @@ sealed class SettingsRoute(val route: String) {
 @Composable
 fun SettingsNavGraph(
     mainSettingsViewModel: MainSettingsViewModel,
+    readerSettingsViewModel: ReaderSettingsViewModel,
+    generalSettingsViewModel: GeneralSettingsViewModel,
+    backupSettingsViewModel: BackupSettingsViewModel,
+    syncSettingsViewModel: SyncSettingsViewModel,
+    advancedSettingsViewModel: AdvancedSettingsViewModel,
     navController: NavHostController = rememberNavController(),
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
@@ -78,39 +97,57 @@ fun SettingsNavGraph(
             )
         }
         
-        // Reader Settings Screen (placeholder - to be implemented in task 6.2)
+        // Reader Settings Screen
         composable(SettingsRoute.Reader.route) {
-            // TODO: Implement ReaderSettingsScreen in task 6.2
-            PlaceholderSettingsScreen(
-                title = "Reader Settings",
+            ReaderSettingsScreen(
+                viewModel = readerSettingsViewModel,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
         
-        // Backup & Sync Settings Screen (placeholder - to be implemented in task 6.3)
+        // Backup & Sync Settings Screen
         composable(SettingsRoute.BackupSync.route) {
-            // TODO: Implement BackupAndSyncScreen in task 6.3
-            PlaceholderSettingsScreen(
-                title = "Backup & Sync",
-                onNavigateBack = { navController.popBackStack() }
+            BackupAndSyncScreen(
+                backupViewModel = backupSettingsViewModel,
+                syncViewModel = syncSettingsViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onCreateBackup = {
+                    // TODO: Implement backup creation logic
+                },
+                onRestoreBackup = {
+                    // TODO: Implement backup restoration logic
+                },
+                onConfigureGoogleDrive = {
+                    // TODO: Implement Google Drive configuration
+                },
+                onSyncLogin = {
+                    // TODO: Show sync login dialog
+                }
             )
         }
         
-        // General Settings Screen (placeholder - to be implemented in task 6.4)
+        // General Settings Screen
         composable(SettingsRoute.General.route) {
-            // TODO: Implement GeneralSettingsScreen in task 6.4
-            PlaceholderSettingsScreen(
-                title = "General Settings",
+            GeneralSettingsScreen(
+                viewModel = generalSettingsViewModel,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
         
-        // Advanced Settings Screen (placeholder - to be implemented in task 6.5)
+        // Advanced Settings Screen
         composable(SettingsRoute.Advanced.route) {
-            // TODO: Implement AdvancedSettingsScreen in task 6.5
-            PlaceholderSettingsScreen(
-                title = "Advanced Settings",
-                onNavigateBack = { navController.popBackStack() }
+            AdvancedSettingsScreen(
+                viewModel = advancedSettingsViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onClearCache = {
+                    // TODO: Implement cache clearing logic
+                },
+                onResetSettings = {
+                    // TODO: Implement settings reset logic
+                },
+                onCloudflareBypass = {
+                    // TODO: Implement Cloudflare bypass navigation
+                }
             )
         }
         
