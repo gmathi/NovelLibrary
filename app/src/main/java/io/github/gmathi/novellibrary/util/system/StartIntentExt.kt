@@ -144,7 +144,10 @@ fun AppCompatActivity.startMetadataActivity(novel: Novel) = startActivityForResu
 
 fun AppCompatActivity.startExtensionsPagerActivity() = startActivityForResult<ExtensionsPagerActivity>(Constants.RECENT_NOVELS_PAGER_ACT_REQ_CODE)
 
-fun AppCompatActivity.startSettingsActivity() = startActivityForResult<MainSettingsActivity>(Constants.SETTINGS_ACT_REQ_CODE)
+fun AppCompatActivity.startSettingsActivity() {
+    // Use the new settings module
+    io.github.gmathi.novellibrary.settings.api.SettingsNavigator.openSettings(this)
+}
 
 fun AppCompatActivity.startLanguagesActivity(changeLanguage: Boolean = false) =
     startActivityForResult(intentOf<LanguageActivity>().putExtra("changeLanguage", changeLanguage), Constants.LANG_ACT_REQ_CODE)

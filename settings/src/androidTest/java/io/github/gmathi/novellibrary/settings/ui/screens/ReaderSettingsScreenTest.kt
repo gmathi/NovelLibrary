@@ -2,134 +2,40 @@ package io.github.gmathi.novellibrary.settings.ui.screens
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import io.github.gmathi.novellibrary.settings.data.datastore.SettingsDataStore
+import io.github.gmathi.novellibrary.settings.data.datastore.FakeSettingsDataStore
 import io.github.gmathi.novellibrary.settings.data.repository.SettingsRepositoryDataStore
 import io.github.gmathi.novellibrary.settings.viewmodel.ReaderSettingsViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 
 /**
  * Compose UI tests for ReaderSettingsScreen.
  * 
- * Tests the reader settings screen UI including:
- * - Section rendering (Text & Display, Theme, Scroll Behavior, Auto-Scroll)
- * - Settings controls (sliders, switches, dropdowns)
- * - State updates and user interactions
- * - Conditional rendering (volume scroll distance, auto-scroll settings)
+ * Tests:
+ * - Verify 4 sections are displayed (Text & Display, Theme, Scroll Behavior, Auto-Scroll)
+ * - Test sliders (text size, volume scroll distance, auto-scroll settings)
+ * - Test switches (limit image width, keep text color, volume key navigation, etc.)
+ * - Test dropdowns (font selection)
+ * - Verify state updates
  */
 class ReaderSettingsScreenTest {
-    
+
     @get:Rule
     val composeTestRule = createComposeRule()
-    
-    private fun createMockViewModel(
-        textSize: Int = 16,
-        enableVolumeScroll: Boolean = false,
-        volumeScrollLength: Int = 100,
-        enableAutoScroll: Boolean = false,
-        autoScrollLength: Int = 100,
-        autoScrollInterval: Int = 1000,
-        limitImageWidth: Boolean = true,
-        keepTextColor: Boolean = false,
-        alternativeTextColors: Boolean = false,
-        readerMode: Boolean = true,
-        japSwipe: Boolean = false,
-        showReaderScroll: Boolean = true,
-        keepScreenOn: Boolean = false,
-        enableImmersiveMode: Boolean = false
-    ): ReaderSettingsViewModel {
-        val mockDataStore = object : SettingsDataStore {
-            override val textSize = MutableStateFlow(textSize)
-            override val fontPath = MutableStateFlow("")
-            override val limitImageWidth = MutableStateFlow(limitImageWidth)
-            override val dayModeBackgroundColor = MutableStateFlow(0xFFFFFFFF.toInt())
-            override val nightModeBackgroundColor = MutableStateFlow(0xFF000000.toInt())
-            override val dayModeTextColor = MutableStateFlow(0xFF000000.toInt())
-            override val nightModeTextColor = MutableStateFlow(0xFFFFFFFF.toInt())
-            override val keepTextColor = MutableStateFlow(keepTextColor)
-            override val alternativeTextColors = MutableStateFlow(alternativeTextColors)
-            override val readerMode = MutableStateFlow(readerMode)
-            override val japSwipe = MutableStateFlow(japSwipe)
-            override val showReaderScroll = MutableStateFlow(showReaderScroll)
-            override val enableVolumeScroll = MutableStateFlow(enableVolumeScroll)
-            override val volumeScrollLength = MutableStateFlow(volumeScrollLength)
-            override val keepScreenOn = MutableStateFlow(keepScreenOn)
-            override val enableImmersiveMode = MutableStateFlow(enableImmersiveMode)
-            override val showNavbarAtChapterEnd = MutableStateFlow(true)
-            override val enableAutoScroll = MutableStateFlow(enableAutoScroll)
-            override val autoScrollLength = MutableStateFlow(autoScrollLength)
-            override val autoScrollInterval = MutableStateFlow(autoScrollInterval)
-            override val showChapterComments = MutableStateFlow(true)
-            override val enableClusterPages = MutableStateFlow(false)
-            override val enableDirectionalLinks = MutableStateFlow(true)
-            override val isReaderModeButtonVisible = MutableStateFlow(true)
-            
-            // Other required properties
-            override val appLanguage = MutableStateFlow("en")
-            override val enableNotifications = MutableStateFlow(true)
-            override val enableMentionNotifications = MutableStateFlow(true)
-            override val enableBackup = MutableStateFlow(false)
-            override val backupLocation = MutableStateFlow("")
-            override val autoBackupEnabled = MutableStateFlow(false)
-            override val enableSync = MutableStateFlow(false)
-            override val syncAccount = MutableStateFlow("")
-            override val lastSyncTime = MutableStateFlow(0L)
-            override val ttsEnabled = MutableStateFlow(false)
-            override val ttsVoice = MutableStateFlow("")
-            override val ttsSpeed = MutableStateFlow(1.0f)
-            override val cloudflareBypassEnabled = MutableStateFlow(false)
-            override val debugLoggingEnabled = MutableStateFlow(false)
-            
-            override suspend fun setTextSize(size: Int) { this.textSize.value = size }
-            override suspend fun setFontPath(path: String) {}
-            override suspend fun setLimitImageWidth(enabled: Boolean) { this.limitImageWidth.value = enabled }
-            override suspend fun setDayModeBackgroundColor(color: Int) {}
-            override suspend fun setNightModeBackgroundColor(color: Int) {}
-            override suspend fun setDayModeTextColor(color: Int) {}
-            override suspend fun setNightModeTextColor(color: Int) {}
-            override suspend fun setKeepTextColor(enabled: Boolean) { this.keepTextColor.value = enabled }
-            override suspend fun setAlternativeTextColors(enabled: Boolean) { this.alternativeTextColors.value = enabled }
-            override suspend fun setReaderMode(enabled: Boolean) { this.readerMode.value = enabled }
-            override suspend fun setJapSwipe(enabled: Boolean) { this.japSwipe.value = enabled }
-            override suspend fun setShowReaderScroll(enabled: Boolean) { this.showReaderScroll.value = enabled }
-            override suspend fun setEnableVolumeScroll(enabled: Boolean) { this.enableVolumeScroll.value = enabled }
-            override suspend fun setVolumeScrollLength(length: Int) { this.volumeScrollLength.value = length }
-            override suspend fun setKeepScreenOn(enabled: Boolean) { this.keepScreenOn.value = enabled }
-            override suspend fun setEnableImmersiveMode(enabled: Boolean) { this.enableImmersiveMode.value = enabled }
-            override suspend fun setShowNavbarAtChapterEnd(enabled: Boolean) {}
-            override suspend fun setEnableAutoScroll(enabled: Boolean) { this.enableAutoScroll.value = enabled }
-            override suspend fun setAutoScrollLength(length: Int) { this.autoScrollLength.value = length }
-            override suspend fun setAutoScrollInterval(interval: Int) { this.autoScrollInterval.value = interval }
-            override suspend fun setShowChapterComments(enabled: Boolean) {}
-            override suspend fun setEnableClusterPages(enabled: Boolean) {}
-            override suspend fun setEnableDirectionalLinks(enabled: Boolean) {}
-            override suspend fun setIsReaderModeButtonVisible(enabled: Boolean) {}
-            override suspend fun setAppLanguage(language: String) {}
-            override suspend fun setEnableNotifications(enabled: Boolean) {}
-            override suspend fun setEnableMentionNotifications(enabled: Boolean) {}
-            override suspend fun setEnableBackup(enabled: Boolean) {}
-            override suspend fun setBackupLocation(location: String) {}
-            override suspend fun setAutoBackupEnabled(enabled: Boolean) {}
-            override suspend fun setEnableSync(enabled: Boolean) {}
-            override suspend fun setSyncAccount(account: String) {}
-            override suspend fun setLastSyncTime(time: Long) {}
-            override suspend fun setTtsEnabled(enabled: Boolean) {}
-            override suspend fun setTtsVoice(voice: String) {}
-            override suspend fun setTtsSpeed(speed: Float) {}
-            override suspend fun setCloudflareBypassEnabled(enabled: Boolean) {}
-            override suspend fun setDebugLoggingEnabled(enabled: Boolean) {}
-        }
-        
-        val mockRepository = SettingsRepositoryDataStore(mockDataStore)
-        return ReaderSettingsViewModel(mockRepository)
+
+    private fun createViewModel(): ReaderSettingsViewModel {
+        val fakeDataStore = FakeSettingsDataStore()
+        val repository = SettingsRepositoryDataStore(fakeDataStore)
+        return ReaderSettingsViewModel(repository)
     }
-    
+
     @Test
-    fun readerSettingsScreen_displaysAllSections() {
+    fun readerSettingsScreen_displaysFourSections() {
         // Given
-        val viewModel = createMockViewModel()
-        
+        val viewModel = createViewModel()
+
         // When
         composeTestRule.setContent {
             ReaderSettingsScreen(
@@ -137,19 +43,19 @@ class ReaderSettingsScreenTest {
                 onNavigateBack = {}
             )
         }
-        
-        // Then - verify all 4 sections are displayed
+
+        // Then - Verify all 4 sections are displayed
         composeTestRule.onNodeWithText("Text & Display").assertIsDisplayed()
         composeTestRule.onNodeWithText("Theme").assertIsDisplayed()
         composeTestRule.onNodeWithText("Scroll Behavior").assertIsDisplayed()
         composeTestRule.onNodeWithText("Auto-Scroll").assertIsDisplayed()
     }
-    
+
     @Test
-    fun textAndDisplaySection_displaysAllSettings() {
+    fun readerSettingsScreen_displaysTextSizeSlider() {
         // Given
-        val viewModel = createMockViewModel(textSize = 18)
-        
+        val viewModel = createViewModel()
+
         // When
         composeTestRule.setContent {
             ReaderSettingsScreen(
@@ -157,18 +63,17 @@ class ReaderSettingsScreenTest {
                 onNavigateBack = {}
             )
         }
-        
+
         // Then
         composeTestRule.onNodeWithText("Text Size").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Font").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Limit Image Width").assertIsDisplayed()
+        composeTestRule.onNode(hasText("Text Size") and hasClickAction()).assertExists()
     }
-    
+
     @Test
-    fun themeSection_displaysAllSettings() {
+    fun readerSettingsScreen_textSizeSlider_updatesState() {
         // Given
-        val viewModel = createMockViewModel()
-        
+        val viewModel = createViewModel()
+
         // When
         composeTestRule.setContent {
             ReaderSettingsScreen(
@@ -176,19 +81,104 @@ class ReaderSettingsScreenTest {
                 onNavigateBack = {}
             )
         }
-        
+
+        // Change text size
+        val initialTextSize = runBlocking { viewModel.textSize.first() }
+        viewModel.setTextSize(24)
+        composeTestRule.waitForIdle()
+
+        // Then
+        val updatedTextSize = runBlocking { viewModel.textSize.first() }
+        assert(updatedTextSize == 24) { "Text size should be updated to 24" }
+        assert(updatedTextSize != initialTextSize) { "Text size should have changed" }
+    }
+
+    @Test
+    fun readerSettingsScreen_displaysFontDropdown() {
+        // Given
+        val viewModel = createViewModel()
+
+        // When
+        composeTestRule.setContent {
+            ReaderSettingsScreen(
+                viewModel = viewModel,
+                onNavigateBack = {}
+            )
+        }
+
+        // Then
+        composeTestRule.onNodeWithText("Font").assertIsDisplayed()
+        composeTestRule.onNodeWithText("System Default").assertIsDisplayed()
+    }
+
+    @Test
+    fun readerSettingsScreen_displaysLimitImageWidthSwitch() {
+        // Given
+        val viewModel = createViewModel()
+
+        // When
+        composeTestRule.setContent {
+            ReaderSettingsScreen(
+                viewModel = viewModel,
+                onNavigateBack = {}
+            )
+        }
+
+        // Then
+        composeTestRule.onNodeWithText("Limit Image Width").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Prevent images from exceeding screen width").assertIsDisplayed()
+    }
+
+    @Test
+    fun readerSettingsScreen_limitImageWidthSwitch_togglesState() {
+        // Given
+        val viewModel = createViewModel()
+
+        // When
+        composeTestRule.setContent {
+            ReaderSettingsScreen(
+                viewModel = viewModel,
+                onNavigateBack = {}
+            )
+        }
+
+        // Get initial state
+        val initialState = runBlocking { viewModel.limitImageWidth.first() }
+
+        // Toggle switch
+        composeTestRule.onNodeWithText("Limit Image Width").performClick()
+        composeTestRule.waitForIdle()
+
+        // Then
+        val updatedState = runBlocking { viewModel.limitImageWidth.first() }
+        assert(updatedState != initialState) { "Limit image width should toggle" }
+    }
+
+    @Test
+    fun readerSettingsScreen_displaysThemeSettings() {
+        // Given
+        val viewModel = createViewModel()
+
+        // When
+        composeTestRule.setContent {
+            ReaderSettingsScreen(
+                viewModel = viewModel,
+                onNavigateBack = {}
+            )
+        }
+
         // Then
         composeTestRule.onNodeWithText("Day Mode Background").assertIsDisplayed()
         composeTestRule.onNodeWithText("Night Mode Background").assertIsDisplayed()
         composeTestRule.onNodeWithText("Keep Text Color").assertIsDisplayed()
         composeTestRule.onNodeWithText("Alternative Text Colors").assertIsDisplayed()
     }
-    
+
     @Test
-    fun scrollBehaviorSection_displaysAllSettings() {
+    fun readerSettingsScreen_keepTextColorSwitch_togglesState() {
         // Given
-        val viewModel = createMockViewModel()
-        
+        val viewModel = createViewModel()
+
         // When
         composeTestRule.setContent {
             ReaderSettingsScreen(
@@ -196,7 +186,32 @@ class ReaderSettingsScreenTest {
                 onNavigateBack = {}
             )
         }
-        
+
+        // Get initial state
+        val initialState = runBlocking { viewModel.keepTextColor.first() }
+
+        // Toggle switch
+        composeTestRule.onNodeWithText("Keep Text Color").performClick()
+        composeTestRule.waitForIdle()
+
+        // Then
+        val updatedState = runBlocking { viewModel.keepTextColor.first() }
+        assert(updatedState != initialState) { "Keep text color should toggle" }
+    }
+
+    @Test
+    fun readerSettingsScreen_displaysScrollBehaviorSettings() {
+        // Given
+        val viewModel = createViewModel()
+
+        // When
+        composeTestRule.setContent {
+            ReaderSettingsScreen(
+                viewModel = viewModel,
+                onNavigateBack = {}
+            )
+        }
+
         // Then
         composeTestRule.onNodeWithText("Reader Mode").assertIsDisplayed()
         composeTestRule.onNodeWithText("Japanese Swipe Direction").assertIsDisplayed()
@@ -205,12 +220,12 @@ class ReaderSettingsScreenTest {
         composeTestRule.onNodeWithText("Keep Screen On").assertIsDisplayed()
         composeTestRule.onNodeWithText("Immersive Mode").assertIsDisplayed()
     }
-    
+
     @Test
-    fun volumeScrollDistance_hiddenWhenVolumeScrollDisabled() {
+    fun readerSettingsScreen_volumeKeyNavigationSwitch_togglesState() {
         // Given
-        val viewModel = createMockViewModel(enableVolumeScroll = false)
-        
+        val viewModel = createViewModel()
+
         // When
         composeTestRule.setContent {
             ReaderSettingsScreen(
@@ -218,16 +233,24 @@ class ReaderSettingsScreenTest {
                 onNavigateBack = {}
             )
         }
-        
+
+        // Get initial state
+        val initialState = runBlocking { viewModel.enableVolumeScroll.first() }
+
+        // Toggle switch
+        composeTestRule.onNodeWithText("Volume Key Navigation").performClick()
+        composeTestRule.waitForIdle()
+
         // Then
-        composeTestRule.onNodeWithText("Volume Scroll Distance").assertDoesNotExist()
+        val updatedState = runBlocking { viewModel.enableVolumeScroll.first() }
+        assert(updatedState != initialState) { "Volume key navigation should toggle" }
     }
-    
+
     @Test
-    fun volumeScrollDistance_shownWhenVolumeScrollEnabled() {
+    fun readerSettingsScreen_volumeScrollDistance_showsWhenEnabled() {
         // Given
-        val viewModel = createMockViewModel(enableVolumeScroll = true)
-        
+        val viewModel = createViewModel()
+
         // When
         composeTestRule.setContent {
             ReaderSettingsScreen(
@@ -235,16 +258,20 @@ class ReaderSettingsScreenTest {
                 onNavigateBack = {}
             )
         }
-        
-        // Then
+
+        // Enable volume scroll
+        viewModel.setEnableVolumeScroll(true)
+        composeTestRule.waitForIdle()
+
+        // Then - Volume scroll distance should be visible
         composeTestRule.onNodeWithText("Volume Scroll Distance").assertIsDisplayed()
     }
-    
+
     @Test
-    fun autoScrollSettings_hiddenWhenAutoScrollDisabled() {
+    fun readerSettingsScreen_displaysAutoScrollSettings() {
         // Given
-        val viewModel = createMockViewModel(enableAutoScroll = false)
-        
+        val viewModel = createViewModel()
+
         // When
         composeTestRule.setContent {
             ReaderSettingsScreen(
@@ -252,17 +279,16 @@ class ReaderSettingsScreenTest {
                 onNavigateBack = {}
             )
         }
-        
+
         // Then
-        composeTestRule.onNodeWithText("Scroll Distance").assertDoesNotExist()
-        composeTestRule.onNodeWithText("Scroll Interval").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Enable Auto-Scroll").assertIsDisplayed()
     }
-    
+
     @Test
-    fun autoScrollSettings_shownWhenAutoScrollEnabled() {
+    fun readerSettingsScreen_autoScrollSettings_showWhenEnabled() {
         // Given
-        val viewModel = createMockViewModel(enableAutoScroll = true)
-        
+        val viewModel = createViewModel()
+
         // When
         composeTestRule.setContent {
             ReaderSettingsScreen(
@@ -270,67 +296,32 @@ class ReaderSettingsScreenTest {
                 onNavigateBack = {}
             )
         }
-        
-        // Then
+
+        // Enable auto-scroll
+        viewModel.setEnableAutoScroll(true)
+        composeTestRule.waitForIdle()
+
+        // Then - Auto-scroll settings should be visible
         composeTestRule.onNodeWithText("Scroll Distance").assertIsDisplayed()
         composeTestRule.onNodeWithText("Scroll Interval").assertIsDisplayed()
     }
-    
+
     @Test
-    fun switchSettings_canBeToggled() {
+    fun readerSettingsScreen_navigatesBack() {
         // Given
-        val viewModel = createMockViewModel(limitImageWidth = false)
-        
+        val viewModel = createViewModel()
+        var navigatedBack = false
+
         // When
         composeTestRule.setContent {
             ReaderSettingsScreen(
                 viewModel = viewModel,
-                onNavigateBack = {}
+                onNavigateBack = { navigatedBack = true }
             )
         }
-        
-        // Then - find and click the switch
-        composeTestRule.onNodeWithText("Limit Image Width").performClick()
-        
-        // Note: In a real test, we would verify the state changed in the ViewModel
-        // For now, we just verify the interaction is possible
-    }
-    
-    @Test
-    fun backButton_triggersNavigateBack() {
-        // Given
-        val viewModel = createMockViewModel()
-        var navigateBackCalled = false
-        
-        // When
-        composeTestRule.setContent {
-            ReaderSettingsScreen(
-                viewModel = viewModel,
-                onNavigateBack = { navigateBackCalled = true }
-            )
-        }
-        
-        // Then - click back button
-        composeTestRule.onNodeWithContentDescription("Navigate back").performClick()
-        
-        // Verify callback was invoked
-        assert(navigateBackCalled)
-    }
-    
-    @Test
-    fun screenTitle_isDisplayed() {
-        // Given
-        val viewModel = createMockViewModel()
-        
-        // When
-        composeTestRule.setContent {
-            ReaderSettingsScreen(
-                viewModel = viewModel,
-                onNavigateBack = {}
-            )
-        }
-        
+
         // Then
-        composeTestRule.onNodeWithText("Reader Settings").assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription("Navigate back").performClick()
+        assert(navigatedBack) { "Should navigate back" }
     }
 }

@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import io.github.gmathi.novellibrary.settings.ui.screens.AboutScreen
 import io.github.gmathi.novellibrary.settings.ui.screens.AdvancedSettingsScreen
 import io.github.gmathi.novellibrary.settings.ui.screens.BackupAndSyncScreen
 import io.github.gmathi.novellibrary.settings.ui.screens.GeneralSettingsScreen
@@ -23,6 +24,14 @@ import io.github.gmathi.novellibrary.settings.viewmodel.SyncSettingsViewModel
  * 
  * Defines all navigation destinations within the settings module.
  * Uses sealed class pattern for type-safe navigation.
+ * 
+ * These routes can be used for deep linking to specific settings screens:
+ * - Main: Entry point showing all settings categories
+ * - Reader: Reading experience customization
+ * - BackupSync: Data backup and synchronization
+ * - General: App-wide preferences
+ * - Advanced: Technical and power-user settings
+ * - About: App information and credits
  */
 sealed class SettingsRoute(val route: String) {
     data object Main : SettingsRoute("settings_main")
@@ -31,6 +40,21 @@ sealed class SettingsRoute(val route: String) {
     data object General : SettingsRoute("settings_general")
     data object Advanced : SettingsRoute("settings_advanced")
     data object About : SettingsRoute("settings_about")
+    
+    companion object {
+        /**
+         * Returns all available settings routes.
+         * Useful for validation or iteration.
+         */
+        fun getAllRoutes(): List<String> = listOf(
+            Main.route,
+            Reader.route,
+            BackupSync.route,
+            General.route,
+            Advanced.route,
+            About.route
+        )
+    }
 }
 
 /**
@@ -53,8 +77,16 @@ sealed class SettingsRoute(val route: String) {
  * @param backupSettingsViewModel ViewModel for the backup settings screen
  * @param syncSettingsViewModel ViewModel for the sync settings screen
  * @param advancedSettingsViewModel ViewModel for the advanced settings screen
+ * @param appVersionName The app version name for the about screen
+ * @param appVersionCode The app version code for the about screen
  * @param navController Navigation controller for managing navigation
  * @param onNavigateBack Callback to exit settings and return to app
+ * @param onNavigateToContributors Callback to navigate to contributors screen
+ * @param onNavigateToCopyright Callback to navigate to copyright screen
+ * @param onNavigateToLicenses Callback to navigate to open source licenses screen
+ * @param onOpenPrivacyPolicy Callback to open privacy policy
+ * @param onOpenTermsOfService Callback to open terms of service
+ * @param onCheckForUpdates Callback to check for app updates
  * @param modifier Modifier for the navigation host
  */
 @Composable
@@ -65,8 +97,16 @@ fun SettingsNavGraph(
     backupSettingsViewModel: BackupSettingsViewModel,
     syncSettingsViewModel: SyncSettingsViewModel,
     advancedSettingsViewModel: AdvancedSettingsViewModel,
+    appVersionName: String,
+    appVersionCode: Int,
     navController: NavHostController = rememberNavController(),
     onNavigateBack: () -> Unit,
+    onNavigateToContributors: () -> Unit,
+    onNavigateToCopyright: () -> Unit,
+    onNavigateToLicenses: () -> Unit,
+    onOpenPrivacyPolicy: () -> Unit,
+    onOpenTermsOfService: () -> Unit,
+    onCheckForUpdates: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -153,37 +193,17 @@ fun SettingsNavGraph(
         
         // About Screen (placeholder - to be implemented in task 6.6)
         composable(SettingsRoute.About.route) {
-            // TODO: Implement AboutScreen in task 6.6
-            PlaceholderSettingsScreen(
-                title = "About",
+            AboutScreen(
+                appVersionName = appVersionName,
+                appVersionCode = appVersionCode,
+                onNavigateToContributors = onNavigateToContributors,
+                onNavigateToCopyright = onNavigateToCopyright,
+                onNavigateToLicenses = onNavigateToLicenses,
+                onOpenPrivacyPolicy = onOpenPrivacyPolicy,
+                onOpenTermsOfService = onOpenTermsOfService,
+                onCheckForUpdates = onCheckForUpdates,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
-    }
-}
-
-/**
- * Placeholder settings screen for routes not yet implemented.
- * 
- * Displays a simple screen with the title and back navigation.
- * Will be replaced with actual screen implementations in subsequent tasks.
- * 
- * @param title The screen title
- * @param onNavigateBack Callback to navigate back
- */
-@Composable
-private fun PlaceholderSettingsScreen(
-    title: String,
-    onNavigateBack: () -> Unit
-) {
-    io.github.gmathi.novellibrary.settings.ui.components.SettingsScreen(
-        title = title,
-        onNavigateBack = onNavigateBack
-    ) {
-        io.github.gmathi.novellibrary.settings.ui.components.SettingsItem(
-            title = "Coming Soon",
-            description = "This screen will be implemented in a future task",
-            onClick = {}
-        )
     }
 }

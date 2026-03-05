@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.settings.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.VolumeUp
@@ -200,7 +201,7 @@ private fun PreviewSettingsSliderCustomFormatter() {
         SettingsSlider(
             title = "Volume",
             description = "Adjust TTS volume level",
-            icon = Icons.Default.VolumeUp,
+            icon = Icons.AutoMirrored.Filled.VolumeUp,
             value = 75f,
             onValueChange = {},
             valueRange = 0f..100f,

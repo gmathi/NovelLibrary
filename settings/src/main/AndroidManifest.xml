@@ -2,7 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     
     <application>
-        <!-- Settings activities will be declared here during migration -->
+        <!-- Compose-based Settings Activity -->
+        <activity
+            android:name=".api.SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
+        
+        <!-- Legacy settings activities will be declared here during migration -->
     </application>
     
 </manifest>

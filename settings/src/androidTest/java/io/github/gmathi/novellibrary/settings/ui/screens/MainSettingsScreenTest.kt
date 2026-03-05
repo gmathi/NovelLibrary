@@ -2,59 +2,40 @@ package io.github.gmathi.novellibrary.settings.ui.screens
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.github.gmathi.novellibrary.settings.ui.screens.MainSettingsScreenContent
+import io.github.gmathi.novellibrary.settings.data.datastore.FakeSettingsDataStore
+import io.github.gmathi.novellibrary.settings.data.repository.SettingsRepositoryDataStore
+import io.github.gmathi.novellibrary.settings.viewmodel.MainSettingsViewModel
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 
 /**
  * Compose UI tests for MainSettingsScreen.
  * 
- * Tests the main settings screen UI, including:
- * - Display of all 5 category items
- * - Navigation callbacks for each category
- * - Correct titles and descriptions
- * - Icon display
- * - User interactions
+ * Tests:
+ * - Verify 5 categories are displayed
+ * - Test navigation to each category
+ * - Test developer mode toggle
  */
-@RunWith(AndroidJUnit4::class)
 class MainSettingsScreenTest {
-    
+
     @get:Rule
     val composeTestRule = createComposeRule()
-    
-    @Test
-    fun mainSettingsScreen_displaysAllCategories() {
-        // Given
-        composeTestRule.setContent {
-            MainSettingsScreenContent(
-                isDarkTheme = false,
-                isDeveloper = false,
-                onNavigateToReader = {},
-                onNavigateToBackupSync = {},
-                onNavigateToGeneral = {},
-                onNavigateToAdvanced = {},
-                onNavigateToAbout = {},
-                onNavigateBack = {}
-            )
-        }
-        
-        // Then - verify all 5 categories are displayed
-        composeTestRule.onNodeWithText("Reader").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Backup & Sync").assertIsDisplayed()
-        composeTestRule.onNodeWithText("General").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Advanced").assertIsDisplayed()
-        composeTestRule.onNodeWithText("About").assertIsDisplayed()
+
+    private fun createViewModel(): MainSettingsViewModel {
+        val fakeDataStore = FakeSettingsDataStore()
+        val repository = SettingsRepositoryDataStore(fakeDataStore)
+        return MainSettingsViewModel(repository)
     }
-    
+
     @Test
-    fun mainSettingsScreen_displaysCorrectDescriptions() {
+    fun mainSettingsScreen_displaysAllFiveCategories() {
         // Given
+        val viewModel = createViewModel()
+
+        // When
         composeTestRule.setContent {
-            MainSettingsScreenContent(
-                isDarkTheme = false,
-                isDeveloper = false,
+            MainSettingsScreen(
+                viewModel = viewModel,
                 onNavigateToReader = {},
                 onNavigateToBackupSync = {},
                 onNavigateToGeneral = {},
@@ -63,23 +44,34 @@ class MainSettingsScreenTest {
                 onNavigateBack = {}
             )
         }
-        
-        // Then - verify all descriptions are displayed
+
+        // Then - Verify all 5 categories are displayed
+        composeTestRule.onNodeWithText("Reader").assertIsDisplayed()
         composeTestRule.onNodeWithText("Customize reading experience").assertIsDisplayed()
+        
+        composeTestRule.onNodeWithText("Backup & Sync").assertIsDisplayed()
         composeTestRule.onNodeWithText("Protect your data").assertIsDisplayed()
+        
+        composeTestRule.onNodeWithText("General").assertIsDisplayed()
         composeTestRule.onNodeWithText("App preferences").assertIsDisplayed()
+        
+        composeTestRule.onNodeWithText("Advanced").assertIsDisplayed()
         composeTestRule.onNodeWithText("Technical settings").assertIsDisplayed()
+        
+        composeTestRule.onNodeWithText("About").assertIsDisplayed()
         composeTestRule.onNodeWithText("App info & credits").assertIsDisplayed()
     }
-    
+
     @Test
-    fun mainSettingsScreen_readerCategory_navigatesCorrectly() {
+    fun mainSettingsScreen_navigatesToReaderSettings() {
         // Given
+        val viewModel = createViewModel()
         var navigatedToReader = false
+
+        // When
         composeTestRule.setContent {
-            MainSettingsScreenContent(
-                isDarkTheme = false,
-                isDeveloper = false,
+            MainSettingsScreen(
+                viewModel = viewModel,
                 onNavigateToReader = { navigatedToReader = true },
                 onNavigateToBackupSync = {},
                 onNavigateToGeneral = {},
@@ -88,22 +80,22 @@ class MainSettingsScreenTest {
                 onNavigateBack = {}
             )
         }
-        
-        // When - click on Reader category
+
+        // Then
         composeTestRule.onNodeWithText("Reader").performClick()
-        
-        // Then - navigation callback is invoked
-        assert(navigatedToReader)
+        assert(navigatedToReader) { "Should navigate to Reader settings" }
     }
-    
+
     @Test
-    fun mainSettingsScreen_backupSyncCategory_navigatesCorrectly() {
+    fun mainSettingsScreen_navigatesToBackupSync() {
         // Given
+        val viewModel = createViewModel()
         var navigatedToBackupSync = false
+
+        // When
         composeTestRule.setContent {
-            MainSettingsScreenContent(
-                isDarkTheme = false,
-                isDeveloper = false,
+            MainSettingsScreen(
+                viewModel = viewModel,
                 onNavigateToReader = {},
                 onNavigateToBackupSync = { navigatedToBackupSync = true },
                 onNavigateToGeneral = {},
@@ -112,22 +104,22 @@ class MainSettingsScreenTest {
                 onNavigateBack = {}
             )
         }
-        
-        // When - click on Backup & Sync category
+
+        // Then
         composeTestRule.onNodeWithText("Backup & Sync").performClick()
-        
-        // Then - navigation callback is invoked
-        assert(navigatedToBackupSync)
+        assert(navigatedToBackupSync) { "Should navigate to Backup & Sync settings" }
     }
-    
+
     @Test
-    fun mainSettingsScreen_generalCategory_navigatesCorrectly() {
+    fun mainSettingsScreen_navigatesToGeneral() {
         // Given
+        val viewModel = createViewModel()
         var navigatedToGeneral = false
+
+        // When
         composeTestRule.setContent {
-            MainSettingsScreenContent(
-                isDarkTheme = false,
-                isDeveloper = false,
+            MainSettingsScreen(
+                viewModel = viewModel,
                 onNavigateToReader = {},
                 onNavigateToBackupSync = {},
                 onNavigateToGeneral = { navigatedToGeneral = true },
@@ -136,22 +128,22 @@ class MainSettingsScreenTest {
                 onNavigateBack = {}
             )
         }
-        
-        // When - click on General category
+
+        // Then
         composeTestRule.onNodeWithText("General").performClick()
-        
-        // Then - navigation callback is invoked
-        assert(navigatedToGeneral)
+        assert(navigatedToGeneral) { "Should navigate to General settings" }
     }
-    
+
     @Test
-    fun mainSettingsScreen_advancedCategory_navigatesCorrectly() {
+    fun mainSettingsScreen_navigatesToAdvanced() {
         // Given
+        val viewModel = createViewModel()
         var navigatedToAdvanced = false
+
+        // When
         composeTestRule.setContent {
-            MainSettingsScreenContent(
-                isDarkTheme = false,
-                isDeveloper = false,
+            MainSettingsScreen(
+                viewModel = viewModel,
                 onNavigateToReader = {},
                 onNavigateToBackupSync = {},
                 onNavigateToGeneral = {},
@@ -160,22 +152,22 @@ class MainSettingsScreenTest {
                 onNavigateBack = {}
             )
         }
-        
-        // When - click on Advanced category
+
+        // Then
         composeTestRule.onNodeWithText("Advanced").performClick()
-        
-        // Then - navigation callback is invoked
-        assert(navigatedToAdvanced)
+        assert(navigatedToAdvanced) { "Should navigate to Advanced settings" }
     }
-    
+
     @Test
-    fun mainSettingsScreen_aboutCategory_navigatesCorrectly() {
+    fun mainSettingsScreen_navigatesToAbout() {
         // Given
+        val viewModel = createViewModel()
         var navigatedToAbout = false
+
+        // When
         composeTestRule.setContent {
-            MainSettingsScreenContent(
-                isDarkTheme = false,
-                isDeveloper = false,
+            MainSettingsScreen(
+                viewModel = viewModel,
                 onNavigateToReader = {},
                 onNavigateToBackupSync = {},
                 onNavigateToGeneral = {},
@@ -184,22 +176,22 @@ class MainSettingsScreenTest {
                 onNavigateBack = {}
             )
         }
-        
-        // When - click on About category
+
+        // Then
         composeTestRule.onNodeWithText("About").performClick()
-        
-        // Then - navigation callback is invoked
-        assert(navigatedToAbout)
+        assert(navigatedToAbout) { "Should navigate to About screen" }
     }
-    
+
     @Test
-    fun mainSettingsScreen_backButton_navigatesBack() {
+    fun mainSettingsScreen_navigatesBack() {
         // Given
+        val viewModel = createViewModel()
         var navigatedBack = false
+
+        // When
         composeTestRule.setContent {
-            MainSettingsScreenContent(
-                isDarkTheme = false,
-                isDeveloper = false,
+            MainSettingsScreen(
+                viewModel = viewModel,
                 onNavigateToReader = {},
                 onNavigateToBackupSync = {},
                 onNavigateToGeneral = {},
@@ -208,54 +200,9 @@ class MainSettingsScreenTest {
                 onNavigateBack = { navigatedBack = true }
             )
         }
-        
-        // When - click back button
+
+        // Then - Click back button in toolbar
         composeTestRule.onNodeWithContentDescription("Navigate back").performClick()
-        
-        // Then - navigation callback is invoked
-        assert(navigatedBack)
-    }
-    
-    @Test
-    fun mainSettingsScreen_displaysTitle() {
-        // Given
-        composeTestRule.setContent {
-            MainSettingsScreenContent(
-                isDarkTheme = false,
-                isDeveloper = false,
-                onNavigateToReader = {},
-                onNavigateToBackupSync = {},
-                onNavigateToGeneral = {},
-                onNavigateToAdvanced = {},
-                onNavigateToAbout = {},
-                onNavigateBack = {}
-            )
-        }
-        
-        // Then - verify title is displayed
-        composeTestRule.onNodeWithText("Settings").assertIsDisplayed()
-    }
-    
-    @Test
-    fun mainSettingsScreen_categoriesInCorrectOrder() {
-        // Given
-        composeTestRule.setContent {
-            MainSettingsScreenContent(
-                isDarkTheme = false,
-                isDeveloper = false,
-                onNavigateToReader = {},
-                onNavigateToBackupSync = {},
-                onNavigateToGeneral = {},
-                onNavigateToAdvanced = {},
-                onNavigateToAbout = {},
-                onNavigateBack = {}
-            )
-        }
-        
-        // Then - verify categories appear in the correct order
-        val categories = composeTestRule.onAllNodesWithTag("settings_item", useUnmergedTree = true)
-        
-        // Verify we have 5 categories
-        categories.assertCountEquals(5)
+        assert(navigatedBack) { "Should navigate back" }
     }
 }

@@ -18,6 +18,7 @@ work = "2.10.0"
 compose-bom = "2024.12.01"
 activity-compose = "1.9.3"
 datastore = "1.1.1"
+navigation = "2.7.7"
 
 # UI Components
 material = "1.12.0"
@@ -108,6 +109,7 @@ compose-material3 = { module = "androidx.compose.material3:material3" }
 compose-material = { module = "androidx.compose.material:material" }
 compose-material-icons = { module = "androidx.compose.material:material-icons-extended" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 
 # Material Design
 material = { module = "com.google.android.material:material", version.ref = "material" }
