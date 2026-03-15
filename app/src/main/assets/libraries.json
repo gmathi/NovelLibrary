@@ -77,6 +77,13 @@
     "copyright": "Copyright 2015 Square, Inc."
   },
   {
+    "name": "Landscapist v2.9.5",
+    "description": "Jetpack Compose image loading library which fetches and displays network images with Glide, Coil, and Fresco",
+    "link": "https://github.com/skydoves/landscapist",
+    "license": "Apache 2.0",
+    "copyright": "Copyright 2020 skydoves (Jaewoong Eum)"
+  },
+  {
     "name": "Lottie v6.6.2",
     "description": "Android library that parses Adobe After Effects animations exported as json and renders them natively",
     "link": "https://github.com/airbnb/lottie-android",

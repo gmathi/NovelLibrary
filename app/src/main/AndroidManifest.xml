@@ -105,6 +105,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <activity
+            android:name=".compose.search.SearchDemoActivity"
+            android:label="Search Demo"
+            android:screenOrientation="fullUser"
+            android:exported="false"
+            android:theme="@style/DarkTheme_DarkSide">
+        </activity>
         <activity
             android:name=".activity.NovelDetailsActivity"
             android:label="@string/title_activity_novel_details"
@@ -287,7 +295,7 @@
         </receiver>
 
         <activity
-            android:name=".activity.RecentNovelsPagerActivity"
+            android:name=".activity.RecentNovelsActivity"
             android:label="@string/title_activity_recent_novels"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />

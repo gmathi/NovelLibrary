@@ -319,13 +319,55 @@ class NovelUpdatesSource : ParsedHttpSource() {
         val novel = Novel(novelUrl, id)
         element.selectFirst("div.search_title > a")?.text()?.let { novel.name = it }
         novel.imageUrl = element.selectFirst("div.search_img_nu img[src]")?.attr("abs:src")
-        val originText = element.select("div.search_ratings>span").text()
+
+        // Origin language (e.g. "KR", "CN", "JP")
+        val originText = element.selectFirst("span.orgkr, span.orgcn, span.orgjp")?.text()
         if (!originText.isNullOrEmpty()) novel.metadata["OriginMarker"] = originText
-        val ratingText = element.select("div.search_ratings").text()
-        if (ratingText.contains("(")) {
-            novel.rating = ratingText.split("(")[1].trim().replace("(", "").replace(")", "")
-        } else
+
+        // Rating
+        val ratingText = element.selectFirst("span.search_ratings")?.text()
+        if (ratingText != null && ratingText.contains("(")) {
+            novel.rating = ratingText.replace("(", "").replace(")", "").trim()
+        } else {
             novel.rating = "N/A"
+        }
+
+        // Genres
+        val genreElements = element.select("div.search_genre a.gennew")
+        if (genreElements.isNotEmpty()) {
+            novel.genres = genreElements.map { it.text() }
+        }
+
+        // Stats: chapters, frequency, readers, reviews, last updated
+        val statSpans = element.select("div.search_stats span.ss_mb")
+        for (stat in statSpans) {
+            val text = stat.text().trim()
+            when {
+                text.contains("Chapters") -> {
+                    novel.metadata["Chapters"] = text
+                    val count = text.replace(",", "").filter { it.isDigit() }.toLongOrNull()
+                    if (count != null) novel.chaptersCount = count
+                }
+                text.contains("Day(s)") -> novel.metadata["Frequency"] = text
+                text.contains("Readers") -> novel.metadata["Readers"] = text
+                text.contains("Reviews") -> novel.metadata["Reviews"] = text
+                text.matches(Regex(".*\\d{2}-\\d{2}-\\d{4}.*")) -> novel.metadata["LastUpdated"] = text
+            }
+        }
+
+        // Status from genre area (Completed/Ongoing/Hiatus shown as first colored badge)
+        val statusElement = element.selectFirst("div.search_genre a.gennew.search.on")
+        if (statusElement != null) {
+            novel.metadata["Status"] = statusElement.text()
+        }
+
+        // Short description
+        val descDiv = element.children().lastOrNull()
+        if (descDiv != null && descDiv.tagName() == "div" && !descDiv.hasClass("search_genre") && !descDiv.hasClass("search_stats")) {
+            val desc = descDiv.text().trim()
+            if (desc.isNotEmpty()) novel.shortDescription = desc
+        }
+
         return novel
     }
 

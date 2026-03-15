@@ -120,7 +120,7 @@ fun AppCompatActivity.startSearchResultsActivity(title: String, url: String) {
     startActivityForResult<SearchUrlActivity>(bundle, Constants.SEARCH_RESULTS_ACT_REQ_CODE)
 }
 
-fun AppCompatActivity.startRecentNovelsPagerActivity() = startActivityForResult<RecentNovelsPagerActivity>(Constants.RECENT_NOVELS_PAGER_ACT_REQ_CODE)
+fun AppCompatActivity.startRecentNovelsPagerActivity() = startActivityForResult<RecentNovelsActivity>(Constants.RECENT_NOVELS_PAGER_ACT_REQ_CODE)
 
 //#endregion
 

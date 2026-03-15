@@ -6,7 +6,7 @@
     <group android:checkableBehavior="none">
         <item
             android:id="@+id/nav_search"
-            android:icon="@drawable/ic_search_black"
+            android:icon="@android:drawable/ic_menu_search"
             android:title="@string/title_search" />
 
         <item

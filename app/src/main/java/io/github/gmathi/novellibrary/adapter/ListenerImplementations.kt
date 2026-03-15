@@ -60,14 +60,6 @@ class ChaptersPageListener(private val novel: Novel, private val translatorSourc
     }
 }
 
-class RecentNovelsPageListener() : GenericFragmentStatePagerAdapter.Listener {
-    override fun getFragmentForItem(position: Int): Fragment {
-        if (position == 0)
-            return RecentlyUpdatedNovelsFragment.newInstance()
-        return RecentlyViewedNovelsFragment.newInstance()
-    }
-}
-
 class ExtensionsPageListener() : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment {
         if (position == 0)

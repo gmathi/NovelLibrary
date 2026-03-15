@@ -20,7 +20,7 @@
 
     <item
         android:id="@+id/action_search"
-        android:icon="@drawable/ic_search_black"
+        android:icon="@android:drawable/ic_menu_search"
         android:title="@string/title_search"
         android:titleCondensed="@string/title_search"
         app:iconTint="@android:color/white"
