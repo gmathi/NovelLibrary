@@ -26,7 +26,9 @@ import java.net.URL
  * @param imageUrl The URL of the image to load
  * @param contentDescription Description for accessibility
  * @param modifier Modifier for the image container
- * @param size Size of the image (width and height)
+ * @param size Size of the image (width and height) when using uniform dimensions
+ * @param width Width of the image (overrides size for width when specified)
+ * @param height Height of the image (overrides size for height when specified)
  * @param shape Shape to clip the image (optional)
  * @param contentScale How to scale the image content
  * @param showLoadingIndicator Whether to show a loading indicator while loading
@@ -39,18 +41,23 @@ fun URLImage(
     contentDescription: String?,
     modifier: Modifier = Modifier,
     size: Dp = 56.dp,
+    width: Dp? = null,
+    height: Dp? = null,
     shape: Shape? = null,
     contentScale: ContentScale = ContentScale.Crop,
     showLoadingIndicator: Boolean = true,
     loadingIndicatorSize: Dp = 24.dp,
     errorContent: @Composable (() -> Unit)? = null
 ) {
+    val actualWidth = width ?: size
+    val actualHeight = height ?: size
+
     val isPreview = LocalInspectionMode.current
     val context = LocalContext.current
     
     Box(
         modifier = modifier
-            .size(size)
+            .size(actualWidth, actualHeight)
             .then(
                 if (shape != null) Modifier.background(
                     MaterialTheme.colorScheme.surfaceVariant,
@@ -75,7 +82,7 @@ fun URLImage(
             SubcomposeAsyncImage(
                 model = ImageRequest.Builder(context)
                     .data(imageUrl)
-                    .size(size.value.toInt(), size.value.toInt())
+                    .size(actualWidth.value.toInt(), actualHeight.value.toInt())
                     .crossfade(true)
                     .apply {
                         setHeader("User-Agent", HostNames.USER_AGENT)

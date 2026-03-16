@@ -57,17 +57,19 @@ fun SearchUrlNovelItem(novel: Novel, onClick: () -> Unit = {}) {
                 .padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Left: Cover image + rating + origin
+            // Left: Cover image + compact rating overlay
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+                modifier = Modifier.width(70.dp)
             ) {
                 if (novel.coverUrl.isNotBlank()) {
                     URLImage(
                         imageUrl = novel.coverUrl,
                         contentDescription = novel.title,
                         modifier = Modifier.clip(RoundedCornerShape(6.dp)),
-                        size = 90.dp,
+                        width = 70.dp,
+                        height = 100.dp,
                         shape = RoundedCornerShape(6.dp),
                         contentScale = ContentScale.Crop,
                         errorContent = {
@@ -82,7 +84,7 @@ fun SearchUrlNovelItem(novel: Novel, onClick: () -> Unit = {}) {
                 } else {
                     Box(
                         modifier = Modifier
-                            .size(90.dp, 120.dp)
+                            .size(70.dp, 100.dp)
                             .clip(RoundedCornerShape(6.dp))
                             .background(MaterialTheme.colorScheme.primaryContainer),
                         contentAlignment = Alignment.Center
@@ -96,27 +98,7 @@ fun SearchUrlNovelItem(novel: Novel, onClick: () -> Unit = {}) {
                     }
                 }
 
-                // Star rating row
-                if (novel.rating > 0f) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(1.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        val fullStars = novel.rating.toInt()
-                        val hasHalf = (novel.rating - fullStars) >= 0.3f
-                        repeat(5) { i ->
-                            val starColor = if (i < fullStars || (i == fullStars && hasHalf))
-                                Color(0xFFFFB300) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
-                            Text(
-                                text = if (i < fullStars) "★" else if (i == fullStars && hasHalf) "★" else "☆",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = starColor
-                            )
-                        }
-                    }
-                }
-
-                // Origin + rating text (e.g. "KR (4.5)")
+                // Compact: origin marker + rating on one line
                 if (novel.originMarker.isNotBlank() || novel.rating > 0f) {
                     val originColor = when (novel.originMarker) {
                         "KR" -> Color(0xFFE53935)
@@ -124,18 +106,26 @@ fun SearchUrlNovelItem(novel: Novel, onClick: () -> Unit = {}) {
                         "JP" -> Color(0xFF1E88E5)
                         else -> MaterialTheme.colorScheme.primary
                     }
-                    Text(
-                        text = buildString {
-                            if (novel.originMarker.isNotBlank()) append(novel.originMarker)
-                            if (novel.rating > 0f) {
-                                if (isNotEmpty()) append(" ")
-                                append("(${String.format("%.1f", novel.rating)})")
-                            }
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = originColor
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (novel.originMarker.isNotBlank()) {
+                            Text(
+                                text = novel.originMarker,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = originColor
+                            )
+                        }
+                        if (novel.rating > 0f) {
+                            Text(
+                                text = "★${String.format("%.1f", novel.rating)}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color(0xFFFFB300)
+                            )
+                        }
+                    }
                 }
             }
 
@@ -320,85 +310,80 @@ fun WelcomeContent() {
 }
 
 /**
- * Simpler list item for search results — shows cover, title, rating, and origin marker.
- * Used when displaying search-by-term results (as opposed to the richer browse items).
+ * List item for search results — uses the same rich layout as SearchUrlNovelItem.
+ * Shows cover, rank, title, stats, genres, and short description.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SearchResultsNovelItem(novel: Novel, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        shape = RoundedCornerShape(4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Cover image (circular)
-            if (novel.coverUrl.isNotBlank()) {
-                URLImage(
-                    imageUrl = novel.coverUrl,
-                    contentDescription = novel.title,
-                    modifier = Modifier.clip(RoundedCornerShape(50)),
-                    size = 56.dp,
-                    shape = RoundedCornerShape(50),
-                    contentScale = ContentScale.Crop,
-                    errorContent = {
+            // Left: Cover image + compact rating overlay
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+                modifier = Modifier.width(70.dp)
+            ) {
+                if (novel.coverUrl.isNotBlank()) {
+                    URLImage(
+                        imageUrl = novel.coverUrl,
+                        contentDescription = novel.title,
+                        modifier = Modifier.clip(RoundedCornerShape(6.dp)),
+                        width = 70.dp,
+                        height = 100.dp,
+                        shape = RoundedCornerShape(6.dp),
+                        contentScale = ContentScale.Crop,
+                        errorContent = {
+                            Icon(
+                                imageVector = Icons.Filled.Book,
+                                contentDescription = null,
+                                modifier = Modifier.size(36.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(70.dp, 100.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Icon(
                             imageVector = Icons.Filled.Book,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(36.dp),
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(50))
-                        .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Book,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
                 }
-            }
 
-            // Title + origin + rating
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = novel.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                // Compact: origin marker + rating on one line
                 if (novel.originMarker.isNotBlank() || novel.rating > 0f) {
+                    val originColor = when (novel.originMarker) {
+                        "KR" -> Color(0xFFE53935)
+                        "CN" -> Color(0xFFFF8F00)
+                        "JP" -> Color(0xFF1E88E5)
+                        else -> MaterialTheme.colorScheme.primary
+                    }
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (novel.originMarker.isNotBlank()) {
-                            val originColor = when (novel.originMarker) {
-                                "KR" -> Color(0xFFE53935)
-                                "CN" -> Color(0xFFFF8F00)
-                                "JP" -> Color(0xFF1E88E5)
-                                else -> MaterialTheme.colorScheme.primary
-                            }
                             Text(
                                 text = novel.originMarker,
                                 style = MaterialTheme.typography.labelSmall,
@@ -408,12 +393,89 @@ fun SearchResultsNovelItem(novel: Novel, onClick: () -> Unit = {}) {
                         }
                         if (novel.rating > 0f) {
                             Text(
-                                text = "★ ${String.format("%.1f", novel.rating)}",
+                                text = "★${String.format("%.1f", novel.rating)}",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = Color(0xFFFFB300)
                             )
                         }
                     }
+                }
+            }
+
+            // Right: Title, stats, genres, description
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                // Row 1: Rank + Title
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    if (novel.rank.isNotBlank()) {
+                        Text(
+                            text = novel.rank,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text(
+                        text = novel.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                // Row 2: Stats line
+                val stats = listOfNotNull(
+                    novel.chapters.takeIf { it.isNotBlank() }?.let { "📖\u00A0$it" },
+                    novel.frequency.takeIf { it.isNotBlank() }?.let { "⚡\u00A0$it" },
+                    novel.readers.takeIf { it.isNotBlank() }?.let { "👤\u00A0$it" },
+                    novel.reviews.takeIf { it.isNotBlank() }?.let { "✏\u00A0$it" },
+                    novel.lastUpdated.takeIf { it.isNotBlank() }?.let { "📅\u00A0$it" }
+                )
+                if (stats.isNotEmpty()) {
+                    Text(
+                        text = stats.joinToString(" \u00A0"),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                // Row 3: Genre tags
+                if (novel.genres.isNotEmpty()) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        novel.genres.forEach { genre ->
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = MaterialTheme.colorScheme.secondaryContainer
+                            ) {
+                                Text(
+                                    text = genre,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Row 4: Short description
+                if (novel.shortDescription.isNotBlank()) {
+                    Text(
+                        text = novel.shortDescription,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
