@@ -70,7 +70,8 @@ class SearchUrlViewModel : ViewModel() {
                 val updatedNovels = if (reset) {
                     novelsPage.novels
                 } else {
-                    _novels.value + novelsPage.novels
+                    val existingUrls = _novels.value.map { it.url }.toSet()
+                    _novels.value + novelsPage.novels.filter { it.url !in existingUrls }
                 }
                 
                 _novels.value = updatedNovels

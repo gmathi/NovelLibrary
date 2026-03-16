@@ -90,7 +90,8 @@ class SearchTermViewModel : ViewModel() {
                     val updatedNovels = if (page == 1) {
                         novelsPage.novels
                     } else {
-                        state.novels + novelsPage.novels
+                        val existingUrls = state.novels.map { it.url }.toSet()
+                        state.novels + novelsPage.novels.filter { it.url !in existingUrls }
                     }
                     state.copy(
                         novels = updatedNovels,

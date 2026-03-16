@@ -125,7 +125,10 @@ private fun RecentlyUpdatedTab(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(1.dp)
                 ) {
-                    itemsIndexed(state.items) { index, item ->
+                    itemsIndexed(
+                        items = state.items,
+                        key = { index, item -> "updated_${index}_${item.novelUrl}_${item.chapterName}" }
+                    ) { index, item ->
                         RecentlyUpdatedItemView(
                             item = item,
                             onClick = { onItemClick(item) },
@@ -176,7 +179,10 @@ private fun RecentlyViewedTab(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(1.dp)
             ) {
-                itemsIndexed(state.novels) { _, novel ->
+                itemsIndexed(
+                    items = state.novels,
+                    key = { index, novel -> "viewed_${index}_${novel.id}_${novel.url}" }
+                ) { _, novel ->
                     NovelItem(
                         novel = novel,
                         onClick = { onNovelClick(novel) }

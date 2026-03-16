@@ -95,7 +95,7 @@ class LibrarySearchActivity : BaseActivity() {
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(searchResults, key = { it.id }) { novel ->
+                        items(searchResults, key = { "${it.id}_${it.url}" }) { novel ->
                             LibraryNovelItem(
                                 novel = novel,
                                 onClick = { startChaptersActivity(novel) },

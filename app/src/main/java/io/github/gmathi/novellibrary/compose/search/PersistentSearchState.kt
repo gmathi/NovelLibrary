@@ -134,6 +134,7 @@ class HistorySearchSuggestionsBuilder(
 
     override fun buildEmptySearchSuggestion(maxCount: Int): List<SearchSuggestion> {
         return searchHistory
+            .distinct()
             .take(maxCount)
             .map { SearchSuggestion(it, it, SearchSuggestionType.History) }
     }
@@ -141,6 +142,7 @@ class HistorySearchSuggestionsBuilder(
     override fun buildSearchSuggestion(maxCount: Int, query: String): List<SearchSuggestion> {
         return searchHistory
             .filter { it.startsWith(query, ignoreCase = true) }
+            .distinct()
             .take(maxCount)
             .map { SearchSuggestion(it, it, SearchSuggestionType.History) }
     }
