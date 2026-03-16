@@ -1,9 +1,9 @@
 package io.github.gmathi.novellibrary.compose.search
 
 import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -12,13 +12,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.viewmodel.SearchUrlViewModel
 import io.github.gmathi.novellibrary.viewmodel.SearchUrlUiState
+import io.github.gmathi.novellibrary.viewmodel.SearchTermViewModel
+import io.github.gmathi.novellibrary.viewmodel.SearchTermUiState
 import io.github.gmathi.novellibrary.model.database.Novel as DbNovel
 
 /**
@@ -32,176 +34,299 @@ fun SearchScreen(
     onSearchExit: () -> Unit,
     viewModelStoreOwner: ViewModelStoreOwner
 ) {
-    var searchResults by remember { mutableStateOf<List<DbNovel>>(emptyList()) }
-    var isShowingSearchResults by remember { mutableStateOf(false) }
-    var selectedTab by remember { mutableStateOf(0) }
-    
-    // Get activity for navigation
+    var selectedBrowseTab by remember { mutableStateOf(0) }
+
     val activity = LocalContext.current as? Activity
-    
-    // ViewModels for each tab - create separate instances
+
     val viewModelProvider = remember { ViewModelProvider(viewModelStoreOwner) }
     val popularMonthViewModel = remember { viewModelProvider[SearchUrlViewModel::class.java] }
-    
-    // Initialize ViewModel with rank based on selected tab
-    LaunchedEffect(selectedTab) {
-        val rank = when (selectedTab) {
+    val searchTermViewModel = remember { viewModelProvider[SearchTermViewModel::class.java] }
+
+    // Browse state
+    LaunchedEffect(selectedBrowseTab) {
+        val rank = when (selectedBrowseTab) {
             0 -> "popmonth"
             1 -> "popular"
             else -> "sixmonths"
         }
         popularMonthViewModel.initialize(rank, null)
     }
-    
-    val uiState by popularMonthViewModel.uiState.collectAsState()
-    val novels by popularMonthViewModel.novels.collectAsState()
+
+    val browseUiState by popularMonthViewModel.uiState.collectAsState()
+    val browseNovels by popularMonthViewModel.novels.collectAsState()
+
+    // Search state
+    val isSearching by searchTermViewModel.isSearching.collectAsState()
+    val sourceStates by searchTermViewModel.sourceStates.collectAsState()
+    var selectedSourceTab by remember { mutableStateOf(0) }
+
+    // Reset source tab when new search starts
+    LaunchedEffect(sourceStates.size) {
+        if (selectedSourceTab >= sourceStates.size) selectedSourceTab = 0
+    }
 
     val searchState = rememberPersistentSearchState(initialLogoText = "Search Novels")
     val suggestionBuilder = remember(searchHistory) {
         HistorySearchSuggestionsBuilder(searchHistory)
     }
 
-    // Use search results if searching, otherwise use novels from ViewModel
-    val displayNovels = remember(novels, searchResults, isShowingSearchResults) {
-        if (isShowingSearchResults) searchResults else novels
+    // Handle OS back press
+    BackHandler {
+        when {
+            searchState.isEditing -> {
+                searchState.closeSearch()
+            }
+            searchState.isSearching -> {
+                searchState.resetSearch()
+                searchTermViewModel.clearSearch()
+            }
+            else -> {
+                onHomeClick()
+            }
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Search View
-            PersistentSearchView(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                state = searchState,
-                hint = "Search novels...",
-                homeButtonMode = HomeButtonMode.Burger,
-                onHomeButtonClick = onHomeClick,
-                onSearch = { query ->
-                    onSearch(query)
-                    searchResults = novels.filter { novel ->
-                        novel.name?.contains(query, ignoreCase = true) == true ||
-                        novel.genres?.any { it.contains(query, ignoreCase = true) } == true
-                    }
-                    isShowingSearchResults = true
-                },
-                onSearchTermChanged = { _ ->
-                    // Don't filter while typing - only filter on search submit
-                },
-                onSearchCleared = {
-                    searchResults = emptyList()
-                    isShowingSearchResults = false
-                },
-                onSearchExit = {
-                    searchResults = emptyList()
-                    isShowingSearchResults = false
-                    onSearchExit()
-                },
-                suggestionBuilder = suggestionBuilder,
-                elevation = 4
-            )
+            // Search View — uses zIndex so its suggestion dropdown stays above the tint
+            Box(modifier = Modifier.zIndex(1f)) {
+                PersistentSearchView(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    state = searchState,
+                    hint = "Search novels...",
+                    homeButtonMode = HomeButtonMode.Burger,
+                    onHomeButtonClick = onHomeClick,
+                    onSearch = { query ->
+                        onSearch(query)
+                        selectedSourceTab = 0
+                        searchTermViewModel.search(query)
+                    },
+                    onSearchCleared = {
+                        searchTermViewModel.clearSearch()
+                    },
+                    onSearchExit = {
+                        // Only exit if not showing search results
+                        if (!isSearching) {
+                            onSearchExit()
+                        }
+                    },
+                    onSearchReset = {
+                        // Back button pressed while showing search results -> return to browse
+                        searchTermViewModel.clearSearch()
+                        onSearchExit()
+                    },
+                    suggestionBuilder = suggestionBuilder,
+                    elevation = 4
+                )
+            }
 
-            // Tabs
-            SearchTabs(
-                selectedTab = selectedTab,
-                onTabSelected = { 
-                    selectedTab = it
-                    searchResults = emptyList()
-                    isShowingSearchResults = false
-                }
-            )
-
-            // Results Header
-            ResultsHeader(
-                count = displayNovels.size,
-                isSearching = isShowingSearchResults
-            )
-
-            // Content based on UI state
-            when (uiState) {
-                is SearchUrlUiState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-                is SearchUrlUiState.Error -> {
-                    val error = uiState as SearchUrlUiState.Error
-                    ErrorState(
-                        message = error.message,
-                        isCloudflare = error.isCloudflare,
-                        onRetry = { popularMonthViewModel.retry() }
-                    )
-                }
-                is SearchUrlUiState.NoInternet -> {
-                    ErrorState(
-                        message = "No internet connection",
-                        isCloudflare = false,
-                        onRetry = { popularMonthViewModel.retry() }
-                    )
-                }
-                is SearchUrlUiState.Empty -> {
-                    EmptyState(
-                        message = "No novels found",
-                        icon = Icons.Filled.SearchOff
-                    )
-                }
-                is SearchUrlUiState.Success -> {
-                    if (displayNovels.isNotEmpty()) {
-                        val success = uiState as SearchUrlUiState.Success
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+            // Content area wrapped in a Box so the tint can overlay it without covering the search bar
+            Box(modifier = Modifier.weight(1f)) {
+                if (isSearching && sourceStates.isNotEmpty()) {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        // Source tabs for search results
+                        ScrollableTabRow(
+                            selectedTabIndex = selectedSourceTab.coerceIn(0, (sourceStates.size - 1).coerceAtLeast(0)),
+                            modifier = Modifier.fillMaxWidth(),
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.primary,
+                            edgePadding = 8.dp
                         ) {
-                            itemsIndexed(
-                                items = displayNovels,
-                                key = { index, novel -> 
-                                    "novel_${index}_${novel.id}_${novel.name?.hashCode() ?: 0}"
-                                }
-                            ) { _, novel ->
-                                SearchResultsNovelItem(
-                                    novel = novel,
-                                    onClick = {
-                                        activity?.startNovelDetailsActivity(novel, false)
+                            sourceStates.forEachIndexed { index, state ->
+                                Tab(
+                                    selected = selectedSourceTab == index,
+                                    onClick = { selectedSourceTab = index },
+                                    text = {
+                                        Text(
+                                            text = state.sourceName,
+                                            style = MaterialTheme.typography.titleSmall
+                                        )
                                     }
                                 )
                             }
-                            
-                            if (success.hasMore) {
-                                item {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Button(onClick = { popularMonthViewModel.loadMore() }) {
-                                            Text("Load More")
-                                        }
-                                    }
-                                }
-                            }
                         }
-                    } else if (searchResults.isEmpty() && searchState.searchText.isEmpty()) {
-                        WelcomeContent()
-                    } else {
-                        EmptyState(
-                            message = "No novels found",
-                            icon = Icons.Filled.SearchOff
+
+                        // Search results for selected source
+                        val currentSource = sourceStates.getOrNull(selectedSourceTab)
+                        if (currentSource != null) {
+                            SourceSearchContent(
+                                state = currentSource,
+                                sourceIndex = selectedSourceTab,
+                                onRetry = { searchTermViewModel.retrySource(selectedSourceTab) },
+                                onLoadMore = { searchTermViewModel.loadMore(selectedSourceTab) },
+                                onNovelClick = { novel ->
+                                    activity?.startNovelDetailsActivity(novel, false)
+                                }
+                            )
+                        }
+                    }
+                } else {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        // Browse tabs
+                        SearchTabs(
+                            selectedTab = selectedBrowseTab,
+                            onTabSelected = { selectedBrowseTab = it }
                         )
+
+                        // Browse content
+                        BrowseContent(
+                            uiState = browseUiState,
+                            novels = browseNovels,
+                            onRetry = { popularMonthViewModel.retry() },
+                            onLoadMore = { popularMonthViewModel.loadMore() },
+                            onNovelClick = { novel ->
+                                activity?.startNovelDetailsActivity(novel, false)
+                            }
+                        )
+                    }
+                }
+
+                // Tint overlays only the content area, not the search bar
+                SearchBackgroundTint(
+                    visible = searchState.isEditing,
+                    onClick = { searchState.closeSearch() }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SourceSearchContent(
+    state: io.github.gmathi.novellibrary.viewmodel.SourceSearchState,
+    sourceIndex: Int,
+    onRetry: () -> Unit,
+    onLoadMore: () -> Unit,
+    onNovelClick: (DbNovel) -> Unit
+) {
+    when (state.uiState) {
+        is SearchTermUiState.Loading -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+        is SearchTermUiState.NoInternet -> {
+            ErrorState(
+                message = "No internet connection",
+                isCloudflare = false,
+                onRetry = onRetry
+            )
+        }
+        is SearchTermUiState.Error -> {
+            ErrorState(
+                message = (state.uiState as SearchTermUiState.Error).message,
+                isCloudflare = false,
+                onRetry = onRetry
+            )
+        }
+        is SearchTermUiState.Empty -> {
+            EmptyState(
+                message = "No novels found",
+                icon = Icons.Filled.SearchOff
+            )
+        }
+        is SearchTermUiState.Success -> {
+            val hasMore = (state.uiState as SearchTermUiState.Success).hasMore
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                itemsIndexed(
+                    items = state.novels,
+                    key = { index, novel ->
+                        "search_${sourceIndex}_${index}_${novel.id}_${novel.name?.hashCode() ?: 0}"
+                    }
+                ) { _, novel ->
+                    SearchTermResultItem(
+                        novel = novel,
+                        onClick = { onNovelClick(novel) }
+                    )
+                }
+                if (state.isLoadingMore) {
+                    item {
+                        Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                        }
+                    }
+                } else if (hasMore) {
+                    item {
+                        Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                            Button(onClick = onLoadMore) { Text("Load More") }
+                        }
                     }
                 }
             }
         }
+        is SearchTermUiState.Idle -> {
+            WelcomeContent()
+        }
+    }
+}
 
-        // Background tint overlay
-        SearchBackgroundTint(
-            visible = searchState.isEditing,
-            onClick = { searchState.closeSearch() }
-        )
+@Composable
+private fun BrowseContent(
+    uiState: SearchUrlUiState,
+    novels: List<DbNovel>,
+    onRetry: () -> Unit,
+    onLoadMore: () -> Unit,
+    onNovelClick: (DbNovel) -> Unit
+) {
+    when (uiState) {
+        is SearchUrlUiState.Loading -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+        is SearchUrlUiState.Error -> {
+            ErrorState(
+                message = uiState.message,
+                isCloudflare = uiState.isCloudflare,
+                onRetry = onRetry
+            )
+        }
+        is SearchUrlUiState.NoInternet -> {
+            ErrorState(
+                message = "No internet connection",
+                isCloudflare = false,
+                onRetry = onRetry
+            )
+        }
+        is SearchUrlUiState.Empty -> {
+            EmptyState(message = "No novels found", icon = Icons.Filled.SearchOff)
+        }
+        is SearchUrlUiState.Success -> {
+            if (novels.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    itemsIndexed(
+                        items = novels,
+                        key = { index, novel ->
+                            "browse_${index}_${novel.id}_${novel.name?.hashCode() ?: 0}"
+                        }
+                    ) { _, novel ->
+                        SearchUrlNovelItemWrapper(
+                            novel = novel,
+                            onClick = { onNovelClick(novel) }
+                        )
+                    }
+                    if (uiState.hasMore) {
+                        item {
+                            Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                                Button(onClick = onLoadMore) { Text("Load More") }
+                            }
+                        }
+                    }
+                }
+            } else {
+                WelcomeContent()
+            }
+        }
     }
 }
 
@@ -211,7 +336,6 @@ fun SearchTabs(
     onTabSelected: (Int) -> Unit
 ) {
     val tabs = listOf("Popular Now", "Best Rated", "Active Now")
-    
     TabRow(
         selectedTabIndex = selectedTab,
         modifier = Modifier.fillMaxWidth(),
@@ -223,18 +347,12 @@ fun SearchTabs(
                 selected = selectedTab == index,
                 onClick = { onTabSelected(index) },
                 text = {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleSmall
-                    )
+                    Text(text = title, style = MaterialTheme.typography.titleSmall)
                 }
             )
         }
     }
 }
-
-
-
 
 @Composable
 private fun ErrorState(
@@ -243,9 +361,7 @@ private fun ErrorState(
     onRetry: () -> Unit
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
+        modifier = Modifier.fillMaxSize().padding(32.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -262,13 +378,8 @@ private fun ErrorState(
                 text = if (isCloudflare) "Cloudflare Error" else "Connection Error",
                 style = MaterialTheme.typography.titleLarge
             )
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Button(onClick = onRetry) {
-                Text("Try Again")
-            }
+            Text(text = message, style = MaterialTheme.typography.bodyMedium)
+            Button(onClick = onRetry) { Text("Try Again") }
         }
     }
 }

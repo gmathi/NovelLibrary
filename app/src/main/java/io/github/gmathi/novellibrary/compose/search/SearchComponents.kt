@@ -42,7 +42,7 @@ data class Novel(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun NovelSearchItem(novel: Novel, onClick: () -> Unit = {}) {
+fun SearchUrlNovelItem(novel: Novel, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -316,6 +316,107 @@ fun WelcomeContent() {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+    }
+}
+
+/**
+ * Simpler list item for search results — shows cover, title, rating, and origin marker.
+ * Used when displaying search-by-term results (as opposed to the richer browse items).
+ */
+@Composable
+fun SearchResultsNovelItem(novel: Novel, onClick: () -> Unit = {}) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Cover image (circular)
+            if (novel.coverUrl.isNotBlank()) {
+                URLImage(
+                    imageUrl = novel.coverUrl,
+                    contentDescription = novel.title,
+                    modifier = Modifier.clip(RoundedCornerShape(50)),
+                    size = 56.dp,
+                    shape = RoundedCornerShape(50),
+                    contentScale = ContentScale.Crop,
+                    errorContent = {
+                        Icon(
+                            imageVector = Icons.Filled.Book,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Book,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+
+            // Title + origin + rating
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = novel.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                if (novel.originMarker.isNotBlank() || novel.rating > 0f) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (novel.originMarker.isNotBlank()) {
+                            val originColor = when (novel.originMarker) {
+                                "KR" -> Color(0xFFE53935)
+                                "CN" -> Color(0xFFFF8F00)
+                                "JP" -> Color(0xFF1E88E5)
+                                else -> MaterialTheme.colorScheme.primary
+                            }
+                            Text(
+                                text = novel.originMarker,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = originColor
+                            )
+                        }
+                        if (novel.rating > 0f) {
+                            Text(
+                                text = "★ ${String.format("%.1f", novel.rating)}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color(0xFFFFB300)
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
 /**
@@ -51,6 +52,7 @@ fun PersistentSearchView(
     onSearchEditClosed: () -> Unit = {},
     onSearchExit: () -> Unit = {},
     onSearchCleared: () -> Unit = {},
+    onSearchReset: () -> Unit = {},
     onSuggestionClick: (SearchSuggestion) -> Boolean = { true },
     suggestionBuilder: SearchSuggestionsBuilder? = null,
     elevation: Int = 4,
@@ -90,17 +92,25 @@ fun PersistentSearchView(
                     // Home/Back Button
                     IconButton(onClick = {
                         if (state.isEditing) {
+                            // Editing -> close the edit, keep search results if any
                             state.closeSearch()
-                            onSearchExit()
+                            if (!state.isSearching) {
+                                onSearchExit()
+                            }
+                        } else if (state.isSearching) {
+                            // Showing search results -> reset to browse
+                            state.resetSearch()
+                            onSearchReset()
                         } else {
                             onHomeButtonClick()
                         }
                     }) {
+                        val showBackArrow = state.isEditing || state.isSearching
                         Icon(
-                            imageVector = if (state.isEditing) Icons.AutoMirrored.Filled.ArrowBack 
-                                         else if (homeButtonMode == HomeButtonMode.Arrow) Icons.AutoMirrored.Filled.ArrowBack 
+                            imageVector = if (showBackArrow) Icons.AutoMirrored.Filled.ArrowBack
+                                         else if (homeButtonMode == HomeButtonMode.Arrow) Icons.AutoMirrored.Filled.ArrowBack
                                          else Icons.Filled.Menu,
-                            contentDescription = if (state.isEditing) "Back" else "Menu",
+                            contentDescription = if (showBackArrow) "Back" else "Menu",
                             tint = colors.iconColor
                         )
                     }
@@ -108,10 +118,10 @@ fun PersistentSearchView(
                     // Search Input
                     if (state.isEditing) {
                         TextField(
-                            value = state.searchText,
+                            value = state.textFieldValue,
                             onValueChange = { 
-                                state.updateSearchText(it)
-                                onSearchTermChanged(it)
+                                state.updateTextFieldValue(it)
+                                onSearchTermChanged(it.text)
                             },
                             modifier = Modifier
                                 .weight(1f)
@@ -138,6 +148,16 @@ fun PersistentSearchView(
                                     }
                                 }
                             )
+                        )
+                    } else if (state.isSearching && state.searchText.isNotBlank()) {
+                        // Show the searched term in the bar, clickable to re-edit
+                        Text(
+                            text = state.searchText,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { state.openSearch() },
+                            style = MaterialTheme.typography.titleMedium,
+                            color = colors.textColor
                         )
                     } else {
                         // Logo/Title

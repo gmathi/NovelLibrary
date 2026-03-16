@@ -90,28 +90,16 @@ class SearchFragmentCompose : BaseFragment() {
             if (savedInstanceState.containsKey("searchMode"))
                 searchMode = savedInstanceState.getBoolean("searchMode")
         }
-
-        if (searchMode && searchTerm != null) {
-            searchNovels(searchTerm!!)
-        } else {
-            setViewPager()
-        }
     }
 
     private fun setViewPager() {
-        while (childFragmentManager.backStackEntryCount > 0)
-            childFragmentManager.popBackStack()
         searchTerm = null
         searchMode = false
-        // ... rest of ViewPager setup
     }
 
     private fun searchNovels(searchTerm: String) {
-        while (childFragmentManager.backStackEntryCount > 0)
-            childFragmentManager.popBackStack()
         searchMode = true
         this.searchTerm = searchTerm
-        // ... rest of search setup
     }
 
     fun closeSearch() {
