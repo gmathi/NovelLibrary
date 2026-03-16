@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.compose.search
 
+import android.app.Activity
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,16 +11,18 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
+import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.viewmodel.SearchUrlViewModel
 import io.github.gmathi.novellibrary.viewmodel.SearchUrlUiState
 import io.github.gmathi.novellibrary.model.database.Novel as DbNovel
 
 /**
- * Main search screen composable - uses SearchDemoActivity composables for UI
+ * Main search screen composable
  */
 @Composable
 fun SearchScreen(
@@ -30,7 +33,11 @@ fun SearchScreen(
     viewModelStoreOwner: ViewModelStoreOwner
 ) {
     var searchResults by remember { mutableStateOf<List<DbNovel>>(emptyList()) }
+    var isShowingSearchResults by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf(0) }
+    
+    // Get activity for navigation
+    val activity = LocalContext.current as? Activity
     
     // ViewModels for each tab - create separate instances
     val viewModelProvider = remember { ViewModelProvider(viewModelStoreOwner) }
@@ -54,9 +61,9 @@ fun SearchScreen(
         HistorySearchSuggestionsBuilder(searchHistory)
     }
 
-    // Use search results if available, otherwise use novels from ViewModel
-    val displayNovels = remember(novels, searchResults) {
-        if (searchResults.isEmpty()) novels else searchResults
+    // Use search results if searching, otherwise use novels from ViewModel
+    val displayNovels = remember(novels, searchResults, isShowingSearchResults) {
+        if (isShowingSearchResults) searchResults else novels
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -76,22 +83,18 @@ fun SearchScreen(
                         novel.name?.contains(query, ignoreCase = true) == true ||
                         novel.genres?.any { it.contains(query, ignoreCase = true) } == true
                     }
+                    isShowingSearchResults = true
                 },
-                onSearchTermChanged = { term ->
-                    if (term.isNotEmpty()) {
-                        searchResults = novels.filter { novel ->
-                            novel.name?.contains(term, ignoreCase = true) == true ||
-                            novel.genres?.any { it.contains(term, ignoreCase = true) } == true
-                        }
-                    } else {
-                        searchResults = emptyList()
-                    }
+                onSearchTermChanged = { _ ->
+                    // Don't filter while typing - only filter on search submit
                 },
                 onSearchCleared = {
                     searchResults = emptyList()
+                    isShowingSearchResults = false
                 },
                 onSearchExit = {
                     searchResults = emptyList()
+                    isShowingSearchResults = false
                     onSearchExit()
                 },
                 suggestionBuilder = suggestionBuilder,
@@ -104,13 +107,14 @@ fun SearchScreen(
                 onTabSelected = { 
                     selectedTab = it
                     searchResults = emptyList()
+                    isShowingSearchResults = false
                 }
             )
 
             // Results Header
             ResultsHeader(
                 count = displayNovels.size,
-                isSearching = searchState.isSearching || searchResults.isNotEmpty()
+                isSearching = isShowingSearchResults
             )
 
             // Content based on UI state
@@ -158,7 +162,12 @@ fun SearchScreen(
                                     "novel_${index}_${novel.id}_${novel.name?.hashCode() ?: 0}"
                                 }
                             ) { _, novel ->
-                                SearchResultsNovelItem(novel = novel)
+                                SearchResultsNovelItem(
+                                    novel = novel,
+                                    onClick = {
+                                        activity?.startNovelDetailsActivity(novel, false)
+                                    }
+                                )
                             }
                             
                             if (success.hasMore) {

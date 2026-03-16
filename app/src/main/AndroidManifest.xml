@@ -107,13 +107,6 @@
         </activity>
         
         <activity
-            android:name=".compose.search.SearchDemoActivity"
-            android:label="Search Demo"
-            android:screenOrientation="fullUser"
-            android:exported="false"
-            android:theme="@style/DarkTheme_DarkSide">
-        </activity>
-        <activity
             android:name=".activity.NovelDetailsActivity"
             android:label="@string/title_activity_novel_details"
             android:screenOrientation="fullUser"

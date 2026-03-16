@@ -320,16 +320,37 @@ class NovelUpdatesSource : ParsedHttpSource() {
         element.selectFirst("div.search_title > a")?.text()?.let { novel.name = it }
         novel.imageUrl = element.selectFirst("div.search_img_nu img[src]")?.attr("abs:src")
 
+        // Rank (e.g. "#1")
+        val rankText = element.selectFirst("span.genre_rank")?.text()
+        if (!rankText.isNullOrEmpty()) novel.metadata["Rank"] = rankText
+
         // Origin language (e.g. "KR", "CN", "JP")
         val originText = element.selectFirst("span.orgkr, span.orgcn, span.orgjp")?.text()
         if (!originText.isNullOrEmpty()) novel.metadata["OriginMarker"] = originText
 
-        // Rating
-        val ratingText = element.selectFirst("span.search_ratings")?.text()
-        if (ratingText != null && ratingText.contains("(")) {
-            novel.rating = ratingText.replace("(", "").replace(")", "").trim()
+        // Rating — try div.search_ratings first, then count stars as fallback
+        val ratingsDiv = element.selectFirst("div.search_ratings, span.search_ratings, div.search_rating")
+        if (ratingsDiv != null) {
+            val ratingsText = ratingsDiv.text() // e.g. "KR (4.5)"
+            val ratingMatch = Regex("\\(([\\d.]+)\\)").find(ratingsText)
+            if (ratingMatch != null) {
+                novel.rating = ratingMatch.groupValues[1]
+            } else {
+                // Try extracting just the number
+                val numberMatch = Regex("([\\d.]+)").find(ratingsText.replace(originText ?: "", "").trim())
+                novel.rating = numberMatch?.groupValues?.get(1) ?: "N/A"
+            }
         } else {
-            novel.rating = "N/A"
+            // Fallback: count star icons in search_stars div
+            val starsDiv = element.selectFirst("div.search_stars")
+            if (starsDiv != null) {
+                val fullStars = starsDiv.select("i.fa-star").size
+                val halfStars = starsDiv.select("i.fa-star-half-o, i.fa-star-half").size
+                val rating = fullStars + (halfStars * 0.5f)
+                novel.rating = if (rating > 0) String.format("%.1f", rating) else "N/A"
+            } else {
+                novel.rating = "N/A"
+            }
         }
 
         // Genres
@@ -339,33 +360,38 @@ class NovelUpdatesSource : ParsedHttpSource() {
         }
 
         // Stats: chapters, frequency, readers, reviews, last updated
-        val statSpans = element.select("div.search_stats span.ss_mb")
+        // Handle both ss_desk and ss_mb class variants
+        val statSpans = element.select("div.search_stats span.ss_desk, div.search_stats span.ss_mb")
         for (stat in statSpans) {
             val text = stat.text().trim()
             when {
-                text.contains("Chapters") -> {
+                text.contains("Chapters", ignoreCase = true) -> {
                     novel.metadata["Chapters"] = text
                     val count = text.replace(",", "").filter { it.isDigit() }.toLongOrNull()
                     if (count != null) novel.chaptersCount = count
                 }
-                text.contains("Day(s)") -> novel.metadata["Frequency"] = text
-                text.contains("Readers") -> novel.metadata["Readers"] = text
-                text.contains("Reviews") -> novel.metadata["Reviews"] = text
+                text.contains("Day(s)", ignoreCase = true) -> novel.metadata["Frequency"] = text
+                text.contains("Readers", ignoreCase = true) -> novel.metadata["Readers"] = text
+                text.contains("Reviews", ignoreCase = true) -> novel.metadata["Reviews"] = text
                 text.matches(Regex(".*\\d{2}-\\d{2}-\\d{4}.*")) -> novel.metadata["LastUpdated"] = text
             }
         }
 
-        // Status from genre area (Completed/Ongoing/Hiatus shown as first colored badge)
+        // Status from genre area
         val statusElement = element.selectFirst("div.search_genre a.gennew.search.on")
         if (statusElement != null) {
             novel.metadata["Status"] = statusElement.text()
         }
 
-        // Short description
-        val descDiv = element.children().lastOrNull()
-        if (descDiv != null && descDiv.tagName() == "div" && !descDiv.hasClass("search_genre") && !descDiv.hasClass("search_stats")) {
-            val desc = descDiv.text().trim()
-            if (desc.isNotEmpty()) novel.shortDescription = desc
+        // Short description — text content inside div.search_body_nu after the genre div
+        val bodyDiv = element.selectFirst("div.search_body_nu")
+        if (bodyDiv != null) {
+            // Get direct text nodes (the description text before "more>>")
+            val textNodes = bodyDiv.textNodes()
+            val descText = textNodes.joinToString("") { it.text() }.trim()
+            if (descText.isNotEmpty()) {
+                novel.shortDescription = descText
+            }
         }
 
         return novel
