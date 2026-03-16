@@ -38,6 +38,9 @@ class SearchResultsListener(private val searchTerms: String, private val sources
 class WebPageFragmentPageListener(val novel: Novel, private val webPages: List<WebPage>) : GenericFragmentStatePagerAdapter.Listener {
 
     override fun getFragmentForItem(position: Int): Fragment {
+        if (position < 0 || position >= webPages.size) {
+            return Fragment()
+        }
         return WebPageDBFragment.newInstance(novel.id, webPages[position])
     }
 }
