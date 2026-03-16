@@ -380,7 +380,7 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
     private inline fun devNull() = File("/dev/null")
 
     private fun initDefaultTrack(id: String) {
-        if (track == null) onBeginSynthesis(id, 22050, AudioFormat.ENCODING_PCM_16BIT, 1)
+        if (track == null) createTrack(22050, AudioFormat.ENCODING_PCM_16BIT, 1)
     }
 
     private fun consumeNext() {
@@ -597,12 +597,8 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
         if (synthesizing == null && !queue.isEmpty()) consumeNext()
     }
 
-    override fun onBeginSynthesis(utteranceId: String, sampleRateInHz: Int, audioFormat: Int, channelCount: Int) {
-//        Log.d(TTSPlayer.TAG, "onBeginSynthesis $utteranceId ${if (synthesizing?.internalId == utteranceId) "==" else "!="} ${synthesizing?.internalId}")
-        if (legacyMode || synthesizing?.internalId != utteranceId) return
-
+    private fun createTrack(sampleRateInHz: Int, audioFormat: Int, channelCount: Int) {
         if (track == null || track!!.sampleRate != sampleRateInHz || track!!.audioFormat != audioFormat || track!!.channelCount != channelCount) {
-            // TODO: Don't do that right away, and instead delay until this utterance becomes active
             track?.release()
             val fmt =
                 if (channelCount == 1) AudioFormat.CHANNEL_OUT_MONO
@@ -621,9 +617,13 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
             )
             track!!.setPlaybackPositionUpdateListener(this)
             if (nextMarker != null) setMarker(nextMarker!!, true)
-
-//            Log.d(TTSPlayer.TAG, "Creating AudioTrack with sample rate $sampleRateInHz, format $audioFormat, and $channelCount channels, buf size ${bufferSize}.")
         }
+    }
+
+    override fun onBeginSynthesis(utteranceId: String, sampleRateInHz: Int, audioFormat: Int, channelCount: Int) {
+//        Log.d(TTSPlayer.TAG, "onBeginSynthesis $utteranceId ${if (synthesizing?.internalId == utteranceId) "==" else "!="} ${synthesizing?.internalId}")
+        if (legacyMode || synthesizing?.internalId != utteranceId) return
+        createTrack(sampleRateInHz, audioFormat, channelCount)
     }
 
     override fun onAudioAvailable(utteranceId: String, audio: ByteArray) {
