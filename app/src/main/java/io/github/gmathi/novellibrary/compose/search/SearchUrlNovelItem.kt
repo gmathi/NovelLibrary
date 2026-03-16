@@ -19,13 +19,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.gmathi.novellibrary.compose.common.URLImage
 
-/**
- * List item for search results — uses the same rich layout as SearchUrlNovelItem.
- * Shows cover, rank, title, stats, genres, and short description.
- */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun SearchResultsNovelItem(novel: NovelSearchItem, onClick: () -> Unit = {}) {
+fun SearchUrlNovelItem(novel: NovelSearchItem, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -40,6 +36,7 @@ fun SearchResultsNovelItem(novel: NovelSearchItem, onClick: () -> Unit = {}) {
                 .padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            // Left: Cover image + compact rating overlay
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(2.dp),
