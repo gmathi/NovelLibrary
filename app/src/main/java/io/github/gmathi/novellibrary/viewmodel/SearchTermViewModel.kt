@@ -9,6 +9,7 @@ import io.github.gmathi.novellibrary.model.source.getPreferenceKey
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.model.preference.DataCenter
+import io.github.gmathi.novellibrary.source.NovelUpdatesSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -79,11 +80,15 @@ class SearchTermViewModel : ViewModel() {
             }
 
             try {
-                val catalogueSource = source as? CatalogueSource
-                    ?: throw Exception("Source ${source.name} is not a CatalogueSource")
-
                 val novelsPage = withContext(Dispatchers.IO) {
-                    catalogueSource.getSearchNovels(page, searchTerm)
+                    if (source is NovelUpdatesSource) {
+                        // Use series-finder API for NovelUpdates
+                        source.searchSeriesFinder(searchTerm, page)
+                    } else {
+                        val catalogueSource = source as? CatalogueSource
+                            ?: throw Exception("Source ${source.name} is not a CatalogueSource")
+                        catalogueSource.getSearchNovels(page, searchTerm)
+                    }
                 }
 
                 updateSourceState(index) { state ->

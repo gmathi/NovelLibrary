@@ -98,7 +98,7 @@ fun SearchUrlNovelItem(novel: NovelSearchItem, onClick: () -> Unit = {}) {
                         }
                         if (novel.rating > 0f) {
                             Text(
-                                text = "★${String.format("%.1f", novel.rating)}",
+                                text = " ★ ${String.format("%.1f", novel.rating)}",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = Color(0xFFFFB300)
                             )

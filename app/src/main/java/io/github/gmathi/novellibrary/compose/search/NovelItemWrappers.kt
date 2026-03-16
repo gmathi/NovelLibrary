@@ -30,8 +30,8 @@ fun SearchUrlNovelItemWrapper(novel: DbNovel, onClick: () -> Unit = {}) {
 }
 
 /**
- * Simpler search result item for search-by-term results.
- * Maps DbNovel to the SearchResultsNovelItem composable.
+ * Rich card item for search-by-term results.
+ * Now uses the same rich card as browse results since series-finder returns full data.
  */
 @Composable
 fun SearchTermResultItem(novel: DbNovel, onClick: () -> Unit = {}) {
@@ -42,7 +42,15 @@ fun SearchTermResultItem(novel: DbNovel, onClick: () -> Unit = {}) {
         author = novel.metadata["Author"] ?: novel.authors?.firstOrNull() ?: "",
         status = novel.metadata["Status"] ?: "",
         coverUrl = novel.imageUrl ?: "",
-        originMarker = novel.metadata["OriginMarker"] ?: ""
+        rank = novel.metadata["Rank"] ?: "",
+        originMarker = novel.metadata["OriginMarker"] ?: "",
+        chapters = novel.metadata["Chapters"] ?: "",
+        frequency = novel.metadata["Frequency"] ?: "",
+        readers = novel.metadata["Readers"] ?: "",
+        reviews = novel.metadata["Reviews"] ?: "",
+        lastUpdated = novel.metadata["LastUpdated"] ?: "",
+        genres = novel.genres ?: emptyList(),
+        shortDescription = novel.shortDescription ?: ""
     )
-    SearchResultsNovelItem(novel = displayNovel, onClick = onClick)
+    SearchUrlNovelItem(novel = displayNovel, onClick = onClick)
 }
