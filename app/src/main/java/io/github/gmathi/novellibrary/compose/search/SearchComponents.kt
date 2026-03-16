@@ -47,14 +47,15 @@ fun SearchUrlNovelItem(novel: Novel, onClick: () -> Unit = {}) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
+        shape = RoundedCornerShape(4.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // Left: Cover image + rating + origin
             Column(
@@ -146,7 +147,7 @@ fun SearchUrlNovelItem(novel: Novel, onClick: () -> Unit = {}) {
                 // Row 1: Rank + Title
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     if (novel.rank.isNotBlank()) {
                         Text(
@@ -159,26 +160,24 @@ fun SearchUrlNovelItem(novel: Novel, onClick: () -> Unit = {}) {
                         text = novel.title,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
-                // Row 2: Stats line
+                // Row 2: Stats line (using non-breaking space \u00A0 to keep icon+text together)
                 val stats = listOfNotNull(
-                    novel.chapters.takeIf { it.isNotBlank() }?.let { "📖 $it" },
-                    novel.frequency.takeIf { it.isNotBlank() }?.let { "⚡ $it" },
-                    novel.readers.takeIf { it.isNotBlank() }?.let { "👤 $it" },
-                    novel.reviews.takeIf { it.isNotBlank() }?.let { "✏ $it" },
-                    novel.lastUpdated.takeIf { it.isNotBlank() }?.let { "📅 $it" }
+                    novel.chapters.takeIf { it.isNotBlank() }?.let { "📖\u00A0$it" },
+                    novel.frequency.takeIf { it.isNotBlank() }?.let { "⚡\u00A0$it" },
+                    novel.readers.takeIf { it.isNotBlank() }?.let { "👤\u00A0$it" },
+                    novel.reviews.takeIf { it.isNotBlank() }?.let { "✏\u00A0$it" },
+                    novel.lastUpdated.takeIf { it.isNotBlank() }?.let { "📅\u00A0$it" }
                 )
                 if (stats.isNotEmpty()) {
                     Text(
-                        text = stats.joinToString("  "),
+                        text = stats.joinToString(" \u00A0"),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }

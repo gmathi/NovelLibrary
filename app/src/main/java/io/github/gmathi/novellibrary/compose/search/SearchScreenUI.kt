@@ -301,13 +301,13 @@ private fun BrowseContent(
             if (novels.isNotEmpty()) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp),
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
                     itemsIndexed(
                         items = novels,
                         key = { index, novel ->
-                            "browse_${index}_${novel.id}_${novel.name?.hashCode() ?: 0}"
+                            "browse_${index}_${novel.id}_${novel.name.hashCode() ?: 0}"
                         }
                     ) { _, novel ->
                         SearchUrlNovelItemWrapper(
