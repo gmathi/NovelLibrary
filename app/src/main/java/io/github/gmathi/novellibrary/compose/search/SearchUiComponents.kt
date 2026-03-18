@@ -15,11 +15,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun StatusBadge(status: String) {
-    val color = when (status) {
-        "Ongoing" -> Color(0xFF4CAF50)
-        "Completed" -> Color(0xFF2196F3)
-        "Hiatus" -> Color(0xFFFF9800)
-        else -> MaterialTheme.colorScheme.outline
+    val color = when (status.lowercase()) {
+        "completed" -> Color(0xFF4CAF50)     // green
+        "ongoing" -> Color(0xFFFF9800)       // orange
+        else -> Color(0xFF9E9E9E)            // grey (Hiatus, Inactive, etc.)
     }
     Surface(
         shape = CircleShape,

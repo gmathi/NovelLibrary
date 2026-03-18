@@ -96,10 +96,16 @@ fun URLImage(
                 contentScale = contentScale,
                 loading = {
                     if (showLoadingIndicator) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(loadingIndicatorSize),
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                         Box(
+                            modifier = Modifier.matchParentSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(loadingIndicatorSize),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 },
                 error = {

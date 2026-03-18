@@ -1,6 +1,7 @@
 package io.github.gmathi.novellibrary.compose.search
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -15,6 +16,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.gmathi.novellibrary.compose.common.URLImage
@@ -111,23 +115,39 @@ fun SearchUrlNovelItem(novel: NovelSearchItem, onClick: () -> Unit = {}) {
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    if (novel.rank.isNotBlank()) {
-                        Text(
-                            text = novel.rank,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                val statusColor = when (novel.status.lowercase()) {
+                    "completed" -> Color(0xFF4CAF50)
+                    "ongoing" -> Color(0xFFFF9800)
+                    else -> Color(0xFF9E9E9E)
+                }
+                Text(
+                    text = buildAnnotatedString {
+                        if (novel.rank.isNotBlank()) {
+                            withStyle(SpanStyle(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = MaterialTheme.typography.labelMedium.fontSize
+                            )) {
+                                append(novel.rank.trim())
+                                append(" ")
+                            }
+                        }
+                        withStyle(SpanStyle(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )) {
+                            append(novel.title.trim())
+                        }
+                    },
+                    style = MaterialTheme.typography.titleSmall
+                )
+                if (novel.status.isNotBlank()) {
                     Text(
-                        text = novel.title,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.onSurface
+                        text = novel.status.uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = statusColor,
+                        modifier = Modifier
+                            .border(1.dp, statusColor, RoundedCornerShape(4.dp))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
                     )
                 }
 
@@ -136,6 +156,8 @@ fun SearchUrlNovelItem(novel: NovelSearchItem, onClick: () -> Unit = {}) {
                     novel.frequency.takeIf { it.isNotBlank() }?.let { "⚡\u00A0$it" },
                     novel.readers.takeIf { it.isNotBlank() }?.let { "👤\u00A0$it" },
                     novel.reviews.takeIf { it.isNotBlank() }?.let { "✏\u00A0$it" },
+                    novel.pages.takeIf { it.isNotBlank() }?.let { "📄\u00A0$it" },
+                    novel.views.takeIf { it.isNotBlank() }?.let { "👁\u00A0$it" },
                     novel.lastUpdated.takeIf { it.isNotBlank() }?.let { "📅\u00A0$it" }
                 )
                 if (stats.isNotEmpty()) {

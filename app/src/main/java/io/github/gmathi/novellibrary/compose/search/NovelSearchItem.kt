@@ -14,6 +14,8 @@ data class NovelSearchItem(
     val frequency: String = "",
     val readers: String = "",
     val reviews: String = "",
+    val pages: String = "",
+    val views: String = "",
     val lastUpdated: String = "",
     val genres: List<String> = emptyList(),
     val shortDescription: String = ""
