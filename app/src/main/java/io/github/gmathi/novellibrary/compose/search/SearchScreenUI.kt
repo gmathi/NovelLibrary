@@ -65,6 +65,13 @@ fun SearchScreen(
         if (selectedSourceTab >= sourceStates.size) selectedSourceTab = 0
     }
 
+    // Lazily fetch data only when a source tab becomes visible
+    LaunchedEffect(selectedSourceTab, sourceStates.size) {
+        if (sourceStates.isNotEmpty() && selectedSourceTab in sourceStates.indices) {
+            searchTermViewModel.fetchSourceIfNeeded(selectedSourceTab)
+        }
+    }
+
     val searchState = rememberPersistentSearchState(initialLogoText = "Search Novels")
     val suggestionBuilder = remember(searchHistory) {
         HistorySearchSuggestionsBuilder(searchHistory)
@@ -231,8 +238,8 @@ private fun SourceSearchContent(
             val hasMore = (state.uiState as SearchTermUiState.Success).hasMore
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp),
+                verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 itemsIndexed(
                     items = state.novels,

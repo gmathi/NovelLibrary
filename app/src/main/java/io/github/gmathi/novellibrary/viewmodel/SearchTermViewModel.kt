@@ -7,6 +7,7 @@ import io.github.gmathi.novellibrary.model.source.CatalogueSource
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.model.source.getPreferenceKey
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
+import io.github.gmathi.novellibrary.model.other.NovelsPage
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.source.NovelUpdatesSource
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import io.github.gmathi.novellibrary.BuildConfig
 import uy.kohesive.injekt.injectLazy
 
 sealed class SearchTermUiState {
@@ -38,6 +40,20 @@ data class SourceSearchState(
 
 class SearchTermViewModel : ViewModel() {
 
+    companion object {
+        /**
+         * Dev flag: skip NovelUpdates search API calls to reduce network usage during development.
+         * Only effective in debug builds.
+         */
+        private const val SKIP_NOVEL_UPDATES_SEARCH = true
+
+        /**
+         * When true, search results are fetched lazily — only when the user views a source tab.
+         * When false, all sources are fetched immediately on search.
+         */
+        const val LAZY_LOAD_SOURCES = true
+    }
+
     private val sourceManager: SourceManager by injectLazy()
     private val networkHelper: NetworkHelper by injectLazy()
     private val dataCenter: DataCenter by injectLazy()
@@ -58,18 +74,52 @@ class SearchTermViewModel : ViewModel() {
             dataCenter.isSourceEnabled(it.getPreferenceKey())
         }
 
-        // Initialize states for each source
-        _sourceStates.value = sources.map { source ->
-            SourceSearchState(
-                sourceName = source.name,
-                sourceId = source.id
-            )
+        if (LAZY_LOAD_SOURCES) {
+            // Initialize all sources as Idle; only the visible tab will trigger a fetch
+            _sourceStates.value = sources.map { source ->
+                SourceSearchState(
+                    sourceName = source.name,
+                    sourceId = source.id,
+                    uiState = SearchTermUiState.Idle
+                )
+            }
+            // Fetch only the first source (initially visible tab)
+            if (sources.isNotEmpty()) {
+                updateSourceState(0) { it.copy(uiState = SearchTermUiState.Loading) }
+                searchSource(0, sources[0], searchTerm, page = 1)
+            }
+        } else {
+            // Fetch all sources immediately
+            _sourceStates.value = sources.map { source ->
+                SourceSearchState(
+                    sourceName = source.name,
+                    sourceId = source.id
+                )
+            }
+            sources.forEachIndexed { index, source ->
+                searchSource(index, source, searchTerm, page = 1)
+            }
         }
+    }
 
-        // Launch search for each source
-        sources.forEachIndexed { index, source ->
-            searchSource(index, source, searchTerm, page = 1)
-        }
+    /**
+     * Fetch results for a specific source tab if it hasn't been fetched yet.
+     * Called when the user switches to a tab.
+     */
+    fun fetchSourceIfNeeded(sourceIndex: Int) {
+        val states = _sourceStates.value
+        if (sourceIndex !in states.indices) return
+        val state = states[sourceIndex]
+        // Only fetch if still in Idle state (never fetched)
+        if (state.uiState != SearchTermUiState.Idle) return
+
+        val searchTerm = currentSearchTerm ?: return
+        val source = sourceManager.getOnlineSources().filter {
+            dataCenter.isSourceEnabled(it.getPreferenceKey())
+        }.getOrNull(sourceIndex) ?: return
+
+        updateSourceState(sourceIndex) { it.copy(uiState = SearchTermUiState.Loading) }
+        searchSource(sourceIndex, source, searchTerm, page = 1)
     }
 
     private fun searchSource(index: Int, source: HttpSource, searchTerm: String, page: Int) {
@@ -82,8 +132,13 @@ class SearchTermViewModel : ViewModel() {
             try {
                 val novelsPage = withContext(Dispatchers.IO) {
                     if (source is NovelUpdatesSource) {
-                        // Use series-finder API for NovelUpdates
-                        source.searchSeriesFinder(searchTerm, page)
+                        // Skip NovelUpdates search in debug builds when dev flag is enabled
+                        if (BuildConfig.DEBUG && SKIP_NOVEL_UPDATES_SEARCH) {
+                            NovelsPage(emptyList(), false)
+                        } else {
+                            // Use series-finder API for NovelUpdates
+                            source.searchSeriesFinder(searchTerm, page)
+                        }
                     } else {
                         val catalogueSource = source as? CatalogueSource
                             ?: throw Exception("Source ${source.name} is not a CatalogueSource")

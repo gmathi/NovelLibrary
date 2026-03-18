@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import io.github.gmathi.novellibrary.BuildConfig
 import uy.kohesive.injekt.injectLazy
 
 sealed class SearchUrlUiState {
@@ -22,6 +23,14 @@ sealed class SearchUrlUiState {
 }
 
 class SearchUrlViewModel : ViewModel() {
+
+    companion object {
+        /**
+         * Dev flag: skip popular novels API calls to reduce network usage during development.
+         * Only effective in debug builds.
+         */
+        private const val SKIP_POPULAR_NOVELS_FETCH = true
+    }
 
     private val networkHelper: NetworkHelper by injectLazy()
     
@@ -39,6 +48,14 @@ class SearchUrlViewModel : ViewModel() {
     fun initialize(rank: String?, url: String?) {
         this.rank = rank
         this.url = url
+
+        // Skip API calls in debug builds when dev flag is enabled
+        if (BuildConfig.DEBUG && SKIP_POPULAR_NOVELS_FETCH) {
+            _novels.value = emptyList()
+            _uiState.value = SearchUrlUiState.Empty
+            return
+        }
+
         loadNovels(reset = true)
     }
 
