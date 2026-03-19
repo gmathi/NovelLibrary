@@ -322,7 +322,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
             if (novel?.id != novelId) {
                 novel = dbHelper.getNovel(novelId)
                 translatorSource = metadata.getString(TTSService.TRANSLATOR_SOURCE_NAME)
-                novel?.imageUrl?.let { image ->
+                novel?.imageUrl?.takeIf { it.isNotEmpty() }?.let { image ->
                     Glide.with(this@TextToSpeechControlsActivity).load(image.getGlideUrl()).apply(RequestOptions.circleCropTransform())
                         .into(contentBinding.ttsNovelCover)
                 }

@@ -22,7 +22,7 @@ import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.databinding.ActivityNavDrawerBinding
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
-import io.github.gmathi.novellibrary.fragment.SearchFragment
+import io.github.gmathi.novellibrary.compose.search.SearchFragmentCompose
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Logs
@@ -33,7 +33,6 @@ import io.github.gmathi.novellibrary.util.system.startExtensionsPagerActivity
 import io.github.gmathi.novellibrary.util.system.startNovelDownloadsActivity
 import io.github.gmathi.novellibrary.util.system.startRecentNovelsPagerActivity
 import io.github.gmathi.novellibrary.util.system.startSettingsActivity
-import org.cryse.widget.persistentsearch.PersistentSearchView
 import java.util.Date
 import kotlin.random.Random
 
@@ -102,13 +101,11 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
                     binding.drawerLayout.closeDrawer(GravityCompat.START)
                 } else {
-                    val existingSearchFrag = supportFragmentManager.findFragmentByTag(SearchFragment::class.toString())
-                    if (existingSearchFrag != null) {
-                        val searchView = existingSearchFrag.view?.findViewById<PersistentSearchView>(R.id.searchView)
-                        if (searchView != null && (searchView.isEditing || searchView.isSearching)) {
-                            (existingSearchFrag as SearchFragment).closeSearch()
-                            return
-                        }
+                    val existingSearchFrag = supportFragmentManager.findFragmentByTag(SearchFragmentCompose::class.toString())
+                    if (existingSearchFrag != null && existingSearchFrag is SearchFragmentCompose) {
+                        // Just call closeSearch - the Compose search handles its own state
+                        existingSearchFrag.closeSearch()
+                        return
                     }
 
                     (supportFragmentManager.findFragmentByTag(LibraryPagerFragment::class.toString()) as? LibraryPagerFragment)?.let {
@@ -151,7 +148,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             }
 
             R.id.nav_search -> {
-                replaceFragment(SearchFragment(), SearchFragment::class.toString())
+                replaceFragment(SearchFragmentCompose(), SearchFragmentCompose::class.toString())
             }
 
             R.id.nav_downloads -> {

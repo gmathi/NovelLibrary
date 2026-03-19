@@ -93,7 +93,8 @@ fun String.writableOldFileName(): String {
     return fileName
 }
 
-fun String.getGlideUrl(): GlideUrl {
+fun String.getGlideUrl(): GlideUrl? {
+    if (this.isBlank()) return null
     val dataCenter: DataCenter by injectLazy()
     var hostName = ""
     try {

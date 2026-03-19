@@ -246,3 +246,5 @@ app/mirror/release/output.json
 # ===========================
 !gradle/wrapper/gradle-wrapper.jar
 !gradle/wrapper/gradle-wrapper.properties
+.idea/deploymentTargetSelector.xml
+.idea/appInsightsSettings.xml

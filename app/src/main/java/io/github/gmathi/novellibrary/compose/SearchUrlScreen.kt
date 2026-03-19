@@ -2,7 +2,7 @@ package io.github.gmathi.novellibrary.compose
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
@@ -131,7 +131,7 @@ private fun NovelList(
         contentPadding = PaddingValues(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(novels, key = { it.url }) { novel ->
+        itemsIndexed(novels, key = { index, novel -> "${index}_${novel.url}" }) { _, novel ->
             NovelItem(
                 novel = novel,
                 onClick = { onNovelClick(novel) }

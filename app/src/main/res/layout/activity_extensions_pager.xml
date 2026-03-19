@@ -21,6 +21,6 @@
 
     <include
         android:id="@+id/content"
-        layout="@layout/content_recent_novels_pager" />
+        layout="@layout/content_extensions_pager" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
