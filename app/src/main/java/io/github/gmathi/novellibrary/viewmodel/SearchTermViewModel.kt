@@ -45,13 +45,13 @@ class SearchTermViewModel : ViewModel() {
          * Dev flag: skip NovelUpdates search API calls to reduce network usage during development.
          * Only effective in debug builds.
          */
-        private const val SKIP_NOVEL_UPDATES_SEARCH = true
+        private const val SKIP_NOVEL_UPDATES_SEARCH = false
 
         /**
          * When true, search results are fetched lazily — only when the user views a source tab.
          * When false, all sources are fetched immediately on search.
          */
-        const val LAZY_LOAD_SOURCES = true
+        const val LAZY_LOAD_SOURCES = false
     }
 
     private val sourceManager: SourceManager by injectLazy()
