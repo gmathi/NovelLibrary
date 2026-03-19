@@ -2,9 +2,10 @@ package io.github.gmathi.novellibrary.network
 
 import android.content.Context
 import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
 import coil.ImageLoader
 import coil.disk.DiskCache
-import coil.util.CoilUtils
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.network.interceptor.CloudflareInterceptor
 import io.github.gmathi.novellibrary.network.interceptor.UserAgentInterceptor
@@ -58,12 +59,37 @@ class NetworkHelper(private val context: Context) {
     }
 
     /**
+     * Coil ImageLoader singleton with disk cache and shared OkHttpClient.
+     * Using the app's OkHttpClient ensures cookies, user-agent, and DoH are applied to image requests.
+     */
+    val coilImageLoader by lazy {
+        ImageLoader.Builder(context)
+            .okHttpClient(client)
+            .diskCache {
+                DiskCache.Builder()
+                    .directory(File(context.cacheDir, "coil_image_cache"))
+                    .maxSizeBytes(25L * 1024 * 1024) // 25 MiB
+                    .build()
+            }
+            .crossfade(true)
+            .build()
+    }
+
+    /**
      * returns - True - if there is connection to the internet
      */
+    @Suppress("DEPRECATION")
     fun isConnectedToNetwork(): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-        val netInfo = connectivityManager?.activeNetworkInfo
-        return netInfo != null && netInfo.isConnected
+            ?: return false
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val network = connectivityManager.activeNetwork ?: return false
+            val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        } else {
+            val netInfo = connectivityManager.activeNetworkInfo
+            netInfo != null && netInfo.isConnected
+        }
     }
 
 }

@@ -96,7 +96,6 @@ androidx-legacy-support = { module = "androidx.legacy:legacy-support-v4", versio
 androidx-cardview = { module = "androidx.cardview:cardview", version.ref = "cardview" }
 androidx-vectordrawable = { module = "androidx.vectordrawable:vectordrawable", version.ref = "vectordrawable" }
 androidx-preference = { module = "androidx.preference:preference-ktx", version.ref = "preference" }
-androidx-multidex = { module = "androidx.multidex:multidex", version.ref = "multidex" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 
 # Compose

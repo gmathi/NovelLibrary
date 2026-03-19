@@ -7,6 +7,8 @@ import android.webkit.WebView
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LifecycleObserver
+import coil.ImageLoader
+import coil.ImageLoaderFactory
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
@@ -19,6 +21,7 @@ import io.github.gmathi.novellibrary.database.deleteWebPages
 import io.github.gmathi.novellibrary.model.other.SelectorQuery
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.MultiTrustManager
+import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
@@ -37,7 +40,11 @@ import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 
 
-open class NovelLibraryApplication : Application(), LifecycleObserver {
+open class NovelLibraryApplication : Application(), LifecycleObserver, ImageLoaderFactory {
+
+    private val networkHelper: NetworkHelper by injectLazy()
+
+    override fun newImageLoader(): ImageLoader = networkHelper.coilImageLoader
     companion object {
         private const val TAG = "NovelLibraryApplication"
     }

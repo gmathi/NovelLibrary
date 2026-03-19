@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application) apply false
     id("com.android.library")
-    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -11,7 +10,6 @@ android {
     
     defaultConfig {
         minSdk = 23
-        targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -42,10 +40,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
     buildFeatures {
