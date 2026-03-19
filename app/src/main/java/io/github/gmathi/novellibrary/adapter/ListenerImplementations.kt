@@ -38,6 +38,9 @@ class SearchResultsListener(private val searchTerms: String, private val sources
 class WebPageFragmentPageListener(val novel: Novel, private val webPages: List<WebPage>) : GenericFragmentStatePagerAdapter.Listener {
 
     override fun getFragmentForItem(position: Int): Fragment {
+        if (position < 0 || position >= webPages.size) {
+            return Fragment()
+        }
         return WebPageDBFragment.newInstance(novel.id, webPages[position])
     }
 }
@@ -57,14 +60,6 @@ class LibraryPageListener(private val novelSections: ArrayList<NovelSection>) : 
 class ChaptersPageListener(private val novel: Novel, private val translatorSourceNames: ArrayList<String>) : GenericFragmentStatePagerAdapter.Listener {
     override fun getFragmentForItem(position: Int): Fragment {
         return ChaptersFragment.newInstance(novel, translatorSourceNames[position])
-    }
-}
-
-class RecentNovelsPageListener() : GenericFragmentStatePagerAdapter.Listener {
-    override fun getFragmentForItem(position: Int): Fragment {
-        if (position == 0)
-            return RecentlyUpdatedNovelsFragment.newInstance()
-        return RecentlyViewedNovelsFragment.newInstance()
     }
 }
 

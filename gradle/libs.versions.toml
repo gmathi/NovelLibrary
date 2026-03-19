@@ -1,18 +1,17 @@
 [versions]
 # Gradle Plugins
-agp = "8.7.3"
-kotlin = "2.1.0"
-ksp = "2.1.0-1.0.29"
+agp = "9.1.0"
+kotlin = "2.3.10"
+ksp = "2.3.6"
 googleServices = "4.4.2"
 crashlytics = "3.0.2"
-compose-compiler = "2.1.0"
+compose-compiler = "2.3.10"
 
 # AndroidX Core
 appcompat = "1.7.0"
 constraintlayout = "2.2.1"
 browser = "1.8.0"
 lifecycle = "2.8.7"
-multidex = "2.0.1"
 preference = "1.2.1"
 work = "2.10.0"
 compose-bom = "2024.12.01"
@@ -58,6 +57,7 @@ markdown = "0.7.3"
 glide = "4.16.0"
 coil = "2.7.0"
 coil-compose = "2.7.0"
+landscapist = "2.9.5"
 
 # Firebase
 firebaseBom = "33.12.0"
@@ -94,7 +94,6 @@ androidx-legacy-support = { module = "androidx.legacy:legacy-support-v4", versio
 androidx-cardview = { module = "androidx.cardview:cardview", version.ref = "cardview" }
 androidx-vectordrawable = { module = "androidx.vectordrawable:vectordrawable", version.ref = "vectordrawable" }
 androidx-preference = { module = "androidx.preference:preference-ktx", version.ref = "preference" }
-androidx-multidex = { module = "androidx.multidex:multidex", version.ref = "multidex" }
 
 # Compose
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
@@ -151,6 +150,7 @@ glide-ksp = { module = "com.github.bumptech.glide:ksp", version.ref = "glide" }
 coil = { module = "io.coil-kt:coil", version.ref = "coil" }
 coil-gif = { module = "io.coil-kt:coil-gif", version.ref = "coil" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil-compose" }
+landscapist-core = { module = "com.github.skydoves:landscapist-core", version.ref = "landscapist" }
 
 # UI Components
 lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }

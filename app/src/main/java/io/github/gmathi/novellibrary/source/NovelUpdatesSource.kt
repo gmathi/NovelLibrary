@@ -15,6 +15,7 @@ import io.github.gmathi.novellibrary.network.POST
 import io.github.gmathi.novellibrary.network.asObservableSuccess
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Exceptions.INVALID_NOVEL
+import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.Exceptions.MISSING_IMPLEMENTATION
 import io.github.gmathi.novellibrary.util.lang.addPageNumberToUrl
 import io.github.gmathi.novellibrary.util.lang.awaitSingle
@@ -63,19 +64,33 @@ class NovelUpdatesSource : ParsedHttpSource() {
             .add("strOne", query)
             .add("strSearchType", "series")
             .build()
+        Logs.info(TAG, "SearchKeyword request: POST $url | query='$query'")
         return POST(url, body = formBody)
     }
 
     override fun searchNovelsParse(response: Response): NovelsPage {
         val document = response.asJsoup()
 
+        // Log raw HTML response for debugging
+        Logs.info(TAG, "===== SEARCH KEYWORD RAW RESPONSE =====")
+        Logs.info(TAG, "Response URL: ${response.request.url}")
+        Logs.info(TAG, "Response Code: ${response.code}")
+        val rawHtml = document.outerHtml()
+        rawHtml.chunked(3000).forEachIndexed { index, chunk ->
+            Logs.info(TAG, "SearchKeyword HTML [$index]: $chunk")
+        }
+        Logs.info(TAG, "Selector used: ${searchNovelsSelector()}")
+        Logs.info(TAG, "Elements found: ${document.select(searchNovelsSelector()).size}")
+        Logs.info(TAG, "===== END SEARCH KEYWORD RAW RESPONSE =====")
+
         val novels = ArrayList<Novel>()
         document.select(searchNovelsSelector()).forEach { element ->
             try {
                 val novel = searchNovelsFromElement(element)
+                Logs.info(TAG, "SearchKeyword parsed novel: name=${novel.name}, url=${novel.url}, imageUrl=${novel.imageUrl}")
                 novels.add(novel)
             } catch (e: Exception) {
-                //Do Nothing
+                Logs.warning(TAG, "SearchKeyword failed to parse element: ${element.outerHtml()}", e)
             }
         }
 
@@ -83,6 +98,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
             document.select(selector).first()
         } != null
 
+        Logs.info(TAG, "SearchKeyword result: ${novels.size} novels, hasNextPage=$hasNextPage")
         return NovelsPage(novels, false)
     }
 
@@ -98,6 +114,59 @@ class NovelUpdatesSource : ParsedHttpSource() {
     override fun searchNovelsSelector() = "a.a_search"
     override fun searchNovelsNextPageSelector() = "div.digg_pagination a.next.page-numbers"
 //endregion
+
+    //region Series Finder Search
+    suspend fun searchSeriesFinder(query: String, page: Int): NovelsPage {
+        return fetchSeriesFinderSearch(query, page).awaitSingle()
+    }
+
+    private fun fetchSeriesFinderSearch(query: String, page: Int): Observable<NovelsPage> {
+        return client.newCall(seriesFinderRequest(query, page))
+            .asObservableSuccess()
+            .map { response ->
+                seriesFinderParse(response)
+            }
+    }
+
+    private fun seriesFinderRequest(query: String, page: Int): Request {
+        val url = "$baseUrl/series-finder/?sf=1&sh=$query&sort=sdate&order=desc".addPageNumberToUrl(page, "pg")
+        Logs.info(TAG, "SeriesFinder request: GET $url | query='$query', page=$page")
+        return GET(url, headers)
+    }
+
+    private fun seriesFinderParse(response: Response): NovelsPage {
+        val document = response.asJsoup()
+
+        Logs.info(TAG, "===== SERIES FINDER RAW RESPONSE =====")
+        Logs.info(TAG, "Response URL: ${response.request.url}")
+        Logs.info(TAG, "Response Code: ${response.code}")
+        val rawHtml = document.outerHtml()
+        rawHtml.chunked(3000).forEachIndexed { index, chunk ->
+            Logs.info(TAG, "SeriesFinder HTML [$index]: $chunk")
+        }
+        Logs.info(TAG, "Elements found: ${document.select(popularNovelsSelector()).size}")
+        Logs.info(TAG, "===== END SERIES FINDER RAW RESPONSE =====")
+
+        // Series-finder uses the same HTML layout as popular/ranking pages
+        val novels = document.select(popularNovelsSelector()).mapNotNull { element ->
+            try {
+                val novel = popularNovelsFromElement(element)
+                Logs.info(TAG, "SeriesFinder parsed novel: name=${novel.name}, url=${novel.url}, rating=${novel.rating}, imageUrl=${novel.imageUrl}")
+                novel
+            } catch (e: Exception) {
+                Logs.warning(TAG, "SeriesFinder failed to parse element: ${element.outerHtml()}", e)
+                null
+            }
+        }
+
+        val hasNextPage = popularNovelNextPageSelector().let { selector ->
+            document.select(selector).first()
+        } != null
+
+        Logs.info(TAG, "SeriesFinder result: ${novels.size} novels, hasNextPage=$hasNextPage")
+        return NovelsPage(novels, hasNextPage)
+    }
+    //endregion
 
     //region Novel Details
     override fun novelDetailsParse(novel: Novel, document: Document): Novel {
@@ -304,10 +373,13 @@ class NovelUpdatesSource : ParsedHttpSource() {
     private fun popularNovelsRequest(rank: String?, url: String?, page: Int): Request {
         rank?.let {
             val requestUrl = "$baseUrl/series-ranking/?rank=$rank".addPageNumberToUrl(page, "pg")
+            Logs.info(TAG, "SearchUrl request: GET $requestUrl")
             return GET(requestUrl, headers)
         }
         url?.let {
-            return GET(url.addPageNumberToUrl(page, "pg"), headers)
+            val requestUrl = url.addPageNumberToUrl(page, "pg")
+            Logs.info(TAG, "SearchUrl request: GET $requestUrl")
+            return GET(requestUrl, headers)
         }
         throw Exception(MISSING_IMPLEMENTATION)
     }
@@ -319,13 +391,90 @@ class NovelUpdatesSource : ParsedHttpSource() {
         val novel = Novel(novelUrl, id)
         element.selectFirst("div.search_title > a")?.text()?.let { novel.name = it }
         novel.imageUrl = element.selectFirst("div.search_img_nu img[src]")?.attr("abs:src")
-        val originText = element.select("div.search_ratings>span").text()
+
+        // Rank (e.g. "#1")
+        val rankText = element.selectFirst("span.genre_rank")?.text()
+        if (!rankText.isNullOrEmpty()) novel.metadata["Rank"] = rankText
+
+        // Origin language (e.g. "KR", "CN", "JP")
+        val originText = element.selectFirst("span.orgkr, span.orgcn, span.orgjp")?.text()
         if (!originText.isNullOrEmpty()) novel.metadata["OriginMarker"] = originText
-        val ratingText = element.select("div.search_ratings").text()
-        if (ratingText.contains("(")) {
-            novel.rating = ratingText.split("(")[1].trim().replace("(", "").replace(")", "")
-        } else
-            novel.rating = "N/A"
+
+        // Rating — try div.search_ratings first, then count stars as fallback
+        val ratingsDiv = element.selectFirst("div.search_ratings, span.search_ratings, div.search_rating")
+        if (ratingsDiv != null) {
+            val ratingsText = ratingsDiv.text() // e.g. "KR (4.5)"
+            val ratingMatch = Regex("\\(([\\d.]+)\\)").find(ratingsText)
+            if (ratingMatch != null) {
+                novel.rating = ratingMatch.groupValues[1]
+            } else {
+                // Try extracting just the number
+                val numberMatch = Regex("([\\d.]+)").find(ratingsText.replace(originText ?: "", "").trim())
+                novel.rating = numberMatch?.groupValues?.get(1) ?: "N/A"
+            }
+        } else {
+            // Fallback: count star icons in search_stars div
+            val starsDiv = element.selectFirst("div.search_stars")
+            if (starsDiv != null) {
+                val fullStars = starsDiv.select("i.fa-star").size
+                val halfStars = starsDiv.select("i.fa-star-half-o, i.fa-star-half").size
+                val rating = fullStars + (halfStars * 0.5f)
+                novel.rating = if (rating > 0) String.format("%.1f", rating) else "N/A"
+            } else {
+                novel.rating = "N/A"
+            }
+        }
+
+        // Genres
+        val genreElements = element.select("div.search_genre a.gennew")
+        if (genreElements.isNotEmpty()) {
+            novel.genres = genreElements.map { it.text() }
+        }
+
+        // Stats: chapters, frequency, readers, reviews, last updated
+        // Handle both ss_desk and ss_mb class variants
+        val statSpans = element.select("div.search_stats span.ss_desk, div.search_stats span.ss_mb")
+        for (stat in statSpans) {
+            val text = stat.text().trim()
+            when {
+                text.contains("Chapters", ignoreCase = true) -> {
+                    novel.metadata["Chapters"] = text
+                    val count = text.replace(",", "").filter { it.isDigit() }.toLongOrNull()
+                    if (count != null) novel.chaptersCount = count
+                }
+                text.contains("Day(s)", ignoreCase = true) -> novel.metadata["Frequency"] = text
+                text.contains("Readers", ignoreCase = true) -> novel.metadata["Readers"] = text
+                text.contains("Reviews", ignoreCase = true) -> novel.metadata["Reviews"] = text
+                text.matches(Regex(".*\\d{2}-\\d{2}-\\d{4}.*")) -> novel.metadata["LastUpdated"] = text
+            }
+        }
+
+        // Status from genre area
+        val statusElement = element.selectFirst("div.search_genre a.gennew.search.on")
+        if (statusElement != null) {
+            novel.metadata["Status"] = statusElement.text()
+        }
+
+        // Short description — the last div in the search box contains the description text.
+        // It has no specific class, just inline style. We look for the hidden full text first,
+        // then fall back to the visible truncated text.
+        val descDiv = element.children().lastOrNull { it.tagName() == "div" && !it.hasClass("search_genre") && !it.hasClass("search_stats") && !it.hasClass("search_title") && !it.hasClass("search_img_nu") }
+            ?: element.selectFirst("div.search_body_nu")
+        if (descDiv != null) {
+            // Prefer the full hidden text inside span.testhide
+            val fullText = descDiv.selectFirst("span.testhide")?.text()?.trim()
+            if (!fullText.isNullOrEmpty()) {
+                novel.shortDescription = fullText.replace(Regex("\\s*<<less\\s*$"), "").trim()
+            } else {
+                // Fall back to visible text nodes (before "more>>")
+                val textNodes = descDiv.textNodes()
+                val descText = textNodes.joinToString("") { it.text() }.trim()
+                if (descText.isNotEmpty()) {
+                    novel.shortDescription = descText
+                }
+            }
+        }
+
         return novel
     }
 
@@ -333,10 +482,33 @@ class NovelUpdatesSource : ParsedHttpSource() {
 
     override fun popularNovelsParse(response: Response): NovelsPage {
         val document = response.asJsoup()
-        val novels = document.select(popularNovelsSelector()).map { element ->
-            popularNovelsFromElement(element)
+
+        // Log raw HTML response for debugging
+        Logs.info(TAG, "===== SEARCH URL (POPULAR) RAW RESPONSE =====")
+        Logs.info(TAG, "Response URL: ${response.request.url}")
+        Logs.info(TAG, "Response Code: ${response.code}")
+        val rawHtml = document.outerHtml()
+        // Log in chunks since Android logcat has a size limit
+        rawHtml.chunked(3000).forEachIndexed { index, chunk ->
+            Logs.info(TAG, "SearchUrl HTML [$index]: $chunk")
+        }
+        Logs.info(TAG, "Selector used: ${popularNovelsSelector()}")
+        Logs.info(TAG, "Elements found: ${document.select(popularNovelsSelector()).size}")
+        Logs.info(TAG, "===== END SEARCH URL RAW RESPONSE =====")
+
+        val novels = document.select(popularNovelsSelector()).mapNotNull { element ->
+            try {
+                val novel = popularNovelsFromElement(element)
+                Logs.info(TAG, "SearchUrl parsed novel: name=${novel.name}, url=${novel.url}, rating=${novel.rating}, imageUrl=${novel.imageUrl}")
+                novel
+            } catch (e: Exception) {
+                Logs.warning(TAG, "SearchUrl failed to parse element: ${element.outerHtml()}", e)
+                null
+            }
         }
         val hasNextPage = document.select(popularNovelNextPageSelector()) != null
+
+        Logs.info(TAG, "SearchUrl result: ${novels.size} novels, hasNextPage=$hasNextPage")
         return NovelsPage(novels, hasNextPage)
     }
 
@@ -447,6 +619,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
 
 
     companion object {
+        private const val TAG = "NovelUpdatesSource"
         private const val USER_AGENT = "Mozilla/5.0 (Linux; Android 10; HD1913) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.46 Mobile Safari/537.36 EdgA/144.0.3719.115"
     }
 }

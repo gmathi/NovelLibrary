@@ -1,8 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id 'kotlin-kapt'
     alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
@@ -24,8 +22,8 @@ android {
         minSdk 23
         targetSdk 36
         multiDexEnabled true
-        versionCode 119
-        versionName "1.0.0"
+        versionCode 122
+        versionName "1.1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -52,7 +50,7 @@ android {
                 signingConfig signingConfigs.release
             }
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
@@ -78,8 +76,10 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
     }
 
     buildFeatures {
@@ -116,7 +116,6 @@ dependencies {
     implementation libs.androidx.cardview
     implementation libs.androidx.vectordrawable
     implementation libs.androidx.preference
-    implementation libs.androidx.multidex
     
     // Compose
     implementation platform(libs.compose.bom)
@@ -148,6 +147,7 @@ dependencies {
     // Image Loading
     implementation libs.bundles.image.loading
     implementation libs.coil.compose
+    implementation libs.landscapist.core
     ksp libs.glide.ksp
     
     // UI Components

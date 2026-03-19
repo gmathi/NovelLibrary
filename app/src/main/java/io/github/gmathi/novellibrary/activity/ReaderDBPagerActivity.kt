@@ -224,6 +224,7 @@ class ReaderDBPagerActivity :
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val action = event.action
         val keyCode = event.keyCode
+        if (webPages.isEmpty()) return super.dispatchKeyEvent(event)
         val webView = (binding.viewPager.adapter?.instantiateItem(
             binding.viewPager,
             binding.viewPager.currentItem
