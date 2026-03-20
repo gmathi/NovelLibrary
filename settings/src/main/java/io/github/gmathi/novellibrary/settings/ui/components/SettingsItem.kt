@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.github.gmathi.novellibrary.stubs.theme.NovelLibraryBaseTheme
 
 /**
  * Standard settings list item with title, description, icon, and trailing content.
@@ -116,7 +117,7 @@ fun SettingsItem(
 @Preview(name = "Basic Item", showBackground = true)
 @Composable
 private fun PreviewSettingsItemBasic() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsItem(
             title = "General Settings",
             onClick = {}
@@ -127,7 +128,7 @@ private fun PreviewSettingsItemBasic() {
 @Preview(name = "With Description", showBackground = true)
 @Composable
 private fun PreviewSettingsItemWithDescription() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsItem(
             title = "Theme",
             description = "Choose your preferred app theme",
@@ -139,7 +140,7 @@ private fun PreviewSettingsItemWithDescription() {
 @Preview(name = "With Icon", showBackground = true)
 @Composable
 private fun PreviewSettingsItemWithIcon() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsItem(
             title = "Notifications",
             description = "Manage notification preferences",
@@ -152,7 +153,7 @@ private fun PreviewSettingsItemWithIcon() {
 @Preview(name = "With Trailing Text", showBackground = true)
 @Composable
 private fun PreviewSettingsItemWithTrailing() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsItem(
             title = "Language",
             description = "Select app language",
@@ -172,7 +173,7 @@ private fun PreviewSettingsItemWithTrailing() {
 @Preview(name = "Disabled State", showBackground = true)
 @Composable
 private fun PreviewSettingsItemDisabled() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsItem(
             title = "Premium Feature",
             description = "Available in premium version",
@@ -186,7 +187,7 @@ private fun PreviewSettingsItemDisabled() {
 @Preview(name = "Long Text", showBackground = true)
 @Composable
 private fun PreviewSettingsItemLongText() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsItem(
             title = "Synchronization Settings",
             description = "Configure automatic synchronization of your reading progress, bookmarks, and preferences across all your devices",
@@ -206,14 +207,12 @@ private fun PreviewSettingsItemLongText() {
 @Preview(name = "Dark Theme", showBackground = true)
 @Composable
 private fun PreviewSettingsItemDark() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
-            SettingsItem(
-                title = "Reader Theme",
-                description = "Customize reading experience",
-                icon = Icons.Default.Palette,
-                onClick = {}
-            )
-        }
+    NovelLibraryBaseTheme(darkTheme = true) {
+        SettingsItem(
+            title = "Reader Theme",
+            description = "Customize reading experience",
+            icon = Icons.Default.Palette,
+            onClick = {}
+        )
     }
 }

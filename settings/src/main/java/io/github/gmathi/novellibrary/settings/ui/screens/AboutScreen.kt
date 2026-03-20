@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import io.github.gmathi.novellibrary.settings.ui.components.SettingsItem
 import io.github.gmathi.novellibrary.settings.ui.components.SettingsScreen
 import io.github.gmathi.novellibrary.settings.ui.components.SettingsSection
+import io.github.gmathi.novellibrary.stubs.theme.NovelLibraryBaseTheme
 
 /**
  * About screen displaying app information, credits, and legal information.
@@ -215,7 +216,7 @@ fun AboutScreenContent(
 )
 @Composable
 private fun PreviewAboutScreenLight() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         AboutScreenContent(
             appVersionName = "1.0.0",
             appVersionCode = 120,
@@ -237,19 +238,17 @@ private fun PreviewAboutScreenLight() {
 )
 @Composable
 private fun PreviewAboutScreenDark() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
-            AboutScreenContent(
-                appVersionName = "1.0.0",
-                appVersionCode = 120,
-                onNavigateToContributors = {},
-                onNavigateToCopyright = {},
-                onNavigateToLicenses = {},
-                onOpenPrivacyPolicy = {},
-                onOpenTermsOfService = {},
-                onCheckForUpdates = {},
-                onNavigateBack = {}
-            )
-        }
+    NovelLibraryBaseTheme(darkTheme = true) {
+        AboutScreenContent(
+            appVersionName = "1.0.0",
+            appVersionCode = 120,
+            onNavigateToContributors = {},
+            onNavigateToCopyright = {},
+            onNavigateToLicenses = {},
+            onOpenPrivacyPolicy = {},
+            onOpenTermsOfService = {},
+            onCheckForUpdates = {},
+            onNavigateBack = {}
+        )
     }
 }

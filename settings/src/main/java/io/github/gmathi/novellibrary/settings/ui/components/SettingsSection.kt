@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.github.gmathi.novellibrary.stubs.theme.NovelLibraryBaseTheme
 
 /**
  * Groups related settings with a section header.
@@ -57,7 +58,7 @@ fun SettingsSection(
 @Preview(name = "Basic Section", showBackground = true)
 @Composable
 private fun PreviewSettingsSectionBasic() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsSection(title = "Display") {
             SettingsItem(
                 title = "Theme",
@@ -76,7 +77,7 @@ private fun PreviewSettingsSectionBasic() {
 @Preview(name = "With Switches", showBackground = true)
 @Composable
 private fun PreviewSettingsSectionWithSwitches() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsSection(title = "Notifications") {
             SettingsSwitch(
                 title = "Push Notifications",
@@ -99,7 +100,7 @@ private fun PreviewSettingsSectionWithSwitches() {
 @Preview(name = "Mixed Content", showBackground = true)
 @Composable
 private fun PreviewSettingsSectionMixed() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsSection(title = "Reader Settings") {
             SettingsDropdown(
                 title = "Theme",
@@ -129,7 +130,7 @@ private fun PreviewSettingsSectionMixed() {
 @Preview(name = "Multiple Sections", showBackground = true)
 @Composable
 private fun PreviewMultipleSections() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         Column {
             SettingsSection(title = "Display") {
                 SettingsItem(
@@ -152,21 +153,19 @@ private fun PreviewMultipleSections() {
 @Preview(name = "Dark Theme", showBackground = true)
 @Composable
 private fun PreviewSettingsSectionDark() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
-            SettingsSection(title = "Reader Settings") {
-                SettingsItem(
-                    title = "Theme",
-                    description = "Choose reader theme",
-                    icon = Icons.Default.Palette,
-                    onClick = {}
-                )
-                SettingsItem(
-                    title = "Text Size",
-                    description = "Adjust reading text size",
-                    onClick = {}
-                )
-            }
+    NovelLibraryBaseTheme(darkTheme = true) {
+        SettingsSection(title = "Reader Settings") {
+            SettingsItem(
+                title = "Theme",
+                description = "Choose reader theme",
+                icon = Icons.Default.Palette,
+                onClick = {}
+            )
+            SettingsItem(
+                title = "Text Size",
+                description = "Adjust reading text size",
+                onClick = {}
+            )
         }
     }
 }

@@ -4,8 +4,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.darkColorScheme
+import io.github.gmathi.novellibrary.stubs.theme.NovelLibraryBaseTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -170,7 +169,7 @@ private fun ColumnScope.AdvancedSettingsContent(
 )
 @Composable
 private fun PreviewAdvancedSettingsScreenFullLight() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsScreen(
             title = "Advanced Settings",
             onNavigateBack = {}
@@ -195,22 +194,20 @@ private fun PreviewAdvancedSettingsScreenFullLight() {
 )
 @Composable
 private fun PreviewAdvancedSettingsScreenFullDark() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
-            SettingsScreen(
-                title = "Advanced Settings",
-                onNavigateBack = {}
-            ) {
-                AdvancedSettingsContent(
-                    javascriptDisabled = true,
-                    onJavascriptDisabledChange = {},
-                    isDeveloper = true,
-                    onIsDeveloperChange = {},
-                    onClearCache = {},
-                    onResetSettings = {},
-                    onCloudflareBypass = {}
-                )
-            }
+    NovelLibraryBaseTheme(darkTheme = true) {
+        SettingsScreen(
+            title = "Advanced Settings",
+            onNavigateBack = {}
+        ) {
+            AdvancedSettingsContent(
+                javascriptDisabled = true,
+                onJavascriptDisabledChange = {},
+                isDeveloper = true,
+                onIsDeveloperChange = {},
+                onClearCache = {},
+                onResetSettings = {},
+                onCloudflareBypass = {}
+            )
         }
     }
 }
@@ -218,7 +215,7 @@ private fun PreviewAdvancedSettingsScreenFullDark() {
 @Preview(name = "Advanced Settings Content", showBackground = true)
 @Composable
 private fun PreviewAdvancedSettingsContent() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsScreen(
             title = "Advanced Settings",
             onNavigateBack = {}
@@ -239,22 +236,20 @@ private fun PreviewAdvancedSettingsContent() {
 @Preview(name = "Advanced Settings Dark", showBackground = true)
 @Composable
 private fun PreviewAdvancedSettingsContentDark() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
-            SettingsScreen(
-                title = "Advanced Settings",
-                onNavigateBack = {}
-            ) {
-                AdvancedSettingsContent(
-                    javascriptDisabled = true,
-                    onJavascriptDisabledChange = {},
-                    isDeveloper = true,
-                    onIsDeveloperChange = {},
-                    onClearCache = {},
-                    onResetSettings = {},
-                    onCloudflareBypass = {}
-                )
-            }
+    NovelLibraryBaseTheme(darkTheme = true) {
+        SettingsScreen(
+            title = "Advanced Settings",
+            onNavigateBack = {}
+        ) {
+            AdvancedSettingsContent(
+                javascriptDisabled = true,
+                onJavascriptDisabledChange = {},
+                isDeveloper = true,
+                onIsDeveloperChange = {},
+                onClearCache = {},
+                onResetSettings = {},
+                onCloudflareBypass = {}
+            )
         }
     }
 }

@@ -4,11 +4,13 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.navigation.compose.rememberNavController
 import io.github.gmathi.novellibrary.settings.data.repository.SettingsRepositoryDataStore
 import io.github.gmathi.novellibrary.settings.ui.navigation.SettingsNavGraph
+import io.github.gmathi.novellibrary.stubs.theme.NovelLibraryBaseTheme
 import io.github.gmathi.novellibrary.settings.viewmodel.AdvancedSettingsViewModel
 import io.github.gmathi.novellibrary.settings.viewmodel.BackupSettingsViewModel
 import io.github.gmathi.novellibrary.settings.viewmodel.GeneralSettingsViewModel
@@ -52,7 +54,9 @@ class SettingsActivity : ComponentActivity() {
         val advancedSettingsViewModel = AdvancedSettingsViewModel(settingsRepository)
         
         setContent {
-            MaterialTheme {
+            val isDarkTheme by generalSettingsViewModel.isDarkTheme.collectAsState()
+            
+            NovelLibraryBaseTheme(darkTheme = isDarkTheme) {
                 SettingsActivityContent(
                     mainSettingsViewModel = mainSettingsViewModel,
                     readerSettingsViewModel = readerSettingsViewModel,

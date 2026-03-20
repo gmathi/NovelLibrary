@@ -111,6 +111,7 @@ dependencies {
     implementation project(':core')
     implementation project(':common')
     implementation project(':util')
+    implementation project(':stubs')
     
     // Settings module
     implementation project(':settings')

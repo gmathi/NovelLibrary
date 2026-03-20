@@ -4,8 +4,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.darkColorScheme
+import io.github.gmathi.novellibrary.stubs.theme.NovelLibraryBaseTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -211,7 +210,7 @@ private fun getLanguageDisplayName(languageCode: String): String {
 )
 @Composable
 private fun PreviewGeneralSettingsScreenFullLight() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsScreen(
             title = "General Settings",
             onNavigateBack = {}
@@ -243,29 +242,27 @@ private fun PreviewGeneralSettingsScreenFullLight() {
 )
 @Composable
 private fun PreviewGeneralSettingsScreenFullDark() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
-            SettingsScreen(
-                title = "General Settings",
-                onNavigateBack = {}
-            ) {
-                GeneralSettingsContent(
-                    isDarkTheme = true,
-                    onDarkThemeChange = {},
-                    language = "ja",
-                    onLanguageChange = {},
-                    javascriptDisabled = true,
-                    onJavascriptDisabledChange = {},
-                    loadLibraryScreen = true,
-                    onLoadLibraryScreenChange = {},
-                    enableNotifications = false,
-                    onEnableNotificationsChange = {},
-                    showChaptersLeftBadge = false,
-                    onShowChaptersLeftBadgeChange = {},
-                    isDeveloper = true,
-                    onIsDeveloperChange = {}
-                )
-            }
+    NovelLibraryBaseTheme(darkTheme = true) {
+        SettingsScreen(
+            title = "General Settings",
+            onNavigateBack = {}
+        ) {
+            GeneralSettingsContent(
+                isDarkTheme = true,
+                onDarkThemeChange = {},
+                language = "ja",
+                onLanguageChange = {},
+                javascriptDisabled = true,
+                onJavascriptDisabledChange = {},
+                loadLibraryScreen = true,
+                onLoadLibraryScreenChange = {},
+                enableNotifications = false,
+                onEnableNotificationsChange = {},
+                showChaptersLeftBadge = false,
+                onShowChaptersLeftBadgeChange = {},
+                isDeveloper = true,
+                onIsDeveloperChange = {}
+            )
         }
     }
 }
@@ -273,7 +270,7 @@ private fun PreviewGeneralSettingsScreenFullDark() {
 @Preview(name = "General Settings Content", showBackground = true)
 @Composable
 private fun PreviewGeneralSettingsContent() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsScreen(
             title = "General Settings",
             onNavigateBack = {}
@@ -301,29 +298,27 @@ private fun PreviewGeneralSettingsContent() {
 @Preview(name = "General Settings Dark", showBackground = true)
 @Composable
 private fun PreviewGeneralSettingsContentDark() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
-            SettingsScreen(
-                title = "General Settings",
-                onNavigateBack = {}
-            ) {
-                GeneralSettingsContent(
-                    isDarkTheme = true,
-                    onDarkThemeChange = {},
-                    language = "ja",
-                    onLanguageChange = {},
-                    javascriptDisabled = true,
-                    onJavascriptDisabledChange = {},
-                    loadLibraryScreen = true,
-                    onLoadLibraryScreenChange = {},
-                    enableNotifications = false,
-                    onEnableNotificationsChange = {},
-                    showChaptersLeftBadge = false,
-                    onShowChaptersLeftBadgeChange = {},
-                    isDeveloper = true,
-                    onIsDeveloperChange = {}
-                )
-            }
+    NovelLibraryBaseTheme(darkTheme = true) {
+        SettingsScreen(
+            title = "General Settings",
+            onNavigateBack = {}
+        ) {
+            GeneralSettingsContent(
+                isDarkTheme = true,
+                onDarkThemeChange = {},
+                language = "ja",
+                onLanguageChange = {},
+                javascriptDisabled = true,
+                onJavascriptDisabledChange = {},
+                loadLibraryScreen = true,
+                onLoadLibraryScreenChange = {},
+                enableNotifications = false,
+                onEnableNotificationsChange = {},
+                showChaptersLeftBadge = false,
+                onShowChaptersLeftBadgeChange = {},
+                isDeveloper = true,
+                onIsDeveloperChange = {}
+            )
         }
     }
 }

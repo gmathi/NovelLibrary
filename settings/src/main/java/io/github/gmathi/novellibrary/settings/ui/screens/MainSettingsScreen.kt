@@ -17,6 +17,7 @@ import android.widget.Toast
 import io.github.gmathi.novellibrary.settings.ui.components.SettingsItem
 import io.github.gmathi.novellibrary.settings.ui.components.SettingsScreen
 import io.github.gmathi.novellibrary.settings.viewmodel.MainSettingsViewModel
+import io.github.gmathi.novellibrary.stubs.theme.NovelLibraryBaseTheme
 import kotlinx.coroutines.flow.collectLatest
 
 /**
@@ -175,7 +176,7 @@ fun MainSettingsScreenContent(
 @Preview(name = "Main Settings - Light Theme", showBackground = true)
 @Composable
 private fun PreviewMainSettingsScreenLight() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         MainSettingsScreenContent(
             isDarkTheme = false,
             isDeveloper = false,
@@ -193,27 +194,25 @@ private fun PreviewMainSettingsScreenLight() {
 @Preview(name = "Main Settings - Dark Theme", showBackground = true)
 @Composable
 private fun PreviewMainSettingsScreenDark() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
-            MainSettingsScreenContent(
-                isDarkTheme = true,
-                isDeveloper = false,
-                onNavigateToReader = {},
-                onNavigateToBackupSync = {},
-                onNavigateToGeneral = {},
-                onNavigateToAdvanced = {},
-                onNavigateToAbout = {},
-                onNavigateBack = {},
-                onToggleDeveloper = {}
-            )
-        }
+    NovelLibraryBaseTheme(darkTheme = true) {
+        MainSettingsScreenContent(
+            isDarkTheme = true,
+            isDeveloper = false,
+            onNavigateToReader = {},
+            onNavigateToBackupSync = {},
+            onNavigateToGeneral = {},
+            onNavigateToAdvanced = {},
+            onNavigateToAbout = {},
+            onNavigateBack = {},
+            onToggleDeveloper = {}
+        )
     }
 }
 
 @Preview(name = "Main Settings - Developer Mode", showBackground = true)
 @Composable
 private fun PreviewMainSettingsScreenDeveloper() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         MainSettingsScreenContent(
             isDarkTheme = false,
             isDeveloper = true,

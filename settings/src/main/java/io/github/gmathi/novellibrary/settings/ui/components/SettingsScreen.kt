@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.tooling.preview.Preview
+import io.github.gmathi.novellibrary.stubs.theme.NovelLibraryBaseTheme
 
 /**
  * Base layout for all settings screens.
@@ -87,7 +88,7 @@ fun SettingsScreen(
 @Preview(name = "Empty Screen", showBackground = true)
 @Composable
 private fun PreviewSettingsScreenEmpty() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsScreen(
             title = "Settings",
             onNavigateBack = {}
@@ -100,7 +101,7 @@ private fun PreviewSettingsScreenEmpty() {
 @Preview(name = "Basic Content", showBackground = true)
 @Composable
 private fun PreviewSettingsScreenBasic() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsScreen(
             title = "Reader Settings",
             onNavigateBack = {}
@@ -122,7 +123,7 @@ private fun PreviewSettingsScreenBasic() {
 @Preview(name = "With Sections", showBackground = true)
 @Composable
 private fun PreviewSettingsScreenWithSections() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsScreen(
             title = "Reader Settings",
             onNavigateBack = {}
@@ -166,7 +167,7 @@ private fun PreviewSettingsScreenWithSections() {
 @Preview(name = "With Actions", showBackground = true)
 @Composable
 private fun PreviewSettingsScreenWithActions() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsScreen(
             title = "Settings",
             onNavigateBack = {},
@@ -200,7 +201,7 @@ private fun PreviewSettingsScreenWithActions() {
 @Preview(name = "Long Content", showBackground = true, heightDp = 400)
 @Composable
 private fun PreviewSettingsScreenLongContent() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsScreen(
             title = "All Settings",
             onNavigateBack = {}
@@ -220,26 +221,24 @@ private fun PreviewSettingsScreenLongContent() {
 @Preview(name = "Dark Theme", showBackground = true)
 @Composable
 private fun PreviewSettingsScreenDark() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
-            SettingsScreen(
-                title = "Reader Settings",
-                onNavigateBack = {}
-            ) {
-                SettingsSection(title = "Display") {
-                    SettingsItem(
-                        title = "Theme",
-                        description = "Choose reader theme",
-                        icon = Icons.Default.Palette,
-                        onClick = {}
-                    )
-                    SettingsSwitch(
-                        title = "Keep Screen On",
-                        description = "Prevent screen from sleeping",
-                        checked = true,
-                        onCheckedChange = {}
-                    )
-                }
+    NovelLibraryBaseTheme(darkTheme = true) {
+        SettingsScreen(
+            title = "Reader Settings",
+            onNavigateBack = {}
+        ) {
+            SettingsSection(title = "Display") {
+                SettingsItem(
+                    title = "Theme",
+                    description = "Choose reader theme",
+                    icon = Icons.Default.Palette,
+                    onClick = {}
+                )
+                SettingsSwitch(
+                    title = "Keep Screen On",
+                    description = "Prevent screen from sleeping",
+                    checked = true,
+                    onCheckedChange = {}
+                )
             }
         }
     }

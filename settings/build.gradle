@@ -62,6 +62,7 @@ android {
 dependencies {
     // Foundation modules
     implementation project(':core')
+    implementation project(':stubs')
     
     // Jetpack Compose
     implementation platform(libs.compose.bom)

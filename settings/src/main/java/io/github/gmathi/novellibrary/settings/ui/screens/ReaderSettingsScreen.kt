@@ -4,8 +4,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.darkColorScheme
+import io.github.gmathi.novellibrary.stubs.theme.NovelLibraryBaseTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -333,7 +332,7 @@ private fun ColumnScope.ReaderSettingsContent(
 )
 @Composable
 private fun PreviewReaderSettingsScreenFullLight() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         ReaderSettingsScreen(
             viewModel = createPreviewViewModel(),
             onNavigateBack = {}
@@ -348,20 +347,18 @@ private fun PreviewReaderSettingsScreenFullLight() {
 )
 @Composable
 private fun PreviewReaderSettingsScreenFullDark() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
-            ReaderSettingsScreen(
-                viewModel = createPreviewViewModel(),
-                onNavigateBack = {}
-            )
-        }
+    NovelLibraryBaseTheme(darkTheme = true) {
+        ReaderSettingsScreen(
+            viewModel = createPreviewViewModel(),
+            onNavigateBack = {}
+        )
     }
 }
 
 @Preview(name = "Reader Settings Screen", showBackground = true)
 @Composable
 private fun PreviewReaderSettingsScreen() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         ReaderSettingsScreen(
             viewModel = createPreviewViewModel(),
             onNavigateBack = {}
@@ -372,13 +369,11 @@ private fun PreviewReaderSettingsScreen() {
 @Preview(name = "Reader Settings Dark", showBackground = true)
 @Composable
 private fun PreviewReaderSettingsScreenDark() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
-            ReaderSettingsScreen(
-                viewModel = createPreviewViewModel(),
-                onNavigateBack = {}
-            )
-        }
+    NovelLibraryBaseTheme(darkTheme = true) {
+        ReaderSettingsScreen(
+            viewModel = createPreviewViewModel(),
+            onNavigateBack = {}
+        )
     }
 }
 

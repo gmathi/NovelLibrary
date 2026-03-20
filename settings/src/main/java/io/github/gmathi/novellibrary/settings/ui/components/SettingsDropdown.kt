@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.github.gmathi.novellibrary.stubs.theme.NovelLibraryBaseTheme
 
 /**
  * Selection settings item with a dropdown menu.
@@ -119,7 +120,7 @@ fun <T> SettingsDropdown(
 @Preview(name = "Basic Dropdown", showBackground = true)
 @Composable
 private fun PreviewSettingsDropdownBasic() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsDropdown(
             title = "Theme",
             selectedValue = "Light",
@@ -132,7 +133,7 @@ private fun PreviewSettingsDropdownBasic() {
 @Preview(name = "With Description", showBackground = true)
 @Composable
 private fun PreviewSettingsDropdownWithDescription() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsDropdown(
             title = "Language",
             description = "Select your preferred language",
@@ -146,7 +147,7 @@ private fun PreviewSettingsDropdownWithDescription() {
 @Preview(name = "With Icon", showBackground = true)
 @Composable
 private fun PreviewSettingsDropdownWithIcon() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsDropdown(
             title = "App Language",
             description = "Choose your preferred language",
@@ -161,7 +162,7 @@ private fun PreviewSettingsDropdownWithIcon() {
 @Preview(name = "Reader Theme", showBackground = true)
 @Composable
 private fun PreviewSettingsDropdownReaderTheme() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsDropdown(
             title = "Reader Theme",
             description = "Customize your reading experience",
@@ -178,7 +179,7 @@ private fun PreviewSettingsDropdownReaderTheme() {
 private fun PreviewSettingsDropdownCustomType() {
     data class FontOption(val name: String, val size: Int)
     
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsDropdown(
             title = "Font",
             description = "Select reading font",
@@ -197,7 +198,7 @@ private fun PreviewSettingsDropdownCustomType() {
 @Preview(name = "Disabled State", showBackground = true)
 @Composable
 private fun PreviewSettingsDropdownDisabled() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsDropdown(
             title = "Premium Theme",
             description = "Available in premium version",
@@ -213,16 +214,14 @@ private fun PreviewSettingsDropdownDisabled() {
 @Preview(name = "Dark Theme", showBackground = true)
 @Composable
 private fun PreviewSettingsDropdownDark() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
-            SettingsDropdown(
-                title = "Language",
-                description = "Select your preferred language",
-                icon = Icons.Default.Language,
-                selectedValue = "English",
-                options = listOf("English", "Spanish", "French", "German"),
-                onOptionSelected = {}
-            )
-        }
+    NovelLibraryBaseTheme(darkTheme = true) {
+        SettingsDropdown(
+            title = "Language",
+            description = "Select your preferred language",
+            icon = Icons.Default.Language,
+            selectedValue = "English",
+            options = listOf("English", "Spanish", "French", "German"),
+            onOptionSelected = {}
+        )
     }
 }

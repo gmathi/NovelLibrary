@@ -13,6 +13,7 @@ import io.github.gmathi.novellibrary.settings.data.repository.SettingsRepository
 import io.github.gmathi.novellibrary.settings.ui.components.*
 import io.github.gmathi.novellibrary.settings.viewmodel.BackupSettingsViewModel
 import io.github.gmathi.novellibrary.settings.viewmodel.SyncSettingsViewModel
+import io.github.gmathi.novellibrary.stubs.theme.NovelLibraryBaseTheme
 
 /**
  * Backup and Sync Settings Screen with Tabbed Interface
@@ -303,7 +304,7 @@ private fun ColumnScope.SyncTabContent(
 )
 @Composable
 private fun PreviewBackupAndSyncScreenFullLight() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         BackupAndSyncScreen(
             backupViewModel = createPreviewBackupViewModel(),
             syncViewModel = createPreviewSyncViewModel(),
@@ -319,21 +320,19 @@ private fun PreviewBackupAndSyncScreenFullLight() {
 )
 @Composable
 private fun PreviewBackupAndSyncScreenFullDark() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
-            BackupAndSyncScreen(
-                backupViewModel = createPreviewBackupViewModel(),
-                syncViewModel = createPreviewSyncViewModel(),
-                onNavigateBack = {}
-            )
-        }
+    NovelLibraryBaseTheme(darkTheme = true) {
+        BackupAndSyncScreen(
+            backupViewModel = createPreviewBackupViewModel(),
+            syncViewModel = createPreviewSyncViewModel(),
+            onNavigateBack = {}
+        )
     }
 }
 
 @Preview(name = "Backup and Sync Screen - Backup Tab", showBackground = true)
 @Composable
 private fun PreviewBackupAndSyncScreenBackupTab() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         BackupAndSyncScreen(
             backupViewModel = createPreviewBackupViewModel(),
             syncViewModel = createPreviewSyncViewModel(),
@@ -345,7 +344,7 @@ private fun PreviewBackupAndSyncScreenBackupTab() {
 @Preview(name = "Backup and Sync Screen - Sync Tab", showBackground = true)
 @Composable
 private fun PreviewBackupAndSyncScreenSyncTab() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         BackupAndSyncScreen(
             backupViewModel = createPreviewBackupViewModel(),
             syncViewModel = createPreviewSyncViewModel(),
@@ -357,14 +356,12 @@ private fun PreviewBackupAndSyncScreenSyncTab() {
 @Preview(name = "Backup and Sync Dark", showBackground = true)
 @Composable
 private fun PreviewBackupAndSyncScreenDark() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
-            BackupAndSyncScreen(
-                backupViewModel = createPreviewBackupViewModel(),
-                syncViewModel = createPreviewSyncViewModel(),
-                onNavigateBack = {}
-            )
-        }
+    NovelLibraryBaseTheme(darkTheme = true) {
+        BackupAndSyncScreen(
+            backupViewModel = createPreviewBackupViewModel(),
+            syncViewModel = createPreviewSyncViewModel(),
+            onNavigateBack = {}
+        )
     }
 }
 

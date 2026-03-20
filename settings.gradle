@@ -23,5 +23,6 @@ rootProject.name = "NovelLibrary"
 include ':core'
 include ':util'
 include ':common'
+include ':stubs'
 include ':app'
 include ':settings'

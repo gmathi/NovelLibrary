@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.github.gmathi.novellibrary.stubs.theme.NovelLibraryBaseTheme
 import kotlin.math.roundToInt
 
 /**
@@ -139,7 +140,7 @@ fun SettingsSlider(
 @Preview(name = "Basic Slider", showBackground = true)
 @Composable
 private fun PreviewSettingsSliderBasic() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsSlider(
             title = "Text Size",
             value = 16f,
@@ -152,7 +153,7 @@ private fun PreviewSettingsSliderBasic() {
 @Preview(name = "With Description", showBackground = true)
 @Composable
 private fun PreviewSettingsSliderWithDescription() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsSlider(
             title = "Text Size",
             description = "Adjust the reading text size",
@@ -166,7 +167,7 @@ private fun PreviewSettingsSliderWithDescription() {
 @Preview(name = "With Icon", showBackground = true)
 @Composable
 private fun PreviewSettingsSliderWithIcon() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsSlider(
             title = "Text Size",
             description = "Adjust the reading text size",
@@ -181,7 +182,7 @@ private fun PreviewSettingsSliderWithIcon() {
 @Preview(name = "With Steps", showBackground = true)
 @Composable
 private fun PreviewSettingsSliderWithSteps() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsSlider(
             title = "Scroll Speed",
             description = "Control auto-scroll speed",
@@ -197,7 +198,7 @@ private fun PreviewSettingsSliderWithSteps() {
 @Preview(name = "Custom Formatter", showBackground = true)
 @Composable
 private fun PreviewSettingsSliderCustomFormatter() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsSlider(
             title = "Volume",
             description = "Adjust TTS volume level",
@@ -213,7 +214,7 @@ private fun PreviewSettingsSliderCustomFormatter() {
 @Preview(name = "Without Value Label", showBackground = true)
 @Composable
 private fun PreviewSettingsSliderNoValue() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsSlider(
             title = "Line Spacing",
             description = "Adjust space between lines",
@@ -228,7 +229,7 @@ private fun PreviewSettingsSliderNoValue() {
 @Preview(name = "Disabled State", showBackground = true)
 @Composable
 private fun PreviewSettingsSliderDisabled() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsSlider(
             title = "Premium Setting",
             description = "Available in premium version",
@@ -244,17 +245,15 @@ private fun PreviewSettingsSliderDisabled() {
 @Preview(name = "Dark Theme", showBackground = true)
 @Composable
 private fun PreviewSettingsSliderDark() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
-            SettingsSlider(
-                title = "Text Size",
-                description = "Adjust the reading text size",
-                icon = Icons.Default.FormatSize,
-                value = 18f,
-                onValueChange = {},
-                valueRange = 12f..24f,
-                steps = 11
-            )
-        }
+    NovelLibraryBaseTheme(darkTheme = true) {
+        SettingsSlider(
+            title = "Text Size",
+            description = "Adjust the reading text size",
+            icon = Icons.Default.FormatSize,
+            value = 18f,
+            onValueChange = {},
+            valueRange = 12f..24f,
+            steps = 11
+        )
     }
 }

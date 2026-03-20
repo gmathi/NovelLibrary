@@ -7,11 +7,11 @@ import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Surface
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
+import io.github.gmathi.novellibrary.stubs.theme.NovelLibraryBaseTheme
 
 /**
  * Boolean settings item with a switch control.
@@ -65,7 +65,7 @@ fun SettingsSwitch(
 @Preview(name = "Switch Checked", showBackground = true)
 @Composable
 private fun PreviewSettingsSwitchChecked() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsSwitch(
             title = "Enable Notifications",
             checked = true,
@@ -77,7 +77,7 @@ private fun PreviewSettingsSwitchChecked() {
 @Preview(name = "Switch Unchecked", showBackground = true)
 @Composable
 private fun PreviewSettingsSwitchUnchecked() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsSwitch(
             title = "Enable Notifications",
             checked = false,
@@ -89,7 +89,7 @@ private fun PreviewSettingsSwitchUnchecked() {
 @Preview(name = "With Description Checked", showBackground = true)
 @Composable
 private fun PreviewSettingsSwitchWithDescription() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsSwitch(
             title = "Auto Sync",
             description = "Automatically sync your reading progress",
@@ -102,7 +102,7 @@ private fun PreviewSettingsSwitchWithDescription() {
 @Preview(name = "With Icon Checked", showBackground = true)
 @Composable
 private fun PreviewSettingsSwitchWithIcon() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsSwitch(
             title = "Push Notifications",
             description = "Receive notifications for new chapters",
@@ -116,7 +116,7 @@ private fun PreviewSettingsSwitchWithIcon() {
 @Preview(name = "Disabled Checked", showBackground = true)
 @Composable
 private fun PreviewSettingsSwitchDisabledChecked() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsSwitch(
             title = "Premium Feature",
             description = "Available in premium version",
@@ -131,7 +131,7 @@ private fun PreviewSettingsSwitchDisabledChecked() {
 @Preview(name = "Disabled Unchecked", showBackground = true)
 @Composable
 private fun PreviewSettingsSwitchDisabledUnchecked() {
-    MaterialTheme {
+    NovelLibraryBaseTheme {
         SettingsSwitch(
             title = "Premium Feature",
             description = "Available in premium version",
@@ -146,15 +146,13 @@ private fun PreviewSettingsSwitchDisabledUnchecked() {
 @Preview(name = "Dark Theme", showBackground = true)
 @Composable
 private fun PreviewSettingsSwitchDark() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface {
-            SettingsSwitch(
-                title = "Volume Key Navigation",
-                description = "Use volume keys to navigate pages",
-                icon = Icons.Default.VolumeUp,
-                checked = true,
-                onCheckedChange = {}
-            )
-        }
+    NovelLibraryBaseTheme(darkTheme = true) {
+        SettingsSwitch(
+            title = "Volume Key Navigation",
+            description = "Use volume keys to navigate pages",
+            icon = Icons.Default.VolumeUp,
+            checked = true,
+            onCheckedChange = {}
+        )
     }
 }
