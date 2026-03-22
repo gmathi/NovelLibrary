@@ -1,5 +1,10 @@
 package io.github.gmathi.novellibrary.settings.ui.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -87,6 +92,9 @@ sealed class SettingsRoute(val route: String) {
  * @param onOpenPrivacyPolicy Callback to open privacy policy
  * @param onOpenTermsOfService Callback to open terms of service
  * @param onCheckForUpdates Callback to check for app updates
+ * @param onCreateBackup Callback to trigger local backup creation (launches file picker)
+ * @param onRestoreBackup Callback to trigger local backup restoration (launches file picker)
+ * @param onConfigureGoogleDrive Callback to configure Google Drive backup
  * @param modifier Modifier for the navigation host
  */
 @Composable
@@ -107,12 +115,24 @@ fun SettingsNavGraph(
     onOpenPrivacyPolicy: () -> Unit,
     onOpenTermsOfService: () -> Unit,
     onCheckForUpdates: () -> Unit,
+    onCreateBackup: () -> Unit = {},
+    onRestoreBackup: () -> Unit = {},
+    onConfigureGoogleDrive: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val enterAnim = slideInHorizontally(tween(300)) { it } + fadeIn(tween(300))
+    val exitAnim = slideOutHorizontally(tween(300)) { -it / 3 } + fadeOut(tween(150))
+    val popEnterAnim = slideInHorizontally(tween(300)) { -it / 3 } + fadeIn(tween(300))
+    val popExitAnim = slideOutHorizontally(tween(300)) { it } + fadeOut(tween(150))
+
     NavHost(
         navController = navController,
         startDestination = SettingsRoute.Main.route,
-        modifier = modifier
+        modifier = modifier,
+        enterTransition = { enterAnim },
+        exitTransition = { exitAnim },
+        popEnterTransition = { popEnterAnim },
+        popExitTransition = { popExitAnim }
     ) {
         // Main Settings Screen
         composable(SettingsRoute.Main.route) {
@@ -151,15 +171,9 @@ fun SettingsNavGraph(
                 backupViewModel = backupSettingsViewModel,
                 syncViewModel = syncSettingsViewModel,
                 onNavigateBack = { navController.popBackStack() },
-                onCreateBackup = {
-                    // TODO: Implement backup creation logic
-                },
-                onRestoreBackup = {
-                    // TODO: Implement backup restoration logic
-                },
-                onConfigureGoogleDrive = {
-                    // TODO: Implement Google Drive configuration
-                },
+                onCreateBackup = onCreateBackup,
+                onRestoreBackup = onRestoreBackup,
+                onConfigureGoogleDrive = onConfigureGoogleDrive,
                 onSyncLogin = {
                     // TODO: Show sync login dialog
                 }

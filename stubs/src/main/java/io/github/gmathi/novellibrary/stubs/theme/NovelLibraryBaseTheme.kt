@@ -38,7 +38,9 @@ fun NovelLibraryBaseTheme(
                 val context = view.context
                 if (context is Activity) {
                     val window = context.window
-                    window.statusBarColor = colorScheme.primary.toArgb()
+                    // Use surface color for status bar to blend with the app bar
+                    window.statusBarColor = colorScheme.surface.toArgb()
+                    window.navigationBarColor = colorScheme.surface.toArgb()
                     WindowCompat.getInsetsController(window, view)
                         .isAppearanceLightStatusBars = !darkTheme
                 }

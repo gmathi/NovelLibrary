@@ -69,6 +69,8 @@ firebaseUi = "8.0.2"
 playServicesGcm = "17.0.0"
 playServicesDrive = "17.0.0"
 playServicesAuth = "21.3.0"
+googleApiClient = "1.33.2"
+googleApiDrive = "v3-rev20240123-2.0.0"
 
 # Utilities
 eventbus = "3.3.1"
@@ -185,6 +187,8 @@ firebase-ui-auth = { module = "com.firebaseui:firebase-ui-auth", version.ref = "
 play-services-gcm = { module = "com.google.android.gms:play-services-gcm", version.ref = "playServicesGcm" }
 play-services-drive = { module = "com.google.android.gms:play-services-drive", version.ref = "playServicesDrive" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+google-api-client-android = { module = "com.google.api-client:google-api-client-android", version.ref = "googleApiClient" }
+google-api-services-drive = { module = "com.google.apis:google-api-services-drive", version.ref = "googleApiDrive" }
 
 # Utilities
 eventbus = { module = "org.greenrobot:eventbus", version.ref = "eventbus" }

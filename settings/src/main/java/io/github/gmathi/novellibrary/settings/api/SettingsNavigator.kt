@@ -118,7 +118,10 @@ object SettingsNavigator {
         onNavigateToLicenses: () -> Unit,
         onOpenPrivacyPolicy: () -> Unit,
         onOpenTermsOfService: () -> Unit,
-        onCheckForUpdates: () -> Unit
+        onCheckForUpdates: () -> Unit,
+        onCreateBackup: () -> Unit = {},
+        onRestoreBackup: () -> Unit = {},
+        onConfigureGoogleDrive: () -> Unit = {}
     ) {
         navGraphBuilder.composable(SETTINGS_ROUTE) {
             SettingsNavGraph(
@@ -136,7 +139,10 @@ object SettingsNavigator {
                 onNavigateToLicenses = onNavigateToLicenses,
                 onOpenPrivacyPolicy = onOpenPrivacyPolicy,
                 onOpenTermsOfService = onOpenTermsOfService,
-                onCheckForUpdates = onCheckForUpdates
+                onCheckForUpdates = onCheckForUpdates,
+                onCreateBackup = onCreateBackup,
+                onRestoreBackup = onRestoreBackup,
+                onConfigureGoogleDrive = onConfigureGoogleDrive
             )
         }
     }

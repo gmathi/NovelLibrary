@@ -91,6 +91,15 @@ class SettingsActivity : ComponentActivity() {
                     },
                     onCheckForUpdates = {
                         // TODO: Implement update checking - this requires app-specific logic
+                    },
+                    onCreateBackup = {
+                        startActivity(Intent(this, Class.forName("io.github.gmathi.novellibrary.activity.settings.BackupSettingsActivity")))
+                    },
+                    onRestoreBackup = {
+                        startActivity(Intent(this, Class.forName("io.github.gmathi.novellibrary.activity.settings.BackupSettingsActivity")))
+                    },
+                    onConfigureGoogleDrive = {
+                        startActivity(Intent(this, Class.forName("io.github.gmathi.novellibrary.activity.settings.GoogleBackupActivity")))
                     }
                 )
             }
@@ -114,7 +123,10 @@ private fun SettingsActivityContent(
     onNavigateToLicenses: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
     onOpenTermsOfService: () -> Unit,
-    onCheckForUpdates: () -> Unit
+    onCheckForUpdates: () -> Unit,
+    onCreateBackup: () -> Unit = {},
+    onRestoreBackup: () -> Unit = {},
+    onConfigureGoogleDrive: () -> Unit = {}
 ) {
     val navController = rememberNavController()
     
@@ -134,6 +146,9 @@ private fun SettingsActivityContent(
         onNavigateToLicenses = onNavigateToLicenses,
         onOpenPrivacyPolicy = onOpenPrivacyPolicy,
         onOpenTermsOfService = onOpenTermsOfService,
-        onCheckForUpdates = onCheckForUpdates
+        onCheckForUpdates = onCheckForUpdates,
+        onCreateBackup = onCreateBackup,
+        onRestoreBackup = onRestoreBackup,
+        onConfigureGoogleDrive = onConfigureGoogleDrive
     )
 }

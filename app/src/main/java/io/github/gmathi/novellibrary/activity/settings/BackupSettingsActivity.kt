@@ -190,6 +190,10 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     }.positiveButton(R.string.okay)
                 }
             }
+
+            getString(R.string.google_drive_backup) -> {
+                startActivity(Intent(this, GoogleBackupActivity::class.java))
+            }
         }
     }
 

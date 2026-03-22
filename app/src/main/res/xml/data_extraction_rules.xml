@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
     <cloud-backup>
+        <include domain="sharedpref" path="." />
+        <include domain="database" path="." />
+        <include domain="file" path="images" />
     </cloud-backup>
 </data-extraction-rules>
