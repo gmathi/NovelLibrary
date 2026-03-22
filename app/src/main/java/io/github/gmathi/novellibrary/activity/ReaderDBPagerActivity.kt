@@ -69,6 +69,8 @@ class ReaderDBPagerActivity :
     BaseActivity(),
     ViewPager.OnPageChangeListener, NavigationView.OnNavigationItemSelectedListener {
 
+    override val skipWindowInsets: Boolean = true
+
 
     companion object {
         private const val TAG = "ReaderDBPagerActivity"
