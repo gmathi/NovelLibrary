@@ -63,6 +63,7 @@ class SettingsDataStore(private val context: Context) : ISettingsDataStore {
         val ENABLE_NOTIFICATIONS = booleanPreferencesKey("enableNotifications")
         val SHOW_CHAPTERS_LEFT_BADGE = booleanPreferencesKey("showChaptersLeftBadge")
         val IS_DEVELOPER = booleanPreferencesKey("developer")
+        val NETWORK_TIMEOUT_SECONDS = intPreferencesKey("networkTimeoutSeconds")
         //endregion
         
         //region TTS Settings Keys
@@ -309,6 +310,13 @@ class SettingsDataStore(private val context: Context) : ISettingsDataStore {
     override val isDeveloper: Flow<Boolean> = context.dataStore.data
         .catch { exception -> handleException(exception) }
         .map { preferences -> preferences[IS_DEVELOPER] ?: false }
+    
+    /**
+     * Network timeout in seconds.
+     */
+    override val networkTimeoutSeconds: Flow<Int> = context.dataStore.data
+        .catch { exception -> handleException(exception) }
+        .map { preferences -> preferences[NETWORK_TIMEOUT_SECONDS] ?: 30 }
     
     //endregion
     

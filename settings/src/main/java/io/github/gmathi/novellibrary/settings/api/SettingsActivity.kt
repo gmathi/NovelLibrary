@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.settings.api
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -47,24 +46,25 @@ open class SettingsActivity : ComponentActivity() {
     private val signInLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            try {
-                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-                val account = task.getResult(ApiException::class.java)
-                backupSettingsViewModel.setGdAccountEmail(account.email ?: "-")
+        try {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            val account = task.getResult(ApiException::class.java)
+            backupSettingsViewModel.setGdAccountEmail(account.email ?: "-")
 
-                when (pendingAction) {
-                    PendingAction.BACKUP -> pendingOptions?.let {
-                        onExecuteGoogleDriveBackup(it[0], it[1], it[2], it[3])
-                    }
-                    PendingAction.RESTORE -> pendingOptions?.let {
-                        onExecuteGoogleDriveRestore(it[0], it[1], it[2], it[3])
-                    }
-                    null -> {}
+            when (pendingAction) {
+                PendingAction.BACKUP -> pendingOptions?.let {
+                    onExecuteGoogleDriveBackup(it[0], it[1], it[2], it[3])
                 }
-                pendingAction = null
-                pendingOptions = null
-            } catch (_: ApiException) { }
+                PendingAction.RESTORE -> pendingOptions?.let {
+                    onExecuteGoogleDriveRestore(it[0], it[1], it[2], it[3])
+                }
+                null -> {}
+            }
+        } catch (_: ApiException) {
+            // Sign-in failed or was cancelled
+        } finally {
+            pendingAction = null
+            pendingOptions = null
         }
     }
 
@@ -143,7 +143,23 @@ open class SettingsActivity : ComponentActivity() {
                             onExecuteGoogleDriveRestore(s, d, p, f)
                         }
                     },
-                    onRefreshBackupInfo = { refreshBackupInfo() }
+                    onRefreshBackupInfo = { refreshBackupInfo() },
+                    onSyncLogin = {
+                        try {
+                            startActivity(Intent(this, Class.forName("io.github.gmathi.novellibrary.activity.settings.SyncSettingsActivity")))
+                        } catch (_: ClassNotFoundException) { }
+                    },
+                    onClearCache = {
+                        onCacheClearRequested()
+                    },
+                    onResetSettings = {
+                        onResetSettingsRequested()
+                    },
+                    onCloudflareBypass = {
+                        try {
+                            startActivity(Intent(this, Class.forName("io.github.gmathi.novellibrary.activity.settings.CloudFlareBypassActivity")))
+                        } catch (_: ClassNotFoundException) { }
+                    }
                 )
             }
         }
@@ -179,6 +195,20 @@ open class SettingsActivity : ComponentActivity() {
     protected open fun onExecuteGoogleDriveRestore(
         simpleText: Boolean, database: Boolean, preferences: Boolean, files: Boolean
     ) {}
+
+    /**
+     * Called when the user requests to clear the app cache.
+     * Override in app module subclass to perform actual cache clearing.
+     */
+    protected open fun onCacheClearRequested() {
+        cacheDir.deleteRecursively()
+    }
+
+    /**
+     * Called when the user requests to reset all settings to defaults.
+     * Override in app module subclass to perform actual settings reset.
+     */
+    protected open fun onResetSettingsRequested() {}
 }
 
 @Composable
@@ -204,7 +234,11 @@ private fun SettingsActivityContent(
     onGoogleSignOut: () -> Unit = {},
     onGoogleDriveBackup: (Boolean, Boolean, Boolean, Boolean) -> Unit = { _, _, _, _ -> },
     onGoogleDriveRestore: (Boolean, Boolean, Boolean, Boolean) -> Unit = { _, _, _, _ -> },
-    onRefreshBackupInfo: () -> Unit = {}
+    onRefreshBackupInfo: () -> Unit = {},
+    onSyncLogin: () -> Unit = {},
+    onClearCache: () -> Unit = {},
+    onResetSettings: () -> Unit = {},
+    onCloudflareBypass: () -> Unit = {}
 ) {
     val navController = rememberNavController()
 
@@ -231,6 +265,10 @@ private fun SettingsActivityContent(
         onGoogleSignOut = onGoogleSignOut,
         onGoogleDriveBackup = onGoogleDriveBackup,
         onGoogleDriveRestore = onGoogleDriveRestore,
-        onRefreshBackupInfo = onRefreshBackupInfo
+        onRefreshBackupInfo = onRefreshBackupInfo,
+        onSyncLogin = onSyncLogin,
+        onClearCache = onClearCache,
+        onResetSettings = onResetSettings,
+        onCloudflareBypass = onCloudflareBypass
     )
 }

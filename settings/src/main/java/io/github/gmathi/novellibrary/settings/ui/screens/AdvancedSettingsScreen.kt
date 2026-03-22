@@ -1,17 +1,30 @@
 package io.github.gmathi.novellibrary.settings.ui.screens
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import io.github.gmathi.novellibrary.stubs.theme.NovelLibraryBaseTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import io.github.gmathi.novellibrary.settings.ui.components.*
 import io.github.gmathi.novellibrary.settings.viewmodel.AdvancedSettingsViewModel
+import kotlin.math.roundToInt
 
 /**
  * Advanced Settings Screen
@@ -45,6 +58,7 @@ fun AdvancedSettingsScreen(
     // Collect state from ViewModel
     val javascriptDisabled by viewModel.javascriptDisabled.collectAsState()
     val isDeveloper by viewModel.isDeveloper.collectAsState()
+    val networkTimeoutSeconds by viewModel.networkTimeoutSeconds.collectAsState()
     
     SettingsScreen(
         title = "Advanced Settings",
@@ -56,6 +70,8 @@ fun AdvancedSettingsScreen(
             onJavascriptDisabledChange = viewModel::setJavascriptDisabled,
             isDeveloper = isDeveloper,
             onIsDeveloperChange = viewModel::setIsDeveloper,
+            networkTimeoutSeconds = networkTimeoutSeconds,
+            onNetworkTimeoutChange = viewModel::setNetworkTimeoutSeconds,
             onClearCache = onClearCache,
             onResetSettings = onResetSettings,
             onCloudflareBypass = onCloudflareBypass
@@ -75,10 +91,17 @@ private fun ColumnScope.AdvancedSettingsContent(
     onJavascriptDisabledChange: (Boolean) -> Unit,
     isDeveloper: Boolean,
     onIsDeveloperChange: (Boolean) -> Unit,
+    networkTimeoutSeconds: Int,
+    onNetworkTimeoutChange: (Int) -> Unit,
     onClearCache: () -> Unit,
     onResetSettings: () -> Unit,
     onCloudflareBypass: () -> Unit
 ) {
+    // Dialog states
+    var showNetworkTimeoutDialog by remember { mutableStateOf(false) }
+    var showCacheManagementDialog by remember { mutableStateOf(false) }
+    var showDataMigrationDialog by remember { mutableStateOf(false) }
+    
     // Section 1: Network
     SettingsSection(title = "Network") {
         SettingsItem(
@@ -98,9 +121,9 @@ private fun ColumnScope.AdvancedSettingsContent(
         
         SettingsItem(
             title = "Network Timeout",
-            description = "Configure network request timeout settings",
+            description = "Current: ${networkTimeoutSeconds}s",
             icon = Icons.Default.Timer,
-            onClick = { /* TODO: Implement network timeout configuration */ }
+            onClick = { showNetworkTimeoutDialog = true }
         )
     }
     
@@ -117,7 +140,7 @@ private fun ColumnScope.AdvancedSettingsContent(
             title = "Cache Management",
             description = "View and manage cached content",
             icon = Icons.Default.Storage,
-            onClick = { /* TODO: Implement cache management */ }
+            onClick = { showCacheManagementDialog = true }
         )
     }
     
@@ -146,7 +169,7 @@ private fun ColumnScope.AdvancedSettingsContent(
             title = "Data Migration Tools",
             description = "Import or export app data",
             icon = Icons.Default.ImportExport,
-            onClick = { /* TODO: Implement data migration */ }
+            onClick = { showDataMigrationDialog = true }
         )
         
         SettingsItem(
@@ -156,6 +179,113 @@ private fun ColumnScope.AdvancedSettingsContent(
             onClick = onResetSettings
         )
     }
+    
+    // Network Timeout Dialog
+    if (showNetworkTimeoutDialog) {
+        NetworkTimeoutDialog(
+            currentTimeout = networkTimeoutSeconds,
+            onDismiss = { showNetworkTimeoutDialog = false },
+            onConfirm = { newTimeout ->
+                onNetworkTimeoutChange(newTimeout)
+                showNetworkTimeoutDialog = false
+            }
+        )
+    }
+    
+    // Cache Management Dialog
+    if (showCacheManagementDialog) {
+        AlertDialog(
+            onDismissRequest = { showCacheManagementDialog = false },
+            title = { Text("Cache Management") },
+            text = {
+                Column {
+                    Text(
+                        text = "Cached content includes downloaded chapters, images, and web data.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Use \"Clear Cache\" to remove all cached data and free up storage space.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showCacheManagementDialog = false
+                    onClearCache()
+                }) {
+                    Text("Clear Cache")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCacheManagementDialog = false }) {
+                    Text("Close")
+                }
+            }
+        )
+    }
+    
+    // Data Migration Dialog
+    if (showDataMigrationDialog) {
+        AlertDialog(
+            onDismissRequest = { showDataMigrationDialog = false },
+            title = { Text("Data Migration") },
+            text = {
+                Text(
+                    text = "Use Backup & Sync settings to import or export your library data, reading progress, and preferences.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showDataMigrationDialog = false }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+}
+
+/**
+ * Dialog for configuring network timeout with a slider.
+ */
+@Composable
+private fun NetworkTimeoutDialog(
+    currentTimeout: Int,
+    onDismiss: () -> Unit,
+    onConfirm: (Int) -> Unit
+) {
+    var sliderValue by remember { mutableFloatStateOf(currentTimeout.toFloat()) }
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Network Timeout") },
+        text = {
+            Column {
+                Text(
+                    text = "Set the timeout for network requests (${sliderValue.roundToInt()} seconds)",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Slider(
+                    value = sliderValue,
+                    onValueChange = { sliderValue = it },
+                    valueRange = 10f..120f,
+                    steps = 10
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(sliderValue.roundToInt()) }) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 // ============================================================================
@@ -179,6 +309,8 @@ private fun PreviewAdvancedSettingsScreenFullLight() {
                 onJavascriptDisabledChange = {},
                 isDeveloper = false,
                 onIsDeveloperChange = {},
+                networkTimeoutSeconds = 30,
+                onNetworkTimeoutChange = {},
                 onClearCache = {},
                 onResetSettings = {},
                 onCloudflareBypass = {}
@@ -204,6 +336,8 @@ private fun PreviewAdvancedSettingsScreenFullDark() {
                 onJavascriptDisabledChange = {},
                 isDeveloper = true,
                 onIsDeveloperChange = {},
+                networkTimeoutSeconds = 60,
+                onNetworkTimeoutChange = {},
                 onClearCache = {},
                 onResetSettings = {},
                 onCloudflareBypass = {}
@@ -225,6 +359,8 @@ private fun PreviewAdvancedSettingsContent() {
                 onJavascriptDisabledChange = {},
                 isDeveloper = false,
                 onIsDeveloperChange = {},
+                networkTimeoutSeconds = 30,
+                onNetworkTimeoutChange = {},
                 onClearCache = {},
                 onResetSettings = {},
                 onCloudflareBypass = {}
@@ -246,6 +382,8 @@ private fun PreviewAdvancedSettingsContentDark() {
                 onJavascriptDisabledChange = {},
                 isDeveloper = true,
                 onIsDeveloperChange = {},
+                networkTimeoutSeconds = 60,
+                onNetworkTimeoutChange = {},
                 onClearCache = {},
                 onResetSettings = {},
                 onCloudflareBypass = {}

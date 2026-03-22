@@ -100,6 +100,10 @@ sealed class SettingsRoute(val route: String) {
  * @param onGoogleDriveBackup Callback to trigger Google Drive backup with selected options
  * @param onGoogleDriveRestore Callback to trigger Google Drive restore with selected options
  * @param onRefreshBackupInfo Callback to refresh Google Drive backup info
+ * @param onSyncLogin Callback to show sync login dialog/screen
+ * @param onClearCache Callback to clear app cache
+ * @param onResetSettings Callback to reset all settings to defaults
+ * @param onCloudflareBypass Callback to open Cloudflare bypass configuration
  * @param modifier Modifier for the navigation host
  */
 @Composable
@@ -128,6 +132,10 @@ fun SettingsNavGraph(
     onGoogleDriveBackup: (simpleText: Boolean, database: Boolean, preferences: Boolean, files: Boolean) -> Unit = { _, _, _, _ -> },
     onGoogleDriveRestore: (simpleText: Boolean, database: Boolean, preferences: Boolean, files: Boolean) -> Unit = { _, _, _, _ -> },
     onRefreshBackupInfo: () -> Unit = {},
+    onSyncLogin: () -> Unit = {},
+    onClearCache: () -> Unit = {},
+    onResetSettings: () -> Unit = {},
+    onCloudflareBypass: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val enterAnim = slideInHorizontally(tween(300)) { it } + fadeIn(tween(300))
@@ -189,9 +197,7 @@ fun SettingsNavGraph(
                 onGoogleDriveBackup = onGoogleDriveBackup,
                 onGoogleDriveRestore = onGoogleDriveRestore,
                 onRefreshBackupInfo = onRefreshBackupInfo,
-                onSyncLogin = {
-                    // TODO: Show sync login dialog
-                }
+                onSyncLogin = onSyncLogin
             )
         }
         
@@ -208,15 +214,9 @@ fun SettingsNavGraph(
             AdvancedSettingsScreen(
                 viewModel = advancedSettingsViewModel,
                 onNavigateBack = { navController.popBackStack() },
-                onClearCache = {
-                    // TODO: Implement cache clearing logic
-                },
-                onResetSettings = {
-                    // TODO: Implement settings reset logic
-                },
-                onCloudflareBypass = {
-                    // TODO: Implement Cloudflare bypass navigation
-                }
+                onClearCache = onClearCache,
+                onResetSettings = onResetSettings,
+                onCloudflareBypass = onCloudflareBypass
             )
         }
         

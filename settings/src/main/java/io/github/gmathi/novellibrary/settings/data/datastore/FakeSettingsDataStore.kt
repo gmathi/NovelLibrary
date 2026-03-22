@@ -48,6 +48,7 @@ class FakeSettingsDataStore : ISettingsDataStore {
     override val enableNotifications = MutableStateFlow(true)
     override val showChaptersLeftBadge = MutableStateFlow(false)
     override val isDeveloper = MutableStateFlow(false)
+    override val networkTimeoutSeconds = MutableStateFlow(30)
     //endregion
     
     //region TTS Settings

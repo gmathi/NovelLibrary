@@ -308,6 +308,15 @@ class SettingsRepositoryDataStore(private val dataStore: ISettingsDataStore) {
         dataStore.updateBoolean(SettingsDataStore.IS_DEVELOPER, value)
     }
     
+    /**
+     * Network timeout in seconds.
+     */
+    val networkTimeoutSeconds: Flow<Int> = dataStore.networkTimeoutSeconds
+    
+    suspend fun setNetworkTimeoutSeconds(value: Int) {
+        dataStore.updateInt(SettingsDataStore.NETWORK_TIMEOUT_SECONDS, value)
+    }
+    
     //endregion
     
     //region TTS Settings

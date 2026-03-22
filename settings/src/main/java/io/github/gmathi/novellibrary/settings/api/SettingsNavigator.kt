@@ -126,7 +126,11 @@ object SettingsNavigator {
         onGoogleSignOut: () -> Unit = {},
         onGoogleDriveBackup: (simpleText: Boolean, database: Boolean, preferences: Boolean, files: Boolean) -> Unit = { _, _, _, _ -> },
         onGoogleDriveRestore: (simpleText: Boolean, database: Boolean, preferences: Boolean, files: Boolean) -> Unit = { _, _, _, _ -> },
-        onRefreshBackupInfo: () -> Unit = {}
+        onRefreshBackupInfo: () -> Unit = {},
+        onSyncLogin: () -> Unit = {},
+        onClearCache: () -> Unit = {},
+        onResetSettings: () -> Unit = {},
+        onCloudflareBypass: () -> Unit = {}
     ) {
         navGraphBuilder.composable(SETTINGS_ROUTE) {
             SettingsNavGraph(
@@ -152,7 +156,11 @@ object SettingsNavigator {
                 onGoogleSignOut = onGoogleSignOut,
                 onGoogleDriveBackup = onGoogleDriveBackup,
                 onGoogleDriveRestore = onGoogleDriveRestore,
-                onRefreshBackupInfo = onRefreshBackupInfo
+                onRefreshBackupInfo = onRefreshBackupInfo,
+                onSyncLogin = onSyncLogin,
+                onClearCache = onClearCache,
+                onResetSettings = onResetSettings,
+                onCloudflareBypass = onCloudflareBypass
             )
         }
     }

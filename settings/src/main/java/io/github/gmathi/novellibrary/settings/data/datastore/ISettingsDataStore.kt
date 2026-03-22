@@ -46,6 +46,7 @@ interface ISettingsDataStore {
     val enableNotifications: Flow<Boolean>
     val showChaptersLeftBadge: Flow<Boolean>
     val isDeveloper: Flow<Boolean>
+    val networkTimeoutSeconds: Flow<Int>
     //endregion
     
     //region TTS Settings

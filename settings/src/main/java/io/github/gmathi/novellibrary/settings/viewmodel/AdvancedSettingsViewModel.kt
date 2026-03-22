@@ -51,6 +51,20 @@ class AdvancedSettingsViewModel(
     
     //endregion
     
+    //region Network Settings (continued)
+    
+    /**
+     * Network timeout in seconds.
+     */
+    val networkTimeoutSeconds: StateFlow<Int> = repository.networkTimeoutSeconds
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 30
+        )
+    
+    //endregion
+    
     //region Update Functions
     
     fun setJavascriptDisabled(disabled: Boolean) {
@@ -62,6 +76,12 @@ class AdvancedSettingsViewModel(
     fun setIsDeveloper(enabled: Boolean) {
         viewModelScope.launch {
             repository.setIsDeveloper(enabled)
+        }
+    }
+    
+    fun setNetworkTimeoutSeconds(seconds: Int) {
+        viewModelScope.launch {
+            repository.setNetworkTimeoutSeconds(seconds)
         }
     }
     
