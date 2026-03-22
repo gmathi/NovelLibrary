@@ -138,6 +138,7 @@
         <item>@string/backup_data</item>
         <item>@string/restore_data</item>
         <item>@string/backup_frequency</item>
+        <item>@string/google_drive_backup</item>
     </string-array>
 
     <string-array name="backup_and_restore_subtitles_list" translatable="false">
@@ -145,6 +146,7 @@
         <item>@string/backup_data_description</item>
         <item>@string/restore_data_description</item>
         <item>@string/backup_frequency_description</item>
+        <item>@string/google_drive_backup_description</item>
     </string-array>
 
     <string-array name="reader_mode_menu_titles_list" translatable="false">
@@ -233,6 +235,32 @@
     <string name="title_activity_chapter_downloads" translatable="false">ChapterDownloadsActivity</string>
     <string name="title_activity_web_view" translatable="false">@string/app_name</string>
     <string name="title_activity_google_backup" translatable="false">Google Backup Settings</string>
+
+    <!-- Google Drive Backup strings -->
+    <string name="google_account">Google Account</string>
+    <string name="google_not_signed_in">Not signed in. Tap to sign in with Google.</string>
+    <string name="google_already_signed_in">Signed in as %1$s</string>
+    <string name="google_sign_in_failed">Google Sign-In failed. Please try again.</string>
+    <string name="google_sign_out">Sign Out</string>
+    <string name="google_sign_out_description">Sign out from Google Drive backup</string>
+    <string name="google_sign_out_confirm">Are you sure you want to sign out? You will need to sign in again to use Google Drive backup.</string>
+    <string name="google_drive_backup">Google Drive Backup</string>
+    <string name="google_drive_backup_description">Backup your data to Google Drive</string>
+    <string name="google_drive_restore">Google Drive Restore</string>
+    <string name="google_drive_restore_description">Restore your data from Google Drive</string>
+    <string name="google_drive_restore_warning">This will overwrite your current data with the backup from Google Drive. Are you sure?</string>
+    <string name="google_drive_backup_info">Backup Info</string>
+    <string name="google_drive_backup_info_description">Tap to check Google Drive backup status</string>
+    <string name="google_drive_last_backup_info">Last backup: %1$s\nSize: %2$s</string>
+    <string name="google_drive_no_backup_found">No backup found on Google Drive</string>
+    <string name="google_drive_creating_backup">Creating backup…</string>
+    <string name="google_drive_uploading">Uploading to Google Drive…</string>
+    <string name="google_drive_downloading">Downloading from Google Drive…</string>
+    <string name="google_drive_backup_success">Backup to Google Drive successful</string>
+    <string name="google_drive_backup_fail">Backup to Google Drive failed</string>
+    <string name="google_drive_restore_success">Restore from Google Drive successful</string>
+    <string name="google_drive_restore_fail">Restore from Google Drive failed</string>
+    <string name="google_drive_restore_no_backup">No backup found on Google Drive to restore</string>
     <string name="title_activity_tts_settings" translatable="false">Read Aloud Settings</string>
 
 

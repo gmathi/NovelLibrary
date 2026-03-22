@@ -6,7 +6,7 @@ import android.text.Html
 import android.view.MenuItem
 import android.view.View
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.common.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ActivityMetaDataBinding
 import io.github.gmathi.novellibrary.databinding.ListitemMetadataBinding
 import io.github.gmathi.novellibrary.model.database.Novel

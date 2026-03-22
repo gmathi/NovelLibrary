@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.extensions
 import android.view.View
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.util.view.ProgressLayout
+import io.github.gmathi.novellibrary.util.R as UtilR
 
 
 fun ProgressLayout.showLoading(
@@ -20,7 +21,7 @@ fun ProgressLayout.showLoading(
 
 
 fun ProgressLayout.showEmpty(
-    resId: Int? = R.drawable.ic_warning_white_vector,
+    resId: Int? = UtilR.drawable.ic_warning_white_vector,
     isLottieAnimation: Boolean = false,
     emptyText: String,
     buttonText: String? = null,
@@ -36,7 +37,7 @@ fun ProgressLayout.showEmpty(
 }
 
 fun ProgressLayout.showError(
-    resId: Int? = R.drawable.ic_warning_white_vector,
+    resId: Int? = UtilR.drawable.ic_warning_white_vector,
     isLottieAnimation: Boolean = false,
     errorText: String,
     buttonText: String? = null,

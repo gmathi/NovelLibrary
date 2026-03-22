@@ -25,10 +25,12 @@ import com.google.android.material.snackbar.Snackbar
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.common.R as CommonR
 import io.github.gmathi.novellibrary.activity.BaseActivity
-import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.common.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
-import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
+import io.github.gmathi.novellibrary.util.R as UtilR
+import io.github.gmathi.novellibrary.common.databinding.ListitemTitleSubtitleWidgetBinding
 import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.lang.launchIO
@@ -101,7 +103,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         settingsItems = ArrayList(resources.getStringArray(R.array.backup_and_restore_titles_list).asList())
         settingsItemsDescription = ArrayList(resources.getStringArray(R.array.backup_and_restore_subtitles_list).asList())
         setBackupFrequencyDescription()
-        adapter = GenericAdapter(items = settingsItems, layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
+        adapter = GenericAdapter(items = settingsItems, layoutResId = CommonR.layout.listitem_title_subtitle_widget, listener = this)
         binding.contentRecyclerView.recyclerView.setDefaults(adapter)
         binding.contentRecyclerView.recyclerView.addItemDecoration(CustomDividerItemDecoration(this, DividerItemDecoration.VERTICAL))
         binding.contentRecyclerView.swipeRefreshLayout.isEnabled = false
@@ -188,6 +190,10 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
                     }.positiveButton(R.string.okay)
                 }
             }
+
+            getString(R.string.google_drive_backup) -> {
+                startActivity(Intent(this, GoogleBackupActivity::class.java))
+            }
         }
     }
 
@@ -201,7 +207,7 @@ class BackupSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         super.onDestroy()
     }
 
-    private fun showDialog(title: String? = null, content: String? = null, @DrawableRes iconRes: Int = R.drawable.ic_warning_white_vector) {
+    private fun showDialog(title: String? = null, content: String? = null, @DrawableRes iconRes: Int = UtilR.drawable.ic_warning_white_vector) {
         if (confirmDialog != null && confirmDialog!!.isShowing) confirmDialog!!.dismiss()
 
         MaterialDialog(this).show {

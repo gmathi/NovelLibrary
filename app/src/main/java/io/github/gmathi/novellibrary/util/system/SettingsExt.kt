@@ -8,17 +8,16 @@ import androidx.core.content.ContextCompat
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.BaseActivity
-import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
-import io.github.gmathi.novellibrary.model.ui.ListitemSetting
-import io.github.gmathi.novellibrary.model.ui.SettingItemClickCallback
+import io.github.gmathi.novellibrary.common.model.ListitemSetting
+import io.github.gmathi.novellibrary.common.model.SettingItemClickCallback
+import io.github.gmathi.novellibrary.common.databinding.ListitemTitleSubtitleWidgetBinding
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import kotlin.math.roundToInt
 
 /**
  * Initial setting item binding cleanup
  */
-fun BaseActivity.bindSettingListitemDefaults(itemBinding: ListitemTitleSubtitleWidgetBinding, name: String, description: String, position: Int) {
+fun io.github.gmathi.novellibrary.core.activity.BaseActivity.bindSettingListitemDefaults(itemBinding: ListitemTitleSubtitleWidgetBinding, name: String, description: String, position: Int) {
     itemBinding.blackOverlay.visibility = View.INVISIBLE
     itemBinding.widgetChevron.visibility = View.INVISIBLE
     itemBinding.widgetSwitch.visibility = View.INVISIBLE

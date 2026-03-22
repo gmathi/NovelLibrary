@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.DrawerAdapter
+import io.github.gmathi.novellibrary.common.model.ReaderMenu
 
 class SimpleItem(private var item: ReaderMenu, private var listener: Listener<ReaderMenu>) : DrawerItem<SimpleItem.ViewHolder>() {
 

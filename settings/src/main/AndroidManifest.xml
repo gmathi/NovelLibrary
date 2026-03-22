@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <application>
+        <!-- Compose-based Settings Activity -->
+        <activity
+            android:name=".api.SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
+        
+        <!-- Legacy settings activities will be declared here during migration -->
+    </application>
+    
+</manifest>

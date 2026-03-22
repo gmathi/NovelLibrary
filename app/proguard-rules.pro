@@ -41,3 +41,14 @@
 -keep class com.google.firebase.crashlytics.** { *; }
 -dontwarn com.google.firebase.crashlytics.**
 
+
+# Google API Client
+-keep class com.google.api.** { *; }
+-keep class com.google.api.services.drive.** { *; }
+-dontwarn com.google.api.client.**
+-dontwarn com.google.common.**
+
+# Google Drive REST API
+-keepclassmembers class * {
+  @com.google.api.client.util.Key <fields>;
+}

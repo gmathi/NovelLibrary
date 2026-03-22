@@ -22,7 +22,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.model.other.TTSFilter
 import io.github.gmathi.novellibrary.model.other.TTSFilterList
 import io.github.gmathi.novellibrary.model.other.TTSFilterSource
-import io.github.gmathi.novellibrary.model.ui.ListitemSetting
+import io.github.gmathi.novellibrary.common.model.ListitemSetting
 import io.github.gmathi.novellibrary.service.tts.TTSService
 import io.github.gmathi.novellibrary.util.fromHumanPercentage
 import io.github.gmathi.novellibrary.util.network.safeExecute

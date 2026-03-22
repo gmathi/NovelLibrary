@@ -16,6 +16,8 @@ preference = "1.2.1"
 work = "2.10.0"
 compose-bom = "2024.12.01"
 activity-compose = "1.9.3"
+datastore = "1.1.1"
+navigation = "2.7.7"
 
 # UI Components
 material = "1.12.0"
@@ -67,6 +69,8 @@ firebaseUi = "8.0.2"
 playServicesGcm = "17.0.0"
 playServicesDrive = "17.0.0"
 playServicesAuth = "21.3.0"
+googleApiClient = "1.33.2"
+googleApiDrive = "v3-rev20240123-2.0.0"
 
 # Utilities
 eventbus = "3.3.1"
@@ -94,6 +98,7 @@ androidx-legacy-support = { module = "androidx.legacy:legacy-support-v4", versio
 androidx-cardview = { module = "androidx.cardview:cardview", version.ref = "cardview" }
 androidx-vectordrawable = { module = "androidx.vectordrawable:vectordrawable", version.ref = "vectordrawable" }
 androidx-preference = { module = "androidx.preference:preference-ktx", version.ref = "preference" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 
 # Compose
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
@@ -105,6 +110,7 @@ compose-material3 = { module = "androidx.compose.material3:material3" }
 compose-material = { module = "androidx.compose.material:material" }
 compose-material-icons = { module = "androidx.compose.material:material-icons-extended" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 
 # Material Design
 material = { module = "com.google.android.material:material", version.ref = "material" }
@@ -181,6 +187,8 @@ firebase-ui-auth = { module = "com.firebaseui:firebase-ui-auth", version.ref = "
 play-services-gcm = { module = "com.google.android.gms:play-services-gcm", version.ref = "playServicesGcm" }
 play-services-drive = { module = "com.google.android.gms:play-services-drive", version.ref = "playServicesDrive" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+google-api-client-android = { module = "com.google.api-client:google-api-client-android", version.ref = "googleApiClient" }
+google-api-services-drive = { module = "com.google.apis:google-api-services-drive", version.ref = "googleApiDrive" }
 
 # Utilities
 eventbus = { module = "org.greenrobot:eventbus", version.ref = "eventbus" }

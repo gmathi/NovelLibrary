@@ -1,9 +1,7 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.content.Context
-import android.os.Bundle
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.appbar.AppBarLayout
 import com.google.firebase.analytics.FirebaseAnalytics
 import io.github.gmathi.novellibrary.database.DBHelper
@@ -11,30 +9,30 @@ import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.lang.LocaleManager
-import io.github.gmathi.novellibrary.util.system.DataAccessor
-import io.github.gmathi.novellibrary.util.view.applyTopSystemWindowInsetsPadding
+import io.github.gmathi.novellibrary.util.view.extensions.applyTopSystemWindowInsetsPadding
 import uy.kohesive.injekt.injectLazy
 
 
-abstract class BaseActivity : AppCompatActivity(), DataAccessor {
+abstract class BaseActivity : io.github.gmathi.novellibrary.core.activity.BaseActivity() {
 
     override val firebaseAnalytics: FirebaseAnalytics by injectLazy()
     override val dataCenter: DataCenter by injectLazy()
     override val dbHelper: DBHelper by injectLazy()
     override val sourceManager: SourceManager by injectLazy()
     override val networkHelper: NetworkHelper by injectLazy()
-    override fun getContext(): Context? = this
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun setupEdgeToEdge() {
         // Enable edge-to-edge display
         androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
     }
 
-    override fun onContentChanged() {
-        super.onContentChanged()
+    override fun applyWindowInsets() {
         // Automatically apply window insets to AppBarLayout
         applyWindowInsetsToAppBar()
+    }
+
+    override fun getLocaleContext(context: Context): Context {
+        return LocaleManager.updateContextLocale(context)
     }
 
     private fun applyWindowInsetsToAppBar() {
@@ -53,10 +51,6 @@ abstract class BaseActivity : AppCompatActivity(), DataAccessor {
                 findAndApplyInsetsToAppBar(child)
             }
         }
-    }
-
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(LocaleManager.updateContextLocale(newBase))
     }
 
 }

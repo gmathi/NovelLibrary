@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
@@ -22,18 +23,7 @@ import java.net.URL
 
 /**
  * A reusable composable for loading images from URLs with cookie and header support.
- * 
- * @param imageUrl The URL of the image to load
- * @param contentDescription Description for accessibility
- * @param modifier Modifier for the image container
- * @param size Size of the image (width and height) when using uniform dimensions
- * @param width Width of the image (overrides size for width when specified)
- * @param height Height of the image (overrides size for height when specified)
- * @param shape Shape to clip the image (optional)
- * @param contentScale How to scale the image content
- * @param showLoadingIndicator Whether to show a loading indicator while loading
- * @param loadingIndicatorSize Size of the loading indicator
- * @param errorContent Optional composable to show on error
+ * Cookie/header resolution is memoized per URL to avoid main-thread IPC on every recomposition.
  */
 @Composable
 fun URLImage(
@@ -54,7 +44,34 @@ fun URLImage(
 
     val isPreview = LocalInspectionMode.current
     val context = LocalContext.current
-    
+
+    // Memoize cookie + host resolution per imageUrl so CookieManager IPC
+    // doesn't run on every recomposition / frame during scrolling.
+    val imageModel = remember(imageUrl) {
+        if (imageUrl.isNullOrBlank()) null
+        else {
+            val hostName = try {
+                URL(imageUrl).host.replace("www.", "").replace("m.", "").trim()
+            } catch (_: Exception) { "" }
+
+            val cookies = CookieManager.getInstance().getCookie(imageUrl)
+                ?: CookieManager.getInstance().getCookie(".$hostName")
+                ?: ""
+
+            ImageRequest.Builder(context)
+                .data(imageUrl)
+                .size(actualWidth.value.toInt(), actualHeight.value.toInt())
+                .crossfade(true)
+                .apply {
+                    setHeader("User-Agent", HostNames.USER_AGENT)
+                    if (cookies.isNotEmpty()) {
+                        setHeader("Cookie", cookies)
+                    }
+                }
+                .build()
+        }
+    }
+
     Box(
         modifier = modifier
             .size(actualWidth, actualHeight)
@@ -66,37 +83,15 @@ fun URLImage(
             ),
         contentAlignment = Alignment.Center
     ) {
-        if (!isPreview && !imageUrl.isNullOrBlank()) {
-            // Get cookies and headers
-            val hostName = try {
-                val url = URL(imageUrl)
-                url.host.replace("www.", "").replace("m.", "").trim()
-            } catch (_: Exception) {
-                ""
-            }
-            
-            val cookies = CookieManager.getInstance().getCookie(imageUrl) 
-                ?: CookieManager.getInstance().getCookie(".$hostName") 
-                ?: ""
-            
+        if (!isPreview && imageModel != null) {
             SubcomposeAsyncImage(
-                model = ImageRequest.Builder(context)
-                    .data(imageUrl)
-                    .size(actualWidth.value.toInt(), actualHeight.value.toInt())
-                    .crossfade(true)
-                    .apply {
-                        setHeader("User-Agent", HostNames.USER_AGENT)
-                        if (cookies.isNotEmpty()) {
-                            setHeader("Cookie", cookies)
-                        }
-                    }
-                    .build(),
+                model = imageModel,
                 contentDescription = contentDescription,
                 modifier = Modifier.matchParentSize(),
                 contentScale = contentScale,
                 loading = {
                     if (showLoadingIndicator) {
-                         Box(
+                        Box(
                             modifier = Modifier.matchParentSize(),
                             contentAlignment = Alignment.Center
                         ) {

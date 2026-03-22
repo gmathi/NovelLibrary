@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.R as UtilR
 
 fun AppCompatActivity.hideSoftKeyboard() {
     val inputMethodManager = getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -64,7 +65,7 @@ fun AppCompatActivity.shareUrl(url: String) {
     }
 }
 
-fun Activity.showAlertDialog(title: String? = null, message: String? = null, @DrawableRes icon: Int = R.drawable.ic_warning_white_vector) {
+fun Activity.showAlertDialog(title: String? = null, message: String? = null, @DrawableRes icon: Int = UtilR.drawable.ic_warning_white_vector) {
     if (title.isNullOrBlank() && message.isNullOrBlank()) return
     val builder = MaterialDialog(this).show {
         icon(icon)

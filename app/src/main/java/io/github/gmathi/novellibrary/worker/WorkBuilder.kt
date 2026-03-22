@@ -73,3 +73,42 @@ fun oneTimeRestoreWorkRequest(
         .setInputData(data)
         .build()
 }
+
+const val ONE_TIME_GD_BACKUP_WORK_TAG = "gdBackupOnce"
+const val ONE_TIME_GD_RESTORE_WORK_TAG = "gdRestoreOnce"
+
+fun oneTimeGoogleDriveBackupWorkRequest(
+    shouldBackupSimpleText: Boolean = true,
+    shouldBackupDatabase: Boolean = true,
+    shouldBackupPreferences: Boolean = true,
+    shouldBackupFiles: Boolean = true
+): OneTimeWorkRequest {
+    val data = workDataOf(
+        GoogleDriveBackupWorker.KEY_SHOULD_BACKUP_SIMPLE_TEXT to shouldBackupSimpleText,
+        GoogleDriveBackupWorker.KEY_SHOULD_BACKUP_DATABASE to shouldBackupDatabase,
+        GoogleDriveBackupWorker.KEY_SHOULD_BACKUP_PREFERENCES to shouldBackupPreferences,
+        GoogleDriveBackupWorker.KEY_SHOULD_BACKUP_FILES to shouldBackupFiles
+    )
+    return OneTimeWorkRequestBuilder<GoogleDriveBackupWorker>()
+        .addTag(ONE_TIME_GD_BACKUP_WORK_TAG)
+        .setInputData(data)
+        .build()
+}
+
+fun oneTimeGoogleDriveRestoreWorkRequest(
+    shouldRestoreSimpleText: Boolean = true,
+    shouldRestoreDatabase: Boolean = true,
+    shouldRestorePreferences: Boolean = true,
+    shouldRestoreFiles: Boolean = true
+): OneTimeWorkRequest {
+    val data = workDataOf(
+        GoogleDriveRestoreWorker.KEY_SHOULD_RESTORE_SIMPLE_TEXT to shouldRestoreSimpleText,
+        GoogleDriveRestoreWorker.KEY_SHOULD_RESTORE_DATABASE to shouldRestoreDatabase,
+        GoogleDriveRestoreWorker.KEY_SHOULD_RESTORE_PREFERENCES to shouldRestorePreferences,
+        GoogleDriveRestoreWorker.KEY_SHOULD_RESTORE_FILES to shouldRestoreFiles
+    )
+    return OneTimeWorkRequestBuilder<GoogleDriveRestoreWorker>()
+        .addTag(ONE_TIME_GD_RESTORE_WORK_TAG)
+        .setInputData(data)
+        .build()
+}

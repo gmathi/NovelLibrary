@@ -28,6 +28,7 @@ import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.other.ChapterActionModeEvent
 import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
+import io.github.gmathi.novellibrary.util.R as UtilR
 import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.service.download.DownloadListener
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
@@ -521,7 +522,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
 
     private fun showAlertDialog(title: String? = null, message: String? = null) {
         MaterialDialog(this).show {
-            icon(R.drawable.ic_warning_white_vector)
+            icon(UtilR.drawable.ic_warning_white_vector)
             if (title.isNullOrBlank())
                 title(R.string.alert)
             else

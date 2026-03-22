@@ -28,6 +28,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.CompiledTTSFilter
+import io.github.gmathi.novellibrary.util.R as UtilR
 import io.github.gmathi.novellibrary.model.other.TTSFilterTarget
 import io.github.gmathi.novellibrary.model.other.TTSFilterType
 import io.github.gmathi.novellibrary.model.preference.DataCenter
@@ -273,6 +274,32 @@ object Utils {
         }
     }
 
+    @Throws(IOException::class)
+    fun unzip(zipFile: File, dir: File) {
+        val inputStream = ZipInputStream(BufferedInputStream(FileInputStream(zipFile)))
+        var entry = inputStream.nextEntry
+        while (entry != null) {
+            if (entry.isDirectory) {
+                val subDir = File(dir, entry.name)
+                if (!subDir.exists())
+                    subDir.mkdirs()
+            } else {
+                val file = File(dir, entry.name)
+                file.createFileIfNotExists()
+                file.outputStream().use {
+                    val data = ByteArray(BUFFER_SIZE)
+                    var count = inputStream.read(data, 0, BUFFER_SIZE)
+                    while (count != -1) {
+                        it.write(data, 0, count)
+                        count = inputStream.read(data, 0, BUFFER_SIZE)
+                    }
+                }
+            }
+            entry = inputStream.nextEntry
+        }
+        inputStream.close()
+    }
+
     /**
      * Returns whether an SD card is present and writable
      */
@@ -333,7 +360,7 @@ object Utils {
         activity: AppCompatActivity,
         title: String? = null,
         content: String? = null,
-        @DrawableRes iconRes: Int = R.drawable.ic_warning_white_vector
+        @DrawableRes iconRes: Int = UtilR.drawable.ic_warning_white_vector
     ) = MaterialDialog(activity).show {
         if (title != null)
             title(text = title)

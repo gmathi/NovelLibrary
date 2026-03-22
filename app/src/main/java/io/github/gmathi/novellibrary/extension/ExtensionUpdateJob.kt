@@ -12,6 +12,7 @@ import io.github.gmathi.novellibrary.extension.api.ExtensionGithubApi
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.notification.Notifications
 import io.github.gmathi.novellibrary.util.system.notification
+import io.github.gmathi.novellibrary.common.R as CommonR
 import kotlinx.coroutines.coroutineScope
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -52,7 +53,7 @@ class ExtensionUpdateJob(private val context: Context, workerParams: WorkerParam
                     val extNames = names.joinToString(", ")
                     setContentText(extNames)
                     setStyle(NotificationCompat.BigTextStyle().bigText(extNames))
-                    setSmallIcon(R.drawable.ic_extension_white_vector)
+                    setSmallIcon(CommonR.drawable.ic_extension_white_vector)
                     setAutoCancel(true)
                 }
             )

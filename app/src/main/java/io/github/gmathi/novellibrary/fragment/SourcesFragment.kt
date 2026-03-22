@@ -6,10 +6,11 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.common.R as CommonR
+import io.github.gmathi.novellibrary.common.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.database.createOrUpdateLargePreference
 import io.github.gmathi.novellibrary.databinding.ContentRecyclerViewBinding
-import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
+import io.github.gmathi.novellibrary.common.databinding.ListitemTitleSubtitleWidgetBinding
 import io.github.gmathi.novellibrary.extension.ExtensionManager
 import io.github.gmathi.novellibrary.model.source.getPreferenceKey
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
@@ -46,7 +47,7 @@ class SourcesFragment : BaseFragment(), GenericAdapter.Listener<HttpSource> {
     }
 
     private fun setRecyclerView() {
-        adapter = GenericAdapter(items = ArrayList(), layoutResId = R.layout.listitem_title_subtitle_widget, listener = this)
+        adapter = GenericAdapter(items = ArrayList(), layoutResId = CommonR.layout.listitem_title_subtitle_widget, listener = this)
         binding.recyclerView.setDefaults(adapter)
         binding.recyclerView.addItemDecoration(CustomDividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))
         binding.swipeRefreshLayout.isEnabled = false
