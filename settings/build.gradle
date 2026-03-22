@@ -77,6 +77,17 @@ dependencies {
     // DataStore
     implementation libs.androidx.datastore.preferences
     
+    // WorkManager
+    implementation libs.bundles.work
+    
+    // Google Play Services & Drive API
+    implementation libs.play.services.auth
+    implementation libs.google.api.client.android
+    implementation(libs.google.api.services.drive) {
+        exclude group: 'org.apache.httpcomponents'
+        exclude group: 'com.google.guava'
+    }
+    
     // AndroidX Core
     implementation libs.androidx.appcompat
     implementation libs.androidx.constraintlayout

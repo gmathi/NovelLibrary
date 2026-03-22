@@ -48,6 +48,11 @@
             android:label="@string/title_activity_google_backup"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
+        <activity
+            android:name=".activity.settings.AppSettingsActivity"
+            android:exported="false"
+            android:screenOrientation="fullUser"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
         <!-- [START fcm_default_icon] -->
         <!--
              Set custom default icon. This is used when no icon is set for incoming notification messages.

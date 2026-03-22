@@ -94,7 +94,12 @@ sealed class SettingsRoute(val route: String) {
  * @param onCheckForUpdates Callback to check for app updates
  * @param onCreateBackup Callback to trigger local backup creation (launches file picker)
  * @param onRestoreBackup Callback to trigger local backup restoration (launches file picker)
- * @param onConfigureGoogleDrive Callback to configure Google Drive backup
+ * @param onConfigureGoogleDrive Callback to configure Google Drive backup (deprecated, kept for compat)
+ * @param onGoogleSignIn Callback to initiate Google Sign-In flow
+ * @param onGoogleSignOut Callback to sign out of Google
+ * @param onGoogleDriveBackup Callback to trigger Google Drive backup with selected options
+ * @param onGoogleDriveRestore Callback to trigger Google Drive restore with selected options
+ * @param onRefreshBackupInfo Callback to refresh Google Drive backup info
  * @param modifier Modifier for the navigation host
  */
 @Composable
@@ -118,6 +123,11 @@ fun SettingsNavGraph(
     onCreateBackup: () -> Unit = {},
     onRestoreBackup: () -> Unit = {},
     onConfigureGoogleDrive: () -> Unit = {},
+    onGoogleSignIn: () -> Unit = {},
+    onGoogleSignOut: () -> Unit = {},
+    onGoogleDriveBackup: (simpleText: Boolean, database: Boolean, preferences: Boolean, files: Boolean) -> Unit = { _, _, _, _ -> },
+    onGoogleDriveRestore: (simpleText: Boolean, database: Boolean, preferences: Boolean, files: Boolean) -> Unit = { _, _, _, _ -> },
+    onRefreshBackupInfo: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val enterAnim = slideInHorizontally(tween(300)) { it } + fadeIn(tween(300))
@@ -174,6 +184,11 @@ fun SettingsNavGraph(
                 onCreateBackup = onCreateBackup,
                 onRestoreBackup = onRestoreBackup,
                 onConfigureGoogleDrive = onConfigureGoogleDrive,
+                onGoogleSignIn = onGoogleSignIn,
+                onGoogleSignOut = onGoogleSignOut,
+                onGoogleDriveBackup = onGoogleDriveBackup,
+                onGoogleDriveRestore = onGoogleDriveRestore,
+                onRefreshBackupInfo = onRefreshBackupInfo,
                 onSyncLogin = {
                     // TODO: Show sync login dialog
                 }

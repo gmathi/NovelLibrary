@@ -1,14 +1,19 @@
 package io.github.gmathi.novellibrary.settings.api
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.common.api.ApiException
 import io.github.gmathi.novellibrary.settings.data.repository.SettingsRepositoryDataStore
+import io.github.gmathi.novellibrary.settings.network.GoogleDriveHelper
 import io.github.gmathi.novellibrary.settings.ui.navigation.SettingsNavGraph
 import io.github.gmathi.novellibrary.stubs.theme.NovelLibraryBaseTheme
 import io.github.gmathi.novellibrary.settings.viewmodel.AdvancedSettingsViewModel
@@ -17,45 +22,68 @@ import io.github.gmathi.novellibrary.settings.viewmodel.GeneralSettingsViewModel
 import io.github.gmathi.novellibrary.settings.viewmodel.MainSettingsViewModel
 import io.github.gmathi.novellibrary.settings.viewmodel.ReaderSettingsViewModel
 import io.github.gmathi.novellibrary.settings.viewmodel.SyncSettingsViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
- * Standalone Activity for settings that can be launched from the app module.
- * 
- * This Activity provides a complete settings experience using Compose Navigation.
- * It's useful for apps that haven't fully migrated to Compose Navigation yet.
- * 
- * Usage from app module:
- * ```
- * val intent = Intent(context, SettingsActivity::class.java)
- * context.startActivity(intent)
- * ```
- * 
- * Or use the SettingsNavigator helper:
- * ```
- * SettingsNavigator.openSettings(context)
- * ```
- * 
- * For apps using Compose Navigation, use SettingsNavigator.addSettingsGraph() instead.
+ * Standalone Activity for settings.
+ *
+ * Handles Google Sign-In and backup info directly. For backup/restore execution
+ * (which requires WorkManager workers from the app module), subclasses can override
+ * [onExecuteGoogleDriveBackup] and [onExecuteGoogleDriveRestore].
  */
-class SettingsActivity : ComponentActivity() {
-    
+open class SettingsActivity : ComponentActivity() {
+
+    private lateinit var driveHelper: GoogleDriveHelper
+    protected lateinit var backupSettingsViewModel: BackupSettingsViewModel
+
+    private var pendingAction: PendingAction? = null
+    private var pendingOptions: BooleanArray? = null
+
+    private enum class PendingAction { BACKUP, RESTORE }
+
+    private val signInLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            try {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                val account = task.getResult(ApiException::class.java)
+                backupSettingsViewModel.setGdAccountEmail(account.email ?: "-")
+
+                when (pendingAction) {
+                    PendingAction.BACKUP -> pendingOptions?.let {
+                        onExecuteGoogleDriveBackup(it[0], it[1], it[2], it[3])
+                    }
+                    PendingAction.RESTORE -> pendingOptions?.let {
+                        onExecuteGoogleDriveRestore(it[0], it[1], it[2], it[3])
+                    }
+                    null -> {}
+                }
+                pendingAction = null
+                pendingOptions = null
+            } catch (_: ApiException) { }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // Create settings repository
+
+        driveHelper = GoogleDriveHelper(this)
+
         val settingsRepository = SettingsRepositoryDataStore(applicationContext)
-        
-        // Create ViewModels
         val mainSettingsViewModel = MainSettingsViewModel(settingsRepository)
         val readerSettingsViewModel = ReaderSettingsViewModel(settingsRepository)
         val generalSettingsViewModel = GeneralSettingsViewModel(settingsRepository)
-        val backupSettingsViewModel = BackupSettingsViewModel(settingsRepository)
+        backupSettingsViewModel = BackupSettingsViewModel(settingsRepository)
         val syncSettingsViewModel = SyncSettingsViewModel(settingsRepository)
         val advancedSettingsViewModel = AdvancedSettingsViewModel(settingsRepository)
-        
+
         setContent {
             val isDarkTheme by generalSettingsViewModel.isDarkTheme.collectAsState()
-            
+
             NovelLibraryBaseTheme(darkTheme = isDarkTheme) {
                 SettingsActivityContent(
                     mainSettingsViewModel = mainSettingsViewModel,
@@ -68,43 +96,89 @@ class SettingsActivity : ComponentActivity() {
                     appVersionCode = packageManager.getPackageInfo(packageName, 0).versionCode,
                     onNavigateBack = { finish() },
                     onNavigateToContributors = {
-                        // Navigate to existing ContributionsActivity
                         startActivity(Intent(this, Class.forName("io.github.gmathi.novellibrary.activity.settings.ContributionsActivity")))
                     },
                     onNavigateToCopyright = {
-                        // Navigate to existing CopyrightActivity
                         startActivity(Intent(this, Class.forName("io.github.gmathi.novellibrary.activity.settings.CopyrightActivity")))
                     },
                     onNavigateToLicenses = {
-                        // Navigate to existing LibrariesUsedActivity
                         startActivity(Intent(this, Class.forName("io.github.gmathi.novellibrary.activity.settings.LibrariesUsedActivity")))
                     },
                     onOpenPrivacyPolicy = {
-                        // Open privacy policy in browser
-                        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/gmathi/NovelLibrary/blob/master/Privacy-Policy"))
-                        startActivity(intent)
+                        startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/gmathi/NovelLibrary/blob/master/Privacy-Policy")))
                     },
                     onOpenTermsOfService = {
-                        // Open terms of service (same as privacy policy for now)
-                        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/gmathi/NovelLibrary/blob/master/Privacy-Policy"))
-                        startActivity(intent)
+                        startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/gmathi/NovelLibrary/blob/master/Privacy-Policy")))
                     },
-                    onCheckForUpdates = {
-                        // TODO: Implement update checking - this requires app-specific logic
-                    },
+                    onCheckForUpdates = {},
                     onCreateBackup = {
                         startActivity(Intent(this, Class.forName("io.github.gmathi.novellibrary.activity.settings.BackupSettingsActivity")))
                     },
                     onRestoreBackup = {
                         startActivity(Intent(this, Class.forName("io.github.gmathi.novellibrary.activity.settings.BackupSettingsActivity")))
                     },
-                    onConfigureGoogleDrive = {
-                        startActivity(Intent(this, Class.forName("io.github.gmathi.novellibrary.activity.settings.GoogleBackupActivity")))
-                    }
+                    onGoogleSignIn = {
+                        signInLauncher.launch(driveHelper.getSignInClient().signInIntent)
+                    },
+                    onGoogleSignOut = {
+                        driveHelper.getSignInClient().signOut().addOnCompleteListener {
+                            backupSettingsViewModel.setGdAccountEmail("")
+                        }
+                    },
+                    onGoogleDriveBackup = { s, d, p, f ->
+                        if (!driveHelper.isSignedIn()) {
+                            pendingAction = PendingAction.BACKUP
+                            pendingOptions = booleanArrayOf(s, d, p, f)
+                            signInLauncher.launch(driveHelper.getSignInClient().signInIntent)
+                        } else {
+                            onExecuteGoogleDriveBackup(s, d, p, f)
+                        }
+                    },
+                    onGoogleDriveRestore = { s, d, p, f ->
+                        if (!driveHelper.isSignedIn()) {
+                            pendingAction = PendingAction.RESTORE
+                            pendingOptions = booleanArrayOf(s, d, p, f)
+                            signInLauncher.launch(driveHelper.getSignInClient().signInIntent)
+                        } else {
+                            onExecuteGoogleDriveRestore(s, d, p, f)
+                        }
+                    },
+                    onRefreshBackupInfo = { refreshBackupInfo() }
                 )
             }
         }
     }
+
+    private fun refreshBackupInfo() {
+        if (!driveHelper.isSignedIn()) return
+        CoroutineScope(Dispatchers.IO).launch {
+            val result = driveHelper.getBackupInfo()
+            withContext(Dispatchers.Main) {
+                val info = result.getOrNull()
+                if (info != null) {
+                    backupSettingsViewModel.setLastCloudBackupTimestamp(
+                        "${info.getFormattedTime()} • ${info.getFormattedSize()}"
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Called to execute a Google Drive backup with the selected options.
+     * Override in app module subclass to enqueue the WorkManager backup worker.
+     */
+    protected open fun onExecuteGoogleDriveBackup(
+        simpleText: Boolean, database: Boolean, preferences: Boolean, files: Boolean
+    ) {}
+
+    /**
+     * Called to execute a Google Drive restore with the selected options.
+     * Override in app module subclass to enqueue the WorkManager restore worker.
+     */
+    protected open fun onExecuteGoogleDriveRestore(
+        simpleText: Boolean, database: Boolean, preferences: Boolean, files: Boolean
+    ) {}
 }
 
 @Composable
@@ -126,10 +200,14 @@ private fun SettingsActivityContent(
     onCheckForUpdates: () -> Unit,
     onCreateBackup: () -> Unit = {},
     onRestoreBackup: () -> Unit = {},
-    onConfigureGoogleDrive: () -> Unit = {}
+    onGoogleSignIn: () -> Unit = {},
+    onGoogleSignOut: () -> Unit = {},
+    onGoogleDriveBackup: (Boolean, Boolean, Boolean, Boolean) -> Unit = { _, _, _, _ -> },
+    onGoogleDriveRestore: (Boolean, Boolean, Boolean, Boolean) -> Unit = { _, _, _, _ -> },
+    onRefreshBackupInfo: () -> Unit = {}
 ) {
     val navController = rememberNavController()
-    
+
     SettingsNavGraph(
         mainSettingsViewModel = mainSettingsViewModel,
         readerSettingsViewModel = readerSettingsViewModel,
@@ -149,6 +227,10 @@ private fun SettingsActivityContent(
         onCheckForUpdates = onCheckForUpdates,
         onCreateBackup = onCreateBackup,
         onRestoreBackup = onRestoreBackup,
-        onConfigureGoogleDrive = onConfigureGoogleDrive
+        onGoogleSignIn = onGoogleSignIn,
+        onGoogleSignOut = onGoogleSignOut,
+        onGoogleDriveBackup = onGoogleDriveBackup,
+        onGoogleDriveRestore = onGoogleDriveRestore,
+        onRefreshBackupInfo = onRefreshBackupInfo
     )
 }

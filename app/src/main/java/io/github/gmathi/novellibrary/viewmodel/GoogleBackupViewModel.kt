@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.network.GoogleDriveHelper
+import io.github.gmathi.novellibrary.network.BackupInfo
 import kotlinx.coroutines.launch
 import uy.kohesive.injekt.injectLazy
 
@@ -13,7 +14,7 @@ class GoogleBackupViewModel : ViewModel() {
 
     private val dataCenter: DataCenter by injectLazy()
 
-    val backupInfo = MutableLiveData<GoogleDriveHelper.BackupInfo?>()
+    val backupInfo = MutableLiveData<BackupInfo?>()
     val isLoading = MutableLiveData(false)
     val errorMessage = MutableLiveData<String?>()
 

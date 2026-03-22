@@ -34,7 +34,12 @@ import io.github.gmathi.novellibrary.stubs.theme.NovelLibraryBaseTheme
  * @param onNavigateBack Callback to navigate back to main settings
  * @param onCreateBackup Callback to trigger backup creation
  * @param onRestoreBackup Callback to trigger backup restoration
- * @param onConfigureGoogleDrive Callback to configure Google Drive
+ * @param onConfigureGoogleDrive Callback to configure Google Drive (deprecated, kept for compat)
+ * @param onGoogleSignIn Callback to initiate Google Sign-In flow
+ * @param onGoogleSignOut Callback to sign out of Google
+ * @param onGoogleDriveBackup Callback to trigger Google Drive backup with selected options (simpleText, database, preferences, files)
+ * @param onGoogleDriveRestore Callback to trigger Google Drive restore with selected options
+ * @param onRefreshBackupInfo Callback to refresh Google Drive backup info, returns info string via the provided lambda
  * @param onSyncLogin Callback to show sync login dialog
  * @param modifier Modifier for the screen
  */
@@ -46,6 +51,11 @@ fun BackupAndSyncScreen(
     onCreateBackup: () -> Unit = {},
     onRestoreBackup: () -> Unit = {},
     onConfigureGoogleDrive: () -> Unit = {},
+    onGoogleSignIn: () -> Unit = {},
+    onGoogleSignOut: () -> Unit = {},
+    onGoogleDriveBackup: (simpleText: Boolean, database: Boolean, preferences: Boolean, files: Boolean) -> Unit = { _, _, _, _ -> },
+    onGoogleDriveRestore: (simpleText: Boolean, database: Boolean, preferences: Boolean, files: Boolean) -> Unit = { _, _, _, _ -> },
+    onRefreshBackupInfo: () -> Unit = {},
     onSyncLogin: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -105,7 +115,11 @@ fun BackupAndSyncScreen(
                 onGdInternetTypeChange = backupViewModel::setGdInternetType,
                 onCreateBackup = onCreateBackup,
                 onRestoreBackup = onRestoreBackup,
-                onConfigureGoogleDrive = onConfigureGoogleDrive
+                onGoogleSignIn = onGoogleSignIn,
+                onGoogleSignOut = onGoogleSignOut,
+                onGoogleDriveBackup = onGoogleDriveBackup,
+                onGoogleDriveRestore = onGoogleDriveRestore,
+                onRefreshBackupInfo = onRefreshBackupInfo
             )
             1 -> SyncTabContent(
                 syncEnabled = syncEnabled,
@@ -126,6 +140,7 @@ fun BackupAndSyncScreen(
  * Content for the Backup tab.
  * 
  * Contains local backup and Google Drive backup sections.
+ * Google Drive operations are handled inline via dialogs instead of launching a separate Activity.
  */
 @Composable
 private fun ColumnScope.BackupTabContent(
@@ -139,8 +154,17 @@ private fun ColumnScope.BackupTabContent(
     onGdInternetTypeChange: (String) -> Unit,
     onCreateBackup: () -> Unit,
     onRestoreBackup: () -> Unit,
-    onConfigureGoogleDrive: () -> Unit
+    onGoogleSignIn: () -> Unit,
+    onGoogleSignOut: () -> Unit,
+    onGoogleDriveBackup: (Boolean, Boolean, Boolean, Boolean) -> Unit,
+    onGoogleDriveRestore: (Boolean, Boolean, Boolean, Boolean) -> Unit,
+    onRefreshBackupInfo: () -> Unit
 ) {
+    // Dialog states
+    var showBackupOptionsDialog by remember { mutableStateOf(false) }
+    var showRestoreOptionsDialog by remember { mutableStateOf(false) }
+    var showSignOutConfirmDialog by remember { mutableStateOf(false) }
+
     // Section 1: Local Backup
     SettingsSection(title = "Local Backup") {
         SettingsItem(
@@ -168,20 +192,43 @@ private fun ColumnScope.BackupTabContent(
     }
     
     // Section 2: Google Drive Backup
+    val isSignedIn = gdAccountEmail.isNotEmpty() && gdAccountEmail != "-"
+    
     SettingsSection(title = "Google Drive Backup") {
-        if (gdAccountEmail.isNotEmpty()) {
+        // Account row
+        if (isSignedIn) {
             SettingsItem(
                 title = "Account",
                 description = gdAccountEmail,
                 icon = Icons.Default.AccountCircle,
-                onClick = onConfigureGoogleDrive
+                onClick = null
             )
         } else {
             SettingsItem(
-                title = "Configure Google Drive",
-                description = "Set up automatic cloud backup",
+                title = "Sign in to Google",
+                description = "Connect your Google account for cloud backup",
                 icon = Icons.Default.Cloud,
-                onClick = onConfigureGoogleDrive
+                onClick = onGoogleSignIn
+            )
+        }
+        
+        // Backup action
+        if (isSignedIn) {
+            SettingsItem(
+                title = "Backup to Google Drive",
+                description = "Upload your library backup to the cloud",
+                icon = Icons.Default.CloudUpload,
+                onClick = { showBackupOptionsDialog = true }
+            )
+        }
+        
+        // Restore action
+        if (isSignedIn) {
+            SettingsItem(
+                title = "Restore from Google Drive",
+                description = "Download and restore your cloud backup",
+                icon = Icons.Default.CloudDownload,
+                onClick = { showRestoreOptionsDialog = true }
             )
         }
         
@@ -215,15 +262,139 @@ private fun ColumnScope.BackupTabContent(
             }
         )
         
-        if (lastCloudBackupTimestamp.isNotEmpty()) {
+        // Backup info
+        if (isSignedIn) {
             SettingsItem(
-                title = "Last Cloud Backup",
-                description = lastCloudBackupTimestamp,
-                icon = Icons.Default.CloudDone,
-                onClick = null
+                title = "Backup Info",
+                description = if (lastCloudBackupTimestamp.isNotEmpty()) lastCloudBackupTimestamp else "Tap to refresh",
+                icon = Icons.Default.Info,
+                onClick = onRefreshBackupInfo
+            )
+        }
+        
+        // Sign out
+        if (isSignedIn) {
+            SettingsItem(
+                title = "Sign Out",
+                description = "Disconnect your Google account",
+                icon = Icons.Default.Logout,
+                onClick = { showSignOutConfirmDialog = true }
             )
         }
     }
+    
+    // Backup options dialog
+    if (showBackupOptionsDialog) {
+        BackupRestoreOptionsDialog(
+            title = "Backup to Google Drive",
+            confirmLabel = "Backup",
+            onDismiss = { showBackupOptionsDialog = false },
+            onConfirm = { simpleText, database, preferences, files ->
+                showBackupOptionsDialog = false
+                onGoogleDriveBackup(simpleText, database, preferences, files)
+            }
+        )
+    }
+    
+    // Restore options dialog
+    if (showRestoreOptionsDialog) {
+        BackupRestoreOptionsDialog(
+            title = "Restore from Google Drive",
+            confirmLabel = "Restore",
+            warningMessage = "This will overwrite your current data with the backup. Are you sure?",
+            onDismiss = { showRestoreOptionsDialog = false },
+            onConfirm = { simpleText, database, preferences, files ->
+                showRestoreOptionsDialog = false
+                onGoogleDriveRestore(simpleText, database, preferences, files)
+            }
+        )
+    }
+    
+    // Sign out confirmation dialog
+    if (showSignOutConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showSignOutConfirmDialog = false },
+            title = { Text("Sign Out") },
+            text = { Text("Are you sure you want to disconnect your Google account? Automatic backups will stop.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showSignOutConfirmDialog = false
+                    onGoogleSignOut()
+                }) {
+                    Text("Sign Out")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSignOutConfirmDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+
+/**
+ * Dialog for selecting backup/restore options (simple text, database, preferences, files).
+ */
+@Composable
+private fun BackupRestoreOptionsDialog(
+    title: String,
+    confirmLabel: String,
+    warningMessage: String? = null,
+    onDismiss: () -> Unit,
+    onConfirm: (simpleText: Boolean, database: Boolean, preferences: Boolean, files: Boolean) -> Unit
+) {
+    var simpleText by remember { mutableStateOf(true) }
+    var database by remember { mutableStateOf(true) }
+    var preferences by remember { mutableStateOf(true) }
+    var files by remember { mutableStateOf(true) }
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column {
+                if (warningMessage != null) {
+                    Text(
+                        text = warningMessage,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                }
+                
+                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Checkbox(checked = simpleText, onCheckedChange = { simpleText = it })
+                    Text("Simple Text", modifier = Modifier.padding(start = 8.dp))
+                }
+                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Checkbox(checked = database, onCheckedChange = { database = it })
+                    Text("Database", modifier = Modifier.padding(start = 8.dp))
+                }
+                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Checkbox(checked = preferences, onCheckedChange = { preferences = it })
+                    Text("Preferences", modifier = Modifier.padding(start = 8.dp))
+                }
+                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Checkbox(checked = files, onCheckedChange = { files = it })
+                    Text("Files", modifier = Modifier.padding(start = 8.dp))
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(simpleText, database, preferences, files) },
+                enabled = simpleText || database || preferences || files
+            ) {
+                Text(confirmLabel)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 /**
