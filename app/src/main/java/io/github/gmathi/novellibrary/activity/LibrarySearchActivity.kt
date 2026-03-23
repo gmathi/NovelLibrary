@@ -44,7 +44,7 @@ class LibrarySearchActivity : BaseActivity() {
         var allNovels by remember { mutableStateOf<List<Novel>>(emptyList()) }
         
         val searchState = rememberPersistentSearchState()
-        val searchHistory = remember { dataCenter.loadLibrarySearchHistory() }
+        var searchHistory by remember { mutableStateOf(dataCenter.loadLibrarySearchHistory()) }
         val suggestionBuilder = remember(searchHistory) {
             HistorySearchSuggestionsBuilder(searchHistory)
         }
@@ -75,6 +75,7 @@ class LibrarySearchActivity : BaseActivity() {
                         },
                         onSearch = { query ->
                             query.addToLibrarySearchHistory()
+                            searchHistory = dataCenter.loadLibrarySearchHistory()
                         },
                         onSearchTermChanged = { term ->
                             searchResults = if (term.isEmpty()) {

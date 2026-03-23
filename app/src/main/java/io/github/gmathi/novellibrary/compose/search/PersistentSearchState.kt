@@ -27,8 +27,18 @@ class PersistentSearchState(
     var isSearching by mutableStateOf(false)
         private set
 
-    var suggestions by mutableStateOf<List<SearchSuggestion>>(emptyList())
-        private set
+    var suggestionBuilder by mutableStateOf<SearchSuggestionsBuilder?>(null)
+
+    val suggestions: List<SearchSuggestion>
+        get() {
+            if (!isEditing) return emptyList()
+            val builder = suggestionBuilder ?: return emptyList()
+            return if (searchText.isEmpty()) {
+                builder.buildEmptySearchSuggestion(5)
+            } else {
+                builder.buildSearchSuggestion(5, searchText)
+            }
+        }
 
     val searchOpen: Boolean
         get() = isEditing
@@ -47,10 +57,6 @@ class PersistentSearchState(
         logoText = text
     }
 
-    fun updateSuggestions(newSuggestions: List<SearchSuggestion>) {
-        suggestions = newSuggestions
-    }
-
     fun openSearch() {
         // Place cursor at end of existing text when re-opening
         textFieldValue = TextFieldValue(searchText, TextRange(searchText.length))
@@ -59,14 +65,12 @@ class PersistentSearchState(
 
     fun closeSearch() {
         isEditing = false
-        suggestions = emptyList()
         // Keep searchText and isSearching so the term persists in the bar
     }
 
     fun performSearch() {
         isSearching = true
         isEditing = false
-        suggestions = emptyList()
         // searchText is preserved so it shows in the bar after search
     }
 
@@ -83,7 +87,6 @@ class PersistentSearchState(
         isSearching = false
         searchText = ""
         textFieldValue = TextFieldValue("", TextRange.Zero)
-        suggestions = emptyList()
     }
 }
 

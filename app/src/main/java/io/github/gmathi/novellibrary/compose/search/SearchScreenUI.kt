@@ -73,8 +73,9 @@ fun SearchScreen(
     }
 
     val searchState = rememberPersistentSearchState(initialLogoText = "Search Novels")
-    val suggestionBuilder = remember(searchHistory) {
-        HistorySearchSuggestionsBuilder(searchHistory)
+    var currentSearchHistory by remember { mutableStateOf(searchHistory) }
+    val suggestionBuilder = remember(currentSearchHistory) {
+        HistorySearchSuggestionsBuilder(currentSearchHistory)
     }
 
     // Handle OS back press
@@ -107,6 +108,8 @@ fun SearchScreen(
                     onHomeButtonClick = onHomeClick,
                     onSearch = { query ->
                         onSearch(query)
+                        // Update local history so suggestions reflect the new term immediately
+                        currentSearchHistory = listOf(query) + currentSearchHistory.filter { it != query }
                         selectedSourceTab = 0
                         searchTermViewModel.search(query)
                     },

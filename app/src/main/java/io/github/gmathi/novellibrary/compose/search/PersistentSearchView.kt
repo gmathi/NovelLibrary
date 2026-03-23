@@ -30,6 +30,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -72,6 +75,9 @@ fun PersistentSearchView(
             keyboardController?.hide()
         }
     }
+
+    // Wire the suggestion builder into state so suggestions are computed reactively
+    state.suggestionBuilder = suggestionBuilder
 
     Box(modifier = modifier) {
         Card(
@@ -125,7 +131,17 @@ fun PersistentSearchView(
                             },
                             modifier = Modifier
                                 .weight(1f)
-                                .focusRequester(focusRequester),
+                                .focusRequester(focusRequester)
+                                .onKeyEvent { keyEvent ->
+                                    if (keyEvent.key == Key.Enter && state.searchText.isNotBlank()) {
+                                        state.performSearch()
+                                        onSearch(state.searchText)
+                                        keyboardController?.hide()
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                },
                             placeholder = { Text(hint, color = colors.hintColor) },
                             singleLine = true,
                             colors = TextFieldDefaults.colors(
@@ -141,6 +157,13 @@ fun PersistentSearchView(
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                             keyboardActions = KeyboardActions(
                                 onSearch = {
+                                    if (state.searchText.isNotBlank()) {
+                                        state.performSearch()
+                                        onSearch(state.searchText)
+                                        keyboardController?.hide()
+                                    }
+                                },
+                                onDone = {
                                     if (state.searchText.isNotBlank()) {
                                         state.performSearch()
                                         onSearch(state.searchText)
@@ -226,18 +249,6 @@ fun PersistentSearchView(
                     }
                 }
             }
-        }
-    }
-
-    // Update suggestions when search text changes
-    LaunchedEffect(state.searchText, state.isEditing) {
-        if (state.isEditing) {
-            val newSuggestions = if (state.searchText.isEmpty()) {
-                suggestionBuilder?.buildEmptySearchSuggestion(5) ?: emptyList()
-            } else {
-                suggestionBuilder?.buildSearchSuggestion(5, state.searchText) ?: emptyList()
-            }
-            state.updateSuggestions(newSuggestions)
         }
     }
 }
