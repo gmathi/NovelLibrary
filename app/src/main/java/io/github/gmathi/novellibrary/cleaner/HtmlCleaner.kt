@@ -445,16 +445,15 @@ open class HtmlCleaner protected constructor() {
         private fun getSelectorQueries(): List<SelectorQuery> {
             val dataCenter: DataCenter by injectLazy()
             val htmlCleanerSelectorQueries = dataCenter.htmlCleanerSelectorQueries.apply {
+                val userSpecifiedSelectorQueries = dataCenter.userSpecifiedSelectorQueries
+                if (userSpecifiedSelectorQueries.isNotBlank()) {
+                   addAll(0,
+                        userSpecifiedSelectorQueries.split('\n')
+                            .filter { it.isNotBlank() }
+                            .map { SelectorQuery(it.trim()) }
+                    )
+                }
                 addAll(defaultSelectorQueries)
-            }
-
-            val userSpecifiedSelectorQueries = dataCenter.userSpecifiedSelectorQueries
-            if (userSpecifiedSelectorQueries.isNotBlank()) {
-                htmlCleanerSelectorQueries.addAll(0, 
-                    userSpecifiedSelectorQueries.split('\n')
-                        .filter { it.isNotBlank() }
-                        .map { SelectorQuery(it.trim()) }
-                )
             }
             return htmlCleanerSelectorQueries
         }
