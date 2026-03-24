@@ -65,9 +65,11 @@ abstract class HttpSource : CatalogueSource {
 
     /**
      * Default network client for doing requests.
+     * Uses the cloudflare-aware client so that Cloudflare challenges (403/503) are
+     * automatically detected and can trigger the resolver flow.
      */
     open val client: OkHttpClient
-        get() = network.client
+        get() = network.cloudflareClient
 
     /**
      * Headers builder for requests. Implementations can override this method for custom headers.

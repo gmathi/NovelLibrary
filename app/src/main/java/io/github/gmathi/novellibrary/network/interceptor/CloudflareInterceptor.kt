@@ -81,11 +81,17 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
                 throw Exception(context.getString(R.string.information_cloudflare_bypass_failure))
             }
 
-            networkHelper.cookieManager.remove(originalRequest.url, COOKIE_NAMES, 0)
-            val oldCookie = networkHelper.cookieManager.get(originalRequest.url)
+            // Use the base domain URL for WebView bypass instead of the original URL.
+            // This is important for resource URLs (images, etc.) where loading the resource
+            // directly in WebView won't trigger a proper Cloudflare challenge page.
+            val baseUrl = "${originalRequest.url.scheme}://${originalRequest.url.host}/"
+            val bypassRequest = originalRequest.newBuilder().url(baseUrl).build()
+
+            networkHelper.cookieManager.remove(baseUrl.toHttpUrl(), COOKIE_NAMES, 0)
+            val oldCookie = networkHelper.cookieManager.get(baseUrl.toHttpUrl())
                 .firstOrNull { it.name == "cf_clearance" }
 
-            val bypassSuccess = resolveWithWebView(originalRequest, oldCookie)
+            val bypassSuccess = resolveWithWebView(bypassRequest, oldCookie)
 
             if (bypassSuccess) {
                 recordBypassSuccess(host)
@@ -102,9 +108,16 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
     }
 
     /**
-     * Enhanced Cloudflare detection supporting multiple server headers and response patterns
+     * Enhanced Cloudflare detection supporting multiple server headers and response patterns.
+     * Detects both classic 503 challenges and newer 403 challenges with cf-mitigated header.
      */
     private fun isCloudflareChallenge(response: Response): Boolean {
+        // Newer Cloudflare challenges return 403 with cf-mitigated: challenge
+        if (response.code == 403) {
+            val cfMitigated = response.header("cf-mitigated")
+            if (cfMitigated?.contains("challenge", ignoreCase = true) == true) return true
+        }
+
         if (response.code != 503) return false
         
         val server = response.header("Server")?.lowercase()
@@ -187,9 +200,18 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
                         latch.countDown()
                     }
 
-                    if (url == origRequestUrl && !challengeFound) {
-                        // The first request didn't return the challenge, abort.
-                        latch.countDown()
+                    // If the page finished loading and no challenge was found, abort.
+                    // Don't compare URLs strictly — Cloudflare may redirect.
+                    if (!challengeFound && !cloudflareBypassed) {
+                        // Give it a moment for JS to execute before giving up
+                        view.postDelayed({
+                            if (!cloudflareBypassed && isCloudFlareBypassed()) {
+                                cloudflareBypassed = true
+                            }
+                            if (!cloudflareBypassed && !challengeFound) {
+                                latch.countDown()
+                            }
+                        }, 2000)
                     }
                 }
 

@@ -118,7 +118,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
                     // If we already have data (e.g. page 1 loaded), don't replace it with an error.
                     if (adapter.items.isEmpty()) {
                         var errorText = getString(R.string.connection_error)
-                        val isCloudFlareError = (e.localizedMessage?.contains("503") == true || e.localizedMessage?.contains("cloudflare", ignoreCase = true) == true)
+                        val isCloudFlareError = (e.localizedMessage?.contains("503") == true || e.localizedMessage?.contains("403") == true || e.localizedMessage?.contains("cloudflare", ignoreCase = true) == true)
                         if (isCloudFlareError) {
                             errorText = getString(R.string.connection_error_cloudflare)
                         }

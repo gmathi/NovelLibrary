@@ -17,7 +17,7 @@ import uy.kohesive.injekt.injectLazy
 sealed class SearchUrlUiState {
     object Loading : SearchUrlUiState()
     data class Success(val novels: List<Novel>, val hasMore: Boolean) : SearchUrlUiState()
-    data class Error(val message: String, val isCloudflare: Boolean = false) : SearchUrlUiState()
+    data class Error(val message: String, val isCloudflare: Boolean = false, val cloudflareUrl: String? = null) : SearchUrlUiState()
     object NoInternet : SearchUrlUiState()
     object Empty : SearchUrlUiState()
 }
@@ -29,7 +29,7 @@ class SearchUrlViewModel : ViewModel() {
          * Dev flag: skip popular novels API calls to reduce network usage during development.
          * Only effective in debug builds.
          */
-        private const val SKIP_POPULAR_NOVELS_FETCH = false
+        private const val SKIP_POPULAR_NOVELS_FETCH = true
     }
 
     private val networkHelper: NetworkHelper by injectLazy()
@@ -102,10 +102,12 @@ class SearchUrlViewModel : ViewModel() {
                 
             } catch (e: Exception) {
                 val isCloudflare = e.localizedMessage?.contains("503") == true || 
+                                  e.localizedMessage?.contains("403") == true ||
                                   e.localizedMessage?.contains("cloudflare", ignoreCase = true) == true
                 _uiState.value = SearchUrlUiState.Error(
                     message = e.localizedMessage ?: "Connection error",
-                    isCloudflare = isCloudflare
+                    isCloudflare = isCloudflare,
+                    cloudflareUrl = if (isCloudflare) url ?: "https://${io.github.gmathi.novellibrary.network.HostNames.NOVEL_UPDATES}" else null
                 )
                 isLoadingMore = false
             }

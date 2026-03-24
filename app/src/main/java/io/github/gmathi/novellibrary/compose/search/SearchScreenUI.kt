@@ -2,6 +2,8 @@ package io.github.gmathi.novellibrary.compose.search
 
 import android.app.Activity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -16,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
+import io.github.gmathi.novellibrary.activity.CloudflareResolverActivity
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.viewmodel.SearchUrlViewModel
 import io.github.gmathi.novellibrary.viewmodel.SearchUrlUiState
@@ -76,6 +79,29 @@ fun SearchScreen(
     var currentSearchHistory by remember { mutableStateOf(searchHistory) }
     val suggestionBuilder = remember(currentSearchHistory) {
         HistorySearchSuggestionsBuilder(currentSearchHistory)
+    }
+
+    // Cloudflare dialog state
+    var showCloudflareDialog by remember { mutableStateOf(false) }
+    var cloudflareUrl by remember { mutableStateOf<String?>(null) }
+    // Tracks which context triggered the dialog: "browse" or "search:<index>"
+    var cloudflareRetrySource by remember { mutableStateOf<String?>(null) }
+
+    val cloudflareResolverLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            // Cookies saved — retry the operation that failed
+            when {
+                cloudflareRetrySource == "browse" -> popularMonthViewModel.retry()
+                cloudflareRetrySource?.startsWith("search:") == true -> {
+                    val idx = cloudflareRetrySource!!.removePrefix("search:").toIntOrNull()
+                    if (idx != null) searchTermViewModel.retrySource(idx)
+                }
+            }
+        }
+        showCloudflareDialog = false
+        cloudflareRetrySource = null
     }
 
     // Handle OS back press
@@ -168,6 +194,11 @@ fun SearchScreen(
                                 onLoadMore = { searchTermViewModel.loadMore(selectedSourceTab) },
                                 onNovelClick = { novel ->
                                     activity?.startNovelDetailsActivity(novel, false)
+                                },
+                                onResolveCloudflare = { url ->
+                                    cloudflareUrl = url
+                                    cloudflareRetrySource = "search:$selectedSourceTab"
+                                    showCloudflareDialog = true
                                 }
                             )
                         }
@@ -188,6 +219,11 @@ fun SearchScreen(
                             onLoadMore = { popularMonthViewModel.loadMore() },
                             onNovelClick = { novel ->
                                 activity?.startNovelDetailsActivity(novel, false)
+                            },
+                            onResolveCloudflare = { url ->
+                                cloudflareUrl = url
+                                cloudflareRetrySource = "browse"
+                                showCloudflareDialog = true
                             }
                         )
                     }
@@ -200,6 +236,33 @@ fun SearchScreen(
                 )
             }
         }
+
+        // Cloudflare resolution dialog
+        if (showCloudflareDialog) {
+            CloudflareDialog(
+                onResolveManually = {
+                    showCloudflareDialog = false
+                    val url = cloudflareUrl ?: "https://www.novelupdates.com"
+                    val intent = CloudflareResolverActivity.createIntent(activity ?: return@CloudflareDialog, url)
+                    cloudflareResolverLauncher.launch(intent)
+                },
+                onRetry = {
+                    showCloudflareDialog = false
+                    when {
+                        cloudflareRetrySource == "browse" -> popularMonthViewModel.retry()
+                        cloudflareRetrySource?.startsWith("search:") == true -> {
+                            val idx = cloudflareRetrySource!!.removePrefix("search:").toIntOrNull()
+                            if (idx != null) searchTermViewModel.retrySource(idx)
+                        }
+                    }
+                    cloudflareRetrySource = null
+                },
+                onDismiss = {
+                    showCloudflareDialog = false
+                    cloudflareRetrySource = null
+                }
+            )
+        }
     }
 }
 
@@ -209,7 +272,8 @@ private fun SourceSearchContent(
     sourceIndex: Int,
     onRetry: () -> Unit,
     onLoadMore: () -> Unit,
-    onNovelClick: (DbNovel) -> Unit
+    onNovelClick: (DbNovel) -> Unit,
+    onResolveCloudflare: (String) -> Unit
 ) {
     when (state.uiState) {
         is SearchTermUiState.Loading -> {
@@ -221,14 +285,19 @@ private fun SourceSearchContent(
             ErrorState(
                 message = "No internet connection",
                 isCloudflare = false,
-                onRetry = onRetry
+                onRetry = onRetry,
+                onResolveCloudflare = null
             )
         }
         is SearchTermUiState.Error -> {
+            val error = state.uiState as SearchTermUiState.Error
             ErrorState(
-                message = (state.uiState as SearchTermUiState.Error).message,
-                isCloudflare = false,
-                onRetry = onRetry
+                message = error.message,
+                isCloudflare = error.isCloudflare,
+                onRetry = onRetry,
+                onResolveCloudflare = if (error.isCloudflare) {
+                    { onResolveCloudflare(error.cloudflareUrl ?: "https://www.novelupdates.com") }
+                } else null
             )
         }
         is SearchTermUiState.Empty -> {
@@ -282,7 +351,8 @@ private fun BrowseContent(
     novels: List<DbNovel>,
     onRetry: () -> Unit,
     onLoadMore: () -> Unit,
-    onNovelClick: (DbNovel) -> Unit
+    onNovelClick: (DbNovel) -> Unit,
+    onResolveCloudflare: (String) -> Unit
 ) {
     when (uiState) {
         is SearchUrlUiState.Loading -> {
@@ -294,14 +364,18 @@ private fun BrowseContent(
             ErrorState(
                 message = uiState.message,
                 isCloudflare = uiState.isCloudflare,
-                onRetry = onRetry
+                onRetry = onRetry,
+                onResolveCloudflare = if (uiState.isCloudflare) {
+                    { onResolveCloudflare(uiState.cloudflareUrl ?: "https://www.novelupdates.com") }
+                } else null
             )
         }
         is SearchUrlUiState.NoInternet -> {
             ErrorState(
                 message = "No internet connection",
                 isCloudflare = false,
-                onRetry = onRetry
+                onRetry = onRetry,
+                onResolveCloudflare = null
             )
         }
         is SearchUrlUiState.Empty -> {
@@ -368,7 +442,8 @@ fun SearchTabs(
 private fun ErrorState(
     message: String,
     isCloudflare: Boolean,
-    onRetry: () -> Unit
+    onRetry: () -> Unit,
+    onResolveCloudflare: (() -> Unit)? = null
 ) {
     Box(
         modifier = Modifier.fillMaxSize().padding(32.dp),
@@ -379,17 +454,20 @@ private fun ErrorState(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Icon(
-                imageVector = Icons.Filled.Error,
+                imageVector = if (isCloudflare) Icons.Filled.Security else Icons.Filled.Error,
                 contentDescription = null,
                 modifier = Modifier.size(64.dp),
                 tint = MaterialTheme.colorScheme.error
             )
             Text(
-                text = if (isCloudflare) "Cloudflare Error" else "Connection Error",
+                text = if (isCloudflare) "Cloudflare Verification Required" else "Connection Error",
                 style = MaterialTheme.typography.titleLarge
             )
             Text(text = message, style = MaterialTheme.typography.bodyMedium)
-            Button(onClick = onRetry) { Text("Try Again") }
+            if (isCloudflare && onResolveCloudflare != null) {
+                Button(onClick = onResolveCloudflare) { Text("Resolve Cloudflare") }
+            }
+            OutlinedButton(onClick = onRetry) { Text("Retry") }
         }
     }
 }
