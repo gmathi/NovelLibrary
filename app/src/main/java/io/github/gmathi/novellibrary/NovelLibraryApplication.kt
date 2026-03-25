@@ -7,8 +7,6 @@ import android.webkit.WebView
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LifecycleObserver
-import coil.ImageLoader
-import coil.ImageLoaderFactory
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
@@ -21,16 +19,13 @@ import io.github.gmathi.novellibrary.database.deleteWebPages
 import io.github.gmathi.novellibrary.model.other.SelectorQuery
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.MultiTrustManager
-import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.Logs
 import io.github.gmathi.novellibrary.util.notification.Notifications
 import io.github.gmathi.novellibrary.util.lang.LocaleManager
-import okhttp3.OkHttpClient
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.InjektScope
-import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 import uy.kohesive.injekt.registry.default.DefaultRegistrar
 import java.io.File
@@ -42,17 +37,9 @@ import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 
 
-open class NovelLibraryApplication : Application(), LifecycleObserver, ImageLoaderFactory {
+open class NovelLibraryApplication : Application(), LifecycleObserver {
     companion object {
         private const val TAG = "NovelLibraryApplication"
-    }
-
-    override fun newImageLoader(): ImageLoader {
-        val networkHelper: NetworkHelper = Injekt.get()
-        return ImageLoader.Builder(this)
-            .okHttpClient(networkHelper.cloudflareClient)
-            .crossfade(true)
-            .build()
     }
 
     override fun onCreate() {

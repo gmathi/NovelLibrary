@@ -76,14 +76,25 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
                 return chain.proceed(originalRequest)
             }
 
+            // For non-HTML resource requests (images, fonts, etc.), don't attempt a WebView
+            // bypass — it's expensive and unlikely to succeed. Just return the blocked response
+            // so the caller (e.g. Coil/Glide) can handle the failure gracefully.
+            // The bypass will happen on the next page/API request instead.
+            val path = originalRequest.url.encodedPath.lowercase()
+            val isResourceRequest = RESOURCE_EXTENSIONS.any { path.endsWith(it) }
+            if (isResourceRequest) {
+                // Return the 403 directly — don't waste time on WebView bypass for images
+                return chain.proceed(originalRequest)
+            }
+
             // Check if we should attempt bypass based on recent failures
             if (shouldSkipBypass(host)) {
                 throw Exception(context.getString(R.string.information_cloudflare_bypass_failure))
             }
 
             // Use the base domain URL for WebView bypass instead of the original URL.
-            // This is important for resource URLs (images, etc.) where loading the resource
-            // directly in WebView won't trigger a proper Cloudflare challenge page.
+            // This ensures the WebView loads a proper HTML page where Cloudflare's JS
+            // challenge can execute.
             val baseUrl = "${originalRequest.url.scheme}://${originalRequest.url.host}/"
             val bypassRequest = originalRequest.newBuilder().url(baseUrl).build()
 
@@ -266,5 +277,10 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
         private val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare", "cf-ray")
         private val COOKIE_NAMES = listOf("cf_clearance", "__cf_bm", "cf_chl_2", "cf_chl_prog")
         private val CLOUDFLARE_ERROR_CODES = setOf(503, 403, 429)
+        private val RESOURCE_EXTENSIONS = arrayOf(
+            ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".ico",
+            ".css", ".js", ".woff", ".woff2", ".ttf", ".eot", ".otf",
+            ".mp3", ".mp4", ".webm", ".ogg", ".pdf"
+        )
     }
 }

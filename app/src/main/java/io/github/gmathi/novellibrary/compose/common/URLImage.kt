@@ -22,18 +22,6 @@ import java.net.URL
 
 /**
  * A reusable composable for loading images from URLs with cookie and header support.
- * 
- * @param imageUrl The URL of the image to load
- * @param contentDescription Description for accessibility
- * @param modifier Modifier for the image container
- * @param size Size of the image (width and height) when using uniform dimensions
- * @param width Width of the image (overrides size for width when specified)
- * @param height Height of the image (overrides size for height when specified)
- * @param shape Shape to clip the image (optional)
- * @param contentScale How to scale the image content
- * @param showLoadingIndicator Whether to show a loading indicator while loading
- * @param loadingIndicatorSize Size of the loading indicator
- * @param errorContent Optional composable to show on error
  */
 @Composable
 fun URLImage(
@@ -67,7 +55,6 @@ fun URLImage(
         contentAlignment = Alignment.Center
     ) {
         if (!isPreview && !imageUrl.isNullOrBlank()) {
-            // Get cookies and headers
             val hostName = try {
                 val url = URL(imageUrl)
                 url.host.replace("www.", "").replace("m.", "").trim()
