@@ -12,6 +12,8 @@ import org.jsoup.select.NodeVisitor;
 
 import java.io.IOException;
 
+import io.github.gmathi.novellibrary.model.source.online.HttpSource;
+
 /**
  * HTML to plain-text. This example program demonstrates the use of jsoup to convert HTML input to lightly-formatted
  * plain-text. That is divergent from the general goal of jsoup's .text() methods, which is to get clean data from a
@@ -27,7 +29,7 @@ import java.io.IOException;
  * @author Jonathan Hedley, jonathan@hedley.net
  */
 public class HtmlToPlainText {
-    private static final String userAgent = "Mozilla/5.0 (Linux; Android 10; HD1913) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.46 Mobile Safari/537.36 EdgA/144.0.3719.115";
+    private static final String userAgent = HttpSource.DEFAULT_USER_AGENT;
     private static final int timeout = 5 * 1000;
 
     public static void main(String... args) throws IOException {

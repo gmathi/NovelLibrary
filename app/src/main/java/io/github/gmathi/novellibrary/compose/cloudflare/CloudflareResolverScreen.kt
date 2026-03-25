@@ -13,7 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.util.view.extensions.setDefaultSettings
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -21,12 +21,13 @@ import io.github.gmathi.novellibrary.util.view.extensions.setDefaultSettings
 @Composable
 fun CloudflareResolverScreen(
     url: String,
-    onComplete: () -> Unit,
+    onComplete: (resolvedUrl: String?) -> Unit,
     onBack: () -> Unit
 ) {
     var isLoading by remember { mutableStateOf(true) }
     var challengeSolved by remember { mutableStateOf(false) }
     var webViewRef by remember { mutableStateOf<WebView?>(null) }
+    var currentWebViewUrl by remember { mutableStateOf<String?>(null) }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -49,9 +50,10 @@ fun CloudflareResolverScreen(
         bottomBar = {
             Surface(tonalElevation = 3.dp) {
                 Button(
-                    onClick = onComplete,
+                    onClick = { onComplete(currentWebViewUrl) },
                     modifier = Modifier
                         .fillMaxWidth()
+                        .navigationBarsPadding()
                         .padding(16.dp)
                 ) {
                     Text(
@@ -76,7 +78,9 @@ fun CloudflareResolverScreen(
                             javaScriptEnabled = true
                             domStorageEnabled = true
                             databaseEnabled = true
-                            userAgentString = HostNames.USER_AGENT
+                            // Must match the UA used by OkHttp requests so Cloudflare
+                            // accepts the cf_clearance cookie on the retry.
+                            userAgentString = HttpSource.DEFAULT_USER_AGENT
                             useWideViewPort = true
                             loadWithOverviewMode = true
                         }
@@ -85,8 +89,8 @@ fun CloudflareResolverScreen(
                             override fun onPageFinished(view: WebView?, pageUrl: String?) {
                                 super.onPageFinished(view, pageUrl)
                                 isLoading = false
-                                // Auto-detect if cf_clearance cookie appeared
                                 if (pageUrl != null) {
+                                    currentWebViewUrl = pageUrl
                                     val cookies = CookieManager.getInstance().getCookie(pageUrl)
                                     if (cookies?.contains("cf_clearance") == true) {
                                         challengeSolved = true

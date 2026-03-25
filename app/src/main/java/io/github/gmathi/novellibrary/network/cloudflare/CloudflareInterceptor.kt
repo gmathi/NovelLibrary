@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.Toast
@@ -46,6 +47,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
     @Synchronized
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
+        Log.d(TAG, "intercept: ${originalRequest.url}")
 
         if (!WebViewUtil.supportsWebView(context)) {
             launchUI {
@@ -64,15 +66,23 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
                 return response
             }
 
+            Log.d(TAG, "Cloudflare challenge detected for ${originalRequest.url} (code=${response.code})")
             response.close()
 
             val host = originalRequest.url.host
 
             // If we already have a cf_clearance cookie from a previous bypass (e.g. a concurrent
             // request that already solved the challenge), just retry with that cookie.
-            val existingClearance = networkHelper.cookieManager.get(originalRequest.url)
+            val jarClearance = networkHelper.cookieManager.get(originalRequest.url)
                 .firstOrNull { it.name == "cf_clearance" }
+            val cfmClearance = networkHelper.cloudflareCookieManager.getClearanceCookie(originalRequest.url)
+            val existingClearance = jarClearance ?: cfmClearance
+            Log.d(TAG, "Existing clearance for $host: jar=${jarClearance?.value?.take(20)}, cfm=${cfmClearance?.value?.take(20)}")
+
             if (existingClearance != null) {
+                // Ensure the cookie is also in the AndroidCookieJar so OkHttp sends it
+                syncCloudflareCookiesToJar(originalRequest.url)
+                Log.d(TAG, "Retrying with existing clearance for $host")
                 return chain.proceed(originalRequest)
             }
 
@@ -83,12 +93,14 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
             val path = originalRequest.url.encodedPath.lowercase()
             val isResourceRequest = RESOURCE_EXTENSIONS.any { path.endsWith(it) }
             if (isResourceRequest) {
+                Log.d(TAG, "Skipping bypass for resource request: $path")
                 // Return the 403 directly — don't waste time on WebView bypass for images
                 return chain.proceed(originalRequest)
             }
 
             // Check if we should attempt bypass based on recent failures
             if (shouldSkipBypass(host)) {
+                Log.d(TAG, "Skipping bypass for $host (recent failure)")
                 throw Exception(context.getString(R.string.information_cloudflare_bypass_failure))
             }
 
@@ -102,16 +114,25 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
             val oldCookie = networkHelper.cookieManager.get(baseUrl.toHttpUrl())
                 .firstOrNull { it.name == "cf_clearance" }
 
+            Log.d(TAG, "Attempting WebView bypass for $host (baseUrl=$baseUrl)")
             val bypassSuccess = resolveWithWebView(bypassRequest, oldCookie)
+            Log.d(TAG, "WebView bypass result for $host: $bypassSuccess")
 
             if (bypassSuccess) {
                 recordBypassSuccess(host)
+                // Store the new cookies in the per-host CloudflareCookieManager
+                storeCloudflareCookies(originalRequest.url)
+                // Log all cookies after bypass
+                val allCookies = networkHelper.cookieManager.get(originalRequest.url)
+                Log.d(TAG, "Cookies after bypass for $host: ${allCookies.map { "${it.name}=${it.value.take(20)}" }}")
                 return chain.proceed(originalRequest)
             } else {
                 recordBypassFailure(host)
+                Log.d(TAG, "WebView bypass failed for $host")
                 throw Exception(context.getString(R.string.information_cloudflare_bypass_failure))
             }
         } catch (e: Exception) {
+            Log.e(TAG, "Cloudflare intercept error for ${originalRequest.url}: ${e.message}")
             // Because OkHttp's enqueue only handles IOExceptions, wrap the exception so that
             // we don't crash the entire app
             return chain.proceed(originalRequest)
@@ -273,7 +294,31 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
         return cloudflareBypassed
     }
 
+    /**
+     * Store Cloudflare cookies from the AndroidCookieJar into the per-host
+     * CloudflareCookieManager after a successful bypass.
+     */
+    private fun storeCloudflareCookies(url: okhttp3.HttpUrl) {
+        val cookies = networkHelper.cookieManager.get(url)
+        val cfCookies = cookies.filter { CloudflareCookieManager.isCloudflareCookie(it) }
+        if (cfCookies.isNotEmpty()) {
+            networkHelper.cloudflareCookieManager.storeCookies(url, cfCookies)
+        }
+    }
+
+    /**
+     * Sync Cloudflare cookies from the per-host CloudflareCookieManager back into
+     * the AndroidCookieJar so OkHttp includes them in the retry request.
+     */
+    private fun syncCloudflareCookiesToJar(url: okhttp3.HttpUrl) {
+        val cfCookies = networkHelper.cloudflareCookieManager.getCookies(url)
+        if (cfCookies.isNotEmpty()) {
+            networkHelper.cookieManager.saveFromResponse(url, cfCookies)
+        }
+    }
+
     companion object {
+        private const val TAG = "CloudflareInterceptor"
         private val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare", "cf-ray")
         private val COOKIE_NAMES = listOf("cf_clearance", "__cf_bm", "cf_chl_2", "cf_chl_prog")
         private val CLOUDFLARE_ERROR_CODES = setOf(503, 403, 429)
