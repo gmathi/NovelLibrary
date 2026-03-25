@@ -30,8 +30,8 @@ import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
-import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.getLinkedPagesCompat
+import io.github.gmathi.novellibrary.util.logging.Logs
+import io.github.gmathi.novellibrary.util.lang.getLinkedPagesCompat
 import io.github.gmathi.novellibrary.util.view.extensions.setDefaultSettings
 import kotlinx.coroutines.*
 import okhttp3.Cookie

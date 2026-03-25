@@ -9,7 +9,7 @@ import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.FAC
+import io.github.gmathi.novellibrary.util.analytics.FAC
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

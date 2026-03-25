@@ -15,7 +15,7 @@ import io.github.gmathi.novellibrary.activity.settings.BaseSettingsActivity
 import io.github.gmathi.novellibrary.model.ui.ListitemSetting
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MAX
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_MIN
-import io.github.gmathi.novellibrary.util.FAC
+import io.github.gmathi.novellibrary.util.analytics.FAC
 import io.github.gmathi.novellibrary.util.system.bindChevron
 import io.github.gmathi.novellibrary.util.system.bindSwitch
 import io.github.gmathi.novellibrary.util.system.startReaderBackgroundSettingsActivity

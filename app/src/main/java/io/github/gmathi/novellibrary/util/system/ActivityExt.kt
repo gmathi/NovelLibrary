@@ -20,6 +20,10 @@ fun AppCompatActivity.hideSoftKeyboard() {
     inputMethodManager.hideSoftInputFromWindow(window.decorView.windowToken, 0)
 }
 
+//TODO: DUPLICATE - REMOVAL NEEDED
+// This function duplicates Context.toast() in ContextExt.kt (same package).
+// Also duplicated by Activity.showToast() in util/Extensions.kt.
+// Consolidate all toast helpers into ContextExt.kt.
 fun AppCompatActivity.toast(message: String) {
     Toast.makeText(this, message, Toast.LENGTH_LONG).show()
 }
@@ -29,6 +33,10 @@ fun AppCompatActivity.snackBar(view: View, message: String) {
         .setAction("Action", null).show()
 }
 
+//TODO: DUPLICATE - REMOVAL NEEDED
+// This function duplicates Context.openInBrowser() in ContextExt.kt (same package).
+// The ContextExt version uses CustomTabsIntent which is the better implementation.
+// Remove this and use the ContextExt version everywhere.
 fun AppCompatActivity.openInBrowser(url: String) {
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
     try {

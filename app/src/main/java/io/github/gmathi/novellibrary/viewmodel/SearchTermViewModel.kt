@@ -10,7 +10,7 @@ import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.model.other.NovelsPage
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.model.preference.DataCenter
-import io.github.gmathi.novellibrary.source.NovelUpdatesSource
+import io.github.gmathi.novellibrary.model.source.online.NovelUpdatesSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

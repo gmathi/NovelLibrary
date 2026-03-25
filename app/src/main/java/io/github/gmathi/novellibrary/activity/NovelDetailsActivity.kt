@@ -33,6 +33,8 @@ import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.*
+import io.github.gmathi.novellibrary.util.error.Exceptions
+import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.*

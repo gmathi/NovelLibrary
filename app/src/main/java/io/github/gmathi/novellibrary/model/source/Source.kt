@@ -4,7 +4,7 @@ import android.graphics.drawable.Drawable
 import io.github.gmathi.novellibrary.extension.ExtensionManager
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
-import io.github.gmathi.novellibrary.source.NovelUpdatesSource
+import io.github.gmathi.novellibrary.model.source.online.NovelUpdatesSource
 import io.github.gmathi.novellibrary.util.lang.awaitSingle
 import rx.Observable
 import uy.kohesive.injekt.Injekt

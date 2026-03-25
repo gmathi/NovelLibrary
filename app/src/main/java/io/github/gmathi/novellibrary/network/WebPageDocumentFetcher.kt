@@ -5,7 +5,7 @@ import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.proxy.BaseProxyHelper
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.network.postProxy.BasePostProxyHelper
-import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.network.asJsoup
 import io.github.gmathi.novellibrary.util.network.safeExecute
 import okhttp3.OkHttpClient

@@ -14,7 +14,9 @@ import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.*
-import io.github.gmathi.novellibrary.util.Exceptions.MISSING_SOURCE_ID
+import io.github.gmathi.novellibrary.util.logging.Logs
+import io.github.gmathi.novellibrary.util.lang.getLinkedPagesCompat
+import io.github.gmathi.novellibrary.util.error.Exceptions.MISSING_SOURCE_ID
 import io.github.gmathi.novellibrary.util.system.DataAccessor
 import io.github.gmathi.novellibrary.util.system.addNewNovel
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel.Action.*

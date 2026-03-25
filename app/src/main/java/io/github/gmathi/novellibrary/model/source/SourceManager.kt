@@ -5,7 +5,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
-import io.github.gmathi.novellibrary.source.*
+import io.github.gmathi.novellibrary.model.source.online.NovelUpdatesSource
 import rx.Observable
 
 open class SourceManager(private val context: Context) {

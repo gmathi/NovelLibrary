@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.compose
+package io.github.gmathi.novellibrary.compose.recentnovels
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn

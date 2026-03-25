@@ -25,7 +25,7 @@ import io.github.gmathi.novellibrary.extensions.showEmpty
 import io.github.gmathi.novellibrary.extensions.showLoading
 import io.github.gmathi.novellibrary.model.database.NovelSection
 import io.github.gmathi.novellibrary.network.sync.NovelSync
-import io.github.gmathi.novellibrary.util.FAC
+import io.github.gmathi.novellibrary.util.analytics.FAC
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener

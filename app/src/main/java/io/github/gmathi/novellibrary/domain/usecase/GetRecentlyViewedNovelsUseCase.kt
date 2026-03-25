@@ -6,7 +6,7 @@ import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.getLargePreference
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.logging.Logs
 
 class GetRecentlyViewedNovelsUseCase(
     private val dbHelper: DBHelper,

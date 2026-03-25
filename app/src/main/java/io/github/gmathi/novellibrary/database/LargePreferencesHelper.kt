@@ -1,7 +1,7 @@
 package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
-import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.logging.Logs
 
 private const val LOG = "LargePreferenceHelper"
 

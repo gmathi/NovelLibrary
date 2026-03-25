@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.network.interceptor
+package io.github.gmathi.novellibrary.network.cloudflare
 
 import android.annotation.SuppressLint
 import android.content.Context

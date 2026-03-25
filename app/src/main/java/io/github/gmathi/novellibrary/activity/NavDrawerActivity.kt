@@ -25,8 +25,8 @@ import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.compose.search.SearchFragmentCompose
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.WhatsChanged
+import io.github.gmathi.novellibrary.util.logging.Logs
+import io.github.gmathi.novellibrary.util.changelog.WhatsChanged
 import io.github.gmathi.novellibrary.util.system.openInBrowser
 import io.github.gmathi.novellibrary.util.system.startChaptersActivity
 import io.github.gmathi.novellibrary.util.system.startExtensionsPagerActivity

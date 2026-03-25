@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.source
+package io.github.gmathi.novellibrary.model.source.online
 
 import android.os.Build
 import androidx.core.net.toUri
@@ -8,15 +8,14 @@ import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.other.NovelsPage
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.filter.FilterList
-import io.github.gmathi.novellibrary.model.source.online.ParsedHttpSource
 import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.POST
 import io.github.gmathi.novellibrary.network.asObservableSuccess
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.Exceptions.INVALID_NOVEL
-import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.Exceptions.MISSING_IMPLEMENTATION
+import io.github.gmathi.novellibrary.util.error.Exceptions.INVALID_NOVEL
+import io.github.gmathi.novellibrary.util.logging.Logs
+import io.github.gmathi.novellibrary.util.error.Exceptions.MISSING_IMPLEMENTATION
 import io.github.gmathi.novellibrary.util.lang.addPageNumberToUrl
 import io.github.gmathi.novellibrary.util.lang.awaitSingle
 import io.github.gmathi.novellibrary.util.network.asJsoup

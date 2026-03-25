@@ -46,8 +46,8 @@ import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
-import io.github.gmathi.novellibrary.util.FAC
-import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.analytics.FAC
+import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.Utils.getFormattedText
 import io.github.gmathi.novellibrary.util.lang.launchUI
