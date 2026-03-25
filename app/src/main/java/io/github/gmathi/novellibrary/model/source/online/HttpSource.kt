@@ -9,6 +9,7 @@ import io.github.gmathi.novellibrary.model.source.filter.FilterList
 import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.network.asObservableSuccess
+import io.github.gmathi.novellibrary.util.logging.Logs
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -181,10 +182,17 @@ abstract class HttpSource : CatalogueSource {
      * @param novel the novel to be updated.
      */
     override fun fetchNovelDetails(novel: Novel): Observable<Novel> {
+        val networkStart = System.currentTimeMillis()
         return client.newCall(novelDetailsRequest(novel))
             .asObservableSuccess()
             .map { response ->
-                novelDetailsParse(novel, response)
+                val networkElapsed = System.currentTimeMillis() - networkStart
+                Logs.info("HttpSource", "⏱ [fetchNovelDetails] Network request for '${novel.name}' (${novel.url}): ${networkElapsed}ms")
+                val parseStart = System.currentTimeMillis()
+                val result = novelDetailsParse(novel, response)
+                val parseElapsed = System.currentTimeMillis() - parseStart
+                Logs.info("HttpSource", "⏱ [fetchNovelDetails] Parse time for '${novel.name}': ${parseElapsed}ms")
+                result
             }
     }
 

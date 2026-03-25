@@ -114,7 +114,10 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         lifecycleScope.launch {
             try {
                 val source = sourceManager.get(novel.sourceId) ?: throw Exception(Exceptions.MISSING_SOURCE_ID)
+                val totalStartTime = System.currentTimeMillis()
                 novel = withContext(Dispatchers.IO) { source.getNovelDetails(novel) }
+                val totalElapsed = System.currentTimeMillis() - totalStartTime
+                Logs.info(TAG, "⏱ [NovelDetails] Total load time for '${novel.name}': ${totalElapsed}ms")
 
                 //Update the novel in library with the new info
                 if (novel.id != -1L) withContext(Dispatchers.IO) { dbHelper.updateNovel(novel) }
@@ -198,9 +201,14 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         setNovelGenre()
         setNovelDescription()
 
-        contentBinding.novelDetailsChapters.text = getString(R.string.chapters) + " (${novel.chaptersCount})"
+        val chaptersCountText = novel.chaptersCount.takeIf { it > 0L }?.toString()
+            ?: novel.metadata["Chapters"]?.takeIf { it.isNotBlank() }
+        contentBinding.novelDetailsChapters.text = if (chaptersCountText != null)
+            getString(R.string.chapters) + " ($chaptersCountText)"
+        else
+            getString(R.string.chapters)
         contentBinding.novelDetailsChaptersLayout.setOnClickListener {
-            if (novel.chaptersCount != 0L) startChaptersActivity(novel, false)
+            startChaptersActivity(novel, false)
         }
         contentBinding.novelDetailsMetadataLayout.setOnClickListener { startMetadataActivity(novel) }
         contentBinding.openInBrowserButton.setOnClickListener { openInBrowser(novel.url) }

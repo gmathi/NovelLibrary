@@ -4,8 +4,8 @@ import android.graphics.drawable.Drawable
 import io.github.gmathi.novellibrary.extension.ExtensionManager
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.WebPage
-import io.github.gmathi.novellibrary.model.source.online.NovelUpdatesSource
 import io.github.gmathi.novellibrary.util.lang.awaitSingle
+import io.github.gmathi.novellibrary.util.logging.Logs
 import rx.Observable
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -36,16 +36,11 @@ interface Source {
      * [1.x API] Get all the available chapters for a novel.
      */
     suspend fun getNovelDetails(novel: Novel): Novel {
+        val detailsStart = System.currentTimeMillis()
         val downloadedNovel = fetchNovelDetails(novel).awaitSingle()
-        if (downloadedNovel.chaptersCount == 0L) {
-            downloadedNovel.chaptersCount =
-                if (this is NovelUpdatesSource)
-                    getUnsortedChapterList(novel).count().toLong()
-                else
-                    getChapterList(novel).count().toLong()
-
-        }
-        return novel
+        val detailsElapsed = System.currentTimeMillis() - detailsStart
+        Logs.info("Source", "⏱ [getNovelDetails] fetchNovelDetails for '${novel.name}': ${detailsElapsed}ms")
+        return downloadedNovel
     }
 
     /**

@@ -36,17 +36,17 @@ class RecentNovelsViewModel : ViewModel() {
     private val networkHelper: NetworkHelper by injectLazy()
     private val dbHelper: DBHelper by injectLazy()
     private val gson: Gson by injectLazy()
-    
+
     private val getRecentlyUpdatedNovelsUseCase = GetRecentlyUpdatedNovelsUseCase()
     private val getRecentlyViewedNovelsUseCase = GetRecentlyViewedNovelsUseCase(dbHelper, gson)
     private val clearRecentlyViewedNovelsUseCase = ClearRecentlyViewedNovelsUseCase(dbHelper)
-    
+
     private val _recentlyUpdatedState = MutableStateFlow<RecentlyUpdatedUiState>(RecentlyUpdatedUiState.Loading)
     val recentlyUpdatedState: StateFlow<RecentlyUpdatedUiState> = _recentlyUpdatedState.asStateFlow()
-    
+
     private val _recentlyViewedState = MutableStateFlow<RecentlyViewedUiState>(RecentlyViewedUiState.Loading)
     val recentlyViewedState: StateFlow<RecentlyViewedUiState> = _recentlyViewedState.asStateFlow()
-    
+
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
@@ -57,17 +57,17 @@ class RecentNovelsViewModel : ViewModel() {
             } else {
                 _recentlyUpdatedState.value = RecentlyUpdatedUiState.Loading
             }
-            
+
             if (!networkHelper.isConnectedToNetwork()) {
                 _recentlyUpdatedState.value = RecentlyUpdatedUiState.NoInternet
                 _isRefreshing.value = false
                 return@launch
             }
-            
+
             val result = withContext(Dispatchers.IO) {
                 getRecentlyUpdatedNovelsUseCase()
             }
-            
+
             _recentlyUpdatedState.value = result.fold(
                 onSuccess = { RecentlyUpdatedUiState.Success(it) },
                 onFailure = { RecentlyUpdatedUiState.Error(it.localizedMessage ?: "Unknown error") }
@@ -79,11 +79,11 @@ class RecentNovelsViewModel : ViewModel() {
     fun loadRecentlyViewedNovels() {
         viewModelScope.launch {
             _recentlyViewedState.value = RecentlyViewedUiState.Loading
-            
+
             val novels = withContext(Dispatchers.IO) {
                 getRecentlyViewedNovelsUseCase()
             }
-            
+
             _recentlyViewedState.value = if (novels.isEmpty()) {
                 RecentlyViewedUiState.Empty
             } else {
