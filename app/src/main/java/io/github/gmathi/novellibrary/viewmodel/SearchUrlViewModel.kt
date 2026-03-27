@@ -29,7 +29,7 @@ class SearchUrlViewModel : ViewModel() {
          * Dev flag: skip popular novels API calls to reduce network usage during development.
          * Only effective in debug builds.
          */
-        private const val SKIP_POPULAR_NOVELS_FETCH = true
+        private const val SKIP_POPULAR_NOVELS_FETCH = false
     }
 
     private val networkHelper: NetworkHelper by injectLazy()

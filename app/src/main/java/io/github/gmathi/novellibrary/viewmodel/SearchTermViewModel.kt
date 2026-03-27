@@ -45,7 +45,7 @@ class SearchTermViewModel : ViewModel() {
          * Dev flag: skip NovelUpdates search API calls to reduce network usage during development.
          * Only effective in debug builds.
          */
-        private const val SKIP_NOVEL_UPDATES_SEARCH = true
+        private const val SKIP_NOVEL_UPDATES_SEARCH = false
 
         /**
          * When true, search results are fetched lazily — only when the user views a source tab.
