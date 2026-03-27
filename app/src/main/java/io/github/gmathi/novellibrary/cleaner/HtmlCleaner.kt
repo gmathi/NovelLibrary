@@ -19,7 +19,7 @@ import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
-import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.lang.writableFileName
 import io.github.gmathi.novellibrary.util.network.getFileName
@@ -445,16 +445,15 @@ open class HtmlCleaner protected constructor() {
         private fun getSelectorQueries(): List<SelectorQuery> {
             val dataCenter: DataCenter by injectLazy()
             val htmlCleanerSelectorQueries = dataCenter.htmlCleanerSelectorQueries.apply {
+                val userSpecifiedSelectorQueries = dataCenter.userSpecifiedSelectorQueries
+                if (userSpecifiedSelectorQueries.isNotBlank()) {
+                   addAll(0,
+                        userSpecifiedSelectorQueries.split('\n')
+                            .filter { it.isNotBlank() }
+                            .map { SelectorQuery(it.trim()) }
+                    )
+                }
                 addAll(defaultSelectorQueries)
-            }
-
-            val userSpecifiedSelectorQueries = dataCenter.userSpecifiedSelectorQueries
-            if (userSpecifiedSelectorQueries.isNotBlank()) {
-                htmlCleanerSelectorQueries.addAll(0, 
-                    userSpecifiedSelectorQueries.split('\n')
-                        .filter { it.isNotBlank() }
-                        .map { SelectorQuery(it.trim()) }
-                )
             }
             return htmlCleanerSelectorQueries
         }

@@ -253,6 +253,11 @@
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
+            android:name=".activity.CloudflareResolverActivity"
+            android:label="Cloudflare Verification"
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide" />
+        <activity
             android:name=".activity.NovelSectionsActivity"
             android:label="@string/title_activity_novel_sections"
             android:screenOrientation="fullUser"

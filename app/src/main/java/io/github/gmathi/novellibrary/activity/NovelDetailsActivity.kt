@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.activity
 
+import android.app.Activity
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
@@ -16,6 +17,7 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.afollestad.materialdialogs.MaterialDialog
@@ -29,7 +31,10 @@ import io.github.gmathi.novellibrary.databinding.ActivityNovelDetailsBinding
 import io.github.gmathi.novellibrary.databinding.ContentNovelDetailsBinding
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.*
+import io.github.gmathi.novellibrary.util.error.Exceptions
+import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.*
@@ -52,6 +57,16 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     private lateinit var contentBinding: ContentNovelDetailsBinding
 
     private var retryCounter = 0
+
+    private val cloudflareResolverLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            // Cookies saved from manual Cloudflare resolution — retry loading
+            retryCounter = 0
+            getNovelInfo()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -99,7 +114,10 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         lifecycleScope.launch {
             try {
                 val source = sourceManager.get(novel.sourceId) ?: throw Exception(Exceptions.MISSING_SOURCE_ID)
+                val totalStartTime = System.currentTimeMillis()
                 novel = withContext(Dispatchers.IO) { source.getNovelDetails(novel) }
+                val totalElapsed = System.currentTimeMillis() - totalStartTime
+                Logs.info(TAG, "⏱ [NovelDetails] Total load time for '${novel.name}': ${totalElapsed}ms")
 
                 //Update the novel in library with the new info
                 if (novel.id != -1L) withContext(Dispatchers.IO) { dbHelper.updateNovel(novel) }
@@ -118,7 +136,8 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 }
 
                 if (e.message?.contains(getString(R.string.information_cloudflare_bypass_failure)) == true || e.message?.contains("HTTP error 503") == true && retryCounter < 2) {
-                    showToast("Cloudflare Issue, Try again!")
+                    retryCounter++
+                    showCloudflareResolverDialog()
                     return@launch
                 }
 
@@ -132,6 +151,23 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                     }
                 }
                 contentBinding.swipeRefreshLayout.isRefreshing = false
+            }
+        }
+    }
+
+    private fun showCloudflareResolverDialog() {
+        if (isDestroyed || isFinishing) return
+        MaterialDialog(this).show {
+            lifecycleOwner(this@NovelDetailsActivity)
+            title(text = "Cloudflare Verification Required")
+            message(text = "The server requires Cloudflare verification. You can solve it manually in a browser, then we'll retry automatically.")
+            positiveButton(text = "Resolve Manually") {
+                val url = "https://${HostNames.NOVEL_UPDATES}"
+                val intent = CloudflareResolverActivity.createIntent(this@NovelDetailsActivity, url)
+                cloudflareResolverLauncher.launch(intent)
+            }
+            negativeButton(text = "Retry") {
+                getNovelInfo()
             }
         }
     }
@@ -165,9 +201,14 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         setNovelGenre()
         setNovelDescription()
 
-        contentBinding.novelDetailsChapters.text = getString(R.string.chapters) + " (${novel.chaptersCount})"
+        val chaptersCountText = novel.chaptersCount.takeIf { it > 0L }?.toString()
+            ?: novel.metadata["Chapters"]?.takeIf { it.isNotBlank() }
+        contentBinding.novelDetailsChapters.text = if (chaptersCountText != null)
+            getString(R.string.chapters) + " ($chaptersCountText)"
+        else
+            getString(R.string.chapters)
         contentBinding.novelDetailsChaptersLayout.setOnClickListener {
-            if (novel.chaptersCount != 0L) startChaptersActivity(novel, false)
+            startChaptersActivity(novel, false)
         }
         contentBinding.novelDetailsMetadataLayout.setOnClickListener { startMetadataActivity(novel) }
         contentBinding.openInBrowserButton.setOnClickListener { openInBrowser(novel.url) }

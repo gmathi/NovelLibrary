@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.annotations
+package io.github.gmathi.novellibrary.model.annotations
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)

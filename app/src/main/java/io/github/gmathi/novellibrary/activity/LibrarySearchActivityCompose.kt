@@ -1,3 +1,9 @@
+//TODO: DUPLICATE - REMOVAL NEEDED
+// This entire file duplicates LibrarySearchActivity.kt (same package).
+// Both implement Compose-based library search with nearly identical UI and logic.
+// LibrarySearchActivity.kt is the canonical version (registered in AndroidManifest.xml).
+// Remove this file and consolidate any unique features (e.g. novel section handling) into LibrarySearchActivity.kt.
+
 package io.github.gmathi.novellibrary.activity
 
 import android.os.Bundle

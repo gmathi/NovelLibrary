@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.util
+package io.github.gmathi.novellibrary.util.logging
 
 import android.util.Log
 import com.google.firebase.crashlytics.FirebaseCrashlytics

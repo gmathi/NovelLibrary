@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.util
+package io.github.gmathi.novellibrary.util.lang
 
 import android.app.Activity
 import android.content.Context
@@ -9,10 +9,15 @@ import com.github.salomonbrys.kotson.fromJson
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.other.LinkedPage
+import io.github.gmathi.novellibrary.util.Constants
 import org.checkerframework.checker.units.qual.Length
 
 // General extensions that don't fit some specific extension category.
 
+//TODO: DUPLICATE - REMOVAL NEEDED
+// This function duplicates Context.toast() in util/system/ContextExt.kt.
+// The only difference is posting to main looper, which callers should handle themselves.
+// Consolidate into ContextExt.kt or remove.
 fun Context.showToastWithMain(text: String, duration: Int) {
     Handler(Looper.getMainLooper()).post {
         Toast.makeText(this, text, duration).show()
@@ -36,6 +41,9 @@ fun WebPageSettings.getLinkedPagesCompat():ArrayList<LinkedPage> {
     }
 }
 
+//TODO: DUPLICATE - REMOVAL NEEDED
+// This function duplicates AppCompatActivity.toast() in util/system/ActivityExt.kt
+// and Context.toast() in util/system/ContextExt.kt. Consolidate into ContextExt.kt.
 fun Activity.showToast(message: String, length: Int = Toast.LENGTH_LONG) {
     Toast.makeText(this, message, length).show()
 }

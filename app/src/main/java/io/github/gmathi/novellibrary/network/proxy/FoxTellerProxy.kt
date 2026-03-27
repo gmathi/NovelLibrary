@@ -5,7 +5,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.POST
-import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.network.asJsoup
 import okhttp3.Headers
 import okhttp3.MediaType.Companion.toMediaTypeOrNull

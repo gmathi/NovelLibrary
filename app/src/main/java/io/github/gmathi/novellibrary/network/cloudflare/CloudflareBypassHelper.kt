@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.network
+package io.github.gmathi.novellibrary.network.cloudflare
 
 import android.content.Context
 import android.webkit.WebView

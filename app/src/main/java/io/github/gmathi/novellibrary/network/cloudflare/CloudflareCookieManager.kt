@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.network
+package io.github.gmathi.novellibrary.network.cloudflare
 
 import okhttp3.Cookie
 import okhttp3.HttpUrl

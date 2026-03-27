@@ -23,7 +23,7 @@ import io.github.gmathi.novellibrary.adapter.NavPageListener
 import io.github.gmathi.novellibrary.adapter.SearchResultsListener
 import io.github.gmathi.novellibrary.compose.search.*
 import io.github.gmathi.novellibrary.model.source.getPreferenceKey
-import io.github.gmathi.novellibrary.util.FAC
+import io.github.gmathi.novellibrary.util.analytics.FAC
 import io.github.gmathi.novellibrary.util.lang.addToNovelSearchHistory
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
 

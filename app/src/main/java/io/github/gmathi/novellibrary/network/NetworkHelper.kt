@@ -6,7 +6,8 @@ import coil.ImageLoader
 import coil.disk.DiskCache
 import coil.util.CoilUtils
 import io.github.gmathi.novellibrary.BuildConfig
-import io.github.gmathi.novellibrary.network.interceptor.CloudflareInterceptor
+import io.github.gmathi.novellibrary.network.cloudflare.CloudflareInterceptor
+import io.github.gmathi.novellibrary.network.cloudflare.CloudflareCookieManager
 import io.github.gmathi.novellibrary.network.interceptor.UserAgentInterceptor
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import okhttp3.Cache

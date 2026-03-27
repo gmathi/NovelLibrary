@@ -1,3 +1,9 @@
+//TODO: DUPLICATE - REMOVAL NEEDED
+// This file duplicates fragment/SearchFragment.kt which also uses Compose UI.
+// Both implement the same search flow (search history, novel search, ViewPager tabs).
+// SearchFragment.kt is the canonical version (used by NavDrawerActivity).
+// Remove this file once SearchFragment.kt is confirmed as the sole search entry point.
+
 package io.github.gmathi.novellibrary.compose.search
 
 import android.os.Bundle
@@ -13,7 +19,7 @@ import androidx.core.view.GravityCompat
 import com.google.firebase.analytics.ktx.logEvent
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.fragment.BaseFragment
-import io.github.gmathi.novellibrary.util.FAC
+import io.github.gmathi.novellibrary.util.analytics.FAC
 import io.github.gmathi.novellibrary.util.lang.addToNovelSearchHistory
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
 

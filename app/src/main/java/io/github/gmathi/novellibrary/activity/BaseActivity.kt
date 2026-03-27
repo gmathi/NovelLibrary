@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.appbar.AppBarLayout
 import com.google.firebase.analytics.FirebaseAnalytics
 import io.github.gmathi.novellibrary.database.DBHelper
@@ -25,6 +26,9 @@ abstract class BaseActivity : AppCompatActivity(), DataAccessor {
     override val networkHelper: NetworkHelper by injectLazy()
     override fun getContext(): Context? = this
 
+    /** Set to true in subclasses that handle their own system window insets (e.g. fullscreen activities). */
+    protected open val skipWindowInsets: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Enable edge-to-edge display
@@ -33,26 +37,39 @@ abstract class BaseActivity : AppCompatActivity(), DataAccessor {
 
     override fun onContentChanged() {
         super.onContentChanged()
-        // Automatically apply window insets to AppBarLayout
-        applyWindowInsetsToAppBar()
+        if (!skipWindowInsets) {
+            // Automatically apply window insets to AppBarLayout or root view
+            applyWindowInsetsToAppBar()
+        }
     }
 
     private fun applyWindowInsetsToAppBar() {
         // Find AppBarLayout in the view hierarchy and apply top insets
         val rootView = findViewById<ViewGroup>(android.R.id.content)
-        rootView?.let { findAndApplyInsetsToAppBar(it) }
+        rootView?.let {
+            val found = findAndApplyInsetsToAppBar(it)
+            if (!found && it.childCount > 0) {
+                val contentRoot = it.getChildAt(0)
+                // Skip DrawerLayouts — they handle insets internally,
+                // and their child fragments handle AppBarLayout insets via BaseFragment
+                if (contentRoot !is DrawerLayout) {
+                    contentRoot.applyTopSystemWindowInsetsPadding()
+                }
+            }
+        }
     }
 
-    private fun findAndApplyInsetsToAppBar(viewGroup: ViewGroup) {
+    private fun findAndApplyInsetsToAppBar(viewGroup: ViewGroup): Boolean {
         for (i in 0 until viewGroup.childCount) {
             val child = viewGroup.getChildAt(i)
             if (child is AppBarLayout) {
                 child.applyTopSystemWindowInsetsPadding()
-                return
+                return true
             } else if (child is ViewGroup) {
-                findAndApplyInsetsToAppBar(child)
+                if (findAndApplyInsetsToAppBar(child)) return true
             }
         }
+        return false
     }
 
     override fun attachBaseContext(newBase: Context) {

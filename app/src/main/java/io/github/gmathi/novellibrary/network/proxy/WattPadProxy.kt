@@ -1,6 +1,6 @@
 package io.github.gmathi.novellibrary.network.proxy
 
-import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.logging.Logs
 import okhttp3.Response
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document

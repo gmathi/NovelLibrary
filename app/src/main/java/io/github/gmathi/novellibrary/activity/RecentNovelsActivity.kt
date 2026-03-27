@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import io.github.gmathi.novellibrary.compose.RecentNovelsScreen
+import io.github.gmathi.novellibrary.compose.recentnovels.RecentNovelsScreen
 import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.Constants

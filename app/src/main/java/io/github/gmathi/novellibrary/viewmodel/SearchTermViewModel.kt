@@ -10,7 +10,7 @@ import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.model.other.NovelsPage
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.model.preference.DataCenter
-import io.github.gmathi.novellibrary.source.NovelUpdatesSource
+import io.github.gmathi.novellibrary.model.source.online.NovelUpdatesSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +24,7 @@ sealed class SearchTermUiState {
     object Idle : SearchTermUiState()
     object Loading : SearchTermUiState()
     data class Success(val hasMore: Boolean) : SearchTermUiState()
-    data class Error(val message: String) : SearchTermUiState()
+    data class Error(val message: String, val isCloudflare: Boolean = false, val cloudflareUrl: String? = null) : SearchTermUiState()
     object NoInternet : SearchTermUiState()
     object Empty : SearchTermUiState()
 }
@@ -51,7 +51,7 @@ class SearchTermViewModel : ViewModel() {
          * When true, search results are fetched lazily — only when the user views a source tab.
          * When false, all sources are fetched immediately on search.
          */
-        const val LAZY_LOAD_SOURCES = false
+        const val LAZY_LOAD_SOURCES = true
     }
 
     private val sourceManager: SourceManager by injectLazy()
@@ -167,9 +167,15 @@ class SearchTermViewModel : ViewModel() {
             } catch (e: Exception) {
                 updateSourceState(index) { state ->
                     if (page == 1) {
+                        val isCloudflare = e.localizedMessage?.contains("503") == true ||
+                                e.localizedMessage?.contains("403") == true ||
+                                e.localizedMessage?.contains("cloudflare", ignoreCase = true) == true
+                        val sourceBaseUrl = source.baseUrl
                         state.copy(
                             uiState = SearchTermUiState.Error(
-                                e.localizedMessage ?: "Search failed"
+                                message = e.localizedMessage ?: "Search failed",
+                                isCloudflare = isCloudflare,
+                                cloudflareUrl = if (isCloudflare) sourceBaseUrl else null
                             ),
                             isLoadingMore = false
                         )

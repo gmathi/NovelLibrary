@@ -1,4 +1,4 @@
-package io.github.gmathi.novellibrary.source
+package io.github.gmathi.novellibrary.model.source.online
 
 import android.os.Build
 import androidx.core.net.toUri
@@ -8,15 +8,14 @@ import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.other.NovelsPage
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.filter.FilterList
-import io.github.gmathi.novellibrary.model.source.online.ParsedHttpSource
 import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.POST
 import io.github.gmathi.novellibrary.network.asObservableSuccess
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.Exceptions.INVALID_NOVEL
-import io.github.gmathi.novellibrary.util.Logs
-import io.github.gmathi.novellibrary.util.Exceptions.MISSING_IMPLEMENTATION
+import io.github.gmathi.novellibrary.util.error.Exceptions.INVALID_NOVEL
+import io.github.gmathi.novellibrary.util.logging.Logs
+import io.github.gmathi.novellibrary.util.error.Exceptions.MISSING_IMPLEMENTATION
 import io.github.gmathi.novellibrary.util.lang.addPageNumberToUrl
 import io.github.gmathi.novellibrary.util.lang.awaitSingle
 import io.github.gmathi.novellibrary.util.network.asJsoup
@@ -52,7 +51,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
         get() = network.cloudflareClient
 
     override fun headersBuilder(): Headers.Builder = Headers.Builder()
-        .add("User-Agent", USER_AGENT)
+        .add("User-Agent", DEFAULT_USER_AGENT)
         .add("Referer", baseUrl)
 
     //region Search Novel
@@ -620,6 +619,5 @@ class NovelUpdatesSource : ParsedHttpSource() {
 
     companion object {
         private const val TAG = "NovelUpdatesSource"
-        private const val USER_AGENT = "Mozilla/5.0 (Linux; Android 10; HD1913) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.46 Mobile Safari/537.36 EdgA/144.0.3719.115"
     }
 }

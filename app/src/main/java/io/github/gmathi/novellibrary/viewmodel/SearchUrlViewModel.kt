@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.network.NetworkHelper
-import io.github.gmathi.novellibrary.source.NovelUpdatesSource
+import io.github.gmathi.novellibrary.model.source.online.NovelUpdatesSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +17,7 @@ import uy.kohesive.injekt.injectLazy
 sealed class SearchUrlUiState {
     object Loading : SearchUrlUiState()
     data class Success(val novels: List<Novel>, val hasMore: Boolean) : SearchUrlUiState()
-    data class Error(val message: String, val isCloudflare: Boolean = false) : SearchUrlUiState()
+    data class Error(val message: String, val isCloudflare: Boolean = false, val cloudflareUrl: String? = null) : SearchUrlUiState()
     object NoInternet : SearchUrlUiState()
     object Empty : SearchUrlUiState()
 }
@@ -102,10 +102,12 @@ class SearchUrlViewModel : ViewModel() {
                 
             } catch (e: Exception) {
                 val isCloudflare = e.localizedMessage?.contains("503") == true || 
+                                  e.localizedMessage?.contains("403") == true ||
                                   e.localizedMessage?.contains("cloudflare", ignoreCase = true) == true
                 _uiState.value = SearchUrlUiState.Error(
                     message = e.localizedMessage ?: "Connection error",
-                    isCloudflare = isCloudflare
+                    isCloudflare = isCloudflare,
+                    cloudflareUrl = if (isCloudflare) url ?: "https://${io.github.gmathi.novellibrary.network.HostNames.NOVEL_UPDATES}" else null
                 )
                 isLoadingMore = false
             }

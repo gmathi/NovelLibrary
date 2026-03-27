@@ -28,7 +28,7 @@ import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.network.POST
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.util.Exceptions.NETWORK_ERROR
+import io.github.gmathi.novellibrary.util.error.Exceptions.NETWORK_ERROR
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.network.safeExecute
 import io.github.gmathi.novellibrary.util.system.toast

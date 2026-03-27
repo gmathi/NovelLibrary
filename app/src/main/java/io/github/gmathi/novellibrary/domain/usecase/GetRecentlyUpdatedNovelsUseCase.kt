@@ -2,7 +2,7 @@ package io.github.gmathi.novellibrary.domain.usecase
 
 import io.github.gmathi.novellibrary.model.other.RecentlyUpdatedItem
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
-import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.logging.Logs
 
 class GetRecentlyUpdatedNovelsUseCase {
     

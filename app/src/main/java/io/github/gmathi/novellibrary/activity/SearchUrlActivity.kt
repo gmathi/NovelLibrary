@@ -5,7 +5,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
-import io.github.gmathi.novellibrary.compose.SearchUrlScreen
+import io.github.gmathi.novellibrary.compose.searchurl.SearchUrlScreen
 import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.viewmodel.SearchUrlViewModel

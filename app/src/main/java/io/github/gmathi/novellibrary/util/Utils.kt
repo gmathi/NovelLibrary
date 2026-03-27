@@ -35,6 +35,7 @@ import io.github.gmathi.novellibrary.util.lang.writableFileName
 import io.github.gmathi.novellibrary.util.storage.createFileIfNotExists
 import io.github.gmathi.novellibrary.util.storage.getOrCreateDirectory
 import io.github.gmathi.novellibrary.util.storage.getOrCreateFile
+import io.github.gmathi.novellibrary.util.logging.Logs
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.safety.Cleaner
