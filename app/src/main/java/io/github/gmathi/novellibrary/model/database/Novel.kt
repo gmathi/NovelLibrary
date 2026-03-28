@@ -118,6 +118,11 @@ data class Novel(
 
     /**
      * Database id for the novel. Default = -1L which means it is not in database.
+     *
+     * NOTE: autoGenerate is intentionally omitted here. Room only treats 0L as "unset" with
+     * autoGenerate=true, but this codebase uses -1L as the "not in DB" sentinel throughout.
+     * Switching requires replacing every `novel.id == -1L` check with `novel.id == 0L` — deferred
+     * to Phase 2 (Hilt migration). Until then, insertions must go through DBHelper, not this DAO.
      */
     @PrimaryKey
     @ColumnInfo(name = "id")

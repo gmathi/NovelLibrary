@@ -13,6 +13,10 @@ interface LargePreferenceDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(preference: LargePreference)
 
+    /** Inserts or replaces — equivalent to the legacy createOrUpdateLargePreference(). */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun upsert(preference: LargePreference)
+
     @Update
     fun update(preference: LargePreference)
 
