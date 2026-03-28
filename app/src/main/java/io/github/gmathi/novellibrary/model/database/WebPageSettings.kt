@@ -4,17 +4,39 @@ package io.github.gmathi.novellibrary.model.database
 
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.Index
+import androidx.room.PrimaryKey
 import java.io.Serializable
 
 //Used for Internal Database
-data class WebPageSettings(var url: String, var novelId: Long) : Parcelable, Serializable {
+@Entity(
+    tableName = "web_page_settings",
+    indices = [Index(name = "web_page_settings_url_index", value = ["url", "novel_id"])]
+)
+data class WebPageSettings(
+    @PrimaryKey @ColumnInfo(name = "url") var url: String,
+    @ColumnInfo(name = "novel_id") var novelId: Long
+) : Parcelable, Serializable {
 
+    @ColumnInfo(name = "title")
     var title: String? = null
+
+    @ColumnInfo(name = "is_read")
     var isRead: Boolean = false
+
+    @ColumnInfo(name = "file_path")
     var filePath: String? = null
+
+    @ColumnInfo(name = "redirect_url")
     var redirectedUrl: String? = null
+
+    @ColumnInfo(name = "metadata")
     var metadata: HashMap<String, String?> = HashMap()
 
+    @Ignore
     constructor(parcel: Parcel) : this(
         parcel.readString().toString(),
         parcel.readLong()

@@ -73,6 +73,9 @@ eventbus = "3.3.1"
 crux = "2.2.0"
 injekt = "1.16.1"
 
+# Room
+room = "2.7.1"
+
 # Debug
 leakcanary = "2.14"
 
@@ -186,6 +189,11 @@ play-services-auth = { module = "com.google.android.gms:play-services-auth", ver
 eventbus = { module = "org.greenrobot:eventbus", version.ref = "eventbus" }
 crux = { module = "com.github.chimbori:crux", version.ref = "crux" }
 injekt = { module = "uy.kohesive.injekt:injekt-core", version.ref = "injekt" }
+
+# Room
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 
 # Debug
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }

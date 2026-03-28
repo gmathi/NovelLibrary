@@ -14,7 +14,9 @@ object DBKeys {
     internal const val VER_WEB_PAGE_SETTINGS = 9
     internal const val VER_SOURCES_REFACTOR = 10
 
-    internal const val DATABASE_VERSION = VER_SOURCES_REFACTOR
+    internal const val VER_ROOM_MIGRATION = 11
+
+    internal const val DATABASE_VERSION = VER_ROOM_MIGRATION
 
     internal const val DATABASE_NAME = "bnr_db"
 

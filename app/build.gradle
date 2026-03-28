@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -78,7 +80,7 @@ android {
 
     kotlin {
         compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 
@@ -101,6 +103,12 @@ android {
         jniLibs {
             useLegacyPackaging = false
         }
+    }
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
 
@@ -183,6 +191,11 @@ dependencies {
     implementation libs.play.services.drive
     implementation libs.play.services.auth
     
+    // Room
+    implementation libs.androidx.room.runtime
+    implementation libs.androidx.room.ktx
+    ksp libs.androidx.room.compiler
+
     // Utilities
     implementation libs.eventbus
     implementation libs.crux
