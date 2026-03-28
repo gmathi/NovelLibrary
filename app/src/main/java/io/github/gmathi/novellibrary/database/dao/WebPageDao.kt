@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import io.github.gmathi.novellibrary.model.database.WebPage
 
 @Dao
@@ -11,6 +12,9 @@ interface WebPageDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(webPage: WebPage): Long
+
+    @Update
+    fun update(webPage: WebPage)
 
     @Query("SELECT * FROM web_page WHERE url = :url LIMIT 1")
     fun getByUrl(url: String): WebPage?

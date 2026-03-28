@@ -50,7 +50,7 @@ interface NovelDao {
     fun updateChaptersAndReleasesCount(id: Long, chaptersCount: Long, newReleasesCount: Long)
 
     @Query("UPDATE novel SET metadata = :metadata WHERE id = :id")
-    fun updateMetadata(id: Long, metadata: String)
+    fun updateMetadata(id: Long, metadata: HashMap<String, String?>)
 
     @Query("DELETE FROM novel WHERE id = :id")
     fun delete(id: Long)

@@ -65,6 +65,8 @@ abstract class AppDatabase : RoomDatabase() {
         private fun buildDatabase(context: Context): AppDatabase {
             return Room.databaseBuilder(context, AppDatabase::class.java, DBKeys.DATABASE_NAME)
                 .addMigrations(MIGRATION_10_11)
+                // TODO: remove allowMainThreadQueries() once callers are migrated to
+                //  suspend DAO methods (Phase 2 — Hilt migration).
                 .allowMainThreadQueries()
                 .build()
         }
