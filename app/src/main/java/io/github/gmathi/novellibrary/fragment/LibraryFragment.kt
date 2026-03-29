@@ -59,7 +59,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private var novelSectionId: Long = -1L
     private var lastDeletedId: Long = -1
-    private var isSorted = false
 
     private lateinit var syncSnackBarManager: SnackProgressBarManager
     private var syncSnackBar: SnackProgressBar? = null
@@ -341,51 +340,41 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     private fun showSortDialog() {
         if (adapter.items.isEmpty()) return
         val sortOptions = listOf(
-            getString(R.string.sort_alphabetically),
-            getString(R.string.sort_by_last_read),
-            getString(R.string.sort_by_last_updated)
+            getString(R.string.sort_alphabetically_asc),
+            getString(R.string.sort_alphabetically_desc),
+            getString(R.string.sort_by_last_read_newest),
+            getString(R.string.sort_by_last_read_oldest),
+            getString(R.string.sort_by_last_updated_newest),
+            getString(R.string.sort_by_last_updated_oldest)
         )
         MaterialDialog(requireActivity()).show {
             title(R.string.sort)
             listItems(items = sortOptions) { _, index, _ ->
                 when (index) {
-                    0 -> sortNovelsAlphabetically()
-                    1 -> sortByLastRead()
-                    2 -> sortByLastUpdated()
+                    0 -> sortNovels(compareBy { it.name })
+                    1 -> sortNovels(compareByDescending { it.name })
+                    2 -> sortNovelsByDate(Constants.MetaDataKeys.LAST_READ_DATE, ascending = false)
+                    3 -> sortNovelsByDate(Constants.MetaDataKeys.LAST_READ_DATE, ascending = true)
+                    4 -> sortNovelsByDate(Constants.MetaDataKeys.LAST_UPDATED_DATE, ascending = false)
+                    5 -> sortNovelsByDate(Constants.MetaDataKeys.LAST_UPDATED_DATE, ascending = true)
                 }
             }
         }
     }
 
-    private fun sortNovelsAlphabetically() {
-        val items = adapter.items
-        if (!isSorted)
-            adapter.updateData(ArrayList(items.sortedWith(compareBy { it.name })))
-        else
-            adapter.updateData(ArrayList(items.sortedWith(compareBy { it.name }).reversed()))
-        isSorted = !isSorted
+    private fun sortNovels(comparator: Comparator<Novel>) {
+        adapter.updateData(ArrayList(adapter.items.sortedWith(comparator)))
         updateOrderIds()
     }
 
-    private fun sortByLastRead() {
+    private fun sortNovelsByDate(metadataKey: String, ascending: Boolean) {
         val dateFormat = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
-        adapter.updateData(ArrayList(adapter.items.sortedByDescending { novel ->
-            novel.metadata[Constants.MetaDataKeys.LAST_READ_DATE]?.let {
+        val sorted = adapter.items.sortedWith(compareBy { novel ->
+            novel.metadata[metadataKey]?.let {
                 try { dateFormat.parse(it)?.time } catch (e: Exception) { null }
-            } ?: Long.MIN_VALUE
-        }))
-        isSorted = false
-        updateOrderIds()
-    }
-
-    private fun sortByLastUpdated() {
-        val dateFormat = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
-        adapter.updateData(ArrayList(adapter.items.sortedByDescending { novel ->
-            novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE]?.let {
-                try { dateFormat.parse(it)?.time } catch (e: Exception) { null }
-            } ?: Long.MIN_VALUE
-        }))
-        isSorted = false
+            } ?: if (ascending) Long.MAX_VALUE else Long.MIN_VALUE
+        })
+        adapter.updateData(ArrayList(if (ascending) sorted else sorted.reversed()))
         updateOrderIds()
     }
 
