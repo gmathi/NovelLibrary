@@ -312,6 +312,9 @@
     <string name="add_to_library">Add To Library</string>
     <string name="in_library">In Library</string>
     <string name="sort">Sort</string>
+    <string name="sort_alphabetically">Alphabetically</string>
+    <string name="sort_by_last_read">Last Read</string>
+    <string name="sort_by_last_updated">Last Updated</string>
     <string name="sort_chapters">Sort Chapters</string>
     <string name="clearing_data">Clearing Data</string>
     <string name="please_wait">Please wait…</string>
