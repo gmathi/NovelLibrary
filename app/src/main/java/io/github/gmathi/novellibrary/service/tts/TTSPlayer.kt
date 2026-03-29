@@ -369,35 +369,35 @@ class TTSPlayer(private val context: Context,
                         if (copyResult.isFailure) {
                             val error = copyResult.exceptionOrNull()
                             Log.e(TAG, "Failed to copy AI TTS model files: ${error?.message}", error)
-                            withUIContext {
+                            if (!isDisposed) withUIContext {
                                 context.showToastWithMain("Failed to prepare AI TTS models: ${error?.message}", Toast.LENGTH_LONG)
                                 fallbackToSystemTts()
                                 continueStart()
                             }
                             return@launchIO
                         }
-                        
+
                         val assetStatus = modelAssetManager.getAssetStatus(selectedModel)
                         if (assetStatus != ModelAssetManager.AssetStatus.READY) {
                             Log.e(TAG, "AI TTS model files not ready. Status: $assetStatus")
-                            withUIContext {
+                            if (!isDisposed) withUIContext {
                                 context.showToastWithMain("AI TTS model files are missing.", Toast.LENGTH_LONG)
                                 fallbackToSystemTts()
                                 continueStart()
                             }
                             return@launchIO
                         }
-                        
+
                         val modelDir = modelAssetManager.getModelDirectory(selectedModel)
                         Log.d(TAG, "Creating AiAudioPlayer with model dir: $modelDir")
-                        
+
                         player = AiAudioPlayer(modelDir)
                         val error = player.init()
-                        
+
                         if (error != null) {
                             Log.e(TAG, "AiAudioPlayer init failed: $error")
                             player.destroy()
-                            withUIContext {
+                            if (!isDisposed) withUIContext {
                                 context.showToastWithMain("AI TTS init failed: $error", Toast.LENGTH_LONG)
                                 fallbackToSystemTts()
                                 continueStart()
@@ -405,19 +405,19 @@ class TTSPlayer(private val context: Context,
                             return@launchIO
                         }
                     }
-                    
+
                     player.speed = dataCenter.ttsPreferences.aiSpeed
                     player.callback = aiPlayerCallback
                     aiPlayer = player
                     aiEngineInitialized = true
-                    
-                    withUIContext {
+
+                    if (!isDisposed) withUIContext {
                         Log.d(TAG, "AiAudioPlayer initialized successfully")
                         continueStart()
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error initializing AI TTS", e)
-                    withUIContext {
+                    if (!isDisposed) withUIContext {
                         context.showToastWithMain("AI TTS error. Falling back to system TTS.", Toast.LENGTH_LONG)
                         fallbackToSystemTts()
                         continueStart()

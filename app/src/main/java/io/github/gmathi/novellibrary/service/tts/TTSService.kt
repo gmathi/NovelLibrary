@@ -225,7 +225,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
      */
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
-        
+        if (!::player.isInitialized) return
         when (level) {
             ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW,
             ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL,
@@ -362,7 +362,6 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         } else {
             startForeground(TTS_NOTIFICATION_ID, notificationBuilder.buildNotification(mediaSession.sessionToken))
         }
-        startForeground(TTS_NOTIFICATION_ID, notificationBuilder.buildNotification(mediaSession.sessionToken))
         notification.start()
         stopTimer.start()
 

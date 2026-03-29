@@ -303,6 +303,7 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
     private var bytesPerFrame: Int = 1 // How many bytes 1 frame of sample data takes
     private var bufferSize: Int = 4096 // The size of the immediate AudioTrack buffer
     private val writer = BufferWriter()
+    private var writerThread: Thread? = null
     private val silence: ByteArray = ByteArray(2205*2) // 100ms worth of 16BIT PCM at 2205hz
     private var preventConsume: Boolean = false // Would prevent next command from being consumed during callbacks.
     //private val activeConfig: TTSQueue = TTSQueue(TTSQueueType.Setup)
@@ -338,7 +339,10 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
                 AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).setUsage(AudioAttributes.USAGE_MEDIA).build(),
                 earconId
             )
-
+            if (player == null) {
+                Log.e(TTSPlayer.TAG, "Failed to create MediaPlayer for earcon '$earcon' (resource $resourceId)")
+                return
+            }
     //        Log.d(TTSPlayer.TAG, "Adding a new earcon: $earcon, duration: ${player.duration}")
             earcons[earcon] = Earcon(player)
         }
@@ -374,6 +378,10 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
         tts.shutdown()
         disposed = true
         if (!legacyMode) {
+            // Wait for the buffer writer thread to observe disposed=true and exit
+            // before releasing the AudioTrack it may still be writing to.
+            writerThread?.join(200)
+            writerThread = null
             track?.release()
             track = null
             earcons.forEach { earcon -> earcon.value.player.release() }
@@ -595,9 +603,10 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
         callback.onInit(status)
         if (!legacyMode) {
             eventHandler = Handler(Looper.getMainLooper(), this)
-            val thread = Thread(writer, "tts_buffer_writer")
-            thread.priority = Thread.MAX_PRIORITY
-            thread.start()
+            writerThread = Thread(writer, "tts_buffer_writer").also {
+                it.priority = Thread.MAX_PRIORITY
+                it.start()
+            }
         }
         if (synthesizing == null && !queue.isEmpty()) consumeNext()
     }

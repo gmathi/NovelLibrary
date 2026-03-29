@@ -186,14 +186,7 @@ class OfflineTts(
         }
     }
 
-    protected fun finalize() {
-        if (ptr != 0L) {
-            delete(ptr)
-            ptr = 0
-        }
-    }
-
-    fun release() = finalize()
+    fun release() = free()
 
     private external fun newFromAsset(
         assetManager: AssetManager,
