@@ -4,24 +4,33 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.network.NetworkHelper
-import io.github.gmathi.novellibrary.source.NovelUpdatesSource
+import io.github.gmathi.novellibrary.model.source.online.NovelUpdatesSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import io.github.gmathi.novellibrary.BuildConfig
 import uy.kohesive.injekt.injectLazy
 
 sealed class SearchUrlUiState {
     object Loading : SearchUrlUiState()
     data class Success(val novels: List<Novel>, val hasMore: Boolean) : SearchUrlUiState()
-    data class Error(val message: String, val isCloudflare: Boolean = false) : SearchUrlUiState()
+    data class Error(val message: String, val isCloudflare: Boolean = false, val cloudflareUrl: String? = null) : SearchUrlUiState()
     object NoInternet : SearchUrlUiState()
     object Empty : SearchUrlUiState()
 }
 
 class SearchUrlViewModel : ViewModel() {
+
+    companion object {
+        /**
+         * Dev flag: skip popular novels API calls to reduce network usage during development.
+         * Only effective in debug builds.
+         */
+        private const val SKIP_POPULAR_NOVELS_FETCH = false
+    }
 
     private val networkHelper: NetworkHelper by injectLazy()
     
@@ -39,6 +48,14 @@ class SearchUrlViewModel : ViewModel() {
     fun initialize(rank: String?, url: String?) {
         this.rank = rank
         this.url = url
+
+        // Skip API calls in debug builds when dev flag is enabled
+        if (BuildConfig.DEBUG && SKIP_POPULAR_NOVELS_FETCH) {
+            _novels.value = emptyList()
+            _uiState.value = SearchUrlUiState.Empty
+            return
+        }
+
         loadNovels(reset = true)
     }
 
@@ -70,7 +87,8 @@ class SearchUrlViewModel : ViewModel() {
                 val updatedNovels = if (reset) {
                     novelsPage.novels
                 } else {
-                    _novels.value + novelsPage.novels
+                    val existingUrls = _novels.value.map { it.url }.toSet()
+                    _novels.value + novelsPage.novels.filter { it.url !in existingUrls }
                 }
                 
                 _novels.value = updatedNovels
@@ -84,10 +102,12 @@ class SearchUrlViewModel : ViewModel() {
                 
             } catch (e: Exception) {
                 val isCloudflare = e.localizedMessage?.contains("503") == true || 
+                                  e.localizedMessage?.contains("403") == true ||
                                   e.localizedMessage?.contains("cloudflare", ignoreCase = true) == true
                 _uiState.value = SearchUrlUiState.Error(
                     message = e.localizedMessage ?: "Connection error",
-                    isCloudflare = isCloudflare
+                    isCloudflare = isCloudflare,
+                    cloudflareUrl = if (isCloudflare) url ?: "https://${io.github.gmathi.novellibrary.network.HostNames.NOVEL_UPDATES}" else null
                 )
                 isLoadingMore = false
             }

@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import dalvik.system.PathClassLoader
-import io.github.gmathi.novellibrary.annotations.Nsfw
+import io.github.gmathi.novellibrary.model.annotations.Nsfw
 import io.github.gmathi.novellibrary.extension.model.Extension
 import io.github.gmathi.novellibrary.extension.model.LoadResult
 import io.github.gmathi.novellibrary.model.source.CatalogueSource

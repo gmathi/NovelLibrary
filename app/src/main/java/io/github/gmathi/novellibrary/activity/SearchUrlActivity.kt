@@ -3,10 +3,10 @@ package io.github.gmathi.novellibrary.activity
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
-import io.github.gmathi.novellibrary.compose.SearchUrlScreen
+import io.github.gmathi.novellibrary.compose.searchurl.SearchUrlScreen
+import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.viewmodel.SearchUrlViewModel
 
@@ -22,7 +22,7 @@ class SearchUrlActivity : BaseActivity() {
         val rank = intent.getStringExtra("rank")
 
         setContent {
-            MaterialTheme {
+            NovelLibraryTheme {
                 Surface {
                     LaunchedEffect(Unit) {
                         viewModel.initialize(rank, url)

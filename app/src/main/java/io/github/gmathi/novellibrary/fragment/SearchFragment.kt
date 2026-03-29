@@ -1,54 +1,62 @@
 package io.github.gmathi.novellibrary.fragment
 
-import android.animation.Animator
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.GravityCompat
+import androidx.viewpager.widget.ViewPager
 import com.google.firebase.analytics.ktx.logEvent
+import com.ogaclejapan.smarttablayout.SmartTabLayout
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
-import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.NavPageListener
 import io.github.gmathi.novellibrary.adapter.SearchResultsListener
-import io.github.gmathi.novellibrary.databinding.FragmentSearchBinding
-import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.compose.search.*
 import io.github.gmathi.novellibrary.model.source.getPreferenceKey
-import io.github.gmathi.novellibrary.util.FAC
+import io.github.gmathi.novellibrary.util.analytics.FAC
 import io.github.gmathi.novellibrary.util.lang.addToNovelSearchHistory
 import io.github.gmathi.novellibrary.util.system.hideSoftKeyboard
-import io.github.gmathi.novellibrary.util.view.SimpleAnimationListener
-import io.github.gmathi.novellibrary.util.view.SuggestionsBuilder
-import org.cryse.widget.persistentsearch.PersistentSearchView
-import org.cryse.widget.persistentsearch.SearchItem
 
 
 class SearchFragment : BaseFragment() {
 
-    lateinit var adapter: GenericAdapter<Novel>
     var searchMode: Boolean = false
     private var searchTerm: String? = null
-
-    private lateinit var binding: FragmentSearchBinding
+    private var viewPager: ViewPager? = null
+    private var tabStrip: SmartTabLayout? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.fragment_search, container, false) ?: return null
-        binding = FragmentSearchBinding.bind(view)
-        return view
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                MaterialTheme {
+                    SearchScreen()
+                }
+            }
+        }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-
-        setSearchView()
 
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey("searchTerm"))
@@ -57,10 +65,101 @@ class SearchFragment : BaseFragment() {
                 searchMode = savedInstanceState.getBoolean("searchMode")
         }
 
-        if (searchMode && searchTerm != null)
+        if (searchMode && searchTerm != null) {
             searchNovels(searchTerm!!)
-        else
+        } else {
             setViewPager()
+        }
+    }
+
+    @Composable
+    private fun SearchScreen() {
+        val searchState = rememberPersistentSearchState(
+            initialLogoText = getString(R.string.search_novel)
+        )
+        val searchHistory = remember { dataCenter.loadNovelSearchHistory() }
+        val suggestionBuilder = remember(searchHistory) {
+            HistorySearchSuggestionsBuilder(searchHistory)
+        }
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Search View
+                PersistentSearchView(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    state = searchState,
+                    hint = getString(R.string.search_novel),
+                    homeButtonMode = HomeButtonMode.Burger,
+                    onHomeButtonClick = {
+                        hideSoftKeyboard()
+                        if (activity is NavDrawerActivity) {
+                            (requireActivity() as NavDrawerActivity).binding.drawerLayout.openDrawer(
+                                GravityCompat.START
+                            )
+                        }
+                    },
+                    onSearch = { query ->
+                        query.addToNovelSearchHistory()
+                        searchNovels(query)
+                        firebaseAnalytics.logEvent(FAC.Event.SEARCH_NOVEL) {
+                            param(FAC.Param.SEARCH_TERM, query)
+                        }
+                    },
+                    onSearchExit = {
+                        if (searchMode) {
+                            setViewPager()
+                        }
+                    },
+                    suggestionBuilder = suggestionBuilder,
+                    elevation = 2
+                )
+
+                // Tab Strip
+                AndroidView(
+                    factory = { context ->
+                        SmartTabLayout(context).apply {
+                            tabStrip = this
+                            val typedValue = android.util.TypedValue()
+                            val height = if (context.theme.resolveAttribute(android.R.attr.actionBarSize, typedValue, true)) {
+                                android.util.TypedValue.complexToDimensionPixelSize(typedValue.data, context.resources.displayMetrics)
+                            } else {
+                                // Fallback to 48dp if actionBarSize can't be resolved
+                                (48 * context.resources.displayMetrics.density).toInt()
+                            }
+                            layoutParams = ViewGroup.LayoutParams(
+                                ViewGroup.LayoutParams.WRAP_CONTENT,
+                                height
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // ViewPager for search results or default tabs
+                AndroidView(
+                    factory = { context ->
+                        ViewPager(context).apply {
+                            viewPager = this
+                            layoutParams = ViewGroup.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                )
+            }
+
+            // Background tint overlay
+            SearchBackgroundTint(
+                visible = searchState.isEditing,
+                onClick = { searchState.closeSearch() }
+            )
+        }
     }
 
     private fun setViewPager() {
@@ -68,89 +167,20 @@ class SearchFragment : BaseFragment() {
             childFragmentManager.popBackStack()
         searchTerm = null
         searchMode = false
-        val titles = resources.getStringArray(R.array.search_tab_titles)
-        val navPageAdapter = GenericFragmentStatePagerAdapter(childFragmentManager, titles, titles.size, NavPageListener())
-        binding.viewPager.offscreenPageLimit = 3
-        binding.viewPager.adapter = navPageAdapter
-        binding.tabStrip.setViewPager(binding.viewPager)
-    }
-
-    private fun setSearchView() {
-        //searchView.setHomeButtonVisibility(View.GONE)
-        binding.searchView.setHomeButtonListener {
-            hideSoftKeyboard()
-            if (activity != null && activity is NavDrawerActivity) {
-                (requireActivity() as NavDrawerActivity).binding.drawerLayout.openDrawer(GravityCompat.START)
-            }
+        
+        viewPager?.let { vp ->
+            val titles = resources.getStringArray(R.array.search_tab_titles)
+            val navPageAdapter = GenericFragmentStatePagerAdapter(
+                childFragmentManager,
+                titles,
+                titles.size,
+                NavPageListener()
+            )
+            vp.offscreenPageLimit = 3
+            vp.adapter = navPageAdapter
+            tabStrip?.setViewPager(vp)
         }
-
-        binding.searchView.setSuggestionBuilder(SuggestionsBuilder(dataCenter.loadNovelSearchHistory()))
-        binding.searchView.setSearchListener(object : PersistentSearchView.SearchListener {
-
-            override fun onSearch(query: String?) {
-                query?.addToNovelSearchHistory()
-                if (query != null) {
-                    searchNovels(query)
-                    binding.searchView.setSuggestionBuilder(SuggestionsBuilder(dataCenter.loadNovelSearchHistory()))
-                    firebaseAnalytics.logEvent(FAC.Event.SEARCH_NOVEL) {
-                        param(FAC.Param.SEARCH_TERM, query)
-                    }
-                }
-            }
-
-            override fun onSearchEditOpened() {
-                binding.searchViewBgTint.visibility = View.VISIBLE
-                binding.searchViewBgTint
-                    .animate()
-                    .alpha(1.0f)
-                    .setDuration(300)
-                    .setListener(SimpleAnimationListener())
-                    .start()
-            }
-
-            override fun onSearchEditClosed() {
-                binding.searchViewBgTint
-                    .animate()
-                    .alpha(0.0f)
-                    .setDuration(300)
-                    .setListener(object : SimpleAnimationListener() {
-                        override fun onAnimationEnd(animation: Animator) {
-                            super.onAnimationEnd(animation)
-                            binding.searchViewBgTint.visibility = View.GONE
-                        }
-                    })
-                    .start()
-            }
-
-            override fun onSearchExit() {
-                if (searchMode)
-                    setViewPager()
-
-            }
-
-            override fun onSearchCleared() {
-                //Toast.makeText(context, "onSearchCleared", Toast.LENGTH_SHORT).show()
-            }
-
-            override fun onSearchTermChanged(term: String?) {
-                //Toast.makeText(context, "Search Exited", Toast.LENGTH_SHORT).show()
-            }
-
-            override fun onSuggestion(searchItem: SearchItem?): Boolean {
-                return true
-            }
-
-            override fun onSearchEditBackPressed(): Boolean {
-                //Toast.makeText(context, "onSearchEditBackPressed", Toast.LENGTH_SHORT).show()
-                if (binding.searchView.searchOpen) {
-                    binding.searchView.closeSearch()
-                    return true
-                }
-                return false
-            }
-        })
     }
-
 
     private fun searchNovels(searchTerm: String) {
         while (childFragmentManager.backStackEntryCount > 0)
@@ -164,25 +194,19 @@ class SearchFragment : BaseFragment() {
 
         val sourceNames = sources.map { it.name }
 
-//        val titles = ArrayList<String>()
-//        titles.add("Novel-Updates")
-////        if (!dataCenter.lockRoyalRoad || dataCenter.isDeveloper)
-////            titles.add("RoyalRoad")
-////        if (!dataCenter.lockNovelFull || dataCenter.isDeveloper)
-//            titles.add("NovelFull")
-//        if (!dataCenter.lockScribble || dataCenter.isDeveloper)
-//            titles.add("ScribbleHub")
-//        titles.add("WLN-Updates")
-//        titles.add("LNMTL")
-//        titles.add("Neovel")
-
-        binding.viewPager.offscreenPageLimit = 2
-        binding.viewPager.adapter = GenericFragmentStatePagerAdapter(childFragmentManager, sourceNames.toTypedArray(), sourceNames.size, SearchResultsListener(searchTerm, sources))
-        binding.tabStrip.setViewPager(binding.viewPager)
+        viewPager?.let { vp ->
+            vp.offscreenPageLimit = 2
+            vp.adapter = GenericFragmentStatePagerAdapter(
+                childFragmentManager,
+                sourceNames.toTypedArray(),
+                sourceNames.size,
+                SearchResultsListener(searchTerm, sources)
+            )
+            tabStrip?.setViewPager(vp)
+        }
     }
 
     fun closeSearch() {
-        binding.searchView.closeSearch()
         setViewPager()
     }
 
@@ -191,5 +215,4 @@ class SearchFragment : BaseFragment() {
         outState.putBoolean("searchMode", searchMode)
         if (searchTerm != null) outState.putString("searchTerm", searchTerm)
     }
-
 }

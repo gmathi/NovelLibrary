@@ -12,6 +12,7 @@ import java.io.File
 
 class ImagePreviewActivity : BaseActivity() {
 
+    override val skipWindowInsets: Boolean = true
     private lateinit var binding: ActivityImagePreviewBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {

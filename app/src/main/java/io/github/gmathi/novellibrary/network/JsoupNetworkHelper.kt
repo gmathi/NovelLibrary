@@ -1,3 +1,8 @@
+//TODO: DUPLICATE - REMOVAL NEEDED
+// This entire file is commented out dead code. Its SSL verification retry logic
+// is duplicated in util/network/OkHttpExt.kt (Call.safeExecute()).
+// Delete this file entirely.
+
 //package io.github.gmathi.novellibrary.network
 //
 //import android.content.Context

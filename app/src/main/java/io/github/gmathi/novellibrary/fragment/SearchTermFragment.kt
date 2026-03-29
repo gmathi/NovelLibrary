@@ -18,7 +18,8 @@ import io.github.gmathi.novellibrary.model.other.NovelsPage
 import io.github.gmathi.novellibrary.model.source.CatalogueSource
 import io.github.gmathi.novellibrary.network.*
 import io.github.gmathi.novellibrary.util.*
-import io.github.gmathi.novellibrary.util.Exceptions.MISSING_SOURCE_ID
+import io.github.gmathi.novellibrary.util.logging.Logs
+import io.github.gmathi.novellibrary.util.error.Exceptions.MISSING_SOURCE_ID
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.isFragmentActive
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity

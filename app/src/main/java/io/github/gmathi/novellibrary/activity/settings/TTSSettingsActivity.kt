@@ -26,13 +26,13 @@ import io.github.gmathi.novellibrary.model.ui.ListitemSetting
 import io.github.gmathi.novellibrary.service.tts.AiVoicePreset
 import io.github.gmathi.novellibrary.service.tts.ModelAssetManager
 import io.github.gmathi.novellibrary.service.tts.TTSService
-import io.github.gmathi.novellibrary.util.fromHumanPercentage
+import io.github.gmathi.novellibrary.util.lang.fromHumanPercentage
 import io.github.gmathi.novellibrary.util.network.safeExecute
 import io.github.gmathi.novellibrary.util.system.bindChevron
 import io.github.gmathi.novellibrary.util.system.bindHeader
 import io.github.gmathi.novellibrary.util.system.bindSwitch
 import io.github.gmathi.novellibrary.util.system.toast
-import io.github.gmathi.novellibrary.util.toHumanPercentage
+import io.github.gmathi.novellibrary.util.lang.toHumanPercentage
 import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

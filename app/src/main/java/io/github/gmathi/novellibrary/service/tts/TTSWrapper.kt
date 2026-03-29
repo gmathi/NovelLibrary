@@ -388,7 +388,7 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
     private inline fun devNull() = File("/dev/null")
 
     private fun initDefaultTrack(id: String) {
-        if (track == null) onBeginSynthesis(id, 22050, AudioFormat.ENCODING_PCM_16BIT, 1)
+        if (track == null) createTrack(22050, AudioFormat.ENCODING_PCM_16BIT, 1)
     }
 
     private fun consumeNext() {
@@ -421,14 +421,10 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
                 if (player.isPlaying) player.stop()
             }
 
-            if (playing != null) {
-                callback.onStop(playing!!.utteranceId, true)
-                playing = null
-            }
-            if (synthesizing != null) {
-                callback.onStop(synthesizing!!.utteranceId, false)
-                synthesizing = null
-            }
+            playing?.let { callback.onStop(it.utteranceId, true) }
+            playing = null
+            synthesizing?.let { callback.onStop(it.utteranceId, false) }
+            synthesizing = null
             while (!queue.isEmpty()) {
                 val cmd = queue.popFirst()
                 if (cmd is PlaybackCommand) callback.onStop(cmd.utteranceId, false)
@@ -473,8 +469,8 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
         if (marker == nextMarker && !force) return
         nextMarker = marker
         val frame = marker.frame + marker.owner.begin
-        if (track != null) { // In case marker position is in the past - fire it immediately
-            if (frame <= track!!.playbackHeadPosition) onMarkerReached(track!!)
+        track?.let { t ->
+            if (frame <= t.playbackHeadPosition) onMarkerReached(t)
         }
 //        if (marker.type != TTSMarkerType.RangeStart)
 //            Log.d(TTSPlayer.TAG, "== Setting marker: $marker <- ${track?.playbackHeadPosition}")
@@ -504,7 +500,8 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
         }
 
         fun addSilence(durationMs: Int): Int = runBlocking {
-            val samples = ceil(track!!.sampleRate * durationMs / 1000f).toInt()
+            val sampleRate = track?.sampleRate ?: 22050
+            val samples = ceil(sampleRate * durationMs / 1000f).toInt()
             var bytesToPlay = samples * bytesPerFrame
             mutex.withLock {
                 while (bytesToPlay > 0) {
@@ -597,7 +594,7 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
         activeConfig.apply(tts) // Make sure to sync config on restarts.
         callback.onInit(status)
         if (!legacyMode) {
-            eventHandler = Handler(Looper.myLooper()!!, this)
+            eventHandler = Handler(Looper.getMainLooper(), this)
             val thread = Thread(writer, "tts_buffer_writer")
             thread.priority = Thread.MAX_PRIORITY
             thread.start()
@@ -605,14 +602,10 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
         if (synthesizing == null && !queue.isEmpty()) consumeNext()
     }
 
-    override fun onBeginSynthesis(utteranceId: String, sampleRateInHz: Int, audioFormat: Int, channelCount: Int) {
-//        Log.d(TTSPlayer.TAG, "onBeginSynthesis $utteranceId ${if (synthesizing?.internalId == utteranceId) "==" else "!="} ${synthesizing?.internalId}")
-        if (legacyMode || synthesizing?.internalId != utteranceId) return
-
-        // Support both system TTS sample rates and AI TTS 24kHz
-        if (track == null || track!!.sampleRate != sampleRateInHz || track!!.audioFormat != audioFormat || track!!.channelCount != channelCount) {
-            // TODO: Don't do that right away, and instead delay until this utterance becomes active
-            track?.release()
+    private fun createTrack(sampleRateInHz: Int, audioFormat: Int, channelCount: Int) {
+        val currentTrack = track
+        if (currentTrack == null || currentTrack.sampleRate != sampleRateInHz || currentTrack.audioFormat != audioFormat || currentTrack.channelCount != channelCount) {
+            currentTrack?.release()
             val fmt =
                 if (channelCount == 1) AudioFormat.CHANNEL_OUT_MONO
                 else AudioFormat.CHANNEL_OUT_STEREO
@@ -622,23 +615,29 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
                 AudioFormat.ENCODING_PCM_FLOAT -> bytesPerFrame = channelCount * 4
             }
             bufferSize = AudioTrack.getMinBufferSize(sampleRateInHz, fmt, audioFormat)
-            track = AudioTrack(
+            val newTrack = AudioTrack(
                 AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).setUsage(AudioAttributes.USAGE_MEDIA).build(),
                 AudioFormat.Builder().setSampleRate(sampleRateInHz).setEncoding(audioFormat).setChannelMask(fmt).build(),
                 bufferSize,
                 AudioTrack.MODE_STREAM, sessionId
             )
-            track!!.setPlaybackPositionUpdateListener(this)
-            if (nextMarker != null) setMarker(nextMarker!!, true)
-
-            Log.d(TTSPlayer.TAG, "Creating AudioTrack with sample rate $sampleRateInHz, format $audioFormat, and $channelCount channels, buf size ${bufferSize}.")
+            newTrack.setPlaybackPositionUpdateListener(this)
+            track = newTrack
+            nextMarker?.let { setMarker(it, true) }
         }
+    }
+
+    override fun onBeginSynthesis(utteranceId: String, sampleRateInHz: Int, audioFormat: Int, channelCount: Int) {
+//        Log.d(TTSPlayer.TAG, "onBeginSynthesis $utteranceId ${if (synthesizing?.internalId == utteranceId) "==" else "!="} ${synthesizing?.internalId}")
+        if (legacyMode || synthesizing?.internalId != utteranceId) return
+        createTrack(sampleRateInHz, audioFormat, channelCount)
     }
 
     override fun onAudioAvailable(utteranceId: String, audio: ByteArray) {
         if (legacyMode || synthesizing?.internalId != utteranceId) return
-        synthesizing!!.audio.add(audio)
-        synthesizing!!.frames += audio.size / bytesPerFrame
+        val cmd = synthesizing ?: return
+        cmd.audio.add(audio)
+        cmd.frames += audio.size / bytesPerFrame
         frame += audio.size / bytesPerFrame
         writer.add(audio)
     }
@@ -650,8 +649,9 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
             callback.onRangeStart(utteranceId, start + offset, end + offset)
         } else {
             if (synthesizing?.internalId != utteranceId) return
+            val cmd = synthesizing ?: return
             // TTS engine bug? Expected (docs): start, end, frame, got: frame, start, end
-            addMarker(TTSMarker(synthesizing!!, start, end, frame))
+            addMarker(TTSMarker(cmd, start, end, frame))
         }
     }
 
@@ -661,8 +661,9 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
             callback.onStart(utteranceId)
         } else {
             if (synthesizing?.internalId != utteranceId) return
-            synthesizing!!.begin = frame
-            addMarker(TTSMarker(TTSMarkerType.Start, synthesizing!!, 0))
+            val cmd = synthesizing ?: return
+            cmd.begin = frame
+            addMarker(TTSMarker(TTSMarkerType.Start, cmd, 0))
         }
     }
 
@@ -675,10 +676,9 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
             consumeNext()
         } else {
             if (synthesizing?.internalId != utteranceId) return
-            synthesizing!!.let { cmd ->
-                addMarker(TTSMarker(TTSMarkerType.Done, cmd, cmd.frames))
-                // TODO: Cache
-            }
+            val cmd = synthesizing ?: return
+            addMarker(TTSMarker(TTSMarkerType.Done, cmd, cmd.frames))
+            // TODO: Cache
             consumeNext()
         }
     }
@@ -734,9 +734,11 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
     override fun onPeriodicNotification(track: AudioTrack) {}
 
     override fun handleMessage(msg: Message): Boolean {
-        if (track == null) return true
-        while (nextMarker != null && nextMarker!!.frame+nextMarker!!.owner.begin <= msg.arg1) {
-            onMarkerReached(track!!)
+        val t = track ?: return true
+        var marker = nextMarker
+        while (marker != null && marker.frame + marker.owner.begin <= msg.arg1) {
+            onMarkerReached(t)
+            marker = nextMarker
         }
         return true
     }

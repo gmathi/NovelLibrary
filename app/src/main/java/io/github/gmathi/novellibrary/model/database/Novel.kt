@@ -4,11 +4,20 @@ package io.github.gmathi.novellibrary.model.database
 
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
-data class Novel(var url: String, var sourceId: Long) : Parcelable, Serializable {
+@Entity(tableName = "novel")
+data class Novel(
+    @ColumnInfo(name = "url") var url: String,
+    @ColumnInfo(name = "source_id") var sourceId: Long
+) : Parcelable, Serializable {
 
+    @Ignore
     constructor(name: String?, url: String, sourceId: Long) : this(url, sourceId) {
         name?.let { this.name = name }
     }
@@ -16,91 +25,117 @@ data class Novel(var url: String, var sourceId: Long) : Parcelable, Serializable
     /**
      * Name of the novel
      */
+    @ColumnInfo(name = "name")
     var name: String = "Unknown - Not Found!"
 
     /**
      * External Id from the source
      */
+    @ColumnInfo(name = "external_novel_id")
     var externalNovelId: String? = null
 
     /**
      * Novel's cover art image url
      */
+    @ColumnInfo(name = "image_url")
     var imageUrl: String? = null
 
     /**
      * Rating of the novel in the decimal format and ranging between (min) 0.0 - 5.0 (max)
      */
+    @ColumnInfo(name = "rating")
     var rating: String? = null
 
     /**
      * Short description of the novel that is shown at a glance
      */
+    @ColumnInfo(name = "short_description")
     var shortDescription: String? = null
 
     /**
      * Complete description of the novel
      */
+    @ColumnInfo(name = "long_description")
     var longDescription: String? = null
 
     /**
-     * List of genres this novel belongs to
+     * List of genres this novel belongs to — not stored in the novel table (populated via join).
      */
+    @Ignore
     var genres: List<String>? = null
 
     /**
-     * Author(s) of this novel
+     * Author(s) of this novel — not stored in the novel table.
      */
+    @Ignore
     var authors: List<String>? = null
 
     /**
-     * Illustrator(s) of this novel
+     * Illustrator(s) of this novel — not stored in the novel table.
      */
+    @Ignore
     var illustrator: List<String>? = null
 
     /**
-     * Number of released chapters in this novel
+     * Number of released chapters in this novel.
+     * Stored in column "new_chapter_count" (legacy naming quirk in the original schema).
      */
+    @ColumnInfo(name = "new_chapter_count")
     var chaptersCount: Long = 0L
 
     /**
      * More metadata of the novel
      */
     @SerializedName("metaData") //This is support restoration from older backups.
+    @ColumnInfo(name = "metadata")
     var metadata: HashMap<String, String?> = HashMap()
 
     //For Database and internal app tracking
     /**
      * Local downloaded novel image file path
      */
+    @ColumnInfo(name = "image_file_path")
     var imageFilePath: String? = null
 
     /**
      * Display order of the novel in the Library Screen
      */
+    @ColumnInfo(name = "order_id")
     var orderId: Long = -1L
 
     /**
      * The red bubble that shows the number of new releases since the novel was last opened.
+     * Stored in column "chapter_count" (legacy naming quirk in the original schema).
      */
+    @ColumnInfo(name = "chapter_count")
     var newReleasesCount = 0L
 
     /**
      * Novel Section Id for the novel section this belongs to.
      */
+    @ColumnInfo(name = "novel_section_id")
     var novelSectionId: Long = -1L
 
     /**
      * Database id for the novel. Default = -1L which means it is not in database.
+     *
+     * NOTE: autoGenerate is intentionally omitted here. Room only treats 0L as "unset" with
+     * autoGenerate=true, but this codebase uses -1L as the "not in DB" sentinel throughout.
+     * Switching requires replacing every `novel.id == -1L` check with `novel.id == 0L` — deferred
+     * to Phase 2 (Hilt migration). Until then, insertions must go through DBHelper, not this DAO.
      */
+    @PrimaryKey
+    @ColumnInfo(name = "id")
     var id: Long = -1L
 
     /**
      * The bookmark for the novel. This tracks the last chapter the user was reading.
      */
     @SerializedName("currentlyReading")
+    @ColumnInfo(name = "current_web_page_url")
     var currentChapterUrl: String? = null
 
+    @Ignore
     constructor(parcel: Parcel) : this(
         parcel.readString().toString(),
         parcel.readLong()

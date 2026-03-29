@@ -2,7 +2,7 @@ package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
 import io.github.gmathi.novellibrary.model.database.NovelGenre
-import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.logging.Logs
 import java.util.*
 
 private const val LOG = "NovelGenreHelper"

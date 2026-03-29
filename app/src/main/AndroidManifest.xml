@@ -104,6 +104,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
         <activity
             android:name=".activity.NovelDetailsActivity"
             android:label="@string/title_activity_novel_details"
@@ -257,6 +258,11 @@
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
+            android:name=".activity.CloudflareResolverActivity"
+            android:label="Cloudflare Verification"
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide" />
+        <activity
             android:name=".activity.NovelSectionsActivity"
             android:label="@string/title_activity_novel_sections"
             android:screenOrientation="fullUser"
@@ -292,7 +298,7 @@
         </receiver>
 
         <activity
-            android:name=".activity.RecentNovelsPagerActivity"
+            android:name=".activity.RecentNovelsActivity"
             android:label="@string/title_activity_recent_novels"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />

@@ -8,7 +8,7 @@ import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.NovelGenre
 import io.github.gmathi.novellibrary.model.source.SourceManager
-import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.util.logging.Logs
 import kotlinx.coroutines.coroutineScope
 import uy.kohesive.injekt.injectLazy
 import java.util.*

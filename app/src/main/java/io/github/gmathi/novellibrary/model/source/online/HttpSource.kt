@@ -9,6 +9,7 @@ import io.github.gmathi.novellibrary.model.source.filter.FilterList
 import io.github.gmathi.novellibrary.network.GET
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.network.asObservableSuccess
+import io.github.gmathi.novellibrary.util.logging.Logs
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -65,9 +66,11 @@ abstract class HttpSource : CatalogueSource {
 
     /**
      * Default network client for doing requests.
+     * Uses the cloudflare-aware client so that Cloudflare challenges (403/503) are
+     * automatically detected and can trigger the resolver flow.
      */
     open val client: OkHttpClient
-        get() = network.client
+        get() = network.cloudflareClient
 
     /**
      * Headers builder for requests. Implementations can override this method for custom headers.
@@ -179,10 +182,17 @@ abstract class HttpSource : CatalogueSource {
      * @param novel the novel to be updated.
      */
     override fun fetchNovelDetails(novel: Novel): Observable<Novel> {
+        val networkStart = System.currentTimeMillis()
         return client.newCall(novelDetailsRequest(novel))
             .asObservableSuccess()
             .map { response ->
-                novelDetailsParse(novel, response)
+                val networkElapsed = System.currentTimeMillis() - networkStart
+                Logs.info("HttpSource", "⏱ [fetchNovelDetails] Network request for '${novel.name}' (${novel.url}): ${networkElapsed}ms")
+                val parseStart = System.currentTimeMillis()
+                val result = novelDetailsParse(novel, response)
+                val parseElapsed = System.currentTimeMillis() - parseStart
+                Logs.info("HttpSource", "⏱ [fetchNovelDetails] Parse time for '${novel.name}': ${parseElapsed}ms")
+                result
             }
     }
 
@@ -285,6 +295,13 @@ abstract class HttpSource : CatalogueSource {
      * Returns the list of filters for the source.
      */
     override fun getFilterList() = FilterList()
+
+    /**
+     * Default user-agent string used for HTTP requests. Extensions can reference this
+     * directly instead of defining their own constant.
+     */
+    open val defaultUserAgent: String
+        get() = DEFAULT_USER_AGENT
 
     companion object {
         const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Linux; Android 10; HD1913) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.46 Mobile Safari/537.36 EdgA/144.0.3719.115"

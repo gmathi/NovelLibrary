@@ -40,7 +40,7 @@ import io.github.gmathi.novellibrary.extensions.isPlaying
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.LinkedPage
 import io.github.gmathi.novellibrary.service.tts.TTSService
-import io.github.gmathi.novellibrary.util.fromHumanPercentage
+import io.github.gmathi.novellibrary.util.lang.fromHumanPercentage
 import io.github.gmathi.novellibrary.util.lang.duration
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.lang.trackNumber
@@ -48,7 +48,7 @@ import io.github.gmathi.novellibrary.util.system.startReaderDBPagerActivity
 import io.github.gmathi.novellibrary.util.system.startTTSService
 import io.github.gmathi.novellibrary.util.system.startTTSSettingsActivity
 import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
-import io.github.gmathi.novellibrary.util.toHumanPercentage
+import io.github.gmathi.novellibrary.util.lang.toHumanPercentage
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import androidx.compose.runtime.remember
 import io.github.gmathi.novellibrary.util.view.setDefaultsNoAnimation
@@ -364,7 +364,7 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
             if (novel?.id != novelId) {
                 novel = dbHelper.getNovel(novelId)
                 translatorSource = metadata.getString(TTSService.TRANSLATOR_SOURCE_NAME)
-                novel?.imageUrl?.let { image ->
+                novel?.imageUrl?.takeIf { it.isNotEmpty() }?.let { image ->
                     Glide.with(this@TextToSpeechControlsActivity).load(image.getGlideUrl()).apply(RequestOptions.circleCropTransform())
                         .into(contentBinding.ttsNovelCover)
                 }

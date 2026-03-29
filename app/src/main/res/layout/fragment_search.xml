@@ -14,25 +14,7 @@
         android:layout_height="wrap_content"
         android:theme="@style/AppTheme.AppBarOverlay">
         <!--Layout not displaying properly? add gravity to bottom-->
-
-        <org.cryse.widget.persistentsearch.PersistentSearchView
-            android:id="@+id/searchView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_marginTop="@dimen/default_margin"
-            android:layout_marginStart="@dimen/default_margin"
-            android:layout_marginEnd="@dimen/default_margin"
-            android:elevation="4dp"
-            app:persistentSV_customToolbarHeight="64dp"
-            app:persistentSV_displayMode="toolbar"
-            app:persistentSV_editHintText="@string/search_novel"
-            app:persistentSV_editHintTextColor="@color/gray"
-            app:persistentSV_homeButtonColor="@color/gray"
-            app:persistentSV_homeButtonMode="burger"
-            app:persistentSV_logoString="@string/search_novel"
-            app:persistentSV_searchCardElevation="2dp"/>
-
+        <!-- Compose search view will be added programmatically here -->
 
         <com.ogaclejapan.smarttablayout.SmartTabLayout
             android:id="@+id/tabStrip"

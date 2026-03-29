@@ -14,8 +14,8 @@ import io.github.gmathi.novellibrary.databinding.ContentRecyclerViewBinding
 import io.github.gmathi.novellibrary.databinding.ListitemNovelBinding
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.source.NovelUpdatesSource
-import io.github.gmathi.novellibrary.util.Logs
+import io.github.gmathi.novellibrary.model.source.online.NovelUpdatesSource
+import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.util.system.isFragmentActive
@@ -118,7 +118,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
                     // If we already have data (e.g. page 1 loaded), don't replace it with an error.
                     if (adapter.items.isEmpty()) {
                         var errorText = getString(R.string.connection_error)
-                        val isCloudFlareError = (e.localizedMessage?.contains("503") == true || e.localizedMessage?.contains("cloudflare", ignoreCase = true) == true)
+                        val isCloudFlareError = (e.localizedMessage?.contains("503") == true || e.localizedMessage?.contains("403") == true || e.localizedMessage?.contains("cloudflare", ignoreCase = true) == true)
                         if (isCloudFlareError) {
                             errorText = getString(R.string.connection_error_cloudflare)
                         }
