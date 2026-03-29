@@ -88,6 +88,17 @@ open class NovelLibraryApplication : Application(), LifecycleObserver {
         }
     }
 
+    override fun onTerminate() {
+        // Best-effort cleanup of the preloader's coroutine scope and cached player.
+        // onTerminate() is called on emulators; on production devices process death
+        // also reclaims all resources, so this is supplementary.
+        try {
+            val dataCenter: DataCenter by injectLazy()
+            io.github.gmathi.novellibrary.service.tts.AiTtsPreloader.getInstance(this, dataCenter).shutdown()
+        } catch (_: Exception) {}
+        super.onTerminate()
+    }
+
     private fun cleanupDatabase() {
         val dbHelper: DBHelper by injectLazy()
 

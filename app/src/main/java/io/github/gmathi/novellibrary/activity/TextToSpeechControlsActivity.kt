@@ -50,7 +50,6 @@ import io.github.gmathi.novellibrary.util.system.startTTSSettingsActivity
 import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import io.github.gmathi.novellibrary.util.lang.toHumanPercentage
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
-import androidx.compose.runtime.remember
 import io.github.gmathi.novellibrary.util.view.setDefaultsNoAnimation
 import kotlin.math.ceil
 import kotlin.math.round

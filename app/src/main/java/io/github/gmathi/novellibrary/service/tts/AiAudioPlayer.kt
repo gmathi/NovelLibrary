@@ -265,14 +265,15 @@ class AiAudioPlayer(private val modelDir: String) {
 
     /**
      * Float [-1,1] → 16-bit PCM little-endian.
-     * Matches the reference implementation in the sherpa-onnx example project exactly.
+     * Clamps to [-1,1] before conversion to guard against occasional out-of-range
+     * samples from the ONNX model; uses explicit bit masking for correct sign handling.
      */
     private fun floatToPcm(audio: FloatArray): ByteArray {
         val out = ByteArray(audio.size * 2)
         for (i in audio.indices) {
-            val s = (audio[i] * 32767).toInt()
-            out[2 * i] = s.toByte()
-            out[2 * i + 1] = (s shr 8).toByte()
+            val s = (audio[i].coerceIn(-1.0f, 1.0f) * 32767).toInt()
+            out[2 * i] = (s and 0xFF).toByte()
+            out[2 * i + 1] = ((s shr 8) and 0xFF).toByte()
         }
         return out
     }

@@ -23,7 +23,6 @@ import io.github.gmathi.novellibrary.model.other.TTSFilter
 import io.github.gmathi.novellibrary.model.other.TTSFilterList
 import io.github.gmathi.novellibrary.model.other.TTSFilterSource
 import io.github.gmathi.novellibrary.model.ui.ListitemSetting
-import io.github.gmathi.novellibrary.service.tts.AiVoicePreset
 import io.github.gmathi.novellibrary.service.tts.ModelAssetManager
 import io.github.gmathi.novellibrary.service.tts.TTSService
 import io.github.gmathi.novellibrary.util.lang.fromHumanPercentage
@@ -53,14 +52,10 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
             TTSSetting(R.string.tts_engine_selector, R.string.tts_engine_selector_description).bindChevron { _, _ ->
                 selectEngine()
             },
+            // Voice preset hidden: all bundled VITS-Piper models are single-speaker (sid=0),
+            // so the setting has no audible effect. Re-enable if multi-speaker models are added.
             TTSSetting(R.string.tts_ai_voice_preset, R.string.tts_ai_voice_preset_description).onBind { _, view, _ ->
-                // Only show when AI engine is selected
-                val isAiEngine = dataCenter.ttsPreferences.ttsEngine == "ai_vits"
-                view.root.visibility = if (isAiEngine) View.VISIBLE else View.GONE
-                if (isAiEngine) {
-                    view.bindChevron()
-                    view.root.setOnClickListener { selectAiVoice() }
-                }
+                view.root.visibility = View.GONE
             },
             TTSSetting(R.string.tts_ai_speed, R.string.tts_ai_speed_description).onBind { _, view, _ ->
                 // Only show when AI engine is selected

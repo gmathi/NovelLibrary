@@ -103,7 +103,9 @@ class TTSPlayer(private val context: Context,
     // AI TTS engine mode
     private var currentEngineMode: TtsEngineMode = TtsEngineMode.SYSTEM
     private var aiEngineInitialized = false
+    private var aiEngineInitializing = false  // prevents concurrent init attempts
     private var aiPlayer: AiAudioPlayer? = null
+    private var aiSpeakThread: Thread? = null  // tracked so stop()/destroy() can signal it
 
     // Player metadata
     lateinit var novel: Novel
@@ -350,6 +352,11 @@ class TTSPlayer(private val context: Context,
         
         // Initialize AI engine if needed
         if (currentEngineMode == TtsEngineMode.AI_VITS && !aiEngineInitialized) {
+            if (aiEngineInitializing) {
+                Log.d(TAG, "AI TTS engine already initializing, will start on completion")
+                return
+            }
+            aiEngineInitializing = true
             Log.d(TAG, "Starting AI TTS engine initialization via AiAudioPlayer")
             launchIO {
                 try {
@@ -369,6 +376,7 @@ class TTSPlayer(private val context: Context,
                         if (copyResult.isFailure) {
                             val error = copyResult.exceptionOrNull()
                             Log.e(TAG, "Failed to copy AI TTS model files: ${error?.message}", error)
+                            aiEngineInitializing = false
                             if (!isDisposed) withUIContext {
                                 context.showToastWithMain("Failed to prepare AI TTS models: ${error?.message}", Toast.LENGTH_LONG)
                                 fallbackToSystemTts()
@@ -380,6 +388,7 @@ class TTSPlayer(private val context: Context,
                         val assetStatus = modelAssetManager.getAssetStatus(selectedModel)
                         if (assetStatus != ModelAssetManager.AssetStatus.READY) {
                             Log.e(TAG, "AI TTS model files not ready. Status: $assetStatus")
+                            aiEngineInitializing = false
                             if (!isDisposed) withUIContext {
                                 context.showToastWithMain("AI TTS model files are missing.", Toast.LENGTH_LONG)
                                 fallbackToSystemTts()
@@ -397,6 +406,7 @@ class TTSPlayer(private val context: Context,
                         if (error != null) {
                             Log.e(TAG, "AiAudioPlayer init failed: $error")
                             player.destroy()
+                            aiEngineInitializing = false
                             if (!isDisposed) withUIContext {
                                 context.showToastWithMain("AI TTS init failed: $error", Toast.LENGTH_LONG)
                                 fallbackToSystemTts()
@@ -410,6 +420,7 @@ class TTSPlayer(private val context: Context,
                     player.callback = aiPlayerCallback
                     aiPlayer = player
                     aiEngineInitialized = true
+                    aiEngineInitializing = false
 
                     if (!isDisposed) withUIContext {
                         Log.d(TAG, "AiAudioPlayer initialized successfully")
@@ -417,6 +428,7 @@ class TTSPlayer(private val context: Context,
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error initializing AI TTS", e)
+                    aiEngineInitializing = false
                     if (!isDisposed) withUIContext {
                         context.showToastWithMain("AI TTS error. Falling back to system TTS.", Toast.LENGTH_LONG)
                         fallbackToSystemTts()
@@ -472,6 +484,7 @@ class TTSPlayer(private val context: Context,
 //        Log.d(TAG, "TTSPlayer.stop()")
         if (silence.isPlaying) silence.stop()
         aiPlayer?.stop()
+        aiSpeakThread?.interrupt()
         tts.stop()
         queuedLine = lineNumber
         setPlaybackState(withState)
@@ -489,6 +502,9 @@ class TTSPlayer(private val context: Context,
         aiPlayer?.destroy()
         aiPlayer = null
         aiEngineInitialized = false
+        aiEngineInitializing = false
+        aiSpeakThread?.interrupt()
+        aiSpeakThread = null
         
         tts.shutdown()
 
@@ -705,10 +721,11 @@ class TTSPlayer(private val context: Context,
         // Stop any in-progress synthesis before starting a new one
         player.stop()
         
-        // Speak on a background thread — AiAudioPlayer.speak() blocks until done
-        Thread({
+        // Speak on a background thread — AiAudioPlayer.speak() blocks until done.
+        // Daemon so it never prevents JVM shutdown if synthesis hangs.
+        aiSpeakThread = Thread({
             player.speak(text, TYPE_SENTENCE)
-        }, "ai_tts_speak").start()
+        }, "ai_tts_speak").also { it.isDaemon = true; it.start() }
     }
 
     /** Callback from AiAudioPlayer — runs on the ai_tts_speak thread. */
