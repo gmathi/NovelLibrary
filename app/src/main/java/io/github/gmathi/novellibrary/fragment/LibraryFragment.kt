@@ -47,6 +47,7 @@ import kotlinx.coroutines.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -58,7 +59,6 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private var novelSectionId: Long = -1L
     private var lastDeletedId: Long = -1
-    private var isSorted = false
 
     private lateinit var syncSnackBarManager: SnackProgressBarManager
     private var syncSnackBar: SnackProgressBar? = null
@@ -325,7 +325,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 return true
             }
             R.id.action_sort -> {
-                sortNovelsAlphabetically()
+                showSortDialog()
             }
             R.id.action_search -> {
                 (activity as? AppCompatActivity)?.startLibrarySearchActivity()
@@ -337,16 +337,45 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         return super.onOptionsItemSelected(item)
     }
 
-    private fun sortNovelsAlphabetically() {
-        if (adapter.items.isNotEmpty()) {
-            val items = adapter.items
-            if (!isSorted)
-                adapter.updateData(ArrayList(items.sortedWith(compareBy { it.name })))
-            else
-                adapter.updateData(ArrayList(items.sortedWith(compareBy { it.name }).reversed()))
-            isSorted = !isSorted
-            updateOrderIds()
+    private fun showSortDialog() {
+        if (adapter.items.isEmpty()) return
+        val sortOptions = listOf(
+            getString(R.string.sort_alphabetically_asc),
+            getString(R.string.sort_alphabetically_desc),
+            getString(R.string.sort_by_last_read_newest),
+            getString(R.string.sort_by_last_read_oldest),
+            getString(R.string.sort_by_last_updated_newest),
+            getString(R.string.sort_by_last_updated_oldest)
+        )
+        MaterialDialog(requireActivity()).show {
+            title(R.string.sort)
+            listItems(items = sortOptions) { _, index, _ ->
+                when (index) {
+                    0 -> sortNovels(compareBy { it.name })
+                    1 -> sortNovels(compareByDescending { it.name })
+                    2 -> sortNovelsByDate(Constants.MetaDataKeys.LAST_READ_DATE, ascending = false)
+                    3 -> sortNovelsByDate(Constants.MetaDataKeys.LAST_READ_DATE, ascending = true)
+                    4 -> sortNovelsByDate(Constants.MetaDataKeys.LAST_UPDATED_DATE, ascending = false)
+                    5 -> sortNovelsByDate(Constants.MetaDataKeys.LAST_UPDATED_DATE, ascending = true)
+                }
+            }
         }
+    }
+
+    private fun sortNovels(comparator: Comparator<Novel>) {
+        adapter.updateData(ArrayList(adapter.items.sortedWith(comparator)))
+        updateOrderIds()
+    }
+
+    private fun sortNovelsByDate(metadataKey: String, ascending: Boolean) {
+        val dateFormat = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
+        val sorted = adapter.items.sortedWith(compareBy { novel ->
+            novel.metadata[metadataKey]?.let {
+                try { dateFormat.parse(it)?.time } catch (e: Exception) { null }
+            } ?: if (ascending) Long.MAX_VALUE else Long.MIN_VALUE
+        })
+        adapter.updateData(ArrayList(if (ascending) sorted else sorted.reversed()))
+        updateOrderIds()
     }
 
     private fun syncNovels(novel: Novel? = null) {
