@@ -128,6 +128,7 @@ class TTSPlayer(private val context: Context,
     private lateinit var rawText: String
     var lineNumber: Int = 0
     var queuedLine: Int = 0
+    var pendingRestoreLine: Int = -1
     var lines: MutableList<TTSLine> = mutableListOf()
     var cacheNextChapterLine: Int = -1
 
@@ -328,6 +329,15 @@ class TTSPlayer(private val context: Context,
         metadata.trackNumber = (chapterIndex+1).toLong()
         // Enable caching only for chapters longer than 42 lines
         cacheNextChapterLine = if (lines.count() > 42) lines.count() shr 1 else -1
+        // Restore saved sentence position (e.g. after service was killed and restarted)
+        if (pendingRestoreLine > 0 && lines.isNotEmpty()) {
+            lineNumber = minOf(pendingRestoreLine, lines.size - 1)
+            queuedLine = lineNumber
+            pendingRestoreLine = -1
+        }
+        // Push updated content to the activity so UI refreshes without an explicit request
+        sendSentences()
+        sendLinkedPages()
     }
 
     //#endregion
@@ -487,6 +497,7 @@ class TTSPlayer(private val context: Context,
         aiSpeakThread?.interrupt()
         tts.stop()
         queuedLine = lineNumber
+        dataCenter.internalPut { putInt(TTSService.STATE_LINE_NUMBER, lineNumber) }
         setPlaybackState(withState)
     }
 

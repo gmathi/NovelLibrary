@@ -439,6 +439,11 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
 
     private fun setRecycleView(extras: Bundle) {
         val lines = extras.getStringArrayList(TTSService.KEY_SENTENCES) ?: ArrayList()
+        if (lines.isEmpty() && controller?.playbackState?.state == PlaybackStateCompat.STATE_NONE) {
+            // Service was killed and restarted with no content — trigger restore from saved state
+            startService(Intent(this, TTSService::class.java).apply { action = TTSService.ACTION_PLAY_PAUSE })
+            return
+        }
         adapter = GenericAdapter(lines, layoutResId = R.layout.listitem_sentence, listener = this)
         contentBinding.sentencesView.setDefaultsNoAnimation(adapter)
         scrollToPosition(lastSentence, false)

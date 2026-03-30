@@ -77,6 +77,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         const val STATE_NOVEL_ID = STATE_PREFIX + NOVEL_ID
         const val STATE_TRANSLATOR_SOURCE_NAME = STATE_PREFIX + TRANSLATOR_SOURCE_NAME
         const val STATE_CHAPTER_INDEX = STATE_PREFIX + CHAPTER_INDEX
+        const val STATE_LINE_NUMBER = STATE_PREFIX + "lineNumber"
 
         const val PITCH_MIN = 0.5f
         const val PITCH_MAX = 2.0f
@@ -275,13 +276,16 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
             ACTION_PLAY_PAUSE -> {
                 if (player.isDisposed || !initialized) {
                     val data = Bundle()
+                    var savedLine = 0
                     // TODO: Fix it pausing due to MediaButtonReceiver calling onPause
                     player.dataCenter.internalGet {
                         data.putLong(NOVEL_ID, getLong(STATE_NOVEL_ID, 0))
                         val translator = getString(STATE_TRANSLATOR_SOURCE_NAME, null)
                         if (translator != null) data.putString(TRANSLATOR_SOURCE_NAME, translator)
                         data.putInt(CHAPTER_INDEX, getInt(STATE_CHAPTER_INDEX, 0))
+                        savedLine = getInt(STATE_LINE_NUMBER, 0)
                     }
+                    if (savedLine > 0) player.pendingRestoreLine = savedLine
                     actionStartup(data)
                 } else {
                     if (player.isPlaying) mediaCallback.onPause()
