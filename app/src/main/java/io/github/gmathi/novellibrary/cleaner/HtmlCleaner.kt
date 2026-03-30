@@ -8,20 +8,19 @@ import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
+import androidx.core.net.toUri
 import io.github.gmathi.novellibrary.model.other.LinkedPage
 import io.github.gmathi.novellibrary.model.other.SelectorQuery
 import io.github.gmathi.novellibrary.model.other.SelectorSubQuery
-import io.github.gmathi.novellibrary.model.other.SubQueryProcessingCommand
-import io.github.gmathi.novellibrary.model.other.SubQueryProcessingCommandInfo
 import io.github.gmathi.novellibrary.model.other.SubqueryRole
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
-import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.lang.writableFileName
+import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.network.getFileName
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.HttpStatusException
@@ -50,7 +49,7 @@ open class HtmlCleaner protected constructor() {
         private const val TL_NOTE_MIN_RATIO = 0.1f
         private const val LONG_PRESS_DURATION = 600L
         private const val IMAGE_COMPRESSION_QUALITY = 100
-        
+
         // Optimized: Use sets for faster lookups
         private val GENERIC_MAIN_CONTENT_URL_TEXT = setOf(
             "Enjoy", "Enjoy.", "Enjoy~",
@@ -64,7 +63,8 @@ open class HtmlCleaner protected constructor() {
         // Optimized: Use constants for repeated selectors
         private const val GENERIC_COMMENTS_SUBQUERY = "#comments,.comments,#disqus_thread"
         private const val GENERIC_SHARE_SUBQUERY = ".sd-block,.sharedaddy"
-        private const val GENERIC_META_SUBQUERY = ".byline,.posted-on,.cat-links,.tags-links,.entry-author,.post-date,.post-info,.post-meta,.entry-meta,.meta-in-content"
+        private const val GENERIC_META_SUBQUERY =
+            ".byline,.posted-on,.cat-links,.tags-links,.entry-author,.post-date,.post-info,.post-meta,.entry-meta,.meta-in-content"
 
         // Optimized: Use set for faster attribute lookups
         private val IMAGE_ATTRIBUTES = setOf(
@@ -93,7 +93,7 @@ open class HtmlCleaner protected constructor() {
             val totalCount = contentElement.childrenSize()
             val minimum = ceil(totalCount * TL_NOTE_MIN_RATIO).toInt().coerceAtMost(TL_NOTE_MAX_SIZE)
             val maximum = totalCount - minimum
-            
+
             val hrs = doc.select("$contentQuery>hr")
             if (hrs.isEmpty()) return Elements()
 
@@ -121,7 +121,7 @@ open class HtmlCleaner protected constructor() {
                         SelectorSubQuery("div[class*='entry-content']>style", SubqueryRole.RWhitelist, optional = false, multiple = true),
                     ), keepContentClasses = true, customCSS = getOptimizedCSS()
                 ),
-                
+
                 // Optimized: Combine similar selectors
                 SelectorQuery(
                     ".content-area", host = "a-t.nu", subQueries = listOf(
@@ -134,15 +134,23 @@ open class HtmlCleaner protected constructor() {
                 ),
 
                 // Optimized: Simplified lazytranslations cleaner
-                SelectorQuery(".elementor-inner", host="lazytranslations.com", subQueries = listOf(
-                    SelectorSubQuery(".entry-header h1.entry-title", SubqueryRole.RHeader, optional = false, multiple = false),
-                    SelectorSubQuery("#innerbody,.elementor-text-editor", SubqueryRole.RContent, optional = false, multiple = false),
-                    SelectorSubQuery(".elementor-inner>.elementor-section:nth-child(3)", SubqueryRole.RNavigation, optional = true, multiple = false),
-                    SelectorSubQuery("#innerbody>div>p>span[style*='color: #ffffff'],.elementor-text-editor div>p>span[style*='color: #ffffff'],.lazyt-announcement", SubqueryRole.RBlacklist, optional = true, multiple = true)
-                )),
+                SelectorQuery(
+                    ".elementor-inner", host = "lazytranslations.com", subQueries = listOf(
+                        SelectorSubQuery(".entry-header h1.entry-title", SubqueryRole.RHeader, optional = false, multiple = false),
+                        SelectorSubQuery("#innerbody,.elementor-text-editor", SubqueryRole.RContent, optional = false, multiple = false),
+                        SelectorSubQuery(".elementor-inner>.elementor-section:nth-child(3)", SubqueryRole.RNavigation, optional = true, multiple = false),
+                        SelectorSubQuery(
+                            "#innerbody>div>p>span[style*='color: #ffffff'],.elementor-text-editor div>p>span[style*='color: #ffffff'],.lazyt-announcement",
+                            SubqueryRole.RBlacklist,
+                            optional = true,
+                            multiple = true
+                        )
+                    )
+                ),
 
                 // Optimized: Better TTS support for Shirokus
-                SelectorQuery(".entry-content", host="shirokuns.com", subQueries = listOf(
+                SelectorQuery(
+                    ".entry-content", host = "shirokuns.com", subQueries = listOf(
                     SelectorSubQuery(".entry-title", SubqueryRole.RHeader, optional = false, multiple = false),
                     SelectorSubQuery(".entry-content", SubqueryRole.RContent, optional = false, multiple = false),
                     SelectorSubQuery(".entry-content>p:contains(Patreon Supporter)", SubqueryRole.RBlacklist),
@@ -151,30 +159,35 @@ open class HtmlCleaner protected constructor() {
                         val hr = doc.select(".entry-content>hr").lastOrNull { it.siblingIndex() < TL_NOTE_MAX_SIZE }?.siblingIndex() ?: -1
                         val elements = doc.select(".entry-content>p,.entry-content>div,.entry-content>table").filter { el ->
                             val txt = el.text()
-                            el.siblingIndex() < hr || 
-                            txt.isEmpty() ||
-                            txt == "&nbsp;" ||
-                            txt.startsWith("(TLN") || txt.startsWith("( TLN") ||
-                            txt.contains("patron supporters", ignoreCase = true)
+                            el.siblingIndex() < hr ||
+                                    txt.isEmpty() ||
+                                    txt == "&nbsp;" ||
+                                    txt.startsWith("(TLN") || txt.startsWith("( TLN") ||
+                                    txt.contains("patron supporters", ignoreCase = true)
                         }
                         Elements(elements)
                     }
                 )),
 
                 // Optimized: Scrambled fonts with better CSS
-                SelectorQuery("div.entry-content", host = "secondlifetranslations.com", subQueries = listOf(
-                    SelectorSubQuery(".entry-header .entry-title", SubqueryRole.RHeader, optional = false, multiple = false),
-                    SelectorSubQuery("div.entry-content", SubqueryRole.RContent, optional = true, multiple = false),
-                ), keepContentClasses = true, customCSS = getScrambledFontCSS()),
+                SelectorQuery(
+                    "div.entry-content", host = "secondlifetranslations.com", subQueries = listOf(
+                        SelectorSubQuery(".entry-header .entry-title", SubqueryRole.RHeader, optional = false, multiple = false),
+                        SelectorSubQuery("div.entry-content", SubqueryRole.RContent, optional = true, multiple = false),
+                    ), keepContentClasses = true, customCSS = getScrambledFontCSS()
+                ),
 
                 // Optimized: DragonTea font support
-                SelectorQuery(".reading-content", host="dragontea.ink", subQueries = listOf(
-                    SelectorSubQuery("#chapter-heading", SubqueryRole.RHeader, optional = false, multiple = false),
-                    SelectorSubQuery(".reading-content", SubqueryRole.RContent, optional = true, multiple = false),
-                ), customCSS = getDragonTeaCSS()),
+                SelectorQuery(
+                    ".reading-content", host = "dragontea.ink", subQueries = listOf(
+                        SelectorSubQuery("#chapter-heading", SubqueryRole.RHeader, optional = false, multiple = false),
+                        SelectorSubQuery(".reading-content", SubqueryRole.RContent, optional = true, multiple = false),
+                    ), customCSS = getDragonTeaCSS()
+                ),
 
                 // Optimized: Anti-scraper protection
-                SelectorQuery(".post-content.entry-content", host = "convallariaslibrary.com", subQueries = listOf(
+                SelectorQuery(
+                    ".post-content.entry-content", host = "convallariaslibrary.com", subQueries = listOf(
                     SelectorSubQuery(".post-header .entry-title", SubqueryRole.RHeader, optional = false, multiple = false),
                     SelectorSubQuery(".post-content.entry-content", SubqueryRole.RContent, optional = false, multiple = true),
                     SelectorSubQuery("", SubqueryRole.RBlacklist, optional = true, multiple = true) { doc ->
@@ -182,48 +195,53 @@ open class HtmlCleaner protected constructor() {
                         val elements = doc.select(".entry-content>p,.entry-content>div").filter { el ->
                             val txt = el.text()
                             el.siblingIndex() < hr ||
-                            txt == "&nbsp;" ||
-                            txt.contains("hesitate to comment", ignoreCase = true) ||
-                            txt.contains("convallariaslibrary", ignoreCase = true) ||
-                            el.selectFirst("img[srcset*='/Credit']") != null ||
-                            el.hasClass(".code-block") ||
-                            el.selectFirst("a[href*=patreon],a[href*=ko-fi]") != null
+                                    txt == "&nbsp;" ||
+                                    txt.contains("hesitate to comment", ignoreCase = true) ||
+                                    txt.contains("convallariaslibrary", ignoreCase = true) ||
+                                    el.selectFirst("img[srcset*='/Credit']") != null ||
+                                    el.hasClass(".code-block") ||
+                                    el.selectFirst("a[href*=patreon],a[href*=ko-fi]") != null
                         }
                         Elements(elements)
                     }
                 )),
 
                 // Optimized: Page splitting support
-                SelectorQuery(".the-content", host="tigertranslations.org", subQueries = listOf(
-                    SelectorSubQuery("#chapter-heading,.entry-header .entry-title", SubqueryRole.RHeader, optional = false, multiple = false),
-                    SelectorSubQuery(".the-content", SubqueryRole.RContent, optional = true, multiple = false),
-                    SelectorSubQuery("a:containsOwn(PAGE)", SubqueryRole.RPage, optional = true, multiple = true),
-                    SelectorSubQuery("a:containsOwn(NEXT CHAPTER)", SubqueryRole.RChapterLink, optional = true, multiple = true),
-                    SelectorSubQuery("$GENERIC_META_SUBQUERY,.post-meta-container,.taxonomies", SubqueryRole.RMeta, optional = true, multiple = true),
-                    SelectorSubQuery("$GENERIC_SHARE_SUBQUERY, .jp-relatedposts, #jp-relatedposts", SubqueryRole.RShare, optional = true, multiple = true),
-                    SelectorSubQuery(GENERIC_COMMENTS_SUBQUERY, SubqueryRole.RComments, optional = true, multiple = false),
-                )),
+                SelectorQuery(
+                    ".the-content", host = "tigertranslations.org", subQueries = listOf(
+                        SelectorSubQuery("#chapter-heading,.entry-header .entry-title", SubqueryRole.RHeader, optional = false, multiple = false),
+                        SelectorSubQuery(".the-content", SubqueryRole.RContent, optional = true, multiple = false),
+                        SelectorSubQuery("a:containsOwn(PAGE)", SubqueryRole.RPage, optional = true, multiple = true),
+                        SelectorSubQuery("a:containsOwn(NEXT CHAPTER)", SubqueryRole.RChapterLink, optional = true, multiple = true),
+                        SelectorSubQuery("$GENERIC_META_SUBQUERY,.post-meta-container,.taxonomies", SubqueryRole.RMeta, optional = true, multiple = true),
+                        SelectorSubQuery("$GENERIC_SHARE_SUBQUERY, .jp-relatedposts, #jp-relatedposts", SubqueryRole.RShare, optional = true, multiple = true),
+                        SelectorSubQuery(GENERIC_COMMENTS_SUBQUERY, SubqueryRole.RComments, optional = true, multiple = false),
+                    )
+                ),
 
                 // Optimized: Fanstranslations cleaner
-                SelectorQuery(".entry-content", host="fanstranslations.com", subQueries = listOf(
-                    SelectorSubQuery("#chapter-heading", SubqueryRole.RHeader, optional = false, multiple = false),
-                    SelectorSubQuery(".reading-content", SubqueryRole.RContent, optional = true, multiple = false),
-                    SelectorSubQuery(".alert-warning", SubqueryRole.RBlacklist, optional = true, multiple = false),
-                    SelectorSubQuery("p:containsOwn(~Edited)", SubqueryRole.RBlacklist, optional = true, multiple = true),
-                    SelectorSubQuery("p:contains(wait to read more)", SubqueryRole.RBlacklist, optional = true, multiple = true),
-                    SelectorSubQuery("p:contains(check out our new novel)", SubqueryRole.RBlacklist, optional = true, multiple = true),
-                )),
+                SelectorQuery(
+                    ".entry-content", host = "fanstranslations.com", subQueries = listOf(
+                        SelectorSubQuery("#chapter-heading", SubqueryRole.RHeader, optional = false, multiple = false),
+                        SelectorSubQuery(".reading-content", SubqueryRole.RContent, optional = true, multiple = false),
+                        SelectorSubQuery(".alert-warning", SubqueryRole.RBlacklist, optional = true, multiple = false),
+                        SelectorSubQuery("p:containsOwn(~Edited)", SubqueryRole.RBlacklist, optional = true, multiple = true),
+                        SelectorSubQuery("p:contains(wait to read more)", SubqueryRole.RBlacklist, optional = true, multiple = true),
+                        SelectorSubQuery("p:contains(check out our new novel)", SubqueryRole.RBlacklist, optional = true, multiple = true),
+                    )
+                ),
 
                 // Optimized: GitHub support
                 SelectorQuery("div#readme", host = "github.com"),
 
                 // Optimized: Travis translations
-                SelectorQuery("div.reader-content", host = "travistranslations.com", subQueries = listOf(
+                SelectorQuery(
+                    "div.reader-content", host = "travistranslations.com", subQueries = listOf(
                     SelectorSubQuery("div.header h2", SubqueryRole.RHeader, optional = true, multiple = false),
                     SelectorSubQuery("div.reader-content", SubqueryRole.RContent, optional = false, multiple = false),
                     SelectorSubQuery(GENERIC_META_SUBQUERY, SubqueryRole.RMeta, optional = true, multiple = true),
                     SelectorSubQuery(GENERIC_SHARE_SUBQUERY, SubqueryRole.RShare, optional = true, multiple = true),
-                    SelectorSubQuery("", SubqueryRole.RRealChapter, optional=true, multiple=false) { doc ->
+                    SelectorSubQuery("", SubqueryRole.RRealChapter, optional = true, multiple = false) { doc ->
                         val xdata = doc.select("div.reader-content>div[x-data]").firstOrNull() ?: return@SelectorSubQuery Elements()
                         val reg = """\((['"])(.+)\1\)$""".toRegex().find(xdata.attr("x-data"))
                         val url = reg?.groups?.get(2)?.value
@@ -239,24 +257,26 @@ open class HtmlCleaner protected constructor() {
                         val elements = doc.select(".reader-content>p,.reader-content>div").filter { el ->
                             val txt = el.text()
                             txt.isEmpty() ||
-                            txt == "&nbsp;" ||
-                            txt.contains("read only at Travis", ignoreCase = true)
+                                    txt == "&nbsp;" ||
+                                    txt.contains("read only at Travis", ignoreCase = true)
                         }
                         Elements(elements)
                     }
                 )),
 
                 // Optimized: Light novels translations
-                SelectorQuery("div.text_story", host="lightnovelstranslations.com", subQueries = listOf(
-                    SelectorSubQuery("div.text_story>h2", SubqueryRole.RHeader, optional = true, multiple = false),
-                    SelectorSubQuery("div.text_story", SubqueryRole.RContent, optional = false, multiple = false),
-                    SelectorSubQuery(".menu_story_content", SubqueryRole.RNavigation, optional = true, multiple = false),
-                    SelectorSubQuery(GENERIC_META_SUBQUERY, SubqueryRole.RMeta, optional = true, multiple = true),
-                    SelectorSubQuery(GENERIC_SHARE_SUBQUERY, SubqueryRole.RShare, optional = true, multiple = true),
-                    SelectorSubQuery("", SubqueryRole.RBlacklist, optional = true, multiple = true) { doc ->
-                        genericTLNoteFilter(doc, "div.text_story")
-                    },
-                )),
+                SelectorQuery(
+                    "div.text_story", host = "lightnovelstranslations.com", subQueries = listOf(
+                        SelectorSubQuery("div.text_story>h2", SubqueryRole.RHeader, optional = true, multiple = false),
+                        SelectorSubQuery("div.text_story", SubqueryRole.RContent, optional = false, multiple = false),
+                        SelectorSubQuery(".menu_story_content", SubqueryRole.RNavigation, optional = true, multiple = false),
+                        SelectorSubQuery(GENERIC_META_SUBQUERY, SubqueryRole.RMeta, optional = true, multiple = true),
+                        SelectorSubQuery(GENERIC_SHARE_SUBQUERY, SubqueryRole.RShare, optional = true, multiple = true),
+                        SelectorSubQuery("", SubqueryRole.RBlacklist, optional = true, multiple = true) { doc ->
+                            genericTLNoteFilter(doc, "div.text_story")
+                        },
+                    )
+                ),
 
                 // Optimized: Novelonomicon
                 SelectorQuery(
@@ -327,6 +347,7 @@ open class HtmlCleaner protected constructor() {
                 SelectorQuery("div#content"),
                 SelectorQuery("div.post-inner", appendTitleHeader = false),
                 SelectorQuery("div.blog-content"),
+                SelectorQuery("div#chr-content"),
                 SelectorQuery("div#chapter-content"),
                 SelectorQuery("div.panel-body", appendTitleHeader = false),
                 SelectorQuery("div.post-entry"),
@@ -342,6 +363,8 @@ open class HtmlCleaner protected constructor() {
                 SelectorQuery("article.entry-content"),
                 SelectorQuery("article"),
                 SelectorQuery("div.content-inner"),
+                SelectorQuery("#article", appendTitleHeader = false),
+                SelectorQuery("#read-novel", appendTitleHeader = false),
             )
         }
 
@@ -408,31 +431,32 @@ open class HtmlCleaner protected constructor() {
         fun getInstance(doc: Document, url: String = doc.location()): HtmlCleaner {
             // Optimized: Use when expression for cleaner code
             return when {
-                url.contains(HostNames.WATTPAD) -> WattPadCleaner()
-                url.contains(HostNames.WUXIA_WORLD) -> WuxiaWorldCleaner()
-                url.contains(HostNames.QIDIAN) -> QidianCleaner()
-                url.contains(HostNames.GOOGLE_DOCS) -> GoogleDocsCleaner()
-                url.contains(HostNames.BLUE_SILVER_TRANSLATIONS) -> BlueSilverTranslationsCleaner()
-                url.contains(HostNames.BAKA_TSUKI) -> BakaTsukiCleaner()
-                url.contains(HostNames.SCRIBBLE_HUB) -> ScribbleHubCleaner()
-                url.contains(HostNames.NEOVEL) -> NeovelCleaner()
-                url.contains(HostNames.CHRYSANTHEMUMGARDEN) -> ChrysanthemumgardenCleaner()
+                url.toHttpUrlOrNull()?.host?.equals(HostNames.WATTPAD) == true -> WattPadCleaner()
+                url.toHttpUrlOrNull()?.host?.equals(HostNames.WUXIA_WORLD) == true -> WuxiaWorldCleaner()
+                url.toHttpUrlOrNull()?.host?.equals(HostNames.QIDIAN) == true -> QidianCleaner()
+                url.toHttpUrlOrNull()?.host?.equals(HostNames.GOOGLE_DOCS) == true -> GoogleDocsCleaner()
+                url.toHttpUrlOrNull()?.host?.equals(HostNames.BLUE_SILVER_TRANSLATIONS) == true -> BlueSilverTranslationsCleaner()
+                url.toHttpUrlOrNull()?.host?.equals(HostNames.BAKA_TSUKI) == true -> BakaTsukiCleaner()
+                url.toHttpUrlOrNull()?.host?.equals(HostNames.SCRIBBLE_HUB) == true -> ScribbleHubCleaner()
+                url.toHttpUrlOrNull()?.host?.equals(HostNames.NEOVEL) == true -> NeovelCleaner()
+                url.toHttpUrlOrNull()?.host?.equals(HostNames.CHRYSANTHEMUMGARDEN) == true -> ChrysanthemumgardenCleaner()
                 else -> {
                     val body = doc.body()
                     val lookup = getSelectorQueries().firstOrNull { query ->
-                        if ((query.host == null || url.contains(query.host)) && body.select(query.selector).isNotEmpty()) {
+                        if ((query.host == null || url.toHttpUrlOrNull()?.host?.equals(query.host) == true) && body.select(query.selector).isNotEmpty()) {
                             query.subQueries.isEmpty() || query.subQueries.all { sub ->
                                 sub.optional || body.select(sub.selector).isNotEmpty()
                             }
                         } else false
                     }
-                    
+
                     when {
                         lookup != null -> GenericSelectorQueryCleaner(url, lookup)
-                        doc.body().getElementsByTag("a").any { 
-                            it.attr("href").contains("https://www.cloudflare.com/") && 
-                            it.text().contains("DDoS protection by Cloudflare") 
+                        doc.body().getElementsByTag("a").any {
+                            it.attr("href").contains("https://www.cloudflare.com/") &&
+                                    it.text().contains("DDoS protection by Cloudflare")
                         } -> CloudFlareDDoSTagCleaner()
+
                         else -> HtmlCleaner()
                     }
                 }
@@ -447,7 +471,8 @@ open class HtmlCleaner protected constructor() {
             val htmlCleanerSelectorQueries = dataCenter.htmlCleanerSelectorQueries.apply {
                 val userSpecifiedSelectorQueries = dataCenter.userSpecifiedSelectorQueries
                 if (userSpecifiedSelectorQueries.isNotBlank()) {
-                   addAll(0,
+                    addAll(
+                        0,
                         userSpecifiedSelectorQueries.split('\n')
                             .filter { it.isNotBlank() }
                             .map { SelectorQuery(it.trim()) }
@@ -461,7 +486,7 @@ open class HtmlCleaner protected constructor() {
 
     // Optimized: Use lazy injection
     val dataCenter: DataCenter by injectLazy()
-    
+
     // Optimized: Use backing properties for better encapsulation
     open var keepContentStyle: Boolean = false
     open var keepContentIds: Boolean = true
@@ -527,6 +552,7 @@ open class HtmlCleaner protected constructor() {
                     // Let's try this one more time
                     if (retryCount == 0) return downloadOtherFiles(element, dir, retryCount = 1)
                 }
+
                 is HttpStatusException -> {
                     //Do Nothing
                 }
@@ -581,6 +607,7 @@ open class HtmlCleaner protected constructor() {
                     src
                 }
             }
+
             else ->
                 if (absolute) element.absUrl(attr)
                 else element.attr(attr)
@@ -600,9 +627,9 @@ open class HtmlCleaner protected constructor() {
     }
 
     open fun getImageFile(element: Element, dir: File): File? {
-        val uri = Uri.parse(getImageUrl(element, true) ?: return null)
         val file: File
         try {
+            val uri = (getImageUrl(element, true) ?: return null).toUri()
             if (uri.scheme == null || uri.host == null) throw Exception("Invalid URI: $uri")
             val fileName = ((uri.lastPathSegment ?: ("" + uri.query))).writableFileName()
             file = File(dir, fileName)
@@ -613,9 +640,9 @@ open class HtmlCleaner protected constructor() {
     }
 
     open fun downloadImage(element: Element, file: File): File? {
-        val uri = Uri.parse(getImageUrl(element, true) ?: return null)
-        if (uri.toString().contains("uploads/avatars")) return null
         try {
+            val uri = (getImageUrl(element, true) ?: return null).toUri()
+            if (uri.toString().contains("uploads/avatars")) return null
             val response = Jsoup.connect(uri.toString()).userAgent(HttpSource.DEFAULT_USER_AGENT).ignoreContentType(true).execute()
             val bytes = response.bodyAsBytes()
             val bitmap = Utils.getImage(bytes)
@@ -846,7 +873,8 @@ open class HtmlCleaner protected constructor() {
         otherLinks?.forEach {
             // Other Share links
             if ((it.hasAttr("title") && it.attr("title").contains("Click to share", true)) ||
-                it.attr("data-role") == "RChapterLink") {
+                it.attr("data-role") == "RChapterLink"
+            ) {
                 return@forEach
             }
 
@@ -880,19 +908,19 @@ open class HtmlCleaner protected constructor() {
         if (!dataCenter.linkifyText) return
         element.getElementsMatchingOwnText(URL_REGEX.toPattern()).forEach { el ->
             if (el.tagName() != "a" && el.parents().find { it.tagName() == "a" } == null) // Ensure we don't linkify what is already a link.
-            el.textNodes().forEach { node ->
-                val text = node.wholeText
-                URL_REGEX.find(node.wholeText)?.let { result ->
-                    val group = result.groups[1]!!
-                    if (URLUtil.isValidUrl(group.value)) {
-                        node.text(text.removeRange(group.range))
-                        val anchor = Element(Tag.valueOf("a"), node.baseUri())
-                        anchor.attr("href", group.value)
-                        anchor.text(group.value)
-                        node.before(anchor)
+                el.textNodes().forEach { node ->
+                    val text = node.wholeText
+                    URL_REGEX.find(node.wholeText)?.let { result ->
+                        val group = result.groups[1]!!
+                        if (URLUtil.isValidUrl(group.value)) {
+                            node.text(text.removeRange(group.range))
+                            val anchor = Element(Tag.valueOf("a"), node.baseUri())
+                            anchor.attr("href", group.value)
+                            anchor.text(group.value)
+                            node.before(anchor)
+                        }
                     }
                 }
-            }
         }
     }
 
@@ -924,6 +952,7 @@ open class HtmlCleaner protected constructor() {
                 // Example: lazytranslations use a 1x1 gif image to hide them.
                 contentElement.removeAttr("srcset")
             }
+
             "div", "span" -> {
                 // Clean up "Advertisements" divs that contain nothing else.
                 if (contentElement.childrenSize() == 0 && contentElement.ownText().equals("Advertisements", true)) {
@@ -972,6 +1001,7 @@ open class HtmlCleaner protected constructor() {
                             tmp.and(0xf) + tmp.and(0xf).shl(4), 0xff
                         )
                     }
+
                     5 -> {
                         // #RGBA
                         val tmp = col.substring(1).toLong(16)
@@ -982,6 +1012,7 @@ open class HtmlCleaner protected constructor() {
                             tmp.and(0xf) + tmp.and(0xf).shl(4)
                         )
                     }
+
                     7 -> {
                         // #RRGGBB
                         val tmp = col.substring(1).toLong(16)
@@ -992,6 +1023,7 @@ open class HtmlCleaner protected constructor() {
                             0xff
                         )
                     }
+
                     9 -> {
                         // #RRGGBBAA
                         val tmp = col.substring(1).toLong(16)
@@ -1002,6 +1034,7 @@ open class HtmlCleaner protected constructor() {
                             tmp.and(0xff)
                         )
                     }
+
                     else -> {
                         // Most likely invalid color
                         return colorMatch.groupValues[1]
