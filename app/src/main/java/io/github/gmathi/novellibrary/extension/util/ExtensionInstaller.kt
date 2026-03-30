@@ -102,8 +102,11 @@ internal class ExtensionInstaller(private val context: Context) {
             // Get the current download status
             .map {
                 downloadManager.query(query).use { cursor ->
-                    cursor.moveToFirst()
-                    cursor.getInt(with(cursor) { getColumnIndex(DownloadManager.COLUMN_STATUS) })
+                    if (cursor.moveToFirst()) {
+                        cursor.getInt(with(cursor) { getColumnIndex(DownloadManager.COLUMN_STATUS) })
+                    } else {
+                        DownloadManager.STATUS_FAILED
+                    }
                 }
             }
             // Ignore duplicate results

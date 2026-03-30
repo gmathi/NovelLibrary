@@ -136,6 +136,8 @@ class GenericSelectorQueryCleaner(
 
         if (!hasHeader && query.appendTitleHeader)
             constructedContent.first()?.prepend("<h4 data-role=\"${SubqueryRole.RHeader}\">${getTitle(doc)}</h4><br>")
+        else
+            constructedContent.first()?.prepend("<br><br>")
 
         if (!dataCenter.showChapterComments) {
             doc.getElementsByClass("comments-container").remove()
