@@ -277,6 +277,9 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
             binding.root.postOnAnimation(updateTimerRunnable)
         }
         //#endregion
+        
+        // Initialize AI TTS Compose UI
+        initializeAiTtsControls()
 
         if (dataCenter.ttsPreferences.keepScreenOn) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setSupportActionBar(binding.toolbar)
@@ -296,6 +299,44 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
         refreshTimerState()
         if (prefs.keepScreenOn) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        
+        // Update AI TTS controls visibility
+        updateTtsControlsVisibility()
+    }
+    
+    private fun initializeAiTtsControls() {
+        val composeView = quickSettings.root.findViewById<androidx.compose.ui.platform.ComposeView>(
+            R.id.aiTtsControlsCompose
+        )
+        
+        composeView?.setContent {
+            // Use Material3 theme
+            androidx.compose.material3.MaterialTheme {
+                val viewModel = remember {
+                    io.github.gmathi.novellibrary.compose.AiTtsPlaybackViewModel(
+                        controller,
+                        dataCenter.ttsPreferences
+                    )
+                }
+                io.github.gmathi.novellibrary.compose.AiTtsPlaybackControls(viewModel = viewModel)
+            }
+        }
+        
+        updateTtsControlsVisibility()
+    }
+    
+    private fun updateTtsControlsVisibility() {
+        val isAiTts = dataCenter.ttsPreferences.ttsEngine == "ai_vits"
+        
+        // Show/hide AI TTS Compose controls
+        val composeView = quickSettings.root.findViewById<androidx.compose.ui.platform.ComposeView>(
+            R.id.aiTtsControlsCompose
+        )
+        composeView?.visibility = if (isAiTts) View.VISIBLE else View.GONE
+        
+        // Show/hide system TTS controls (pitch and speech rate)
+        quickSettings.pitch.visibility = if (isAiTts) View.GONE else View.VISIBLE
+        quickSettings.speechRate.visibility = if (isAiTts) View.GONE else View.VISIBLE
     }
 
     private fun refreshTimerState() {
@@ -398,6 +439,11 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
 
     private fun setRecycleView(extras: Bundle) {
         val lines = extras.getStringArrayList(TTSService.KEY_SENTENCES) ?: ArrayList()
+        if (lines.isEmpty() && controller?.playbackState?.state == PlaybackStateCompat.STATE_NONE) {
+            // Service was killed and restarted with no content — trigger restore from saved state
+            startService(Intent(this, TTSService::class.java).apply { action = TTSService.ACTION_PLAY_PAUSE })
+            return
+        }
         adapter = GenericAdapter(lines, layoutResId = R.layout.listitem_sentence, listener = this)
         contentBinding.sentencesView.setDefaultsNoAnimation(adapter)
         scrollToPosition(lastSentence, false)

@@ -23,6 +23,7 @@ import io.github.gmathi.novellibrary.model.other.TTSFilter
 import io.github.gmathi.novellibrary.model.other.TTSFilterList
 import io.github.gmathi.novellibrary.model.other.TTSFilterSource
 import io.github.gmathi.novellibrary.model.ui.ListitemSetting
+import io.github.gmathi.novellibrary.service.tts.ModelAssetManager
 import io.github.gmathi.novellibrary.service.tts.TTSService
 import io.github.gmathi.novellibrary.util.lang.fromHumanPercentage
 import io.github.gmathi.novellibrary.util.network.safeExecute
@@ -46,6 +47,48 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
     companion object {
 
         private val OPTIONS = listOf(
+            // AI TTS Engine Selection Header
+            TTSSetting(R.string.tts_header_engine, R.string.empty).bindHeader(),
+            TTSSetting(R.string.tts_engine_selector, R.string.tts_engine_selector_description).bindChevron { _, _ ->
+                selectEngine()
+            },
+            // Voice preset hidden: all bundled VITS-Piper models are single-speaker (sid=0),
+            // so the setting has no audible effect. Re-enable if multi-speaker models are added.
+            TTSSetting(R.string.tts_ai_voice_preset, R.string.tts_ai_voice_preset_description).onBind { _, view, _ ->
+                view.root.visibility = View.GONE
+            },
+            TTSSetting(R.string.tts_ai_speed, R.string.tts_ai_speed_description).onBind { _, view, _ ->
+                // Only show when AI engine is selected
+                val isAiEngine = dataCenter.ttsPreferences.ttsEngine == "ai_vits"
+                view.root.visibility = if (isAiEngine) View.VISIBLE else View.GONE
+                if (isAiEngine) {
+                    view.currentValue.visibility = View.VISIBLE
+                    @SuppressLint("SetTextI18n")
+                    view.currentValue.text = String.format("%.1fx", dataCenter.ttsPreferences.aiSpeed)
+                    view.root.setOnClickListener {
+                        sliderMenu(view.currentValue, dataCenter.ttsPreferences.aiSpeed, 0.5f, 3.0f, false) { value, closing ->
+                            if (closing) dataCenter.ttsPreferences.aiSpeed = value
+                            value
+                        }
+                    }
+                }
+            },
+            TTSSetting(R.string.tts_ai_model_management, R.string.tts_ai_model_management_description).onBind { _, view, _ ->
+                // Only show when AI engine is selected
+                val isAiEngine = dataCenter.ttsPreferences.ttsEngine == "ai_vits"
+                view.root.visibility = if (isAiEngine) View.VISIBLE else View.GONE
+                if (isAiEngine) {
+                    view.bindChevron()
+                    view.root.setOnClickListener { manageAiModel() }
+                }
+            },
+            TTSSetting(R.string.tts_ai_test, R.string.tts_ai_test_description).onBind { _, view, _ ->
+                view.bindChevron()
+                view.root.setOnClickListener {
+                    startActivity(android.content.Intent(this, AiTtsTestActivity::class.java))
+                }
+            },
+            
             TTSSetting(R.string.tts_header_playback, R.string.empty).bindHeader(),
             TTSSetting(R.string.tts_pitch, R.string.tts_pitch_description).onBind { _, view, _ ->
                 view.currentValue.visibility = View.VISIBLE
@@ -78,8 +121,14 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
             TTSSetting(R.string.tts_mark_chapters_read, R.string.tts_mark_chapters_read_description).onBind { _, view, _ ->
                 view.bindSwitch(dataCenter.ttsPreferences.markChaptersRead) { _, value -> dataCenter.ttsPreferences.markChaptersRead = value }
             },
-            TTSSetting(R.string.tts_language, R.string.tts_language_description).bindChevron { _, _ ->
-                selectLanguage()
+            TTSSetting(R.string.tts_language, R.string.tts_language_description).onBind { _, view, _ ->
+                // Only show when System TTS is selected
+                val isSystemEngine = dataCenter.ttsPreferences.ttsEngine == "system"
+                view.root.visibility = if (isSystemEngine) View.VISIBLE else View.GONE
+                if (isSystemEngine) {
+                    view.bindChevron()
+                    view.root.setOnClickListener { selectLanguage() }
+                }
             },
             TTSSetting(R.string.tts_downpitch_dialogue, R.string.tts_downpitch_dialogue_description).onBind { _, view, _ ->
                 view.bindSwitch(dataCenter.ttsPreferences.downpitchDialogue) { _, value -> dataCenter.ttsPreferences.downpitchDialogue = value }
@@ -243,6 +292,143 @@ class TTSSettingsActivity : BaseSettingsActivity<TTSSettingsActivity, TTSSetting
                 language = buttons[group.checkedRadioButtonId]
             }
 
+        }
+    }
+
+    fun selectEngine() {
+        var selectedEngine = dataCenter.ttsPreferences.ttsEngine
+
+        val dialog = MaterialDialog(this).show {
+            title(R.string.tts_engine_selector)
+            customView(R.layout.dialog_list, scrollable = true)
+            positiveButton(R.string.okay) {
+                val previousEngine = dataCenter.ttsPreferences.ttsEngine
+                dataCenter.ttsPreferences.ttsEngine = selectedEngine
+                
+                // If switching to AI TTS and model not downloaded, prompt download
+                if (selectedEngine == "ai_vits" && previousEngine != "ai_vits") {
+                    val assetManager = ModelAssetManager(this@TTSSettingsActivity)
+                    if (assetManager.getAssetStatus() != ModelAssetManager.AssetStatus.READY) {
+                        manageAiModel()
+                    }
+                }
+                
+                // Refresh the settings list to show/hide relevant options
+                adapter.notifyDataSetChanged()
+                
+                // Notify service to update engine
+                tts?.sendCommand(TTSService.ACTION_UPDATE_SETTINGS, null, null)
+            }
+            negativeButton(R.string.cancel) { dismiss() }
+        }
+
+        val group = dialog.getCustomView().findViewById<RadioGroup>(R.id.listGroup) ?: return
+
+        // System TTS option
+        val systemButton = RadioButton(this)
+        systemButton.id = View.generateViewId()
+        systemButton.text = getString(R.string.tts_engine_system)
+        systemButton.isChecked = selectedEngine == "system"
+        group.addView(systemButton)
+
+        // AI TTS option
+        val aiButton = RadioButton(this)
+        aiButton.id = View.generateViewId()
+        aiButton.text = getString(R.string.tts_engine_ai_vits)
+        aiButton.isChecked = selectedEngine == "ai_vits"
+        group.addView(aiButton)
+
+        val buttonMap = mapOf(
+            systemButton.id to "system",
+            aiButton.id to "ai_vits"
+        )
+
+        group.setOnCheckedChangeListener { _, checkedId ->
+            selectedEngine = buttonMap[checkedId] ?: "system"
+        }
+    }
+
+    fun selectAiVoice() {
+        var selectedVoiceId = dataCenter.ttsPreferences.aiVoicePreset
+
+        val dialog = MaterialDialog(this).show {
+            title(R.string.tts_ai_voice_preset)
+            customView(R.layout.dialog_list, scrollable = true)
+            positiveButton(R.string.okay) {
+                dataCenter.ttsPreferences.aiVoicePreset = selectedVoiceId
+                tts?.sendCommand(TTSService.ACTION_UPDATE_SETTINGS, null, null)
+            }
+            negativeButton(R.string.cancel) { dismiss() }
+        }
+
+        val group = dialog.getCustomView().findViewById<RadioGroup>(R.id.listGroup) ?: return
+
+        val voicePresets = AiVoicePreset.entries
+        val buttonMap = mutableMapOf<Int, Int>()
+
+        voicePresets.forEach { preset ->
+            val button = RadioButton(this)
+            button.id = View.generateViewId()
+            @SuppressLint("SetTextI18n")
+            button.text = "${preset.displayName} (${preset.gender})"
+            button.isChecked = selectedVoiceId == preset.sid
+            group.addView(button)
+            buttonMap[button.id] = preset.sid
+        }
+
+        group.setOnCheckedChangeListener { _, checkedId ->
+            selectedVoiceId = buttonMap[checkedId] ?: 0
+        }
+    }
+
+    fun manageAiModel() {
+        val assetManager = ModelAssetManager(this)
+        val status = assetManager.getAssetStatus()
+
+        when (status) {
+            ModelAssetManager.AssetStatus.NOT_DOWNLOADED,
+            ModelAssetManager.AssetStatus.CORRUPT -> {
+                // Models are bundled in APK, this should never happen
+                MaterialDialog(this).show {
+                    title(R.string.alert)
+                    message(text = "AI TTS models are missing or corrupted. Please reinstall the app.")
+                    positiveButton(R.string.okay)
+                }
+            }
+            ModelAssetManager.AssetStatus.READY -> {
+                // Show model info and delete option
+                val sizeBytes = assetManager.getAssetSizeBytes()
+                val sizeMB = sizeBytes / (1024f * 1024f)
+                
+                MaterialDialog(this).show {
+                    title(R.string.tts_ai_model_management)
+                    @SuppressLint("SetTextI18n")
+                    message(text = getString(R.string.tts_ai_model_size, sizeMB) + "\n\n" + getString(R.string.tts_ai_model_ready))
+                    positiveButton(R.string.tts_ai_model_delete) {
+                        deleteAiModel(sizeMB)
+                    }
+                    negativeButton(R.string.cancel) { dismiss() }
+                }
+            }
+        }
+    }
+
+    private fun deleteAiModel(sizeMB: Float) {
+        MaterialDialog(this).show {
+            title(R.string.tts_ai_model_delete)
+            message(text = getString(R.string.tts_ai_model_delete_confirm, sizeMB))
+            positiveButton(R.string.okay) {
+                val assetManager = ModelAssetManager(this@TTSSettingsActivity)
+                val success = assetManager.deleteAssets()
+                
+                if (success) {
+                    toast("Model deleted successfully. Models will be re-copied from APK on next use.", Toast.LENGTH_LONG)
+                    adapter.notifyDataSetChanged()
+                } else {
+                    toast("Failed to delete model", Toast.LENGTH_SHORT)
+                }
+            }
+            negativeButton(R.string.cancel) { dismiss() }
         }
     }
 

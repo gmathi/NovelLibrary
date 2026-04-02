@@ -802,11 +802,38 @@
     <string name="tts_announce_last_chapter_description">Use TTS to announce when last chapter has finished reading and no more chapters can be read.</string>
 
     <string name="empty" />
+    <string name="tts_header_engine">TTS Engine</string>
     <string name="tts_header_playback">Playback</string>
     <string name="tts_header_remote">Remote control</string>
     <string name="tts_header_processing">Processing</string>
     <string name="tts_header_filters">Filters</string>
     <string name="tts_header_misc">Misc</string>
+    
+    <!-- AI TTS Engine Settings -->
+    <string name="tts_engine_selector">TTS Engine</string>
+    <string name="tts_engine_selector_description">Choose between System TTS and AI TTS</string>
+    <string name="tts_engine_system">System TTS</string>
+    <string name="tts_engine_ai_vits">AI TTS (VITS-Piper)</string>
+    <string name="tts_ai_voice_preset">AI Voice</string>
+    <string name="tts_ai_voice_preset_description">Select AI voice model (Kusal or Lessac)</string>
+    <string name="tts_ai_speed">AI Speed</string>
+    <string name="tts_ai_speed_description">Adjust AI speech speed (0.5x - 3.0x)</string>
+    <string name="tts_ai_model_management">AI Model</string>
+    <string name="tts_ai_model_management_description">Manage AI TTS models</string>
+    <string name="tts_ai_test">Test AI TTS</string>
+    <string name="tts_ai_test_description">Open standalone test screen for AI TTS engine</string>
+    <string name="title_activity_ai_tts_test">AI TTS Test</string>
+    <string name="tts_ai_model_not_downloaded">Not Downloaded</string>
+    <string name="tts_ai_model_downloading">Downloading: %d%%</string>
+    <string name="tts_ai_model_ready">Ready</string>
+    <string name="tts_ai_model_size">Model size: %.1f MB</string>
+    <string name="tts_ai_model_download">Download Model</string>
+    <string name="tts_ai_model_delete">Delete Model</string>
+    <string name="tts_ai_model_download_prompt">Download AI TTS model to use AI voices. This will download approximately 50MB of data.</string>
+    <string name="tts_ai_model_delete_confirm">Delete AI TTS model? This will free up approximately %.1f MB of storage.</string>
+    <string name="tts_ai_model_download_failed">Model download failed: %s</string>
+    <string name="tts_ai_model_not_enough_storage">Not enough storage space. Need at least 50MB free.</string>
+    <string name="tts_ai_unsupported_device">AI TTS is not supported on this device architecture</string>
 
     <string name="scroll_current_into_view">Scroll current sentence into view</string>
     <string name="cover">Cover</string>
