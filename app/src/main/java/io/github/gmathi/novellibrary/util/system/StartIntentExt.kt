@@ -6,11 +6,13 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.activity.result.ActivityResult
+import androidx.core.content.ContextCompat
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.*
+import io.github.gmathi.novellibrary.activity.AiTtsControlsActivity
 import io.github.gmathi.novellibrary.activity.settings.*
 import io.github.gmathi.novellibrary.activity.settings.reader.ScrollBehaviourSettingsActivity
 import io.github.gmathi.novellibrary.activity.settings.reader.ReaderBackgroundSettingsActivity
@@ -18,6 +20,7 @@ import io.github.gmathi.novellibrary.activity.settings.reader.ReaderSettingsActi
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.LinkedPage
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
+import io.github.gmathi.novellibrary.service.ai_tts.AiTtsService
 import io.github.gmathi.novellibrary.service.tts.TTSService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.view.TransitionHelper
@@ -258,5 +261,33 @@ fun AppCompatActivity.startDownloadNovelService(novelId: Long) {
 }
 
 fun AppCompatActivity.startNovelDownloadsActivity() = startActivityForResult<NovelDownloadsActivity>(Constants.SETTINGS_ACT_REQ_CODE)
+
+//#endregion
+
+//#region AI TTS
+
+fun Context.startAiTtsService(
+    audioText: String,
+    linkedPages: ArrayList<String>,
+    title: String,
+    novelId: Long,
+    translatorSourceName: String,
+    chapterIndex: Int
+) {
+    val intent = Intent(this, AiTtsService::class.java).apply {
+        action = AiTtsService.ACTION_STARTUP
+        putExtra(AiTtsService.AUDIO_TEXT_KEY, audioText)
+        putExtra(AiTtsService.TITLE, title)
+        putExtra(AiTtsService.NOVEL_ID, novelId)
+        putStringArrayListExtra(AiTtsService.LINKED_PAGES, linkedPages)
+        putExtra(AiTtsService.CHAPTER_INDEX, chapterIndex)
+        putExtra(AiTtsService.TRANSLATOR_SOURCE_NAME, translatorSourceName)
+    }
+    ContextCompat.startForegroundService(this, intent)
+}
+
+fun Context.startAiTtsActivity() {
+    startActivity(Intent(this, AiTtsControlsActivity::class.java))
+}
 
 //#endregion
