@@ -68,6 +68,14 @@ object Notifications {
     const val CHANNEL_CRASH_LOGS = "crash_logs_channel"
     const val ID_CRASH_LOGS = -601
 
+    /**
+     * Notification channel and ids used by the AI TTS playback and model download.
+     */
+    const val CHANNEL_AI_TTS_PLAYBACK = "ai_tts_playback_channel"
+    const val ID_AI_TTS_PLAYBACK = -701
+    const val CHANNEL_AI_TTS_DOWNLOAD = "ai_tts_download_channel"
+    const val ID_AI_TTS_DOWNLOAD = -702
+
     private val deprecatedChannels = listOf(
         "downloader_channel", "backup_restore_complete_channel"
     )
@@ -149,6 +157,18 @@ object Notifications {
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = context.getString(R.string.backup_and_restore_notification_channel_description)
+                setSound(null, null)
+                enableVibration(false)
+            },
+            NotificationChannel(
+                CHANNEL_AI_TTS_PLAYBACK, "AI TTS Playback", NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                setSound(null, null)
+                enableVibration(false)
+            },
+            NotificationChannel(
+                CHANNEL_AI_TTS_DOWNLOAD, "AI TTS Model Download", NotificationManager.IMPORTANCE_LOW
+            ).apply {
                 setSound(null, null)
                 enableVibration(false)
             }

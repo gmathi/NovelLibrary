@@ -196,6 +196,9 @@ dependencies {
     implementation libs.androidx.room.ktx
     ksp libs.androidx.room.compiler
 
+    // AI / TTS
+    implementation libs.sherpa.onnx.android
+
     // Utilities
     implementation libs.eventbus
     implementation libs.crux

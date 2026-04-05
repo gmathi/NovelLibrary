@@ -76,6 +76,9 @@ injekt = "1.16.1"
 # Room
 room = "2.7.1"
 
+# AI / TTS
+sherpaOnnx = "1.10.40"
+
 # Debug
 leakcanary = "2.14"
 
@@ -194,6 +197,9 @@ injekt = { module = "uy.kohesive.injekt:injekt-core", version.ref = "injekt" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+
+# AI / TTS
+sherpa-onnx-android = { group = "com.github.k2-fsa", name = "sherpa-onnx-android", version.ref = "sherpaOnnx" }
 
 # Debug
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
