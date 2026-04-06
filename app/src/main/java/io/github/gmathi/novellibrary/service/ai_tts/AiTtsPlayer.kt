@@ -118,14 +118,14 @@ class AiTtsPlayer(
         eventListener?.onPlaybackStateChanged(AiTtsPlaybackState.Playing)
 
         for (index in startIndex until sentences.size) {
-            if (!isActive) break
+            if (!currentCoroutineContext().isActive) break
             _currentSentenceIndex.value = index
             val sentence = sentences[index]
             eventListener?.onSentenceChanged(index, sentence)
             synthesizeAndPlay(tts, sentence)
         }
 
-        if (isActive) {
+        if (currentCoroutineContext().isActive) {
             if (preferences.autoReadNextChapter) {
                 eventListener?.onChapterChanged(chapterIndex + 1)
             } else {

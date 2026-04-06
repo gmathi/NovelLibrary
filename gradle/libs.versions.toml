@@ -73,11 +73,11 @@ eventbus = "3.3.1"
 crux = "2.2.0"
 injekt = "1.16.1"
 
+# Media
+androidxMedia = "1.7.0"
+
 # Room
 room = "2.7.1"
-
-# AI / TTS
-sherpaOnnx = "1.10.40"
 
 # Debug
 leakcanary = "2.14"
@@ -198,8 +198,8 @@ androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 
-# AI / TTS
-sherpa-onnx-android = { group = "com.github.k2-fsa", name = "sherpa-onnx-android", version.ref = "sherpaOnnx" }
+# Media
+androidx-media = { module = "androidx.media:media", version.ref = "androidxMedia" }
 
 # Debug
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }

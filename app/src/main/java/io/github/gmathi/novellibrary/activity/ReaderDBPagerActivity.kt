@@ -55,6 +55,8 @@ import io.github.gmathi.novellibrary.util.system.intentOf
 import io.github.gmathi.novellibrary.util.system.logNovelEvent
 import io.github.gmathi.novellibrary.util.system.openInBrowser
 import io.github.gmathi.novellibrary.util.system.showAlertDialog
+import io.github.gmathi.novellibrary.util.system.startAiTtsActivity
+import io.github.gmathi.novellibrary.util.system.startAiTtsService
 import io.github.gmathi.novellibrary.util.system.startTTSActivity
 import io.github.gmathi.novellibrary.util.system.startTTSService
 import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
@@ -315,9 +317,15 @@ class ReaderDBPagerActivity :
                     val title = webPageDBFragment.doc?.title() ?: ""
                     val chapterIndex = (if (dataCenter.japSwipe) webPages.reversed() else webPages).indexOf(webPages[binding.viewPager.currentItem])
 
-                    startTTSService(audioText, webPageDBFragment.linkedPages, title, novel.id, translatorSourceName, chapterIndex)
-                    firebaseAnalytics.logNovelEvent(FAC.Event.LISTEN_NOVEL, novel)
-                    startTTSActivity()
+                    if (dataCenter.useAiTts) {
+                        val linkedPageUrls = ArrayList(webPageDBFragment.linkedPages.map { it.href })
+                        startAiTtsService(audioText, linkedPageUrls, title, novel.id, translatorSourceName ?: "", chapterIndex)
+                        startAiTtsActivity()
+                    } else {
+                        startTTSService(audioText, webPageDBFragment.linkedPages, title, novel.id, translatorSourceName, chapterIndex)
+                        firebaseAnalytics.logNovelEvent(FAC.Event.LISTEN_NOVEL, novel)
+                        startTTSActivity()
+                    }
                 } else {
                     showAlertDialog(title = "Read Aloud", message = "Only supported in Reader Mode!")
                 }

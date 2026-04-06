@@ -172,6 +172,8 @@ fun AppCompatActivity.startContributionsActivity() = startActivity<Contributions
 
 fun AppCompatActivity.startTTSSettingsActivity() = startActivity<TTSSettingsActivity>()
 
+fun AppCompatActivity.startAiTtsSettingsActivity() = startActivity<AiTtsSettingsActivity>()
+
 //fun AppCompatActivity.startCloudFlareBypassActivity(hostName: String) {
 //    val intent = Intent(this, CloudFlareBypassActivity::class.java)
 //    val bundle = Bundle()

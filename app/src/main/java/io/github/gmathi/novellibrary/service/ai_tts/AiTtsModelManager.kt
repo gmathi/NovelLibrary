@@ -5,7 +5,17 @@ import com.k2fsa.sherpa.onnx.OfflineTts
 import com.k2fsa.sherpa.onnx.OfflineTtsConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsVitsModelConfig
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
+import java.net.URL
+
+sealed class ModelDownloadState {
+    data object NotDownloaded : ModelDownloadState()
+    data class Downloading(val progress: Float) : ModelDownloadState()
+    data object Downloaded : ModelDownloadState()
+    data class Error(val message: String) : ModelDownloadState()
+}
 
 data class AiTtsVoiceInfo(
     val id: String,
@@ -64,6 +74,49 @@ class AiTtsModelManager(private val context: Context) {
     fun unloadModel() {
         currentTts = null
         currentVoiceId = null
+    }
+
+    suspend fun downloadModel(
+        voice: AiTtsVoiceInfo,
+        onProgress: (Float) -> Unit,
+        onComplete: () -> Unit,
+        onError: (String) -> Unit
+    ) = withContext(Dispatchers.IO) {
+        val modelDir = getModelDir(voice.id)
+        modelDir.mkdirs()
+
+        val filesToDownload = listOf(
+            voice.downloadUrl to File(modelDir, "model.onnx"),
+            "${voice.downloadUrl}.json" to File(modelDir, "model.onnx.json")
+        )
+        val totalFiles = filesToDownload.size
+
+        try {
+            filesToDownload.forEachIndexed { fileIndex, (url, destFile) ->
+                val connection = URL(url).openConnection().apply { connect() }
+                val contentLength = connection.contentLengthLong
+                connection.getInputStream().use { input ->
+                    destFile.outputStream().use { output ->
+                        val buffer = ByteArray(8 * 1024)
+                        var bytesRead = 0L
+                        var n: Int
+                        while (input.read(buffer).also { n = it } != -1) {
+                            output.write(buffer, 0, n)
+                            bytesRead += n
+                            if (contentLength > 0) {
+                                val fileProgress = bytesRead.toFloat() / contentLength
+                                val overall = (fileIndex + fileProgress) / totalFiles
+                                withContext(Dispatchers.Main) { onProgress(overall) }
+                            }
+                        }
+                    }
+                }
+            }
+            withContext(Dispatchers.Main) { onComplete() }
+        } catch (e: Exception) {
+            modelDir.deleteRecursively()
+            withContext(Dispatchers.Main) { onError(e.message ?: "Download failed") }
+        }
     }
 
     fun availableVoices(): List<AiTtsVoiceInfo> = listOf(

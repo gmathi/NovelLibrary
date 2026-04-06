@@ -38,6 +38,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         private const val POSITION_SHOW_CHAPTERS_LEFT_BADGE = 5
         private const val POSITION_DNS_OVER_HTTPS = 6
         private const val POSITION_NU_API_FETCH = 7
+        private const val POSITION_USE_AI_TTS = 8
 
     }
 
@@ -127,6 +128,12 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemBinding.widgetSwitch.visibility = View.VISIBLE
                 itemBinding.widgetSwitch.isChecked = dataCenter.useNUAPIFetch
                 itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.useNUAPIFetch = value }
+            }
+
+            POSITION_USE_AI_TTS -> {
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.useAiTts
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.useAiTts = value }
             }
 
         }
