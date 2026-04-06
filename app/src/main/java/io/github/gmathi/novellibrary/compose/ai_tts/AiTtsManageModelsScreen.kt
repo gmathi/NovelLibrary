@@ -192,17 +192,17 @@ private fun VoiceModelCardPreview() {
     NovelLibraryTheme {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             VoiceModelCard(
-                voice = AiTtsVoiceInfo("id1", "Ryan (US English, High)", "en-US", 63_000_000L, "", ""),
+                voice = AiTtsVoiceInfo("id1", "Ryan (US English, High)", "en-US", 63_000_000L, "", "", ""),
                 state = ModelDownloadState.NotDownloaded,
                 onDownload = {}, onDelete = {}
             )
             VoiceModelCard(
-                voice = AiTtsVoiceInfo("id2", "Amy (US English, Medium)", "en-US", 30_000_000L, "", ""),
+                voice = AiTtsVoiceInfo("id2", "Amy (US English, Medium)", "en-US", 30_000_000L, "", "", ""),
                 state = ModelDownloadState.Downloaded,
                 onDownload = {}, onDelete = {}
             )
             VoiceModelCard(
-                voice = AiTtsVoiceInfo("id3", "Kristin (US English, Low)", "en-US", 10_000_000L, "", ""),
+                voice = AiTtsVoiceInfo("id3", "Kristin (US English, Low)", "en-US", 10_000_000L, "", "", ""),
                 state = ModelDownloadState.Downloading(0.45f),
                 onDownload = {}, onDelete = {}
             )

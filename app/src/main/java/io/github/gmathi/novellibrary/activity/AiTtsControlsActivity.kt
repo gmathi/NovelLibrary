@@ -1,15 +1,34 @@
 package io.github.gmathi.novellibrary.activity
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.session.MediaControllerCompat
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import io.github.gmathi.novellibrary.compose.ai_tts.AiTtsControlsScreen
 import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
+import io.github.gmathi.novellibrary.service.ai_tts.AiTtsPlaybackState
+import io.github.gmathi.novellibrary.service.ai_tts.AiTtsService
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 class AiTtsControlsActivity : ComponentActivity() {
+
+    // Mirror of the service player's state — updated by collecting the service flows
+    private val sentences = MutableStateFlow<List<String>>(emptyList())
+    private val playbackState = MutableStateFlow<AiTtsPlaybackState>(AiTtsPlaybackState.Idle)
+    private val currentSentenceIndex = MutableStateFlow(0)
+
+    private var mediaBrowser: MediaBrowserCompat? = null
+    private var mediaController: MediaControllerCompat? = null
+    private var flowsSynced = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,14 +37,99 @@ class AiTtsControlsActivity : ComponentActivity() {
         val novelTitle = intent.getStringExtra(EXTRA_NOVEL_TITLE) ?: ""
         val chapterTitle = intent.getStringExtra(EXTRA_CHAPTER_TITLE) ?: ""
 
+        // Connect to MediaBrowserService for MediaController (playback commands)
+        mediaBrowser = MediaBrowserCompat(
+            this,
+            ComponentName(this, AiTtsService::class.java),
+            object : MediaBrowserCompat.ConnectionCallback() {
+                override fun onConnected() {
+                    val token = mediaBrowser?.sessionToken ?: return
+                    mediaController = MediaControllerCompat(this@AiTtsControlsActivity, token)
+                    MediaControllerCompat.setMediaController(this@AiTtsControlsActivity, mediaController)
+                }
+            },
+            null
+        ).also { it.connect() }
+
+        // Sync local state flows from the service player whenever it is available
+        syncServiceFlows()
+
         setContent {
             NovelLibraryTheme {
+                val sentenceList by sentences.collectAsState()
+                val state by playbackState.collectAsState()
+                val sentenceIndex by currentSentenceIndex.collectAsState()
+
                 AiTtsControlsScreen(
                     novelTitle = novelTitle,
                     chapterTitle = chapterTitle,
+                    sentences = sentenceList,
+                    playbackState = state,
+                    currentSentenceIndex = sentenceIndex,
+                    onPlayPause = {
+                        val ctrl = mediaController
+                        if (ctrl != null) {
+                            if (state is AiTtsPlaybackState.Playing) ctrl.transportControls.pause()
+                            else ctrl.transportControls.play()
+                        } else {
+                            AiTtsService.instance?.player?.let { p ->
+                                if (p.playbackState.value is AiTtsPlaybackState.Playing) p.pause()
+                                else p.start()
+                            }
+                        }
+                    },
+                    onStop = {
+                        mediaController?.transportControls?.stop()
+                            ?: AiTtsService.instance?.player?.stop()
+                    },
+                    onNextSentence = {
+                        mediaController?.transportControls?.skipToNext()
+                            ?: AiTtsService.instance?.player?.nextSentence()
+                    },
+                    onPrevSentence = {
+                        mediaController?.transportControls?.skipToPrevious()
+                            ?: AiTtsService.instance?.player?.prevSentence()
+                    },
+                    onNextChapter = { AiTtsService.instance?.player?.nextChapter() },
+                    onPrevChapter = { AiTtsService.instance?.player?.prevChapter() },
                     onNavigateBack = { finish() }
                 )
             }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        syncServiceFlows()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Service may have started between onCreate and onResume; re-sync if flows are still empty
+        if (sentences.value.isEmpty()) syncServiceFlows()
+    }
+
+    override fun onDestroy() {
+        mediaBrowser?.disconnect()
+        super.onDestroy()
+    }
+
+    /**
+     * Launches coroutines (tied to the Activity lifecycle) to mirror the service player's
+     * StateFlows into local flows consumed by Compose. No-op if already synced or service not ready.
+     */
+    private fun syncServiceFlows() {
+        if (flowsSynced) return
+        val player = AiTtsService.instance?.player ?: return
+        flowsSynced = true
+        lifecycleScope.launch {
+            player.sentences.collect { sentences.value = it }
+        }
+        lifecycleScope.launch {
+            player.playbackState.collect { playbackState.value = it }
+        }
+        lifecycleScope.launch {
+            player.currentSentenceIndex.collect { currentSentenceIndex.value = it }
         }
     }
 

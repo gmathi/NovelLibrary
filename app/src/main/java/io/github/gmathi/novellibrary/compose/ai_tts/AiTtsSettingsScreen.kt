@@ -265,6 +265,7 @@ fun AiTtsSettingsScreenPreview() {
                     language = "en-US",
                     sizeBytes = 60_000_000L,
                     downloadUrl = "",
+                    tokensUrl = "",
                     checksumMd5 = ""
                 )
             )

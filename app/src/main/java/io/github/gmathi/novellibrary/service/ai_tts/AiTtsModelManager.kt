@@ -5,10 +5,13 @@ import com.k2fsa.sherpa.onnx.OfflineTts
 import com.k2fsa.sherpa.onnx.OfflineTtsConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsVitsModelConfig
+import io.github.gmathi.novellibrary.util.logging.Logs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.net.URL
+
+private const val TAG = "AiTtsModelManager"
 
 sealed class ModelDownloadState {
     data object NotDownloaded : ModelDownloadState()
@@ -23,6 +26,7 @@ data class AiTtsVoiceInfo(
     val language: String,
     val sizeBytes: Long,
     val downloadUrl: String,
+    val tokensUrl: String,
     val checksumMd5: String
 )
 
@@ -36,7 +40,16 @@ class AiTtsModelManager(private val context: Context) {
 
     fun isModelDownloaded(voiceId: String): Boolean {
         val dir = getModelDir(voiceId)
-        return File(dir, "model.onnx").exists() && File(dir, "model.onnx.json").exists()
+        val onnx = File(dir, "model.onnx")
+        val json = File(dir, "model.onnx.json")
+        val tokens = File(dir, "tokens.txt")
+        Logs.debug(TAG, "isModelDownloaded($voiceId): dir=${dir.absolutePath}")
+        Logs.debug(TAG, "  model.onnx    exists=${onnx.exists()} size=${if (onnx.exists()) onnx.length() else -1}")
+        Logs.debug(TAG, "  model.onnx.json exists=${json.exists()} size=${if (json.exists()) json.length() else -1}")
+        Logs.debug(TAG, "  tokens.txt    exists=${tokens.exists()} size=${if (tokens.exists()) tokens.length() else -1}")
+        val result = onnx.exists() && json.exists() && tokens.exists()
+        Logs.debug(TAG, "  -> isModelDownloaded=$result")
+        return result
     }
 
     fun verifyModel(voiceId: String): Boolean = isModelDownloaded(voiceId)
@@ -50,22 +63,34 @@ class AiTtsModelManager(private val context: Context) {
 
     fun loadModel(voiceId: String): OfflineTts {
         if (currentVoiceId == voiceId && currentTts != null) {
+            Logs.debug(TAG, "loadModel($voiceId): returning cached model")
             return currentTts!!
         }
         unloadModel()
-        val modelDir = getModelDir(voiceId).absolutePath
+        val modelDir = getModelDir(voiceId)
+        Logs.debug(TAG, "loadModel($voiceId): loading from ${modelDir.absolutePath}")
+
+        // Log each required file before attempting to load
+        listOf("model.onnx", "model.onnx.json", "tokens.txt").forEach { name ->
+            val f = File(modelDir, name)
+            Logs.debug(TAG, "  $name: exists=${f.exists()} size=${if (f.exists()) f.length() else -1}")
+        }
+
+        val modelDirPath = modelDir.absolutePath
         val config = OfflineTtsConfig(
             model = OfflineTtsModelConfig(
                 vits = OfflineTtsVitsModelConfig(
-                    model = "$modelDir/model.onnx",
+                    model = "$modelDirPath/model.onnx",
                     lexicon = "",
-                    tokens = "$modelDir/tokens.txt",
+                    tokens = "$modelDirPath/tokens.txt",
                     dataDir = "",
                     dictDir = "",
                 )
             )
         )
+        Logs.debug(TAG, "loadModel($voiceId): creating OfflineTts with config")
         val tts = OfflineTts(config = config)
+        Logs.debug(TAG, "loadModel($voiceId): OfflineTts created, sampleRate=${tts.sampleRate()}")
         currentTts = tts
         currentVoiceId = voiceId
         return tts
@@ -87,7 +112,8 @@ class AiTtsModelManager(private val context: Context) {
 
         val filesToDownload = listOf(
             voice.downloadUrl to File(modelDir, "model.onnx"),
-            "${voice.downloadUrl}.json" to File(modelDir, "model.onnx.json")
+            "${voice.downloadUrl}.json" to File(modelDir, "model.onnx.json"),
+            voice.tokensUrl to File(modelDir, "tokens.txt")
         )
         val totalFiles = filesToDownload.size
 
@@ -126,6 +152,7 @@ class AiTtsModelManager(private val context: Context) {
             language = "en-US",
             sizeBytes = 63_000_000L,
             downloadUrl = "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ryan/high/en_US-ryan-high.onnx",
+            tokensUrl = "https://huggingface.co/csukuangfj/vits-piper-en_US-ryan-high/resolve/main/tokens.txt",
             checksumMd5 = ""
         )
     )

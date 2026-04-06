@@ -96,7 +96,7 @@ class AiTtsNotificationBuilder(
 
         val builder = NotificationCompat.Builder(context, Notifications.CHANNEL_AI_TTS_PLAYBACK)
         builder.addAction(skipToPreviousAction)
-        if (playbackState.isPlaying) {
+        if (playbackState?.isPlaying == true) {
             builder.addAction(pauseAction)
         } else {
             builder.addAction(playAction)

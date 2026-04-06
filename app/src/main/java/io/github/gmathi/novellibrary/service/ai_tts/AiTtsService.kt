@@ -10,8 +10,10 @@ import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.session.MediaSessionCompat
+import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
 import io.github.gmathi.novellibrary.model.preference.DataCenter
+import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.notification.Notifications
 import io.github.gmathi.novellibrary.worker.AiTtsModelDownloadWorker
 import kotlinx.coroutines.CoroutineScope
@@ -20,9 +22,16 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
+private const val LOG_TAG = "AiTtsService"
+
 class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeListener, AiTtsEventListener {
 
     companion object {
+        /** Non-null while the service is running. UI can observe [instance] to access player state. */
+        @Volatile
+        var instance: AiTtsService? = null
+            private set
+
         const val ACTION_STARTUP = "io.github.gmathi.novellibrary.AI_TTS_STARTUP"
         const val ACTION_PLAY_PAUSE = "io.github.gmathi.novellibrary.AI_TTS_PLAY_PAUSE"
         const val ACTION_STOP = "io.github.gmathi.novellibrary.AI_TTS_STOP"
@@ -36,7 +45,7 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
         const val TRANSLATOR_SOURCE_NAME = "translatorSourceName"
     }
 
-    private lateinit var player: AiTtsPlayer
+    lateinit var player: AiTtsPlayer
     private lateinit var notificationBuilder: AiTtsNotificationBuilder
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var audioManager: AudioManager
@@ -130,6 +139,7 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         val modelManager = AiTtsModelManager(this)
@@ -145,13 +155,16 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
         notificationBuilder = AiTtsNotificationBuilder(this, buildPendingIntents())
         NotificationController().start()
 
-        registerReceiver(
+        ContextCompat.registerReceiver(
+            this,
             modelReadyReceiver,
-            android.content.IntentFilter(AiTtsModelDownloadWorker.ACTION_MODEL_READY)
+            android.content.IntentFilter(AiTtsModelDownloadWorker.ACTION_MODEL_READY),
+            ContextCompat.RECEIVER_NOT_EXPORTED
         )
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Logs.debug(LOG_TAG,"onStartCommand: action=${intent?.action}")
         when (intent?.action) {
             ACTION_STARTUP -> actionStartup(intent.extras ?: Bundle())
             ACTION_PLAY_PAUSE -> if (player.playbackState.value is AiTtsPlaybackState.Playing) player.pause() else player.start()
@@ -163,6 +176,7 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
     }
 
     override fun onDestroy() {
+        instance = null
         unhookSystem()
         unregisterReceiver(modelReadyReceiver)
         if (noisyReceiverRegistered) {
@@ -186,7 +200,7 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
     private fun hookSystem() {
         // Register noisy receiver
         if (!noisyReceiverRegistered) {
-            registerReceiver(noisyReceiver, android.content.IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
+            ContextCompat.registerReceiver(this, noisyReceiver, android.content.IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY), ContextCompat.RECEIVER_NOT_EXPORTED)
             noisyReceiverRegistered = true
         }
 
@@ -226,21 +240,30 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
     }
 
     private fun actionStartup(extras: Bundle) {
-        val text = extras.getString(AUDIO_TEXT_KEY) ?: return
+        val text = extras.getString(AUDIO_TEXT_KEY)
         val title = extras.getString(TITLE) ?: ""
         val linkedPages = extras.getStringArrayList(LINKED_PAGES) ?: arrayListOf()
         val chapterIdx = extras.getInt(CHAPTER_INDEX, 0)
 
+        Logs.debug(LOG_TAG,"actionStartup: title='$title' chapterIdx=$chapterIdx textLength=${text?.length ?: -1} linkedPages=${linkedPages.size}")
+
+        if (text == null) {
+            Logs.warning(LOG_TAG, "actionStartup: AUDIO_TEXT_KEY is null, aborting startup")
+            return
+        }
+
         val modelManager = AiTtsModelManager(this)
         val prefs = DataCenter(this).aiTtsPreferences
 
+        Logs.debug(LOG_TAG,"actionStartup: checking model for voiceId='${prefs.voiceId}'")
         if (!modelManager.isModelDownloaded(prefs.voiceId)) {
-            // Save pending and start download
+            Logs.debug(LOG_TAG,"actionStartup: model not downloaded, enqueueing download and saving pending extras")
             pendingStartExtras = extras
             AiTtsModelDownloadWorker.enqueue(this, prefs.voiceId)
             return
         }
 
+        Logs.debug(LOG_TAG,"actionStartup: model ready, starting playback")
         hookSystem()
         player.setData(text, title, linkedPages, chapterIdx)
         player.start()
