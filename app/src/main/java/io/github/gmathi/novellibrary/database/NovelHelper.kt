@@ -101,34 +101,42 @@ fun getNovelFromCursor(cursor: Cursor): Novel {
 fun DBHelper.getAllNovels(): List<Novel> {
     val selectQuery = "SELECT * FROM novel ORDER BY ${DBKeys.KEY_ORDER_ID} ASC"
     Logs.debug(LOG, selectQuery)
-    val db = this.readableDatabase
-    val cursor = db.rawQuery(selectQuery, null)
     val list = ArrayList<Novel>()
-    if (cursor != null) {
-        if (cursor.moveToFirst()) {
-            do {
-                val novel = getNovelFromCursor(cursor)
-                list.add(novel)
-            } while (cursor.moveToNext())
+    try {
+        val db = this.readableDatabase
+        val cursor = db.rawQuery(selectQuery, null)
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    val novel = getNovelFromCursor(cursor)
+                    list.add(novel)
+                } while (cursor.moveToNext())
+            }
+            cursor.close()
         }
-        cursor.close()
+    } catch (e: Exception) {
+        Logs.error(LOG, "Error getting all novels", e)
     }
     return list
 }
 
 fun DBHelper.getAllNovels(novelSectionId: Long): List<Novel> {
     val selectQuery = "SELECT * FROM novel WHERE ${DBKeys.KEY_NOVEL_SECTION_ID} = $novelSectionId ORDER BY ${DBKeys.KEY_ORDER_ID} ASC"
-    val db = this.readableDatabase
-    val cursor = db.rawQuery(selectQuery, null)
     val list = ArrayList<Novel>()
-    if (cursor != null) {
-        if (cursor.moveToFirst()) {
-            do {
-                val novel = getNovelFromCursor(cursor)
-                list.add(novel)
-            } while (cursor.moveToNext())
+    try {
+        val db = this.readableDatabase
+        val cursor = db.rawQuery(selectQuery, null)
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    val novel = getNovelFromCursor(cursor)
+                    list.add(novel)
+                } while (cursor.moveToNext())
+            }
+            cursor.close()
         }
-        cursor.close()
+    } catch (e: Exception) {
+        Logs.error(LOG, "Error getting novels for section $novelSectionId", e)
     }
     return list
 }

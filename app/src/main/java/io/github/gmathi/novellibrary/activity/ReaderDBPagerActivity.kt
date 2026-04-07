@@ -162,8 +162,9 @@ class ReaderDBPagerActivity :
 
         onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                val currentFrag = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as WebPageDBFragment)
+                val currentFrag = binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as? WebPageDBFragment
                 when {
+                    currentFrag == null -> finish()
                     currentFrag.history.isNotEmpty() -> currentFrag.goBack()
                     //currentFrag.readerWebView.canGoBack() -> currentFrag.readerWebView.goBack()
                     else -> finish()
@@ -320,7 +321,7 @@ class ReaderDBPagerActivity :
                     if (dataCenter.useAiTts) {
                         val linkedPageUrls = ArrayList(webPageDBFragment.linkedPages.map { it.href })
                         startAiTtsService(audioText, linkedPageUrls, title, novel.id, translatorSourceName ?: "", chapterIndex)
-                        startAiTtsActivity()
+                        startAiTtsActivity(novel.name ?: "", title)
                     } else {
                         startTTSService(audioText, webPageDBFragment.linkedPages, title, novel.id, translatorSourceName, chapterIndex)
                         firebaseAnalytics.logNovelEvent(FAC.Event.LISTEN_NOVEL, novel)

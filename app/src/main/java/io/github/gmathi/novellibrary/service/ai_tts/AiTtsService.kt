@@ -247,6 +247,7 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
         val chapterIdx = extras.getInt(CHAPTER_INDEX, 0)
 
         Logs.debug(LOG_TAG,"actionStartup: title='$title' chapterIdx=$chapterIdx textLength=${text?.length ?: -1} linkedPages=${linkedPages.size}")
+        Logs.debug(LOG_TAG, "actionStartup: instance=$instance, player=${instance?.player}")
 
         if (text == null) {
             Logs.warning(LOG_TAG, "actionStartup: AUDIO_TEXT_KEY is null, aborting startup")

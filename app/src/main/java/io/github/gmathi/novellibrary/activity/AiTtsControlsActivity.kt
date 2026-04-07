@@ -15,6 +15,7 @@ import io.github.gmathi.novellibrary.compose.ai_tts.AiTtsControlsScreen
 import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
 import io.github.gmathi.novellibrary.service.ai_tts.AiTtsPlaybackState
 import io.github.gmathi.novellibrary.service.ai_tts.AiTtsService
+import io.github.gmathi.novellibrary.util.logging.Logs
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -116,17 +117,42 @@ class AiTtsControlsActivity : ComponentActivity() {
 
     /**
      * Launches coroutines (tied to the Activity lifecycle) to mirror the service player's
-     * StateFlows into local flows consumed by Compose. No-op if already synced or service not ready.
+     * StateFlows into local flows consumed by Compose. Retries if service not ready yet.
      */
     private fun syncServiceFlows() {
-        if (flowsSynced) return
-        val player = AiTtsService.instance?.player ?: return
+        if (flowsSynced) {
+            val player = AiTtsService.instance?.player
+            if (player != null) {
+                Logs.debug("AiTtsControlsActivity", "syncServiceFlows: already synced, sentences=${player.sentences.value.size}")
+            }
+            return
+        }
+
+        val player = AiTtsService.instance?.player
+        if (player == null) {
+            Logs.debug("AiTtsControlsActivity", "syncServiceFlows: player is null, service instance=${AiTtsService.instance}, will retry...")
+            // Retry after a short delay - the service may still be starting
+            lifecycleScope.launch {
+                kotlinx.coroutines.delay(500)
+                if (!flowsSynced) syncServiceFlows()
+            }
+            return
+        }
+
         flowsSynced = true
+        Logs.debug("AiTtsControlsActivity", "syncServiceFlows: starting collection, sentences=${player.sentences.value.size}")
+
         lifecycleScope.launch {
-            player.sentences.collect { sentences.value = it }
+            player.sentences.collect {
+                Logs.debug("AiTtsControlsActivity", "sentences collected: ${it.size} items")
+                sentences.value = it
+            }
         }
         lifecycleScope.launch {
-            player.playbackState.collect { playbackState.value = it }
+            player.playbackState.collect {
+                Logs.debug("AiTtsControlsActivity", "playbackState collected: $it")
+                playbackState.value = it
+            }
         }
         lifecycleScope.launch {
             player.currentSentenceIndex.collect { currentSentenceIndex.value = it }

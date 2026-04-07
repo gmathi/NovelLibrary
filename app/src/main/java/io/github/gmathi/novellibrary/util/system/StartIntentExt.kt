@@ -23,6 +23,7 @@ import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.service.ai_tts.AiTtsService
 import io.github.gmathi.novellibrary.service.tts.TTSService
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.view.TransitionHelper
 
 //#region Helpers
@@ -276,6 +277,7 @@ fun Context.startAiTtsService(
     translatorSourceName: String,
     chapterIndex: Int
 ) {
+    Logs.debug("StartIntentExt", "startAiTtsService: textLength=${audioText.length}, title='$title'")
     val intent = Intent(this, AiTtsService::class.java).apply {
         action = AiTtsService.ACTION_STARTUP
         putExtra(AiTtsService.AUDIO_TEXT_KEY, audioText)
@@ -288,8 +290,8 @@ fun Context.startAiTtsService(
     ContextCompat.startForegroundService(this, intent)
 }
 
-fun Context.startAiTtsActivity() {
-    startActivity(Intent(this, AiTtsControlsActivity::class.java))
+fun Context.startAiTtsActivity(novelTitle: String = "", chapterTitle: String = "") {
+    startActivity(AiTtsControlsActivity.createIntent(this, novelTitle, chapterTitle))
 }
 
 //#endregion

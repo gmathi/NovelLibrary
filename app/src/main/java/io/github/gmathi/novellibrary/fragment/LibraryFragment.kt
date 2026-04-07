@@ -128,18 +128,23 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     private fun setData() {
-        updateOrderIds()
-        adapter.updateData(ArrayList(dbHelper.getAllNovels(novelSectionId)))
-        binding.swipeRefreshLayout.isRefreshing = false
-        binding.progressLayout.showContent()
-        if (adapter.items.size == 0) {
-            binding.progressLayout.showEmpty(
-                resId = R.raw.no_data_blob,
-                isLottieAnimation = true,
-                emptyText = "Your Library is empty!\nLet's start adding some from search screen…"
-            )
-        } else {
-            binding.progressLayout.showContent()
+        lifecycleScope.launch(Dispatchers.IO) {
+            updateOrderIds()
+            val novels = dbHelper.getAllNovels(novelSectionId)
+            withContext(Dispatchers.Main) {
+                adapter.updateData(ArrayList(novels))
+                binding.swipeRefreshLayout.isRefreshing = false
+                binding.progressLayout.showContent()
+                if (adapter.items.size == 0) {
+                    binding.progressLayout.showEmpty(
+                        resId = R.raw.no_data_blob,
+                        isLottieAnimation = true,
+                        emptyText = "Your Library is empty!\nLet's start adding some from search screen…"
+                    )
+                } else {
+                    binding.progressLayout.showContent()
+                }
+            }
         }
     }
 
