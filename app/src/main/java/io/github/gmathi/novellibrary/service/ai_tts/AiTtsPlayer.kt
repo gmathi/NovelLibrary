@@ -12,6 +12,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 private const val TAG = "AiTtsPlayer"
 
@@ -38,6 +40,9 @@ class AiTtsPlayer(
     // --- Coroutines ---
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var playbackJob: Job? = null
+    // Serializes native TTS synthesis so a new job always waits for the current
+    // generate() call to finish before loading/releasing the model.
+    private val synthesisLock = Mutex()
 
     // --- Audio thread ---
     private val audioThread = HandlerThread("ai_tts_audio", Process.THREAD_PRIORITY_AUDIO).also { it.start() }
@@ -107,7 +112,13 @@ class AiTtsPlayer(
     fun destroy() {
         scope.cancel()
         audioThread.quit()
-        modelManager.unloadModel()
+        // scope.cancel() marks coroutines for cancellation but does NOT wait for any
+        // in-progress blocking native call (generate / loadModel) on nativeDispatcher to
+        // finish.  Acquiring synthesisLock here blocks until the current native call
+        // returns and releases the lock, guaranteeing the nativeDispatcher thread is idle
+        // before we release the OfflineTts native object.
+        runBlocking { synthesisLock.withLock { modelManager.unloadModel() } }
+        modelManager.close()
     }
 
     // --- Internal ---
@@ -118,8 +129,14 @@ class AiTtsPlayer(
         eventListener?.onPlaybackStateChanged(AiTtsPlaybackState.LoadingModel)
 
         val tts = try {
-            withContext(Dispatchers.IO) {
-                modelManager.loadModel(preferences.voiceId)
+            // Hold synthesisLock while loading the model so we wait for any in-progress
+            // generate() call on the old instance to finish before we (potentially) release it.
+            // nativeDispatcher is a single-thread executor — all ORT calls share one thread,
+            // preventing the global inter-op thread-pool initialization race.
+            synthesisLock.withLock {
+                withContext(modelManager.nativeDispatcher) {
+                    modelManager.loadModel(preferences.voiceId)
+                }
             }
         } catch (e: Exception) {
             Logs.error(TAG, "playSentencesFrom: loadModel failed: ${e.message}", e)
@@ -140,7 +157,15 @@ class AiTtsPlayer(
             val sentence = sentenceList[index]
             Logs.debug(TAG, "playSentencesFrom: synthesizing sentence $index/${sentenceList.size}: '${sentence.take(60)}'")
             eventListener?.onSentenceChanged(index, sentence)
-            synthesizeAndPlay(tts, sentence)
+            try {
+                synthesizeAndPlay(tts, sentence)
+            } catch (e: Exception) {
+                Logs.error(TAG, "playSentencesFrom: synthesizeAndPlay failed at index $index: ${e.message}", e)
+                _playbackState.value = AiTtsPlaybackState.Error(e.message ?: "Synthesis failed")
+                eventListener?.onPlaybackStateChanged(_playbackState.value)
+                eventListener?.onError(e.message ?: "Synthesis failed")
+                return
+            }
         }
 
         if (currentCoroutineContext().isActive) {
@@ -158,24 +183,36 @@ class AiTtsPlayer(
     private suspend fun synthesizeAndPlay(
         tts: com.k2fsa.sherpa.onnx.OfflineTts,
         sentence: String
-    ) = withContext(Dispatchers.IO) {
-        if (sentence.isBlank()) return@withContext
-        Logs.debug(TAG, "synthesizeAndPlay: generating audio for sentence length=${sentence.length} speed=${preferences.speechRate}")
-        val audio = tts.generate(
-            text = sentence,
-            sid = 0,
-            speed = preferences.speechRate
-        )
-        Logs.debug(TAG, "synthesizeAndPlay: generated ${audio.samples.size} samples at ${audio.sampleRate}Hz")
-        playPcmOnAudioTrack(audio.samples, audio.sampleRate)
+    ) {
+        if (sentence.isBlank()) return
+        synthesisLock.withLock {
+            withContext(modelManager.nativeDispatcher) {
+                Logs.debug(TAG, "synthesizeAndPlay: generating audio for sentence length=${sentence.length} speed=${preferences.speechRate}")
+                val audio = tts.generate(
+                    text = sentence,
+                    sid = 0,
+                    speed = preferences.speechRate
+                )
+                Logs.debug(TAG, "synthesizeAndPlay: generated ${audio.samples.size} samples at ${audio.sampleRate}Hz")
+                playPcmOnAudioTrack(audio.samples, audio.sampleRate)
+            }
+        }
     }
 
     private fun playPcmOnAudioTrack(samples: FloatArray, sampleRate: Int) {
+        if (sampleRate <= 0) {
+            Logs.warning(TAG, "playPcmOnAudioTrack: invalid sampleRate=$sampleRate, skipping")
+            return
+        }
         val bufferSize = AudioTrack.getMinBufferSize(
             sampleRate,
             AudioFormat.CHANNEL_OUT_MONO,
             AudioFormat.ENCODING_PCM_FLOAT
         )
+        if (bufferSize <= 0) {
+            Logs.warning(TAG, "playPcmOnAudioTrack: getMinBufferSize returned $bufferSize for sampleRate=$sampleRate, skipping")
+            return
+        }
         val audioTrack = AudioTrack.Builder()
             .setAudioAttributes(
                 AudioAttributes.Builder()
@@ -194,10 +231,13 @@ class AiTtsPlayer(
             .setTransferMode(AudioTrack.MODE_STREAM)
             .build()
 
-        audioTrack.play()
-        audioTrack.write(samples, 0, samples.size, AudioTrack.WRITE_BLOCKING)
-        audioTrack.stop()
-        audioTrack.release()
+        try {
+            audioTrack.play()
+            audioTrack.write(samples, 0, samples.size, AudioTrack.WRITE_BLOCKING)
+            audioTrack.stop()
+        } finally {
+            audioTrack.release()
+        }
     }
 
     private fun splitIntoSentences(text: String): List<String> {

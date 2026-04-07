@@ -1,15 +1,18 @@
 package io.github.gmathi.novellibrary.service.ai_tts
 
 import android.content.Context
+import android.os.Build
 import com.k2fsa.sherpa.onnx.OfflineTts
 import com.k2fsa.sherpa.onnx.OfflineTtsConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsVitsModelConfig
 import io.github.gmathi.novellibrary.util.logging.Logs
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.net.URL
+import java.util.concurrent.Executors
 
 private const val TAG = "AiTtsModelManager"
 
@@ -27,10 +30,35 @@ data class AiTtsVoiceInfo(
     val sizeBytes: Long,
     val downloadUrl: String,
     val tokensUrl: String,
-    val checksumMd5: String
+    val checksumMd5: String,
+    /**
+     * ABIs this model is compatible with (e.g. "arm64-v8a", "x86_64").
+     * Empty set means the model works on all architectures.
+     */
+    val supportedAbis: Set<String> = emptySet()
 )
 
 class AiTtsModelManager(private val context: Context) {
+
+    /** The primary ABI this process is running under (e.g. "arm64-v8a", "x86_64"). */
+    val primaryAbi: String = Build.SUPPORTED_ABIS.firstOrNull() ?: "arm64-v8a"
+
+    /**
+     * True when running on a native ARM device.
+     * False on x86/x86_64 (Android emulator), where the ONNX Runtime x86 JNI library
+     * has known thread-pool initialization races that crash the process.
+     */
+    val isNativelySupported: Boolean = !primaryAbi.startsWith("x86")
+
+    // Single dedicated thread for ALL native sherpa-onnx / ONNX-Runtime calls.
+    // ORT's global inter-op thread pool is initialized once on first session creation;
+    // dispatching that call (or any subsequent generate() call) from different
+    // Dispatchers.IO threads can race on ORT's internal pthread_mutex structures
+    // and cause a FORTIFY abort.  A single-thread executor eliminates that race.
+    private val nativeExecutor = Executors.newSingleThreadExecutor { r ->
+        Thread(r, "ai-tts-native").also { it.isDaemon = true }
+    }
+    val nativeDispatcher = nativeExecutor.asCoroutineDispatcher()
 
     private var currentTts: OfflineTts? = null
     private var currentVoiceId: String? = null
@@ -85,7 +113,11 @@ class AiTtsModelManager(private val context: Context) {
                     tokens = "$modelDirPath/tokens.txt",
                     dataDir = "",
                     dictDir = "",
-                )
+                ),
+                // numThreads defaults to 0 (= all CPU cores). With many cores the ONNX Runtime
+                // thread pool has a race during initialization that destroys a pthread mutex while
+                // another thread is still trying to lock it → FORTIFY abort. Force single-threaded.
+                numThreads = 1,
             )
         )
         Logs.debug(TAG, "loadModel($voiceId): creating OfflineTts with config")
@@ -97,8 +129,14 @@ class AiTtsModelManager(private val context: Context) {
     }
 
     fun unloadModel() {
+        currentTts?.release()  // Free native resources synchronously; prevents GC finalizer race
         currentTts = null
         currentVoiceId = null
+    }
+
+    /** Call from [AiTtsPlayer.destroy] after all native work has completed. */
+    fun close() {
+        nativeDispatcher.close()
     }
 
     suspend fun downloadModel(
@@ -145,15 +183,52 @@ class AiTtsModelManager(private val context: Context) {
         }
     }
 
-    fun availableVoices(): List<AiTtsVoiceInfo> = listOf(
-        AiTtsVoiceInfo(
-            id = "en_US-ryan-high",
-            name = "Ryan (US English, High Quality)",
-            language = "en-US",
-            sizeBytes = 63_000_000L,
-            downloadUrl = "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ryan/high/en_US-ryan-high.onnx",
-            tokensUrl = "https://huggingface.co/csukuangfj/vits-piper-en_US-ryan-high/resolve/main/tokens.txt",
-            checksumMd5 = ""
+    /**
+     * Returns voices compatible with the current device ABI.
+     * Voices with an empty [AiTtsVoiceInfo.supportedAbis] run on all architectures.
+     */
+    fun availableVoices(): List<AiTtsVoiceInfo> =
+        ALL_VOICES.filter { it.supportedAbis.isEmpty() || primaryAbi in it.supportedAbis }
+
+    /** The default voice ID to use for the current device ABI. */
+    fun defaultVoiceId(): String =
+        availableVoices().firstOrNull()?.id ?: ALL_VOICES.first().id
+
+    companion object {
+        // Shared tokens file for all English piper/VITS models.
+        private const val EN_TOKENS_URL =
+            "https://huggingface.co/csukuangfj/vits-piper-en_US-ryan-high/resolve/main/tokens.txt"
+
+        private val ALL_VOICES = listOf(
+
+            // ── ARM64 / physical devices ──────────────────────────────────────────────
+            // High-quality 120 MB VITS model.  The ORT x86_64 JNI library has a
+            // thread-pool init race that crashes the process when loading this model,
+            // so it is restricted to native ARM builds only.
+            AiTtsVoiceInfo(
+                id = "en_US-ryan-high",
+                name = "Ryan (US English, High Quality)",
+                language = "en-US",
+                sizeBytes = 120_786_792L,
+                downloadUrl = "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ryan/high/en_US-ryan-high.onnx",
+                tokensUrl = EN_TOKENS_URL,
+                checksumMd5 = "",
+                supportedAbis = setOf("arm64-v8a", "armeabi-v7a")
+            ),
+
+            // ── x86 / x86_64 (Android emulator) ─────────────────────────────────────
+            // Lightweight ~24 MB model.  Smaller graph → less ORT thread-pool pressure,
+            // making it safer on the emulator's x86_64 ORT build.
+            AiTtsVoiceInfo(
+                id = "en_US-amy-low",
+                name = "Amy (US English, Low Quality)",
+                language = "en-US",
+                sizeBytes = 24_000_000L,
+                downloadUrl = "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/low/en_US-amy-low.onnx",
+                tokensUrl = EN_TOKENS_URL,
+                checksumMd5 = "",
+                supportedAbis = setOf("x86_64", "x86")
+            )
         )
-    )
+    }
 }

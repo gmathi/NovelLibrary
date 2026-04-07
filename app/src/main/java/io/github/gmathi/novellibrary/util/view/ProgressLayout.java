@@ -204,11 +204,9 @@ public class ProgressLayout extends RelativeLayout {
 
                 if (rawResId != null) {
                     emptyAnimationView.setAnimation(rawResId);
-                    emptyAnimationView.resumeAnimation();
-                    setVerticalBias(0.37f, emptyStateConstraintLayout, R.id.emptyLinearLayout);
-                } else {
-                    emptyAnimationView.setVisibility(View.GONE);
                 }
+                emptyAnimationView.resumeAnimation();
+                setVerticalBias(0.37f, emptyStateConstraintLayout, R.id.emptyLinearLayout);
                 if (drawableId != null) {
                     emptyStateImageView.setImageResource(drawableId);
                     emptyStateImageView.setVisibility(View.VISIBLE);
@@ -234,12 +232,10 @@ public class ProgressLayout extends RelativeLayout {
 
                 if (rawResId != null) {
                     errorAnimationView.setAnimation(rawResId);
-                    errorAnimationView.resumeAnimation();
-                    errorAnimationView.setVisibility(View.VISIBLE);
-                    setVerticalBias(0.37f, errorStateConstraintLayout, R.id.errorLinearLayout);
-                } else {
-                    errorAnimationView.setVisibility(View.GONE);
                 }
+                errorAnimationView.resumeAnimation();
+                errorAnimationView.setVisibility(View.VISIBLE);
+                setVerticalBias(0.37f, errorStateConstraintLayout, R.id.errorLinearLayout);
                 if (drawableId != null) {
                     errorStateImageView.setImageResource(drawableId);
                     errorStateImageView.setVisibility(View.VISIBLE);

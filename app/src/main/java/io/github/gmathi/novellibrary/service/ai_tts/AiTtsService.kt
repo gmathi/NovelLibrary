@@ -46,6 +46,7 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
     }
 
     lateinit var player: AiTtsPlayer
+    private lateinit var modelManager: AiTtsModelManager
     private lateinit var notificationBuilder: AiTtsNotificationBuilder
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var audioManager: AudioManager
@@ -142,7 +143,7 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
         instance = this
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-        val modelManager = AiTtsModelManager(this)
+        modelManager = AiTtsModelManager(this)
         val prefs = DataCenter(this).aiTtsPreferences
         player = AiTtsPlayer(modelManager, prefs, this)
 
@@ -252,10 +253,24 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
             return
         }
 
-        val modelManager = AiTtsModelManager(this)
         val prefs = DataCenter(this).aiTtsPreferences
 
-        Logs.debug(LOG_TAG,"actionStartup: checking model for voiceId='${prefs.voiceId}'")
+        Logs.debug(LOG_TAG, "actionStartup: abi=${modelManager.primaryAbi} nativelySupported=${modelManager.isNativelySupported} voiceId='${prefs.voiceId}'")
+        if (!modelManager.isNativelySupported && modelManager.availableVoices().isEmpty()) {
+            Logs.warning(LOG_TAG, "actionStartup: AI TTS not supported on abi=${modelManager.primaryAbi}, aborting")
+            stopSelf()
+            return
+        }
+
+        // If the stored voice is not compatible with the current ABI, fall back to the
+        // ABI-appropriate default so the right model gets downloaded.
+        val availableIds = modelManager.availableVoices().map { it.id }.toSet()
+        if (prefs.voiceId !in availableIds) {
+            val fallback = modelManager.defaultVoiceId()
+            Logs.debug(LOG_TAG, "actionStartup: voiceId='${prefs.voiceId}' not available on ${modelManager.primaryAbi}, switching to '$fallback'")
+            prefs.voiceId = fallback
+        }
+
         if (!modelManager.isModelDownloaded(prefs.voiceId)) {
             Logs.debug(LOG_TAG,"actionStartup: model not downloaded, enqueueing download and saving pending extras")
             pendingStartExtras = extras

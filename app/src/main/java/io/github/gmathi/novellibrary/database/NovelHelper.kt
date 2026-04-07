@@ -76,7 +76,14 @@ fun DBHelper.getNovelFromQuery(selectQuery: String, selectionArgs: Array<String>
 fun getNovelFromCursor(cursor: Cursor): Novel {
     val novel = Novel(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME)), cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL)), cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_SOURCE_ID)))
     novel.id = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ID))
-    novel.metadata = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
+    novel.metadata = try {
+        Gson().fromJson(
+            cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)),
+            object : TypeToken<HashMap<String, String?>>() {}.type
+        ) ?: HashMap()
+    } catch (e: Exception) {
+        HashMap()
+    }
     novel.imageUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_IMAGE_URL))
     novel.rating = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_RATING))
     novel.shortDescription = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_SHORT_DESCRIPTION))

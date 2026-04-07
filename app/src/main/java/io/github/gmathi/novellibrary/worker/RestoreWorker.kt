@@ -171,8 +171,8 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                         if (novelJson.has("metadata"))
                             novel.metadata = Gson().fromJson(
                                 novelJson.getString("metadata"),
-                                object : TypeToken<HashMap<String, String>>() {}.type
-                            )
+                                object : TypeToken<HashMap<String, String?>>() {}.type
+                            ) ?: HashMap()
                         novel.novelSectionId =
                             newIdMap[oldIdMap[novelJson.getLong("novelSectionId")]]
                                 ?: -1L
