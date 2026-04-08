@@ -873,4 +873,17 @@
     <!-- AI TTS voice picker dialog -->
     <string name="ai_tts_dialog_select_voice">Select Voice</string>
     <string name="ai_tts_dialog_cancel">Cancel</string>
+
+    <!-- VITS-Piper model management -->
+    <string name="tts_ai_model_not_downloaded">Not Downloaded</string>
+    <string name="tts_ai_model_downloading">Downloading: %d%%</string>
+    <string name="tts_ai_model_ready">Ready</string>
+    <string name="tts_ai_model_size">Model size: %.1f MB</string>
+    <string name="tts_ai_model_download">Download Model</string>
+    <string name="tts_ai_model_delete">Delete Model</string>
+    <string name="tts_ai_model_download_prompt">Download AI TTS model to use AI voices. This will download approximately 50MB of data.</string>
+    <string name="tts_ai_model_delete_confirm">Delete AI TTS model? This will free up approximately %.1f MB of storage.</string>
+    <string name="tts_ai_model_download_failed">Model download failed: %s</string>
+    <string name="tts_ai_model_not_enough_storage">Not enough storage space. Need at least 50MB free.</string>
+    <string name="tts_ai_unsupported_device">AI TTS is not supported on this device architecture</string>
 </resources>
