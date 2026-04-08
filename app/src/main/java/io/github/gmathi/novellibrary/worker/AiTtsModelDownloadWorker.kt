@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.work.*
 import io.github.gmathi.novellibrary.service.ai_tts.AiTtsModelManager
+import io.github.gmathi.novellibrary.service.ai_tts.TtsEngineType
 import io.github.gmathi.novellibrary.util.notification.Notifications
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -35,27 +36,27 @@ class AiTtsModelDownloadWorker(
         tempDir.mkdirs()
 
         try {
-            // Download model.onnx
-            postProgress(voiceId, 0, "Downloading model...")
-            downloadFile(
-                url = voiceInfo.downloadUrl,
-                dest = File(tempDir, "model.onnx")
-            ) { progress -> postProgress(voiceId, progress / 2, "Downloading model...") }
+            // Build the list of files to download based on engine type
+            val filesToDownload = mutableListOf(
+                voiceInfo.downloadUrl to "model.onnx",
+                voiceInfo.tokensUrl to "tokens.txt"
+            )
+            if (voiceInfo.engineType == TtsEngineType.KOKORO && voiceInfo.voicesBinUrl.isNotEmpty()) {
+                filesToDownload.add(voiceInfo.voicesBinUrl to "voices.bin")
+            }
+            val totalFiles = filesToDownload.size
 
-            // Download model.onnx.json (config)
-            postProgress(voiceId, 50, "Downloading config...")
-            val jsonUrl = voiceInfo.downloadUrl + ".json"
-            downloadFile(
-                url = jsonUrl,
-                dest = File(tempDir, "model.onnx.json")
-            ) { progress -> postProgress(voiceId, 50 + progress / 2, "Downloading config...") }
-
-            // Also download tokens.txt
-            val tokensUrl = voiceInfo.downloadUrl.substringBeforeLast("/") + "/tokens.txt"
-            downloadFile(
-                url = tokensUrl,
-                dest = File(tempDir, "tokens.txt")
-            ) { /* ignore progress for small file */ }
+            filesToDownload.forEachIndexed { fileIndex, (url, fileName) ->
+                val basePercent = (fileIndex * 100) / totalFiles
+                val filePercent = 100 / totalFiles
+                postProgress(voiceId, basePercent, "Downloading $fileName...")
+                downloadFile(
+                    url = url,
+                    dest = File(tempDir, fileName)
+                ) { progress ->
+                    postProgress(voiceId, basePercent + (progress * filePercent / 100), "Downloading $fileName...")
+                }
+            }
 
             // Move atomically to final location
             modelDir.mkdirs()

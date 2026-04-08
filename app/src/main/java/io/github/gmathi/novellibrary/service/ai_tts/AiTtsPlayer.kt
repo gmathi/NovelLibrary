@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.util.Random
 
 private const val TAG = "AiTtsPlayer"
 
@@ -48,6 +49,8 @@ class AiTtsPlayer(
     // which causes native OOM on the emulator (x86_64) with many sentences.
     private var audioTrack: AudioTrack? = null
     private var audioTrackSampleRate: Int = -1
+    // Soft jitter for punctuation silence — ±10% variation for natural pacing
+    private val silenceJitterRandom = Random()
 
     fun setData(text: String, title: String, linkedPages: ArrayList<String>, chapterIndex: Int) {
         stop()
@@ -62,6 +65,7 @@ class AiTtsPlayer(
 
     fun start() {
         if (_playbackState.value is AiTtsPlaybackState.Playing) return
+        Logs.debug(TAG, "start: resuming playback from sentence ${_currentSentenceIndex.value}")
         playbackJob?.cancel()
         playbackJob = scope.launch {
             playSentencesFrom(_currentSentenceIndex.value)
@@ -70,6 +74,7 @@ class AiTtsPlayer(
 
     fun pause() {
         if (_playbackState.value !is AiTtsPlaybackState.Playing) return
+        Logs.debug(TAG, "pause: pausing at sentence ${_currentSentenceIndex.value}")
         playbackJob?.cancel()
         releaseAudioTrack()
         _playbackState.value = AiTtsPlaybackState.Paused
@@ -77,6 +82,7 @@ class AiTtsPlayer(
     }
 
     fun stop() {
+        Logs.debug(TAG, "stop: stopping playback")
         playbackJob?.cancel()
         releaseAudioTrack()
         _playbackState.value = AiTtsPlaybackState.Stopped
@@ -96,6 +102,7 @@ class AiTtsPlayer(
     fun nextSentence() {
         val next = _currentSentenceIndex.value + 1
         if (next < _sentences.value.size) {
+            Logs.debug(TAG, "nextSentence: advancing to $next/${_sentences.value.size}")
             _currentSentenceIndex.value = next
             if (_playbackState.value is AiTtsPlaybackState.Playing) {
                 playbackJob?.cancel()
@@ -106,6 +113,7 @@ class AiTtsPlayer(
 
     fun prevSentence() {
         val prev = (_currentSentenceIndex.value - 1).coerceAtLeast(0)
+        Logs.debug(TAG, "prevSentence: going back to $prev")
         _currentSentenceIndex.value = prev
         if (_playbackState.value is AiTtsPlaybackState.Playing) {
             playbackJob?.cancel()
@@ -114,14 +122,17 @@ class AiTtsPlayer(
     }
 
     fun nextChapter() {
+        Logs.debug(TAG, "nextChapter: requesting chapter ${chapterIndex + 1}")
         eventListener?.onChapterChanged(chapterIndex + 1)
     }
 
     fun prevChapter() {
+        Logs.debug(TAG, "prevChapter: requesting chapter ${chapterIndex - 1}")
         if (chapterIndex > 0) eventListener?.onChapterChanged(chapterIndex - 1)
     }
 
     fun destroy() {
+        Logs.debug(TAG, "destroy: releasing resources")
         scope.cancel()
         releaseAudioTrack()
         // scope.cancel() marks coroutines for cancellation but does NOT wait for any
@@ -142,6 +153,15 @@ class AiTtsPlayer(
         audioTrackSampleRate = -1
     }
 
+    /** Returns the speaker ID to use for generate() — Kokoro uses the stored speaker ID, VITS always 0. */
+    private fun activeSpeakerId(): Int {
+        return if (modelManager.getEngineType(preferences.voiceId) == TtsEngineType.KOKORO) {
+            preferences.kokoroSpeakerId
+        } else {
+            0
+        }
+    }
+
     // --- Internal ---
 
     private suspend fun playSentencesFrom(startIndex: Int) {
@@ -150,13 +170,13 @@ class AiTtsPlayer(
         eventListener?.onPlaybackStateChanged(AiTtsPlaybackState.LoadingModel)
 
         val tts = try {
-            // Hold synthesisLock while loading the model so we wait for any in-progress
-            // generate() call on the old instance to finish before we (potentially) release it.
-            // nativeDispatcher is a single-thread executor — all ORT calls share one thread,
-            // preventing the global inter-op thread-pool initialization race.
             synthesisLock.withLock {
                 withContext(modelManager.nativeDispatcher) {
-                    modelManager.loadModel(preferences.voiceId)
+                    modelManager.loadModel(
+                        preferences.voiceId,
+                        kokoroSpeakerId = preferences.kokoroSpeakerId,
+                        kokoroLangCode = preferences.kokoroLangCode
+                    )
                 }
             }
         } catch (e: Exception) {
@@ -210,25 +230,136 @@ class AiTtsPlayer(
             withContext(modelManager.nativeDispatcher) {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
                 Logs.debug(TAG, "synthesizeAndPlay: generating audio for sentence length=${sentence.length} speed=${preferences.speechRate}")
-                val audio = tts.generate(
-                    text = sentence,
-                    sid = 0,
-                    speed = preferences.speechRate
-                )
-                Logs.debug(TAG, "synthesizeAndPlay: generated ${audio.samples.size} samples at ${audio.sampleRate}Hz")
 
-                // Convert float samples to PCM bytes and play
-                val pcmBytes = floatsToPcm16(audio.samples)
-                playPcmOnAudioTrack(pcmBytes, audio.sampleRate)
+                if (preferences.emotionTags) {
+                    processWithEmotionTags(tts, sentence)
+                } else {
+                    val sid = activeSpeakerId()
+                    val audio = tts.generate(text = sentence, sid = sid, speed = preferences.speechRate)
+                    Logs.debug(TAG, "synthesizeAndPlay: generated ${audio.samples.size} samples at ${audio.sampleRate}Hz")
+                    var pcmBytes = floatsToPcm16(audio.samples)
+                    if (preferences.volumeNormalization) {
+                        pcmBytes = normalizePcmVolume(pcmBytes)
+                    }
+                    playPcmOnAudioTrack(pcmBytes, audio.sampleRate)
 
-                // Inject punctuation-based silence after the sentence
-                val silenceMs = getSentenceTrailingSilenceMs(sentence)
-                if (silenceMs > 0) {
-                    val silenceBytes = createSilence(silenceMs, audio.sampleRate)
-                    playPcmOnAudioTrack(silenceBytes, audio.sampleRate)
+                    if (preferences.smartPunctuation) {
+                        val silenceMs = getSentenceTrailingSilenceMs(sentence)
+                        if (silenceMs > 0) {
+                            playPcmOnAudioTrack(createSilence(silenceMs, audio.sampleRate), audio.sampleRate)
+                        }
+                    }
                 }
             }
         }
+    }
+
+    /**
+     * Emotion profile applied as DSP post-processing on generated PCM.
+     * Mirrors the reference project's AudioEmotionHelper.
+     */
+    private data class EmotionProfile(
+        val volume: Float = 1.0f,
+        val speed: Float = 1.0f,
+        val attackTimeMs: Int = 1500
+    )
+
+    /**
+     * Parses emotion tags like [sad], [angry], [whisper] and punctuation from the sentence,
+     * generates audio for each text chunk with the active emotion profile, and injects
+     * punctuation-based silence. Mirrors the reference AudioEmotionHelper.processAndGenerate().
+     */
+    private fun processWithEmotionTags(tts: com.k2fsa.sherpa.onnx.OfflineTts, sentence: String) {
+        val baseSpeed = preferences.speechRate
+        val sid = activeSpeakerId()
+        var currentProfile = EmotionProfile(speed = baseSpeed)
+        var lastVolume = 1.0f
+
+        val regex = Regex("""(\[[a-zA-Z]+]|\.\.\.|\.|,|!|\?|।)""")
+        var lastEnd = 0
+
+        for (match in regex.findAll(sentence)) {
+            val textChunk = sentence.substring(lastEnd, match.range.first).trim()
+            if (textChunk.isNotEmpty() && !textChunk.matches(Regex("""\[[a-zA-Z]+]"""))) {
+                val audio = tts.generate(text = textChunk, sid = sid, speed = currentProfile.speed)
+                if (audio.samples.isNotEmpty()) {
+                    var pcm = floatsToPcm16(audio.samples)
+                    if (lastVolume != 1.0f || currentProfile.volume != 1.0f) {
+                        pcm = applyVolumeEnvelope(pcm, lastVolume, currentProfile.volume, currentProfile.attackTimeMs, audio.sampleRate)
+                    }
+                    playPcmOnAudioTrack(pcm, audio.sampleRate)
+                    lastVolume = currentProfile.volume
+                }
+            }
+
+            val token = match.value
+            if (token.startsWith("[")) {
+                // Emotion tag — update profile
+                currentProfile = when (token.lowercase()) {
+                    "[whisper]", "[whispers]" -> EmotionProfile(volume = 0.65f, speed = baseSpeed * 0.95f, attackTimeMs = 2500)
+                    "[angry]" -> EmotionProfile(volume = 1.15f, speed = baseSpeed * 1.05f, attackTimeMs = 1500)
+                    "[sad]" -> EmotionProfile(volume = 0.80f, speed = baseSpeed * 0.92f, attackTimeMs = 2500)
+                    "[sarcastic]", "[sarcastically]" -> EmotionProfile(volume = 1.0f, speed = baseSpeed * 1.02f, attackTimeMs = 1500)
+                    "[giggle]", "[giggles]" -> EmotionProfile(volume = 1.10f, speed = baseSpeed * 1.05f, attackTimeMs = 1000)
+                    "[normal]", "[]" -> EmotionProfile(speed = baseSpeed)
+                    else -> EmotionProfile(speed = baseSpeed)
+                }
+            } else if (preferences.smartPunctuation) {
+                // Punctuation — inject silence with jitter
+                val baseMs = when (token) {
+                    "," -> 140; "!" -> 190; "?" -> 230
+                    ".", "।" -> 280; "..." -> 380
+                    else -> 0
+                }
+                if (baseMs > 0) {
+                    val speedAdjusted = (baseMs / currentProfile.speed).toInt()
+                    val jittered = applyJitter(speedAdjusted)
+                    val sampleRate = tts.sampleRate()
+                    if (sampleRate > 0) playPcmOnAudioTrack(createSilence(jittered, sampleRate), sampleRate)
+                }
+            }
+            lastEnd = match.range.last + 1
+        }
+
+        val remaining = sentence.substring(lastEnd).trim()
+        if (remaining.isNotEmpty() && !remaining.matches(Regex("""\[[a-zA-Z]+]"""))) {
+            val audio = tts.generate(text = remaining, sid = sid, speed = currentProfile.speed)
+            if (audio.samples.isNotEmpty()) {
+                var pcm = floatsToPcm16(audio.samples)
+                if (lastVolume != 1.0f || currentProfile.volume != 1.0f) {
+                    pcm = applyVolumeEnvelope(pcm, lastVolume, currentProfile.volume, currentProfile.attackTimeMs, audio.sampleRate)
+                }
+                playPcmOnAudioTrack(pcm, audio.sampleRate)
+            }
+        }
+    }
+
+    /**
+     * Applies a gradual volume transition (attack envelope) from [startVol] to [targetVol]
+     * over [attackTimeMs] milliseconds, then holds at [targetVol] for the rest.
+     * Mirrors the reference AudioEmotionHelper.generateWithEngine() DSP logic.
+     */
+    private fun applyVolumeEnvelope(
+        pcm: ByteArray, startVol: Float, targetVol: Float, attackTimeMs: Int, sampleRate: Int
+    ): ByteArray {
+        if (startVol == 1.0f && targetVol == 1.0f) return pcm
+        val totalSamples = pcm.size / 2
+        val transitionSamples = ((sampleRate * attackTimeMs) / 1000).coerceAtMost(totalSamples)
+        val volumeStep = if (transitionSamples > 0) (targetVol - startVol) / transitionSamples else 0f
+
+        for (i in 0 until pcm.size step 2) {
+            val lower = pcm[i].toInt() and 0xFF
+            val upper = pcm[i + 1].toInt() shl 8
+            var sample = (lower or upper).toShort().toInt()
+
+            val sampleIndex = i / 2
+            val vol = if (sampleIndex < transitionSamples) startVol + volumeStep * sampleIndex else targetVol
+            sample = (sample * vol).toInt().coerceIn(-32768, 32767)
+
+            pcm[i] = (sample and 0xFF).toByte()
+            pcm[i + 1] = (sample shr 8).toByte()
+        }
+        return pcm
     }
 
     /** Converts float PCM samples [-1,1] to 16-bit little-endian PCM bytes. */
@@ -245,19 +376,61 @@ class AiTtsPlayer(
     }
 
     /**
+     * Peak-normalizes 16-bit PCM so the loudest sample reaches ~95% of max amplitude.
+     * Prevents clipping while ensuring consistent volume across sentences.
+     */
+    private fun normalizePcmVolume(pcm: ByteArray): ByteArray {
+        if (pcm.size < 2) return pcm
+        // Find peak amplitude
+        var peak = 0
+        for (i in 0 until pcm.size step 2) {
+            val lower = pcm[i].toInt() and 0xFF
+            val upper = pcm[i + 1].toInt() shl 8
+            val sample = kotlin.math.abs((lower or upper).toShort().toInt())
+            if (sample > peak) peak = sample
+        }
+        if (peak == 0) return pcm
+        // Scale to 95% of max to avoid clipping
+        val targetPeak = (32767 * 0.95f)
+        val gain = targetPeak / peak
+        if (gain <= 1.01f && gain >= 0.99f) return pcm // already normalized
+
+        for (i in 0 until pcm.size step 2) {
+            val lower = pcm[i].toInt() and 0xFF
+            val upper = pcm[i + 1].toInt() shl 8
+            var sample = (lower or upper).toShort().toInt()
+            sample = (sample * gain).toInt().coerceIn(-32768, 32767)
+            pcm[i] = (sample and 0xFF).toByte()
+            pcm[i + 1] = (sample shr 8).toByte()
+        }
+        return pcm
+    }
+
+    /**
      * Returns silence duration in ms based on the trailing punctuation of a sentence.
-     * Mirrors the reference project's AudioEmotionHelper punctuation logic.
+     * Applies ±10% jitter for natural-sounding pauses, matching the reference project.
      */
     private fun getSentenceTrailingSilenceMs(sentence: String): Int {
         val trimmed = sentence.trimEnd()
-        return when {
+        val baseMs = when {
             trimmed.endsWith("...") -> 380
             trimmed.endsWith(".") || trimmed.endsWith("।") -> 280
             trimmed.endsWith("?") -> 230
             trimmed.endsWith("!") -> 190
             trimmed.endsWith(",") -> 140
-            else -> 80 // small natural gap between sentences
+            else -> 80
         }
+        return applyJitter(baseMs)
+    }
+
+    /** Applies ±10% random jitter to a silence duration, clamped to 60–600ms. */
+    private fun applyJitter(baseMs: Int): Int {
+        val jitterRange = (baseMs * 0.10f).toInt()
+        var result = baseMs
+        if (jitterRange > 0) {
+            result += silenceJitterRandom.nextInt(jitterRange * 2) - jitterRange
+        }
+        return result.coerceIn(60, 600)
     }
 
     /** Creates a byte array of silence (zero PCM) for the given duration. */

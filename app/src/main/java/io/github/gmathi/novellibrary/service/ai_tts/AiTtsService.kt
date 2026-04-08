@@ -21,10 +21,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import uy.kohesive.injekt.injectLazy
 
 private const val LOG_TAG = "AiTtsService"
 
 class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeListener, AiTtsEventListener {
+
+    private val dataCenter: DataCenter by injectLazy()
 
     companion object {
         /** Non-null while the service is running. UI can observe [instance] to access player state. */
@@ -66,17 +69,20 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
                 AiTtsModelDownloadWorker.ACTION_MODEL_DOWNLOAD_PROGRESS -> {
                     val voiceId = intent.getStringExtra(AiTtsModelDownloadWorker.KEY_VOICE_ID) ?: return
                     val progress = intent.getIntExtra(AiTtsModelDownloadWorker.KEY_PROGRESS, -1)
-                    val prefs = DataCenter(context).aiTtsPreferences
+                    val prefs = dataCenter.aiTtsPreferences
                     if (voiceId == prefs.voiceId && pendingStartExtras != null) {
+                        Logs.debug(LOG_TAG, "modelReadyReceiver: download progress=$progress for voiceId=$voiceId")
                         player.setDownloadingModel(progress)
                     }
                 }
                 AiTtsModelDownloadWorker.ACTION_MODEL_READY -> {
                     val voiceId = intent.getStringExtra(AiTtsModelDownloadWorker.KEY_VOICE_ID) ?: return
+                    Logs.debug(LOG_TAG, "modelReadyReceiver: model ready for voiceId=$voiceId")
                     // Re-trigger startup if this is the voice we were waiting for
                     pendingStartExtras?.let { extras ->
-                        val prefs = DataCenter(context).aiTtsPreferences
+                        val prefs = dataCenter.aiTtsPreferences
                         if (voiceId == prefs.voiceId) {
+                            Logs.info(LOG_TAG, "modelReadyReceiver: re-triggering startup for voiceId=$voiceId")
                             actionStartup(extras)
                             pendingStartExtras = null
                         }
@@ -160,8 +166,9 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         modelManager = AiTtsModelManager(this)
-        val prefs = DataCenter(this).aiTtsPreferences
+        val prefs = dataCenter.aiTtsPreferences
         player = AiTtsPlayer(modelManager, prefs, this)
+        Logs.info(LOG_TAG, "onCreate: service created, voiceId='${prefs.voiceId}' abi=${modelManager.primaryAbi}")
 
         mediaSession = MediaSessionCompat(this, "AiTtsService").apply {
             setCallback(AiTtsSessionCallback())
@@ -205,6 +212,7 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
     }
 
     override fun onDestroy() {
+        Logs.info(LOG_TAG, "onDestroy: tearing down service")
         instance = null
         unhookSystem()
         unregisterReceiver(modelReadyReceiver)
@@ -261,6 +269,7 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
     }
 
     override fun onAudioFocusChange(focusChange: Int) {
+        Logs.debug(LOG_TAG, "onAudioFocusChange: focusChange=$focusChange")
         when (focusChange) {
             AudioManager.AUDIOFOCUS_LOSS,
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> player.pause()
@@ -282,7 +291,7 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
             return
         }
 
-        val prefs = DataCenter(this).aiTtsPreferences
+        val prefs = dataCenter.aiTtsPreferences
 
         Logs.debug(LOG_TAG, "actionStartup: abi=${modelManager.primaryAbi} nativelySupported=${modelManager.isNativelySupported} voiceId='${prefs.voiceId}'")
         if (!modelManager.isNativelySupported && modelManager.availableVoices().isEmpty()) {
@@ -315,15 +324,21 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
     }
 
     // AiTtsEventListener callbacks
-    override fun onSentenceChanged(sentenceIndex: Int, sentence: String) {}
+    override fun onSentenceChanged(sentenceIndex: Int, sentence: String) {
+        Logs.debug(LOG_TAG, "onSentenceChanged: index=$sentenceIndex sentence='${sentence.take(50)}'")
+    }
 
-    override fun onPlaybackStateChanged(state: AiTtsPlaybackState) {}
+    override fun onPlaybackStateChanged(state: AiTtsPlaybackState) {
+        Logs.debug(LOG_TAG, "onPlaybackStateChanged: state=$state")
+    }
 
     override fun onChapterChanged(chapterIndex: Int) {
+        Logs.debug(LOG_TAG, "onChapterChanged: chapterIndex=$chapterIndex")
         this.chapterIndex = chapterIndex
     }
 
     override fun onError(message: String) {
+        Logs.error(LOG_TAG, "onError: $message")
         stopSelf()
     }
 

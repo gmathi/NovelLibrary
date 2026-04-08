@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
 import io.github.gmathi.novellibrary.service.ai_tts.AiTtsModelManager
 import io.github.gmathi.novellibrary.service.ai_tts.AiTtsVoiceInfo
+import io.github.gmathi.novellibrary.service.ai_tts.TtsEngineType
 import io.github.gmathi.novellibrary.service.ai_tts.ModelDownloadState
 import kotlinx.coroutines.launch
 
@@ -514,25 +515,25 @@ private fun VoiceModelCardPreview() {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             VoiceModelCard(
-                voice = AiTtsVoiceInfo("id1", "Ryan (US English, High Quality)", "en-US", 120_786_792L, "", "", ""),
+                voice = AiTtsVoiceInfo(id = "id1", name = "Kokoro Multi-Lang", language = "Multi", sizeBytes = 337_000_000L, engineType = TtsEngineType.KOKORO, downloadUrl = "", tokensUrl = ""),
                 state = ModelDownloadState.NotDownloaded,
                 isActive = false,
                 onDownload = {}, onCancelDownload = {}, onUseVoice = {}, onRemoveActive = {}, onDelete = {}
             )
             VoiceModelCard(
-                voice = AiTtsVoiceInfo("id2", "Amy (US English, Low Quality)", "en-US", 24_000_000L, "", "", ""),
+                voice = AiTtsVoiceInfo(id = "id2", name = "Ryan (English, High)", language = "en-US", sizeBytes = 115_000_000L, engineType = TtsEngineType.VITS, downloadUrl = "", tokensUrl = ""),
                 state = ModelDownloadState.Downloaded,
                 isActive = true,
                 onDownload = {}, onCancelDownload = {}, onUseVoice = {}, onRemoveActive = {}, onDelete = {}
             )
             VoiceModelCard(
-                voice = AiTtsVoiceInfo("id3", "Kristin (US English, Medium)", "en-US", 60_000_000L, "", "", ""),
+                voice = AiTtsVoiceInfo(id = "id3", name = "Pratham (Hindi, Medium)", language = "hi-IN", sizeBytes = 60_000_000L, engineType = TtsEngineType.VITS, downloadUrl = "", tokensUrl = ""),
                 state = ModelDownloadState.Downloading(0.45f),
                 isActive = false,
                 onDownload = {}, onCancelDownload = {}, onUseVoice = {}, onRemoveActive = {}, onDelete = {}
             )
             VoiceModelCard(
-                voice = AiTtsVoiceInfo("id4", "Test (Error State)", "en-US", 10_000_000L, "", "", ""),
+                voice = AiTtsVoiceInfo(id = "id4", name = "Test (Error State)", language = "en-US", sizeBytes = 10_000_000L, engineType = TtsEngineType.VITS, downloadUrl = "", tokensUrl = ""),
                 state = ModelDownloadState.Error("Connection timeout"),
                 isActive = false,
                 onDownload = {}, onCancelDownload = {}, onUseVoice = {}, onRemoveActive = {}, onDelete = {}

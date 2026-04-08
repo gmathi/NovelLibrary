@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,7 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
+import io.github.gmathi.novellibrary.service.ai_tts.AiTtsModelManager
 import io.github.gmathi.novellibrary.service.ai_tts.AiTtsVoiceInfo
+import io.github.gmathi.novellibrary.service.ai_tts.TtsEngineType
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,19 +27,44 @@ fun AiTtsSettingsScreen(
     autoReadNextChapter: Boolean = true,
     keepScreenOn: Boolean = false,
     volumeNormalization: Boolean = true,
+    smartPunctuation: Boolean = true,
+    emotionTags: Boolean = false,
     activeVoiceId: String = "en_US-ryan-high",
     availableVoices: List<AiTtsVoiceInfo> = emptyList(),
+    modelManager: AiTtsModelManager? = null,
     onSpeechRateChange: (Float) -> Unit = {},
     onPitchChange: (Float) -> Unit = {},
     onAutoReadNextChapterChange: (Boolean) -> Unit = {},
     onKeepScreenOnChange: (Boolean) -> Unit = {},
     onVolumeNormalizationChange: (Boolean) -> Unit = {},
+    onSmartPunctuationChange: (Boolean) -> Unit = {},
+    onEmotionTagsChange: (Boolean) -> Unit = {},
     onVoiceSelected: (AiTtsVoiceInfo) -> Unit = {},
     onManageModels: () -> Unit = {},
+    onClearCache: () -> Unit = {},
     onNavigateBack: () -> Unit = {}
 ) {
     var showVoicePicker by remember { mutableStateOf(false) }
+    var showEmotionBetaDialog by remember { mutableStateOf(false) }
+    var showClearCacheDialog by remember { mutableStateOf(false) }
     val activeVoice = availableVoices.find { it.id == activeVoiceId }
+
+    // Calculate storage info
+    val downloadedCount = remember(activeVoiceId) {
+        modelManager?.let { mm ->
+            mm.availableVoices().count { mm.isModelDownloaded(it.id) }
+        } ?: 0
+    }
+    val totalSizeText = remember(activeVoiceId) {
+        modelManager?.let { mm ->
+            val totalBytes = mm.availableVoices()
+                .filter { mm.isModelDownloaded(it.id) }
+                .sumOf { mm.getModelDir(it.id).walkTopDown().filter { f -> f.isFile }.sumOf { f -> f.length() } }
+            val mb = totalBytes / (1024.0 * 1024.0)
+            if (mb > 1024) String.format(Locale.US, "%.2f GB", mb / 1024.0)
+            else String.format(Locale.US, "%.2f MB", mb)
+        } ?: "0.00 MB"
+    }
 
     if (showVoicePicker) {
         VoicePickerDialog(
@@ -46,6 +75,40 @@ fun AiTtsSettingsScreen(
                 showVoicePicker = false
             },
             onDismiss = { showVoicePicker = false }
+        )
+    }
+
+    if (showEmotionBetaDialog) {
+        AlertDialog(
+            onDismissRequest = { showEmotionBetaDialog = false },
+            title = { Text("Beta Feature") },
+            text = { Text("Emotion tagging is currently in beta. It may not perform perfectly with all voice models. Do you wish to continue?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onEmotionTagsChange(true)
+                    showEmotionBetaDialog = false
+                }) { Text("Continue") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEmotionBetaDialog = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    if (showClearCacheDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearCacheDialog = false },
+            title = { Text("Clear All Cache") },
+            text = { Text("This will delete all downloaded voice models and reset settings to defaults. Are you sure?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onClearCache()
+                    showClearCacheDialog = false
+                }) { Text("Clear") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearCacheDialog = false }) { Text("Cancel") }
+            }
         )
     }
 
@@ -111,6 +174,27 @@ fun AiTtsSettingsScreen(
                 )
             }
 
+            item { SectionHeader(title = "Voice Processing") }
+            item {
+                SwitchSettingRow(
+                    title = "Smart Punctuation",
+                    subtitle = "Add natural pauses at commas, periods, and other punctuation",
+                    checked = smartPunctuation,
+                    onCheckedChange = onSmartPunctuationChange
+                )
+            }
+            item {
+                SwitchSettingRow(
+                    title = "Emotion Tags (Beta)",
+                    subtitle = "Process tags like [sad], [angry], [whisper] in text",
+                    checked = emotionTags,
+                    onCheckedChange = { enabled ->
+                        if (enabled) showEmotionBetaDialog = true
+                        else onEmotionTagsChange(false)
+                    }
+                )
+            }
+
             item { SectionHeader(title = "Voice & Model") }
             item {
                 ChevronSettingRow(
@@ -125,6 +209,35 @@ fun AiTtsSettingsScreen(
                     subtitle = "Download or delete voice models",
                     onClick = onManageModels
                 )
+            }
+
+            item { SectionHeader(title = "Storage") }
+            item {
+                InfoRow(
+                    title = "Downloaded Models",
+                    value = "$downloadedCount local models"
+                )
+            }
+            item {
+                InfoRow(
+                    title = "Total Size",
+                    value = totalSizeText
+                )
+            }
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showClearCacheDialog = true }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Clear Cache", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.error)
+                        Text("Delete all models and reset settings", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                }
             }
         }
     }
@@ -214,6 +327,23 @@ private fun ChevronSettingRow(
 }
 
 @Composable
+private fun InfoRow(
+    title: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(title, style = MaterialTheme.typography.bodyLarge)
+        Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
 private fun VoicePickerDialog(
     voices: List<AiTtsVoiceInfo>,
     selectedVoiceId: String,
@@ -260,13 +390,13 @@ fun AiTtsSettingsScreenPreview() {
         AiTtsSettingsScreen(
             availableVoices = listOf(
                 AiTtsVoiceInfo(
-                    id = "en_US-ryan-high",
-                    name = "Ryan (English US)",
-                    language = "en-US",
-                    sizeBytes = 60_000_000L,
+                    id = "kokoro_multi_lang",
+                    name = "Kokoro Multi-Lang",
+                    language = "Multi-language",
+                    sizeBytes = 337_000_000L,
+                    engineType = TtsEngineType.KOKORO,
                     downloadUrl = "",
                     tokensUrl = "",
-                    checksumMd5 = ""
                 )
             )
         )

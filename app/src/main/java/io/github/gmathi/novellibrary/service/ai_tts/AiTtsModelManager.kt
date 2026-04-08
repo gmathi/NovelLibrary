@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import com.k2fsa.sherpa.onnx.OfflineTts
 import com.k2fsa.sherpa.onnx.OfflineTtsConfig
+import com.k2fsa.sherpa.onnx.OfflineTtsKokoroModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsVitsModelConfig
 import io.github.gmathi.novellibrary.util.logging.Logs
@@ -26,38 +27,28 @@ sealed class ModelDownloadState {
     data class Error(val message: String) : ModelDownloadState()
 }
 
+/** Engine type matching the reference project's model types. */
+enum class TtsEngineType { VITS, KOKORO }
+
 data class AiTtsVoiceInfo(
     val id: String,
     val name: String,
     val language: String,
     val sizeBytes: Long,
+    val engineType: TtsEngineType,
     val downloadUrl: String,
     val tokensUrl: String,
-    val checksumMd5: String,
-    /**
-     * ABIs this model is compatible with (e.g. "arm64-v8a", "x86_64").
-     * Empty set means the model works on all architectures.
-     */
+    /** Only required for Kokoro models. */
+    val voicesBinUrl: String = "",
+    val checksumMd5: String = "",
     val supportedAbis: Set<String> = emptySet()
 )
 
 class AiTtsModelManager(private val context: Context) {
 
-    /** The primary ABI this process is running under (e.g. "arm64-v8a", "x86_64"). */
     val primaryAbi: String = Build.SUPPORTED_ABIS.firstOrNull() ?: "arm64-v8a"
-
-    /**
-     * True when running on a native ARM device.
-     * False on x86/x86_64 (Android emulator), where the ONNX Runtime x86 JNI library
-     * has known thread-pool initialization races that crash the process.
-     */
     val isNativelySupported: Boolean = !primaryAbi.startsWith("x86")
 
-    // Single dedicated thread for ALL native sherpa-onnx / ONNX-Runtime calls.
-    // ORT's global inter-op thread pool is initialized once on first session creation;
-    // dispatching that call (or any subsequent generate() call) from different
-    // Dispatchers.IO threads can race on ORT's internal pthread_mutex structures
-    // and cause a FORTIFY abort.  A single-thread executor eliminates that race.
     private val nativeExecutor = Executors.newSingleThreadExecutor { r ->
         Thread(r, "ai-tts-native").also { it.isDaemon = true }
     }
@@ -70,17 +61,17 @@ class AiTtsModelManager(private val context: Context) {
         File(context.filesDir, "ai_tts/models/$voiceId")
 
     fun isModelDownloaded(voiceId: String): Boolean {
+        val voice = ALL_VOICES.find { it.id == voiceId } ?: return false
         val dir = getModelDir(voiceId)
         val onnx = File(dir, "model.onnx")
-        val json = File(dir, "model.onnx.json")
         val tokens = File(dir, "tokens.txt")
-        Logs.debug(TAG, "isModelDownloaded($voiceId): dir=${dir.absolutePath}")
-        Logs.debug(TAG, "  model.onnx    exists=${onnx.exists()} size=${if (onnx.exists()) onnx.length() else -1}")
-        Logs.debug(TAG, "  model.onnx.json exists=${json.exists()} size=${if (json.exists()) json.length() else -1}")
-        Logs.debug(TAG, "  tokens.txt    exists=${tokens.exists()} size=${if (tokens.exists()) tokens.length() else -1}")
-        val result = onnx.exists() && json.exists() && tokens.exists()
-        Logs.debug(TAG, "  -> isModelDownloaded=$result")
-        return result
+        val baseOk = onnx.exists() && onnx.length() > 0 && tokens.exists() && tokens.length() > 0
+        return if (voice.engineType == TtsEngineType.KOKORO) {
+            val voices = File(dir, "voices.bin")
+            baseOk && voices.exists() && voices.length() > 0
+        } else {
+            baseOk
+        }
     }
 
     fun verifyModel(voiceId: String): Boolean = isModelDownloaded(voiceId)
@@ -88,14 +79,16 @@ class AiTtsModelManager(private val context: Context) {
     fun deleteModel(voiceId: String) {
         getModelDir(voiceId).deleteRecursively()
         if (currentVoiceId == voiceId) {
-            // Drop our reference; the native object will be GC'd.
-            // Do NOT call release() — see unloadModel() for explanation.
             currentTts = null
             currentVoiceId = null
         }
     }
 
-    /** Returns the optimal thread count based on available CPU cores. */
+    /** Returns the engine type for a given voice ID. */
+    fun getEngineType(voiceId: String): TtsEngineType =
+        ALL_VOICES.find { it.id == voiceId }?.engineType ?: TtsEngineType.VITS
+
+    // ── Optimal thread count ─────────────────────────────────────────────────
     private fun getOptimalThreadCount(): Int {
         val cores = Runtime.getRuntime().availableProcessors()
         return when {
@@ -106,16 +99,15 @@ class AiTtsModelManager(private val context: Context) {
         }
     }
 
-    /**
-     * Extracts espeak-ng-data.zip from assets into filesDir if not already present.
-     * Required by VITS models that use espeak phoneme data.
-     * Returns the path to the extracted data dir, or empty string if not available.
-     */
+    // ── espeak-ng-data extraction ────────────────────────────────────────────
     private fun extractEspeakData(): String {
         val destDir = File(context.filesDir, "espeak-ng-data")
         val existing = destDir.list()
         if (destDir.exists() && existing != null && existing.isNotEmpty()) {
-            return destDir.absolutePath
+            // Handle nested espeak-ng-data/espeak-ng-data structure
+            val nestedDir = File(destDir, "espeak-ng-data")
+            return if (File(nestedDir, "phontab").exists()) nestedDir.absolutePath
+            else destDir.absolutePath
         }
         return try {
             context.assets.open("espeak-ng-data.zip").use { inputStream ->
@@ -141,20 +133,15 @@ class AiTtsModelManager(private val context: Context) {
                     }
                 }
             }
-            destDir.absolutePath
-        } catch (_: Exception) {
-            // espeak-ng-data.zip not bundled — model uses its own lexicon
-            ""
-        }
+            val nestedDir = File(destDir, "espeak-ng-data")
+            if (File(nestedDir, "phontab").exists()) nestedDir.absolutePath
+            else destDir.absolutePath
+        } catch (_: Exception) { "" }
     }
 
-    /**
-     * Tries to create an OfflineTts with xnnpack provider first, falls back to cpu.
-     * Validates the result with a short test generation before returning.
-     */
-    private fun createTtsWithFallback(modelDirPath: String, espeakDataPath: String): OfflineTts? {
-        val providers = listOf("xnnpack", "cpu")
-        for (provider in providers) {
+    // ── Provider fallback for VITS ───────────────────────────────────────────
+    private fun createVitsTtsWithFallback(modelDirPath: String, espeakDataPath: String): OfflineTts? {
+        for (provider in listOf("xnnpack", "cpu")) {
             try {
                 val config = OfflineTtsConfig(
                     model = OfflineTtsModelConfig(
@@ -168,73 +155,99 @@ class AiTtsModelManager(private val context: Context) {
                             noiseScaleW = 0.667f,
                             lengthScale = 1.0f,
                         ),
-                        // numThreads defaults to 0 (= all CPU cores). With many cores the ONNX Runtime
-                        // thread pool has a race during initialization that destroys a pthread mutex while
-                        // another thread is still trying to lock it → FORTIFY abort.
                         numThreads = getOptimalThreadCount(),
                         provider = provider,
                     ),
                     maxNumSentences = 5,
                 )
                 val candidate = OfflineTts(config = config)
-                // Validate with a short test generation
                 val test = candidate.generate("ok", 0, 1.0f)
                 if (test.samples.isNotEmpty()) {
-                    Logs.debug(TAG, "createTtsWithFallback: loaded with provider=$provider")
+                    Logs.debug(TAG, "createVitsTts: loaded with provider=$provider")
                     return candidate
                 }
                 try { candidate.release() } catch (_: Exception) {}
             } catch (t: Throwable) {
-                Logs.debug(TAG, "createTtsWithFallback: provider=$provider failed: ${t.message}")
+                Logs.debug(TAG, "createVitsTts: provider=$provider failed: ${t.message}")
             }
         }
         return null
     }
 
-    fun loadModel(voiceId: String): OfflineTts {
+    // ── Provider fallback for Kokoro ─────────────────────────────────────────
+    private fun createKokoroTtsWithFallback(
+        modelDirPath: String, espeakDataPath: String, langCode: String, speakerId: Int
+    ): OfflineTts? {
+        for (provider in listOf("xnnpack", "cpu")) {
+            try {
+                val config = OfflineTtsConfig(
+                    model = OfflineTtsModelConfig(
+                        kokoro = OfflineTtsKokoroModelConfig(
+                            model = "$modelDirPath/model.onnx",
+                            voices = "$modelDirPath/voices.bin",
+                            tokens = "$modelDirPath/tokens.txt",
+                            dataDir = espeakDataPath,
+                            lang = langCode,
+                        ),
+                        numThreads = getOptimalThreadCount(),
+                        provider = provider,
+                    ),
+                    maxNumSentences = 3,
+                    silenceScale = 0.2f,
+                )
+                val candidate = OfflineTts(config = config)
+                // Validate with a short test
+                val test = candidate.generate("ok", speakerId, 1.0f)
+                if (test.samples.isNotEmpty()) {
+                    Logs.debug(TAG, "createKokoroTts: loaded with provider=$provider")
+                    return candidate
+                }
+                try { candidate.release() } catch (_: Exception) {}
+            } catch (t: Throwable) {
+                Logs.debug(TAG, "createKokoroTts: provider=$provider failed: ${t.message}")
+            }
+        }
+        return null
+    }
+
+    // ── Load model (dispatches to correct engine) ────────────────────────────
+    fun loadModel(voiceId: String, kokoroSpeakerId: Int = 0, kokoroLangCode: String = "en"): OfflineTts {
         if (currentVoiceId == voiceId && currentTts != null) {
             Logs.debug(TAG, "loadModel($voiceId): returning cached model")
             return currentTts!!
         }
         unloadModel()
         val modelDir = getModelDir(voiceId)
-        Logs.debug(TAG, "loadModel($voiceId): loading from ${modelDir.absolutePath}")
-
-        // Log each required file before attempting to load
-        listOf("model.onnx", "model.onnx.json", "tokens.txt").forEach { name ->
-            val f = File(modelDir, name)
-            Logs.debug(TAG, "  $name: exists=${f.exists()} size=${if (f.exists()) f.length() else -1}")
-        }
+        val voice = ALL_VOICES.find { it.id == voiceId }
+        val engineType = voice?.engineType ?: TtsEngineType.VITS
+        Logs.debug(TAG, "loadModel($voiceId): engine=$engineType dir=${modelDir.absolutePath}")
 
         val espeakDataPath = extractEspeakData()
         Logs.debug(TAG, "loadModel($voiceId): espeakDataPath='$espeakDataPath'")
 
-        val tts = createTtsWithFallback(modelDir.absolutePath, espeakDataPath)
-            ?: throw IllegalStateException("Model load failed on all providers for voiceId=$voiceId")
+        val tts = when (engineType) {
+            TtsEngineType.KOKORO -> createKokoroTtsWithFallback(
+                modelDir.absolutePath, espeakDataPath, kokoroLangCode, kokoroSpeakerId
+            )
+            TtsEngineType.VITS -> createVitsTtsWithFallback(modelDir.absolutePath, espeakDataPath)
+        } ?: throw IllegalStateException("Model load failed on all providers for voiceId=$voiceId ($engineType)")
 
-        Logs.debug(TAG, "loadModel($voiceId): OfflineTts created, sampleRate=${tts.sampleRate()}")
+        Logs.debug(TAG, "loadModel($voiceId): created, sampleRate=${tts.sampleRate()}")
         currentTts = tts
         currentVoiceId = voiceId
         return tts
     }
 
     fun unloadModel() {
-        // NOTE: We intentionally do NOT call currentTts?.release() here.
-        // Each sherpa-onnx OfflineTts instance owns an Ort::Env (ORT's global
-        // environment object). Calling release() destroys that Ort::Env while
-        // ORT's internal worker threads may still be running, causing a
-        // FORTIFY: pthread_mutex_lock called on a destroyed mutex crash.
-        // Instead we let the GC / process exit clean up the native object.
-        // Memory is bounded: we only ever hold one model at a time.
         currentTts = null
         currentVoiceId = null
     }
 
-    /** Call from [AiTtsPlayer.destroy] after all native work has completed. */
     fun close() {
         nativeDispatcher.close()
     }
 
+    // ── Download ─────────────────────────────────────────────────────────────
     suspend fun downloadModel(
         voice: AiTtsVoiceInfo,
         onProgress: (Float) -> Unit,
@@ -244,11 +257,14 @@ class AiTtsModelManager(private val context: Context) {
         val modelDir = getModelDir(voice.id)
         modelDir.mkdirs()
 
-        val filesToDownload = listOf(
+        val filesToDownload = mutableListOf(
             voice.downloadUrl to File(modelDir, "model.onnx"),
-            "${voice.downloadUrl}.json" to File(modelDir, "model.onnx.json"),
             voice.tokensUrl to File(modelDir, "tokens.txt")
         )
+        // Kokoro models also need voices.bin
+        if (voice.engineType == TtsEngineType.KOKORO && voice.voicesBinUrl.isNotEmpty()) {
+            filesToDownload.add(voice.voicesBinUrl to File(modelDir, "voices.bin"))
+        }
         val totalFiles = filesToDownload.size
 
         try {
@@ -279,52 +295,88 @@ class AiTtsModelManager(private val context: Context) {
         }
     }
 
-    /**
-     * Returns voices compatible with the current device ABI.
-     * Voices with an empty [AiTtsVoiceInfo.supportedAbis] run on all architectures.
-     */
     fun availableVoices(): List<AiTtsVoiceInfo> =
         ALL_VOICES.filter { it.supportedAbis.isEmpty() || primaryAbi in it.supportedAbis }
 
-    /** The default voice ID to use for the current device ABI. */
     fun defaultVoiceId(): String =
         availableVoices().firstOrNull()?.id ?: ALL_VOICES.first().id
 
     companion object {
-        // Shared tokens file for all English piper/VITS models.
-        private const val EN_TOKENS_URL =
-            "https://huggingface.co/csukuangfj/vits-piper-en_US-ryan-high/resolve/main/tokens.txt"
+        private const val KOKORO_BASE =
+            "https://huggingface.co/CodeBySonu95/Sherpa-onnx-models/resolve/main/kokoro-multi-lang"
+        private const val VITS_BASE =
+            "https://huggingface.co/CodeBySonu95/Sherpa-onnx-models/resolve/main"
 
-        private val ALL_VOICES = listOf(
-
-            // ── ARM64 / physical devices ──────────────────────────────────────────────
-            // High-quality 120 MB VITS model.  The ORT x86_64 JNI library has a
-            // thread-pool init race that crashes the process when loading this model,
-            // so it is restricted to native ARM builds only.
+        val ALL_VOICES = listOf(
+            // ── Kokoro Multi-Lang (53 speakers, high quality) ─────────────────
             AiTtsVoiceInfo(
-                id = "en_US-ryan-high",
-                name = "Ryan (US English, High Quality)",
-                language = "en-US",
-                sizeBytes = 120_786_792L,
-                downloadUrl = "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ryan/high/en_US-ryan-high.onnx",
-                tokensUrl = EN_TOKENS_URL,
-                checksumMd5 = "",
-                supportedAbis = setOf("arm64-v8a", "armeabi-v7a")
+                id = "kokoro_multi_lang",
+                name = "Kokoro Multi-Lang (High Quality)",
+                language = "Multi-language",
+                sizeBytes = 337_000_000L,
+                engineType = TtsEngineType.KOKORO,
+                downloadUrl = "$KOKORO_BASE/model.onnx",
+                tokensUrl = "$KOKORO_BASE/tokens.txt",
+                voicesBinUrl = "$KOKORO_BASE/voices.bin",
             ),
 
-            // ── x86 / x86_64 (Android emulator) ─────────────────────────────────────
-            // Lightweight ~24 MB model.  Smaller graph → less ORT thread-pool pressure,
-            // making it safer on the emulator's x86_64 ORT build.
+            // ── Piper VITS — English ─────────────────────────────────────────
             AiTtsVoiceInfo(
-                id = "en_US-amy-low",
-                name = "Amy (US English, Low Quality)",
+                id = "en_US-ryan-high",
+                name = "Ryan (English, High)",
                 language = "en-US",
-                sizeBytes = 24_000_000L,
-                downloadUrl = "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/low/en_US-amy-low.onnx",
-                tokensUrl = EN_TOKENS_URL,
-                checksumMd5 = "",
-                supportedAbis = setOf("x86_64", "x86")
-            )
+                sizeBytes = 115_000_000L,
+                engineType = TtsEngineType.VITS,
+                downloadUrl = "$VITS_BASE/vits-piper-en_US-ryan-high/en_US-ryan-high.onnx",
+                tokensUrl = "$VITS_BASE/vits-piper-en_US-ryan-high/tokens.txt",
+            ),
+            AiTtsVoiceInfo(
+                id = "en_US-ryan-medium",
+                name = "Ryan (English, Medium)",
+                language = "en-US",
+                sizeBytes = 63_000_000L,
+                engineType = TtsEngineType.VITS,
+                downloadUrl = "$VITS_BASE/vits-piper-en_US-ryan-medium/en_US-ryan-medium.onnx",
+                tokensUrl = "$VITS_BASE/vits-piper-en_US-ryan-medium/tokens.txt",
+            ),
+            AiTtsVoiceInfo(
+                id = "en_US-ryan-low",
+                name = "Ryan (English, Low)",
+                language = "en-US",
+                sizeBytes = 63_000_000L,
+                engineType = TtsEngineType.VITS,
+                downloadUrl = "$VITS_BASE/vits-piper-en_US-ryan-low/en_US-ryan-low.onnx",
+                tokensUrl = "$VITS_BASE/vits-piper-en_US-ryan-low/tokens.txt",
+            ),
+
+            // ── Piper VITS — Hindi ───────────────────────────────────────────
+            AiTtsVoiceInfo(
+                id = "hi_IN-pratham-medium",
+                name = "Pratham (Hindi, Medium)",
+                language = "hi-IN",
+                sizeBytes = 60_000_000L,
+                engineType = TtsEngineType.VITS,
+                downloadUrl = "$VITS_BASE/vits-piper-hi_IN-pratham-medium/hi_IN-pratham-medium.onnx",
+                tokensUrl = "$VITS_BASE/vits-piper-hi_IN-pratham-medium/tokens.txt",
+            ),
+            AiTtsVoiceInfo(
+                id = "hi_IN-priyamvada-medium",
+                name = "Priyamvada (Hindi, Medium)",
+                language = "hi-IN",
+                sizeBytes = 60_000_000L,
+                engineType = TtsEngineType.VITS,
+                downloadUrl = "$VITS_BASE/vits-piper-hi_IN-priyamvada-medium/hi_IN-priyamvada-medium.onnx",
+                tokensUrl = "$VITS_BASE/vits-piper-hi_IN-priyamvada-medium/tokens.txt",
+            ),
+            AiTtsVoiceInfo(
+                id = "hi_IN-rohan-medium",
+                name = "Rohan (Hindi, Medium)",
+                language = "hi-IN",
+                sizeBytes = 60_000_000L,
+                engineType = TtsEngineType.VITS,
+                downloadUrl = "$VITS_BASE/vits-piper-hi_IN-rohan-medium/hi_IN-rohan-medium.onnx",
+                tokensUrl = "$VITS_BASE/vits-piper-hi_IN-rohan-medium/tokens.txt",
+            ),
         )
     }
 }

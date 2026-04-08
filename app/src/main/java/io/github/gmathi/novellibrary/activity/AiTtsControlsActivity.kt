@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.session.MediaControllerCompat
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -13,14 +14,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import io.github.gmathi.novellibrary.compose.ai_tts.AiTtsControlsScreen
 import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.service.ai_tts.AiTtsPlaybackState
 import io.github.gmathi.novellibrary.service.ai_tts.AiTtsService
 import io.github.gmathi.novellibrary.util.logging.Logs
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import uy.kohesive.injekt.injectLazy
 
 class AiTtsControlsActivity : ComponentActivity() {
+
+    private val dataCenter: DataCenter by injectLazy()
 
     // Mirror of the service player's state — updated by collecting the service flows
     private val sentences = MutableStateFlow<List<String>>(emptyList())
@@ -37,6 +42,13 @@ class AiTtsControlsActivity : ComponentActivity() {
 
         val novelTitle = intent.getStringExtra(EXTRA_NOVEL_TITLE) ?: ""
         val chapterTitle = intent.getStringExtra(EXTRA_CHAPTER_TITLE) ?: ""
+
+        // Apply keep-screen-on preference
+        val prefs = dataCenter.aiTtsPreferences
+        Logs.debug("AiTtsControlsActivity", "onCreate: novelTitle='$novelTitle' chapterTitle='$chapterTitle' keepScreenOn=${prefs.keepScreenOn}")
+        if (prefs.keepScreenOn) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
 
         // Connect to MediaBrowserService for MediaController (playback commands)
         mediaBrowser = MediaBrowserCompat(
@@ -111,6 +123,7 @@ class AiTtsControlsActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        Logs.debug("AiTtsControlsActivity", "onDestroy: disconnecting media browser")
         mediaBrowser?.disconnect()
         super.onDestroy()
     }
