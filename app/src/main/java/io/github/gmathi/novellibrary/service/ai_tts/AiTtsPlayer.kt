@@ -4,6 +4,7 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
+import android.os.Process
 import io.github.gmathi.novellibrary.model.preference.AiTtsPreferences
 import io.github.gmathi.novellibrary.util.logging.Logs
 import kotlinx.coroutines.*
@@ -207,6 +208,7 @@ class AiTtsPlayer(
         if (sentence.isBlank()) return
         synthesisLock.withLock {
             withContext(modelManager.nativeDispatcher) {
+                Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
                 Logs.debug(TAG, "synthesizeAndPlay: generating audio for sentence length=${sentence.length} speed=${preferences.speechRate}")
                 val audio = tts.generate(
                     text = sentence,
@@ -214,16 +216,65 @@ class AiTtsPlayer(
                     speed = preferences.speechRate
                 )
                 Logs.debug(TAG, "synthesizeAndPlay: generated ${audio.samples.size} samples at ${audio.sampleRate}Hz")
-                playPcmOnAudioTrack(audio.samples, audio.sampleRate)
+
+                // Convert float samples to PCM bytes and play
+                val pcmBytes = floatsToPcm16(audio.samples)
+                playPcmOnAudioTrack(pcmBytes, audio.sampleRate)
+
+                // Inject punctuation-based silence after the sentence
+                val silenceMs = getSentenceTrailingSilenceMs(sentence)
+                if (silenceMs > 0) {
+                    val silenceBytes = createSilence(silenceMs, audio.sampleRate)
+                    playPcmOnAudioTrack(silenceBytes, audio.sampleRate)
+                }
             }
         }
     }
 
-    private fun playPcmOnAudioTrack(samples: FloatArray, sampleRate: Int) {
+    /** Converts float PCM samples [-1,1] to 16-bit little-endian PCM bytes. */
+    private fun floatsToPcm16(samples: FloatArray): ByteArray {
+        val pcm = ByteArray(samples.size * 2)
+        for (i in samples.indices) {
+            var v = (samples[i] * 32767f).toInt()
+            if (v > 32767) v = 32767
+            if (v < -32768) v = -32768
+            pcm[i * 2] = (v and 0xff).toByte()
+            pcm[i * 2 + 1] = (v shr 8).toByte()
+        }
+        return pcm
+    }
+
+    /**
+     * Returns silence duration in ms based on the trailing punctuation of a sentence.
+     * Mirrors the reference project's AudioEmotionHelper punctuation logic.
+     */
+    private fun getSentenceTrailingSilenceMs(sentence: String): Int {
+        val trimmed = sentence.trimEnd()
+        return when {
+            trimmed.endsWith("...") -> 380
+            trimmed.endsWith(".") || trimmed.endsWith("।") -> 280
+            trimmed.endsWith("?") -> 230
+            trimmed.endsWith("!") -> 190
+            trimmed.endsWith(",") -> 140
+            else -> 80 // small natural gap between sentences
+        }
+    }
+
+    /** Creates a byte array of silence (zero PCM) for the given duration. */
+    private fun createSilence(durationMs: Int, sampleRate: Int): ByteArray {
+        if (durationMs <= 0) return ByteArray(0)
+        val bytesPerSecond = sampleRate * 2 // 16-bit mono
+        var bytes = (bytesPerSecond * durationMs) / 1000
+        if (bytes % 2 != 0) bytes++ // keep 16-bit aligned
+        return ByteArray(bytes)
+    }
+
+    private fun playPcmOnAudioTrack(pcmBytes: ByteArray, sampleRate: Int) {
         if (sampleRate <= 0) {
             Logs.warning(TAG, "playPcmOnAudioTrack: invalid sampleRate=$sampleRate, skipping")
             return
         }
+        if (pcmBytes.isEmpty()) return
 
         // Reuse the existing AudioTrack if the sample rate hasn't changed.
         // Creating a new AudioTrack per sentence causes native OOM on x86_64 emulator.
@@ -232,7 +283,7 @@ class AiTtsPlayer(
             val bufferSize = AudioTrack.getMinBufferSize(
                 sampleRate,
                 AudioFormat.CHANNEL_OUT_MONO,
-                AudioFormat.ENCODING_PCM_FLOAT
+                AudioFormat.ENCODING_PCM_16BIT
             )
             if (bufferSize <= 0) {
                 Logs.warning(TAG, "playPcmOnAudioTrack: getMinBufferSize returned $bufferSize for sampleRate=$sampleRate, skipping")
@@ -247,7 +298,7 @@ class AiTtsPlayer(
                 )
                 .setAudioFormat(
                     AudioFormat.Builder()
-                        .setEncoding(AudioFormat.ENCODING_PCM_FLOAT)
+                        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
                         .setSampleRate(sampleRate)
                         .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
                         .build()
@@ -264,7 +315,7 @@ class AiTtsPlayer(
             if (track.playState != AudioTrack.PLAYSTATE_PLAYING) {
                 track.play()
             }
-            track.write(samples, 0, samples.size, AudioTrack.WRITE_BLOCKING)
+            track.write(pcmBytes, 0, pcmBytes.size)
             // Flush remaining buffered audio before returning so the next sentence
             // starts cleanly without overlap.
             track.stop()
@@ -276,7 +327,9 @@ class AiTtsPlayer(
     }
 
     private fun splitIntoSentences(text: String): List<String> {
-        return text.split(Regex("(?<=[.!?])\\s+"))
+        // Match reference project: split on sentence-ending punctuation including
+        // newlines, pipe separators, and Hindi danda (।)
+        return text.split(Regex("(?<=[.!?\\n|।])\\s+"))
             .map { it.trim() }
             .filter { it.isNotBlank() }
     }

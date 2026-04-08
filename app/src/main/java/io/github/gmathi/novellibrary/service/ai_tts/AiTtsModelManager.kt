@@ -11,8 +11,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileOutputStream
 import java.net.URL
 import java.util.concurrent.Executors
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 
 private const val TAG = "AiTtsModelManager"
 
@@ -92,6 +95,102 @@ class AiTtsModelManager(private val context: Context) {
         }
     }
 
+    /** Returns the optimal thread count based on available CPU cores. */
+    private fun getOptimalThreadCount(): Int {
+        val cores = Runtime.getRuntime().availableProcessors()
+        return when {
+            cores >= 8 -> 4
+            cores >= 6 -> 3
+            cores >= 4 -> 2
+            else -> 1
+        }
+    }
+
+    /**
+     * Extracts espeak-ng-data.zip from assets into filesDir if not already present.
+     * Required by VITS models that use espeak phoneme data.
+     * Returns the path to the extracted data dir, or empty string if not available.
+     */
+    private fun extractEspeakData(): String {
+        val destDir = File(context.filesDir, "espeak-ng-data")
+        val existing = destDir.list()
+        if (destDir.exists() && existing != null && existing.isNotEmpty()) {
+            return destDir.absolutePath
+        }
+        return try {
+            context.assets.open("espeak-ng-data.zip").use { inputStream ->
+                destDir.mkdirs()
+                ZipInputStream(inputStream).use { zis ->
+                    val buffer = ByteArray(32768)
+                    var ze: ZipEntry? = zis.nextEntry
+                    while (ze != null) {
+                        val newFile = File(destDir, ze.name)
+                        if (ze.isDirectory) {
+                            newFile.mkdirs()
+                        } else {
+                            newFile.parentFile?.mkdirs()
+                            FileOutputStream(newFile).use { fos ->
+                                var len: Int
+                                while (zis.read(buffer).also { len = it } > 0) {
+                                    fos.write(buffer, 0, len)
+                                }
+                            }
+                        }
+                        zis.closeEntry()
+                        ze = zis.nextEntry
+                    }
+                }
+            }
+            destDir.absolutePath
+        } catch (_: Exception) {
+            // espeak-ng-data.zip not bundled — model uses its own lexicon
+            ""
+        }
+    }
+
+    /**
+     * Tries to create an OfflineTts with xnnpack provider first, falls back to cpu.
+     * Validates the result with a short test generation before returning.
+     */
+    private fun createTtsWithFallback(modelDirPath: String, espeakDataPath: String): OfflineTts? {
+        val providers = listOf("xnnpack", "cpu")
+        for (provider in providers) {
+            try {
+                val config = OfflineTtsConfig(
+                    model = OfflineTtsModelConfig(
+                        vits = OfflineTtsVitsModelConfig(
+                            model = "$modelDirPath/model.onnx",
+                            lexicon = "",
+                            tokens = "$modelDirPath/tokens.txt",
+                            dataDir = espeakDataPath,
+                            dictDir = "",
+                            noiseScale = 0.35f,
+                            noiseScaleW = 0.667f,
+                            lengthScale = 1.0f,
+                        ),
+                        // numThreads defaults to 0 (= all CPU cores). With many cores the ONNX Runtime
+                        // thread pool has a race during initialization that destroys a pthread mutex while
+                        // another thread is still trying to lock it → FORTIFY abort.
+                        numThreads = getOptimalThreadCount(),
+                        provider = provider,
+                    ),
+                    maxNumSentences = 5,
+                )
+                val candidate = OfflineTts(config = config)
+                // Validate with a short test generation
+                val test = candidate.generate("ok", 0, 1.0f)
+                if (test.samples.isNotEmpty()) {
+                    Logs.debug(TAG, "createTtsWithFallback: loaded with provider=$provider")
+                    return candidate
+                }
+                try { candidate.release() } catch (_: Exception) {}
+            } catch (t: Throwable) {
+                Logs.debug(TAG, "createTtsWithFallback: provider=$provider failed: ${t.message}")
+            }
+        }
+        return null
+    }
+
     fun loadModel(voiceId: String): OfflineTts {
         if (currentVoiceId == voiceId && currentTts != null) {
             Logs.debug(TAG, "loadModel($voiceId): returning cached model")
@@ -107,24 +206,12 @@ class AiTtsModelManager(private val context: Context) {
             Logs.debug(TAG, "  $name: exists=${f.exists()} size=${if (f.exists()) f.length() else -1}")
         }
 
-        val modelDirPath = modelDir.absolutePath
-        val config = OfflineTtsConfig(
-            model = OfflineTtsModelConfig(
-                vits = OfflineTtsVitsModelConfig(
-                    model = "$modelDirPath/model.onnx",
-                    lexicon = "",
-                    tokens = "$modelDirPath/tokens.txt",
-                    dataDir = "",
-                    dictDir = "",
-                ),
-                // numThreads defaults to 0 (= all CPU cores). With many cores the ONNX Runtime
-                // thread pool has a race during initialization that destroys a pthread mutex while
-                // another thread is still trying to lock it → FORTIFY abort. Force single-threaded.
-                numThreads = 1,
-            )
-        )
-        Logs.debug(TAG, "loadModel($voiceId): creating OfflineTts with config")
-        val tts = OfflineTts(config = config)
+        val espeakDataPath = extractEspeakData()
+        Logs.debug(TAG, "loadModel($voiceId): espeakDataPath='$espeakDataPath'")
+
+        val tts = createTtsWithFallback(modelDir.absolutePath, espeakDataPath)
+            ?: throw IllegalStateException("Model load failed on all providers for voiceId=$voiceId")
+
         Logs.debug(TAG, "loadModel($voiceId): OfflineTts created, sampleRate=${tts.sampleRate()}")
         currentTts = tts
         currentVoiceId = voiceId

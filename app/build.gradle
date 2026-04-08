@@ -196,7 +196,8 @@ dependencies {
     implementation libs.androidx.room.ktx
     ksp libs.androidx.room.compiler
 
-    // AI / TTS (sherpa-onnx AAR is bundled in app/libs/)
+    // AI / TTS
+    implementation libs.sherpa.onnx
     implementation libs.androidx.media  // force 1.7.0+ for FLAG_IMMUTABLE fix in MediaSessionCompat
 
     // Utilities

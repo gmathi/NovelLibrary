@@ -76,6 +76,9 @@ injekt = "1.16.1"
 # Media
 androidxMedia = "1.7.0"
 
+# AI / TTS
+sherpaOnnx = "1.12.26"
+
 # Room
 room = "2.7.1"
 
@@ -200,6 +203,9 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 
 # Media
 androidx-media = { module = "androidx.media:media", version.ref = "androidxMedia" }
+
+# AI / TTS
+sherpa-onnx = { module = "com.github.k2-fsa:sherpa-onnx", version.ref = "sherpaOnnx" }
 
 # Debug
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
