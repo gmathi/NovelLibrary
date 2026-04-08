@@ -51,7 +51,8 @@ fun AiTtsControlsScreen(
     onNextChapter: () -> Unit = {},
     onPrevChapter: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
-    onOpenSettings: () -> Unit = {}
+    onOpenSettings: () -> Unit = {},
+    onSeekToSentence: (Int) -> Unit = {}
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -201,6 +202,7 @@ fun AiTtsControlsScreen(
                             color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .clickable { onSeekToSentence(index) }
                                 .background(
                                     if (isActive) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
                                     else Color.Transparent,
@@ -235,6 +237,7 @@ private fun PlaybackControlsBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .navigationBarsPadding()
                 .padding(horizontal = 8.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically

@@ -105,7 +105,10 @@ class AiTtsControlsActivity : ComponentActivity() {
                     },
                     onNextChapter = { AiTtsService.instance?.player?.nextChapter() },
                     onPrevChapter = { AiTtsService.instance?.player?.prevChapter() },
-                    onNavigateBack = { finish() }
+                    onNavigateBack = { finish() },
+                    onSeekToSentence = { index ->
+                        AiTtsService.instance?.player?.seekToSentence(index)
+                    }
                 )
             }
         }

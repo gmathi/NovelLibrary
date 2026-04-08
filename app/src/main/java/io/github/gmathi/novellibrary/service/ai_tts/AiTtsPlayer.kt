@@ -52,6 +52,12 @@ class AiTtsPlayer(
     // Soft jitter for punctuation silence — ±10% variation for natural pacing
     private val silenceJitterRandom = Random()
 
+    // --- Pre-buffering ---
+    // Holds pre-synthesized PCM data for the next sentence so playback can start
+    // immediately without waiting for synthesis.
+    private data class PreBufferedAudio(val sentenceIndex: Int, val pcmBytes: ByteArray, val sampleRate: Int)
+    private var preBuffer: PreBufferedAudio? = null
+
     fun setData(text: String, title: String, linkedPages: ArrayList<String>, chapterIndex: Int) {
         stop()
         this.title = title
@@ -77,6 +83,7 @@ class AiTtsPlayer(
         Logs.debug(TAG, "pause: pausing at sentence ${_currentSentenceIndex.value}")
         playbackJob?.cancel()
         releaseAudioTrack()
+        preBuffer = null
         _playbackState.value = AiTtsPlaybackState.Paused
         eventListener?.onPlaybackStateChanged(AiTtsPlaybackState.Paused)
     }
@@ -85,6 +92,7 @@ class AiTtsPlayer(
         Logs.debug(TAG, "stop: stopping playback")
         playbackJob?.cancel()
         releaseAudioTrack()
+        preBuffer = null
         _playbackState.value = AiTtsPlaybackState.Stopped
         _currentSentenceIndex.value = 0
         eventListener?.onPlaybackStateChanged(AiTtsPlaybackState.Stopped)
@@ -103,21 +111,26 @@ class AiTtsPlayer(
         val next = _currentSentenceIndex.value + 1
         if (next < _sentences.value.size) {
             Logs.debug(TAG, "nextSentence: advancing to $next/${_sentences.value.size}")
-            _currentSentenceIndex.value = next
-            if (_playbackState.value is AiTtsPlaybackState.Playing) {
-                playbackJob?.cancel()
-                playbackJob = scope.launch { playSentencesFrom(next) }
-            }
+            seekToSentence(next)
         }
     }
 
     fun prevSentence() {
         val prev = (_currentSentenceIndex.value - 1).coerceAtLeast(0)
         Logs.debug(TAG, "prevSentence: going back to $prev")
-        _currentSentenceIndex.value = prev
+        seekToSentence(prev)
+    }
+
+    /** Seek to an arbitrary sentence index. If currently playing, restarts playback from that sentence. */
+    fun seekToSentence(index: Int) {
+        val clamped = index.coerceIn(0, (_sentences.value.size - 1).coerceAtLeast(0))
+        Logs.debug(TAG, "seekToSentence: seeking to $clamped/${_sentences.value.size}")
+        preBuffer = null
+        _currentSentenceIndex.value = clamped
         if (_playbackState.value is AiTtsPlaybackState.Playing) {
             playbackJob?.cancel()
-            playbackJob = scope.launch { playSentencesFrom(prev) }
+            releaseAudioTrack()
+            playbackJob = scope.launch { playSentencesFrom(clamped) }
         }
     }
 
@@ -198,14 +211,90 @@ class AiTtsPlayer(
             val sentence = sentenceList[index]
             Logs.debug(TAG, "playSentencesFrom: synthesizing sentence $index/${sentenceList.size}: '${sentence.take(60)}'")
             eventListener?.onSentenceChanged(index, sentence)
-            try {
-                synthesizeAndPlay(tts, sentence)
-            } catch (e: Exception) {
-                Logs.error(TAG, "playSentencesFrom: synthesizeAndPlay failed at index $index: ${e.message}", e)
-                _playbackState.value = AiTtsPlaybackState.Error(e.message ?: "Synthesis failed")
-                eventListener?.onPlaybackStateChanged(_playbackState.value)
-                eventListener?.onError(e.message ?: "Synthesis failed")
-                return
+
+            // Check if we already have pre-buffered audio for this sentence
+            val cached = preBuffer
+            if (cached != null && cached.sentenceIndex == index) {
+                Logs.debug(TAG, "playSentencesFrom: using pre-buffered audio for sentence $index")
+                preBuffer = null
+                // Start pre-buffering the NEXT sentence while we play the cached one
+                val nextIndex = index + 1
+                val preBufJob = if (nextIndex < sentenceList.size && sentenceList[nextIndex].isNotBlank()) {
+                    scope.launch {
+                        try {
+                            val nextPcm = synthesizeToPcm(tts, sentenceList[nextIndex])
+                            if (nextPcm != null) {
+                                preBuffer = PreBufferedAudio(nextIndex, nextPcm.first, nextPcm.second)
+                                Logs.debug(TAG, "playSentencesFrom: pre-buffered sentence $nextIndex")
+                            }
+                        } catch (e: Exception) {
+                            Logs.warning(TAG, "playSentencesFrom: pre-buffer failed for sentence $nextIndex: ${e.message}")
+                        }
+                    }
+                } else null
+                try {
+                    // Play on IO dispatcher — AudioTrack.write is blocking I/O, not native TTS,
+                    // so the nativeDispatcher stays free for pre-buffering the next sentence.
+                    withContext(Dispatchers.IO) {
+                        playPcmOnAudioTrack(cached.pcmBytes, cached.sampleRate)
+                        if (preferences.smartPunctuation) {
+                            val silenceMs = getSentenceTrailingSilenceMs(sentence)
+                            if (silenceMs > 0) playPcmOnAudioTrack(createSilence(silenceMs, cached.sampleRate), cached.sampleRate)
+                        }
+                    }
+                } catch (e: Exception) {
+                    preBufJob?.cancel()
+                    throw e
+                }
+                preBufJob?.join()
+            } else {
+                // No pre-buffer available — synthesize, start pre-buffering next, then play
+                try {
+                    // Synthesize current sentence
+                    val currentPcm = if (sentence.isNotBlank() && !preferences.emotionTags) {
+                        synthesizeToPcm(tts, sentence)
+                    } else {
+                        null
+                    }
+
+                    if (currentPcm != null) {
+                        // Start pre-buffering the next sentence concurrently with playback
+                        val nextIndex = index + 1
+                        val preBufJob = if (nextIndex < sentenceList.size && sentenceList[nextIndex].isNotBlank() && currentCoroutineContext().isActive) {
+                            scope.launch {
+                                try {
+                                    val nextPcm = synthesizeToPcm(tts, sentenceList[nextIndex])
+                                    if (nextPcm != null) {
+                                        preBuffer = PreBufferedAudio(nextIndex, nextPcm.first, nextPcm.second)
+                                        Logs.debug(TAG, "playSentencesFrom: pre-buffered sentence $nextIndex")
+                                    }
+                                } catch (e: Exception) {
+                                    Logs.warning(TAG, "playSentencesFrom: pre-buffer failed for sentence $nextIndex: ${e.message}")
+                                }
+                            }
+                        } else null
+
+                        // Play current sentence on IO dispatcher (lock is NOT held,
+                        // nativeDispatcher is free for pre-buffer synthesis)
+                        withContext(Dispatchers.IO) {
+                            playPcmOnAudioTrack(currentPcm.first, currentPcm.second)
+                            if (preferences.smartPunctuation) {
+                                val silenceMs = getSentenceTrailingSilenceMs(sentence)
+                                if (silenceMs > 0) playPcmOnAudioTrack(createSilence(silenceMs, currentPcm.second), currentPcm.second)
+                            }
+                        }
+                        preBufJob?.join()
+                    } else {
+                        // Emotion tags path or blank — falls back to synthesizeAndPlay
+                        synthesizeAndPlay(tts, sentence)
+                    }
+                } catch (e: Exception) {
+                    Logs.error(TAG, "playSentencesFrom: synthesizeAndPlay failed at index $index: ${e.message}", e)
+                    _playbackState.value = AiTtsPlaybackState.Error(e.message ?: "Synthesis failed")
+                    eventListener?.onPlaybackStateChanged(_playbackState.value)
+                    eventListener?.onError(e.message ?: "Synthesis failed")
+                    return
+                }
             }
         }
 
@@ -226,13 +315,15 @@ class AiTtsPlayer(
         sentence: String
     ) {
         if (sentence.isBlank()) return
-        synthesisLock.withLock {
+        // Synthesize under the lock, then play outside it so pre-buffering can proceed concurrently.
+        val pcmResult = synthesisLock.withLock {
             withContext(modelManager.nativeDispatcher) {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
                 Logs.debug(TAG, "synthesizeAndPlay: generating audio for sentence length=${sentence.length} speed=${preferences.speechRate}")
 
                 if (preferences.emotionTags) {
                     processWithEmotionTags(tts, sentence)
+                    null // emotion path plays inline
                 } else {
                     val sid = activeSpeakerId()
                     val audio = tts.generate(text = sentence, sid = sid, speed = preferences.speechRate)
@@ -241,15 +332,46 @@ class AiTtsPlayer(
                     if (preferences.volumeNormalization) {
                         pcmBytes = normalizePcmVolume(pcmBytes)
                     }
-                    playPcmOnAudioTrack(pcmBytes, audio.sampleRate)
-
-                    if (preferences.smartPunctuation) {
-                        val silenceMs = getSentenceTrailingSilenceMs(sentence)
-                        if (silenceMs > 0) {
-                            playPcmOnAudioTrack(createSilence(silenceMs, audio.sampleRate), audio.sampleRate)
-                        }
+                    Triple(pcmBytes, audio.sampleRate, sentence)
+                }
+            }
+        }
+        // Play outside the lock so pre-buffering of the next sentence can start
+        if (pcmResult != null) {
+            withContext(Dispatchers.IO) {
+                playPcmOnAudioTrack(pcmResult.first, pcmResult.second)
+                if (preferences.smartPunctuation) {
+                    val silenceMs = getSentenceTrailingSilenceMs(pcmResult.third)
+                    if (silenceMs > 0) {
+                        playPcmOnAudioTrack(createSilence(silenceMs, pcmResult.second), pcmResult.second)
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Synthesizes a sentence to PCM bytes without playing it.
+     * Used for pre-buffering the next sentence while the current one plays.
+     * Returns (pcmBytes, sampleRate) or null if the sentence is blank.
+     */
+    private suspend fun synthesizeToPcm(
+        tts: com.k2fsa.sherpa.onnx.OfflineTts,
+        sentence: String
+    ): Pair<ByteArray, Int>? {
+        if (sentence.isBlank()) return null
+        return synthesisLock.withLock {
+            withContext(modelManager.nativeDispatcher) {
+                Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
+                Logs.debug(TAG, "synthesizeToPcm: generating audio for sentence length=${sentence.length}")
+                val sid = activeSpeakerId()
+                val audio = tts.generate(text = sentence, sid = sid, speed = preferences.speechRate)
+                if (audio.samples.isEmpty()) return@withContext null
+                var pcmBytes = floatsToPcm16(audio.samples)
+                if (preferences.volumeNormalization) {
+                    pcmBytes = normalizePcmVolume(pcmBytes)
+                }
+                Pair(pcmBytes, audio.sampleRate)
             }
         }
     }
