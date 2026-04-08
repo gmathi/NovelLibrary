@@ -75,20 +75,22 @@ fun AiTtsControlsScreen(
                 HorizontalDivider()
 
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Speech Rate: ${"%.1f".format(speechRate)}x", style = MaterialTheme.typography.bodyMedium)
+                    Text("Speech Rate: ${"%.2f".format(speechRate)}x", style = MaterialTheme.typography.bodyMedium)
                     Slider(
                         value = speechRate,
                         onValueChange = onSpeechRateChange,
                         valueRange = 0.5f..2.0f,
+                        steps = 29,
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    Text("Pitch: ${"%.1f".format(pitch)}x", style = MaterialTheme.typography.bodyMedium)
+                    Text("Pitch: ${"%.2f".format(pitch)}x", style = MaterialTheme.typography.bodyMedium)
                     Slider(
                         value = pitch,
                         onValueChange = onPitchChange,
                         valueRange = 0.5f..2.0f,
+                        steps = 29,
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))

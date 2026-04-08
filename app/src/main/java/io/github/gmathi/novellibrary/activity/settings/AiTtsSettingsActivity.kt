@@ -36,6 +36,7 @@ class AiTtsSettingsActivity : ComponentActivity() {
         var smartPunctuation by mutableStateOf(prefs.smartPunctuation)
         var emotionTags by mutableStateOf(prefs.emotionTags)
         var activeVoiceId by mutableStateOf(prefs.voiceId)
+        var kokoroSpeakerId by mutableStateOf(prefs.kokoroSpeakerId)
         val availableVoices: List<AiTtsVoiceInfo> = modelManager.availableVoices()
 
         setContent {
@@ -51,6 +52,7 @@ class AiTtsSettingsActivity : ComponentActivity() {
                     activeVoiceId = activeVoiceId,
                     availableVoices = availableVoices,
                     modelManager = modelManager,
+                    kokoroSpeakerId = kokoroSpeakerId,
                     onSpeechRateChange = { value ->
                         speechRate = value
                         prefs.speechRate = value
@@ -83,6 +85,11 @@ class AiTtsSettingsActivity : ComponentActivity() {
                         activeVoiceId = voice.id
                         prefs.voiceId = voice.id
                     },
+                    onKokoroVoiceSelected = { kokoroVoice ->
+                        kokoroSpeakerId = kokoroVoice.speakerId
+                        prefs.kokoroSpeakerId = kokoroVoice.speakerId
+                        prefs.kokoroLangCode = kokoroVoice.languageCode
+                    },
                     onManageModels = {
                         startActivity(android.content.Intent(this, AiTtsManageModelsActivity::class.java))
                     },
@@ -102,6 +109,9 @@ class AiTtsSettingsActivity : ComponentActivity() {
                         volumeNormalization = true; prefs.volumeNormalization = true
                         activeVoiceId = modelManager.defaultVoiceId()
                         prefs.voiceId = activeVoiceId
+                        kokoroSpeakerId = 0
+                        prefs.kokoroSpeakerId = 0
+                        prefs.kokoroLangCode = "en"
                     },
                     onNavigateBack = { finish() }
                 )

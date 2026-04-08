@@ -444,6 +444,11 @@ private fun VoiceModelCard(
             // ── Right: mic icon card ──────────────────────────────────────────────
             Spacer(Modifier.width(10.dp))
             Card(
+                enabled = !isDownloading,
+                onClick = when {
+                    isDownloaded -> if (isActive) onRemoveActive else onUseVoice
+                    else -> onDownload
+                },
                 modifier = Modifier.size(width = 72.dp, height = 80.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
@@ -455,7 +460,11 @@ private fun VoiceModelCard(
                 ) {
                     Icon(
                         if (isDownloaded) Icons.Default.Mic else Icons.Default.Download,
-                        contentDescription = null,
+                        contentDescription = when {
+                            isDownloaded && isActive -> "Remove active voice"
+                            isDownloaded -> "Use this voice"
+                            else -> "Download model"
+                        },
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(28.dp)
                     )

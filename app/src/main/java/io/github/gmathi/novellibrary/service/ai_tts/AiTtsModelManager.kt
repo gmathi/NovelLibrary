@@ -106,8 +106,10 @@ class AiTtsModelManager(private val context: Context) {
         if (destDir.exists() && existing != null && existing.isNotEmpty()) {
             // Handle nested espeak-ng-data/espeak-ng-data structure
             val nestedDir = File(destDir, "espeak-ng-data")
-            return if (File(nestedDir, "phontab").exists()) nestedDir.absolutePath
+            val resolved = if (File(nestedDir, "phontab").exists()) nestedDir.absolutePath
             else destDir.absolutePath
+            Logs.debug(TAG, "extractEspeakData: already extracted at '$resolved'")
+            return resolved
         }
         return try {
             context.assets.open("espeak-ng-data.zip").use { inputStream ->
@@ -134,9 +136,14 @@ class AiTtsModelManager(private val context: Context) {
                 }
             }
             val nestedDir = File(destDir, "espeak-ng-data")
-            if (File(nestedDir, "phontab").exists()) nestedDir.absolutePath
+            val resolved = if (File(nestedDir, "phontab").exists()) nestedDir.absolutePath
             else destDir.absolutePath
-        } catch (_: Exception) { "" }
+            Logs.debug(TAG, "extractEspeakData: extracted to '$resolved'")
+            resolved
+        } catch (e: Exception) {
+            Logs.error(TAG, "extractEspeakData: failed to extract espeak-ng-data.zip: ${e.message}", e)
+            ""
+        }
     }
 
     // ── Provider fallback for VITS ───────────────────────────────────────────
@@ -224,6 +231,12 @@ class AiTtsModelManager(private val context: Context) {
 
         val espeakDataPath = extractEspeakData()
         Logs.debug(TAG, "loadModel($voiceId): espeakDataPath='$espeakDataPath'")
+
+        if (espeakDataPath.isEmpty()) {
+            throw IllegalStateException(
+                "espeak-ng-data extraction failed. Ensure espeak-ng-data.zip is present in app assets."
+            )
+        }
 
         val tts = when (engineType) {
             TtsEngineType.KOKORO -> createKokoroTtsWithFallback(

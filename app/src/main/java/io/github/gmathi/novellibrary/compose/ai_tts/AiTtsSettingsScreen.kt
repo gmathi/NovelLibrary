@@ -16,6 +16,8 @@ import androidx.compose.ui.unit.dp
 import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
 import io.github.gmathi.novellibrary.service.ai_tts.AiTtsModelManager
 import io.github.gmathi.novellibrary.service.ai_tts.AiTtsVoiceInfo
+import io.github.gmathi.novellibrary.service.ai_tts.KokoroVoice
+import io.github.gmathi.novellibrary.service.ai_tts.KokoroVoiceHelper
 import io.github.gmathi.novellibrary.service.ai_tts.TtsEngineType
 import java.util.Locale
 
@@ -32,6 +34,7 @@ fun AiTtsSettingsScreen(
     activeVoiceId: String = "en_US-ryan-high",
     availableVoices: List<AiTtsVoiceInfo> = emptyList(),
     modelManager: AiTtsModelManager? = null,
+    kokoroSpeakerId: Int = 0,
     onSpeechRateChange: (Float) -> Unit = {},
     onPitchChange: (Float) -> Unit = {},
     onAutoReadNextChapterChange: (Boolean) -> Unit = {},
@@ -40,6 +43,7 @@ fun AiTtsSettingsScreen(
     onSmartPunctuationChange: (Boolean) -> Unit = {},
     onEmotionTagsChange: (Boolean) -> Unit = {},
     onVoiceSelected: (AiTtsVoiceInfo) -> Unit = {},
+    onKokoroVoiceSelected: (KokoroVoice) -> Unit = {},
     onManageModels: () -> Unit = {},
     onClearCache: () -> Unit = {},
     onNavigateBack: () -> Unit = {}
@@ -48,6 +52,8 @@ fun AiTtsSettingsScreen(
     var showEmotionBetaDialog by remember { mutableStateOf(false) }
     var showClearCacheDialog by remember { mutableStateOf(false) }
     val activeVoice = availableVoices.find { it.id == activeVoiceId }
+    val isKokoroActive = activeVoice?.engineType == TtsEngineType.KOKORO
+    val activeKokoroVoice = if (isKokoroActive) KokoroVoiceHelper.getById(kokoroSpeakerId) else null
 
     // Calculate storage info
     val downloadedCount = remember(activeVoiceId) {
@@ -67,15 +73,27 @@ fun AiTtsSettingsScreen(
     }
 
     if (showVoicePicker) {
-        VoicePickerDialog(
-            voices = availableVoices,
-            selectedVoiceId = activeVoiceId,
-            onVoiceSelected = { voice ->
-                onVoiceSelected(voice)
-                showVoicePicker = false
-            },
-            onDismiss = { showVoicePicker = false }
-        )
+        if (isKokoroActive) {
+            KokoroVoicePickerDialog(
+                voices = KokoroVoiceHelper.ALL_VOICES,
+                selectedSpeakerId = kokoroSpeakerId,
+                onVoiceSelected = { voice ->
+                    onKokoroVoiceSelected(voice)
+                    showVoicePicker = false
+                },
+                onDismiss = { showVoicePicker = false }
+            )
+        } else {
+            VoicePickerDialog(
+                voices = availableVoices,
+                selectedVoiceId = activeVoiceId,
+                onVoiceSelected = { voice ->
+                    onVoiceSelected(voice)
+                    showVoicePicker = false
+                },
+                onDismiss = { showVoicePicker = false }
+            )
+        }
     }
 
     if (showEmotionBetaDialog) {
@@ -135,8 +153,9 @@ fun AiTtsSettingsScreen(
                 SliderSettingRow(
                     title = "Speech Rate",
                     value = speechRate,
-                    valueText = "${"%.1f".format(speechRate)}x",
+                    valueText = "${"%.2f".format(speechRate)}x",
                     valueRange = 0.5f..2.0f,
+                    steps = 29,
                     onValueChange = onSpeechRateChange
                 )
             }
@@ -144,8 +163,9 @@ fun AiTtsSettingsScreen(
                 SliderSettingRow(
                     title = "Pitch",
                     value = pitch,
-                    valueText = "${"%.1f".format(pitch)}x",
+                    valueText = "${"%.2f".format(pitch)}x",
                     valueRange = 0.5f..2.0f,
+                    steps = 29,
                     onValueChange = onPitchChange
                 )
             }
@@ -199,7 +219,10 @@ fun AiTtsSettingsScreen(
             item {
                 ChevronSettingRow(
                     title = "Active Voice",
-                    subtitle = activeVoice?.name ?: activeVoiceId,
+                    subtitle = if (isKokoroActive && activeKokoroVoice != null)
+                        "${activeKokoroVoice.fullLabel}"
+                    else
+                        activeVoice?.name ?: activeVoiceId,
                     onClick = { showVoicePicker = true }
                 )
             }
@@ -260,6 +283,7 @@ private fun SliderSettingRow(
     value: Float,
     valueText: String,
     valueRange: ClosedFloatingPointRange<Float>,
+    steps: Int = 0,
     onValueChange: (Float) -> Unit
 ) {
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -274,6 +298,7 @@ private fun SliderSettingRow(
             value = value,
             onValueChange = onValueChange,
             valueRange = valueRange,
+            steps = steps,
             modifier = Modifier.fillMaxWidth()
         )
     }
@@ -372,6 +397,112 @@ private fun VoicePickerDialog(
                         Column {
                             Text(voice.name, style = MaterialTheme.typography.bodyLarge)
                             Text(voice.language, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
+}
+
+@Composable
+private fun KokoroVoicePickerDialog(
+    voices: List<KokoroVoice>,
+    selectedSpeakerId: Int,
+    onVoiceSelected: (KokoroVoice) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedLanguage by remember { mutableStateOf<String?>(null) }
+    val languages = remember { voices.map { it.language }.distinct().sorted() }
+
+    val filteredVoices = remember(searchQuery, selectedLanguage) {
+        voices.filter { voice ->
+            val matchesSearch = searchQuery.isBlank() ||
+                voice.displayName.contains(searchQuery, ignoreCase = true) ||
+                voice.voiceKey.contains(searchQuery, ignoreCase = true)
+            val matchesLang = selectedLanguage == null || voice.language == selectedLanguage
+            matchesSearch && matchesLang
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Select Kokoro Voice (${filteredVoices.size})") },
+        text = {
+            Column {
+                // Search field
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text("Search voices…") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                // Language filter chips
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    FilterChip(
+                        selected = selectedLanguage == null,
+                        onClick = { selectedLanguage = null },
+                        label = { Text("All", style = MaterialTheme.typography.labelSmall) }
+                    )
+                    languages.take(5).forEach { lang ->
+                        FilterChip(
+                            selected = selectedLanguage == lang,
+                            onClick = { selectedLanguage = if (selectedLanguage == lang) null else lang },
+                            label = { Text(lang, style = MaterialTheme.typography.labelSmall) }
+                        )
+                    }
+                }
+                if (languages.size > 5) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        languages.drop(5).forEach { lang ->
+                            FilterChip(
+                                selected = selectedLanguage == lang,
+                                onClick = { selectedLanguage = if (selectedLanguage == lang) null else lang },
+                                label = { Text(lang, style = MaterialTheme.typography.labelSmall) }
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                // Voice list
+                LazyColumn(modifier = Modifier.heightIn(max = 350.dp)) {
+                    items(filteredVoices.size) { index ->
+                        val voice = filteredVoices[index]
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onVoiceSelected(voice) }
+                                .padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = voice.speakerId == selectedSpeakerId,
+                                onClick = { onVoiceSelected(voice) }
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Column {
+                                Text(
+                                    "${voice.flag} ${voice.displayName}",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Text(
+                                    voice.subtitle,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
