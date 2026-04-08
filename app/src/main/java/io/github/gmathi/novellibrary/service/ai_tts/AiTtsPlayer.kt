@@ -81,6 +81,13 @@ class AiTtsPlayer(
         eventListener?.onPlaybackStateChanged(AiTtsPlaybackState.Stopped)
     }
 
+    /** Called by the service while the model files are being downloaded from the network. */
+    fun setDownloadingModel() {
+        playbackJob?.cancel()
+        _playbackState.value = AiTtsPlaybackState.DownloadingModel
+        eventListener?.onPlaybackStateChanged(AiTtsPlaybackState.DownloadingModel)
+    }
+
     fun nextSentence() {
         val next = _currentSentenceIndex.value + 1
         if (next < _sentences.value.size) {

@@ -63,9 +63,13 @@ class AiTtsModelDownloadWorker(
                 file.copyTo(File(modelDir, file.name), overwrite = true)
             }
 
-            // Broadcast model ready
+            // Broadcast model ready.
+            // setPackage() is required on Android 14+ to deliver to RECEIVER_NOT_EXPORTED
+            // dynamically-registered receivers within the same app.
             applicationContext.sendBroadcast(
-                Intent(ACTION_MODEL_READY).putExtra(KEY_VOICE_ID, voiceId)
+                Intent(ACTION_MODEL_READY)
+                    .setPackage(applicationContext.packageName)
+                    .putExtra(KEY_VOICE_ID, voiceId)
             )
 
             postComplete(voiceId)

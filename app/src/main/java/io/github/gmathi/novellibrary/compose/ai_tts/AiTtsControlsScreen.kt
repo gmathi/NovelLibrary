@@ -155,6 +155,11 @@ fun AiTtsControlsScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     when (playbackState) {
+                        is AiTtsPlaybackState.DownloadingModel -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator()
+                            Spacer(Modifier.height(12.dp))
+                            Text("Downloading AI TTS model…")
+                        }
                         is AiTtsPlaybackState.LoadingModel -> CircularProgressIndicator()
                         is AiTtsPlaybackState.Error -> Text("Error: ${playbackState.message}")
                         else -> Text("No content loaded")

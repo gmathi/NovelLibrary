@@ -133,7 +133,11 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
                         stopForeground(true)
                     }
                 }
-                else -> { /* LoadingModel, Error — keep current notification */ }
+                else -> {
+                    // DownloadingModel, LoadingModel, Error — still need to call startForeground()
+                    // because startForegroundService() was used and Android requires it within 5 s.
+                    startForeground(Notifications.ID_AI_TTS_PLAYBACK, notification)
+                }
             }
         }
     }
@@ -275,6 +279,7 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
         if (!modelManager.isModelDownloaded(prefs.voiceId)) {
             Logs.debug(LOG_TAG,"actionStartup: model not downloaded, enqueueing download and saving pending extras")
             pendingStartExtras = extras
+            player.setDownloadingModel()
             AiTtsModelDownloadWorker.enqueue(this, prefs.voiceId)
             return
         }
