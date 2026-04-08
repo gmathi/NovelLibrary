@@ -155,10 +155,24 @@ fun AiTtsControlsScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     when (playbackState) {
-                        is AiTtsPlaybackState.DownloadingModel -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CircularProgressIndicator()
+                        is AiTtsPlaybackState.DownloadingModel -> Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(horizontal = 32.dp)
+                        ) {
+                            val progress = playbackState.progress
+                            if (progress < 0) {
+                                CircularProgressIndicator()
+                            } else {
+                                LinearProgressIndicator(
+                                    progress = { progress / 100f },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                             Spacer(Modifier.height(12.dp))
-                            Text("Downloading AI TTS model…")
+                            Text(
+                                if (progress < 0) "Downloading AI TTS model…"
+                                else "Downloading AI TTS model… $progress%"
+                            )
                         }
                         is AiTtsPlaybackState.LoadingModel -> CircularProgressIndicator()
                         is AiTtsPlaybackState.Error -> Text("Error: ${playbackState.message}")

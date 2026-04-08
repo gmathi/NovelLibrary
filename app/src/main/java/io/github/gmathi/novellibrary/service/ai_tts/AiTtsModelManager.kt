@@ -85,7 +85,10 @@ class AiTtsModelManager(private val context: Context) {
     fun deleteModel(voiceId: String) {
         getModelDir(voiceId).deleteRecursively()
         if (currentVoiceId == voiceId) {
-            unloadModel()
+            // Drop our reference; the native object will be GC'd.
+            // Do NOT call release() — see unloadModel() for explanation.
+            currentTts = null
+            currentVoiceId = null
         }
     }
 
@@ -129,7 +132,13 @@ class AiTtsModelManager(private val context: Context) {
     }
 
     fun unloadModel() {
-        currentTts?.release()  // Free native resources synchronously; prevents GC finalizer race
+        // NOTE: We intentionally do NOT call currentTts?.release() here.
+        // Each sherpa-onnx OfflineTts instance owns an Ort::Env (ORT's global
+        // environment object). Calling release() destroys that Ort::Env while
+        // ORT's internal worker threads may still be running, causing a
+        // FORTIFY: pthread_mutex_lock called on a destroyed mutex crash.
+        // Instead we let the GC / process exit clean up the native object.
+        // Memory is bounded: we only ever hold one model at a time.
         currentTts = null
         currentVoiceId = null
     }

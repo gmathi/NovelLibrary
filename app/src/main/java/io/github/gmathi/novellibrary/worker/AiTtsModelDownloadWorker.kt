@@ -114,6 +114,13 @@ class AiTtsModelDownloadWorker(
         ) {
             notificationManager.notify(Notifications.ID_AI_TTS_DOWNLOAD, notification)
         }
+        // Broadcast progress so the service can update its playback state UI
+        applicationContext.sendBroadcast(
+            Intent(ACTION_MODEL_DOWNLOAD_PROGRESS)
+                .setPackage(applicationContext.packageName)
+                .putExtra(KEY_VOICE_ID, voiceId)
+                .putExtra(KEY_PROGRESS, percent)
+        )
     }
 
     private fun postComplete(voiceId: String) {
@@ -138,7 +145,9 @@ class AiTtsModelDownloadWorker(
 
     companion object {
         const val KEY_VOICE_ID = "voice_id"
+        const val KEY_PROGRESS = "progress"
         const val ACTION_MODEL_READY = "io.github.gmathi.novellibrary.AI_TTS_MODEL_READY"
+        const val ACTION_MODEL_DOWNLOAD_PROGRESS = "io.github.gmathi.novellibrary.AI_TTS_MODEL_DOWNLOAD_PROGRESS"
 
         fun enqueue(context: Context, voiceId: String): androidx.work.Operation {
             val request = OneTimeWorkRequestBuilder<AiTtsModelDownloadWorker>()

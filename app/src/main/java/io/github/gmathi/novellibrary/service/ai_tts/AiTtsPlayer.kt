@@ -4,8 +4,6 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
-import android.os.HandlerThread
-import android.os.Process
 import io.github.gmathi.novellibrary.model.preference.AiTtsPreferences
 import io.github.gmathi.novellibrary.util.logging.Logs
 import kotlinx.coroutines.*
@@ -44,9 +42,11 @@ class AiTtsPlayer(
     // generate() call to finish before loading/releasing the model.
     private val synthesisLock = Mutex()
 
-    // --- Audio thread ---
-    private val audioThread = HandlerThread("ai_tts_audio", Process.THREAD_PRIORITY_AUDIO).also { it.start() }
-    private val audioHandler = android.os.Handler(audioThread.looper)
+    // --- Audio ---
+    // Reused across sentences to avoid per-sentence AudioTrack allocation/release overhead,
+    // which causes native OOM on the emulator (x86_64) with many sentences.
+    private var audioTrack: AudioTrack? = null
+    private var audioTrackSampleRate: Int = -1
 
     fun setData(text: String, title: String, linkedPages: ArrayList<String>, chapterIndex: Int) {
         stop()
@@ -70,22 +70,26 @@ class AiTtsPlayer(
     fun pause() {
         if (_playbackState.value !is AiTtsPlaybackState.Playing) return
         playbackJob?.cancel()
+        releaseAudioTrack()
         _playbackState.value = AiTtsPlaybackState.Paused
         eventListener?.onPlaybackStateChanged(AiTtsPlaybackState.Paused)
     }
 
     fun stop() {
         playbackJob?.cancel()
+        releaseAudioTrack()
         _playbackState.value = AiTtsPlaybackState.Stopped
         _currentSentenceIndex.value = 0
         eventListener?.onPlaybackStateChanged(AiTtsPlaybackState.Stopped)
     }
 
-    /** Called by the service while the model files are being downloaded from the network. */
-    fun setDownloadingModel() {
-        playbackJob?.cancel()
-        _playbackState.value = AiTtsPlaybackState.DownloadingModel
-        eventListener?.onPlaybackStateChanged(AiTtsPlaybackState.DownloadingModel)
+    /** Called by the service while the model files are being downloaded from the network.
+     *  [progress] is 0–100, or -1 if unknown. */
+    fun setDownloadingModel(progress: Int = -1) {
+        val state = AiTtsPlaybackState.DownloadingModel(progress)
+        if (progress == -1) playbackJob?.cancel()
+        _playbackState.value = state
+        eventListener?.onPlaybackStateChanged(state)
     }
 
     fun nextSentence() {
@@ -118,7 +122,7 @@ class AiTtsPlayer(
 
     fun destroy() {
         scope.cancel()
-        audioThread.quit()
+        releaseAudioTrack()
         // scope.cancel() marks coroutines for cancellation but does NOT wait for any
         // in-progress blocking native call (generate / loadModel) on nativeDispatcher to
         // finish.  Acquiring synthesisLock here blocks until the current native call
@@ -126,6 +130,15 @@ class AiTtsPlayer(
         // before we release the OfflineTts native object.
         runBlocking { synthesisLock.withLock { modelManager.unloadModel() } }
         modelManager.close()
+    }
+
+    private fun releaseAudioTrack() {
+        audioTrack?.let {
+            try { it.stop() } catch (_: Exception) {}
+            it.release()
+        }
+        audioTrack = null
+        audioTrackSampleRate = -1
     }
 
     // --- Internal ---
@@ -211,39 +224,54 @@ class AiTtsPlayer(
             Logs.warning(TAG, "playPcmOnAudioTrack: invalid sampleRate=$sampleRate, skipping")
             return
         }
-        val bufferSize = AudioTrack.getMinBufferSize(
-            sampleRate,
-            AudioFormat.CHANNEL_OUT_MONO,
-            AudioFormat.ENCODING_PCM_FLOAT
-        )
-        if (bufferSize <= 0) {
-            Logs.warning(TAG, "playPcmOnAudioTrack: getMinBufferSize returned $bufferSize for sampleRate=$sampleRate, skipping")
-            return
-        }
-        val audioTrack = AudioTrack.Builder()
-            .setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                    .build()
-            )
-            .setAudioFormat(
-                AudioFormat.Builder()
-                    .setEncoding(AudioFormat.ENCODING_PCM_FLOAT)
-                    .setSampleRate(sampleRate)
-                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                    .build()
-            )
-            .setBufferSizeInBytes(bufferSize)
-            .setTransferMode(AudioTrack.MODE_STREAM)
-            .build()
 
+        // Reuse the existing AudioTrack if the sample rate hasn't changed.
+        // Creating a new AudioTrack per sentence causes native OOM on x86_64 emulator.
+        if (audioTrack == null || audioTrackSampleRate != sampleRate) {
+            releaseAudioTrack()
+            val bufferSize = AudioTrack.getMinBufferSize(
+                sampleRate,
+                AudioFormat.CHANNEL_OUT_MONO,
+                AudioFormat.ENCODING_PCM_FLOAT
+            )
+            if (bufferSize <= 0) {
+                Logs.warning(TAG, "playPcmOnAudioTrack: getMinBufferSize returned $bufferSize for sampleRate=$sampleRate, skipping")
+                return
+            }
+            audioTrack = AudioTrack.Builder()
+                .setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                        .build()
+                )
+                .setAudioFormat(
+                    AudioFormat.Builder()
+                        .setEncoding(AudioFormat.ENCODING_PCM_FLOAT)
+                        .setSampleRate(sampleRate)
+                        .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                        .build()
+                )
+                .setBufferSizeInBytes(bufferSize)
+                .setTransferMode(AudioTrack.MODE_STREAM)
+                .build()
+            audioTrackSampleRate = sampleRate
+            Logs.debug(TAG, "playPcmOnAudioTrack: created AudioTrack sampleRate=$sampleRate bufferSize=$bufferSize")
+        }
+
+        val track = audioTrack ?: return
         try {
-            audioTrack.play()
-            audioTrack.write(samples, 0, samples.size, AudioTrack.WRITE_BLOCKING)
-            audioTrack.stop()
-        } finally {
-            audioTrack.release()
+            if (track.playState != AudioTrack.PLAYSTATE_PLAYING) {
+                track.play()
+            }
+            track.write(samples, 0, samples.size, AudioTrack.WRITE_BLOCKING)
+            // Flush remaining buffered audio before returning so the next sentence
+            // starts cleanly without overlap.
+            track.stop()
+        } catch (e: Exception) {
+            Logs.error(TAG, "playPcmOnAudioTrack: error during playback: ${e.message}", e)
+            releaseAudioTrack()
+            throw e
         }
     }
 

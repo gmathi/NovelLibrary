@@ -62,13 +62,25 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
     // BroadcastReceiver for MODEL_READY
     private val modelReadyReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            val voiceId = intent.getStringExtra(AiTtsModelDownloadWorker.KEY_VOICE_ID) ?: return
-            // Re-trigger startup if this is the voice we were waiting for
-            pendingStartExtras?.let { extras ->
-                val prefs = DataCenter(context).aiTtsPreferences
-                if (voiceId == prefs.voiceId) {
-                    actionStartup(extras)
-                    pendingStartExtras = null
+            when (intent.action) {
+                AiTtsModelDownloadWorker.ACTION_MODEL_DOWNLOAD_PROGRESS -> {
+                    val voiceId = intent.getStringExtra(AiTtsModelDownloadWorker.KEY_VOICE_ID) ?: return
+                    val progress = intent.getIntExtra(AiTtsModelDownloadWorker.KEY_PROGRESS, -1)
+                    val prefs = DataCenter(context).aiTtsPreferences
+                    if (voiceId == prefs.voiceId && pendingStartExtras != null) {
+                        player.setDownloadingModel(progress)
+                    }
+                }
+                AiTtsModelDownloadWorker.ACTION_MODEL_READY -> {
+                    val voiceId = intent.getStringExtra(AiTtsModelDownloadWorker.KEY_VOICE_ID) ?: return
+                    // Re-trigger startup if this is the voice we were waiting for
+                    pendingStartExtras?.let { extras ->
+                        val prefs = DataCenter(context).aiTtsPreferences
+                        if (voiceId == prefs.voiceId) {
+                            actionStartup(extras)
+                            pendingStartExtras = null
+                        }
+                    }
                 }
             }
         }
@@ -158,12 +170,24 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
         sessionToken = mediaSession.sessionToken
 
         notificationBuilder = AiTtsNotificationBuilder(this, buildPendingIntents())
+
+        // Must call startForeground() synchronously in onCreate() to satisfy Android's
+        // requirement that a foreground service calls it within 5 seconds of
+        // startForegroundService(). The NotificationController coroutine may not emit
+        // fast enough to meet that deadline, causing an ANR.
+        startForeground(
+            Notifications.ID_AI_TTS_PLAYBACK,
+            notificationBuilder.buildNotification(mediaSession.sessionToken)
+        )
+
         NotificationController().start()
 
         ContextCompat.registerReceiver(
             this,
             modelReadyReceiver,
-            android.content.IntentFilter(AiTtsModelDownloadWorker.ACTION_MODEL_READY),
+            android.content.IntentFilter(AiTtsModelDownloadWorker.ACTION_MODEL_READY).also {
+                it.addAction(AiTtsModelDownloadWorker.ACTION_MODEL_DOWNLOAD_PROGRESS)
+            },
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
     }
