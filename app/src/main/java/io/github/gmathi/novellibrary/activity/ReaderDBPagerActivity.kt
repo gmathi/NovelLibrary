@@ -6,23 +6,22 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Typeface
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
-import android.view.MenuItem
-import android.view.View.INVISIBLE
-import android.view.View.TEXT_ALIGNMENT_CENTER
+import android.view.View
 import android.view.WindowManager
 import android.webkit.MimeTypeMap
 import android.webkit.WebView
-import android.widget.CompoundButton
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.view.GravityCompat
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.documentfile.provider.DocumentFile
+import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager.widget.ViewPager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.WhichButton
@@ -31,11 +30,11 @@ import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
 import com.afollestad.materialdialogs.list.checkItem
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
-import com.google.android.material.navigation.NavigationView
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.settings.reader.ReaderSettingsActivity
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.adapter.WebPageFragmentPageListener
+import io.github.gmathi.novellibrary.compose.reader.ReaderOverlay
 import io.github.gmathi.novellibrary.database.getAllWebPages
 import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.database.getWebPageSettingsByRedirectedUrl
@@ -46,11 +45,11 @@ import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
-import io.github.gmathi.novellibrary.util.analytics.FAC
-import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.Utils.getFormattedText
+import io.github.gmathi.novellibrary.util.analytics.FAC
 import io.github.gmathi.novellibrary.util.lang.launchUI
+import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.system.intentOf
 import io.github.gmathi.novellibrary.util.system.logNovelEvent
 import io.github.gmathi.novellibrary.util.system.openInBrowser
@@ -61,7 +60,7 @@ import io.github.gmathi.novellibrary.util.system.startTTSActivity
 import io.github.gmathi.novellibrary.util.system.startTTSService
 import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import io.github.gmathi.novellibrary.util.system.updateNovelLastRead
-import io.github.gmathi.novellibrary.util.view.TwoWaySeekBar
+import io.github.gmathi.novellibrary.viewmodel.ReaderViewModel
 import org.greenrobot.eventbus.EventBus
 import java.io.File
 import java.util.Random
@@ -69,23 +68,12 @@ import java.util.Random
 
 class ReaderDBPagerActivity :
     BaseActivity(),
-    ViewPager.OnPageChangeListener, NavigationView.OnNavigationItemSelectedListener {
+    ViewPager.OnPageChangeListener {
 
     override val skipWindowInsets: Boolean = true
 
-
     companion object {
         private const val TAG = "ReaderDBPagerActivity"
-
-        private const val READER_MODE = 0
-        private const val NIGHT_MODE = 1
-        private const val JAVA_SCRIPT = 2
-        private const val FONTS = 3
-        private const val FONT_SIZE = 4
-        private const val OPEN_IN_BROWSER = 5
-        private const val MORE_SETTINGS = 6
-        private const val READ_ALOUD = 7
-
 
         private val FONT_MIME_TYPES = arrayOf(
             MimeTypeMap.getSingleton().getMimeTypeFromExtension("ttf") ?: "application/x-font-ttf",
@@ -98,15 +86,15 @@ class ReaderDBPagerActivity :
         private val AVAILABLE_FONTS = linkedMapOf<String, String>()
     }
 
-
-    private lateinit var screenTitles: Array<String>
-    private lateinit var screenIcons: Array<Drawable?>
-
     private lateinit var novel: Novel
     private lateinit var adapter: GenericFragmentStatePagerAdapter
+    private lateinit var readerViewModel: ReaderViewModel
 
     private var translatorSourceName: String? = null
     private var webPages: List<WebPage> = ArrayList()
+
+    /** Compose-observable overlay visibility state */
+    private val overlayVisible = mutableStateOf(false)
 
     lateinit var binding: ActivityReaderPagerBinding
 
@@ -116,25 +104,26 @@ class ReaderDBPagerActivity :
         binding = ActivityReaderPagerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
+        readerViewModel = ViewModelProvider(this)[ReaderViewModel::class.java]
+        readerViewModel.initialize()
 
         if (dataCenter.keepScreenOn)
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        //Read Intent Extras
+        // Read Intent Extras
         translatorSourceName = intent.getStringExtra("translatorSourceName")
         if (translatorSourceName == Constants.ALL_TRANSLATOR_SOURCES) translatorSourceName = null
 
+        @Suppress("DEPRECATION")
         val tempNovel = intent.getParcelableExtra("novel") as Novel?
 
-        //Check if it is Valid Novel
         if (tempNovel == null || tempNovel.chaptersCount.toInt() == 0) {
             finish()
             return
         } else
             novel = tempNovel
 
-        //Get all WebPages & set view pager
+        // Get all WebPages & set view pager
         webPages = dbHelper.getAllWebPages(novel.id, translatorSourceName)
         if (dataCenter.japSwipe)
             webPages = webPages.reversed()
@@ -143,22 +132,24 @@ class ReaderDBPagerActivity :
         binding.viewPager.addOnPageChangeListener(this)
         binding.viewPager.adapter = adapter
 
-        //Set the current page to the bookmarked webPage
+        // Set the current page to the bookmarked webPage
         novel.currentChapterUrl?.let { bookmarkUrl ->
             val index = webPages.indexOfFirst { it.url == bookmarkUrl }
             if (index != -1) binding.viewPager.currentItem = index
             if (index == 0) updateBookmark(webPages[0])
         }
 
-        //Set up the Slide-Out Reader Menu.
-        drawerSetup()
-        binding.menuNav.setOnClickListener {
-            binding.drawerLayout.openDrawer(GravityCompat.END)
-        }
+        // Update chapter info in ViewModel
+        val initialPosition = binding.viewPager.currentItem
+        val initialDisplayIndex = if (dataCenter.japSwipe) (webPages.size - 1 - initialPosition) else initialPosition
+        readerViewModel.updateChapterInfo(
+            index = initialDisplayIndex,
+            total = webPages.size,
+            title = webPages.getOrNull(initialPosition)?.chapterName ?: ""
+        )
 
-        // Easy access to open reader menu button
-        if (!dataCenter.isReaderModeButtonVisible)
-            binding.menuNav.visibility = INVISIBLE
+        // Setup Compose overlay (once — state changes drive recomposition)
+        setupComposeOverlay()
 
         onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -166,11 +157,69 @@ class ReaderDBPagerActivity :
                 when {
                     currentFrag == null -> finish()
                     currentFrag.history.isNotEmpty() -> currentFrag.goBack()
-                    //currentFrag.readerWebView.canGoBack() -> currentFrag.readerWebView.goBack()
                     else -> finish()
                 }
             }
         })
+    }
+
+    private fun setupComposeOverlay() {
+        binding.readerOverlayCompose.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                val isVisible = overlayVisible.value
+
+                // Disable touch interception on the ComposeView when overlay is hidden
+                // so the WebView underneath can receive all touch events.
+                LaunchedEffect(isVisible) {
+                    (this@apply).let { composeView ->
+                        if (!isVisible) {
+                            composeView.isClickable = false
+                            composeView.isFocusable = false
+                        } else {
+                            composeView.isClickable = true
+                            composeView.isFocusable = true
+                        }
+                    }
+                }
+
+                ReaderOverlay(
+                    viewModel = readerViewModel,
+                    isVisible = isVisible,
+                    novelName = novel.name ?: "",
+                    onBackPress = { finish() },
+                    onPreviousChapter = {
+                        val current = binding.viewPager.currentItem
+                        if (current > 0) binding.viewPager.currentItem = current - 1
+                    },
+                    onNextChapter = {
+                        val current = binding.viewPager.currentItem
+                        if (current < webPages.size - 1) binding.viewPager.currentItem = current + 1
+                    },
+                    onFontClick = { changeFontStyle() },
+                    onReadAloudClick = { handleReadAloud() },
+                    onBrowserClick = { inBrowser() },
+                    onMoreSettingsClick = {
+                        readerSettingsActivityContract.launch(intentOf<ReaderSettingsActivity>())
+                    },
+                    onCenterTap = { toggleOverlay() }
+                )
+            }
+        }
+    }
+
+    /** Toggle the top/bottom bar visibility. Called from the Compose tap target
+     *  and from the WebPageDBFragment scroll listener. */
+    fun toggleOverlay() {
+        overlayVisible.value = !overlayVisible.value
+    }
+
+    fun showOverlay() {
+        overlayVisible.value = true
+    }
+
+    fun hideOverlay() {
+        overlayVisible.value = false
     }
 
     private fun updateBookmark(webPage: WebPage) {
@@ -189,34 +238,40 @@ class ReaderDBPagerActivity :
 
     override fun onPageSelected(position: Int) {
         updateBookmark(webPage = webPages[position])
+        val displayIndex = if (dataCenter.japSwipe) (webPages.size - 1 - position) else position
+        readerViewModel.updateChapterInfo(
+            index = displayIndex,
+            total = webPages.size,
+            title = webPages.getOrNull(position)?.chapterName ?: ""
+        )
     }
 
     override fun onPageScrollStateChanged(position: Int) {
-        //Do Nothing
+        // Do Nothing
     }
 
     override fun onPageScrolled(p0: Int, p1: Float, p2: Int) {
-        //Do Nothing
+        // Do Nothing
     }
 
-    private fun changeTextSize() {
-        MaterialDialog(this).show {
-            title(R.string.text_size)
-            customView(R.layout.dialog_slider, scrollable = true)
-            getCustomView().findViewById<TwoWaySeekBar>(R.id.seekBar)?.setOnSeekBarChangedListener { _, progress ->
-                dataCenter.textSize = progress.toInt()
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
-            }
-            getCustomView().findViewById<TwoWaySeekBar>(R.id.seekBar)?.setProgress(dataCenter.textSize.toDouble())
-        }
-    }
+    private fun handleReadAloud() {
+        if (dataCenter.readerMode) {
+            val webPageDBFragment = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as? WebPageDBFragment)
+            val audioText = webPageDBFragment?.doc?.getFormattedText() ?: return
+            val title = webPageDBFragment.doc?.title() ?: ""
+            val chapterIndex = (if (dataCenter.japSwipe) webPages.reversed() else webPages).indexOf(webPages[binding.viewPager.currentItem])
 
-    private fun reportPage() {
-        MaterialDialog(this).show {
-            message(text = "Please use discord to report a bug.")
-            positiveButton(text = "Ok") {
-                it.dismiss()
+            if (dataCenter.useAiTts) {
+                val linkedPageUrls = ArrayList(webPageDBFragment.linkedPages.map { it.href })
+                startAiTtsService(audioText, linkedPageUrls, title, novel.id, translatorSourceName ?: "", chapterIndex)
+                startAiTtsActivity(novel.name ?: "", title)
+            } else {
+                startTTSService(audioText, webPageDBFragment.linkedPages, title, novel.id, translatorSourceName, chapterIndex)
+                firebaseAnalytics.logNovelEvent(FAC.Event.LISTEN_NOVEL, novel)
+                startTTSActivity()
             }
+        } else {
+            showAlertDialog(title = "Read Aloud", message = "Only supported in Reader Mode!")
         }
     }
 
@@ -274,65 +329,11 @@ class ReaderDBPagerActivity :
         }
     }
 
-    private fun drawerSetup() {
-        binding.drawerLayout.closeDrawers()
-        binding.navigationView.apply {
-            setNavigationItemSelectedListener(this@ReaderDBPagerActivity)
-
-            val readerSwitch = menu.findItem(R.id.title_reader).actionView as CompoundButton
-            readerSwitch.isChecked = dataCenter.readerMode
-            readerSwitch.setOnCheckedChangeListener { _, isChecked ->
-                dataCenter.readerMode = isChecked
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
-            }
-
-            val jsSwitch = menu.findItem(R.id.title_java_script).actionView as CompoundButton
-            jsSwitch.isChecked = !dataCenter.javascriptDisabled
-            jsSwitch.setOnCheckedChangeListener { _, isChecked ->
-                dataCenter.javascriptDisabled = !isChecked
-                EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCRIPT))
-            }
-        }
-    }
-
     private fun createTypeface(path: String = dataCenter.fontPath): Typeface {
         return if (path.startsWith("/android_asset"))
             Typeface.createFromAsset(assets, path.substringAfter('/').substringAfter('/'))
         else
             Typeface.createFromFile(path)
-    }
-
-    /**
-     *     Handle Slide Menu Nav Options
-     */
-    override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.title_fonts -> changeFontStyle()
-            R.id.title_fonts_size -> changeTextSize()
-            R.id.title_open_in_browser -> inBrowser()
-            R.id.title_more_settings -> readerSettingsActivityContract.launch(intentOf<ReaderSettingsActivity>())
-            R.id.title_read_aloud -> {
-                if (dataCenter.readerMode) {
-                    val webPageDBFragment = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as? WebPageDBFragment)
-                    val audioText = webPageDBFragment?.doc?.getFormattedText() ?: return true
-                    val title = webPageDBFragment.doc?.title() ?: ""
-                    val chapterIndex = (if (dataCenter.japSwipe) webPages.reversed() else webPages).indexOf(webPages[binding.viewPager.currentItem])
-
-                    if (dataCenter.useAiTts) {
-                        val linkedPageUrls = ArrayList(webPageDBFragment.linkedPages.map { it.href })
-                        startAiTtsService(audioText, linkedPageUrls, title, novel.id, translatorSourceName ?: "", chapterIndex)
-                        startAiTtsActivity(novel.name ?: "", title)
-                    } else {
-                        startTTSService(audioText, webPageDBFragment.linkedPages, title, novel.id, translatorSourceName, chapterIndex)
-                        firebaseAnalytics.logNovelEvent(FAC.Event.LISTEN_NOVEL, novel)
-                        startTTSActivity()
-                    }
-                } else {
-                    showAlertDialog(title = "Read Aloud", message = "Only supported in Reader Mode!")
-                }
-            }
-        }
-        return true
     }
 
     @SuppressLint("CheckResult")
@@ -350,7 +351,7 @@ class ReaderDBPagerActivity :
             title(R.string.title_fonts)
 
             val exampleText = TextView(this@ReaderDBPagerActivity)
-            exampleText.textAlignment = TEXT_ALIGNMENT_CENTER
+            exampleText.textAlignment = View.TEXT_ALIGNMENT_CENTER
             exampleText.text = getString(R.string.title_fonts)
             exampleText.textSize = 24F
             exampleText.setTypeface(typeFace, Typeface.NORMAL)
@@ -366,8 +367,6 @@ class ReaderDBPagerActivity :
                     if (fontPath != null) {
                         selectedFont = font.toString()
                         typeFace = createTypeface(fontPath)
-                        // Currently doesn't work
-                        //dialog.setTypeface(dialog.titleView, typeFace)
 
                         launchUI {
                             val it = getCustomView() as TextView
@@ -382,8 +381,7 @@ class ReaderDBPagerActivity :
             }
             positiveButton(R.string.okay) { _ ->
                 dataCenter.fontPath = AVAILABLE_FONTS[selectedFont] ?: ""
-                EventBus.getDefault()
-                    .post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+                readerViewModel.onFontChanged(AVAILABLE_FONTS[selectedFont] ?: "")
             }
             negativeButton(R.string.cancel)
         }
@@ -418,32 +416,21 @@ class ReaderDBPagerActivity :
         addFontActivityContract.launch(intent)
     }
 
-    private val iwvActivityContract = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) {
-        Handler(Looper.getMainLooper()).post {
-            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
-        }
-    }
-
     private val addFontActivityContract = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
         try {
-            // Check for different conditions / edge-cases.
             if (it.resultCode != Activity.RESULT_OK) return@registerForActivityResult
             val uri = it.data?.data ?: return@registerForActivityResult
             val document = DocumentFile.fromSingleUri(baseContext, uri) ?: return@registerForActivityResult
             if (!document.isFile) return@registerForActivityResult
 
-            // After the checks are complete, we copy the font for the reader to use
             val fontsDir = File(getExternalFilesDir(null) ?: filesDir, "Fonts/")
             if (!fontsDir.exists()) fontsDir.mkdir()
             val file = File(fontsDir, document.name ?: "RandomFontName${Random().nextInt()}")
             Utils.copyFile(contentResolver, document, file)
             AVAILABLE_FONTS[file.nameWithoutExtension.replace('_', ' ')] = file.path
-            dataCenter.fontPath = file.path
-            EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
+            readerViewModel.onFontChanged(file.path)
         } catch (e: Exception) {
             Logs.error(TAG, "Unable to copy font", e)
         }
@@ -453,6 +440,7 @@ class ReaderDBPagerActivity :
         ActivityResultContracts.StartActivityForResult()
     ) {
         Handler(Looper.getMainLooper()).post {
+            readerViewModel.initialize() // Refresh state from DataCenter
             EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
         }
     }
@@ -461,8 +449,4 @@ class ReaderDBPagerActivity :
         super.onResume()
         updateNovelLastRead(novel)
     }
-
-
-
-
 }

@@ -115,7 +115,7 @@ class WebPageDBFragment : BaseFragment() {
 
     @Suppress("DEPRECATION")
     private fun setOnScrollVisibleButtons() {
-        // Show the menu button on scroll
+        // Show/hide overlay on scroll
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
 
         binding.readerWebView.setOnScrollChangeListener listener@{ _, _, scrollY, _, oldScrollY ->
@@ -126,11 +126,9 @@ class WebPageDBFragment : BaseFragment() {
                 return@listener
             }
 
-            if (dataCenter.isReaderModeButtonVisible) {
-                if (activity is ReaderDBPagerActivity) {
-                    if (scrollY > oldScrollY && scrollY > 0) activity.binding.menuNav.visibility = View.GONE
-                    if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) activity.binding.menuNav.visibility = View.VISIBLE
-                }
+            if (activity is ReaderDBPagerActivity) {
+                if (scrollY > oldScrollY && scrollY > 0) activity.hideOverlay()
+                if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) activity.showOverlay()
             }
             if (dataCenter.enableImmersiveMode && dataCenter.showNavbarAtChapterEnd) {
                 // Using deprecated WebView.scale due to WebViewClient.onScaleChanged being completely unreliable.
@@ -158,7 +156,7 @@ class WebPageDBFragment : BaseFragment() {
 //            }
 //    }
 
-    @SuppressLint("JavascriptInterface", "AddJavascriptInterface")
+    @SuppressLint("JavascriptInterface", "AddJavascriptInterface", "ClickableViewAccessibility")
     private fun setWebView() {
         binding.readerWebView.setDefaultSettings()
         binding.readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
@@ -166,6 +164,19 @@ class WebPageDBFragment : BaseFragment() {
         binding.readerWebView.settings.userAgentString = HostNames.USER_AGENT
         binding.readerWebView.setBackgroundColor(Color.argb(1, 0, 0, 0))
         binding.readerWebView.addJavascriptInterface(this, "HTMLOUT")
+
+        // Detect single taps on the WebView to toggle the reader overlay
+        val gestureDetector = android.view.GestureDetector(requireContext(), object : android.view.GestureDetector.SimpleOnGestureListener() {
+            override fun onSingleTapConfirmed(e: android.view.MotionEvent): Boolean {
+                (activity as? ReaderDBPagerActivity)?.toggleOverlay()
+                return true
+            }
+        })
+        binding.readerWebView.setOnTouchListener { v, event ->
+            gestureDetector.onTouchEvent(event)
+            false // Let the WebView handle the event too (scrolling, links, etc.)
+        }
+
         binding.readerWebView.webViewClient = object : WebViewClient() {
             @Suppress("OverridingDeprecatedMember")
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
