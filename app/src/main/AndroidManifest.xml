@@ -117,6 +117,10 @@
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
+            android:name=".activity.AiTtsControlsActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:exported="false" />
+        <activity
             android:name=".activity.ImagePreviewActivity"
             android:label=""
             android:screenOrientation="fullUser"
@@ -200,6 +204,16 @@
             android:label="@string/title_activity_tts_settings"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide"/>
+        <activity
+            android:name=".activity.settings.AiTtsSettingsActivity"
+            android:label="@string/title_activity_ai_tts_settings"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:exported="false" />
+        <activity
+            android:name=".activity.settings.AiTtsManageModelsActivity"
+            android:label="@string/title_activity_ai_tts_manage_models"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:exported="false" />
         <activity
             android:name=".activity.settings.SyncLoginActivity"
             android:label="@string/title_activity_sync_login"
@@ -285,6 +299,16 @@
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
+
+        <service
+            android:name=".service.ai_tts.AiTtsService"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+
         <receiver android:name="androidx.media.session.MediaButtonReceiver"
             android:exported="true">
             <intent-filter>

@@ -85,7 +85,7 @@ class MainSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     override fun bind(item: String, itemView: View, position: Int) {
         val itemBinding = ListitemSettingsBinding.bind(itemView)
         itemBinding.settingsTitle.applyFont(assets).text = item
-        itemBinding.chevron.visibility = if (position < 4) View.VISIBLE else View.INVISIBLE
+        itemBinding.chevron.visibility = if (position < 5) View.VISIBLE else View.INVISIBLE
         itemView.setBackgroundColor(
             if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
             else ContextCompat.getColor(this, android.R.color.transparent)
@@ -98,6 +98,7 @@ class MainSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
             getString(R.string.reader) -> startReaderSettingsActivity()
             getString(R.string.mentions) -> startMentionSettingsActivity()
             getString(R.string.title_read_aloud) -> startTTSSettingsActivity()
+            getString(R.string.title_activity_ai_tts_settings) -> startAiTtsSettingsActivity()
             getString(R.string.sync) -> startSyncSettingsSelectionActivity() //underConstructionDialog("NovelSync is under a rewrite and will be back in future releases!")
             getString(R.string.donate_developer) -> donateDeveloperDialog()
             getString(R.string.about_us) -> aboutUsDialog()

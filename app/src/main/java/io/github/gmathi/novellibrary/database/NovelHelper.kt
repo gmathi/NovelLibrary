@@ -76,7 +76,14 @@ fun DBHelper.getNovelFromQuery(selectQuery: String, selectionArgs: Array<String>
 fun getNovelFromCursor(cursor: Cursor): Novel {
     val novel = Novel(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_NAME)), cursor.getString(cursor.getColumnIndex(DBKeys.KEY_URL)), cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_SOURCE_ID)))
     novel.id = cursor.getLong(cursor.getColumnIndex(DBKeys.KEY_ID))
-    novel.metadata = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
+    novel.metadata = try {
+        Gson().fromJson(
+            cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)),
+            object : TypeToken<HashMap<String, String?>>() {}.type
+        ) ?: HashMap()
+    } catch (e: Exception) {
+        HashMap()
+    }
     novel.imageUrl = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_IMAGE_URL))
     novel.rating = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_RATING))
     novel.shortDescription = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_SHORT_DESCRIPTION))
@@ -94,34 +101,42 @@ fun getNovelFromCursor(cursor: Cursor): Novel {
 fun DBHelper.getAllNovels(): List<Novel> {
     val selectQuery = "SELECT * FROM novel ORDER BY ${DBKeys.KEY_ORDER_ID} ASC"
     Logs.debug(LOG, selectQuery)
-    val db = this.readableDatabase
-    val cursor = db.rawQuery(selectQuery, null)
     val list = ArrayList<Novel>()
-    if (cursor != null) {
-        if (cursor.moveToFirst()) {
-            do {
-                val novel = getNovelFromCursor(cursor)
-                list.add(novel)
-            } while (cursor.moveToNext())
+    try {
+        val db = this.readableDatabase
+        val cursor = db.rawQuery(selectQuery, null)
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    val novel = getNovelFromCursor(cursor)
+                    list.add(novel)
+                } while (cursor.moveToNext())
+            }
+            cursor.close()
         }
-        cursor.close()
+    } catch (e: Exception) {
+        Logs.error(LOG, "Error getting all novels", e)
     }
     return list
 }
 
 fun DBHelper.getAllNovels(novelSectionId: Long): List<Novel> {
     val selectQuery = "SELECT * FROM novel WHERE ${DBKeys.KEY_NOVEL_SECTION_ID} = $novelSectionId ORDER BY ${DBKeys.KEY_ORDER_ID} ASC"
-    val db = this.readableDatabase
-    val cursor = db.rawQuery(selectQuery, null)
     val list = ArrayList<Novel>()
-    if (cursor != null) {
-        if (cursor.moveToFirst()) {
-            do {
-                val novel = getNovelFromCursor(cursor)
-                list.add(novel)
-            } while (cursor.moveToNext())
+    try {
+        val db = this.readableDatabase
+        val cursor = db.rawQuery(selectQuery, null)
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    val novel = getNovelFromCursor(cursor)
+                    list.add(novel)
+                } while (cursor.moveToNext())
+            }
+            cursor.close()
         }
-        cursor.close()
+    } catch (e: Exception) {
+        Logs.error(LOG, "Error getting novels for section $novelSectionId", e)
     }
     return list
 }
@@ -177,6 +192,26 @@ fun DBHelper.updateNovelOrderId(novelId: Long, orderId: Long) {
     val values = ContentValues()
     values.put(DBKeys.KEY_ORDER_ID, orderId)
     this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
+}
+
+fun DBHelper.updateNovelOrderIds(novels: List<Novel>) {
+    try {
+        val db = this.writableDatabase
+        db.beginTransaction()
+        try {
+            val values = ContentValues()
+            for (i in novels.indices) {
+                values.clear()
+                values.put(DBKeys.KEY_ORDER_ID, i.toLong())
+                db.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novels[i].id.toString()))
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    } catch (e: Exception) {
+        Logs.error(LOG, "Error updating novel order IDs", e)
+    }
 }
 
 fun DBHelper.updateNovelSectionId(novelId: Long, novelSectionId: Long) {

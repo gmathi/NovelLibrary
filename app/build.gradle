@@ -24,8 +24,8 @@ android {
         minSdk 23
         targetSdk 36
         multiDexEnabled true
-        versionCode 126
-        versionName "1.2.2"
+        versionCode 127
+        versionName "1.2.3.beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -195,6 +195,10 @@ dependencies {
     implementation libs.androidx.room.runtime
     implementation libs.androidx.room.ktx
     ksp libs.androidx.room.compiler
+
+    // AI / TTS
+    implementation libs.sherpa.onnx
+    implementation libs.androidx.media  // force 1.7.0+ for FLAG_IMMUTABLE fix in MediaSessionCompat
 
     // Utilities
     implementation libs.eventbus

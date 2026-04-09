@@ -51,6 +51,7 @@
         <item>@string/general</item>
         <item>@string/reader</item>
         <item>@string/title_read_aloud</item>
+        <item>@string/title_activity_ai_tts_settings</item>
         <item>@string/mentions</item>
         <item>@string/sync</item>
         <item>@string/donate_developer</item>
@@ -828,4 +829,59 @@
     <string name="nu_api_fetch">Use API for Chapters</string>
     <string name="nu_api_fetch_description">Download chapters using API instead of Doc for NU</string>
     <string name="reader_menu">Reader Menu</string>
+
+    <string name="use_ai_tts">Use AI TTS</string>
+    <string name="use_ai_tts_subtitle">Use AI-powered TTS engine (SherpaOnnx)</string>
+
+    <!-- AI TTS -->
+    <string name="title_activity_ai_tts_controls">AI TTS Controls</string>
+    <string name="title_activity_ai_tts_settings">AI TTS Settings</string>
+    <string name="title_activity_ai_tts_manage_models">Manage Models</string>
+
+    <!-- AI TTS Controls screen -->
+    <string name="ai_tts_quick_settings">Quick Settings</string>
+    <string name="ai_tts_speech_rate_label">Speech Rate</string>
+    <string name="ai_tts_pitch_label">Pitch</string>
+    <string name="ai_tts_auto_read_next_chapter">Auto-read Next Chapter</string>
+    <string name="ai_tts_keep_screen_on">Keep Screen On</string>
+    <string name="ai_tts_no_content_loaded">No content loaded</string>
+    <string name="ai_tts_error_prefix">Error: %1$s</string>
+
+    <!-- AI TTS playback control content descriptions -->
+    <string name="ai_tts_cd_back">Back</string>
+    <string name="ai_tts_cd_settings">Settings</string>
+    <string name="ai_tts_cd_previous_chapter">Previous Chapter</string>
+    <string name="ai_tts_cd_previous_sentence">Previous Sentence</string>
+    <string name="ai_tts_cd_play">Play</string>
+    <string name="ai_tts_cd_pause">Pause</string>
+    <string name="ai_tts_cd_next_sentence">Next Sentence</string>
+    <string name="ai_tts_cd_next_chapter">Next Chapter</string>
+
+    <!-- AI TTS Settings screen -->
+    <string name="ai_tts_section_playback">Playback</string>
+    <string name="ai_tts_section_voice_model">Voice &amp; Model</string>
+    <string name="ai_tts_auto_read_next_chapter_subtitle">Automatically continue to the next chapter</string>
+    <string name="ai_tts_keep_screen_on_subtitle">Prevent screen from turning off during playback</string>
+    <string name="ai_tts_volume_normalization">Volume Normalization</string>
+    <string name="ai_tts_volume_normalization_subtitle">Normalize audio volume across sentences</string>
+    <string name="ai_tts_active_voice">Active Voice</string>
+    <string name="ai_tts_manage_models">Manage Models</string>
+    <string name="ai_tts_manage_models_subtitle">Download or delete voice models</string>
+
+    <!-- AI TTS voice picker dialog -->
+    <string name="ai_tts_dialog_select_voice">Select Voice</string>
+    <string name="ai_tts_dialog_cancel">Cancel</string>
+
+    <!-- VITS-Piper model management -->
+    <string name="tts_ai_model_not_downloaded">Not Downloaded</string>
+    <string name="tts_ai_model_downloading">Downloading: %d%%</string>
+    <string name="tts_ai_model_ready">Ready</string>
+    <string name="tts_ai_model_size">Model size: %.1f MB</string>
+    <string name="tts_ai_model_download">Download Model</string>
+    <string name="tts_ai_model_delete">Delete Model</string>
+    <string name="tts_ai_model_download_prompt">Download AI TTS model to use AI voices. This will download approximately 50MB of data.</string>
+    <string name="tts_ai_model_delete_confirm">Delete AI TTS model? This will free up approximately %.1f MB of storage.</string>
+    <string name="tts_ai_model_download_failed">Model download failed: %s</string>
+    <string name="tts_ai_model_not_enough_storage">Not enough storage space. Need at least 50MB free.</string>
+    <string name="tts_ai_unsupported_device">AI TTS is not supported on this device architecture</string>
 </resources>

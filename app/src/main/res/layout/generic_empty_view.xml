@@ -28,7 +28,6 @@
             android:layout_marginRight="8dp"
             android:layout_marginBottom="4dp"
             android:visibility="visible"
-            app:lottie_autoPlay="true"
             app:lottie_loop="true"
             app:lottie_url="https://assets7.lottiefiles.com/datafiles/kdNSsX7MXeXXT1u/data.json" />
 

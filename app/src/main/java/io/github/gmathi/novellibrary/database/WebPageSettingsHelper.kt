@@ -86,7 +86,14 @@ private fun getWebPageSettingsFromCursor(cursor: Cursor): WebPageSettings {
     webPageSettings.title = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_TITLE))
     webPageSettings.filePath = cursor.getString(cursor.getColumnIndex(DBKeys.KEY_FILE_PATH))
     webPageSettings.isRead = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_IS_READ)) == 1
-    webPageSettings.metadata = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<HashMap<String, String>>() {}.type)
+    webPageSettings.metadata = try {
+        Gson().fromJson(
+            cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)),
+            object : TypeToken<HashMap<String, String?>>() {}.type
+        ) ?: HashMap()
+    } catch (e: Exception) {
+        HashMap()
+    }
     return webPageSettings
 }
 
@@ -123,5 +130,4 @@ fun DBHelper.deleteWebPageSettings(url: String, db: SQLiteDatabase? = null) {
     val writableDatabase = db ?: this.writableDatabase
     writableDatabase.delete(DBKeys.TABLE_WEB_PAGE_SETTINGS, "${DBKeys.KEY_URL} = ?", arrayOf(url))
 }
-
 

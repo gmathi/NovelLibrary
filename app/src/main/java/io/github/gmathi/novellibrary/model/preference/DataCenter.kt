@@ -121,6 +121,7 @@ class DataCenter(context: Context) {
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
     val ttsPreferences = TTSPreferences(context, prefs)
+    val aiTtsPreferences = AiTtsPreferences(context, prefs)
 
 
     fun internalGet(closure: SharedPreferences.()->Unit) = closure(prefs)
@@ -496,4 +497,8 @@ class DataCenter(context: Context) {
     var useNUAPIFetch: Boolean
         get() = prefs.getBoolean(USE_NU_API_FETCH, true)
         set(value) = prefs.edit().putBoolean(USE_NU_API_FETCH, value).apply()
+
+    var useAiTts: Boolean
+        get() = prefs.getBoolean("useAiTts", false)
+        set(value) = prefs.edit().putBoolean("useAiTts", value).apply()
 }
