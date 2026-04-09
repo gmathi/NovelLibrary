@@ -33,6 +33,9 @@ import io.github.gmathi.novellibrary.util.system.startExtensionsPagerActivity
 import io.github.gmathi.novellibrary.util.system.startNovelDownloadsActivity
 import io.github.gmathi.novellibrary.util.system.startRecentNovelsPagerActivity
 import io.github.gmathi.novellibrary.util.system.startSettingsActivity
+import io.github.gmathi.novellibrary.network.AppUpdateChecker
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import java.util.Date
 import kotlin.random.Random
 
@@ -71,6 +74,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         checkIntentForNotificationData()
         loadFragment(currentNavId)
         showWhatsNewDialog()
+        checkForAppUpdate()
         currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
 
         if (intent.hasExtra("showDownloads")) {
@@ -92,6 +96,12 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 positiveButton(text = "Ok")
             }
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
+        }
+    }
+
+    private fun checkForAppUpdate() {
+        lifecycleScope.launch {
+            AppUpdateChecker(applicationContext).checkAndPromptUpdate()
         }
     }
 

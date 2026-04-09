@@ -55,7 +55,7 @@
         <item>@string/mentions</item>
         <item>@string/sync</item>
         <item>@string/donate_developer</item>
-<!--        <item>@string/check_for_updates</item>-->
+        <item>@string/check_for_updates</item>
         <item>@string/about_us</item>
         <!--        <item>@string/cloud_flare_check</item>-->
     </string-array>
@@ -114,6 +114,7 @@
         <item>@string/show_chapters_left_badge</item>
         <item>@string/dns_over_https</item>
         <item>@string/nu_api_fetch</item>
+        <item>@string/auto_app_update</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
@@ -126,6 +127,7 @@
         <item>@string/show_chapters_left_badge_description</item>
         <item>@string/dns_over_https_description</item>
         <item>@string/nu_api_fetch_description</item>
+        <item>@string/auto_app_update_description</item>
     </string-array>
 
     <string-array name="dns_over_https_list" translatable="false">
@@ -825,6 +827,14 @@
 
 
     <string name="check_for_updates">Check For Update</string>
+
+    <string name="auto_app_update">Auto App Update</string>
+    <string name="auto_app_update_description">Automatically check for and download app updates on launch</string>
+    <string name="channel_app_update">App updates</string>
+    <string name="app_update_available">Update Available: v%s</string>
+    <string name="app_update_downloading">Downloading update…</string>
+    <string name="app_update_tap_to_install">Tap to install v%s</string>
+    <string name="app_update_download_failed">Update download failed</string>
 
     <string name="nu_api_fetch">Use API for Chapters</string>
     <string name="nu_api_fetch_description">Download chapters using API instead of Doc for NU</string>

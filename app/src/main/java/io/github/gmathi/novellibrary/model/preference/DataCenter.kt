@@ -117,6 +117,9 @@ class DataCenter(context: Context) {
 
         //Extensions
         const val AUTOMATIC_EXT_UPDATES = "automaticExtUpdates"
+
+        //App Auto Update
+        private const val ENABLE_AUTO_APP_UPDATE = "enableAutoAppUpdate"
     }
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -501,4 +504,8 @@ class DataCenter(context: Context) {
     var useAiTts: Boolean
         get() = prefs.getBoolean("useAiTts", false)
         set(value) = prefs.edit().putBoolean("useAiTts", value).apply()
+
+    var enableAutoAppUpdate: Boolean
+        get() = prefs.getBoolean(ENABLE_AUTO_APP_UPDATE, true)
+        set(value) = prefs.edit().putBoolean(ENABLE_AUTO_APP_UPDATE, value).apply()
 }

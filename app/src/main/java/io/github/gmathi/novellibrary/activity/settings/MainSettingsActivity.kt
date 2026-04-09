@@ -29,6 +29,9 @@ import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
+import io.github.gmathi.novellibrary.network.AppUpdateChecker
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import nl.dionsegijn.konfetti.models.Shape
 import nl.dionsegijn.konfetti.models.Size
 
@@ -226,9 +229,10 @@ class MainSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     private fun checkForUpdates() {
-//        val snackProgressBar = SnackProgressBar(SnackProgressBar.TYPE_HORIZONTAL, "Checking Updates…")
-//        snackProgressBar.setIsIndeterminate(true)
-//        snackProgressBar
-
+        Toast.makeText(this, "Checking for updates…", Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            val checker = AppUpdateChecker(applicationContext)
+            checker.checkAndPromptUpdate(force = true)
+        }
     }
 }
