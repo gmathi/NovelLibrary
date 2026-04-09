@@ -76,6 +76,12 @@ object Notifications {
     const val CHANNEL_AI_TTS_DOWNLOAD = "ai_tts_download_channel"
     const val ID_AI_TTS_DOWNLOAD = -702
 
+    /**
+     * Notification channel and ids used by the app auto-updater.
+     */
+    const val CHANNEL_APP_UPDATE = "app_update_channel"
+    const val ID_APP_UPDATE = -801
+
     private val deprecatedChannels = listOf(
         "downloader_channel", "backup_restore_complete_channel"
     )
@@ -171,7 +177,10 @@ object Notifications {
             ).apply {
                 setSound(null, null)
                 enableVibration(false)
-            }
+            },
+            NotificationChannel(
+                CHANNEL_APP_UPDATE, context.getString(R.string.channel_app_update), NotificationManager.IMPORTANCE_DEFAULT
+            )
         ).forEach(context.notificationManager::createNotificationChannel)
 
         // Delete old notification channels
