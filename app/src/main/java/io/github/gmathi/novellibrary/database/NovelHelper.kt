@@ -194,6 +194,26 @@ fun DBHelper.updateNovelOrderId(novelId: Long, orderId: Long) {
     this.writableDatabase.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novelId.toString())).toLong()
 }
 
+fun DBHelper.updateNovelOrderIds(novels: List<Novel>) {
+    try {
+        val db = this.writableDatabase
+        db.beginTransaction()
+        try {
+            val values = ContentValues()
+            for (i in novels.indices) {
+                values.clear()
+                values.put(DBKeys.KEY_ORDER_ID, i.toLong())
+                db.update(DBKeys.TABLE_NOVEL, values, DBKeys.KEY_ID + " = ?", arrayOf(novels[i].id.toString()))
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    } catch (e: Exception) {
+        Logs.error(LOG, "Error updating novel order IDs", e)
+    }
+}
+
 fun DBHelper.updateNovelSectionId(novelId: Long, novelSectionId: Long) {
     val values = ContentValues()
     values.put(DBKeys.KEY_NOVEL_SECTION_ID, novelSectionId)

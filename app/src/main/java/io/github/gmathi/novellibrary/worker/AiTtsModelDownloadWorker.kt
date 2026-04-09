@@ -2,6 +2,8 @@ package io.github.gmathi.novellibrary.worker
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.work.*
 import io.github.gmathi.novellibrary.service.ai_tts.AiTtsModelManager
@@ -21,8 +23,39 @@ class AiTtsModelDownloadWorker(
     private val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
 
+    private fun buildProgressNotification(voiceId: String, percent: Int, message: String) =
+        NotificationCompat.Builder(applicationContext, Notifications.CHANNEL_AI_TTS_DOWNLOAD)
+            .setSmallIcon(android.R.drawable.stat_sys_download)
+            .setContentTitle("Downloading AI TTS model")
+            .setContentText("$voiceId — $message")
+            .setProgress(100, percent, percent == 0)
+            .setOngoing(true)
+            .setSilent(true)
+            .build()
+
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        val voiceId = inputData.getString(KEY_VOICE_ID) ?: "model"
+        val notification = buildProgressNotification(voiceId, 0, "Starting download…")
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ForegroundInfo(Notifications.ID_AI_TTS_DOWNLOAD, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            ForegroundInfo(Notifications.ID_AI_TTS_DOWNLOAD, notification)
+        }
+    }
+
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val voiceId = inputData.getString(KEY_VOICE_ID) ?: return@withContext Result.failure()
+
+        // Promote to foreground so the download survives screen exit and shows a notification
+        val fgNotification = buildProgressNotification(voiceId, 0, "Starting download…")
+        setForeground(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ForegroundInfo(Notifications.ID_AI_TTS_DOWNLOAD, fgNotification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            } else {
+                ForegroundInfo(Notifications.ID_AI_TTS_DOWNLOAD, fgNotification)
+            }
+        )
+
         val modelManager = AiTtsModelManager(applicationContext)
 
         // Find voice info
@@ -63,6 +96,7 @@ class AiTtsModelDownloadWorker(
             tempDir.listFiles()?.forEach { file ->
                 file.copyTo(File(modelDir, file.name), overwrite = true)
             }
+            tempDir.deleteRecursively()
 
             // Broadcast model ready.
             // setPackage() is required on Android 14+ to deliver to RECEIVER_NOT_EXPORTED
@@ -101,6 +135,9 @@ class AiTtsModelDownloadWorker(
     }
 
     private fun postProgress(voiceId: String, percent: Int, message: String) {
+        // Report progress via WorkManager so observers (e.g. Manage Models screen) can track it
+        setProgressAsync(workDataOf(KEY_VOICE_ID to voiceId, KEY_PROGRESS to percent))
+
         val notification = NotificationCompat.Builder(applicationContext, Notifications.CHANNEL_AI_TTS_DOWNLOAD)
             .setSmallIcon(android.R.drawable.stat_sys_download)
             .setContentTitle("Downloading AI TTS model")
@@ -162,7 +199,7 @@ class AiTtsModelDownloadWorker(
             return WorkManager.getInstance(context)
                 .enqueueUniqueWork(
                     "ai_tts_download_$voiceId",
-                    ExistingWorkPolicy.KEEP,
+                    ExistingWorkPolicy.REPLACE,
                     request
                 )
         }

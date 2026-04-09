@@ -129,20 +129,32 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun setData() {
         lifecycleScope.launch(Dispatchers.IO) {
-            updateOrderIds()
-            val novels = dbHelper.getAllNovels(novelSectionId)
-            withContext(Dispatchers.Main) {
-                adapter.updateData(ArrayList(novels))
-                binding.swipeRefreshLayout.isRefreshing = false
-                binding.progressLayout.showContent()
-                if (adapter.items.size == 0) {
+            try {
+                updateOrderIds()
+                val novels = dbHelper.getAllNovels(novelSectionId)
+                withContext(Dispatchers.Main) {
+                    adapter.updateData(ArrayList(novels))
+                    binding.swipeRefreshLayout.isRefreshing = false
+                    binding.progressLayout.showContent()
+                    if (adapter.items.size == 0) {
+                        binding.progressLayout.showEmpty(
+                            resId = R.raw.no_data_blob,
+                            isLottieAnimation = true,
+                            emptyText = "Your Library is empty!\nLet's start adding some from search screen…"
+                        )
+                    } else {
+                        binding.progressLayout.showContent()
+                    }
+                }
+            } catch (e: Exception) {
+                Logs.error(TAG, "Error loading library data", e)
+                withContext(Dispatchers.Main) {
+                    binding.swipeRefreshLayout.isRefreshing = false
                     binding.progressLayout.showEmpty(
                         resId = R.raw.no_data_blob,
                         isLottieAnimation = true,
-                        emptyText = "Your Library is empty!\nLet's start adding some from search screen…"
+                        emptyText = "Unable to load library. The database may be corrupted.\nPlease try clearing app data."
                     )
-                } else {
-                    binding.progressLayout.showContent()
                 }
             }
         }
@@ -369,7 +381,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun sortNovels(comparator: Comparator<Novel>) {
         adapter.updateData(ArrayList(adapter.items.sortedWith(comparator)))
-        updateOrderIds()
+        lifecycleScope.launch(Dispatchers.IO) { updateOrderIds() }
     }
 
     private fun sortNovelsByDate(metadataKey: String, ascending: Boolean) {
@@ -380,7 +392,7 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             } ?: if (ascending) Long.MAX_VALUE else Long.MIN_VALUE
         })
         adapter.updateData(ArrayList(if (ascending) sorted else sorted.reversed()))
-        updateOrderIds()
+        lifecycleScope.launch(Dispatchers.IO) { updateOrderIds() }
     }
 
     private fun syncNovels(novel: Novel? = null) {
@@ -501,7 +513,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun onPause() {
         super.onPause()
-        updateOrderIds()
+        lifecycleScope.launch(Dispatchers.IO) {
+            updateOrderIds()
+        }
     }
 
     override fun onStop() {
@@ -588,10 +602,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     private fun updateOrderIds() {
-        if (adapter.items.isNotEmpty())
-            for (i in 0 until adapter.items.size) {
-                dbHelper.updateNovelOrderId(adapter.items[i].id, i.toLong())
-            }
+        if (adapter.items.isEmpty()) return
+        val items = ArrayList(adapter.items)
+        dbHelper.updateNovelOrderIds(items)
     }
 
     @SuppressLint("CheckResult")

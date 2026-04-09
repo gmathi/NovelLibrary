@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
@@ -24,6 +25,7 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiTtsSettingsScreen(
+    useAiTts: Boolean = false,
     speechRate: Float = 1.0f,
     pitch: Float = 1.0f,
     autoReadNextChapter: Boolean = true,
@@ -35,6 +37,7 @@ fun AiTtsSettingsScreen(
     availableVoices: List<AiTtsVoiceInfo> = emptyList(),
     modelManager: AiTtsModelManager? = null,
     kokoroSpeakerId: Int = 0,
+    onUseAiTtsChange: (Boolean) -> Unit = {},
     onSpeechRateChange: (Float) -> Unit = {},
     onPitchChange: (Float) -> Unit = {},
     onAutoReadNextChapterChange: (Boolean) -> Unit = {},
@@ -61,6 +64,10 @@ fun AiTtsSettingsScreen(
             mm.availableVoices().count { mm.isModelDownloaded(it.id) }
         } ?: 0
     }
+    val isModelReady = remember(activeVoiceId) {
+        modelManager?.isModelDownloaded(activeVoiceId) == true
+    }
+    val settingsEnabled = useAiTts && isModelReady
     val totalSizeText = remember(activeVoiceId) {
         modelManager?.let { mm ->
             val totalBytes = mm.availableVoices()
@@ -148,6 +155,18 @@ fun AiTtsSettingsScreen(
                 .padding(paddingValues),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
+            item {
+                SwitchSettingRow(
+                    title = "Use AI TTS",
+                    subtitle = if (!isModelReady) "Download a model first to enable"
+                               else "Use AI-powered TTS engine (SherpaOnnx)",
+                    checked = useAiTts,
+                    enabled = isModelReady,
+                    onCheckedChange = onUseAiTtsChange
+                )
+            }
+            item { HorizontalDivider() }
+
             item { SectionHeader(title = "Playback") }
             item {
                 SliderSettingRow(
@@ -156,6 +175,7 @@ fun AiTtsSettingsScreen(
                     valueText = "${"%.2f".format(speechRate)}x",
                     valueRange = 0.5f..2.0f,
                     steps = 29,
+                    enabled = settingsEnabled,
                     onValueChange = onSpeechRateChange
                 )
             }
@@ -166,6 +186,7 @@ fun AiTtsSettingsScreen(
                     valueText = "${"%.2f".format(pitch)}x",
                     valueRange = 0.5f..2.0f,
                     steps = 29,
+                    enabled = settingsEnabled,
                     onValueChange = onPitchChange
                 )
             }
@@ -174,6 +195,7 @@ fun AiTtsSettingsScreen(
                     title = "Auto-read Next Chapter",
                     subtitle = "Automatically continue to the next chapter",
                     checked = autoReadNextChapter,
+                    enabled = settingsEnabled,
                     onCheckedChange = onAutoReadNextChapterChange
                 )
             }
@@ -182,6 +204,7 @@ fun AiTtsSettingsScreen(
                     title = "Keep Screen On",
                     subtitle = "Prevent screen from turning off during playback",
                     checked = keepScreenOn,
+                    enabled = settingsEnabled,
                     onCheckedChange = onKeepScreenOnChange
                 )
             }
@@ -190,6 +213,7 @@ fun AiTtsSettingsScreen(
                     title = "Volume Normalization",
                     subtitle = "Normalize audio volume across sentences",
                     checked = volumeNormalization,
+                    enabled = settingsEnabled,
                     onCheckedChange = onVolumeNormalizationChange
                 )
             }
@@ -200,6 +224,7 @@ fun AiTtsSettingsScreen(
                     title = "Smart Punctuation",
                     subtitle = "Add natural pauses at commas, periods, and other punctuation",
                     checked = smartPunctuation,
+                    enabled = settingsEnabled,
                     onCheckedChange = onSmartPunctuationChange
                 )
             }
@@ -208,6 +233,7 @@ fun AiTtsSettingsScreen(
                     title = "Emotion Tags (Beta)",
                     subtitle = "Process tags like [sad], [angry], [whisper] in text",
                     checked = emotionTags,
+                    enabled = settingsEnabled,
                     onCheckedChange = { enabled ->
                         if (enabled) showEmotionBetaDialog = true
                         else onEmotionTagsChange(false)
@@ -223,6 +249,7 @@ fun AiTtsSettingsScreen(
                         "${activeKokoroVoice.fullLabel}"
                     else
                         activeVoice?.name ?: activeVoiceId,
+                    enabled = settingsEnabled,
                     onClick = { showVoicePicker = true }
                 )
             }
@@ -284,9 +311,14 @@ private fun SliderSettingRow(
     valueText: String,
     valueRange: ClosedFloatingPointRange<Float>,
     steps: Int = 0,
+    enabled: Boolean = true,
     onValueChange: (Float) -> Unit
 ) {
-    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+    val contentAlpha = if (enabled) 1f else 0.38f
+    Column(modifier = Modifier
+        .padding(horizontal = 16.dp, vertical = 8.dp)
+        .alpha(contentAlpha)
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -299,6 +331,7 @@ private fun SliderSettingRow(
             onValueChange = onValueChange,
             valueRange = valueRange,
             steps = steps,
+            enabled = enabled,
             modifier = Modifier.fillMaxWidth()
         )
     }
@@ -309,13 +342,16 @@ private fun SwitchSettingRow(
     title: String,
     subtitle: String? = null,
     checked: Boolean,
+    enabled: Boolean = true,
     onCheckedChange: (Boolean) -> Unit
 ) {
+    val contentAlpha = if (enabled) 1f else 0.38f
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .then(if (enabled) Modifier.clickable { onCheckedChange(!checked) } else Modifier)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .alpha(contentAlpha),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
@@ -324,7 +360,7 @@ private fun SwitchSettingRow(
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Switch(checked = checked, onCheckedChange = if (enabled) onCheckedChange else null, enabled = enabled)
     }
 }
 
@@ -332,13 +368,16 @@ private fun SwitchSettingRow(
 private fun ChevronSettingRow(
     title: String,
     subtitle: String? = null,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
+    val contentAlpha = if (enabled) 1f else 0.38f
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .then(if (enabled) Modifier.clickable(onClick = onClick) else Modifier)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .alpha(contentAlpha),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {

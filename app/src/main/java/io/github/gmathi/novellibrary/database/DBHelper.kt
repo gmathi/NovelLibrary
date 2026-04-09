@@ -2,18 +2,34 @@ package io.github.gmathi.novellibrary.database
 
 import android.content.ContentValues
 import android.content.Context
+import android.database.DatabaseErrorHandler
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.logging.Logs
 
 class DBHelper
-private constructor(context: Context) : SQLiteOpenHelper(context, DBKeys.DATABASE_NAME, null, DBKeys.DATABASE_VERSION) {
+private constructor(private val appContext: Context) : SQLiteOpenHelper(
+    appContext,
+    DBKeys.DATABASE_NAME,
+    null,
+    DBKeys.DATABASE_VERSION,
+    DatabaseErrorHandler { dbObj ->
+        Logs.error(TAG, "Database corruption detected! Deleting corrupt database to allow recreation.")
+        try {
+            dbObj.close()
+        } catch (_: Exception) {}
+        appContext.deleteDatabase(DBKeys.DATABASE_NAME)
+        sInstance = null
+    }
+) {
 
     companion object {
         private const val TAG = "DBHelper"
 
+        @Volatile
         private var sInstance: DBHelper? = null
 
         @Synchronized

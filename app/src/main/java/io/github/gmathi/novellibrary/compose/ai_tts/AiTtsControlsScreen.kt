@@ -36,6 +36,8 @@ fun AiTtsControlsScreen(
     sentences: List<String> = emptyList(),
     playbackState: AiTtsPlaybackState = AiTtsPlaybackState.Idle,
     currentSentenceIndex: Int = 0,
+    isSynthesizing: Boolean = false,
+    isAudioPlaying: Boolean = false,
     speechRate: Float = 1.0f,
     pitch: Float = 1.0f,
     autoNextChapter: Boolean = true,
@@ -141,6 +143,8 @@ fun AiTtsControlsScreen(
             bottomBar = {
                 PlaybackControlsBar(
                     playbackState = playbackState,
+                    isSynthesizing = isSynthesizing,
+                    isAudioPlaying = isAudioPlaying,
                     onPlayPause = onPlayPause,
                     onStop = onStop,
                     onNextSentence = onNextSentence,
@@ -220,6 +224,8 @@ fun AiTtsControlsScreen(
 @Composable
 private fun PlaybackControlsBar(
     playbackState: AiTtsPlaybackState,
+    isSynthesizing: Boolean = false,
+    isAudioPlaying: Boolean = false,
     onPlayPause: () -> Unit,
     onStop: () -> Unit,
     onNextSentence: () -> Unit,
@@ -234,35 +240,43 @@ private fun PlaybackControlsBar(
         tonalElevation = 4.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onPrevChapter) {
-                Icon(Icons.Default.SkipPrevious, contentDescription = "Previous Chapter")
+        Column {
+            // Indeterminate progress bar only when synthesizing and no audio is playing yet
+            if (isSynthesizing && !isAudioPlaying) {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
-            IconButton(onClick = onPrevSentence) {
-                Icon(Icons.Default.FastRewind, contentDescription = "Previous Sentence")
-            }
-            if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.size(48.dp))
-            } else {
-                FilledIconButton(onClick = onPlayPause) {
-                    Icon(
-                        if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = if (isPlaying) "Pause" else "Play"
-                    )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onPrevChapter) {
+                    Icon(Icons.Default.SkipPrevious, contentDescription = "Previous Chapter")
                 }
-            }
-            IconButton(onClick = onNextSentence) {
-                Icon(Icons.Default.FastForward, contentDescription = "Next Sentence")
-            }
-            IconButton(onClick = onNextChapter) {
-                Icon(Icons.Default.SkipNext, contentDescription = "Next Chapter")
+                IconButton(onClick = onPrevSentence) {
+                    Icon(Icons.Default.FastRewind, contentDescription = "Previous Sentence")
+                }
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(48.dp))
+                } else {
+                    FilledIconButton(onClick = onPlayPause) {
+                        Icon(
+                            if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = if (isPlaying) "Pause" else "Play"
+                        )
+                    }
+                }
+                IconButton(onClick = onNextSentence) {
+                    Icon(Icons.Default.FastForward, contentDescription = "Next Sentence")
+                }
+                IconButton(onClick = onNextChapter) {
+                    Icon(Icons.Default.SkipNext, contentDescription = "Next Chapter")
+                }
             }
         }
     }

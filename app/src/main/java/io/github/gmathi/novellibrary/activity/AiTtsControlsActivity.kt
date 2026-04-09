@@ -31,6 +31,14 @@ class AiTtsControlsActivity : ComponentActivity() {
     private val sentences = MutableStateFlow<List<String>>(emptyList())
     private val playbackState = MutableStateFlow<AiTtsPlaybackState>(AiTtsPlaybackState.Idle)
     private val currentSentenceIndex = MutableStateFlow(0)
+    private val isSynthesizing = MutableStateFlow(false)
+    private val isAudioPlaying = MutableStateFlow(false)
+
+    // Quick settings state
+    private val speechRate = MutableStateFlow(1.0f)
+    private val pitch = MutableStateFlow(1.0f)
+    private val autoNextChapter = MutableStateFlow(true)
+    private val keepScreenOn = MutableStateFlow(false)
 
     private var mediaBrowser: MediaBrowserCompat? = null
     private var mediaController: MediaControllerCompat? = null
@@ -64,6 +72,12 @@ class AiTtsControlsActivity : ComponentActivity() {
             null
         ).also { it.connect() }
 
+        // Load quick settings from preferences
+        speechRate.value = prefs.speechRate
+        pitch.value = prefs.pitch
+        autoNextChapter.value = prefs.autoReadNextChapter
+        keepScreenOn.value = prefs.keepScreenOn
+
         // Sync local state flows from the service player whenever it is available
         syncServiceFlows()
 
@@ -72,6 +86,12 @@ class AiTtsControlsActivity : ComponentActivity() {
                 val sentenceList by sentences.collectAsState()
                 val state by playbackState.collectAsState()
                 val sentenceIndex by currentSentenceIndex.collectAsState()
+                val synthesizing by isSynthesizing.collectAsState()
+                val audioPlaying by isAudioPlaying.collectAsState()
+                val currentSpeechRate by speechRate.collectAsState()
+                val currentPitch by pitch.collectAsState()
+                val currentAutoNext by autoNextChapter.collectAsState()
+                val currentKeepScreenOn by keepScreenOn.collectAsState()
 
                 AiTtsControlsScreen(
                     novelTitle = novelTitle,
@@ -79,6 +99,30 @@ class AiTtsControlsActivity : ComponentActivity() {
                     sentences = sentenceList,
                     playbackState = state,
                     currentSentenceIndex = sentenceIndex,
+                    isSynthesizing = synthesizing,
+                    isAudioPlaying = audioPlaying,
+                    speechRate = currentSpeechRate,
+                    pitch = currentPitch,
+                    autoNextChapter = currentAutoNext,
+                    keepScreenOn = currentKeepScreenOn,
+                    onSpeechRateChange = { value ->
+                        speechRate.value = value
+                        dataCenter.aiTtsPreferences.speechRate = value
+                    },
+                    onPitchChange = { value ->
+                        pitch.value = value
+                        dataCenter.aiTtsPreferences.pitch = value
+                    },
+                    onAutoNextChapterChange = { value ->
+                        autoNextChapter.value = value
+                        dataCenter.aiTtsPreferences.autoReadNextChapter = value
+                    },
+                    onKeepScreenOnChange = { value ->
+                        keepScreenOn.value = value
+                        dataCenter.aiTtsPreferences.keepScreenOn = value
+                        if (value) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                        else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    },
                     onPlayPause = {
                         val ctrl = mediaController
                         if (ctrl != null) {
@@ -123,6 +167,14 @@ class AiTtsControlsActivity : ComponentActivity() {
         super.onResume()
         // Service may have started between onCreate and onResume; re-sync if flows are still empty
         if (sentences.value.isEmpty()) syncServiceFlows()
+        // Refresh quick settings from preferences (user may have changed them in settings)
+        val prefs = dataCenter.aiTtsPreferences
+        speechRate.value = prefs.speechRate
+        pitch.value = prefs.pitch
+        autoNextChapter.value = prefs.autoReadNextChapter
+        keepScreenOn.value = prefs.keepScreenOn
+        if (prefs.keepScreenOn) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     override fun onDestroy() {
@@ -172,6 +224,12 @@ class AiTtsControlsActivity : ComponentActivity() {
         }
         lifecycleScope.launch {
             player.currentSentenceIndex.collect { currentSentenceIndex.value = it }
+        }
+        lifecycleScope.launch {
+            player.isSynthesizing.collect { isSynthesizing.value = it }
+        }
+        lifecycleScope.launch {
+            player.isAudioPlaying.collect { isAudioPlaying.value = it }
         }
     }
 

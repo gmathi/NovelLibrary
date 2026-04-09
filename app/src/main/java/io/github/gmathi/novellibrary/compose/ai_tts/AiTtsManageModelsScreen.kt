@@ -16,11 +16,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
-import io.github.gmathi.novellibrary.service.ai_tts.AiTtsModelManager
 import io.github.gmathi.novellibrary.service.ai_tts.AiTtsVoiceInfo
 import io.github.gmathi.novellibrary.service.ai_tts.TtsEngineType
 import io.github.gmathi.novellibrary.service.ai_tts.ModelDownloadState
-import kotlinx.coroutines.launch
+import io.github.gmathi.novellibrary.viewmodel.AiTtsManageModelsViewModel
 
 // Filter options mirroring the reference project's sort/filter bottom sheet
 private enum class ModelFilter { ALL, DOWNLOAD, INSTALLED }
@@ -28,27 +27,17 @@ private enum class ModelFilter { ALL, DOWNLOAD, INSTALLED }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiTtsManageModelsScreen(
-    modelManager: AiTtsModelManager,
+    viewModel: AiTtsManageModelsViewModel,
     activeVoiceId: String = "",
     onVoiceSelected: (String) -> Unit = {},
     onNavigateBack: () -> Unit = {}
 ) {
-    val allVoices = remember { modelManager.availableVoices() }
-    val downloadStates = remember {
-        mutableStateMapOf<String, ModelDownloadState>().also { map ->
-            allVoices.forEach { voice ->
-                map[voice.id] = if (modelManager.isModelDownloaded(voice.id))
-                    ModelDownloadState.Downloaded
-                else
-                    ModelDownloadState.NotDownloaded
-            }
-        }
-    }
+    val allVoices = remember { viewModel.allVoices }
+    val downloadStates by viewModel.downloadStates.collectAsState()
 
     var activeFilter by remember { mutableStateOf(ModelFilter.ALL) }
     var showFilterSheet by remember { mutableStateOf(false) }
     var deleteConfirmVoice by remember { mutableStateOf<AiTtsVoiceInfo?>(null) }
-    val scope = rememberCoroutineScope()
 
     // Storage info
     val (storageUsedGb, storageTotalGb, storagePercent) = remember {
@@ -67,7 +56,7 @@ fun AiTtsManageModelsScreen(
         }
     }
 
-    val filteredVoices = remember(allVoices, activeFilter, downloadStates.toMap()) {
+    val filteredVoices = remember(allVoices, activeFilter, downloadStates) {
         allVoices.filter { voice ->
             when (activeFilter) {
                 ModelFilter.DOWNLOAD -> downloadStates[voice.id] !is ModelDownloadState.Downloaded
@@ -85,8 +74,7 @@ fun AiTtsManageModelsScreen(
             text = { Text("Delete \"${voice.name}\"? You will need to re-download it to use this voice.") },
             confirmButton = {
                 TextButton(onClick = {
-                    modelManager.deleteModel(voice.id)
-                    downloadStates[voice.id] = ModelDownloadState.NotDownloaded
+                    viewModel.deleteModel(voice.id)
                     if (activeVoiceId == voice.id) onVoiceSelected("")
                     deleteConfirmVoice = null
                 }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
@@ -262,28 +250,8 @@ fun AiTtsManageModelsScreen(
                             voice = voice,
                             state = downloadStates[voice.id] ?: ModelDownloadState.NotDownloaded,
                             isActive = voice.id == activeVoiceId,
-                            onDownload = {
-                                scope.launch {
-                                    modelManager.downloadModel(
-                                        voice = voice,
-                                        onProgress = { progress ->
-                                            downloadStates[voice.id] = ModelDownloadState.Downloading(progress)
-                                        },
-                                        onComplete = {
-                                            downloadStates[voice.id] = ModelDownloadState.Downloaded
-                                        },
-                                        onError = { error ->
-                                            downloadStates[voice.id] = ModelDownloadState.Error(error)
-                                        }
-                                    )
-                                }
-                            },
-                            onCancelDownload = {
-                                // Cancellation is handled by coroutine scope cancellation;
-                                // reset state to NotDownloaded
-                                downloadStates[voice.id] = ModelDownloadState.NotDownloaded
-                                modelManager.getModelDir(voice.id).deleteRecursively()
-                            },
+                            onDownload = { viewModel.downloadModel(voice.id) },
+                            onCancelDownload = { viewModel.cancelDownload(voice.id) },
                             onUseVoice = { onVoiceSelected(voice.id) },
                             onRemoveActive = { onVoiceSelected("") },
                             onDelete = { deleteConfirmVoice = voice }
@@ -377,7 +345,6 @@ private fun VoiceModelCard(
                 ) {
                     when {
                         isDownloading -> {
-                            // Cancel button
                             Button(
                                 onClick = onCancelDownload,
                                 colors = ButtonDefaults.buttonColors(
@@ -394,7 +361,6 @@ private fun VoiceModelCard(
                             }
                         }
                         isDownloaded -> {
-                            // Use Voice / Remove button
                             Button(
                                 onClick = if (isActive) onRemoveActive else onUseVoice,
                                 colors = ButtonDefaults.buttonColors(
@@ -411,7 +377,6 @@ private fun VoiceModelCard(
                                     style = MaterialTheme.typography.labelMedium
                                 )
                             }
-                            // Delete button
                             FilledTonalIconButton(
                                 onClick = onDelete,
                                 modifier = Modifier.size(32.dp)
@@ -425,7 +390,6 @@ private fun VoiceModelCard(
                             }
                         }
                         else -> {
-                            // Download button
                             Button(
                                 onClick = onDownload,
                                 colors = ButtonDefaults.buttonColors(

@@ -114,7 +114,6 @@
         <item>@string/show_chapters_left_badge</item>
         <item>@string/dns_over_https</item>
         <item>@string/nu_api_fetch</item>
-        <item>@string/use_ai_tts</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
@@ -127,7 +126,6 @@
         <item>@string/show_chapters_left_badge_description</item>
         <item>@string/dns_over_https_description</item>
         <item>@string/nu_api_fetch_description</item>
-        <item>@string/use_ai_tts_subtitle</item>
     </string-array>
 
     <string-array name="dns_over_https_list" translatable="false">

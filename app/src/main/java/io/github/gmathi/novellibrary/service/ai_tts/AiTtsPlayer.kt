@@ -14,8 +14,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.Random
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.atomic.AtomicBoolean
 
 private const val TAG = "AiTtsPlayer"
+
+/**
+ * Max number of pre-synthesized audio chunks to hold in the buffer.
+ * Producer pauses when the queue reaches this size and resumes when
+ * the player thread drains a slot.
+ */
+private const val MAX_BUFFER_CHUNKS = 10
 
 class AiTtsPlayer(
     private val modelManager: AiTtsModelManager,
@@ -29,6 +38,14 @@ class AiTtsPlayer(
     private val _currentSentenceIndex = MutableStateFlow(0)
     val currentSentenceIndex: StateFlow<Int> = _currentSentenceIndex.asStateFlow()
 
+    /** True while the producer is synthesizing audio before it reaches the playback queue. */
+    private val _isSynthesizing = MutableStateFlow(false)
+    val isSynthesizing: StateFlow<Boolean> = _isSynthesizing.asStateFlow()
+
+    /** True when the player thread is actively writing PCM to AudioTrack. */
+    private val _isAudioPlaying = MutableStateFlow(false)
+    val isAudioPlaying: StateFlow<Boolean> = _isAudioPlaying.asStateFlow()
+
     // --- Data ---
     private val _sentences = MutableStateFlow<List<String>>(emptyList())
     val sentences: StateFlow<List<String>> = _sentences.asStateFlow()
@@ -40,23 +57,35 @@ class AiTtsPlayer(
     // --- Coroutines ---
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var playbackJob: Job? = null
-    // Serializes native TTS synthesis so a new job always waits for the current
-    // generate() call to finish before loading/releasing the model.
     private val synthesisLock = Mutex()
 
     // --- Audio ---
-    // Reused across sentences to avoid per-sentence AudioTrack allocation/release overhead,
-    // which causes native OOM on the emulator (x86_64) with many sentences.
     private var audioTrack: AudioTrack? = null
     private var audioTrackSampleRate: Int = -1
-    // Soft jitter for punctuation silence — ±10% variation for natural pacing
     private val silenceJitterRandom = Random()
 
-    // --- Pre-buffering ---
-    // Holds pre-synthesized PCM data for the next sentence so playback can start
-    // immediately without waiting for synthesis.
-    private data class PreBufferedAudio(val sentenceIndex: Int, val pcmBytes: ByteArray, val sampleRate: Int)
-    private var preBuffer: PreBufferedAudio? = null
+    // --- Producer-Consumer streaming ---
+    /** Sentinel chunk pushed to signal the player thread that no more data is coming. */
+    private val SENTINEL = AudioChunk(-1, ByteArray(0), 0)
+
+    /**
+     * A chunk of synthesized PCM audio tagged with its sentence index so the
+     * player thread can update [_currentSentenceIndex] at the right moment.
+     */
+    private data class AudioChunk(
+        val sentenceIndex: Int,
+        val pcmBytes: ByteArray,
+        val sampleRate: Int
+    )
+
+    /** The bounded queue between the producer (synthesis) and consumer (playback). */
+    private var audioQueue: LinkedBlockingQueue<AudioChunk>? = null
+
+    /** Flag the player thread checks to know it should exit. */
+    private val stopRequested = AtomicBoolean(false)
+
+    /** The player thread handle so we can join on it during pause/stop. */
+    private var playerThread: Thread? = null
 
     fun setData(text: String, title: String, linkedPages: ArrayList<String>, chapterIndex: Int) {
         stop()
@@ -81,9 +110,12 @@ class AiTtsPlayer(
     fun pause() {
         if (_playbackState.value !is AiTtsPlaybackState.Playing) return
         Logs.debug(TAG, "pause: pausing at sentence ${_currentSentenceIndex.value}")
+        // Cancel the producer coroutine first
         playbackJob?.cancel()
-        releaseAudioTrack()
-        preBuffer = null
+        // Signal the player thread to stop and drain
+        stopPlayerThread()
+        _isSynthesizing.value = false
+        _isAudioPlaying.value = false
         _playbackState.value = AiTtsPlaybackState.Paused
         eventListener?.onPlaybackStateChanged(AiTtsPlaybackState.Paused)
     }
@@ -91,15 +123,14 @@ class AiTtsPlayer(
     fun stop() {
         Logs.debug(TAG, "stop: stopping playback")
         playbackJob?.cancel()
-        releaseAudioTrack()
-        preBuffer = null
+        stopPlayerThread()
+        _isSynthesizing.value = false
+        _isAudioPlaying.value = false
         _playbackState.value = AiTtsPlaybackState.Stopped
         _currentSentenceIndex.value = 0
         eventListener?.onPlaybackStateChanged(AiTtsPlaybackState.Stopped)
     }
 
-    /** Called by the service while the model files are being downloaded from the network.
-     *  [progress] is 0–100, or -1 if unknown. */
     fun setDownloadingModel(progress: Int = -1) {
         val state = AiTtsPlaybackState.DownloadingModel(progress)
         if (progress == -1) playbackJob?.cancel()
@@ -121,15 +152,13 @@ class AiTtsPlayer(
         seekToSentence(prev)
     }
 
-    /** Seek to an arbitrary sentence index. If currently playing, restarts playback from that sentence. */
     fun seekToSentence(index: Int) {
         val clamped = index.coerceIn(0, (_sentences.value.size - 1).coerceAtLeast(0))
         Logs.debug(TAG, "seekToSentence: seeking to $clamped/${_sentences.value.size}")
-        preBuffer = null
         _currentSentenceIndex.value = clamped
         if (_playbackState.value is AiTtsPlaybackState.Playing) {
             playbackJob?.cancel()
-            releaseAudioTrack()
+            stopPlayerThread()
             playbackJob = scope.launch { playSentencesFrom(clamped) }
         }
     }
@@ -147,14 +176,27 @@ class AiTtsPlayer(
     fun destroy() {
         Logs.debug(TAG, "destroy: releasing resources")
         scope.cancel()
-        releaseAudioTrack()
-        // scope.cancel() marks coroutines for cancellation but does NOT wait for any
-        // in-progress blocking native call (generate / loadModel) on nativeDispatcher to
-        // finish.  Acquiring synthesisLock here blocks until the current native call
-        // returns and releases the lock, guaranteeing the nativeDispatcher thread is idle
-        // before we release the OfflineTts native object.
+        stopPlayerThread()
         runBlocking { synthesisLock.withLock { modelManager.unloadModel() } }
         modelManager.close()
+    }
+
+    // ── Player thread management ─────────────────────────────────────────────
+
+    /** Stops the player thread, drains the queue, and releases AudioTrack. */
+    private fun stopPlayerThread() {
+        stopRequested.set(true)
+        // Unblock the player thread if it's waiting on an empty queue
+        audioQueue?.let { q ->
+            q.clear()
+            q.offer(SENTINEL)
+        }
+        playerThread?.let { t ->
+            try { t.join(2000) } catch (_: InterruptedException) {}
+        }
+        playerThread = null
+        audioQueue = null
+        releaseAudioTrack()
     }
 
     private fun releaseAudioTrack() {
@@ -166,7 +208,6 @@ class AiTtsPlayer(
         audioTrackSampleRate = -1
     }
 
-    /** Returns the speaker ID to use for generate() — Kokoro uses the stored speaker ID, VITS always 0. */
     private fun activeSpeakerId(): Int {
         return if (modelManager.getEngineType(preferences.voiceId) == TtsEngineType.KOKORO) {
             preferences.kokoroSpeakerId
@@ -175,10 +216,10 @@ class AiTtsPlayer(
         }
     }
 
-    // --- Internal ---
+    // ── Core producer-consumer pipeline ──────────────────────────────────────
 
     private suspend fun playSentencesFrom(startIndex: Int) {
-        Logs.debug(TAG, "playSentencesFrom: startIndex=$startIndex totalSentences=${_sentences.value.size} voiceId=${preferences.voiceId}")
+        Logs.debug(TAG, "playSentencesFrom: startIndex=$startIndex totalSentences=${_sentences.value.size}")
         _playbackState.value = AiTtsPlaybackState.LoadingModel
         eventListener?.onPlaybackStateChanged(AiTtsPlaybackState.LoadingModel)
 
@@ -200,105 +241,90 @@ class AiTtsPlayer(
             return
         }
 
-        Logs.debug(TAG, "playSentencesFrom: model loaded, starting playback")
+        Logs.debug(TAG, "playSentencesFrom: model loaded, starting streaming pipeline")
+
+        // Set up the bounded queue and player thread
+        stopRequested.set(false)
+        val queue = LinkedBlockingQueue<AudioChunk>(MAX_BUFFER_CHUNKS)
+        audioQueue = queue
+
+        // Start the consumer (player) thread — keeps AudioTrack playing continuously
+        val consumer = Thread({
+            Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
+            try {
+                while (!stopRequested.get()) {
+                    val chunk = try {
+                        queue.take() // blocks until a chunk is available
+                    } catch (_: InterruptedException) {
+                        break
+                    }
+                    if (chunk === SENTINEL || stopRequested.get()) break
+
+                    // Update current sentence on the main thread
+                    scope.launch(Dispatchers.Main) {
+                        _currentSentenceIndex.value = chunk.sentenceIndex
+                        eventListener?.onSentenceChanged(chunk.sentenceIndex, _sentences.value.getOrElse(chunk.sentenceIndex) { "" })
+                    }
+
+                    // Write PCM to AudioTrack (blocks until written — this is the streaming magic)
+                    _isAudioPlaying.value = true
+                    writeToAudioTrack(chunk.pcmBytes, chunk.sampleRate)
+                }
+            } catch (e: Exception) {
+                if (!stopRequested.get()) {
+                    Logs.error(TAG, "playerThread: error: ${e.message}", e)
+                }
+            }
+            _isAudioPlaying.value = false
+            Logs.debug(TAG, "playerThread: exiting")
+        }, "ai-tts-player")
+        playerThread = consumer
+        consumer.start()
+
         _playbackState.value = AiTtsPlaybackState.Playing
         eventListener?.onPlaybackStateChanged(AiTtsPlaybackState.Playing)
 
+        // Producer: synthesize sentences and push chunks into the bounded queue
         val sentenceList = _sentences.value
-        for (index in startIndex until sentenceList.size) {
-            if (!currentCoroutineContext().isActive) break
-            _currentSentenceIndex.value = index
-            val sentence = sentenceList[index]
-            Logs.debug(TAG, "playSentencesFrom: synthesizing sentence $index/${sentenceList.size}: '${sentence.take(60)}'")
-            eventListener?.onSentenceChanged(index, sentence)
+        try {
+            for (index in startIndex until sentenceList.size) {
+                if (!currentCoroutineContext().isActive || stopRequested.get()) break
+                val sentence = sentenceList[index]
+                Logs.debug(TAG, "producer: synthesizing sentence $index/${sentenceList.size}: '${sentence.take(60)}'")
 
-            // Check if we already have pre-buffered audio for this sentence
-            val cached = preBuffer
-            if (cached != null && cached.sentenceIndex == index) {
-                Logs.debug(TAG, "playSentencesFrom: using pre-buffered audio for sentence $index")
-                preBuffer = null
-                // Start pre-buffering the NEXT sentence while we play the cached one
-                val nextIndex = index + 1
-                val preBufJob = if (nextIndex < sentenceList.size && sentenceList[nextIndex].isNotBlank()) {
-                    scope.launch {
-                        try {
-                            val nextPcm = synthesizeToPcm(tts, sentenceList[nextIndex])
-                            if (nextPcm != null) {
-                                preBuffer = PreBufferedAudio(nextIndex, nextPcm.first, nextPcm.second)
-                                Logs.debug(TAG, "playSentencesFrom: pre-buffered sentence $nextIndex")
-                            }
-                        } catch (e: Exception) {
-                            Logs.warning(TAG, "playSentencesFrom: pre-buffer failed for sentence $nextIndex: ${e.message}")
-                        }
-                    }
-                } else null
-                try {
-                    // Play on IO dispatcher — AudioTrack.write is blocking I/O, not native TTS,
-                    // so the nativeDispatcher stays free for pre-buffering the next sentence.
-                    withContext(Dispatchers.IO) {
-                        playPcmOnAudioTrack(cached.pcmBytes, cached.sampleRate)
-                        if (preferences.smartPunctuation) {
-                            val silenceMs = getSentenceTrailingSilenceMs(sentence)
-                            if (silenceMs > 0) playPcmOnAudioTrack(createSilence(silenceMs, cached.sampleRate), cached.sampleRate)
-                        }
-                    }
-                } catch (e: Exception) {
-                    preBufJob?.cancel()
-                    throw e
-                }
-                preBufJob?.join()
-            } else {
-                // No pre-buffer available — synthesize, start pre-buffering next, then play
-                try {
-                    // Synthesize current sentence
-                    val currentPcm = if (sentence.isNotBlank() && !preferences.emotionTags) {
-                        synthesizeToPcm(tts, sentence)
-                    } else {
-                        null
-                    }
+                _isSynthesizing.value = true
+                val chunks = synthesizeSentence(tts, sentence, index)
+                _isSynthesizing.value = false
 
-                    if (currentPcm != null) {
-                        // Start pre-buffering the next sentence concurrently with playback
-                        val nextIndex = index + 1
-                        val preBufJob = if (nextIndex < sentenceList.size && sentenceList[nextIndex].isNotBlank() && currentCoroutineContext().isActive) {
-                            scope.launch {
-                                try {
-                                    val nextPcm = synthesizeToPcm(tts, sentenceList[nextIndex])
-                                    if (nextPcm != null) {
-                                        preBuffer = PreBufferedAudio(nextIndex, nextPcm.first, nextPcm.second)
-                                        Logs.debug(TAG, "playSentencesFrom: pre-buffered sentence $nextIndex")
-                                    }
-                                } catch (e: Exception) {
-                                    Logs.warning(TAG, "playSentencesFrom: pre-buffer failed for sentence $nextIndex: ${e.message}")
-                                }
-                            }
-                        } else null
-
-                        // Play current sentence on IO dispatcher (lock is NOT held,
-                        // nativeDispatcher is free for pre-buffer synthesis)
-                        withContext(Dispatchers.IO) {
-                            playPcmOnAudioTrack(currentPcm.first, currentPcm.second)
-                            if (preferences.smartPunctuation) {
-                                val silenceMs = getSentenceTrailingSilenceMs(sentence)
-                                if (silenceMs > 0) playPcmOnAudioTrack(createSilence(silenceMs, currentPcm.second), currentPcm.second)
-                            }
-                        }
-                        preBufJob?.join()
-                    } else {
-                        // Emotion tags path or blank — falls back to synthesizeAndPlay
-                        synthesizeAndPlay(tts, sentence)
-                    }
-                } catch (e: Exception) {
-                    Logs.error(TAG, "playSentencesFrom: synthesizeAndPlay failed at index $index: ${e.message}", e)
-                    _playbackState.value = AiTtsPlaybackState.Error(e.message ?: "Synthesis failed")
-                    eventListener?.onPlaybackStateChanged(_playbackState.value)
-                    eventListener?.onError(e.message ?: "Synthesis failed")
-                    return
+                for (chunk in chunks) {
+                    if (!currentCoroutineContext().isActive || stopRequested.get()) break
+                    // put() blocks if the queue is full — this is the back-pressure mechanism
+                    withContext(Dispatchers.IO) { queue.put(chunk) }
                 }
             }
+        } catch (_: CancellationException) {
+            _isSynthesizing.value = false
+            Logs.debug(TAG, "producer: cancelled")
+        } catch (e: Exception) {
+            _isSynthesizing.value = false
+            Logs.error(TAG, "producer: synthesis error: ${e.message}", e)
+            _playbackState.value = AiTtsPlaybackState.Error(e.message ?: "Synthesis failed")
+            eventListener?.onPlaybackStateChanged(_playbackState.value)
+            eventListener?.onError(e.message ?: "Synthesis failed")
+            stopRequested.set(true)
+            queue.clear()
+            queue.offer(SENTINEL)
+            return
         }
 
-        if (currentCoroutineContext().isActive) {
+        if (currentCoroutineContext().isActive && !stopRequested.get()) {
+            // Signal end-of-stream and wait for the player thread to finish draining
+            queue.put(SENTINEL)
+            withContext(Dispatchers.IO) {
+                try { consumer.join() } catch (_: InterruptedException) {}
+            }
+            releaseAudioTrack()
+
             if (preferences.autoReadNextChapter) {
                 Logs.debug(TAG, "playSentencesFrom: chapter complete, advancing to next chapter")
                 eventListener?.onChapterChanged(chapterIndex + 1)
@@ -310,51 +336,34 @@ class AiTtsPlayer(
         }
     }
 
-    private suspend fun synthesizeAndPlay(
+    /**
+     * Synthesizes a single sentence into one or more [AudioChunk]s.
+     * For emotion-tag mode, each sub-chunk (text between tags/punctuation) becomes
+     * its own chunk with silence injected as separate zero-PCM chunks.
+     * For normal mode, the whole sentence is one chunk plus optional trailing silence.
+     */
+    private suspend fun synthesizeSentence(
         tts: com.k2fsa.sherpa.onnx.OfflineTts,
-        sentence: String
-    ) {
-        if (sentence.isBlank()) return
-        // Synthesize under the lock, then play outside it so pre-buffering can proceed concurrently.
-        val pcmResult = synthesisLock.withLock {
-            withContext(modelManager.nativeDispatcher) {
-                Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
-                Logs.debug(TAG, "synthesizeAndPlay: generating audio for sentence length=${sentence.length} speed=${preferences.speechRate}")
+        sentence: String,
+        sentenceIndex: Int
+    ): List<AudioChunk> {
+        if (sentence.isBlank()) return emptyList()
 
-                if (preferences.emotionTags) {
-                    processWithEmotionTags(tts, sentence)
-                    null // emotion path plays inline
-                } else {
-                    val sid = activeSpeakerId()
-                    val audio = tts.generate(text = sentence, sid = sid, speed = preferences.speechRate)
-                    Logs.debug(TAG, "synthesizeAndPlay: generated ${audio.samples.size} samples at ${audio.sampleRate}Hz")
-                    var pcmBytes = floatsToPcm16(audio.samples)
-                    if (preferences.volumeNormalization) {
-                        pcmBytes = normalizePcmVolume(pcmBytes)
-                    }
-                    Triple(pcmBytes, audio.sampleRate, sentence)
+        return if (preferences.emotionTags) {
+            synthesizeWithEmotionTags(tts, sentence, sentenceIndex)
+        } else {
+            val pcm = synthesizeToPcm(tts, sentence) ?: return emptyList()
+            val chunks = mutableListOf(AudioChunk(sentenceIndex, pcm.first, pcm.second))
+            if (preferences.smartPunctuation) {
+                val silenceMs = getSentenceTrailingSilenceMs(sentence)
+                if (silenceMs > 0) {
+                    chunks.add(AudioChunk(sentenceIndex, createSilence(silenceMs, pcm.second), pcm.second))
                 }
             }
-        }
-        // Play outside the lock so pre-buffering of the next sentence can start
-        if (pcmResult != null) {
-            withContext(Dispatchers.IO) {
-                playPcmOnAudioTrack(pcmResult.first, pcmResult.second)
-                if (preferences.smartPunctuation) {
-                    val silenceMs = getSentenceTrailingSilenceMs(pcmResult.third)
-                    if (silenceMs > 0) {
-                        playPcmOnAudioTrack(createSilence(silenceMs, pcmResult.second), pcmResult.second)
-                    }
-                }
-            }
+            chunks
         }
     }
 
-    /**
-     * Synthesizes a sentence to PCM bytes without playing it.
-     * Used for pre-buffering the next sentence while the current one plays.
-     * Returns (pcmBytes, sampleRate) or null if the sentence is blank.
-     */
     private suspend fun synthesizeToPcm(
         tts: com.k2fsa.sherpa.onnx.OfflineTts,
         sentence: String
@@ -363,7 +372,6 @@ class AiTtsPlayer(
         return synthesisLock.withLock {
             withContext(modelManager.nativeDispatcher) {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
-                Logs.debug(TAG, "synthesizeToPcm: generating audio for sentence length=${sentence.length}")
                 val sid = activeSpeakerId()
                 val audio = tts.generate(text = sentence, sid = sid, speed = preferences.speechRate)
                 if (audio.samples.isEmpty()) return@withContext null
@@ -376,22 +384,20 @@ class AiTtsPlayer(
         }
     }
 
-    /**
-     * Emotion profile applied as DSP post-processing on generated PCM.
-     * Mirrors the reference project's AudioEmotionHelper.
-     */
+    // ── Emotion tags ─────────────────────────────────────────────────────────
+
     private data class EmotionProfile(
         val volume: Float = 1.0f,
         val speed: Float = 1.0f,
         val attackTimeMs: Int = 1500
     )
 
-    /**
-     * Parses emotion tags like [sad], [angry], [whisper] and punctuation from the sentence,
-     * generates audio for each text chunk with the active emotion profile, and injects
-     * punctuation-based silence. Mirrors the reference AudioEmotionHelper.processAndGenerate().
-     */
-    private fun processWithEmotionTags(tts: com.k2fsa.sherpa.onnx.OfflineTts, sentence: String) {
+    private suspend fun synthesizeWithEmotionTags(
+        tts: com.k2fsa.sherpa.onnx.OfflineTts,
+        sentence: String,
+        sentenceIndex: Int
+    ): List<AudioChunk> {
+        val chunks = mutableListOf<AudioChunk>()
         val baseSpeed = preferences.speechRate
         val sid = activeSpeakerId()
         var currentProfile = EmotionProfile(speed = baseSpeed)
@@ -403,20 +409,24 @@ class AiTtsPlayer(
         for (match in regex.findAll(sentence)) {
             val textChunk = sentence.substring(lastEnd, match.range.first).trim()
             if (textChunk.isNotEmpty() && !textChunk.matches(Regex("""\[[a-zA-Z]+]"""))) {
-                val audio = tts.generate(text = textChunk, sid = sid, speed = currentProfile.speed)
+                val audio = synthesisLock.withLock {
+                    withContext(modelManager.nativeDispatcher) {
+                        Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
+                        tts.generate(text = textChunk, sid = sid, speed = currentProfile.speed)
+                    }
+                }
                 if (audio.samples.isNotEmpty()) {
                     var pcm = floatsToPcm16(audio.samples)
                     if (lastVolume != 1.0f || currentProfile.volume != 1.0f) {
                         pcm = applyVolumeEnvelope(pcm, lastVolume, currentProfile.volume, currentProfile.attackTimeMs, audio.sampleRate)
                     }
-                    playPcmOnAudioTrack(pcm, audio.sampleRate)
+                    chunks.add(AudioChunk(sentenceIndex, pcm, audio.sampleRate))
                     lastVolume = currentProfile.volume
                 }
             }
 
             val token = match.value
             if (token.startsWith("[")) {
-                // Emotion tag — update profile
                 currentProfile = when (token.lowercase()) {
                     "[whisper]", "[whispers]" -> EmotionProfile(volume = 0.65f, speed = baseSpeed * 0.95f, attackTimeMs = 2500)
                     "[angry]" -> EmotionProfile(volume = 1.15f, speed = baseSpeed * 1.05f, attackTimeMs = 1500)
@@ -427,7 +437,6 @@ class AiTtsPlayer(
                     else -> EmotionProfile(speed = baseSpeed)
                 }
             } else if (preferences.smartPunctuation) {
-                // Punctuation — inject silence with jitter
                 val baseMs = when (token) {
                     "," -> 140; "!" -> 190; "?" -> 230
                     ".", "।" -> 280; "..." -> 380
@@ -437,7 +446,9 @@ class AiTtsPlayer(
                     val speedAdjusted = (baseMs / currentProfile.speed).toInt()
                     val jittered = applyJitter(speedAdjusted)
                     val sampleRate = tts.sampleRate()
-                    if (sampleRate > 0) playPcmOnAudioTrack(createSilence(jittered, sampleRate), sampleRate)
+                    if (sampleRate > 0) {
+                        chunks.add(AudioChunk(sentenceIndex, createSilence(jittered, sampleRate), sampleRate))
+                    }
                 }
             }
             lastEnd = match.range.last + 1
@@ -445,134 +456,34 @@ class AiTtsPlayer(
 
         val remaining = sentence.substring(lastEnd).trim()
         if (remaining.isNotEmpty() && !remaining.matches(Regex("""\[[a-zA-Z]+]"""))) {
-            val audio = tts.generate(text = remaining, sid = sid, speed = currentProfile.speed)
+            val audio = synthesisLock.withLock {
+                withContext(modelManager.nativeDispatcher) {
+                    Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
+                    tts.generate(text = remaining, sid = sid, speed = currentProfile.speed)
+                }
+            }
             if (audio.samples.isNotEmpty()) {
                 var pcm = floatsToPcm16(audio.samples)
                 if (lastVolume != 1.0f || currentProfile.volume != 1.0f) {
                     pcm = applyVolumeEnvelope(pcm, lastVolume, currentProfile.volume, currentProfile.attackTimeMs, audio.sampleRate)
                 }
-                playPcmOnAudioTrack(pcm, audio.sampleRate)
+                chunks.add(AudioChunk(sentenceIndex, pcm, audio.sampleRate))
             }
         }
+
+        return chunks
     }
+
+    // ── AudioTrack streaming (never stops between chunks) ────────────────────
 
     /**
-     * Applies a gradual volume transition (attack envelope) from [startVol] to [targetVol]
-     * over [attackTimeMs] milliseconds, then holds at [targetVol] for the rest.
-     * Mirrors the reference AudioEmotionHelper.generateWithEngine() DSP logic.
+     * Writes PCM data to the AudioTrack in streaming mode. The track is created
+     * once and kept playing — successive writes flow seamlessly without gaps.
+     * Called only from the player thread.
      */
-    private fun applyVolumeEnvelope(
-        pcm: ByteArray, startVol: Float, targetVol: Float, attackTimeMs: Int, sampleRate: Int
-    ): ByteArray {
-        if (startVol == 1.0f && targetVol == 1.0f) return pcm
-        val totalSamples = pcm.size / 2
-        val transitionSamples = ((sampleRate * attackTimeMs) / 1000).coerceAtMost(totalSamples)
-        val volumeStep = if (transitionSamples > 0) (targetVol - startVol) / transitionSamples else 0f
+    private fun writeToAudioTrack(pcmBytes: ByteArray, sampleRate: Int) {
+        if (sampleRate <= 0 || pcmBytes.isEmpty()) return
 
-        for (i in 0 until pcm.size step 2) {
-            val lower = pcm[i].toInt() and 0xFF
-            val upper = pcm[i + 1].toInt() shl 8
-            var sample = (lower or upper).toShort().toInt()
-
-            val sampleIndex = i / 2
-            val vol = if (sampleIndex < transitionSamples) startVol + volumeStep * sampleIndex else targetVol
-            sample = (sample * vol).toInt().coerceIn(-32768, 32767)
-
-            pcm[i] = (sample and 0xFF).toByte()
-            pcm[i + 1] = (sample shr 8).toByte()
-        }
-        return pcm
-    }
-
-    /** Converts float PCM samples [-1,1] to 16-bit little-endian PCM bytes. */
-    private fun floatsToPcm16(samples: FloatArray): ByteArray {
-        val pcm = ByteArray(samples.size * 2)
-        for (i in samples.indices) {
-            var v = (samples[i] * 32767f).toInt()
-            if (v > 32767) v = 32767
-            if (v < -32768) v = -32768
-            pcm[i * 2] = (v and 0xff).toByte()
-            pcm[i * 2 + 1] = (v shr 8).toByte()
-        }
-        return pcm
-    }
-
-    /**
-     * Peak-normalizes 16-bit PCM so the loudest sample reaches ~95% of max amplitude.
-     * Prevents clipping while ensuring consistent volume across sentences.
-     */
-    private fun normalizePcmVolume(pcm: ByteArray): ByteArray {
-        if (pcm.size < 2) return pcm
-        // Find peak amplitude
-        var peak = 0
-        for (i in 0 until pcm.size step 2) {
-            val lower = pcm[i].toInt() and 0xFF
-            val upper = pcm[i + 1].toInt() shl 8
-            val sample = kotlin.math.abs((lower or upper).toShort().toInt())
-            if (sample > peak) peak = sample
-        }
-        if (peak == 0) return pcm
-        // Scale to 95% of max to avoid clipping
-        val targetPeak = (32767 * 0.95f)
-        val gain = targetPeak / peak
-        if (gain <= 1.01f && gain >= 0.99f) return pcm // already normalized
-
-        for (i in 0 until pcm.size step 2) {
-            val lower = pcm[i].toInt() and 0xFF
-            val upper = pcm[i + 1].toInt() shl 8
-            var sample = (lower or upper).toShort().toInt()
-            sample = (sample * gain).toInt().coerceIn(-32768, 32767)
-            pcm[i] = (sample and 0xFF).toByte()
-            pcm[i + 1] = (sample shr 8).toByte()
-        }
-        return pcm
-    }
-
-    /**
-     * Returns silence duration in ms based on the trailing punctuation of a sentence.
-     * Applies ±10% jitter for natural-sounding pauses, matching the reference project.
-     */
-    private fun getSentenceTrailingSilenceMs(sentence: String): Int {
-        val trimmed = sentence.trimEnd()
-        val baseMs = when {
-            trimmed.endsWith("...") -> 380
-            trimmed.endsWith(".") || trimmed.endsWith("।") -> 280
-            trimmed.endsWith("?") -> 230
-            trimmed.endsWith("!") -> 190
-            trimmed.endsWith(",") -> 140
-            else -> 80
-        }
-        return applyJitter(baseMs)
-    }
-
-    /** Applies ±10% random jitter to a silence duration, clamped to 60–600ms. */
-    private fun applyJitter(baseMs: Int): Int {
-        val jitterRange = (baseMs * 0.10f).toInt()
-        var result = baseMs
-        if (jitterRange > 0) {
-            result += silenceJitterRandom.nextInt(jitterRange * 2) - jitterRange
-        }
-        return result.coerceIn(60, 600)
-    }
-
-    /** Creates a byte array of silence (zero PCM) for the given duration. */
-    private fun createSilence(durationMs: Int, sampleRate: Int): ByteArray {
-        if (durationMs <= 0) return ByteArray(0)
-        val bytesPerSecond = sampleRate * 2 // 16-bit mono
-        var bytes = (bytesPerSecond * durationMs) / 1000
-        if (bytes % 2 != 0) bytes++ // keep 16-bit aligned
-        return ByteArray(bytes)
-    }
-
-    private fun playPcmOnAudioTrack(pcmBytes: ByteArray, sampleRate: Int) {
-        if (sampleRate <= 0) {
-            Logs.warning(TAG, "playPcmOnAudioTrack: invalid sampleRate=$sampleRate, skipping")
-            return
-        }
-        if (pcmBytes.isEmpty()) return
-
-        // Reuse the existing AudioTrack if the sample rate hasn't changed.
-        // Creating a new AudioTrack per sentence causes native OOM on x86_64 emulator.
         if (audioTrack == null || audioTrackSampleRate != sampleRate) {
             releaseAudioTrack()
             val bufferSize = AudioTrack.getMinBufferSize(
@@ -581,7 +492,7 @@ class AiTtsPlayer(
                 AudioFormat.ENCODING_PCM_16BIT
             )
             if (bufferSize <= 0) {
-                Logs.warning(TAG, "playPcmOnAudioTrack: getMinBufferSize returned $bufferSize for sampleRate=$sampleRate, skipping")
+                Logs.warning(TAG, "writeToAudioTrack: getMinBufferSize=$bufferSize for sampleRate=$sampleRate, skipping")
                 return
             }
             audioTrack = AudioTrack.Builder()
@@ -602,28 +513,106 @@ class AiTtsPlayer(
                 .setTransferMode(AudioTrack.MODE_STREAM)
                 .build()
             audioTrackSampleRate = sampleRate
-            Logs.debug(TAG, "playPcmOnAudioTrack: created AudioTrack sampleRate=$sampleRate bufferSize=$bufferSize")
+            audioTrack!!.play()
+            Logs.debug(TAG, "writeToAudioTrack: created & started AudioTrack sampleRate=$sampleRate")
         }
 
         val track = audioTrack ?: return
-        try {
-            if (track.playState != AudioTrack.PLAYSTATE_PLAYING) {
-                track.play()
-            }
-            track.write(pcmBytes, 0, pcmBytes.size)
-            // Flush remaining buffered audio before returning so the next sentence
-            // starts cleanly without overlap.
-            track.stop()
-        } catch (e: Exception) {
-            Logs.error(TAG, "playPcmOnAudioTrack: error during playback: ${e.message}", e)
-            releaseAudioTrack()
-            throw e
+        // write() blocks until all bytes are consumed — this is the natural back-pressure
+        track.write(pcmBytes, 0, pcmBytes.size)
+    }
+
+    // ── DSP utilities ────────────────────────────────────────────────────────
+
+    private fun applyVolumeEnvelope(
+        pcm: ByteArray, startVol: Float, targetVol: Float, attackTimeMs: Int, sampleRate: Int
+    ): ByteArray {
+        if (startVol == 1.0f && targetVol == 1.0f) return pcm
+        val totalSamples = pcm.size / 2
+        val transitionSamples = ((sampleRate * attackTimeMs) / 1000).coerceAtMost(totalSamples)
+        val volumeStep = if (transitionSamples > 0) (targetVol - startVol) / transitionSamples else 0f
+
+        for (i in 0 until pcm.size step 2) {
+            val lower = pcm[i].toInt() and 0xFF
+            val upper = pcm[i + 1].toInt() shl 8
+            var sample = (lower or upper).toShort().toInt()
+            val sampleIndex = i / 2
+            val vol = if (sampleIndex < transitionSamples) startVol + volumeStep * sampleIndex else targetVol
+            sample = (sample * vol).toInt().coerceIn(-32768, 32767)
+            pcm[i] = (sample and 0xFF).toByte()
+            pcm[i + 1] = (sample shr 8).toByte()
         }
+        return pcm
+    }
+
+    private fun floatsToPcm16(samples: FloatArray): ByteArray {
+        val pcm = ByteArray(samples.size * 2)
+        for (i in samples.indices) {
+            var v = (samples[i] * 32767f).toInt()
+            if (v > 32767) v = 32767
+            if (v < -32768) v = -32768
+            pcm[i * 2] = (v and 0xff).toByte()
+            pcm[i * 2 + 1] = (v shr 8).toByte()
+        }
+        return pcm
+    }
+
+    private fun normalizePcmVolume(pcm: ByteArray): ByteArray {
+        if (pcm.size < 2) return pcm
+        var peak = 0
+        for (i in 0 until pcm.size step 2) {
+            val lower = pcm[i].toInt() and 0xFF
+            val upper = pcm[i + 1].toInt() shl 8
+            val sample = kotlin.math.abs((lower or upper).toShort().toInt())
+            if (sample > peak) peak = sample
+        }
+        if (peak == 0) return pcm
+        val targetPeak = (32767 * 0.95f)
+        val gain = targetPeak / peak
+        if (gain in 0.99f..1.01f) return pcm
+
+        for (i in 0 until pcm.size step 2) {
+            val lower = pcm[i].toInt() and 0xFF
+            val upper = pcm[i + 1].toInt() shl 8
+            var sample = (lower or upper).toShort().toInt()
+            sample = (sample * gain).toInt().coerceIn(-32768, 32767)
+            pcm[i] = (sample and 0xFF).toByte()
+            pcm[i + 1] = (sample shr 8).toByte()
+        }
+        return pcm
+    }
+
+    private fun getSentenceTrailingSilenceMs(sentence: String): Int {
+        val trimmed = sentence.trimEnd()
+        val baseMs = when {
+            trimmed.endsWith("...") -> 380
+            trimmed.endsWith(".") || trimmed.endsWith("।") -> 280
+            trimmed.endsWith("?") -> 230
+            trimmed.endsWith("!") -> 190
+            trimmed.endsWith(",") -> 140
+            else -> 80
+        }
+        return applyJitter(baseMs)
+    }
+
+    private fun applyJitter(baseMs: Int): Int {
+        val jitterRange = (baseMs * 0.10f).toInt()
+        var result = baseMs
+        if (jitterRange > 0) {
+            result += silenceJitterRandom.nextInt(jitterRange * 2) - jitterRange
+        }
+        return result.coerceIn(60, 600)
+    }
+
+    private fun createSilence(durationMs: Int, sampleRate: Int): ByteArray {
+        if (durationMs <= 0) return ByteArray(0)
+        val bytesPerSecond = sampleRate * 2
+        var bytes = (bytesPerSecond * durationMs) / 1000
+        if (bytes % 2 != 0) bytes++
+        return ByteArray(bytes)
     }
 
     private fun splitIntoSentences(text: String): List<String> {
-        // Match reference project: split on sentence-ending punctuation including
-        // newlines, pipe separators, and Hindi danda (।)
         return text.split(Regex("(?<=[.!?\\n|।])\\s+"))
             .map { it.trim() }
             .filter { it.isNotBlank() }

@@ -37,11 +37,13 @@ class AiTtsSettingsActivity : ComponentActivity() {
         var emotionTags by mutableStateOf(prefs.emotionTags)
         var activeVoiceId by mutableStateOf(prefs.voiceId)
         var kokoroSpeakerId by mutableStateOf(prefs.kokoroSpeakerId)
+        var useAiTts by mutableStateOf(dataCenter.useAiTts)
         val availableVoices: List<AiTtsVoiceInfo> = modelManager.availableVoices()
 
         setContent {
             NovelLibraryTheme {
                 AiTtsSettingsScreen(
+                    useAiTts = useAiTts,
                     speechRate = speechRate,
                     pitch = pitch,
                     autoReadNextChapter = autoReadNextChapter,
@@ -53,6 +55,10 @@ class AiTtsSettingsActivity : ComponentActivity() {
                     availableVoices = availableVoices,
                     modelManager = modelManager,
                     kokoroSpeakerId = kokoroSpeakerId,
+                    onUseAiTtsChange = { value ->
+                        useAiTts = value
+                        dataCenter.useAiTts = value
+                    },
                     onSpeechRateChange = { value ->
                         speechRate = value
                         prefs.speechRate = value
@@ -107,6 +113,7 @@ class AiTtsSettingsActivity : ComponentActivity() {
                         autoReadNextChapter = true; prefs.autoReadNextChapter = true
                         keepScreenOn = false; prefs.keepScreenOn = false
                         volumeNormalization = true; prefs.volumeNormalization = true
+                        useAiTts = false; dataCenter.useAiTts = false
                         activeVoiceId = modelManager.defaultVoiceId()
                         prefs.voiceId = activeVoiceId
                         kokoroSpeakerId = 0
