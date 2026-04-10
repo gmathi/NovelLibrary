@@ -8,8 +8,8 @@ import android.os.Bundle
 import android.util.Log
 import android.webkit.CookieManager
 import androidx.activity.compose.setContent
-import androidx.compose.material3.*
 import io.github.gmathi.novellibrary.compose.cloudflare.CloudflareResolverScreen
+import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.cloudflare.CloudflareCookieManager
 import okhttp3.Cookie
@@ -26,7 +26,7 @@ class CloudflareResolverActivity : BaseActivity() {
             ?: "https://${HostNames.NOVEL_UPDATES}"
 
         setContent {
-            MaterialTheme {
+            NovelLibraryTheme {
                 CloudflareResolverScreen(
                     url = url,
                     onComplete = { resolvedUrl -> saveCookiesAndFinish(url, resolvedUrl) },

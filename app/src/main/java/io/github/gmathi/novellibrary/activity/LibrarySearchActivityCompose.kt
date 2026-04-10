@@ -24,6 +24,7 @@ import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
 import com.afollestad.materialdialogs.list.listItems
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.compose.search.*
+import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
 import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.database.updateNovelSectionId
@@ -47,7 +48,7 @@ class LibrarySearchActivityCompose : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MaterialTheme {
+            NovelLibraryTheme {
                 LibrarySearchScreen(
                     onBack = { finish() },
                     onNovelClick = { novel -> startChaptersActivity(novel) },

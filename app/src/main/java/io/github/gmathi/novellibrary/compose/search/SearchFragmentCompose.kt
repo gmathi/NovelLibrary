@@ -10,14 +10,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.view.GravityCompat
 import com.google.firebase.analytics.ktx.logEvent
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
+import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
 import io.github.gmathi.novellibrary.fragment.BaseFragment
 import io.github.gmathi.novellibrary.util.analytics.FAC
 import io.github.gmathi.novellibrary.util.lang.addToNovelSearchHistory
@@ -45,19 +43,7 @@ class SearchFragmentCompose : BaseFragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                MaterialTheme(
-                    colorScheme = darkColorScheme(
-                        primary = Color(0xFF90CAF9),
-                        secondary = Color(0xFFCE93D8),
-                        tertiary = Color(0xFFA5D6A7),
-                        background = Color(0xFF121212),
-                        surface = Color(0xFF1E1E1E),
-                        onPrimary = Color.Black,
-                        onSecondary = Color.Black,
-                        onBackground = Color.White,
-                        onSurface = Color.White
-                    )
-                ) {
+                NovelLibraryTheme {
                     SearchScreen(
                         searchHistory = dataCenter.loadNovelSearchHistory(),
                         onHomeClick = {
