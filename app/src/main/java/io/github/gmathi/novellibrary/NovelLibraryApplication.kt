@@ -59,6 +59,12 @@ open class NovelLibraryApplication : Application(), LifecycleObserver {
 
         setPreferences(dataCenter)
 
+        // Apply app night mode preference (does not affect reader theming)
+        AppCompatDelegate.setDefaultNightMode(
+            if (dataCenter.appNightMode) AppCompatDelegate.MODE_NIGHT_YES
+            else AppCompatDelegate.MODE_NIGHT_NO
+        )
+
         try {
             enableSSLSocket()
         } catch (e: Exception) {

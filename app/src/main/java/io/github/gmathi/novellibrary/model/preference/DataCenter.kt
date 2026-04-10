@@ -120,6 +120,9 @@ class DataCenter(context: Context) {
 
         //App Auto Update
         private const val ENABLE_AUTO_APP_UPDATE = "enableAutoAppUpdate"
+
+        // App Night Mode (separate from reader isDarkTheme)
+        private const val APP_NIGHT_MODE = "appNightMode"
     }
 
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -508,4 +511,8 @@ class DataCenter(context: Context) {
     var enableAutoAppUpdate: Boolean
         get() = prefs.getBoolean(ENABLE_AUTO_APP_UPDATE, true)
         set(value) = prefs.edit().putBoolean(ENABLE_AUTO_APP_UPDATE, value).apply()
+
+    var appNightMode: Boolean
+        get() = prefs.getBoolean(APP_NIGHT_MODE, true)
+        set(value) = prefs.edit().putBoolean(APP_NIGHT_MODE, value).apply()
 }

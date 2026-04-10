@@ -4,7 +4,7 @@
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:background="@color/black_transparent"
+                android:background="?android:attr/colorBackground"
                 android:padding="@dimen/default_padding_list_item">
 
 
@@ -43,7 +43,7 @@
             android:ellipsize="end"
             android:gravity="center_vertical|start"
             android:maxLines="2"
-            android:textColor="@color/white"
+            android:textColor="?android:attr/textColorPrimary"
             android:textIsSelectable="false"
             android:textSize="17sp"
             android:textStyle="bold"

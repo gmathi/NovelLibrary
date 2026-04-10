@@ -93,11 +93,12 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun NovelLibraryTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    overrideDarkTheme: Boolean? = null,
     content: @Composable () -> Unit
 ) {
     val dataCenter: DataCenter by injectLazy()
-    val useDarkTheme = try {
-        dataCenter.isDarkTheme
+    val useDarkTheme = overrideDarkTheme ?: try {
+        dataCenter.appNightMode
     } catch (e: Exception) {
         // Fallback to system theme if DataCenter fails
         darkTheme

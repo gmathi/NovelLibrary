@@ -40,7 +40,7 @@ fun ReaderOverlay(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    NovelLibraryTheme {
+    NovelLibraryTheme(overrideDarkTheme = uiState.isDarkTheme) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Semi-transparent scrim when overlay is visible — tap to dismiss
             if (isVisible) {

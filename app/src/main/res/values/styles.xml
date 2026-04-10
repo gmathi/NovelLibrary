@@ -15,14 +15,14 @@
     </style>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorPrimary">@color/colorLightKnight</item>
-        <item name="colorPrimaryDark">@color/colorDarkKnight</item>
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimary_light</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark_light</item>
         <item name="colorAccent">@color/colorTextWarningRed</item>
-        <item name="android:windowBackground">@color/colorAccent_dark</item>
+        <item name="android:windowBackground">@color/colorPrimary_light</item>
         <item name="android:windowTranslucentStatus">false</item>
-        <item name="android:textColorPrimary">@color/black</item>
-        <item name="android:navigationBarColor">@color/colorLightKnight</item>
+        <item name="android:textColorPrimary">@color/colorTextDark</item>
+        <item name="android:navigationBarColor">@color/colorPrimaryDark_light</item>
 
     </style>
 
@@ -45,25 +45,25 @@
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
     </style>
 
-    <style name="DarkTheme_DarkSide" parent="Theme.AppCompat.NoActionBar">
-        <item name="colorPrimary">@color/colorLightKnight</item>
-        <item name="colorPrimaryDark">@color/colorDarkKnight</item>
+    <style name="DarkTheme_DarkSide" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary_light</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark_light</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="card_color">@color/colorLightKnight</item>
-        <item name="drawer_color">@color/colorPrimaryText</item>
+        <item name="card_color">@color/colorPrimary_light</item>
+        <item name="drawer_color">@color/colorTextDark</item>
         <item name="windowActionModeOverlay">true</item>
         <item name="android:windowTranslucentStatus">false</item>
-        <item name="android:windowBackground">@color/colorDarkKnight</item>
-        <item name="android:textColorPrimary">@color/colorPrimaryText</item>
-        <item name="android:navigationBarColor">@color/colorDarkKnight</item>
+        <item name="android:windowBackground">@color/colorPrimary_light</item>
+        <item name="android:textColorPrimary">@color/colorTextDark</item>
+        <item name="android:navigationBarColor">@color/colorPrimaryDark_light</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
 
         <!-- Custom theme for Material Dialogs-->
-        <item name="md_color_title">@color/colorTextTitle_dark</item>
-        <item name="md_color_content">@color/colorTextContent_dark</item>
+        <item name="md_color_title">@color/colorTextTitle_light</item>
+        <item name="md_color_content">@color/colorTextContent_light</item>
         <item name="md_color_button_text">@color/colorAccent</item>
-        <item name="md_background_color">@color/colorDarkKnight</item>
+        <item name="md_background_color">@color/colorPrimary_light</item>
 
         <!-- Force time picker dialog to use spinner mode -->
         <item name="android:timePickerMode">spinner</item>
@@ -147,6 +147,8 @@
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
+    <style name="AppTheme.AppBarOverlay.Light" parent="ThemeOverlay.AppCompat.ActionBar" />
+
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="ExpandedAppBar" parent="@android:style/TextAppearance.Medium">
@@ -178,7 +180,7 @@
         <item name="colorControlActivated">?colorAccent</item>
     </style>
 
-    <style name="AppImagePreview" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppImagePreview" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:windowBackground">@color/colorDarkKnight</item>
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowTranslucentNavigation">true</item>

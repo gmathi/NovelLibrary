@@ -1,11 +1,14 @@
 package io.github.gmathi.novellibrary.activity.settings
 
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.MenuItem
 import android.view.View
 import android.widget.RadioButton
 import android.widget.RadioGroup
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.callbacks.onDismiss
@@ -34,11 +37,12 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         private const val POSITION_BACKUP_AND_RESTORE = 1
         private const val POSITION_ENABLE_NOTIFICATIONS = 2
         private const val POSITION_LANGUAGES = 3
-        private const val POSITION_ENABLE_SCROLLING_TEXT = 4
-        private const val POSITION_SHOW_CHAPTERS_LEFT_BADGE = 5
-        private const val POSITION_DNS_OVER_HTTPS = 6
-        private const val POSITION_NU_API_FETCH = 7
-        private const val POSITION_AUTO_APP_UPDATE = 8
+        private const val POSITION_NIGHT_MODE = 4
+        private const val POSITION_ENABLE_SCROLLING_TEXT = 5
+        private const val POSITION_SHOW_CHAPTERS_LEFT_BADGE = 6
+        private const val POSITION_DNS_OVER_HTTPS = 7
+        private const val POSITION_NU_API_FETCH = 8
+        private const val POSITION_AUTO_APP_UPDATE = 9
 
     }
 
@@ -89,6 +93,16 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         itemBinding.title.applyFont(assets).text = item
         itemBinding.subtitle.applyFont(assets).text = settingsItemsDescription[position]
         itemBinding.widgetSwitch.setOnCheckedChangeListener(null)
+
+        // Tint chevron to match current theme text color
+        val typedValue = TypedValue()
+        theme.resolveAttribute(android.R.attr.textColorPrimary, typedValue, true)
+        val textColor = ContextCompat.getColor(this, typedValue.resourceId)
+        itemBinding.widgetChevron.drawable?.let {
+            val wrapped = DrawableCompat.wrap(it.mutate())
+            DrawableCompat.setTint(wrapped, textColor)
+        }
+
         when (position) {
             POSITION_LOAD_LIBRARY_SCREEN -> {
                 itemBinding.widgetSwitch.visibility = View.VISIBLE
@@ -116,6 +130,18 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemBinding.widgetSwitch.visibility = View.VISIBLE
                 itemBinding.widgetSwitch.isChecked = dataCenter.enableScrollingText
                 itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableScrollingText = value }
+            }
+
+            POSITION_NIGHT_MODE -> {
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.appNightMode
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value ->
+                    dataCenter.appNightMode = value
+                    AppCompatDelegate.setDefaultNightMode(
+                        if (value) AppCompatDelegate.MODE_NIGHT_YES
+                        else AppCompatDelegate.MODE_NIGHT_NO
+                    )
+                }
             }
 
             POSITION_SHOW_CHAPTERS_LEFT_BADGE -> {

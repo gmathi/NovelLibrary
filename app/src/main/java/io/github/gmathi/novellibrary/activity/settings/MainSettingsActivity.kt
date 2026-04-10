@@ -13,7 +13,9 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import android.util.TypedValue
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.input.input
@@ -89,6 +91,16 @@ class MainSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         val itemBinding = ListitemSettingsBinding.bind(itemView)
         itemBinding.settingsTitle.applyFont(assets).text = item
         itemBinding.chevron.visibility = if (position < 5) View.VISIBLE else View.INVISIBLE
+
+        // Tint chevron to match current theme text color
+        val typedValue = TypedValue()
+        theme.resolveAttribute(android.R.attr.textColorPrimary, typedValue, true)
+        val textColor = ContextCompat.getColor(this, typedValue.resourceId)
+        itemBinding.chevron.drawable?.let {
+            val wrapped = DrawableCompat.wrap(it.mutate())
+            DrawableCompat.setTint(wrapped, textColor)
+        }
+
         itemView.setBackgroundColor(
             if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
             else ContextCompat.getColor(this, android.R.color.transparent)

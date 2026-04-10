@@ -5,6 +5,7 @@ import android.util.TypedValue
 import android.view.View
 import android.widget.CompoundButton
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
@@ -31,6 +32,16 @@ fun BaseActivity.bindSettingListitemDefaults(itemBinding: ListitemTitleSubtitleW
     itemBinding.title.applyFont(assets).text = name
     itemBinding.subtitle.applyFont(assets).text = description
     itemBinding.widgetSwitch.setOnCheckedChangeListener(null)
+
+    // Tint chevron to match current theme text color
+    val typedValue = TypedValue()
+    theme.resolveAttribute(android.R.attr.textColorPrimary, typedValue, true)
+    val textColor = ContextCompat.getColor(this, typedValue.resourceId)
+    itemBinding.widgetChevron.drawable?.let {
+        val wrapped = DrawableCompat.wrap(it.mutate())
+        DrawableCompat.setTint(wrapped, textColor)
+    }
+
     itemBinding.root.setBackgroundColor(
         if (position % 2 == 0) ContextCompat.getColor(this, R.color.black_transparent)
         else ContextCompat.getColor(this, android.R.color.transparent)
