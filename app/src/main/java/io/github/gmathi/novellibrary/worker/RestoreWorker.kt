@@ -32,6 +32,8 @@ import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.Utils.recursiveCopy
 import io.github.gmathi.novellibrary.util.system.NotificationReceiver
 import io.github.gmathi.novellibrary.util.view.ProgressNotificationManager
+import io.github.gmathi.novellibrary.activity.settings.BackupRestoreViewModel.Companion.PROGRESS_KEY
+import io.github.gmathi.novellibrary.activity.settings.BackupRestoreViewModel.Companion.STEP_KEY
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -72,6 +74,10 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
     // endregion
 
     private lateinit var result: Result
+
+    private suspend fun reportProgress(progress: Float, step: String) {
+        setProgress(workDataOf(PROGRESS_KEY to progress, STEP_KEY to step))
+    }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         ProgressNotificationManager(
@@ -121,6 +127,7 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                 val uri: Uri = Uri.parse(inputData.getString(KEY_URI))
 
                 nm.newIndeterminateProgress { setContentText(getString(R.string.eztracting_zip)) }
+                reportProgress(0.05f, getString(R.string.eztracting_zip))
                 // TODO: if possible extract selectively, directly to the data directory without using the cache directory
                 Utils.unzip(contentResolver, uri, cacheDir)
 
@@ -128,7 +135,8 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                 val backupFilesDir = File(cacheDir, FILES_DIR)
                 val backupSharedPrefsDir = File(cacheDir, SHARED_PREFS_DIR)
 
-                nm.newProgress(16) { setContentText(getString(R.string.simple_text_restore)) }
+                nm.newProgress(16) { setContentText(getString(R.string.restoring_simple_text)) }
+                reportProgress(0.10f, getString(R.string.restoring_simple_text))
 
                 // Restore From Text File
                 val simpleTextFile = File(cacheDir, SIMPLE_NOVEL_BACKUP_FILE_NAME)
@@ -180,34 +188,41 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                     }
                 }
                 nm.updateProgress(4)
+                reportProgress(0.25f, getString(R.string.restoring_database))
 
                 //Restore Databases
                 if (shouldRestoreDatabase && backupDBsDir.exists() && backupDBsDir.isDirectory) {
                     if (!currentDBsDir.exists()) currentDBsDir.mkdir()
-                    nm.updateProgress(6) { setContentText(getString(R.string.title_library)) }
+                    nm.updateProgress(6) { setContentText(getString(R.string.restoring_database)) }
+                    reportProgress(0.38f, getString(R.string.restoring_database))
                     backupDBsDir.listFiles()?.forEach {
                         Utils.copyFile(it, File(currentDBsDir, it.name))
                     }
                 }
                 nm.updateProgress(8)
+                reportProgress(0.50f, getString(R.string.restoring_preferences))
 
                 //Restore Shared Preferences
                 if (shouldRestorePreferences && backupSharedPrefsDir.exists() && backupSharedPrefsDir.isDirectory) {
                     if (!currentSharedPrefsDir.exists()) currentSharedPrefsDir.mkdir()
-                    nm.updateProgress(10) { setContentText(getString(R.string.preferences)) }
+                    nm.updateProgress(10) { setContentText(getString(R.string.restoring_preferences)) }
+                    reportProgress(0.63f, getString(R.string.restoring_preferences))
                     backupSharedPrefsDir.listFiles()?.forEach {
                         Utils.copyFile(it, File(currentSharedPrefsDir, it.name))
                     }
                 }
                 nm.updateProgress(12)
+                reportProgress(0.75f, getString(R.string.restoring_files))
 
                 //Restore Files
                 if (shouldRestoreFiles && backupFilesDir.exists() && backupFilesDir.isDirectory) {
                     if (!currentFilesDir.exists()) currentFilesDir.mkdir()
-                    nm.updateProgress(14) { setContentText(getString(R.string.downloaded_files)) }
+                    nm.updateProgress(14) { setContentText(getString(R.string.restoring_files)) }
+                    reportProgress(0.88f, getString(R.string.restoring_files))
                     recursiveCopy(backupFilesDir, currentFilesDir)
                 }
                 nm.updateProgress(16)
+                reportProgress(1f, getString(R.string.finalizing))
 
                 message = getString(R.string.restore_success)
                 nm.closeProgress { setContentText(message) }

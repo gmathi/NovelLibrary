@@ -99,6 +99,7 @@ androidx-lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata-
 androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-extensions = { module = "androidx.lifecycle:lifecycle-extensions", version = "2.2.0" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 androidx-legacy-support = { module = "androidx.legacy:legacy-support-v4", version.ref = "legacySupport" }
 androidx-cardview = { module = "androidx.cardview:cardview", version.ref = "cardview" }
 androidx-vectordrawable = { module = "androidx.vectordrawable:vectordrawable", version.ref = "vectordrawable" }
@@ -225,7 +226,7 @@ firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "
 
 [bundles]
 androidx-lifecycle = ["androidx-lifecycle-livedata", "androidx-lifecycle-viewmodel", "androidx-lifecycle-extensions"]
-compose = ["compose-ui", "compose-ui-graphics", "compose-ui-tooling-preview", "compose-material3", "compose-material", "compose-material-icons", "androidx-activity-compose", "androidx-lifecycle-runtime-compose"]
+compose = ["compose-ui", "compose-ui-graphics", "compose-ui-tooling-preview", "compose-material3", "compose-material", "compose-material-icons", "androidx-activity-compose", "androidx-lifecycle-runtime-compose", "androidx-lifecycle-viewmodel-compose"]
 material-dialogs = ["material-dialogs-core", "material-dialogs-input", "material-dialogs-color", "material-dialogs-lifecycle"]
 network = ["okhttp", "okhttp-logging", "okhttp-dnsoverhttps", "okio", "retrofit", "retrofit-gson", "retrofit-rxjava", "retrofit-kotlinx-serialization", "conscrypt"]
 reactive = ["rxjava", "rxandroid", "rxrelay", "reactivenetwork"]

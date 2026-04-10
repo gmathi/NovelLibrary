@@ -110,6 +110,7 @@
         <!--<item>@string/enable_cloud_flare</item>-->
         <item>@string/disable_notifications</item>
         <item>@string/change_language</item>
+        <item>@string/night_mode</item>
         <item>@string/scrolling_text</item>
         <item>@string/show_chapters_left_badge</item>
         <item>@string/dns_over_https</item>
@@ -123,6 +124,7 @@
         <!--<item>@string/enable_cloud_flare_description</item>-->
         <item>@string/disable_notifications_description</item>
         <item>@string/locale_system_default</item>
+        <item>@string/night_mode_description</item>
         <item>@string/scrolling_text_description</item>
         <item>@string/show_chapters_left_badge_description</item>
         <item>@string/dns_over_https_description</item>
@@ -577,6 +579,17 @@
     <string name="backup_file_not_found">Couldn\'t find the backup file. Please choose a new destination</string>
     <string name="eztracting_zip">Extracting the ZIP archive</string>
     <string name="simple_text_restore">Simple Text - Novel &amp; Novel Sections Restore</string>
+
+    <!-- Backup/Restore progress action labels -->
+    <string name="backing_up_simple_text">Backing up Novel &amp; Novel Sections…</string>
+    <string name="backing_up_database">Backing up Library database…</string>
+    <string name="backing_up_preferences">Backing up Preferences…</string>
+    <string name="backing_up_files">Backing up Downloaded Chapters…</string>
+    <string name="restoring_simple_text">Restoring Novel &amp; Novel Sections…</string>
+    <string name="restoring_database">Restoring Library database…</string>
+    <string name="restoring_preferences">Restoring Preferences…</string>
+    <string name="restoring_files">Restoring Downloaded Chapters…</string>
+    <string name="finalizing">Finalizing…</string>
     <string name="title_more_settings">More Settings</string>
 
     <string name="show_navbar_at_chapter_end">Show Navigation Bar At Chapter End</string>
@@ -830,6 +843,9 @@
 
     <string name="auto_app_update">Auto App Update</string>
     <string name="auto_app_update_description">Automatically check for and download app updates on launch</string>
+
+    <string name="night_mode">Night Mode</string>
+    <string name="night_mode_description">Switch between day and night appearance for the app</string>
     <string name="channel_app_update">App updates</string>
     <string name="app_update_available">Update Available: v%s</string>
     <string name="app_update_downloading">Downloading update…</string>

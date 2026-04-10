@@ -28,6 +28,8 @@ import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.storage.notNullAndExists
 import io.github.gmathi.novellibrary.util.system.NotificationReceiver
 import io.github.gmathi.novellibrary.util.view.ProgressNotificationManager
+import io.github.gmathi.novellibrary.activity.settings.BackupRestoreViewModel.Companion.PROGRESS_KEY
+import io.github.gmathi.novellibrary.activity.settings.BackupRestoreViewModel.Companion.STEP_KEY
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.injectLazy
@@ -68,6 +70,10 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
     // endregion
 
     private lateinit var result: Result
+
+    private suspend fun reportProgress(progress: Float, step: String) {
+        setProgress(workDataOf(PROGRESS_KEY to progress, STEP_KEY to step))
+    }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         dataCenter.lastBackup = System.currentTimeMillis()
@@ -120,7 +126,8 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
                         .notNullAndExists()
                 ) {
                     ZipOutputStream(BufferedOutputStream(contentResolver.openOutputStream(uri)!!)).use {
-                        nm.newProgress(16) { setContentText(getString(R.string.simple_text_backup)) }
+                        nm.newProgress(16) { setContentText(getString(R.string.backing_up_simple_text)) }
+                        reportProgress(0f, getString(R.string.backing_up_simple_text))
 
                         // Backup To TextFile
                         if (shouldSimpleTextBackup) {
@@ -130,37 +137,47 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
                             map["novels"] = novelsArray
                             map["novelSections"] = novelSectionsArray
                             nm.updateProgress(1)
+                            reportProgress(0.06f, getString(R.string.backing_up_simple_text))
                             val jsonString = Gson().toJson(map)
                             nm.updateProgress(2)
+                            reportProgress(0.12f, getString(R.string.backing_up_simple_text))
                             val simpleTextFile = File(cacheDir, SIMPLE_NOVEL_BACKUP_FILE_NAME)
                             val writer =
                                 BufferedWriter(OutputStreamWriter(FileOutputStream(simpleTextFile)))
                             writer.use { writer.write(jsonString) }
                             nm.updateProgress(3)
+                            reportProgress(0.19f, getString(R.string.backing_up_simple_text))
                             Utils.zip(simpleTextFile, it)
                         }
                         nm.updateProgress(4)
+                        reportProgress(0.25f, getString(R.string.backing_up_database))
 
                         // Backup Databases
                         if (shouldBackupDatabase && currentDBsDir.exists() && currentDBsDir.isDirectory) {
-                            nm.updateProgress(6) { setContentText(getString(R.string.title_library)) }
+                            nm.updateProgress(6) { setContentText(getString(R.string.backing_up_database)) }
+                            reportProgress(0.38f, getString(R.string.backing_up_database))
                             Utils.zip(currentDBsDir, it)
                         }
                         nm.updateProgress(8)
+                        reportProgress(0.50f, getString(R.string.backing_up_preferences))
 
                         // Backup Shared Preferences
                         if (shouldBackupPreferences && currentSharedPrefsDir.exists() && currentSharedPrefsDir.isDirectory) {
-                            nm.updateProgress(10) { setContentText(getString(R.string.preferences)) }
+                            nm.updateProgress(10) { setContentText(getString(R.string.backing_up_preferences)) }
+                            reportProgress(0.63f, getString(R.string.backing_up_preferences))
                             Utils.zip(currentSharedPrefsDir, it)
                         }
                         nm.updateProgress(12)
+                        reportProgress(0.75f, getString(R.string.backing_up_files))
 
                         // Backup Files
                         if (shouldBackupFiles && currentFilesDir.exists() && currentFilesDir.isDirectory) {
-                            nm.updateProgress(14) { setContentText(getString(R.string.downloaded_files)) }
+                            nm.updateProgress(14) { setContentText(getString(R.string.backing_up_files)) }
+                            reportProgress(0.88f, getString(R.string.backing_up_files))
                             Utils.zip(currentFilesDir, it)
                         }
                         nm.updateProgress(16)
+                        reportProgress(1f, getString(R.string.finalizing))
                     }
 
                     message = getString(R.string.backup_success)

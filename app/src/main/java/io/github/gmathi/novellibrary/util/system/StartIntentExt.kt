@@ -155,7 +155,7 @@ fun AppCompatActivity.startLanguagesActivity(changeLanguage: Boolean = false) =
 
 fun AppCompatActivity.startGeneralSettingsActivity() = startActivity<GeneralSettingsActivity>()
 
-fun AppCompatActivity.startBackupSettingsActivity() = startActivity<BackupSettingsActivity>()
+fun AppCompatActivity.startBackupSettingsActivity() = startActivity<BackupRestoreActivity>()
 
 fun AppCompatActivity.startReaderSettingsActivity() = startActivityForResult<ReaderSettingsActivity>(Constants.READER_SETTINGS_ACT_REQ_CODE)
 
