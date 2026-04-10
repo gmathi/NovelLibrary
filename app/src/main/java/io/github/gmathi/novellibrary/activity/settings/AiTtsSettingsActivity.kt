@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.gmathi.novellibrary.compose.ai_tts.AiTtsSettingsScreen
@@ -19,25 +20,43 @@ import uy.kohesive.injekt.injectLazy
 class AiTtsSettingsActivity : ComponentActivity() {
 
     private val dataCenter: DataCenter by injectLazy()
+    private lateinit var modelManager: AiTtsModelManager
+
+    // Hoisted Compose state so onResume can refresh it
+    private var speechRate by mutableFloatStateOf(0f)
+    private var pitch by mutableFloatStateOf(0f)
+    private var autoReadNextChapter by mutableStateOf(true)
+    private var keepScreenOn by mutableStateOf(false)
+    private var volumeNormalization by mutableStateOf(true)
+    private var smartPunctuation by mutableStateOf(true)
+    private var emotionTags by mutableStateOf(false)
+    private var activeVoiceId by mutableStateOf("")
+    private var kokoroSpeakerId by mutableIntStateOf(0)
+    private var useAiTts by mutableStateOf(false)
+    /** Incremented on every onResume to force recomposition of model-readiness checks. */
+    private var modelRefreshKey by mutableIntStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         val prefs = dataCenter.aiTtsPreferences
-        val modelManager = AiTtsModelManager(this)
+        modelManager = AiTtsModelManager(this)
+
+        // Initialise state from preferences
+        speechRate = prefs.speechRate
+        pitch = prefs.pitch
+        autoReadNextChapter = prefs.autoReadNextChapter
+        keepScreenOn = prefs.keepScreenOn
+        volumeNormalization = prefs.volumeNormalization
+        smartPunctuation = prefs.smartPunctuation
+        emotionTags = prefs.emotionTags
+        activeVoiceId = prefs.voiceId
+        kokoroSpeakerId = prefs.kokoroSpeakerId
+        useAiTts = dataCenter.useAiTts
+
         Logs.debug("AiTtsSettings", "onCreate: voiceId='${prefs.voiceId}' speechRate=${prefs.speechRate} pitch=${prefs.pitch} keepScreenOn=${prefs.keepScreenOn}")
 
-        var speechRate by mutableFloatStateOf(prefs.speechRate)
-        var pitch by mutableFloatStateOf(prefs.pitch)
-        var autoReadNextChapter by mutableStateOf(prefs.autoReadNextChapter)
-        var keepScreenOn by mutableStateOf(prefs.keepScreenOn)
-        var volumeNormalization by mutableStateOf(prefs.volumeNormalization)
-        var smartPunctuation by mutableStateOf(prefs.smartPunctuation)
-        var emotionTags by mutableStateOf(prefs.emotionTags)
-        var activeVoiceId by mutableStateOf(prefs.voiceId)
-        var kokoroSpeakerId by mutableStateOf(prefs.kokoroSpeakerId)
-        var useAiTts by mutableStateOf(dataCenter.useAiTts)
         val availableVoices: List<AiTtsVoiceInfo> = modelManager.availableVoices()
 
         setContent {
@@ -55,6 +74,7 @@ class AiTtsSettingsActivity : ComponentActivity() {
                     availableVoices = availableVoices,
                     modelManager = modelManager,
                     kokoroSpeakerId = kokoroSpeakerId,
+                    modelRefreshKey = modelRefreshKey,
                     onUseAiTtsChange = { value ->
                         useAiTts = value
                         dataCenter.useAiTts = value
@@ -124,5 +144,17 @@ class AiTtsSettingsActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val prefs = dataCenter.aiTtsPreferences
+        // Re-read the voice the user may have changed in Manage Models
+        activeVoiceId = prefs.voiceId
+        kokoroSpeakerId = prefs.kokoroSpeakerId
+        useAiTts = dataCenter.useAiTts
+        // Bump the key so the screen re-evaluates isModelReady even for the same voiceId
+        modelRefreshKey++
+        Logs.debug("AiTtsSettings", "onResume: voiceId='$activeVoiceId' modelRefreshKey=$modelRefreshKey")
     }
 }

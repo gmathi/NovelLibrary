@@ -49,7 +49,8 @@ fun AiTtsSettingsScreen(
     onKokoroVoiceSelected: (KokoroVoice) -> Unit = {},
     onManageModels: () -> Unit = {},
     onClearCache: () -> Unit = {},
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    modelRefreshKey: Int = 0
 ) {
     var showVoicePicker by remember { mutableStateOf(false) }
     var showEmotionBetaDialog by remember { mutableStateOf(false) }
@@ -59,16 +60,16 @@ fun AiTtsSettingsScreen(
     val activeKokoroVoice = if (isKokoroActive) KokoroVoiceHelper.getById(kokoroSpeakerId) else null
 
     // Calculate storage info
-    val downloadedCount = remember(activeVoiceId) {
+    val downloadedCount = remember(activeVoiceId, modelRefreshKey) {
         modelManager?.let { mm ->
             mm.availableVoices().count { mm.isModelDownloaded(it.id) }
         } ?: 0
     }
-    val isModelReady = remember(activeVoiceId) {
+    val isModelReady = remember(activeVoiceId, modelRefreshKey) {
         modelManager?.isModelDownloaded(activeVoiceId) == true
     }
     val settingsEnabled = useAiTts && isModelReady
-    val totalSizeText = remember(activeVoiceId) {
+    val totalSizeText = remember(activeVoiceId, modelRefreshKey) {
         modelManager?.let { mm ->
             val totalBytes = mm.availableVoices()
                 .filter { mm.isModelDownloaded(it.id) }
