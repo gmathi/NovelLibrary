@@ -17,7 +17,6 @@ import android.webkit.WebView
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.documentfile.provider.DocumentFile
@@ -168,20 +167,6 @@ class ReaderDBPagerActivity :
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val isVisible = overlayVisible.value
-
-                // Disable touch interception on the ComposeView when overlay is hidden
-                // so the WebView underneath can receive all touch events.
-                LaunchedEffect(isVisible) {
-                    (this@apply).let { composeView ->
-                        if (!isVisible) {
-                            composeView.isClickable = false
-                            composeView.isFocusable = false
-                        } else {
-                            composeView.isClickable = true
-                            composeView.isFocusable = true
-                        }
-                    }
-                }
 
                 ReaderOverlay(
                     viewModel = readerViewModel,

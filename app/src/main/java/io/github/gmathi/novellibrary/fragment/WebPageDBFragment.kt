@@ -156,7 +156,7 @@ class WebPageDBFragment : BaseFragment() {
 //            }
 //    }
 
-    @SuppressLint("JavascriptInterface", "AddJavascriptInterface", "ClickableViewAccessibility")
+    @SuppressLint("JavascriptInterface", "AddJavascriptInterface")
     private fun setWebView() {
         binding.readerWebView.setDefaultSettings()
         binding.readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
@@ -164,18 +164,6 @@ class WebPageDBFragment : BaseFragment() {
         binding.readerWebView.settings.userAgentString = HostNames.USER_AGENT
         binding.readerWebView.setBackgroundColor(Color.argb(1, 0, 0, 0))
         binding.readerWebView.addJavascriptInterface(this, "HTMLOUT")
-
-        // Detect single taps on the WebView to toggle the reader overlay
-        val gestureDetector = android.view.GestureDetector(requireContext(), object : android.view.GestureDetector.SimpleOnGestureListener() {
-            override fun onSingleTapConfirmed(e: android.view.MotionEvent): Boolean {
-                (activity as? ReaderDBPagerActivity)?.toggleOverlay()
-                return true
-            }
-        })
-        binding.readerWebView.setOnTouchListener { v, event ->
-            gestureDetector.onTouchEvent(event)
-            false // Let the WebView handle the event too (scrolling, links, etc.)
-        }
 
         binding.readerWebView.webViewClient = object : WebViewClient() {
             @Suppress("OverridingDeprecatedMember")

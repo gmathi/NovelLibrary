@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -52,6 +53,29 @@ fun ReaderOverlay(
                             interactionSource = remember { MutableInteractionSource() }
                         ) { onCenterTap() }
                 )
+            }
+
+            // Floating menu icon — visible when overlay is hidden and preference is enabled
+            AnimatedVisibility(
+                visible = !isVisible && uiState.isReaderModeButtonVisible,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = 40.dp)
+            ) {
+                SmallFloatingActionButton(
+                    onClick = onCenterTap,
+                    shape = CircleShape,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.85f),
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ) {
+                    Icon(
+                        Icons.Filled.Menu,
+                        contentDescription = "Open reader menu",
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
 
             // Top bar
