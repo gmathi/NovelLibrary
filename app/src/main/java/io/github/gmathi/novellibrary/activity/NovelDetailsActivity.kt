@@ -3,12 +3,14 @@ package io.github.gmathi.novellibrary.activity
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityOptionsCompat
 import androidx.lifecycle.lifecycleScope
+import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.CloudflareResolverActivity
 import io.github.gmathi.novellibrary.compose.noveldetails.NovelDetailsScreen
 import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
@@ -18,7 +20,6 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.system.openInBrowser
 import io.github.gmathi.novellibrary.util.system.startChaptersActivity
-import io.github.gmathi.novellibrary.util.system.startImagePreviewActivity
 import io.github.gmathi.novellibrary.util.system.startMetadataActivity
 import io.github.gmathi.novellibrary.util.system.startSearchResultsActivity
 import io.github.gmathi.novellibrary.util.system.toast
@@ -26,7 +27,7 @@ import io.github.gmathi.novellibrary.viewmodel.NovelDetailsEvent
 import io.github.gmathi.novellibrary.viewmodel.NovelDetailsViewModel
 import kotlinx.coroutines.launch
 
-class NovelDetailsActivity : ComponentActivity() {
+class NovelDetailsActivity : AppCompatActivity() {
 
     companion object {
         const val TAG = "NovelDetailsActivity"
@@ -101,10 +102,16 @@ class NovelDetailsActivity : ComponentActivity() {
             is NovelDetailsEvent.NavigateToMetadata -> startMetadataActivity(event.novel)
 
             is NovelDetailsEvent.NavigateToImagePreview -> {
-                // Find the image view — with Compose we don't have a shared element view,
-                // so we use a placeholder view for the transition
-                val placeholderView = window.decorView
-                startImagePreviewActivity(event.imageUrl, event.imageFilePath, placeholderView)
+                val intent = Intent(this, ImagePreviewActivity::class.java).apply {
+                    putExtra("url", event.imageUrl)
+                    putExtra("filePath", event.imageFilePath)
+                }
+                val options = ActivityOptionsCompat.makeCustomAnimation(
+                    this,
+                    android.R.anim.fade_in,
+                    android.R.anim.fade_out
+                )
+                startActivity(intent, options.toBundle())
             }
 
             is NovelDetailsEvent.NavigateToSearchResults -> startSearchResultsActivity(event.title, event.url)

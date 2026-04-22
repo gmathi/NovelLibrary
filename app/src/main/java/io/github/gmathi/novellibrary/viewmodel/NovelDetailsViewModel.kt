@@ -6,7 +6,6 @@ import com.google.gson.Gson
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.getNovelByUrl
 import io.github.gmathi.novellibrary.database.insertNovel
-import io.github.gmathi.novellibrary.database.cleanupNovelData
 import io.github.gmathi.novellibrary.domain.usecase.AddNovelToHistoryUseCase
 import io.github.gmathi.novellibrary.domain.usecase.GetNovelDetailsUseCase
 import io.github.gmathi.novellibrary.model.database.Novel
@@ -26,7 +25,7 @@ import uy.kohesive.injekt.injectLazy
 
 sealed class NovelDetailsUiState {
     object Loading : NovelDetailsUiState()
-    data class Content(val novel: Novel) : NovelDetailsUiState()
+    data class Content(val novel: Novel, val version: Long = 0L) : NovelDetailsUiState()
     data class Error(val message: String, val canRetry: Boolean = true) : NovelDetailsUiState()
     object NoInternet : NovelDetailsUiState()
     object CloudflareRequired : NovelDetailsUiState()
@@ -67,6 +66,15 @@ class NovelDetailsViewModel : ViewModel() {
     private var novel: Novel? = null
     private var retryCounter = 0
 
+    private val _isInLibrary = MutableStateFlow(false)
+    val isInLibrary: StateFlow<Boolean> = _isInLibrary.asStateFlow()
+
+    private fun emitContent(novel: Novel) {
+        _isInLibrary.value = novel.id != -1L
+        // Use nanoTime to guarantee uniqueness so StateFlow always emits
+        _uiState.value = NovelDetailsUiState.Content(novel, System.nanoTime())
+    }
+
     fun init(initialNovel: Novel) {
         if (novel != null) return
         novel = initialNovel
@@ -74,7 +82,7 @@ class NovelDetailsViewModel : ViewModel() {
         dbHelper.getNovelByUrl(initialNovel.url)?.let { novel!!.id = it.id }
 
         if (novel!!.id != -1L && !networkHelper.isConnectedToNetwork()) {
-            _uiState.value = NovelDetailsUiState.Content(novel!!)
+            emitContent(novel!!)
         } else {
             loadDetails()
         }
@@ -94,7 +102,7 @@ class NovelDetailsViewModel : ViewModel() {
             if (currentNovel.id == -1L) {
                 _uiState.value = NovelDetailsUiState.NoInternet
             } else {
-                _uiState.value = NovelDetailsUiState.Content(currentNovel)
+                emitContent(currentNovel)
                 viewModelScope.launch { _events.emit(NovelDetailsEvent.ShowMessage("No internet connection")) }
             }
             return
@@ -108,7 +116,7 @@ class NovelDetailsViewModel : ViewModel() {
                     novel = updatedNovel
                     withContext(Dispatchers.IO) { addNovelToHistoryUseCase(updatedNovel) }
                     retryCounter = 0
-                    _uiState.value = NovelDetailsUiState.Content(updatedNovel)
+                    emitContent(updatedNovel)
                 },
                 onFailure = { error ->
                     when {
@@ -127,7 +135,7 @@ class NovelDetailsViewModel : ViewModel() {
                                     error.localizedMessage ?: "Failed to load novel details"
                                 )
                             } else {
-                                _uiState.value = NovelDetailsUiState.Content(currentNovel)
+                                emitContent(currentNovel)
                                 _events.emit(NovelDetailsEvent.ShowMessage(error.localizedMessage ?: "Failed to refresh"))
                             }
                         }
@@ -142,11 +150,12 @@ class NovelDetailsViewModel : ViewModel() {
         val currentNovel = novel ?: return
         if (currentNovel.id != -1L) return
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                currentNovel.id = dbHelper.insertNovel(currentNovel)
+            val newId = withContext(Dispatchers.IO) {
+                dbHelper.insertNovel(currentNovel)
             }
+            currentNovel.id = newId
             novel = currentNovel
-            _uiState.value = NovelDetailsUiState.Content(currentNovel)
+            emitContent(currentNovel)
         }
     }
 
@@ -158,7 +167,7 @@ class NovelDetailsViewModel : ViewModel() {
             }
             currentNovel.id = -1L
             novel = currentNovel
-            _uiState.value = NovelDetailsUiState.Content(currentNovel)
+            emitContent(currentNovel)
         }
     }
 
@@ -203,7 +212,7 @@ class NovelDetailsViewModel : ViewModel() {
     fun onNovelAddedFromChapters(url: String) {
         dbHelper.getNovelByUrl(url)?.let { dbNovel ->
             novel = dbNovel
-            _uiState.value = NovelDetailsUiState.Content(dbNovel)
+            emitContent(dbNovel)
         }
     }
 }

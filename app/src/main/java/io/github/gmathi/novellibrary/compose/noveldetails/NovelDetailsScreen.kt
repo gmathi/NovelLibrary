@@ -5,10 +5,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -38,7 +42,7 @@ import io.github.gmathi.novellibrary.viewmodel.NovelDetailsUiState
 import io.github.gmathi.novellibrary.viewmodel.NovelDetailsViewModel
 import kotlin.math.min
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun NovelDetailsScreen(
     viewModel: NovelDetailsViewModel,
@@ -53,6 +57,7 @@ fun NovelDetailsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val isInLibrary by viewModel.isInLibrary.collectAsStateWithLifecycle()
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     val pullRefreshState = rememberPullRefreshState(
@@ -93,21 +98,31 @@ fun NovelDetailsScreen(
                         overflow = TextOverflow.Ellipsis
                     )
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = MaterialTheme.colorScheme.onSurface
+                ),
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    if (uiState is NovelDetailsUiState.Content &&
-                        (uiState as NovelDetailsUiState.Content).novel.id != -1L
-                    ) {
-                        IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.confirm_remove))
+                    if (uiState is NovelDetailsUiState.Content) {
+                        if (isInLibrary) {
+                            IconButton(onClick = { showDeleteDialog = true }) {
+                                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.confirm_remove))
+                            }
+                        } else {
+                            IconButton(onClick = { viewModel.addToLibrary() }) {
+                                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_to_library))
+                            }
                         }
                     }
                     IconButton(onClick = onShareClick) {
-                        Icon(Icons.Default.Share, contentDescription = "Share")
+                        Icon(Icons.Default.Share, contentDescription = stringResource(R.string.share))
                     }
                 }
             )
@@ -142,6 +157,7 @@ fun NovelDetailsScreen(
 
                 is NovelDetailsUiState.Content -> NovelDetailsContent(
                     novel = state.novel,
+                    isInLibrary = isInLibrary,
                     onImageClick = onImageClick,
                     onAddToLibrary = { viewModel.addToLibrary() },
                     onDeleteFromLibrary = { showDeleteDialog = true },
@@ -164,6 +180,7 @@ fun NovelDetailsScreen(
 @Composable
 private fun NovelDetailsContent(
     novel: Novel,
+    isInLibrary: Boolean,
     onImageClick: () -> Unit,
     onAddToLibrary: () -> Unit,
     onDeleteFromLibrary: () -> Unit,
@@ -200,24 +217,30 @@ private fun NovelDetailsContent(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Text(
-                    text = novel.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                SelectionContainer {
+                    Text(
+                        text = novel.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
 
                 // Author
                 val author = novel.metadata["Author(s)"]
                 if (author != null) {
-                    HtmlLinkedText(
-                        html = author,
-                        style = MaterialTheme.typography.bodyMedium,
-                        onLinkClick = onAuthorLinkClick
-                    )
+                    SelectionContainer {
+                        HtmlLinkedText(
+                            html = author,
+                            style = MaterialTheme.typography.bodyMedium,
+                            onLinkClick = onAuthorLinkClick
+                        )
+                    }
                 } else {
                     val authors = novel.authors?.joinToString(", ")
                     if (!authors.isNullOrBlank()) {
-                        Text(text = authors, style = MaterialTheme.typography.bodyMedium)
+                        SelectionContainer {
+                            Text(text = authors, style = MaterialTheme.typography.bodyMedium)
+                        }
                     }
                 }
 
@@ -254,7 +277,7 @@ private fun NovelDetailsContent(
         }
 
         // Add to library button
-        if (novel.id == -1L) {
+        if (!isInLibrary) {
             Button(
                 onClick = onAddToLibrary,
                 modifier = Modifier.fillMaxWidth()
@@ -262,11 +285,22 @@ private fun NovelDetailsContent(
                 Text(stringResource(R.string.add_to_library))
             }
         } else {
-            Button(
-                onClick = onDeleteFromLibrary,
+            OutlinedButton(
+                onClick = { },
+                enabled = false,
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                colors = ButtonDefaults.outlinedButtonColors(
+                    disabledContainerColor = Color.Transparent,
+                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                border = ButtonDefaults.outlinedButtonBorder(enabled = false)
             ) {
+                Icon(
+                    Icons.Default.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(stringResource(R.string.in_library))
             }
         }
@@ -292,8 +326,7 @@ private fun NovelDetailsContent(
             stringResource(R.string.chapters)
 
         NavigationRow(label = chaptersLabel, onClick = onChaptersClick)
-        NavigationRow(label = "Metadata", onClick = onMetadataClick)
-        NavigationRow(label = "Open in Browser", onClick = onOpenInBrowser)
+        NavigationRow(label = stringResource(R.string.more_information), onClick = onMetadataClick)
     }
 }
 
@@ -321,6 +354,7 @@ private fun NovelRating(rating: String?) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NovelGenres(genres: List<String>?) {
     val list = if (!genres.isNullOrEmpty()) genres else listOf("N/A")
@@ -359,24 +393,26 @@ private fun NovelDescription(description: String) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(6.dp))
-        if (isExpanded || description.length <= 300) {
-            Text(text = description, style = MaterialTheme.typography.bodyMedium)
-        } else {
-            val shortText = description.substring(0, min(300, description.length))
-            Text(
-                text = buildAnnotatedString {
-                    append(shortText)
-                    append("… ")
-                    withStyle(
-                        SpanStyle(
-                            color = MaterialTheme.colorScheme.primary,
-                            textDecoration = TextDecoration.Underline
-                        )
-                    ) { append("Expand") }
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.clickable { isExpanded = true }
-            )
+        SelectionContainer {
+            if (isExpanded || description.length <= 300) {
+                Text(text = description, style = MaterialTheme.typography.bodyMedium)
+            } else {
+                val shortText = description.substring(0, min(300, description.length))
+                Text(
+                    text = buildAnnotatedString {
+                        append(shortText)
+                        append("… ")
+                        withStyle(
+                            SpanStyle(
+                                color = MaterialTheme.colorScheme.primary,
+                                textDecoration = TextDecoration.Underline
+                            )
+                        ) { append("Expand") }
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.clickable { isExpanded = true }
+                )
+            }
         }
     }
 }
