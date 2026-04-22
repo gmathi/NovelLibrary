@@ -27,7 +27,6 @@ import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
-import androidx.annotation.RequiresApi
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -144,13 +143,11 @@ class AiTtsNotificationBuilder(
     }
 
     private fun shouldCreateNowPlayingChannel() =
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !nowPlayingChannelExists()
+        !nowPlayingChannelExists()
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun nowPlayingChannelExists() =
         notificationManager.getNotificationChannel(Notifications.CHANNEL_AI_TTS_PLAYBACK) != null
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun createNowPlayingChannel(context: Context) {
         notificationManager.createNotificationChannel(
             NotificationChannel(

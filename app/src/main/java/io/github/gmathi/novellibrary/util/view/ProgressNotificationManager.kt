@@ -1,13 +1,10 @@
 package io.github.gmathi.novellibrary.util.view
 
 import android.annotation.SuppressLint
-import android.annotation.TargetApi
 import android.app.Notification
 import android.app.NotificationChannel
 import android.content.Context
-import android.os.Build
 import androidx.annotation.IntDef
-import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import io.github.gmathi.novellibrary.BuildConfig
@@ -24,7 +21,7 @@ import kotlin.math.roundToInt
  * A [NotificationManagerCompat] wrapper made to simplify handling of progress notifications.
  *
  * Key features:
- * - Creates notification channel on API over [Build.VERSION_CODES.O]
+ * - Creates notification channel automatically
  * - Normalizes progress to a value between 0 and [normalizationLength], and discards updates
  *   that are to small to make a noticeable difference
  * - Limit progress updates to once every [updateRate] milliseconds
@@ -62,7 +59,6 @@ class ProgressNotificationManager(context: Context,
     private fun normalize(progress: Int): Int =
         (progress.toDouble() * normalizationLength / max).roundToInt()
 
-    @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("WrongConstant")
     private fun createNotificationChannel() =
         notificationManager.createNotificationChannel(NotificationChannel(channelId, channelName, importance).apply(applyToChannel))
@@ -113,8 +109,7 @@ class ProgressNotificationManager(context: Context,
     }
 
     init {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            createNotificationChannel()
+        createNotificationChannel()
         GlobalScope.launch {
             while (!notificationQueue.isClosed()) {
                 updateNotification(notificationQueue.take())
@@ -248,7 +243,6 @@ class ProgressNotificationManager(context: Context,
         // region Defaults
         private const val DEFAULT_CHANNEL_IMPORTANCE = NotificationManagerCompat.IMPORTANCE_LOW
 
-        @TargetApi(Build.VERSION_CODES.O)
         @JvmStatic
         private fun defaultChannelSettings(context: Context): NotificationChannel.() -> Unit =  {
             description = context.getString(R.string.default_notification_channel_description)

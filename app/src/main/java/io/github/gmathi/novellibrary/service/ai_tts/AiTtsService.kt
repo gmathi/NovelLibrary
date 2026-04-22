@@ -9,7 +9,6 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.media.AudioFocusRequest
 import android.media.AudioManager
-import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
@@ -161,21 +160,11 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
                     notification
                 )
                 is AiTtsPlaybackState.Paused -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        stopForeground(STOP_FOREGROUND_DETACH)
-                    } else {
-                        @Suppress("DEPRECATION")
-                        stopForeground(false)
-                    }
+                    stopForeground(STOP_FOREGROUND_DETACH)
                     notificationBuilder.notify(notification)
                 }
                 is AiTtsPlaybackState.Stopped, is AiTtsPlaybackState.Idle -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        stopForeground(STOP_FOREGROUND_REMOVE)
-                    } else {
-                        @Suppress("DEPRECATION")
-                        stopForeground(true)
-                    }
+                    stopForeground(STOP_FOREGROUND_REMOVE)
                 }
                 else -> {
                     // DownloadingModel, LoadingModel, Error — still need to call startForeground()
@@ -192,8 +181,7 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         val pendingIntentFlags: Int =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-            else PendingIntent.FLAG_UPDATE_CURRENT
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
 
         val mediaButtonIntent = Intent(Intent.ACTION_MEDIA_BUTTON)
         mediaButtonIntent.setClass(this, MediaButtonReceiver::class.java)
@@ -310,30 +298,20 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
         }
 
         // Request audio focus
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-                .setAudioAttributes(
-                    android.media.AudioAttributes.Builder()
-                        .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
-                        .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH)
-                        .build()
-                )
-                .setOnAudioFocusChangeListener(this)
-                .build()
-            audioManager.requestAudioFocus(audioFocusRequest!!)
-        } else {
-            @Suppress("DEPRECATION")
-            audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN)
-        }
+        audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+            .setAudioAttributes(
+                android.media.AudioAttributes.Builder()
+                    .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
+                    .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build()
+            )
+            .setOnAudioFocusChangeListener(this)
+            .build()
+        audioManager.requestAudioFocus(audioFocusRequest!!)
     }
 
     private fun unhookSystem() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            audioFocusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
-        } else {
-            @Suppress("DEPRECATION")
-            audioManager.abandonAudioFocus(this)
-        }
+        audioFocusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
     }
 
     override fun onAudioFocusChange(focusChange: Int) {
@@ -529,8 +507,7 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
 
     private fun buildPendingIntents(): HashMap<String, PendingIntent> {
         val pendingIntentFlags: Int =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-            else PendingIntent.FLAG_UPDATE_CURRENT
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
 
         fun createServiceIntent(action: String): PendingIntent {
             val actionIntent = Intent(this, AiTtsService::class.java)
@@ -548,7 +525,7 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
             intent.putExtra(Intent.EXTRA_KEY_EVENT, KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
             return PendingIntent.getBroadcast(
                 this, keyCode, intent,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+                PendingIntent.FLAG_IMMUTABLE
             )
         }
 

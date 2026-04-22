@@ -9,7 +9,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
-import android.os.Build
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -121,8 +120,7 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
             novelDetailsBundle.putInt("currentNavId", R.id.nav_library)
             novelDetailsIntent.putExtras(novelDetailsBundle)
             val pendingIntentFlags:Int =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT }
-                else { PendingIntent.FLAG_CANCEL_CURRENT }
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT
             val contentIntent = PendingIntent.getActivity(
                 context,
                 0,
@@ -184,14 +182,12 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
             NOTIFICATION_ID = Utils.getUniqueNotificationId()
         }
         val notificationManager = NotificationManagerCompat.from(context)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            notificationManager.createNotificationChannel(
-                NotificationChannel(
-                    context.getString(R.string.new_chapters_notification_channel_id),
-                    context.getString(R.string.new_chapters_notification_channel_name),
-                    NotificationManager.IMPORTANCE_DEFAULT
-                ).apply { description = context.getString(R.string.new_chapters_notification_channel_description) })
-        }
+        notificationManager.createNotificationChannel(
+            NotificationChannel(
+                context.getString(R.string.new_chapters_notification_channel_id),
+                context.getString(R.string.new_chapters_notification_channel_name),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply { description = context.getString(R.string.new_chapters_notification_channel_description) })
 
         val first = createNotificationBuilder(context.getString(R.string.app_name), context.getString(R.string.group_update_notification_text), contentIntent)
         first.setGroupSummary(true).setGroup(UPDATE_NOTIFICATION_GROUP)
@@ -246,8 +242,7 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
         novelDetailsBundle.putSerializable("novel", novel)
         novelDetailsIntent.putExtras(novelDetailsBundle)
         val pendingIntentFlags:Int =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT }
-            else { PendingIntent.FLAG_UPDATE_CURRENT }
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         return PendingIntent.getActivity(this.applicationContext, novel.hashCode(), novelDetailsIntent, pendingIntentFlags)
     }
 

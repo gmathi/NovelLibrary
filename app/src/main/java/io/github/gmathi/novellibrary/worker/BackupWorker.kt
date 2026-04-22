@@ -84,11 +84,9 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
             getString(R.string.backup_and_restore_notification_channel_name),
             NotificationManagerCompat.IMPORTANCE_LOW
         ) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                description = getString(R.string.backup_and_restore_notification_channel_description)
-                setSound(null, null)
-                enableVibration(false)
-            }
+            description = getString(R.string.backup_and_restore_notification_channel_description)
+            setSound(null, null)
+            enableVibration(false)
         }.use { nm ->
             var message: String
 

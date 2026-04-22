@@ -22,10 +22,8 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.graphics.drawable.BitmapDrawable
-import android.os.Build
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
-import androidx.annotation.RequiresApi
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -123,13 +121,11 @@ class TTSNotificationBuilder(private val context: Context, private val pendingIn
     }
 
     private fun shouldCreateNowPlayingChannel() =
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !nowPlayingChannelExists()
+        !nowPlayingChannelExists()
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun nowPlayingChannelExists() =
         notificationManager.getNotificationChannel(TTS_CHANNEL_ID) != null
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun createNowPlayingChannel(context: Context) {
         notificationManager.createNotificationChannel(
             NotificationChannel(

@@ -4,7 +4,6 @@ import android.app.NotificationChannel
 import android.app.NotificationChannelGroup
 import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.util.system.notificationManager
 
@@ -87,13 +86,11 @@ object Notifications {
     )
 
     /**
-     * Creates the notification channels introduced in Android Oreo.
+     * Creates the notification channels used by the app.
      *
      * @param context The application context.
      */
     fun createChannels(context: Context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-
         listOf(
             NotificationChannelGroup(GROUP_BACKUP_RESTORE, context.getString(R.string.group_backup_restore)),
             NotificationChannelGroup(GROUP_DOWNLOADER, context.getString(R.string.group_downloader))

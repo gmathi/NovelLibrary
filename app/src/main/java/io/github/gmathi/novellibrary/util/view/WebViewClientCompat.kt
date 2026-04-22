@@ -1,7 +1,5 @@
 package io.github.gmathi.novellibrary.util.view
 
-import android.annotation.TargetApi
-import android.os.Build
 import android.webkit.*
 
 @Suppress("OverridingDeprecatedMember")
@@ -24,7 +22,6 @@ abstract class WebViewClientCompat : WebViewClient() {
     ) {
     }
 
-    @TargetApi(Build.VERSION_CODES.N)
     final override fun shouldOverrideUrlLoading(
         view: WebView,
         request: WebResourceRequest
@@ -50,7 +47,6 @@ abstract class WebViewClientCompat : WebViewClient() {
         return shouldInterceptRequestCompat(view, url)
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
     final override fun onReceivedError(
         view: WebView,
         request: WebResourceRequest,
@@ -74,7 +70,6 @@ abstract class WebViewClientCompat : WebViewClient() {
         onReceivedErrorCompat(view, errorCode, description, failingUrl, failingUrl == view.url)
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
     final override fun onReceivedHttpError(
         view: WebView,
         request: WebResourceRequest,

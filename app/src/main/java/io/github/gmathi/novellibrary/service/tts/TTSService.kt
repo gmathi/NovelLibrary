@@ -111,8 +111,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         Log.d(TAG, "Service start!")
 
         val pendingIntentFlags:Int =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT }
-            else { PendingIntent.FLAG_UPDATE_CURRENT }
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
 
         fun createPendingIntent(action: String):PendingIntent {
             val actionIntent = Intent(this, TTSService::class.java)
@@ -185,8 +184,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
             intent.component = mbrComponentX
             intent.putExtra(Intent.EXTRA_KEY_EVENT, KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
             return PendingIntent.getBroadcast(this, keyCode, intent,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE
-                else 0
+                PendingIntent.FLAG_IMMUTABLE
             )
         }
 
@@ -315,7 +313,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
 
         val am = baseContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-        val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val result = run {
             focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).run {
                 setOnAudioFocusChangeListener(this@TTSService)
                 setAudioAttributes(AudioAttributes.Builder().run {
@@ -326,9 +324,6 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
                 build()
             }
             am.requestAudioFocus(focusRequest)
-        } else {
-            @Suppress("DEPRECATION")
-            am.requestAudioFocus(this@TTSService, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN)
         }
         if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) return false
 
@@ -355,19 +350,14 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
     fun unhookSystem(): Boolean {
         if (!isHooked) return false
         val am = baseContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            am.abandonAudioFocusRequest(focusRequest)
-        } else {
-            @Suppress("DEPRECATION")
-            am.abandonAudioFocus(this@TTSService)
-        }
+        am.abandonAudioFocusRequest(focusRequest)
         notification.stop()
         stopTimer.stop()
 
         stopSelf()
         mediaSession.isActive = false
         if (isForeground) {
-            stopForeground(true)
+            stopForeground(STOP_FOREGROUND_REMOVE)
             isForeground = false
         }
         if (noisyReceiverHooked) {
@@ -408,7 +398,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
             stopTimer.reset()
             resumeOnFocus = false
             if (isForeground) {
-                stopForeground(false)
+                stopForeground(STOP_FOREGROUND_DETACH)
                 isForeground = false
             }
             if (noisyReceiverHooked) {
