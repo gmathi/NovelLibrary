@@ -106,3 +106,54 @@ android info
 - **Build types:** `debug` (default), `release`
 
 When building via CLI, the default variant is `normalDebug`. For release builds, a signing config from `keystore.properties` is required.
+
+## Screen Testing After UI Changes
+
+After completing work on a specific screen, perform a visual screen test to verify the result. Follow this workflow:
+
+### Step 1: Build & Deploy
+```bash
+.\gradlew.bat assembleNormalDebug
+E:\AndroidCLI\android.exe run --apks app/build/outputs/apk/normal/debug/app-normal-debug.apk
+```
+
+### Step 2: Navigate to the Target Screen
+Use the annotated-screenshot loop to tap through the app to the screen you changed:
+
+1. **Capture an annotated screenshot:**
+   ```bash
+   E:\AndroidCLI\android.exe screen capture --annotate -o screen_annotated.png
+   ```
+2. **Inspect the layout tree** (optional, for element details):
+   ```bash
+   E:\AndroidCLI\android.exe layout --pretty
+   ```
+3. **Resolve a tap target** — replace `#N` with the label number of the element to tap:
+   ```bash
+   E:\AndroidCLI\android.exe screen resolve --screenshot screen_annotated.png --string "adb shell input tap #N"
+   ```
+   This outputs a command like `adb shell input tap 540 1200`. Run that command to perform the tap.
+4. **Repeat** steps 1–3 until you reach the target screen.
+
+### Step 3: Capture Final Screenshot
+```bash
+E:\AndroidCLI\android.exe screen capture -o screen_final.png
+```
+
+### Step 4: Diff Check (optional)
+If you need to confirm only specific elements changed:
+```bash
+E:\AndroidCLI\android.exe layout --diff
+```
+
+### When to Run Screen Tests
+- After modifying any Activity, Fragment, or Composable screen
+- After changing layouts, themes, styles, or drawable resources
+- After modifying navigation logic that affects which screen is shown
+- When the user explicitly asks for a visual check
+
+### Tips
+- The `--annotate` flag draws labeled bounding boxes on the screenshot — each label (`#1`, `#2`, etc.) corresponds to a tappable UI element
+- `screen resolve` substitutes `#N` placeholders with the center coordinates of that bounding box
+- Use `layout --pretty` to get element text, content descriptions, and resource IDs when the annotated screenshot labels aren't enough context
+- Clean up temporary screenshot files after testing
