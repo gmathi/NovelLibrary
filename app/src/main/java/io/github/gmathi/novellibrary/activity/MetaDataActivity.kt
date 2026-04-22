@@ -1,25 +1,35 @@
 package io.github.gmathi.novellibrary.activity
 
-import android.os.Build
 import android.os.Bundle
 import android.text.Html
 import android.view.MenuItem
 import android.view.View
+import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ActivityMetaDataBinding
 import io.github.gmathi.novellibrary.databinding.ListitemMetadataBinding
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.system.startSearchResultsActivity
+import io.github.gmathi.novellibrary.util.system.getParcelableExtraCompat
 import io.github.gmathi.novellibrary.util.view.TextViewLinkHandler
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
+import io.github.gmathi.novellibrary.util.view.applyInsets
 import io.github.gmathi.novellibrary.util.view.setDefaults
-import java.util.*
+import io.github.gmathi.novellibrary.viewmodel.MetadataEvent
+import io.github.gmathi.novellibrary.viewmodel.MetadataUiState
+import io.github.gmathi.novellibrary.viewmodel.MetadataViewModel
+import kotlinx.coroutines.launch
+import java.util.Locale
 
 class MetaDataActivity : BaseActivity(), GenericAdapter.Listener<Map.Entry<String, String?>>, TextViewLinkHandler.OnClickListener {
 
-    lateinit var novel: Novel
-    lateinit var adapter: GenericAdapter<Map.Entry<String, String?>>
+    private val viewModel: MetadataViewModel by viewModels()
+
+    private lateinit var adapter: GenericAdapter<Map.Entry<String, String?>>
 
     private lateinit var binding: ActivityMetaDataBinding
 
@@ -32,21 +42,59 @@ class MetaDataActivity : BaseActivity(), GenericAdapter.Listener<Map.Entry<Strin
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        novel = intent.getParcelableExtra<Novel>("novel")!!
+        val novel = intent.getParcelableExtraCompat<Novel>("novel") ?: run {
+            finish()
+            return
+        }
+        viewModel.init(novel)
+
         setRecyclerView()
-
-
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        observeViewModel()
     }
 
     private fun setRecyclerView() {
-        @Suppress("UNCHECKED_CAST") adapter = GenericAdapter(
-            items = (ArrayList(novel.metadata.entries) as ArrayList<Map.Entry<String, String?>>),
+        adapter = GenericAdapter(
+            items = arrayListOf(),
             layoutResId = R.layout.listitem_metadata,
             listener = this
         )
         binding.contentRecyclerView.recyclerView.setDefaults(adapter)
+        binding.contentRecyclerView.recyclerView.clipToPadding = false
+        binding.contentRecyclerView.recyclerView.applyInsets { view, insets ->
+            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, insets.bottom)
+        }
         binding.contentRecyclerView.swipeRefreshLayout.setOnRefreshListener { binding.contentRecyclerView.swipeRefreshLayout.isRefreshing = false }
+    }
+
+    private fun observeViewModel() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.uiState.collect { state ->
+                        when (state) {
+                            is MetadataUiState.Loading -> { /* no-op for this simple screen */ }
+                            is MetadataUiState.Success -> {
+                                adapter.updateData(ArrayList(state.entries))
+                            }
+                            is MetadataUiState.Empty -> {
+                                adapter.updateData(arrayListOf())
+                            }
+                        }
+                    }
+                }
+                launch {
+                    viewModel.events.collect { event ->
+                        when (event) {
+                            is MetadataEvent.NavigateToSearch -> {
+                                startSearchResultsActivity(event.title, event.url)
+                                viewModel.onEventConsumed()
+                            }
+                            null -> { /* no pending event */ }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun bind(item: Map.Entry<String, String?>, itemView: View, position: Int) {
@@ -55,13 +103,12 @@ class MetaDataActivity : BaseActivity(), GenericAdapter.Listener<Map.Entry<Strin
         binding.metadataValue.applyFont(assets)
         if (item.value != null) {
             binding.metadataValue.movementMethod = TextViewLinkHandler(this)
-            @Suppress("DEPRECATION") binding.metadataValue.text =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) Html.fromHtml(item.value, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(item.value)
+            binding.metadataValue.text = Html.fromHtml(item.value, Html.FROM_HTML_MODE_LEGACY)
         }
     }
 
     override fun onItemClick(item: Map.Entry<String, String?>, position: Int) {
-
+        // no-op
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -70,7 +117,6 @@ class MetaDataActivity : BaseActivity(), GenericAdapter.Listener<Map.Entry<Strin
     }
 
     override fun onLinkClicked(title: String, url: String) {
-        startSearchResultsActivity(title, url)
+        viewModel.onLinkClicked(title, url)
     }
-
 }
