@@ -1,6 +1,6 @@
 [versions]
 # Gradle Plugins
-agp = "9.1.0"
+agp = "9.2.0"
 kotlin = "2.3.10"
 ksp = "2.3.6"
 googleServices = "4.4.2"
