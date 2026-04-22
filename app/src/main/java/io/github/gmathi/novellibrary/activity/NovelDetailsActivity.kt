@@ -2,6 +2,9 @@ package io.github.gmathi.novellibrary.activity
 
 import android.app.Activity
 import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -16,33 +19,30 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
 import com.bumptech.glide.Glide
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.databinding.ActivityNovelDetailsBinding
 import io.github.gmathi.novellibrary.databinding.ContentNovelDetailsBinding
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.*
-import io.github.gmathi.novellibrary.util.error.Exceptions
-import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.*
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
-import kotlinx.coroutines.Dispatchers
+import io.github.gmathi.novellibrary.viewmodel.NovelDetailsEvent
+import io.github.gmathi.novellibrary.viewmodel.NovelDetailsUiState
+import io.github.gmathi.novellibrary.viewmodel.NovelDetailsViewModel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlin.math.min
 
 
 class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener {
@@ -51,22 +51,22 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         const val TAG = "NovelDetailsActivity"
     }
 
-    lateinit var novel: Novel
+    private val viewModel: NovelDetailsViewModel by viewModels()
 
     private lateinit var binding: ActivityNovelDetailsBinding
     private lateinit var contentBinding: ContentNovelDetailsBinding
-
-    private var retryCounter = 0
 
     private val cloudflareResolverLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            // Cookies saved from manual Cloudflare resolution — retry loading
-            retryCounter = 0
-            getNovelInfo()
+            viewModel.onCloudflareResolved()
         }
     }
+
+    // ------------------------------------------------------------------
+    // Lifecycle
+    // ------------------------------------------------------------------
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,132 +74,139 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         setContentView(binding.root)
         contentBinding = binding.contentNovelDetails
 
-        //Get Novel from intent
-        novel = intent.getParcelableExtra<Novel>("novel") as Novel
+        val novel = intent.getParcelableExtra<Novel>("novel") as Novel
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = novel.name
 
-        //check for novel in database
-        dbHelper.getNovelByUrl(novel.url)?.let { novel.id = it.id }
+        viewModel.init(novel)
 
-        if (novel.id != -1L && !networkHelper.isConnectedToNetwork()) {
-            setupViews()
-        } else {
-            getNovelInfo()
-        }
+        contentBinding.swipeRefreshLayout.setOnRefreshListener { viewModel.refresh() }
 
-        contentBinding.swipeRefreshLayout.setOnRefreshListener { getNovelInfo() }
+        observeState()
+        observeEvents()
     }
 
-    private fun getNovelInfo() {
-        contentBinding.progressLayout.showLoading()
+    // ------------------------------------------------------------------
+    // State observation
+    // ------------------------------------------------------------------
 
-        //Check for network
-        if (!networkHelper.isConnectedToNetwork()) {
-            contentBinding.swipeRefreshLayout.isRefreshing = false
-
-            if (novel.id == -1L) { //If novel not present in library -> show error screen
-                contentBinding.progressLayout.noInternetError {
-                    getNovelInfo()
-                }
-            } else { // else just show a toast
-                toast(R.string.no_internet)
-            }
-            return
-        }
-
-        //Download novel details
+    private fun observeState() {
         lifecycleScope.launch {
-            try {
-                val source = sourceManager.get(novel.sourceId) ?: throw Exception(Exceptions.MISSING_SOURCE_ID)
-                val totalStartTime = System.currentTimeMillis()
-                novel = withContext(Dispatchers.IO) { source.getNovelDetails(novel) }
-                val totalElapsed = System.currentTimeMillis() - totalStartTime
-                Logs.info(TAG, "⏱ [NovelDetails] Total load time for '${novel.name}': ${totalElapsed}ms")
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    contentBinding.swipeRefreshLayout.isRefreshing = false
+                    when (state) {
+                        is NovelDetailsUiState.Loading -> {
+                            contentBinding.progressLayout.showLoading()
+                        }
 
-                //Update the novel in library with the new info
-                if (novel.id != -1L) withContext(Dispatchers.IO) { dbHelper.updateNovel(novel) }
-                addNovelToHistory()
-                setupViews()
-                contentBinding.swipeRefreshLayout.isRefreshing = false
-                contentBinding.progressLayout.showContent()
-                retryCounter = 0
-            } catch (e: Exception) {
-                if (e.message?.contains(Exceptions.MISSING_SOURCE_ID) == true) {
-                    contentBinding.progressLayout.showError(errorText = "Missing Novel Source Id.\nPlease re-add the novel.", buttonText = "Delete Novel") {
-                        deleteNovel()
-                        finish()
+                        is NovelDetailsUiState.Success -> {
+                            setupViews(state.novel)
+                            contentBinding.progressLayout.showContent()
+                        }
+
+                        is NovelDetailsUiState.NoInternet -> {
+                            contentBinding.progressLayout.noInternetError(
+                                View.OnClickListener { viewModel.refresh() }
+                            )
+                        }
+
+                        is NovelDetailsUiState.Error -> {
+                            contentBinding.progressLayout.showError(
+                                errorText = getString(R.string.failed_to_load_url),
+                                buttonText = getString(R.string.try_again),
+                                onClickListener = View.OnClickListener { viewModel.refresh() }
+                            )
+                        }
+
+                        is NovelDetailsUiState.MissingSource -> {
+                            contentBinding.progressLayout.showError(
+                                errorText = getString(R.string.missing_source_id_error),
+                                buttonText = getString(R.string.delete_novel),
+                                onClickListener = View.OnClickListener {
+                                    performDeleteNovel()
+                                    finish()
+                                }
+                            )
+                        }
+
+                        is NovelDetailsUiState.CloudflareChallenge -> {
+                            showCloudflareResolverDialog()
+                        }
                     }
-                    return@launch
                 }
-
-                if (e.message?.contains(getString(R.string.information_cloudflare_bypass_failure)) == true || e.message?.contains("HTTP error 503") == true && retryCounter < 2) {
-                    retryCounter++
-                    showCloudflareResolverDialog()
-                    return@launch
-                }
-
-                //Copy the error to clipboard
-                if (!isDestroyed && !isFinishing) Utils.copyErrorToClipboard(e, this@NovelDetailsActivity)
-
-                if (novel.id == -1L) {
-                    contentBinding.progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again)) {
-                        contentBinding.progressLayout.showLoading()
-                        getNovelInfo()
-                    }
-                }
-                contentBinding.swipeRefreshLayout.isRefreshing = false
             }
         }
     }
 
-    private fun showCloudflareResolverDialog() {
-        if (isDestroyed || isFinishing) return
-        MaterialDialog(this).show {
-            lifecycleOwner(this@NovelDetailsActivity)
-            title(text = "Cloudflare Verification Required")
-            message(text = "The server requires Cloudflare verification. You can solve it manually in a browser, then we'll retry automatically.")
-            positiveButton(text = "Resolve Manually") {
-                val url = "https://${HostNames.NOVEL_UPDATES}"
-                val intent = CloudflareResolverActivity.createIntent(this@NovelDetailsActivity, url)
-                cloudflareResolverLauncher.launch(intent)
-            }
-            negativeButton(text = "Retry") {
-                getNovelInfo()
+    private fun observeEvents() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.events.collect { event ->
+                    when (event) {
+                        is NovelDetailsEvent.ShowToast -> toast(event.messageResId)
+
+                        is NovelDetailsEvent.CopyErrorToClipboard -> {
+                            if (!isDestroyed && !isFinishing) {
+                                Utils.copyErrorToClipboard(event.exception, this@NovelDetailsActivity)
+                            }
+                        }
+
+                        is NovelDetailsEvent.NovelAddedToLibrary -> {
+                            addNewNovel(viewModel.novel)
+                            viewModel.onNovelAddedToLibrary(viewModel.novel)
+                            setupAddToLibraryButton(viewModel.novel)
+                        }
+
+                        is NovelDetailsEvent.NovelDeleted -> {
+                            performDeleteNovel()
+                        }
+                    }
+                }
             }
         }
     }
+
+    // ------------------------------------------------------------------
+    // UI setup — pure view binding, no business logic
+    // ------------------------------------------------------------------
 
     @SuppressLint("SetTextI18n")
-    private fun setupViews() {
-        setNovelImage()
+    private fun setupViews(novel: Novel) {
+        setupNovelImage(novel)
 
         contentBinding.novelDetailsName.applyFont(assets).text = novel.name
         contentBinding.novelDetailsName.isSelected = dataCenter.enableScrollingText
 
-        val listener: View.OnClickListener = View.OnClickListener {
+        val nameClickListener = View.OnClickListener {
             MaterialDialog(this).show {
-                title(text = "Novel Name")
+                title(text = getString(R.string.novel_name))
                 message(text = novel.name)
-
+                positiveButton(text = getString(R.string.copy)) {
+                    copyToClipboard(getString(R.string.novel_name), novel.name)
+                }
                 lifecycleOwner(this@NovelDetailsActivity)
             }
         }
-        contentBinding.novelDetailsName.setOnClickListener(listener)
-        contentBinding.novelDetailsNameInfo.setOnClickListener(listener)
+        contentBinding.novelDetailsName.setOnClickListener(nameClickListener)
+        contentBinding.novelDetailsName.setOnLongClickListener {
+            copyToClipboard(getString(R.string.novel_name), novel.name)
+            true
+        }
+        contentBinding.novelDetailsNameInfo.setOnClickListener(nameClickListener)
 
-        setNovelAuthor()
+        setupNovelAuthor(novel)
 
-        contentBinding.novelDetailsStatus.applyFont(assets).text = "N/A"
-        if (novel.metadata["Year"] != null) contentBinding.novelDetailsStatus.applyFont(assets).text = novel.metadata["Year"]
+        contentBinding.novelDetailsStatus.applyFont(assets).text =
+            novel.metadata["Year"] ?: "N/A"
 
-        setLicensingInfo()
-        setNovelRating()
-        setNovelAddToLibraryButton()
-        setNovelGenre()
-        setNovelDescription()
+        setupLicensingInfo(novel)
+        setupNovelRating(novel)
+        setupAddToLibraryButton(novel)
+        setupNovelGenres(novel)
+        setupNovelDescription(novel)
 
         val chaptersCountText = novel.chaptersCount.takeIf { it > 0L }?.toString()
             ?: novel.metadata["Chapters"]?.takeIf { it.isNotBlank() }
@@ -207,6 +214,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             getString(R.string.chapters) + " ($chaptersCountText)"
         else
             getString(R.string.chapters)
+
         contentBinding.novelDetailsChaptersLayout.setOnClickListener {
             startChaptersActivity(novel, false)
         }
@@ -214,33 +222,40 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         contentBinding.openInBrowserButton.setOnClickListener { openInBrowser(novel.url) }
     }
 
-    private fun setNovelImage() {
+    private fun setupNovelImage(novel: Novel) {
         if (!novel.imageUrl.isNullOrBlank()) {
             Glide.with(this).load(novel.imageUrl?.getGlideUrl()).into(contentBinding.novelDetailsImage)
             contentBinding.novelDetailsImage.setOnClickListener {
-                startImagePreviewActivity(
-                    novel.imageUrl,
-                    novel.imageFilePath,
-                    contentBinding.novelDetailsImage
-                )
+                startImagePreviewActivity(novel.imageUrl, novel.imageFilePath, contentBinding.novelDetailsImage)
             }
         }
     }
 
-    private fun setNovelAuthor() {
+    private fun setupNovelAuthor(novel: Novel) {
+        val authorText: CharSequence
         val author = novel.metadata["Author(s)"]
         if (author != null) {
-            contentBinding.novelDetailsAuthor.movementMethod = TextViewLinkHandler(this)
-            contentBinding.novelDetailsAuthor.applyFont(assets).text =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) Html.fromHtml(author, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(author)
-            return
+            authorText = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+                Html.fromHtml(author, Html.FROM_HTML_MODE_LEGACY)
+            else
+                @Suppress("DEPRECATION") Html.fromHtml(author)
+        } else {
+            val authors = novel.authors?.joinToString { "," } ?: return
+            authorText = authors
         }
-        val authors = novel.authors?.joinToString { "," } ?: return
+
         contentBinding.novelDetailsAuthor.movementMethod = TextViewLinkHandler(this)
-        contentBinding.novelDetailsAuthor.applyFont(assets).text = authors
+        contentBinding.novelDetailsAuthor.applyFont(assets).text = authorText
+
+        // textIsSelectable is overridden by TextViewLinkHandler's MovementMethod,
+        // so we use long-press-to-copy instead for reliable copy support.
+        contentBinding.novelDetailsAuthor.setOnLongClickListener {
+            copyToClipboard("Author", authorText.toString())
+            true
+        }
     }
 
-    private fun setLicensingInfo() {
+    private fun setupLicensingInfo(novel: Novel) {
         var publisher = novel.metadata["English Publisher"] ?: ""
         val isLicensed = novel.metadata["Licensed (in English)"] == "Yes"
         if (publisher != "" || isLicensed) {
@@ -248,14 +263,17 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             val warningLabel = getString(R.string.licensed_warning, publisher)
             contentBinding.novelDetailsLicensedAlert.movementMethod = TextViewLinkHandler(this)
             contentBinding.novelDetailsLicensedAlert.text =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) Html.fromHtml(warningLabel, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(warningLabel)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+                    Html.fromHtml(warningLabel, Html.FROM_HTML_MODE_LEGACY)
+                else
+                    @Suppress("DEPRECATION") Html.fromHtml(warningLabel)
             contentBinding.novelDetailsLicensedLayout.visibility = View.VISIBLE
         } else {
             contentBinding.novelDetailsLicensedLayout.visibility = View.GONE
         }
     }
 
-    private fun setNovelRating() {
+    private fun setupNovelRating(novel: Novel) {
         if (!novel.rating.isNullOrBlank()) {
             var ratingText = "(N/A)"
             try {
@@ -263,50 +281,52 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 contentBinding.novelDetailsRatingBar.rating = rating
                 ratingText = "(" + String.format("%.1f", rating) + ")"
             } catch (e: Exception) {
-                Logs.warning("NovelDetailsActivity", "Rating: ${novel.rating}, Novel: ${novel.name}", e)
+                io.github.gmathi.novellibrary.util.logging.Logs.warning(
+                    TAG, "Rating: ${novel.rating}, Novel: ${novel.name}", e
+                )
             }
             contentBinding.novelDetailsRatingText.text = ratingText
         }
     }
 
-    private fun setNovelAddToLibraryButton() {
+    private fun setupAddToLibraryButton(novel: Novel) {
         if (novel.id == -1L) {
-            resetAddToLibraryButton()
+            contentBinding.novelDetailAddToLibraryButton.setText(getString(R.string.add_to_library))
+            contentBinding.novelDetailAddToLibraryButton.setIconResource(R.drawable.ic_library_add_white_vector)
+            contentBinding.novelDetailAddToLibraryButton.setBackgroundColor(
+                ContextCompat.getColor(this, android.R.color.transparent)
+            )
+            contentBinding.novelDetailAddToLibraryButton.isClickable = true
             contentBinding.novelDetailAddToLibraryButton.setOnClickListener {
-                disableAddToLibraryButton()
-                addNewNovel(novel)
+                viewModel.addToLibrary()
             }
-        } else disableAddToLibraryButton()
+        } else {
+            invalidateOptionsMenu()
+            contentBinding.novelDetailAddToLibraryButton.setText(getString(R.string.in_library))
+            contentBinding.novelDetailAddToLibraryButton.setIconResource(R.drawable.ic_local_library_white_vector)
+            contentBinding.novelDetailAddToLibraryButton.setBackgroundColor(
+                ContextCompat.getColor(this, R.color.Green)
+            )
+            contentBinding.novelDetailAddToLibraryButton.isClickable = false
+        }
     }
 
-    private fun resetAddToLibraryButton() {
-        contentBinding.novelDetailAddToLibraryButton.setText(getString(R.string.add_to_library))
-        contentBinding.novelDetailAddToLibraryButton.setIconResource(R.drawable.ic_library_add_white_vector)
-        contentBinding.novelDetailAddToLibraryButton.setBackgroundColor(ContextCompat.getColor(this@NovelDetailsActivity, android.R.color.transparent))
-        contentBinding.novelDetailAddToLibraryButton.isClickable = true
-    }
-
-    private fun disableAddToLibraryButton() {
-        invalidateOptionsMenu()
-        contentBinding.novelDetailAddToLibraryButton.setText(getString(R.string.in_library))
-        contentBinding.novelDetailAddToLibraryButton.setIconResource(R.drawable.ic_local_library_white_vector)
-        contentBinding.novelDetailAddToLibraryButton.setBackgroundColor(ContextCompat.getColor(this@NovelDetailsActivity, R.color.Green))
-        contentBinding.novelDetailAddToLibraryButton.isClickable = false
-    }
-
-
-    private fun setNovelGenre() {
+    private fun setupNovelGenres(novel: Novel) {
         contentBinding.novelDetailsGenresLayout.removeAllViews()
-        if (novel.genres != null && novel.genres!!.isNotEmpty()) {
-            novel.genres!!.forEach {
-                contentBinding.novelDetailsGenresLayout.addView(getGenreTextView(it))
-            }
-        } else contentBinding.novelDetailsGenresLayout.addView(getGenreTextView("N/A"))
+        val genres = novel.genres
+        if (!genres.isNullOrEmpty()) {
+            genres.forEach { contentBinding.novelDetailsGenresLayout.addView(buildGenreChip(it)) }
+        } else {
+            contentBinding.novelDetailsGenresLayout.addView(buildGenreChip("N/A"))
+        }
     }
 
-    private fun getGenreTextView(genre: String): TextView {
+    private fun buildGenreChip(genre: String): TextView {
         val textView = TextView(this)
-        val layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        val layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
         layoutParams.setMargins(4, 8, 20, 4)
         textView.layoutParams = layoutParams
         textView.setPadding(8, 8, 8, 8)
@@ -316,44 +336,63 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         return textView
     }
 
-    private fun setNovelDescription() {
-        if (novel.longDescription != null) {
-            val expandClickable = object : ClickableSpan() {
-                override fun onClick(textView: View) {
-                    contentBinding.novelDetailsDescription.applyFont(assets).text = novel.longDescription
-                }
+    private fun setupNovelDescription(novel: Novel) {
+        val description = novel.longDescription ?: return
 
-                override fun updateDrawState(ds: TextPaint) {
-                    super.updateDrawState(ds)
-                    ds.isUnderlineText = false
-                }
+        if (description.length <= 300) {
+            // Short enough to show in full — textIsSelectable from XML handles copy
+            contentBinding.novelDetailsDescription.applyFont(assets).text = description
+            contentBinding.novelDetailsDescription.movementMethod = null
+            return
+        }
+
+        val prefix = description.subSequence(0, 300)
+        val suffix = "… Expand"
+        val truncated = "$prefix$suffix"
+
+        val expandClickable = object : ClickableSpan() {
+            override fun onClick(textView: View) {
+                contentBinding.novelDetailsDescription.applyFont(assets).text = description
+                // Remove LinkMovementMethod so textIsSelectable works for copy after expansion
+                contentBinding.novelDetailsDescription.movementMethod = null
             }
 
-            val novelDescription = "${novel.longDescription?.subSequence(0, min(300, novel.longDescription?.length ?: 0))}… Expand"
-            val ss2 = SpannableString(novelDescription)
-            ss2.setSpan(expandClickable, min(300, novel.longDescription?.length ?: 0) + 2, novelDescription.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-            contentBinding.novelDetailsDescription.applyFont(assets).text = ss2
-            contentBinding.novelDetailsDescription.movementMethod = LinkMovementMethod.getInstance()
+            override fun updateDrawState(ds: TextPaint) {
+                super.updateDrawState(ds)
+                ds.isUnderlineText = false
+            }
         }
+
+        val spannable = SpannableString(truncated)
+        spannable.setSpan(
+            expandClickable,
+            prefix.length + 2, // skip the "… " before "Expand"
+            truncated.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        contentBinding.novelDetailsDescription.applyFont(assets).text = spannable
+        contentBinding.novelDetailsDescription.movementMethod = LinkMovementMethod.getInstance()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_novel_details, menu)
-        return true
-    }
+    // ------------------------------------------------------------------
+    // Dialogs
+    // ------------------------------------------------------------------
 
-    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        menu?.getItem(0)?.isVisible = novel.id != -1L
-        return super.onPrepareOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            android.R.id.home -> finish()
-            R.id.action_delete_novel -> confirmNovelDelete()
-            R.id.action_share -> shareUrl(novel.url)
+    private fun showCloudflareResolverDialog() {
+        if (isDestroyed || isFinishing) return
+        MaterialDialog(this).show {
+            lifecycleOwner(this@NovelDetailsActivity)
+            title(text = getString(R.string.cloudflare_verification_required))
+            message(text = getString(R.string.cloudflare_verification_message))
+            positiveButton(text = getString(R.string.resolve_manually)) {
+                val url = "https://${HostNames.NOVEL_UPDATES}"
+                val intent = CloudflareResolverActivity.createIntent(this@NovelDetailsActivity, url)
+                cloudflareResolverLauncher.launch(intent)
+            }
+            negativeButton(text = getString(R.string.retry)) {
+                viewModel.refresh()
+            }
         }
-        return super.onOptionsItemSelected(item)
     }
 
     private fun confirmNovelDelete() {
@@ -361,20 +400,51 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             icon(R.drawable.ic_delete_white_vector)
             title(R.string.confirm_remove)
             message(R.string.confirm_remove_description_novel)
-            positiveButton(R.string.remove) {
-                deleteNovel()
-            }
+            positiveButton(R.string.remove) { performDeleteNovel() }
             negativeButton(R.string.cancel)
-
             lifecycleOwner(this@NovelDetailsActivity)
         }
     }
 
-    private fun deleteNovel() {
-        deleteNovel(novel)
-        setNovelAddToLibraryButton()
+    // ------------------------------------------------------------------
+    // Actions that need Context (DataAccessor extensions)
+    // ------------------------------------------------------------------
+
+    private fun performDeleteNovel() {
+        // Capture the id before the delete mutates the novel
+        val novelId = viewModel.novel.id
+        deleteNovel(viewModel.novel)
+        viewModel.onNovelDeleted(novelId)
+        setupAddToLibraryButton(viewModel.novel)
         invalidateOptionsMenu()
     }
+
+    // ------------------------------------------------------------------
+    // Menu
+    // ------------------------------------------------------------------
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_novel_details, menu)
+        return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        menu?.getItem(0)?.isVisible = viewModel.isInLibrary
+        return super.onPrepareOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> finish()
+            R.id.action_delete_novel -> confirmNovelDelete()
+            R.id.action_share -> shareUrl(viewModel.novel.url)
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    // ------------------------------------------------------------------
+    // Activity result (legacy — chapters screen)
+    // ------------------------------------------------------------------
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == Constants.CHAPTER_ACT_REQ_CODE) {
@@ -383,29 +453,36 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 finish()
                 return
             }
-            //Check if this novel was added to database in Chapters Screen
-            dbHelper.getNovelByUrl(novel.url)?.let { novel = it }
-            setNovelAddToLibraryButton()
+            // Chapters screen may have added the novel to the library — refresh from DB on IO
+            viewModel.refreshFromDatabase()
+            lifecycleScope.launch {
+                // Wait for the DB refresh to propagate, then update the button
+                // (refreshFromDatabase is fast, but we yield to let it complete)
+                kotlinx.coroutines.yield()
+                setupAddToLibraryButton(viewModel.novel)
+            }
         }
-
         super.onActivityResult(requestCode, resultCode, data)
     }
+
+    // ------------------------------------------------------------------
+    // Link handler callback
+    // ------------------------------------------------------------------
 
     override fun onLinkClicked(title: String, url: String) {
         startSearchResultsActivity(title, url)
     }
 
-    private fun addNovelToHistory() {
-        try {
-            var history = dbHelper.getLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY) ?: "[]"
-            var historyList: ArrayList<Novel> = Gson().fromJson(history, object : TypeToken<ArrayList<Novel>>() {}.type)
-            historyList.removeAll { novel.name == it.name }
-            if (historyList.size > 99) historyList = ArrayList(historyList.take(99))
-            historyList.add(novel)
-            history = Gson().toJson(historyList)
-            dbHelper.createOrUpdateLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY, history)
-        } catch (e: Exception) {
-            dbHelper.deleteLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY)
+    // ------------------------------------------------------------------
+    // Helpers
+    // ------------------------------------------------------------------
+
+    private fun copyToClipboard(label: String, text: String) {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText(label, text))
+        // Android 13+ shows its own "Copied" confirmation
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            toast(R.string.copy_to_clipboard)
         }
     }
 }

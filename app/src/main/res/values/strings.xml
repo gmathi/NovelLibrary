@@ -910,4 +910,14 @@
     <string name="tts_ai_model_download_failed">Model download failed: %s</string>
     <string name="tts_ai_model_not_enough_storage">Not enough storage space. Need at least 50MB free.</string>
     <string name="tts_ai_unsupported_device">AI TTS is not supported on this device architecture</string>
+
+    <!-- Novel Details screen -->
+    <string name="novel_name">Novel Name</string>
+    <string name="copy">Copy</string>
+    <string name="missing_source_id_error">Missing Novel Source Id.\nPlease re-add the novel.</string>
+    <string name="delete_novel">Delete Novel</string>
+    <string name="cloudflare_verification_required">Cloudflare Verification Required</string>
+    <string name="cloudflare_verification_message">The server requires Cloudflare verification. You can solve it manually in a browser, then we\'ll retry automatically.</string>
+    <string name="resolve_manually">Resolve Manually</string>
+    <string name="retry">Retry</string>
 </resources>
