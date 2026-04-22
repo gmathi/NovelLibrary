@@ -37,6 +37,7 @@ import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.*
+import io.github.gmathi.novellibrary.util.system.getParcelableExtraCompat
 import io.github.gmathi.novellibrary.util.view.*
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.viewmodel.NovelDetailsEvent
@@ -74,7 +75,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         setContentView(binding.root)
         contentBinding = binding.contentNovelDetails
 
-        val novel = intent.getParcelableExtra<Novel>("novel") as Novel
+        val novel = intent.getParcelableExtraCompat<Novel>("novel") as Novel
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

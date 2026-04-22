@@ -13,7 +13,7 @@ internal class NotificationReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == ACTION_SEND_NOTIFICATION) {
-            val notification = intent.getParcelableExtra<Notification>(EXTRA_NOTIFICATION)
+            val notification = intent.getParcelableExtraCompat<Notification>(EXTRA_NOTIFICATION)
             val id = intent.getIntExtra(EXTRA_ID, Utils.getUniqueNotificationId())
             if (notification == null)
                 Log.e(TAG, "EXTRA_NOTIFICATION ($EXTRA_NOTIFICATION) was not provided!")

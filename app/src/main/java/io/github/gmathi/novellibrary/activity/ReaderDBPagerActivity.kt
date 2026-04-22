@@ -59,6 +59,7 @@ import io.github.gmathi.novellibrary.util.system.startTTSActivity
 import io.github.gmathi.novellibrary.util.system.startTTSService
 import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import io.github.gmathi.novellibrary.util.system.updateNovelLastRead
+import io.github.gmathi.novellibrary.util.system.getParcelableExtraCompat
 import io.github.gmathi.novellibrary.viewmodel.ReaderViewModel
 import org.greenrobot.eventbus.EventBus
 import java.io.File
@@ -113,8 +114,7 @@ class ReaderDBPagerActivity :
         translatorSourceName = intent.getStringExtra("translatorSourceName")
         if (translatorSourceName == Constants.ALL_TRANSLATOR_SOURCES) translatorSourceName = null
 
-        @Suppress("DEPRECATION")
-        val tempNovel = intent.getParcelableExtra("novel") as Novel?
+        val tempNovel = intent.getParcelableExtraCompat<Novel>("novel")
 
         if (tempNovel == null || tempNovel.chaptersCount.toInt() == 0) {
             finish()

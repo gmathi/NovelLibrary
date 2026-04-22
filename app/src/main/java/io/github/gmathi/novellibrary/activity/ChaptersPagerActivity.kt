@@ -37,6 +37,8 @@ import io.github.gmathi.novellibrary.util.analytics.FAC
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.system.shareUrl
 import io.github.gmathi.novellibrary.util.system.startDownloadNovelService
+import io.github.gmathi.novellibrary.util.system.getParcelableExtraCompat
+import io.github.gmathi.novellibrary.util.system.getParcelableCompat
 import io.github.gmathi.novellibrary.viewmodel.ChaptersViewModel
 import org.greenrobot.eventbus.EventBus
 import java.util.*
@@ -102,9 +104,9 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                 setProgressDialog(savedInstanceState.getString("progressMessage", "In Progress…"), savedInstanceState.getInt("maxProgress", 0))
                 showProgressDialog()
             }
-            novel = savedInstanceState.getParcelable("novel")
+            novel = savedInstanceState.getParcelableCompat("novel")
         } else {
-            novel = intent.getParcelableExtra("novel")
+            novel = intent.getParcelableExtraCompat("novel")
         }
 
         if (novel == null) return
