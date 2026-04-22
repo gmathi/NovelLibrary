@@ -194,7 +194,8 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
             .debounce(100, TimeUnit.MILLISECONDS)
             .map(::toItems)
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe {
+            .subscribe({
+                if (!isAdded) return@subscribe
                 extensions = it
                 if (extensions.isEmpty()) {
                     binding.progressLayout.showEmpty(emptyText = getString(R.string.empty_extensions))
@@ -203,7 +204,9 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
                     adapter.updateData(ArrayList(extensions))
                 }
                 binding.swipeRefreshLayout.isRefreshing = false
-            }
+            }, {
+                // Silently handle to prevent OnErrorNotImplementedException
+            })
     }
 
     @Synchronized

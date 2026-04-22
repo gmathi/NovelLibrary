@@ -325,6 +325,10 @@ class TTSPlayer(private val context: Context,
 
     fun start() {
         if (isDisposed) return
+        if (!::novel.isInitialized) {
+            Log.w(TAG, "start() called before novel was initialized, ignoring")
+            return
+        }
         desiredState = STATE_PLAY
         // Start silence playback even if TTS is not ready
         // Avoid cut audio because android did boot up the bluetooth sound output.
@@ -555,6 +559,11 @@ class TTSPlayer(private val context: Context,
     }
 
     private fun onLastLine() {
+        if (!::novel.isInitialized) {
+            Log.w(TAG, "onLastLine() called before novel was initialized, stopping")
+            stop()
+            return
+        }
         if (dataCenter.ttsPreferences.markChaptersRead) {
             dbHelper.getWebPage(novel.id, translatorSourceName, chapterIndex)?.let {
                 markChapterRead(it, true)

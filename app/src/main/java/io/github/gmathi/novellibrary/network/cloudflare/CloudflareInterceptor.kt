@@ -59,7 +59,14 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
         initWebView
 
         try {
-            val response = chain.proceed(originalRequest)
+            val response: Response
+            try {
+                response = chain.proceed(originalRequest)
+            } catch (e: java.net.UnknownHostException) {
+                Log.w(TAG, "DNS resolution failed for ${originalRequest.url.host}: ${e.message}")
+                throw java.io.IOException("DNS resolution failed for ${originalRequest.url.host}", e)
+            }
+
 
             // Check if Cloudflare anti-bot is on
             if (!isCloudflareChallenge(response)) {

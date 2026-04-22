@@ -531,7 +531,13 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
                     while (!data.isEmpty()) {
                         val buf = data.first
                         val remaining = min(bufferSize, buf.remaining())
-                        val total = track.write(buf, buf.remaining(), AudioTrack.WRITE_NON_BLOCKING)
+                        val total: Int
+                        try {
+                            total = track.write(buf, buf.remaining(), AudioTrack.WRITE_NON_BLOCKING)
+                        } catch (e: IllegalStateException) {
+                            Log.e(TTSPlayer.TAG, "AudioTrack write failed: ${e.message}")
+                            break
+                        }
                         this.written += total / bytesPerFrame
                         if (total < remaining) {
                             if (track.playState != AudioTrack.PLAYSTATE_PLAYING) track.play()  // Primed
@@ -701,9 +707,13 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
                 TTSMarkerType.StartEarcon -> {
                     playing = marker.owner
                     val earcon = marker.earcon
-                    earcon.player.stop()
-                    earcon.player.prepare()
-                    earcon.player.start()
+                    try {
+                        earcon.player.stop()
+                        earcon.player.prepare()
+                        earcon.player.start()
+                    } catch (e: IllegalStateException) {
+                        Log.e(TTSPlayer.TAG, "Earcon playback failed: ${e.message}")
+                    }
                     callback.onStart(marker.owner.utteranceId)
                 }
                 TTSMarkerType.Done -> {

@@ -568,6 +568,7 @@ open class HtmlCleaner protected constructor() {
 
     open fun convertDocToFile(doc: Document, file: File): File? {
         try {
+            file.parentFile?.mkdirs()
             if (file.exists()) file.delete()
             val stream = FileOutputStream(file)
             val content = doc.toString()

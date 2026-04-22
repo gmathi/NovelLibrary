@@ -42,10 +42,16 @@ object TransitionHelper {
      * @param data Intent with bundle and or activity to start
      */
     fun startSharedImageTransition(base: AppCompatActivity, target: View, transitionName: String, data: Intent) {
-        val transition = ActivityOptionsCompat.makeSceneTransitionAnimation(
-            base, target, transitionName
-        )
-        base.startActivity(data, transition.toBundle())
+        try {
+            val transition = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                base, target, transitionName
+            )
+            base.startActivity(data, transition.toBundle())
+        } catch (e: Exception) {
+            // Fallback: start activity without shared element transition
+            // to avoid ClassCastException on some Android versions (API 31/32)
+            base.startActivity(data)
+        }
     }
 
 }
