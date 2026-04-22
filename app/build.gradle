@@ -74,6 +74,7 @@ android {
     }
 
     compileOptions {
+        coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
@@ -113,6 +114,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
 }
 
 dependencies {
+    coreLibraryDesugaring libs.desugar.jdk.libs
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     
     // AndroidX
