@@ -1,411 +1,145 @@
 package io.github.gmathi.novellibrary.activity
 
 import android.app.Activity
-import android.annotation.SuppressLint
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
-import android.text.Html
-import android.text.Spannable
-import android.text.SpannableString
-import android.text.TextPaint
-import android.text.method.LinkMovementMethod
-import android.text.style.ClickableSpan
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityOptionsCompat
 import androidx.lifecycle.lifecycleScope
-import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
-import com.bumptech.glide.Glide
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
-import io.github.gmathi.novellibrary.database.*
-import io.github.gmathi.novellibrary.databinding.ActivityNovelDetailsBinding
-import io.github.gmathi.novellibrary.databinding.ContentNovelDetailsBinding
-import io.github.gmathi.novellibrary.extensions.*
+import io.github.gmathi.novellibrary.activity.CloudflareResolverActivity
+import io.github.gmathi.novellibrary.compose.noveldetails.NovelDetailsScreen
+import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.network.HostNames
-import io.github.gmathi.novellibrary.util.*
-import io.github.gmathi.novellibrary.util.error.Exceptions
-import io.github.gmathi.novellibrary.util.logging.Logs
-import io.github.gmathi.novellibrary.util.lang.getGlideUrl
-import io.github.gmathi.novellibrary.util.system.*
-import io.github.gmathi.novellibrary.util.view.*
-import io.github.gmathi.novellibrary.util.view.extensions.applyFont
-import kotlinx.coroutines.Dispatchers
+import io.github.gmathi.novellibrary.util.Constants
+import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.system.openInBrowser
+import io.github.gmathi.novellibrary.util.system.startChaptersActivity
+import io.github.gmathi.novellibrary.util.system.startMetadataActivity
+import io.github.gmathi.novellibrary.util.system.startSearchResultsActivity
+import io.github.gmathi.novellibrary.util.system.toast
+import io.github.gmathi.novellibrary.viewmodel.NovelDetailsEvent
+import io.github.gmathi.novellibrary.viewmodel.NovelDetailsViewModel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlin.math.min
 
-
-class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener {
+class NovelDetailsActivity : AppCompatActivity() {
 
     companion object {
         const val TAG = "NovelDetailsActivity"
     }
 
-    lateinit var novel: Novel
-
-    private lateinit var binding: ActivityNovelDetailsBinding
-    private lateinit var contentBinding: ContentNovelDetailsBinding
-
-    private var retryCounter = 0
+    private val viewModel: NovelDetailsViewModel by viewModels()
 
     private val cloudflareResolverLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            // Cookies saved from manual Cloudflare resolution — retry loading
-            retryCounter = 0
-            getNovelInfo()
+            viewModel.onCloudflareResolved()
         }
+    }
+
+    private val chaptersLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Constants.OPEN_DOWNLOADS_RES_CODE) {
+            setResult(result.resultCode)
+            finish()
+            return@registerForActivityResult
+        }
+        // Refresh novel state in case it was added to library from the chapters screen
+        val novel = intent.getParcelableExtra<Novel>("novel") as? Novel ?: return@registerForActivityResult
+        viewModel.onNovelAddedFromChapters(novel.url)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityNovelDetailsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        contentBinding = binding.contentNovelDetails
+        enableEdgeToEdge()
 
-        //Get Novel from intent
-        novel = intent.getParcelableExtra<Novel>("novel") as Novel
-
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = novel.name
-
-        //check for novel in database
-        dbHelper.getNovelByUrl(novel.url)?.let { novel.id = it.id }
-
-        if (novel.id != -1L && !networkHelper.isConnectedToNetwork()) {
-            setupViews()
-        } else {
-            getNovelInfo()
-        }
-
-        contentBinding.swipeRefreshLayout.setOnRefreshListener { getNovelInfo() }
-    }
-
-    private fun getNovelInfo() {
-        contentBinding.progressLayout.showLoading()
-
-        //Check for network
-        if (!networkHelper.isConnectedToNetwork()) {
-            contentBinding.swipeRefreshLayout.isRefreshing = false
-
-            if (novel.id == -1L) { //If novel not present in library -> show error screen
-                contentBinding.progressLayout.noInternetError {
-                    getNovelInfo()
-                }
-            } else { // else just show a toast
-                toast(R.string.no_internet)
-            }
+        val novel = intent.getParcelableExtra<Novel>("novel") as? Novel
+        if (novel == null) {
+            finish()
             return
         }
 
-        //Download novel details
+        viewModel.init(novel)
+
         lifecycleScope.launch {
-            try {
-                val source = sourceManager.get(novel.sourceId) ?: throw Exception(Exceptions.MISSING_SOURCE_ID)
-                val totalStartTime = System.currentTimeMillis()
-                novel = withContext(Dispatchers.IO) { source.getNovelDetails(novel) }
-                val totalElapsed = System.currentTimeMillis() - totalStartTime
-                Logs.info(TAG, "⏱ [NovelDetails] Total load time for '${novel.name}': ${totalElapsed}ms")
-
-                //Update the novel in library with the new info
-                if (novel.id != -1L) withContext(Dispatchers.IO) { dbHelper.updateNovel(novel) }
-                addNovelToHistory()
-                setupViews()
-                contentBinding.swipeRefreshLayout.isRefreshing = false
-                contentBinding.progressLayout.showContent()
-                retryCounter = 0
-            } catch (e: Exception) {
-                if (e.message?.contains(Exceptions.MISSING_SOURCE_ID) == true) {
-                    contentBinding.progressLayout.showError(errorText = "Missing Novel Source Id.\nPlease re-add the novel.", buttonText = "Delete Novel") {
-                        deleteNovel()
-                        finish()
-                    }
-                    return@launch
-                }
-
-                if (e.message?.contains(getString(R.string.information_cloudflare_bypass_failure)) == true || e.message?.contains("HTTP error 503") == true && retryCounter < 2) {
-                    retryCounter++
-                    showCloudflareResolverDialog()
-                    return@launch
-                }
-
-                //Copy the error to clipboard
-                if (!isDestroyed && !isFinishing) Utils.copyErrorToClipboard(e, this@NovelDetailsActivity)
-
-                if (novel.id == -1L) {
-                    contentBinding.progressLayout.showError(errorText = getString(R.string.failed_to_load_url), buttonText = getString(R.string.try_again)) {
-                        contentBinding.progressLayout.showLoading()
-                        getNovelInfo()
-                    }
-                }
-                contentBinding.swipeRefreshLayout.isRefreshing = false
+            viewModel.events.collect { event ->
+                handleEvent(event)
             }
         }
-    }
 
-    private fun showCloudflareResolverDialog() {
-        if (isDestroyed || isFinishing) return
-        MaterialDialog(this).show {
-            lifecycleOwner(this@NovelDetailsActivity)
-            title(text = "Cloudflare Verification Required")
-            message(text = "The server requires Cloudflare verification. You can solve it manually in a browser, then we'll retry automatically.")
-            positiveButton(text = "Resolve Manually") {
-                val url = "https://${HostNames.NOVEL_UPDATES}"
-                val intent = CloudflareResolverActivity.createIntent(this@NovelDetailsActivity, url)
-                cloudflareResolverLauncher.launch(intent)
-            }
-            negativeButton(text = "Retry") {
-                getNovelInfo()
-            }
-        }
-    }
-
-    @SuppressLint("SetTextI18n")
-    private fun setupViews() {
-        setNovelImage()
-
-        contentBinding.novelDetailsName.applyFont(assets).text = novel.name
-        contentBinding.novelDetailsName.isSelected = dataCenter.enableScrollingText
-
-        val listener: View.OnClickListener = View.OnClickListener {
-            MaterialDialog(this).show {
-                title(text = "Novel Name")
-                message(text = novel.name)
-
-                lifecycleOwner(this@NovelDetailsActivity)
-            }
-        }
-        contentBinding.novelDetailsName.setOnClickListener(listener)
-        contentBinding.novelDetailsNameInfo.setOnClickListener(listener)
-
-        setNovelAuthor()
-
-        contentBinding.novelDetailsStatus.applyFont(assets).text = "N/A"
-        if (novel.metadata["Year"] != null) contentBinding.novelDetailsStatus.applyFont(assets).text = novel.metadata["Year"]
-
-        setLicensingInfo()
-        setNovelRating()
-        setNovelAddToLibraryButton()
-        setNovelGenre()
-        setNovelDescription()
-
-        val chaptersCountText = novel.chaptersCount.takeIf { it > 0L }?.toString()
-            ?: novel.metadata["Chapters"]?.takeIf { it.isNotBlank() }
-        contentBinding.novelDetailsChapters.text = if (chaptersCountText != null)
-            getString(R.string.chapters) + " ($chaptersCountText)"
-        else
-            getString(R.string.chapters)
-        contentBinding.novelDetailsChaptersLayout.setOnClickListener {
-            startChaptersActivity(novel, false)
-        }
-        contentBinding.novelDetailsMetadataLayout.setOnClickListener { startMetadataActivity(novel) }
-        contentBinding.openInBrowserButton.setOnClickListener { openInBrowser(novel.url) }
-    }
-
-    private fun setNovelImage() {
-        if (!novel.imageUrl.isNullOrBlank()) {
-            Glide.with(this).load(novel.imageUrl?.getGlideUrl()).into(contentBinding.novelDetailsImage)
-            contentBinding.novelDetailsImage.setOnClickListener {
-                startImagePreviewActivity(
-                    novel.imageUrl,
-                    novel.imageFilePath,
-                    contentBinding.novelDetailsImage
+        setContent {
+            NovelLibraryTheme {
+                NovelDetailsScreen(
+                    viewModel = viewModel,
+                    onBackClick = { finish() },
+                    onImageClick = { viewModel.onImageClick() },
+                    onChaptersClick = { viewModel.onChaptersClick() },
+                    onMetadataClick = { viewModel.onMetadataClick() },
+                    onOpenInBrowser = { viewModel.onOpenInBrowser() },
+                    onAuthorLinkClick = { title, url -> viewModel.onAuthorLinkClick(title, url) },
+                    onDeleteConfirmed = { viewModel.deleteFromLibrary() },
+                    onShareClick = { viewModel.onShareUrl() }
                 )
             }
         }
     }
 
-    private fun setNovelAuthor() {
-        val author = novel.metadata["Author(s)"]
-        if (author != null) {
-            contentBinding.novelDetailsAuthor.movementMethod = TextViewLinkHandler(this)
-            contentBinding.novelDetailsAuthor.applyFont(assets).text =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) Html.fromHtml(author, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(author)
-            return
-        }
-        val authors = novel.authors?.joinToString { "," } ?: return
-        contentBinding.novelDetailsAuthor.movementMethod = TextViewLinkHandler(this)
-        contentBinding.novelDetailsAuthor.applyFont(assets).text = authors
-    }
+    private fun handleEvent(event: NovelDetailsEvent) {
+        when (event) {
+            is NovelDetailsEvent.NavigateBack -> finish()
 
-    private fun setLicensingInfo() {
-        var publisher = novel.metadata["English Publisher"] ?: ""
-        val isLicensed = novel.metadata["Licensed (in English)"] == "Yes"
-        if (publisher != "" || isLicensed) {
-            if (publisher.isEmpty()) publisher = "an unknown publisher"
-            val warningLabel = getString(R.string.licensed_warning, publisher)
-            contentBinding.novelDetailsLicensedAlert.movementMethod = TextViewLinkHandler(this)
-            contentBinding.novelDetailsLicensedAlert.text =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) Html.fromHtml(warningLabel, Html.FROM_HTML_MODE_LEGACY) else Html.fromHtml(warningLabel)
-            contentBinding.novelDetailsLicensedLayout.visibility = View.VISIBLE
-        } else {
-            contentBinding.novelDetailsLicensedLayout.visibility = View.GONE
-        }
-    }
-
-    private fun setNovelRating() {
-        if (!novel.rating.isNullOrBlank()) {
-            var ratingText = "(N/A)"
-            try {
-                val rating = novel.rating!!.replace(",", ".").toFloat()
-                contentBinding.novelDetailsRatingBar.rating = rating
-                ratingText = "(" + String.format("%.1f", rating) + ")"
-            } catch (e: Exception) {
-                Logs.warning("NovelDetailsActivity", "Rating: ${novel.rating}, Novel: ${novel.name}", e)
+            is NovelDetailsEvent.NavigateToChapters -> {
+                startChaptersActivity(event.novel, false)
             }
-            contentBinding.novelDetailsRatingText.text = ratingText
-        }
-    }
 
-    private fun setNovelAddToLibraryButton() {
-        if (novel.id == -1L) {
-            resetAddToLibraryButton()
-            contentBinding.novelDetailAddToLibraryButton.setOnClickListener {
-                disableAddToLibraryButton()
-                addNewNovel(novel)
-            }
-        } else disableAddToLibraryButton()
-    }
+            is NovelDetailsEvent.NavigateToMetadata -> startMetadataActivity(event.novel)
 
-    private fun resetAddToLibraryButton() {
-        contentBinding.novelDetailAddToLibraryButton.setText(getString(R.string.add_to_library))
-        contentBinding.novelDetailAddToLibraryButton.setIconResource(R.drawable.ic_library_add_white_vector)
-        contentBinding.novelDetailAddToLibraryButton.setBackgroundColor(ContextCompat.getColor(this@NovelDetailsActivity, android.R.color.transparent))
-        contentBinding.novelDetailAddToLibraryButton.isClickable = true
-    }
-
-    private fun disableAddToLibraryButton() {
-        invalidateOptionsMenu()
-        contentBinding.novelDetailAddToLibraryButton.setText(getString(R.string.in_library))
-        contentBinding.novelDetailAddToLibraryButton.setIconResource(R.drawable.ic_local_library_white_vector)
-        contentBinding.novelDetailAddToLibraryButton.setBackgroundColor(ContextCompat.getColor(this@NovelDetailsActivity, R.color.Green))
-        contentBinding.novelDetailAddToLibraryButton.isClickable = false
-    }
-
-
-    private fun setNovelGenre() {
-        contentBinding.novelDetailsGenresLayout.removeAllViews()
-        if (novel.genres != null && novel.genres!!.isNotEmpty()) {
-            novel.genres!!.forEach {
-                contentBinding.novelDetailsGenresLayout.addView(getGenreTextView(it))
-            }
-        } else contentBinding.novelDetailsGenresLayout.addView(getGenreTextView("N/A"))
-    }
-
-    private fun getGenreTextView(genre: String): TextView {
-        val textView = TextView(this)
-        val layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-        layoutParams.setMargins(4, 8, 20, 4)
-        textView.layoutParams = layoutParams
-        textView.setPadding(8, 8, 8, 8)
-        textView.setBackgroundColor(ContextCompat.getColor(this, R.color.LightGoldenrodYellow))
-        textView.applyFont(assets).text = genre
-        textView.setTextColor(ContextCompat.getColor(this, R.color.black))
-        return textView
-    }
-
-    private fun setNovelDescription() {
-        if (novel.longDescription != null) {
-            val expandClickable = object : ClickableSpan() {
-                override fun onClick(textView: View) {
-                    contentBinding.novelDetailsDescription.applyFont(assets).text = novel.longDescription
+            is NovelDetailsEvent.NavigateToImagePreview -> {
+                val intent = Intent(this, ImagePreviewActivity::class.java).apply {
+                    putExtra("url", event.imageUrl)
+                    putExtra("filePath", event.imageFilePath)
                 }
-
-                override fun updateDrawState(ds: TextPaint) {
-                    super.updateDrawState(ds)
-                    ds.isUnderlineText = false
-                }
+                val options = ActivityOptionsCompat.makeCustomAnimation(
+                    this,
+                    android.R.anim.fade_in,
+                    android.R.anim.fade_out
+                )
+                startActivity(intent, options.toBundle())
             }
 
-            val novelDescription = "${novel.longDescription?.subSequence(0, min(300, novel.longDescription?.length ?: 0))}… Expand"
-            val ss2 = SpannableString(novelDescription)
-            ss2.setSpan(expandClickable, min(300, novel.longDescription?.length ?: 0) + 2, novelDescription.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-            contentBinding.novelDetailsDescription.applyFont(assets).text = ss2
-            contentBinding.novelDetailsDescription.movementMethod = LinkMovementMethod.getInstance()
-        }
-    }
+            is NovelDetailsEvent.NavigateToSearchResults -> startSearchResultsActivity(event.title, event.url)
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_novel_details, menu)
-        return true
-    }
+            is NovelDetailsEvent.OpenInBrowser -> openInBrowser(event.url)
 
-    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        menu?.getItem(0)?.isVisible = novel.id != -1L
-        return super.onPrepareOptionsMenu(menu)
-    }
+            is NovelDetailsEvent.ShareUrl -> shareUrl(event.url)
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            android.R.id.home -> finish()
-            R.id.action_delete_novel -> confirmNovelDelete()
-            R.id.action_share -> shareUrl(novel.url)
-        }
-        return super.onOptionsItemSelected(item)
-    }
+            is NovelDetailsEvent.ShowMessage -> toast(event.message)
 
-    private fun confirmNovelDelete() {
-        MaterialDialog(this).show {
-            icon(R.drawable.ic_delete_white_vector)
-            title(R.string.confirm_remove)
-            message(R.string.confirm_remove_description_novel)
-            positiveButton(R.string.remove) {
-                deleteNovel()
+            is NovelDetailsEvent.LaunchCloudflareResolver -> {
+                val url = "https://${HostNames.NOVEL_UPDATES}"
+                val intent = CloudflareResolverActivity.createIntent(this, url)
+                cloudflareResolverLauncher.launch(intent)
             }
-            negativeButton(R.string.cancel)
-
-            lifecycleOwner(this@NovelDetailsActivity)
         }
     }
 
-    private fun deleteNovel() {
-        deleteNovel(novel)
-        setNovelAddToLibraryButton()
-        invalidateOptionsMenu()
+    private fun shareUrl(url: String) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, url)
+        }
+        startActivity(Intent.createChooser(intent, "Share"))
     }
 
+    @Deprecated("Replaced by Activity Result API")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == Constants.CHAPTER_ACT_REQ_CODE) {
-            if (resultCode == Constants.OPEN_DOWNLOADS_RES_CODE) {
-                setResult(resultCode)
-                finish()
-                return
-            }
-            //Check if this novel was added to database in Chapters Screen
-            dbHelper.getNovelByUrl(novel.url)?.let { novel = it }
-            setNovelAddToLibraryButton()
-        }
-
         super.onActivityResult(requestCode, resultCode, data)
-    }
-
-    override fun onLinkClicked(title: String, url: String) {
-        startSearchResultsActivity(title, url)
-    }
-
-    private fun addNovelToHistory() {
-        try {
-            var history = dbHelper.getLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY) ?: "[]"
-            var historyList: ArrayList<Novel> = Gson().fromJson(history, object : TypeToken<ArrayList<Novel>>() {}.type)
-            historyList.removeAll { novel.name == it.name }
-            if (historyList.size > 99) historyList = ArrayList(historyList.take(99))
-            historyList.add(novel)
-            history = Gson().toJson(historyList)
-            dbHelper.createOrUpdateLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY, history)
-        } catch (e: Exception) {
-            dbHelper.deleteLargePreference(Constants.LargePreferenceKeys.RVN_HISTORY)
-        }
     }
 }
