@@ -23,6 +23,8 @@ import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NovelDetailsActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
+import io.github.gmathi.novellibrary.compose.library.SortBottomSheetDialogFragment
+import io.github.gmathi.novellibrary.compose.library.SortOption
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.databinding.ContentLibraryBinding
 import io.github.gmathi.novellibrary.databinding.ListitemLibraryBinding
@@ -356,27 +358,20 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun showSortDialog() {
         if (adapter.items.isEmpty()) return
-        val sortOptions = listOf(
-            getString(R.string.sort_alphabetically_asc),
-            getString(R.string.sort_alphabetically_desc),
-            getString(R.string.sort_by_last_read_newest),
-            getString(R.string.sort_by_last_read_oldest),
-            getString(R.string.sort_by_last_updated_newest),
-            getString(R.string.sort_by_last_updated_oldest)
-        )
-        MaterialDialog(requireActivity()).show {
-            title(R.string.sort)
-            listItems(items = sortOptions) { _, index, _ ->
-                when (index) {
-                    0 -> sortNovels(compareBy { it.name })
-                    1 -> sortNovels(compareByDescending { it.name })
-                    2 -> sortNovelsByDate(Constants.MetaDataKeys.LAST_READ_DATE, ascending = false)
-                    3 -> sortNovelsByDate(Constants.MetaDataKeys.LAST_READ_DATE, ascending = true)
-                    4 -> sortNovelsByDate(Constants.MetaDataKeys.LAST_UPDATED_DATE, ascending = false)
-                    5 -> sortNovelsByDate(Constants.MetaDataKeys.LAST_UPDATED_DATE, ascending = true)
-                }
+        val sortSheet = SortBottomSheetDialogFragment.newInstance()
+        sortSheet.onSortSelected = { option ->
+            when (option) {
+                SortOption.ALPHABETICALLY_ASC -> sortNovels(compareBy { it.name })
+                SortOption.ALPHABETICALLY_DESC -> sortNovels(compareByDescending { it.name })
+                SortOption.LAST_READ_NEWEST -> sortNovelsByDate(Constants.MetaDataKeys.LAST_READ_DATE, ascending = false)
+                SortOption.LAST_READ_OLDEST -> sortNovelsByDate(Constants.MetaDataKeys.LAST_READ_DATE, ascending = true)
+                SortOption.LAST_UPDATED_NEWEST -> sortNovelsByDate(Constants.MetaDataKeys.LAST_UPDATED_DATE, ascending = false)
+                SortOption.LAST_UPDATED_OLDEST -> sortNovelsByDate(Constants.MetaDataKeys.LAST_UPDATED_DATE, ascending = true)
+                SortOption.RECENTLY_ADDED_NEWEST -> sortNovels(compareByDescending { it.id })
+                SortOption.RECENTLY_ADDED_OLDEST -> sortNovels(compareBy { it.id })
             }
         }
+        sortSheet.show(childFragmentManager, SortBottomSheetDialogFragment.TAG)
     }
 
     private fun sortNovels(comparator: Comparator<Novel>) {

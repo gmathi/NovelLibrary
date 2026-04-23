@@ -43,4 +43,14 @@
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
     </style>
 
+    <!-- Material3 Bottom Sheet theme for Compose-hosted bottom sheets (dark) -->
+    <style name="Theme_NovelLibrary_BottomSheet" parent="Theme.Material3.DayNight.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.NovelLibrary.BottomSheet</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <style name="Widget.NovelLibrary.BottomSheet" parent="Widget.Material3.BottomSheet">
+        <item name="backgroundTint">@android:color/transparent</item>
+    </style>
+
 </resources>

@@ -323,6 +323,8 @@
     <string name="sort_by_last_read_oldest">Last Read (oldest first)</string>
     <string name="sort_by_last_updated_newest">Last Updated (newest first)</string>
     <string name="sort_by_last_updated_oldest">Last Updated (oldest first)</string>
+    <string name="sort_by_recently_added_newest">Recently Added (newest first)</string>
+    <string name="sort_by_recently_added_oldest">Recently Added (oldest first)</string>
     <string name="sort_chapters">Sort Chapters</string>
     <string name="clearing_data">Clearing Data</string>
     <string name="please_wait">Please wait…</string>
