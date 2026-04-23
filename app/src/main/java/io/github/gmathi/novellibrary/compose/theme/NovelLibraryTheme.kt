@@ -113,7 +113,7 @@ fun NovelLibraryTheme(
                 val context = view.context
                 if (context is Activity) {
                     val window = context.window
-                    window.statusBarColor = colorScheme.primary.toArgb()
+                    window.statusBarColor = colorScheme.surface.toArgb()
                     WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !useDarkTheme
                 }
             } catch (e: Exception) {

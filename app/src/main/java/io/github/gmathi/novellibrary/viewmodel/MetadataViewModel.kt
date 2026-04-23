@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.network.HostNames
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,12 +22,14 @@ sealed interface MetadataUiState {
  */
 sealed interface MetadataEvent {
     data class NavigateToSearch(val title: String, val url: String) : MetadataEvent
+    data class OpenInBrowser(val url: String) : MetadataEvent
 }
 
 class MetadataViewModel(private val state: SavedStateHandle) : ViewModel() {
 
     companion object {
         private const val KEY_NOVEL = "novel"
+        private const val KEY_INITIALIZED = "initialized"
     }
 
     private val _uiState = MutableStateFlow<MetadataUiState>(MetadataUiState.Loading)
@@ -42,8 +45,9 @@ class MetadataViewModel(private val state: SavedStateHandle) : ViewModel() {
      * Called once from Activity.onCreate with the novel from the intent.
      */
     fun init(intentNovel: Novel) {
-        if (state.contains(KEY_NOVEL)) return // already initialised (config change)
+        if (state.get<Boolean>(KEY_INITIALIZED) == true) return // already initialised (config change)
         state[KEY_NOVEL] = intentNovel
+        state[KEY_INITIALIZED] = true
         loadMetadata()
     }
 
@@ -57,7 +61,11 @@ class MetadataViewModel(private val state: SavedStateHandle) : ViewModel() {
     }
 
     fun onLinkClicked(title: String, url: String) {
-        _events.value = MetadataEvent.NavigateToSearch(title, url)
+        if (url.contains(HostNames.NOVEL_UPDATES)) {
+            _events.value = MetadataEvent.NavigateToSearch(title, url)
+        } else {
+            _events.value = MetadataEvent.OpenInBrowser(url)
+        }
     }
 
     fun onEventConsumed() {

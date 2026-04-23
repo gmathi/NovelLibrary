@@ -6,6 +6,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.Html
@@ -471,7 +472,11 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     // ------------------------------------------------------------------
 
     override fun onLinkClicked(title: String, url: String) {
-        startSearchResultsActivity(title, url)
+        if (url.contains(HostNames.NOVEL_UPDATES)) {
+            startSearchResultsActivity(title, url)
+        } else {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        }
     }
 
     // ------------------------------------------------------------------

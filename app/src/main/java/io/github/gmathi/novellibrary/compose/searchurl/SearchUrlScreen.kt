@@ -1,30 +1,31 @@
 package io.github.gmathi.novellibrary.compose.searchurl
 
+import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.gmathi.novellibrary.compose.common.EmptyView
-import io.github.gmathi.novellibrary.compose.common.ErrorView
-import io.github.gmathi.novellibrary.compose.common.LoadingView
-import io.github.gmathi.novellibrary.compose.components.NovelItem
+import io.github.gmathi.novellibrary.activity.CloudflareResolverActivity
+import io.github.gmathi.novellibrary.compose.search.CloudflareDialog
+import io.github.gmathi.novellibrary.compose.search.SearchUrlNovelItemWrapper
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.viewmodel.SearchUrlUiState
 import io.github.gmathi.novellibrary.viewmodel.SearchUrlViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchUrlScreen(
     viewModel: SearchUrlViewModel,
@@ -32,19 +33,27 @@ fun SearchUrlScreen(
     onNovelClick: (Novel) -> Unit,
     onBackClick: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val novels by viewModel.novels.collectAsStateWithLifecycle()
-    
-    val isRefreshing = uiState is SearchUrlUiState.Loading && novels.isEmpty()
-    val pullRefreshState = rememberPullRefreshState(
-        refreshing = isRefreshing,
-        onRefresh = { viewModel.retry() }
-    )
+    val uiState by viewModel.uiState.collectAsState()
+    val novels by viewModel.novels.collectAsState()
+    val activity = LocalContext.current as? Activity
+
+    // Cloudflare dialog state
+    var showCloudflareDialog by remember { mutableStateOf(false) }
+    var cloudflareUrl by remember { mutableStateOf<String?>(null) }
+
+    val cloudflareResolverLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            viewModel.retry()
+        }
+        showCloudflareDialog = false
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Search: $title") },
+                title = { Text(title) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -60,99 +69,199 @@ fun SearchUrlScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .pullRefresh(pullRefreshState)
         ) {
-            when (uiState) {
-                is SearchUrlUiState.Loading -> {
-                    if (novels.isEmpty()) {
-                        LoadingView()
-                    } else {
-                        NovelList(
-                            novels = novels,
-                            onNovelClick = onNovelClick,
-                            onLoadMore = { viewModel.loadMore() },
-                            hasMore = false
-                        )
-                    }
+            BrowseContent(
+                uiState = uiState,
+                novels = novels,
+                onRetry = { viewModel.retry() },
+                onLoadMore = { viewModel.loadMore() },
+                onNovelClick = onNovelClick,
+                onResolveCloudflare = { url ->
+                    cloudflareUrl = url
+                    showCloudflareDialog = true
                 }
-                is SearchUrlUiState.Success -> {
-                    NovelList(
-                        novels = novels,
-                        onNovelClick = onNovelClick,
-                        onLoadMore = { viewModel.loadMore() },
-                        hasMore = (uiState as SearchUrlUiState.Success).hasMore
-                    )
+            )
+        }
+
+        if (showCloudflareDialog) {
+            CloudflareDialog(
+                onResolveManually = {
+                    showCloudflareDialog = false
+                    val url = cloudflareUrl ?: "https://www.novelupdates.com"
+                    val intent = CloudflareResolverActivity.createIntent(activity ?: return@CloudflareDialog, url)
+                    cloudflareResolverLauncher.launch(intent)
+                },
+                onRetry = {
+                    showCloudflareDialog = false
+                    viewModel.retry()
+                },
+                onDismiss = {
+                    showCloudflareDialog = false
                 }
-                is SearchUrlUiState.Error -> {
-                    val error = uiState as SearchUrlUiState.Error
-                    ErrorView(
-                        message = if (error.isCloudflare) {
-                            "Cloudflare protection detected. Please try again."
-                        } else {
-                            "Connection error. Please try again."
-                        },
-                        onRetry = { viewModel.retry() }
-                    )
-                }
-                is SearchUrlUiState.NoInternet -> {
-                    ErrorView(
-                        message = "No internet connection",
-                        onRetry = { viewModel.retry() }
-                    )
-                }
-                is SearchUrlUiState.Empty -> {
-                    EmptyView(
-                        message = "No Novels Found!",
-                        onRetry = { viewModel.retry() }
-                    )
-                }
-            }
-            
-            PullRefreshIndicator(
-                refreshing = isRefreshing,
-                state = pullRefreshState,
-                modifier = Modifier.align(Alignment.TopCenter)
             )
         }
     }
 }
 
 @Composable
-private fun NovelList(
+private fun BrowseContent(
+    uiState: SearchUrlUiState,
     novels: List<Novel>,
-    onNovelClick: (Novel) -> Unit,
+    onRetry: () -> Unit,
     onLoadMore: () -> Unit,
-    hasMore: Boolean
+    onNovelClick: (Novel) -> Unit,
+    onResolveCloudflare: (String) -> Unit
 ) {
-    val listState = rememberLazyListState()
-    
-    LazyColumn(
-        state = listState,
-        contentPadding = PaddingValues(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        itemsIndexed(novels, key = { index, novel -> "${index}_${novel.url}" }) { _, novel ->
-            NovelItem(
-                novel = novel,
-                onClick = { onNovelClick(novel) }
+    when (uiState) {
+        is SearchUrlUiState.Loading -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+        is SearchUrlUiState.Error -> {
+            ErrorState(
+                message = uiState.message,
+                isCloudflare = uiState.isCloudflare,
+                onRetry = onRetry,
+                onResolveCloudflare = if (uiState.isCloudflare) {
+                    { onResolveCloudflare(uiState.cloudflareUrl ?: "https://www.novelupdates.com") }
+                } else null
             )
         }
-        
-        if (hasMore) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
+        is SearchUrlUiState.NoInternet -> {
+            ErrorState(
+                message = "No internet connection",
+                isCloudflare = false,
+                onRetry = onRetry,
+                onResolveCloudflare = null
+            )
+        }
+        is SearchUrlUiState.Empty -> {
+            EmptyState(message = "No novels found", icon = Icons.Filled.SearchOff)
+        }
+        is SearchUrlUiState.Success -> {
+            if (novels.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp),
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
-                    CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                    itemsIndexed(
+                        items = novels,
+                        key = { index, novel -> "browse_${index}_${novel.id}_${novel.name.hashCode()}" }
+                    ) { _, novel ->
+                        SearchUrlNovelItemWrapper(novel = novel, onClick = { onNovelClick(novel) })
+                    }
+                    if (uiState.hasMore) {
+                        item {
+                            Box(
+                                Modifier.fillMaxWidth().padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Button(onClick = onLoadMore) { Text("Load More") }
+                            }
+                        }
+                    }
                 }
-                
-                LaunchedEffect(Unit) {
-                    onLoadMore()
+            } else {
+                EmptyState(message = "No novels found", icon = Icons.Filled.SearchOff)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ErrorState(
+    message: String,
+    isCloudflare: Boolean,
+    onRetry: () -> Unit,
+    onResolveCloudflare: (() -> Unit)? = null
+) {
+    Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                modifier = Modifier.size(72.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = if (isCloudflare) Icons.Filled.Security else Icons.Filled.Error,
+                        contentDescription = null,
+                        modifier = Modifier.size(36.dp),
+                        tint = MaterialTheme.colorScheme.error
+                    )
                 }
             }
+            Text(
+                text = if (isCloudflare) "Cloudflare Verification Required" else "Something went wrong",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            if (isCloudflare && onResolveCloudflare != null) {
+                Button(onClick = onResolveCloudflare) {
+                    Icon(
+                        imageVector = Icons.Filled.Security,
+                        contentDescription = null,
+                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                    )
+                    Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
+                    Text("Resolve Cloudflare")
+                }
+            }
+            OutlinedButton(onClick = onRetry) {
+                Icon(
+                    imageVector = Icons.Filled.Refresh,
+                    contentDescription = null,
+                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                )
+                Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
+                Text("Try Again")
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyState(message: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                modifier = Modifier.size(72.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(36.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Text(
+                text = message,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

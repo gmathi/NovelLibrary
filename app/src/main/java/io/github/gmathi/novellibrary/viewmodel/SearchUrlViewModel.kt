@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.model.source.online.NovelUpdatesSource
 import kotlinx.coroutines.Dispatchers
@@ -53,6 +54,17 @@ class SearchUrlViewModel : ViewModel() {
         if (BuildConfig.DEBUG && SKIP_POPULAR_NOVELS_FETCH) {
             _novels.value = emptyList()
             _uiState.value = SearchUrlUiState.Empty
+            return
+        }
+
+        // Only NovelUpdates URLs are supported for genre/rank browsing.
+        // Other sources (e.g. libread, novelfull) use different HTML structures
+        // that NovelUpdatesSource cannot parse.
+        if (rank == null && url != null && !url.contains(HostNames.NOVEL_UPDATES)) {
+            _novels.value = emptyList()
+            _uiState.value = SearchUrlUiState.Error(
+                message = "Browsing by genre is only supported for Novel Updates sources."
+            )
             return
         }
 

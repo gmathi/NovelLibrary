@@ -2,8 +2,8 @@ package io.github.gmathi.novellibrary.activity
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import io.github.gmathi.novellibrary.compose.searchurl.SearchUrlScreen
 import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
@@ -12,10 +12,13 @@ import io.github.gmathi.novellibrary.viewmodel.SearchUrlViewModel
 
 class SearchUrlActivity : BaseActivity() {
 
+    override val skipWindowInsets: Boolean = true
+
     private val viewModel: SearchUrlViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         val title = intent.getStringExtra("title") ?: "Search"
         val url = intent.getStringExtra("url")
@@ -23,20 +26,18 @@ class SearchUrlActivity : BaseActivity() {
 
         setContent {
             NovelLibraryTheme {
-                Surface {
-                    LaunchedEffect(Unit) {
-                        viewModel.initialize(rank, url)
-                    }
-                    
-                    SearchUrlScreen(
-                        viewModel = viewModel,
-                        title = title,
-                        onNovelClick = { novel ->
-                            startNovelDetailsActivity(novel, false)
-                        },
-                        onBackClick = { finish() }
-                    )
+                LaunchedEffect(Unit) {
+                    viewModel.initialize(rank, url)
                 }
+
+                SearchUrlScreen(
+                    viewModel = viewModel,
+                    title = title,
+                    onNovelClick = { novel ->
+                        startNovelDetailsActivity(novel, false)
+                    },
+                    onBackClick = { finish() }
+                )
             }
         }
     }

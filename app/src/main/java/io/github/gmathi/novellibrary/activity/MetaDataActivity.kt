@@ -1,5 +1,7 @@
 package io.github.gmathi.novellibrary.activity
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.text.Html
 import android.view.MenuItem
@@ -87,6 +89,10 @@ class MetaDataActivity : BaseActivity(), GenericAdapter.Listener<Map.Entry<Strin
                         when (event) {
                             is MetadataEvent.NavigateToSearch -> {
                                 startSearchResultsActivity(event.title, event.url)
+                                viewModel.onEventConsumed()
+                            }
+                            is MetadataEvent.OpenInBrowser -> {
+                                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(event.url)))
                                 viewModel.onEventConsumed()
                             }
                             null -> { /* no pending event */ }
