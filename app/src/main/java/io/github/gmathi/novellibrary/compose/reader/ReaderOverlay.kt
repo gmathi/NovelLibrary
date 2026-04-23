@@ -29,6 +29,7 @@ import io.github.gmathi.novellibrary.viewmodel.ReaderViewModel
 fun ReaderOverlay(
     viewModel: ReaderViewModel,
     isVisible: Boolean,
+    isMenuIconVisible: Boolean,
     novelName: String,
     onBackPress: () -> Unit,
     onPreviousChapter: () -> Unit,
@@ -55,9 +56,11 @@ fun ReaderOverlay(
                 )
             }
 
-            // Floating menu icon — visible when overlay is hidden and preference is enabled
+            // Floating menu icon — visible when overlay is hidden.
+            // When "always show" preference is enabled, icon is always visible.
+            // Otherwise, icon appears only on scroll down and hides on scroll up.
             AnimatedVisibility(
-                visible = !isVisible && uiState.isReaderModeButtonVisible,
+                visible = !isVisible && (uiState.isReaderModeButtonVisible || isMenuIconVisible),
                 enter = fadeIn(),
                 exit = fadeOut(),
                 modifier = Modifier

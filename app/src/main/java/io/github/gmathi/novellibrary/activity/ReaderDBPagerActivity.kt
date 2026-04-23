@@ -96,6 +96,9 @@ class ReaderDBPagerActivity :
     /** Compose-observable overlay visibility state */
     private val overlayVisible = mutableStateOf(false)
 
+    /** Compose-observable menu icon visibility state (shown on scroll down, hidden on scroll up) */
+    private val menuIconVisible = mutableStateOf(false)
+
     lateinit var binding: ActivityReaderPagerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -171,6 +174,7 @@ class ReaderDBPagerActivity :
                 ReaderOverlay(
                     viewModel = readerViewModel,
                     isVisible = isVisible,
+                    isMenuIconVisible = menuIconVisible.value,
                     novelName = novel.name ?: "",
                     onBackPress = { finish() },
                     onPreviousChapter = {
@@ -197,14 +201,30 @@ class ReaderDBPagerActivity :
      *  and from the WebPageDBFragment scroll listener. */
     fun toggleOverlay() {
         overlayVisible.value = !overlayVisible.value
+        if (overlayVisible.value) {
+            menuIconVisible.value = false // Hide icon when overlay opens
+        }
     }
 
     fun showOverlay() {
         overlayVisible.value = true
+        menuIconVisible.value = false // Hide icon when overlay is shown
     }
 
     fun hideOverlay() {
         overlayVisible.value = false
+    }
+
+    /** Show the floating menu icon (called from scroll listener on scroll down). */
+    fun showMenuIcon() {
+        if (!overlayVisible.value) {
+            menuIconVisible.value = true
+        }
+    }
+
+    /** Hide the floating menu icon (called from scroll listener on scroll up). */
+    fun hideMenuIcon() {
+        menuIconVisible.value = false
     }
 
     private fun updateBookmark(webPage: WebPage) {

@@ -127,8 +127,8 @@ class WebPageDBFragment : BaseFragment() {
             }
 
             if (activity is ReaderDBPagerActivity) {
-                if (scrollY > oldScrollY && scrollY > 0) activity.hideOverlay()
-                if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) activity.showOverlay()
+                if (scrollY > oldScrollY && scrollY > 0) activity.showMenuIcon()
+                if (oldScrollY - scrollY > Constants.SCROLL_LENGTH) activity.hideMenuIcon()
             }
             if (dataCenter.enableImmersiveMode && dataCenter.showNavbarAtChapterEnd) {
                 // Using deprecated WebView.scale due to WebViewClient.onScaleChanged being completely unreliable.

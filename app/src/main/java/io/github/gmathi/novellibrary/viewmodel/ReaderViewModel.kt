@@ -29,7 +29,7 @@ data class ReaderUiState(
     val limitImageWidth: Boolean = false,
     val enableClusterPages: Boolean = false,
     val enableDirectionalLinks: Boolean = false,
-    val isReaderModeButtonVisible: Boolean = true,
+    val isReaderModeButtonVisible: Boolean = false,
     val showNavbarAtChapterEnd: Boolean = true,
     val dayBackgroundColor: Int = Color.WHITE,
     val dayTextColor: Int = Color.BLACK,
