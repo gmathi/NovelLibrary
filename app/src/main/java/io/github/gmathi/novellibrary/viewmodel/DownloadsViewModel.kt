@@ -21,7 +21,7 @@ import uy.kohesive.injekt.injectLazy
 
 class DownloadsViewModel : ViewModel() {
 
-    val dbHelper: DBHelper by injectLazy()
+    private val dbHelper: DBHelper by injectLazy()
 
     private val _uiState = MutableStateFlow(DownloadsUiState())
     val uiState: StateFlow<DownloadsUiState> = _uiState.asStateFlow()

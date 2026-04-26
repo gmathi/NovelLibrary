@@ -926,4 +926,24 @@
     <string name="cloudflare_verification_message">The server requires Cloudflare verification. You can solve it manually in a browser, then we\'ll retry automatically.</string>
     <string name="resolve_manually">Resolve Manually</string>
     <string name="retry">Retry</string>
+
+    <!-- Downloads screen -->
+    <string name="no_active_downloads">No active downloads</string>
+    <string name="chapters_remaining">%d chapters remaining</string>
+    <string name="pause_downloads">Pause downloads</string>
+    <string name="resume_downloads">Resume downloads</string>
+    <string name="delete_downloads">Delete downloads</string>
+    <string name="delete_downloads_title">Delete Downloads</string>
+    <string name="confirm_delete_downloads">Are you sure you want to delete all downloads for \"%s\"?</string>
+    <string name="delete">Delete</string>
+    <string name="cancel_download">Cancel download</string>
+
+    <!-- Common -->
+    <string name="navigate_back">Back</string>
+    <string name="more_options">More options</string>
+    <string name="no_novels_found">No novels found</string>
+
+    <!-- Library search screen -->
+    <string name="last_read_label">Last read: %s</string>
+    <string name="updated_label">Updated: %s</string>
 </resources>

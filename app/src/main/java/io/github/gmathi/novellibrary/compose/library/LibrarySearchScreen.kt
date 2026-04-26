@@ -8,8 +8,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -78,7 +80,7 @@ fun LibrarySearchScreen(
                 )
 
                 if (searchResults.isEmpty()) {
-                    EmptyView(message = "No novels found")
+                    EmptyView(message = stringResource(R.string.no_novels_found))
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
@@ -204,7 +206,7 @@ private fun LibraryNovelCard(
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.MoreVert,
-                                    contentDescription = "More options",
+                                    contentDescription = stringResource(R.string.more_options),
                                     modifier = Modifier.size(20.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -251,10 +253,11 @@ private fun LibraryNovelCard(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(2.dp)
                                 ) {
-                                    Text(
-                                        text = "★",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = Color(0xFFFFB300)
+                                    Icon(
+                                        imageVector = Icons.Filled.Star,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(14.dp),
+                                        tint = Color(0xFFFFB300)
                                     )
                                     Text(
                                         text = String.format("%.1f", ratingValue),
@@ -267,11 +270,22 @@ private fun LibraryNovelCard(
 
                         // Chapter count
                         if (novel.chaptersCount > 0) {
-                            Text(
-                                text = "📖 ${novel.chaptersCount} ${stringResource(R.string.chapters).lowercase()}",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "${novel.chaptersCount} ${stringResource(R.string.chapters).lowercase()}",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
 
@@ -317,7 +331,7 @@ private fun LibraryNovelCard(
 
                     if (lastRead != null) {
                         Text(
-                            text = "Last read: $lastRead",
+                            text = stringResource(R.string.last_read_label, lastRead),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
@@ -326,7 +340,7 @@ private fun LibraryNovelCard(
                     }
                     if (lastUpdated != null) {
                         Text(
-                            text = "Updated: $lastUpdated",
+                            text = stringResource(R.string.updated_label, lastUpdated),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,

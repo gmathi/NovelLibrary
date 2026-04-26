@@ -31,9 +31,11 @@ import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.lang.launchIO
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
@@ -54,6 +56,13 @@ class DownloadNovelService : Service(), DownloadListener {
 
     /** Lock for thread pool lifecycle operations (create/shutdown). */
     private val poolLock = Any()
+
+    /** Service-scoped coroutine scope, cancelled in onDestroy. */
+    private val serviceJob = SupervisorJob()
+    private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
+
+    /** Single drain job — ensures only one coroutine drains futures at a time. */
+    private var drainJob: Job? = null
 
     //static components
     companion object {
@@ -102,26 +111,34 @@ class DownloadNovelService : Service(), DownloadListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        launchIO {
-            val novelId = intent?.getLongExtra(NOVEL_ID, -1L) ?: return@launchIO
-            addNovelToDownload(novelId)
-            notifyFirst()
-            withContext(Dispatchers.IO) {
-                // Drain completed futures without blocking new submissions
-                while (futures.isNotEmpty()) {
-                    val future = futures.firstOrNull() ?: break
-                    future.get()
-                    futures.remove(future)
+        val novelId = intent?.getLongExtra(NOVEL_ID, -1L) ?: return super.onStartCommand(intent, flags, startId)
+        addNovelToDownload(novelId)
+        notifyFirst()
+        ensureDrainLoop()
+        return super.onStartCommand(intent, flags, startId)
+    }
+
+    /**
+     * Ensures a single coroutine is draining completed futures.
+     * If a drain loop is already active it will naturally pick up newly added futures,
+     * so we only start a new one when the previous has finished.
+     */
+    private fun ensureDrainLoop() {
+        if (drainJob?.isActive == true) return
+        drainJob = serviceScope.launch {
+            while (futures.isNotEmpty()) {
+                val future = futures.firstOrNull() ?: break
+                future.get()
+                futures.remove(future)
+            }
+            // All futures drained — shut down the pool and stop the service
+            if (threadListMap.isEmpty()) {
+                synchronized(poolLock) {
+                    threadPool.shutdown()
                 }
-                // Only shutdown if no active threads remain
-                if (threadListMap.isEmpty()) {
-                    synchronized(poolLock) {
-                        threadPool.shutdown()
-                    }
-                }
+                stopSelf()
             }
         }
-        return super.onStartCommand(intent, flags, startId)
     }
 
     private fun addNovelToDownload(novelId: Long?) {
@@ -147,6 +164,7 @@ class DownloadNovelService : Service(), DownloadListener {
                     if (it.isAlive) return
                 }
                 addNovelToDownload(novelId)
+                ensureDrainLoop()
                 val downloadNovelEvent = if (futures.size > 5) DownloadNovelEvent(EventType.INSERT, novelId)
                 else DownloadNovelEvent(EventType.RUNNING, novelId)
                 val listener = downloadListener
@@ -177,6 +195,7 @@ class DownloadNovelService : Service(), DownloadListener {
     //Called on bound (Activity) & background service
     override fun onDestroy() {
         Logs.debug(TAG, "onDestroy")
+        serviceJob.cancel()
         // Only pause downloads that are currently running, not already-paused ones
         dbHelper.updateDownloadStatusForRunning(Download.STATUS_PAUSED)
         stopService()
@@ -258,6 +277,7 @@ class DownloadNovelService : Service(), DownloadListener {
 
     private fun stopService() {
         ServiceCompat.stopForeground(this@DownloadNovelService, ServiceCompat.STOP_FOREGROUND_REMOVE)
+        stopSelf()
     }
 
     private fun notify(downloadNovelEvent: DownloadNovelEvent? = null, downloadWebPageEvent: DownloadWebPageEvent? = null) {

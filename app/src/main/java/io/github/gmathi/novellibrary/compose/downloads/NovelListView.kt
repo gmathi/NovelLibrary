@@ -15,9 +15,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.compose.common.EmptyView
 import io.github.gmathi.novellibrary.compose.common.LoadingView
 import io.github.gmathi.novellibrary.compose.common.URLImage
@@ -40,12 +42,12 @@ fun NovelListView(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Downloads") },
+                title = { Text(stringResource(R.string.title_downloads)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.navigate_back)
                         )
                     }
                 }
@@ -62,7 +64,7 @@ fun NovelListView(
                     LoadingView()
                 }
                 uiState.novels.isEmpty() -> {
-                    EmptyView(message = "No active downloads")
+                    EmptyView(message = stringResource(R.string.no_active_downloads))
                 }
                 else -> {
                     LazyColumn(
@@ -153,7 +155,7 @@ private fun NovelDownloadItem(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "${novel.remainingDownloads} chapters remaining",
+                    text = stringResource(R.string.chapters_remaining, novel.remainingDownloads),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -162,8 +164,8 @@ private fun NovelDownloadItem(
 
                 Text(
                     text = when (novel.status) {
-                        NovelDownloadStatus.DOWNLOADING -> "Downloading"
-                        NovelDownloadStatus.PAUSED -> "Paused"
+                        NovelDownloadStatus.DOWNLOADING -> stringResource(R.string.downloading)
+                        NovelDownloadStatus.PAUSED -> stringResource(R.string.download_paused)
                     },
                     style = MaterialTheme.typography.labelSmall,
                     color = when (novel.status) {
@@ -181,8 +183,8 @@ private fun NovelDownloadItem(
                         NovelDownloadStatus.PAUSED -> Icons.Default.PlayArrow
                     },
                     contentDescription = when (novel.status) {
-                        NovelDownloadStatus.DOWNLOADING -> "Pause downloads"
-                        NovelDownloadStatus.PAUSED -> "Resume downloads"
+                        NovelDownloadStatus.DOWNLOADING -> stringResource(R.string.pause_downloads)
+                        NovelDownloadStatus.PAUSED -> stringResource(R.string.resume_downloads)
                     },
                     tint = MaterialTheme.colorScheme.primary
                 )
@@ -192,7 +194,7 @@ private fun NovelDownloadItem(
             IconButton(onClick = onDelete) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete downloads",
+                    contentDescription = stringResource(R.string.delete_downloads),
                     tint = MaterialTheme.colorScheme.error
                 )
             }
@@ -208,18 +210,18 @@ private fun ConfirmDeleteDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Delete Downloads") },
+        title = { Text(stringResource(R.string.delete_downloads_title)) },
         text = {
-            Text("Are you sure you want to delete all downloads for \"$novelName\"?")
+            Text(stringResource(R.string.confirm_delete_downloads, novelName))
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("Delete", color = MaterialTheme.colorScheme.error)
+                Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     )
