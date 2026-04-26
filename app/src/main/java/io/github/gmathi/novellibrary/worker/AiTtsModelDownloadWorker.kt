@@ -119,6 +119,11 @@ class AiTtsModelDownloadWorker(
     private fun downloadFile(url: String, dest: File, onProgress: (Int) -> Unit) {
         val connection = URL(url).openConnection() as HttpURLConnection
         connection.connect()
+        val responseCode = connection.responseCode
+        if (responseCode != HttpURLConnection.HTTP_OK) {
+            connection.disconnect()
+            throw java.io.IOException("Server returned HTTP $responseCode for $url")
+        }
         val total = connection.contentLengthLong
         var downloaded = 0L
         connection.inputStream.use { input ->

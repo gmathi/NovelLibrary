@@ -28,7 +28,7 @@ import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.lang.ref.WeakReference
 
-class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), LifecycleObserver, DataAccessor {
+class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), DefaultLifecycleObserver, DataAccessor {
 
     companion object {
         const val TAG = "ChaptersViewModel"
@@ -306,12 +306,23 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Life
         }
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-    fun onPause() {
+    /**
+     * Reloads chapterSettings from the database so the UI reflects
+     * updated download state (e.g. filePath set after a download completes).
+     * The optional [onComplete] callback runs on the main thread after the refresh.
+     */
+    fun refreshChapterSettings(onComplete: (() -> Unit)? = null) {
+        if (novel.id == -1L) return
+        viewModelScope.launch {
+            val settings = withContext(Dispatchers.IO) {
+                dbHelper.getAllWebPageSettings(novel.id)
+            }
+            chapterSettings = settings
+            onComplete?.invoke()
+        }
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-    fun onResume() {
+    override fun onResume(owner: LifecycleOwner) {
         getData()
     }
 
