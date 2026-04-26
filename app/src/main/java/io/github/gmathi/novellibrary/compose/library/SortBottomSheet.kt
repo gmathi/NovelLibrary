@@ -64,7 +64,7 @@ fun SortBottomSheetContent(
         Spacer(modifier = Modifier.height(4.dp))
 
         // Alphabetical section
-        SortSectionHeader(title = "Alphabetical")
+        SortSectionHeader(title = stringResource(R.string.sort_section_alphabetical))
         SortOptionItem(
             label = stringResource(R.string.sort_alphabetically_asc),
             icon = Icons.Outlined.SortByAlpha,
@@ -79,7 +79,7 @@ fun SortBottomSheetContent(
         SortDivider()
 
         // Last Read section
-        SortSectionHeader(title = "Last Read")
+        SortSectionHeader(title = stringResource(R.string.sort_section_last_read))
         SortOptionItem(
             label = stringResource(R.string.sort_by_last_read_newest),
             icon = Icons.AutoMirrored.Outlined.MenuBook,
@@ -94,7 +94,7 @@ fun SortBottomSheetContent(
         SortDivider()
 
         // Last Updated section
-        SortSectionHeader(title = "Last Updated")
+        SortSectionHeader(title = stringResource(R.string.sort_section_last_updated))
         SortOptionItem(
             label = stringResource(R.string.sort_by_last_updated_newest),
             icon = Icons.Outlined.Update,
@@ -109,7 +109,7 @@ fun SortBottomSheetContent(
         SortDivider()
 
         // Recently Added section
-        SortSectionHeader(title = "Recently Added")
+        SortSectionHeader(title = stringResource(R.string.sort_section_recently_added))
         SortOptionItem(
             label = stringResource(R.string.sort_by_recently_added_newest),
             icon = Icons.Outlined.NewReleases,

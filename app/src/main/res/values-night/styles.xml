@@ -44,7 +44,7 @@
     </style>
 
     <!-- Material3 Bottom Sheet theme for Compose-hosted bottom sheets (dark) -->
-    <style name="Theme_NovelLibrary_BottomSheet" parent="Theme.Material3.DayNight.BottomSheetDialog">
+    <style name="Theme_NovelLibrary_BottomSheet" parent="Theme.Material3.Dark.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/Widget.NovelLibrary.BottomSheet</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>

@@ -623,10 +623,34 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        // Bind to the download service if it's already running so we receive
+        // DownloadWebPageEvent callbacks and can update chapter download indicators.
+        if (Utils.isServiceRunning(this, DownloadNovelService.QUALIFIED_NAME)) {
+            bindService()
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (isServiceConnected) {
+            downloadNovelService?.downloadListener = null
+            unbindService(mConnection)
+            isServiceConnected = false
+            downloadNovelService = null
+        }
+    }
+
     override fun handleEvent(downloadWebPageEvent: DownloadWebPageEvent) {
-        //TODO: Make WebPageSettings get created at adapter set time
-//        if (downloadWebPageEvent.download.novelId == vm.novel.id) {
-//            EventBus.getDefault().post(ChapterActionModeEvent(url = downloadWebPageEvent.webPageUrl, eventType = EventType.COMPLETE))
-//        }
+        if (downloadWebPageEvent.download.novelId == vm.novel.id) {
+            // Refresh chapterSettings from DB so filePath / download state is up-to-date,
+            // then notify the fragment to rebind all chapter items.
+            vm.refreshChapterSettings {
+                EventBus.getDefault().post(
+                    ChapterActionModeEvent(eventType = EventType.COMPLETE)
+                )
+            }
+        }
     }
 }
