@@ -76,7 +76,10 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         setContentView(binding.root)
         contentBinding = binding.contentNovelDetails
 
-        val novel = intent.getParcelableExtraCompat<Novel>("novel") as Novel
+        val novel = intent.getParcelableExtraCompat<Novel>("novel") ?: run {
+            finish()
+            return
+        }
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

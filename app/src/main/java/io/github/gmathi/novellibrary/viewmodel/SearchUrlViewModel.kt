@@ -119,7 +119,7 @@ class SearchUrlViewModel : ViewModel() {
                 _uiState.value = SearchUrlUiState.Error(
                     message = e.localizedMessage ?: "Connection error",
                     isCloudflare = isCloudflare,
-                    cloudflareUrl = if (isCloudflare) url ?: "https://${io.github.gmathi.novellibrary.network.HostNames.NOVEL_UPDATES}" else null
+                    cloudflareUrl = if (isCloudflare) url ?: "https://${HostNames.NOVEL_UPDATES}" else null
                 )
                 isLoadingMore = false
             }

@@ -27,6 +27,12 @@ data class Download(
     @ColumnInfo(name = "order_id")
     var orderId: Int = 0
 
-    fun equals(other: Download): Boolean = (this.webPageUrl == other.webPageUrl)
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Download) return false
+        return this.webPageUrl == other.webPageUrl
+    }
+
+    override fun hashCode(): Int = webPageUrl.hashCode()
 
 }

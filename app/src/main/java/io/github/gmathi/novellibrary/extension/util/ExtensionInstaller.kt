@@ -103,7 +103,8 @@ internal class ExtensionInstaller(private val context: Context) {
             .map {
                 downloadManager.query(query).use { cursor ->
                     if (cursor.moveToFirst()) {
-                        cursor.getInt(with(cursor) { getColumnIndex(DownloadManager.COLUMN_STATUS) })
+                        val colIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
+                        if (colIndex >= 0) cursor.getInt(colIndex) else DownloadManager.STATUS_FAILED
                     } else {
                         DownloadManager.STATUS_FAILED
                     }
@@ -229,11 +230,11 @@ internal class ExtensionInstaller(private val context: Context) {
             val query = DownloadManager.Query().setFilterById(id)
             downloadManager.query(query).use { cursor ->
                 if (cursor.moveToFirst()) {
-                    val localUri = cursor.getString(
-                        with(cursor) { getColumnIndex(DownloadManager.COLUMN_LOCAL_URI) }
-                    ).removePrefix(FILE_SCHEME)
-
-                    installApk(id, File(localUri).getUriCompat(context))
+                    val colIndex = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI)
+                    if (colIndex >= 0) {
+                        val localUri = cursor.getString(colIndex).removePrefix(FILE_SCHEME)
+                        installApk(id, File(localUri).getUriCompat(context))
+                    }
                 }
             }
         }

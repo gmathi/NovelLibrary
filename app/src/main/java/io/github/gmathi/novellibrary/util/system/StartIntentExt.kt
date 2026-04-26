@@ -263,7 +263,7 @@ fun AppCompatActivity.startDownloadNovelService(novelId: Long) {
     startService(serviceIntent)
 }
 
-fun AppCompatActivity.startNovelDownloadsActivity() = startActivityForResult<NovelDownloadsActivity>(Constants.SETTINGS_ACT_REQ_CODE)
+fun AppCompatActivity.startNovelDownloadsActivity() = startActivityForResult<DownloadsActivity>(Constants.SETTINGS_ACT_REQ_CODE)
 
 //#endregion
 

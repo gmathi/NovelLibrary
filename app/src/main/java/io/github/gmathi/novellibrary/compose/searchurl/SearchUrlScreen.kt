@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.gmathi.novellibrary.activity.CloudflareResolverActivity
 import io.github.gmathi.novellibrary.compose.search.CloudflareDialog
 import io.github.gmathi.novellibrary.compose.search.SearchUrlNovelItemWrapper
@@ -33,8 +34,8 @@ fun SearchUrlScreen(
     onNovelClick: (Novel) -> Unit,
     onBackClick: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val novels by viewModel.novels.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val novels by viewModel.novels.collectAsStateWithLifecycle()
     val activity = LocalContext.current as? Activity
 
     // Cloudflare dialog state
@@ -142,9 +143,7 @@ private fun BrowseContent(
         is SearchUrlUiState.Success -> {
             if (novels.isNotEmpty()) {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp),
-                    verticalArrangement = Arrangement.spacedBy(0.dp)
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     itemsIndexed(
                         items = novels,
