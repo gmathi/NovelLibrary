@@ -55,12 +55,20 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
         } catch (e: InterruptedException) {
             Logs.error(TAG, "Interrupting the Thread: ${download.novelName}-${download.webPageUrl}, ${e.localizedMessage}")
-            // Reset status so the download isn't stuck in RUNNING state
-            dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_IN_QUEUE, download.webPageUrl)
+            // Only reset to IN_QUEUE if the download wasn't explicitly paused by the user.
+            // When the user pauses, the ViewModel sets status to PAUSED before interrupting
+            // the thread — we must not overwrite that.
+            val current = dbHelper.getDownload(download.webPageUrl)
+            if (current != null && current.status != Download.STATUS_PAUSED) {
+                dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_IN_QUEUE, download.webPageUrl)
+            }
         } catch (e: Exception) {
             Logs.error(TAG, "Unexpected error downloading: ${download.webPageUrl}", e)
-            // Reset status so the download isn't stuck in RUNNING state
-            dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_IN_QUEUE, download.webPageUrl)
+            // Only reset to IN_QUEUE if the download wasn't explicitly paused
+            val current = dbHelper.getDownload(download.webPageUrl)
+            if (current != null && current.status != Download.STATUS_PAUSED) {
+                dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_IN_QUEUE, download.webPageUrl)
+            }
         }
 
     }

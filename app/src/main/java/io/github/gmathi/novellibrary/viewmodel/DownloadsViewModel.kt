@@ -167,11 +167,12 @@ class DownloadsViewModel : ViewModel() {
                     }
                 } else {
                     _chapterListState.update { it.copy(chapters = updatedChapters) }
-                    updateNovelStatusFromChapters(download.novelId)
+                    // Optimistically decrement remaining count in-memory instead of querying DB
+                    decrementRemainingDownloads(download.novelId)
                 }
             } else {
-                // Not viewing this novel's chapters — just update the novel row
-                updateNovelStatusFromChapters(download.novelId)
+                // Not viewing this novel's chapters — optimistically decrement
+                decrementRemainingDownloads(download.novelId)
             }
         } else {
             val newChapterStatus = ChapterDownloadStatus.fromDownloadStatus(download.status)
@@ -191,8 +192,18 @@ class DownloadsViewModel : ViewModel() {
                 }
             }
 
-            // Update novel-level status and remaining count
-            updateNovelStatusFromChapters(download.novelId)
+            // Update novel-level status
+            _uiState.update { state ->
+                state.copy(
+                    novels = state.novels.map {
+                        if (it.novelId == download.novelId) {
+                            it.copy(status = NovelDownloadStatus.DOWNLOADING)
+                        } else {
+                            it
+                        }
+                    }
+                )
+            }
         }
     }
 
@@ -313,6 +324,26 @@ class DownloadsViewModel : ViewModel() {
                     }
                 )
             }
+        }
+    }
+
+    /**
+     * Optimistically decrements the remaining download count for a novel
+     * without querying the DB. This keeps the UI responsive when chapters
+     * complete in rapid succession.
+     */
+    private fun decrementRemainingDownloads(novelId: Long) {
+        _uiState.update { state ->
+            state.copy(
+                novels = state.novels.map {
+                    if (it.novelId == novelId) {
+                        val newRemaining = (it.remainingDownloads - 1).coerceAtLeast(0)
+                        it.copy(remainingDownloads = newRemaining)
+                    } else {
+                        it
+                    }
+                }
+            )
         }
     }
 }
