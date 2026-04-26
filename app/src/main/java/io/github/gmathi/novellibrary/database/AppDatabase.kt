@@ -7,7 +7,6 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import io.github.gmathi.novellibrary.database.dao.DownloadDao
 import io.github.gmathi.novellibrary.database.dao.GenreDao
 import io.github.gmathi.novellibrary.database.dao.LargePreferenceDao
 import io.github.gmathi.novellibrary.database.dao.NovelDao
@@ -46,7 +45,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun webPageSettingsDao(): WebPageSettingsDao
     abstract fun genreDao(): GenreDao
     abstract fun novelGenreDao(): NovelGenreDao
-    abstract fun downloadDao(): DownloadDao
     abstract fun novelSectionDao(): NovelSectionDao
     abstract fun largePreferenceDao(): LargePreferenceDao
 

@@ -230,8 +230,7 @@
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
-            android:name=".activity.NovelDownloadsActivity"
-            android:label="@string/title_activity_novel_downloads"
+            android:name=".activity.DownloadsActivity"
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
