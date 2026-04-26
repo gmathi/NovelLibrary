@@ -11,7 +11,6 @@ import android.os.Binder
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -23,7 +22,7 @@ import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.getRemainingDownloadsCountForNovel
-import io.github.gmathi.novellibrary.database.updateDownloadStatus
+import io.github.gmathi.novellibrary.database.updateDownloadStatusForRunning
 import io.github.gmathi.novellibrary.model.database.Download
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
@@ -35,6 +34,8 @@ import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.lang.launchIO
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.ThreadPoolExecutor
@@ -42,11 +43,17 @@ import java.util.concurrent.ThreadPoolExecutor
 
 class DownloadNovelService : Service(), DownloadListener {
 
-    private var threadListMap = HashMap<Long, DownloadNovelThread?>()
-    private val futures = ArrayList<Future<Any>>()
+    /** Thread-safe map of active novel download threads. */
+    private val threadListMap = ConcurrentHashMap<Long, DownloadNovelThread>()
+
+    /** Thread-safe list of submitted futures. */
+    private val futures = CopyOnWriteArrayList<Future<Any>>()
 
     private lateinit var threadPool: ThreadPoolExecutor
     private lateinit var dbHelper: DBHelper
+
+    /** Lock for thread pool lifecycle operations (create/shutdown). */
+    private val poolLock = Any()
 
     //static components
     companion object {
@@ -100,11 +107,18 @@ class DownloadNovelService : Service(), DownloadListener {
             addNovelToDownload(novelId)
             notifyFirst()
             withContext(Dispatchers.IO) {
+                // Drain completed futures without blocking new submissions
                 while (futures.isNotEmpty()) {
-                    futures[0].get()
-                    futures.removeAt(0)
+                    val future = futures.firstOrNull() ?: break
+                    future.get()
+                    futures.remove(future)
                 }
-                threadPool.shutdown()
+                // Only shutdown if no active threads remain
+                if (threadListMap.isEmpty()) {
+                    synchronized(poolLock) {
+                        threadPool.shutdown()
+                    }
+                }
             }
         }
         return super.onStartCommand(intent, flags, startId)
@@ -117,13 +131,16 @@ class DownloadNovelService : Service(), DownloadListener {
             )
             threadListMap[novelId] = downloadNovelThread
 
-            if (threadPool.isTerminating || threadPool.isShutdown) threadPool = Executors.newFixedThreadPool(MAX_PARALLEL_DOWNLOADS) as ThreadPoolExecutor
-            futures.add(threadPool.submit(downloadNovelThread, null as Any?))
+            synchronized(poolLock) {
+                if (threadPool.isTerminating || threadPool.isShutdown) {
+                    threadPool = Executors.newFixedThreadPool(MAX_PARALLEL_DOWNLOADS) as ThreadPoolExecutor
+                }
+                futures.add(threadPool.submit(downloadNovelThread, null as Any?))
+            }
         }
     }
 
     fun handleNovelDownload(novelId: Long, action: String) {
-        //android.os.Debug.waitForDebugger()
         when (action) {
             ACTION_START -> {
                 threadListMap[novelId]?.let {
@@ -132,17 +149,16 @@ class DownloadNovelService : Service(), DownloadListener {
                 addNovelToDownload(novelId)
                 val downloadNovelEvent = if (futures.size > 5) DownloadNovelEvent(EventType.INSERT, novelId)
                 else DownloadNovelEvent(EventType.RUNNING, novelId)
-                downloadListener?.handleEvent(downloadNovelEvent)
+                val listener = downloadListener
+                listener?.handleEvent(downloadNovelEvent)
                 notify(downloadNovelEvent = downloadNovelEvent)
             }
 
             ACTION_PAUSE, ACTION_REMOVE -> {
-                threadListMap[novelId]?.let {
-                    if (it.isAlive) it.interrupt()
-                    threadPool.remove(it)
+                threadListMap.remove(novelId)?.let { thread ->
+                    if (thread.isAlive) thread.interrupt()
+                    threadPool.remove(thread)
                     threadPool.purge()
-                    threadListMap[novelId] = null
-                    threadListMap.remove(novelId)
                 }
 
                 if (threadListMap.isEmpty()) {
@@ -161,7 +177,8 @@ class DownloadNovelService : Service(), DownloadListener {
     //Called on bound (Activity) & background service
     override fun onDestroy() {
         Logs.debug(TAG, "onDestroy")
-        dbHelper.updateDownloadStatus(Download.STATUS_PAUSED)
+        // Only pause downloads that are currently running, not already-paused ones
+        dbHelper.updateDownloadStatusForRunning(Download.STATUS_PAUSED)
         stopService()
         super.onDestroy()
     }
@@ -180,12 +197,14 @@ class DownloadNovelService : Service(), DownloadListener {
                 // Do Nothing
             }
         }
-        downloadListener?.handleEvent(downloadNovelEvent)
+        val listener = downloadListener
+        listener?.handleEvent(downloadNovelEvent)
     }
 
     override fun handleEvent(downloadWebPageEvent: DownloadWebPageEvent) {
         if (downloadWebPageEvent.type == EventType.RUNNING) notify(downloadWebPageEvent = downloadWebPageEvent)
-        downloadListener?.handleEvent(downloadWebPageEvent)
+        val listener = downloadListener
+        listener?.handleEvent(downloadWebPageEvent)
     }
 
     private fun createNotificationBuilder(

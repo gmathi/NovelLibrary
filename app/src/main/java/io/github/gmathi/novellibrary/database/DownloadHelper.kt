@@ -16,14 +16,6 @@ import kotlin.collections.HashMap
 
 fun DBHelper.createDownload(download: Download, db: SQLiteDatabase? = null) {
     val writableDatabase = db ?: this.writableDatabase
-    //Check 1st
-    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_WEB_PAGE_URL} = ?"
-    val cursor = writableDatabase.rawQuery(selectQuery, arrayOf(download.webPageUrl))
-    val recordExists = cursor != null && cursor.count > 0
-    cursor.close()
-    if (recordExists)
-        return
-
     val values = ContentValues()
     values.put(DBKeys.KEY_NAME, download.novelName)
     values.put(DBKeys.KEY_NOVEL_ID, download.novelId)
@@ -32,7 +24,8 @@ fun DBHelper.createDownload(download: Download, db: SQLiteDatabase? = null) {
     values.put(DBKeys.KEY_STATUS, Download.STATUS_IN_QUEUE)
     values.put(DBKeys.KEY_ORDER_ID, download.orderId)
     values.put(DBKeys.KEY_METADATA, Gson().toJson(HashMap<String, String?>()))
-    writableDatabase.insert(DBKeys.TABLE_DOWNLOAD, null, values)
+    // Use INSERT OR IGNORE to atomically skip duplicates (keyed on web_page_url)
+    writableDatabase.insertWithOnConflict(DBKeys.TABLE_DOWNLOAD, null, values, SQLiteDatabase.CONFLICT_IGNORE)
 }
 
 fun DBHelper.getDownload(webPageUrl: String): Download? {
@@ -62,7 +55,7 @@ private fun getDownload(cursor: Cursor): Download {
 
 fun DBHelper.getAllDownloads(): List<Download> {
     val list = ArrayList<Download>()
-    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_DOWNLOAD}"
+    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_DOWNLOAD} ORDER BY ${DBKeys.KEY_NOVEL_ID}, ${DBKeys.KEY_ORDER_ID}"
     val cursor = this.readableDatabase.rawQuery(selectQuery, null)
     if (cursor != null) {
         if (cursor.moveToFirst()) {
@@ -77,7 +70,7 @@ fun DBHelper.getAllDownloads(): List<Download> {
 
 fun DBHelper.getAllDownloadsForNovel(novelId: Long): List<Download> {
     val list = ArrayList<Download>()
-    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NOVEL_ID} = ?"
+    val selectQuery = "SELECT * FROM ${DBKeys.TABLE_DOWNLOAD} WHERE ${DBKeys.KEY_NOVEL_ID} = ? ORDER BY ${DBKeys.KEY_ORDER_ID}"
     val cursor = this.readableDatabase.rawQuery(selectQuery, arrayOf(novelId.toString()))
     if (cursor != null) {
         if (cursor.moveToFirst()) {
@@ -107,6 +100,20 @@ fun DBHelper.updateDownloadStatus(status: Int): Long {
     val values = ContentValues()
     values.put(DBKeys.KEY_STATUS, status)
     return this.writableDatabase.update(DBKeys.TABLE_DOWNLOAD, values, null, null).toLong()
+}
+
+/**
+ * Only updates downloads that are currently in RUNNING or IN_QUEUE state to the given [status].
+ * This avoids blanket-overwriting already-paused downloads when the service is destroyed.
+ */
+fun DBHelper.updateDownloadStatusForRunning(status: Int): Long {
+    val values = ContentValues()
+    values.put(DBKeys.KEY_STATUS, status)
+    return this.writableDatabase.update(
+        DBKeys.TABLE_DOWNLOAD, values,
+        "${DBKeys.KEY_STATUS} IN (?, ?)",
+        arrayOf(Download.STATUS_IN_QUEUE.toString(), Download.STATUS_RUNNING.toString())
+    ).toLong()
 }
 
 fun DBHelper.deleteDownload(webPageUrl: String) {

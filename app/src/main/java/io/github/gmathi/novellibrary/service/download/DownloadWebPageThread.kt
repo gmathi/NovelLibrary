@@ -45,15 +45,21 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             val downloadComplete = downloadChapter(webPageSettings, webPage)
             if (downloadComplete) {
                 dbHelper.deleteDownload(download.webPageUrl)
-                //downloadListener.handleEvent(DownloadWebPageEvent(EventType.COMPLETE, webPageSettings.url, download))
+                downloadListener.handleEvent(DownloadWebPageEvent(EventType.COMPLETE, webPageSettings.url, download))
             } else {
-                Logs.error(TAG, "Download did not complete!")
+                Logs.error(TAG, "Download did not complete for: ${download.webPageUrl}")
+                // Reset status back to IN_QUEUE so it can be retried
+                dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_IN_QUEUE, download.webPageUrl)
             }
 
         } catch (e: InterruptedException) {
             Logs.error(TAG, "Interrupting the Thread: ${download.novelName}-${download.webPageUrl}, ${e.localizedMessage}")
+            // Reset status so the download isn't stuck in RUNNING state
+            dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_IN_QUEUE, download.webPageUrl)
         } catch (e: Exception) {
-            Logs.error(TAG, "This is really bad!!", e)
+            Logs.error(TAG, "Unexpected error downloading: ${download.webPageUrl}", e)
+            // Reset status so the download isn't stuck in RUNNING state
+            dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_IN_QUEUE, download.webPageUrl)
         }
 
     }
