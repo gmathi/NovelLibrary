@@ -124,6 +124,8 @@ class LibrarySearchActivity : BaseActivity() {
         onDetails: () -> Unit,
         onRead: () -> Unit
     ) {
+        var showMenu by remember { mutableStateOf(false) }
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -155,11 +157,39 @@ class LibrarySearchActivity : BaseActivity() {
                     )
                 }
                 
-                IconButton(onClick = onDetails) {
-                    Icon(
-                        imageVector = Icons.Filled.MoreVert,
-                        contentDescription = "More options"
-                    )
+                Box {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(
+                            imageVector = Icons.Filled.MoreVert,
+                            contentDescription = "More options"
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(getString(R.string.title_activity_chapters)) },
+                            onClick = {
+                                showMenu = false
+                                onClick()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(getString(R.string.title_activity_novel_details)) },
+                            onClick = {
+                                showMenu = false
+                                onDetails()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(getString(R.string.read)) },
+                            onClick = {
+                                showMenu = false
+                                onRead()
+                            }
+                        )
+                    }
                 }
             }
         }
