@@ -141,8 +141,10 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
         } catch (e: Exception) {
             Log.e(TAG, "Cloudflare intercept error for ${originalRequest.url}: ${e.message}")
             // Because OkHttp's enqueue only handles IOExceptions, wrap the exception so that
-            // we don't crash the entire app
-            return chain.proceed(originalRequest)
+            // we don't crash the entire app.
+            // Re-throw as IOException so callers (like DownloadWebPageThread) can detect the
+            // failure instead of silently receiving a Cloudflare challenge page.
+            throw java.io.IOException("Cloudflare bypass failed for ${originalRequest.url}: ${e.message}", e)
         }
     }
 

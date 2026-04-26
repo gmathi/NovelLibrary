@@ -25,7 +25,23 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
     companion object {
         private const val TAG = "DownloadWebPageThread"
+
+        /**
+         * Patterns that indicate the downloaded HTML is a Cloudflare challenge page
+         * rather than actual chapter content.
+         */
+        private val CLOUDFLARE_TITLE_PATTERNS = listOf(
+            "Just a moment",
+            "Attention Required",
+            "Access denied",
+            "Please Wait",
+        )
     }
+
+    /** Set to true when a Cloudflare challenge page is detected in downloaded content. */
+    @Volatile
+    var cloudflareDetected: Boolean = false
+        private set
 
     private lateinit var novelDir: File
     private val networkHelper: NetworkHelper = NetworkHelper(context)
@@ -79,6 +95,19 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             doc = WebPageDocumentFetcher.document(webPageSettings.url)
         } catch (e: Exception) {
             Logs.error(TAG, "Error getting WebPage: ${webPageSettings.url}")
+            // If the error message indicates a Cloudflare bypass failure, flag it so the
+            // caller (DownloadNovelThread) can back off instead of hammering the server.
+            if (e.message?.contains("Cloudflare", ignoreCase = true) == true) {
+                cloudflareDetected = true
+            }
+            return false
+        }
+
+        // Check if the fetched document is actually a Cloudflare challenge page.
+        // The interceptor may have failed silently or the challenge may have changed form.
+        if (isCloudflareChallengePage(doc)) {
+            Logs.warning(TAG, "Cloudflare challenge page detected for: ${webPageSettings.url}")
+            cloudflareDetected = true
             return false
         }
 
@@ -146,6 +175,37 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
     private fun onNoNetwork() {
         Logs.info(TAG, Constants.NO_NETWORK)
+    }
+
+    /**
+     * Detects whether the fetched document is a Cloudflare challenge/block page
+     * rather than actual chapter content. Checks both the page title and body
+     * for well-known Cloudflare markers.
+     */
+    private fun isCloudflareChallengePage(doc: Document): Boolean {
+        val title = doc.title()
+        if (CLOUDFLARE_TITLE_PATTERNS.any { title.contains(it, ignoreCase = true) }) {
+            return true
+        }
+
+        val body = doc.body() ?: return false
+
+        // Cloudflare challenge pages contain specific div IDs/classes
+        val hasCfElements = body.select("div#cf-wrapper, div.cf-browser-verification, div#challenge-running, div#challenge-form").isNotEmpty()
+        if (hasCfElements) return true
+
+        // Cloudflare "DDoS protection by Cloudflare" footer link
+        val hasCfLink = body.getElementsByTag("a").any {
+            it.attr("href").contains("cloudflare.com") &&
+                    it.text().contains("DDoS protection by Cloudflare", ignoreCase = true)
+        }
+        if (hasCfLink) return true
+
+        // Turnstile challenge widget
+        val hasTurnstile = body.select("div.cf-turnstile, iframe[src*='challenges.cloudflare.com']").isNotEmpty()
+        if (hasTurnstile) return true
+
+        return false
     }
 
     private fun isNetworkDown(): Boolean {
