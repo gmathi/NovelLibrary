@@ -40,6 +40,7 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
             novelDir = Utils.getNovelDir(context, download.novelName, download.novelId)
 
             dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_RUNNING, download.webPageUrl)
+            download.status = Download.STATUS_RUNNING
             downloadListener.handleEvent(DownloadWebPageEvent(EventType.RUNNING, webPageSettings.url, download))
 
             val downloadComplete = downloadChapter(webPageSettings, webPage)
