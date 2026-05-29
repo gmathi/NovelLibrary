@@ -56,11 +56,11 @@ fun ReaderOverlay(
                 )
             }
 
-            // Floating menu icon — visible when overlay is hidden.
-            // When "always show" preference is enabled, icon is always visible.
-            // Otherwise, icon appears only on scroll down and hides on scroll up.
+            // Floating menu icon — shown only when the overlay is hidden.
+            // The "reader mode button" preference enables the feature; when enabled
+            // the icon auto-hides on scroll down and reappears on scroll up / tap.
             AnimatedVisibility(
-                visible = !isVisible && (uiState.isReaderModeButtonVisible || isMenuIconVisible),
+                visible = !isVisible && uiState.isReaderModeButtonVisible && isMenuIconVisible,
                 enter = fadeIn(),
                 exit = fadeOut(),
                 modifier = Modifier

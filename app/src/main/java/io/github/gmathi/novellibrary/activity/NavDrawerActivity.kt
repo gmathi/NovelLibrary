@@ -20,6 +20,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.NovelLibraryApplication
 import io.github.gmathi.novellibrary.databinding.ActivityNavDrawerBinding
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
 import io.github.gmathi.novellibrary.compose.search.SearchFragmentCompose
@@ -33,6 +34,8 @@ import io.github.gmathi.novellibrary.util.system.startExtensionsPagerActivity
 import io.github.gmathi.novellibrary.util.system.startNovelDownloadsActivity
 import io.github.gmathi.novellibrary.util.system.startRecentNovelsPagerActivity
 import io.github.gmathi.novellibrary.util.system.startSettingsActivity
+import io.github.gmathi.novellibrary.util.system.toast
+import io.github.gmathi.novellibrary.util.system.showAlertDialog
 import io.github.gmathi.novellibrary.network.AppUpdateChecker
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -91,6 +94,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         }
         showWhatsNewDialog()
         checkForAppUpdate()
+        maybePromptDatabaseRecovery()
 
         if (intent.hasExtra("showDownloads")) {
             intent.removeExtra("showDownloads")
@@ -112,6 +116,51 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             }
             dataCenter.appVersionCode = BuildConfig.VERSION_CODE
         }
+    }
+
+    /**
+     * If startup cleanup flagged the database as corrupt, offer the user an explicit choice to
+     * reset it. Recovery wipes the entire local library, so it is never done automatically.
+     */
+    private fun maybePromptDatabaseRecovery() {
+        if (!dataCenter.databaseCorruptionDetected) return
+
+        MaterialDialog(this).show {
+            cancelable(false)
+            title(text = "Database problem detected")
+            message(
+                text = "Your library database appears to be corrupted. You can reset it to fix " +
+                    "the issue, but this will permanently delete all novels and reading data " +
+                    "stored on this device. Restore from a backup afterwards if you have one.\n\n" +
+                    "Reset the database now?"
+            )
+            positiveButton(text = "Reset database") {
+                val recovered = NovelLibraryApplication.recoverFromCorruptDatabase(applicationContext)
+                dataCenter.databaseCorruptionDetected = false
+                if (recovered) {
+                    toast("Database reset. Restarting...")
+                    restartApp()
+                } else {
+                    showAlertDialog(
+                        title = "Reset failed",
+                        message = "The database could not be reset. Please try clearing the app's " +
+                            "data from system settings."
+                    )
+                }
+            }
+            negativeButton(text = "Not now") {
+                // Leave the flag set so the user is prompted again next launch.
+                it.dismiss()
+            }
+        }
+    }
+
+    private fun restartApp() {
+        val intent = packageManager.getLaunchIntentForPackage(packageName)
+        intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+        finishAffinity()
+        Runtime.getRuntime().exit(0)
     }
 
     private fun checkForAppUpdate() {

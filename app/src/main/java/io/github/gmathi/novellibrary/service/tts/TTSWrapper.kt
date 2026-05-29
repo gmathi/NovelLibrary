@@ -694,8 +694,16 @@ class TTSWrapper(val context: Context, var callback: TTSWrapperCallback, private
     }
 
     override fun onMarkerReached(track: AudioTrack) {
+        // Track may have been released/reset on another thread; guard the native position read.
+        if (track.state != AudioTrack.STATE_INITIALIZED) return
+        val headPosition = try {
+            track.playbackHeadPosition
+        } catch (e: IllegalStateException) {
+            Log.e(TTSPlayer.TAG, "playbackHeadPosition unavailable: ${e.message}")
+            return
+        }
         nextMarker?.let { marker ->
-            if (marker.frame > track.playbackHeadPosition) return
+            if (marker.frame > headPosition) return
 
 //            if (marker.type != TTSMarkerType.RangeStart)
 //                Log.d(TTSPlayer.TAG, "-- Reached marker: $marker <- ${track.playbackHeadPosition}")

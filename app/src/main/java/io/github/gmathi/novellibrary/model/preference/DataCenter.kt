@@ -123,8 +123,11 @@ class DataCenter(context: Context) {
 
         // App Night Mode (separate from reader isDarkTheme)
         private const val APP_NIGHT_MODE = "appNightMode"
-    }
 
+        // Set when startup DB cleanup detects corruption. The UI uses this to offer
+        // user-initiated recovery instead of wiping the library automatically.
+        private const val DATABASE_CORRUPTION_DETECTED = "databaseCorruptionDetected"
+    }
     private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
     val ttsPreferences = TTSPreferences(context, prefs)
     val aiTtsPreferences = AiTtsPreferences(context, prefs)
@@ -515,4 +518,12 @@ class DataCenter(context: Context) {
     var appNightMode: Boolean
         get() = prefs.getBoolean(APP_NIGHT_MODE, true)
         set(value) = prefs.edit().putBoolean(APP_NIGHT_MODE, value).apply()
+
+    /**
+     * True when startup database cleanup hit a corruption error. The launcher screen reads
+     * this to offer the user an explicit recovery (reset) option, then clears it once handled.
+     */
+    var databaseCorruptionDetected: Boolean
+        get() = prefs.getBoolean(DATABASE_CORRUPTION_DETECTED, false)
+        set(value) = prefs.edit().putBoolean(DATABASE_CORRUPTION_DETECTED, value).apply()
 }

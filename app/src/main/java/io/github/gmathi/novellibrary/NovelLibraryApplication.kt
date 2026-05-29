@@ -3,6 +3,7 @@ package io.github.gmathi.novellibrary
 import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
+import android.database.sqlite.SQLiteException
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationManagerCompat
@@ -14,6 +15,7 @@ import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.database.DBHelper
+import io.github.gmathi.novellibrary.database.DBKeys
 import io.github.gmathi.novellibrary.database.deleteWebPageSettings
 import io.github.gmathi.novellibrary.database.deleteWebPages
 import io.github.gmathi.novellibrary.model.other.SelectorQuery
@@ -40,6 +42,25 @@ import javax.net.ssl.SSLContext
 open class NovelLibraryApplication : Application(), LifecycleObserver {
     companion object {
         private const val TAG = "NovelLibraryApplication"
+
+        /**
+         * Deletes the corrupt database and rebuilds a fresh schema. This is destructive:
+         * it removes the user's entire library, so it must only be invoked from an explicit
+         * user action (e.g. a confirmation dialog), never automatically at startup.
+         *
+         * @return true if the database was recreated, false if recovery failed.
+         */
+        fun recoverFromCorruptDatabase(context: Context): Boolean {
+            return try {
+                context.applicationContext.deleteDatabase(DBKeys.DATABASE_NAME)
+                // Force a fresh helper instance so the next access rebuilds the schema.
+                DBHelper.refreshInstance(context.applicationContext)
+                true
+            } catch (e: Exception) {
+                Logs.error(TAG, "recoverFromCorruptDatabase(): failed to recreate database", e)
+                false
+            }
+        }
     }
 
     override fun onCreate() {
@@ -83,12 +104,51 @@ open class NovelLibraryApplication : Application(), LifecycleObserver {
         setupNotificationChannels()
     }
 
-    private fun cleanupDatabase() {
-        val dbHelper: DBHelper by injectLazy()
+    // Marker file present only while the (non-critical) startup DB cleanup is running.
+    private val cleanupSentinel: File
+        get() = File(filesDir, "db_cleanup_in_progress")
 
-        //Stray webPages to be deleted
-        dbHelper.deleteWebPages(-1L)
-        dbHelper.deleteWebPageSettings(-1L)
+    private fun cleanupDatabase() {
+        // If this marker still exists, the previous run died *during* cleanup. That fault is
+        // an uncatchable native SQLite crash on a corrupt DB page (see tombstone: pread ->
+        // unixRead -> readDbPage), which try/catch and background threads cannot stop. Skip
+        // this non-critical maintenance to break the boot loop instead of crashing again.
+        if (cleanupSentinel.exists()) {
+            Logs.error(TAG, "cleanupDatabase(): skipping - previous attempt crashed the process (likely DB corruption)")
+            return
+        }
+
+        // Run off the main thread: nothing else in onCreate() depends on it, and this avoids
+        // blocking boot on slow disk I/O.
+        Thread {
+            try {
+                cleanupSentinel.createNewFile()
+
+                val dbHelper: DBHelper by injectLazy()
+
+                //Stray webPages to be deleted
+                dbHelper.deleteWebPages(-1L)
+                dbHelper.deleteWebPageSettings(-1L)
+            } catch (e: SQLiteException) {
+                // Catchable disk/IO error on a corrupt DB. Do NOT wipe the database
+                // automatically - that would silently destroy the user's whole library.
+                // Instead, flag it so the UI can offer recovery as an explicit choice.
+                Logs.error(TAG, "cleanupDatabase(): database error detected, flagging for user-initiated recovery", e)
+                val dataCenter: DataCenter by injectLazy()
+                dataCenter.databaseCorruptionDetected = true
+            } catch (e: Exception) {
+                // Never let database cleanup crash startup for any other reason.
+                Logs.error(TAG, "cleanupDatabase(): unexpected error", e)
+            } finally {
+                // Reached only if cleanup did NOT natively crash the process. Clearing the
+                // marker re-enables cleanup on the next launch.
+                cleanupSentinel.delete()
+            }
+        }.apply {
+            name = "db-cleanup"
+            priority = Thread.MIN_PRIORITY
+            isDaemon = true
+        }.start()
     }
 
     private fun setPreferences(dataCenter: DataCenter) {
