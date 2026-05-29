@@ -94,14 +94,17 @@ fun SearchScreen(
         cloudflareRetrySource = null
     }
 
-    BackHandler {
+    // Only intercept back while the search has an active sub-state to collapse
+    // (the edit field is open, or results are showing). At the base browse state
+    // we stay disabled so the back press falls through to the host activity,
+    // which decides whether to return home or confirm exit.
+    BackHandler(enabled = searchState.isEditing || searchState.isSearching) {
         when {
             searchState.isEditing -> searchState.closeSearch()
             searchState.isSearching -> {
                 searchState.resetSearch()
                 searchTermViewModel.clearSearch()
             }
-            else -> onHomeClick()
         }
     }
 

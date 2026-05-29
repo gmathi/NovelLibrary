@@ -45,6 +45,9 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private var snackBar: Snackbar? = null
     private var currentNavId: Int = R.id.nav_search
 
+    /** The top-level destination shown at launch. Back from here confirms exit. */
+    private var startNavId: Int = R.id.nav_search
+
     private var mAuth: FirebaseAuth? = null
 
     lateinit var binding: ActivityNavDrawerBinding
@@ -69,13 +72,25 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             currentNavId = savedInstanceState.getInt("currentNavId")
         }
 
+        // Remember the launch destination so back navigation knows when we've
+        // returned to the "home" screen and should confirm exit instead.
+        startNavId = if (savedInstanceState != null && savedInstanceState.containsKey("startNavId")) {
+            savedInstanceState.getInt("startNavId")
+        } else {
+            currentNavId
+        }
+
         snackBar = Snackbar.make(binding.appBarNavDrawer.navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
 
         checkIntentForNotificationData()
-        loadFragment(currentNavId)
+        // Only load the initial fragment on a fresh start. On recreation the
+        // FragmentManager restores the existing fragment, so re-adding it here
+        // would stack a duplicate and could leave the container empty on back.
+        if (savedInstanceState == null) {
+            loadFragment(currentNavId)
+        }
         showWhatsNewDialog()
         checkForAppUpdate()
-        currentNavId = if (dataCenter.loadLibraryScreen) R.id.nav_library else R.id.nav_search
 
         if (intent.hasExtra("showDownloads")) {
             intent.removeExtra("showDownloads")
@@ -108,32 +123,40 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     private fun onBackPress() {
         onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                // 1. An open drawer always closes first.
                 if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
                     binding.drawerLayout.closeDrawer(GravityCompat.START)
-                } else {
-                    val existingSearchFrag = supportFragmentManager.findFragmentByTag(SearchFragmentCompose::class.toString())
-                    if (existingSearchFrag != null && existingSearchFrag is SearchFragmentCompose) {
-                        // Just call closeSearch - the Compose search handles its own state
-                        existingSearchFrag.closeSearch()
+                    return
+                }
+
+                // NOTE: The Compose search screen owns its own back handling for
+                // editing/searching sub-states via a BackHandler that is only
+                // enabled in those states. When it's at its base browse state the
+                // BackHandler is disabled and back falls through to here.
+
+                // 2. Don't navigate away mid-sync.
+                (supportFragmentManager.findFragmentByTag(LibraryPagerFragment::class.toString()) as? LibraryPagerFragment)?.let {
+                    if (it.getLibraryFragment()?.isSyncing() == true) {
                         return
                     }
+                }
 
-                    (supportFragmentManager.findFragmentByTag(LibraryPagerFragment::class.toString()) as? LibraryPagerFragment)?.let {
-                        if (it.getLibraryFragment()?.isSyncing() == true) {
-                            return
-                        }
-                    }
+                // 3. If we're on a non-home top-level destination, go back to home.
+                if (currentNavId != startNavId) {
+                    loadFragment(startNavId)
+                    return
+                }
 
-                    if (snackBar != null && snackBar!!.isShown)
-                        finish()
-                    else {
-                        if (snackBar == null)
-                            snackBar = Snackbar.make(binding.appBarNavDrawer.navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
-                        snackBar?.show()
-                    }
+                // 4. We're on the home fragment - confirm exit with a snackbar,
+                //    finishing only if it's already showing.
+                if (snackBar != null && snackBar!!.isShown) {
+                    finish()
+                } else {
+                    if (snackBar == null)
+                        snackBar = Snackbar.make(binding.appBarNavDrawer.navFragmentContainer, getString(R.string.app_exit), Snackbar.LENGTH_SHORT)
+                    snackBar?.show()
                 }
             }
-
         })
     }
 
@@ -151,13 +174,14 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun loadFragment(id: Int) {
-        currentNavId = id
         when (id) {
             R.id.nav_library -> {
+                currentNavId = id
                 replaceFragment(LibraryPagerFragment(), LibraryPagerFragment::class.toString())
             }
 
             R.id.nav_search -> {
+                currentNavId = id
                 replaceFragment(SearchFragmentCompose(), SearchFragmentCompose::class.toString())
             }
 
@@ -185,10 +209,13 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun replaceFragment(fragment: Fragment, tag: String) {
-        supportFragmentManager.commit(true) {
+        // Top-level drawer destinations are swapped without a back stack. Back
+        // navigation is handled centrally in onBackPress(): non-home destinations
+        // return to the home destination, and home confirms exit. This avoids the
+        // empty-container black screen caused by popping the start destination.
+        supportFragmentManager.commit {
             replace(binding.appBarNavDrawer.navFragmentContainer.id, fragment, tag)
             setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-            addToBackStack(tag)
         }
     }
 
@@ -234,6 +261,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt("currentNavId", currentNavId)
+        outState.putInt("startNavId", startNavId)
     }
 
     override fun onResume() {
