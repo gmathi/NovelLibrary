@@ -39,6 +39,8 @@ class AiTtsControlsActivity : ComponentActivity() {
     private val pitch = MutableStateFlow(1.0f)
     private val autoNextChapter = MutableStateFlow(true)
     private val keepScreenOn = MutableStateFlow(false)
+    private val sleepTimerMinutes = MutableStateFlow(0L)
+    private val sleepTimerEndTime = MutableStateFlow(0L)
 
     private var mediaBrowser: MediaBrowserCompat? = null
     private var mediaController: MediaControllerCompat? = null
@@ -77,6 +79,7 @@ class AiTtsControlsActivity : ComponentActivity() {
         pitch.value = prefs.pitch
         autoNextChapter.value = prefs.autoReadNextChapter
         keepScreenOn.value = prefs.keepScreenOn
+        sleepTimerMinutes.value = prefs.stopTimer
 
         // Sync local state flows from the service player whenever it is available
         syncServiceFlows()
@@ -92,6 +95,8 @@ class AiTtsControlsActivity : ComponentActivity() {
                 val currentPitch by pitch.collectAsState()
                 val currentAutoNext by autoNextChapter.collectAsState()
                 val currentKeepScreenOn by keepScreenOn.collectAsState()
+                val currentSleepTimerMinutes by sleepTimerMinutes.collectAsState()
+                val currentSleepTimerEndTime by sleepTimerEndTime.collectAsState()
 
                 AiTtsControlsScreen(
                     novelTitle = novelTitle,
@@ -105,6 +110,8 @@ class AiTtsControlsActivity : ComponentActivity() {
                     pitch = currentPitch,
                     autoNextChapter = currentAutoNext,
                     keepScreenOn = currentKeepScreenOn,
+                    sleepTimerMinutes = currentSleepTimerMinutes,
+                    sleepTimerEndTime = currentSleepTimerEndTime,
                     onSpeechRateChange = { value ->
                         speechRate.value = value
                         dataCenter.aiTtsPreferences.speechRate = value
@@ -122,6 +129,17 @@ class AiTtsControlsActivity : ComponentActivity() {
                         dataCenter.aiTtsPreferences.keepScreenOn = value
                         if (value) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    },
+                    onSleepTimerChange = { minutes ->
+                        sleepTimerMinutes.value = minutes
+                        // Route through the player so it can (re)arm or cancel the timer immediately;
+                        // the player persists the value to preferences.
+                        val player = AiTtsService.instance?.player
+                        if (player != null) {
+                            player.setSleepTimerMinutes(minutes)
+                        } else {
+                            dataCenter.aiTtsPreferences.stopTimer = minutes
+                        }
                     },
                     onPlayPause = {
                         val ctrl = mediaController
@@ -173,6 +191,7 @@ class AiTtsControlsActivity : ComponentActivity() {
         pitch.value = prefs.pitch
         autoNextChapter.value = prefs.autoReadNextChapter
         keepScreenOn.value = prefs.keepScreenOn
+        sleepTimerMinutes.value = prefs.stopTimer
         if (prefs.keepScreenOn) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
@@ -230,6 +249,9 @@ class AiTtsControlsActivity : ComponentActivity() {
         }
         lifecycleScope.launch {
             player.isAudioPlaying.collect { isAudioPlaying.value = it }
+        }
+        lifecycleScope.launch {
+            player.sleepTimerEndTime.collect { sleepTimerEndTime.value = it }
         }
     }
 

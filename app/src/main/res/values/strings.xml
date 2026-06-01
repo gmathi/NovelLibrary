@@ -329,6 +329,9 @@
     <string name="sort_section_last_read">Last Read</string>
     <string name="sort_section_last_updated">Last Updated</string>
     <string name="sort_section_recently_added">Recently Added</string>
+    <string name="sort_section_manual">Manual Order</string>
+    <string name="sort_revert_to_manual">Revert to manual order</string>
+    <string name="sort_reverted_to_manual">Reverted to manual order</string>
     <string name="sort_chapters">Sort Chapters</string>
     <string name="clearing_data">Clearing Data</string>
     <string name="please_wait">Please wait…</string>

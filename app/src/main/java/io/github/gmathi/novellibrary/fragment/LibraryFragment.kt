@@ -358,7 +358,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     private fun showSortDialog() {
         if (adapter.items.isEmpty()) return
-        val sortSheet = SortBottomSheetDialogFragment.newInstance()
+        val sortSheet = SortBottomSheetDialogFragment.newInstance(
+            canRevertToManual = dataCenter.hasManualOrderSnapshot(novelSectionId)
+        )
         sortSheet.onSortSelected = { option ->
             when (option) {
                 SortOption.ALPHABETICALLY_ASC -> sortNovels(compareBy { it.name })
@@ -369,17 +371,29 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 SortOption.LAST_UPDATED_OLDEST -> sortNovelsByDate(Constants.MetaDataKeys.LAST_UPDATED_DATE, ascending = true)
                 SortOption.RECENTLY_ADDED_NEWEST -> sortNovels(compareByDescending { it.id })
                 SortOption.RECENTLY_ADDED_OLDEST -> sortNovels(compareBy { it.id })
+                SortOption.REVERT_TO_MANUAL -> revertToManualOrder()
             }
         }
         sortSheet.show(childFragmentManager, SortBottomSheetDialogFragment.TAG)
     }
 
+    /**
+     * Snapshots the current arrangement as the "manual order" before the first sort, so the
+     * user can revert later. Only saves if no snapshot exists yet for this section, which means
+     * the very first sort captures the original manual order and subsequent sorts leave it intact.
+     */
+    private fun snapshotManualOrderIfNeeded() {
+        dataCenter.saveManualOrderSnapshotIfAbsent(novelSectionId, adapter.items.map { it.id })
+    }
+
     private fun sortNovels(comparator: Comparator<Novel>) {
+        snapshotManualOrderIfNeeded()
         adapter.updateData(ArrayList(adapter.items.sortedWith(comparator)))
         lifecycleScope.launch(Dispatchers.IO) { updateOrderIds() }
     }
 
     private fun sortNovelsByDate(metadataKey: String, ascending: Boolean) {
+        snapshotManualOrderIfNeeded()
         val dateFormat = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
         val sorted = adapter.items.sortedWith(compareBy { novel ->
             novel.metadata[metadataKey]?.let {
@@ -388,6 +402,25 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         })
         adapter.updateData(ArrayList(if (ascending) sorted else sorted.reversed()))
         lifecycleScope.launch(Dispatchers.IO) { updateOrderIds() }
+    }
+
+    /**
+     * Restores the novels to the manual order captured before sorting. Novels added since the
+     * snapshot (not present in it) are appended at the end in their current order. Clears the
+     * snapshot afterwards so the revert option disappears until the next sort.
+     */
+    private fun revertToManualOrder() {
+        val snapshot = dataCenter.getManualOrderSnapshot(novelSectionId) ?: return
+        val orderIndex = snapshot.withIndex().associate { (index, id) -> id to index }
+        val reordered = adapter.items.sortedWith(
+            compareBy { orderIndex[it.id] ?: Int.MAX_VALUE }
+        )
+        adapter.updateData(ArrayList(reordered))
+        dataCenter.clearManualOrderSnapshot(novelSectionId)
+        lifecycleScope.launch(Dispatchers.IO) { updateOrderIds() }
+        activity?.let {
+            android.widget.Toast.makeText(it, R.string.sort_reverted_to_manual, android.widget.Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun syncNovels(novel: Novel? = null) {
@@ -594,6 +627,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
     override fun onItemMove(source: Int, target: Int) {
         adapter.onItemMove(source, target)
+        // A manual drag establishes a new manual arrangement, so discard any stale
+        // pre-sort snapshot - the current order becomes the baseline to revert to later.
+        dataCenter.clearManualOrderSnapshot(novelSectionId)
     }
 
     private fun updateOrderIds() {

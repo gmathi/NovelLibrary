@@ -18,12 +18,15 @@ import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
 class SortBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
     var onSortSelected: ((SortOption) -> Unit)? = null
+    var canRevertToManual: Boolean = false
 
     companion object {
         const val TAG = "SortBottomSheetDialog"
 
-        fun newInstance(): SortBottomSheetDialogFragment {
-            return SortBottomSheetDialogFragment()
+        fun newInstance(canRevertToManual: Boolean = false): SortBottomSheetDialogFragment {
+            return SortBottomSheetDialogFragment().apply {
+                this.canRevertToManual = canRevertToManual
+            }
         }
     }
 
@@ -51,6 +54,7 @@ class SortBottomSheetDialogFragment : BottomSheetDialogFragment() {
                             onSortSelected?.invoke(option)
                             dismiss()
                         },
+                        canRevertToManual = canRevertToManual,
                         modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerLow)
                     )
                 }

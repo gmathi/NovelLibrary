@@ -42,10 +42,13 @@ fun AiTtsControlsScreen(
     pitch: Float = 1.0f,
     autoNextChapter: Boolean = true,
     keepScreenOn: Boolean = false,
+    sleepTimerMinutes: Long = 0L,
+    sleepTimerEndTime: Long = 0L,
     onSpeechRateChange: (Float) -> Unit = {},
     onPitchChange: (Float) -> Unit = {},
     onAutoNextChapterChange: (Boolean) -> Unit = {},
     onKeepScreenOnChange: (Boolean) -> Unit = {},
+    onSleepTimerChange: (Long) -> Unit = {},
     onPlayPause: () -> Unit = {},
     onStop: () -> Unit = {},
     onNextSentence: () -> Unit = {},
@@ -113,6 +116,13 @@ fun AiTtsControlsScreen(
                         Text("Keep Screen On", modifier = Modifier.weight(1f))
                         Switch(checked = keepScreenOn, onCheckedChange = onKeepScreenOnChange)
                     }
+
+                    Spacer(Modifier.height(8.dp))
+                    SleepTimerSetting(
+                        sleepTimerMinutes = sleepTimerMinutes,
+                        sleepTimerEndTime = sleepTimerEndTime,
+                        onSleepTimerChange = onSleepTimerChange
+                    )
                 }
             }
         }
@@ -216,6 +226,70 @@ fun AiTtsControlsScreen(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SleepTimerSetting(
+    sleepTimerMinutes: Long,
+    sleepTimerEndTime: Long,
+    onSleepTimerChange: (Long) -> Unit
+) {
+    val presets = listOf(0L, 15L, 30L, 45L, 60L)
+
+    // Live countdown text, refreshed every second while the timer is running.
+    var remainingText by remember { mutableStateOf("") }
+    LaunchedEffect(sleepTimerEndTime) {
+        if (sleepTimerEndTime <= 0L) {
+            remainingText = ""
+            return@LaunchedEffect
+        }
+        while (true) {
+            val remainingMs = sleepTimerEndTime - System.currentTimeMillis()
+            if (remainingMs <= 0L) {
+                remainingText = ""
+                break
+            }
+            val totalSeconds = remainingMs / 1000
+            remainingText = "%d:%02d".format(totalSeconds / 60, totalSeconds % 60)
+            kotlinx.coroutines.delay(1000)
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Sleep Timer", modifier = Modifier.weight(1f))
+            Text(
+                text = when {
+                    remainingText.isNotEmpty() -> remainingText
+                    sleepTimerMinutes > 0L -> "${sleepTimerMinutes}m"
+                    else -> "Off"
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Spacer(Modifier.height(4.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            presets.forEach { minutes ->
+                FilterChip(
+                    selected = sleepTimerMinutes == minutes,
+                    onClick = { onSleepTimerChange(minutes) },
+                    label = {
+                        Text(
+                            if (minutes == 0L) "Off" else "${minutes}m",
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                )
             }
         }
     }

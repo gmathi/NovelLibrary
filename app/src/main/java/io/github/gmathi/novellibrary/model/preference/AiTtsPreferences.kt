@@ -51,4 +51,12 @@ data class AiTtsPreferences(val context: Context, val prefs: SharedPreferences) 
     var keepScreenOn: Boolean
         get() = prefs.getBoolean("ai_tts_keep_screen_on", false)
         set(value) = prefs.edit().putBoolean("ai_tts_keep_screen_on", value).apply()
+
+    /**
+     * Sleep timer duration in minutes. 0 means the sleep timer is off. When set to a positive
+     * value the player pauses playback after that many minutes. Mirrors the normal TTS stop timer.
+     */
+    var stopTimer: Long
+        get() = prefs.getLong("ai_tts_stop_timer", 0L)
+        set(value) = prefs.edit().putLong("ai_tts_stop_timer", value).apply()
 }
