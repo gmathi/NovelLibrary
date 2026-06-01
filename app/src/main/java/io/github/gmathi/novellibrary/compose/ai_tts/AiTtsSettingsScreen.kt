@@ -33,6 +33,7 @@ fun AiTtsSettingsScreen(
     volumeNormalization: Boolean = true,
     smartPunctuation: Boolean = true,
     emotionTags: Boolean = false,
+    sleepTimerMinutes: Long = 0L,
     activeVoiceId: String = "en_US-ryan-high",
     availableVoices: List<AiTtsVoiceInfo> = emptyList(),
     modelManager: AiTtsModelManager? = null,
@@ -45,6 +46,7 @@ fun AiTtsSettingsScreen(
     onVolumeNormalizationChange: (Boolean) -> Unit = {},
     onSmartPunctuationChange: (Boolean) -> Unit = {},
     onEmotionTagsChange: (Boolean) -> Unit = {},
+    onSleepTimerChange: (Long) -> Unit = {},
     onVoiceSelected: (AiTtsVoiceInfo) -> Unit = {},
     onKokoroVoiceSelected: (KokoroVoice) -> Unit = {},
     onManageModels: () -> Unit = {},
@@ -55,6 +57,7 @@ fun AiTtsSettingsScreen(
     var showVoicePicker by remember { mutableStateOf(false) }
     var showEmotionBetaDialog by remember { mutableStateOf(false) }
     var showClearCacheDialog by remember { mutableStateOf(false) }
+    var showSleepTimerDialog by remember { mutableStateOf(false) }
     val activeVoice = availableVoices.find { it.id == activeVoiceId }
     val isKokoroActive = activeVoice?.engineType == TtsEngineType.KOKORO
     val activeKokoroVoice = if (isKokoroActive) KokoroVoiceHelper.getById(kokoroSpeakerId) else null
@@ -138,6 +141,47 @@ fun AiTtsSettingsScreen(
         )
     }
 
+    if (showSleepTimerDialog) {
+        val options = listOf(0L, 15L, 30L, 45L, 60L, 90L, 120L)
+        AlertDialog(
+            onDismissRequest = { showSleepTimerDialog = false },
+            title = { Text("Sleep Timer") },
+            text = {
+                LazyColumn {
+                    items(options.size) { index ->
+                        val minutes = options[index]
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onSleepTimerChange(minutes)
+                                    showSleepTimerDialog = false
+                                }
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = sleepTimerMinutes == minutes,
+                                onClick = {
+                                    onSleepTimerChange(minutes)
+                                    showSleepTimerDialog = false
+                                }
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                if (minutes == 0L) "Off" else "$minutes minutes",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showSleepTimerDialog = false }) { Text("Cancel") }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -207,6 +251,16 @@ fun AiTtsSettingsScreen(
                     checked = keepScreenOn,
                     enabled = settingsEnabled,
                     onCheckedChange = onKeepScreenOnChange
+                )
+            }
+            item {
+                ChevronSettingRow(
+                    title = "Sleep Timer",
+                    subtitle = if (sleepTimerMinutes > 0L)
+                        "Pause playback after $sleepTimerMinutes min"
+                    else "Off",
+                    enabled = settingsEnabled,
+                    onClick = { showSleepTimerDialog = true }
                 )
             }
             item {

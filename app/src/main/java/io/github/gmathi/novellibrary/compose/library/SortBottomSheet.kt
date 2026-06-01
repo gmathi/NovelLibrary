@@ -26,13 +26,15 @@ enum class SortOption {
     LAST_UPDATED_NEWEST,
     LAST_UPDATED_OLDEST,
     RECENTLY_ADDED_NEWEST,
-    RECENTLY_ADDED_OLDEST
+    RECENTLY_ADDED_OLDEST,
+    REVERT_TO_MANUAL
 }
 
 @Composable
 fun SortBottomSheetContent(
     onSortSelected: (SortOption) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    canRevertToManual: Boolean = false
 ) {
     Column(
         modifier = modifier
@@ -62,6 +64,18 @@ fun SortBottomSheetContent(
         }
 
         Spacer(modifier = Modifier.height(4.dp))
+
+        // Manual order section - only shown when a manual-order snapshot exists to revert to
+        if (canRevertToManual) {
+            SortSectionHeader(title = stringResource(R.string.sort_section_manual))
+            SortOptionItem(
+                label = stringResource(R.string.sort_revert_to_manual),
+                icon = Icons.Outlined.Restore,
+                onClick = { onSortSelected(SortOption.REVERT_TO_MANUAL) }
+            )
+
+            SortDivider()
+        }
 
         // Alphabetical section
         SortSectionHeader(title = stringResource(R.string.sort_section_alphabetical))

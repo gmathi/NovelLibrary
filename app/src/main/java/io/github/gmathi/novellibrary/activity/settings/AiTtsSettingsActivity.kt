@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.gmathi.novellibrary.compose.ai_tts.AiTtsSettingsScreen
@@ -30,6 +31,7 @@ class AiTtsSettingsActivity : ComponentActivity() {
     private var volumeNormalization by mutableStateOf(true)
     private var smartPunctuation by mutableStateOf(true)
     private var emotionTags by mutableStateOf(false)
+    private var sleepTimerMinutes by mutableLongStateOf(0L)
     private var activeVoiceId by mutableStateOf("")
     private var kokoroSpeakerId by mutableIntStateOf(0)
     private var useAiTts by mutableStateOf(false)
@@ -51,6 +53,7 @@ class AiTtsSettingsActivity : ComponentActivity() {
         volumeNormalization = prefs.volumeNormalization
         smartPunctuation = prefs.smartPunctuation
         emotionTags = prefs.emotionTags
+        sleepTimerMinutes = prefs.stopTimer
         activeVoiceId = prefs.voiceId
         kokoroSpeakerId = prefs.kokoroSpeakerId
         useAiTts = dataCenter.useAiTts
@@ -70,6 +73,7 @@ class AiTtsSettingsActivity : ComponentActivity() {
                     volumeNormalization = volumeNormalization,
                     smartPunctuation = smartPunctuation,
                     emotionTags = emotionTags,
+                    sleepTimerMinutes = sleepTimerMinutes,
                     activeVoiceId = activeVoiceId,
                     availableVoices = availableVoices,
                     modelManager = modelManager,
@@ -107,6 +111,14 @@ class AiTtsSettingsActivity : ComponentActivity() {
                         emotionTags = value
                         prefs.emotionTags = value
                     },
+                    onSleepTimerChange = { minutes ->
+                        sleepTimerMinutes = minutes
+                        // Route through the running player when available so the timer arms/cancels
+                        // immediately; the player also persists the value. Otherwise persist directly.
+                        val player = io.github.gmathi.novellibrary.service.ai_tts.AiTtsService.instance?.player
+                        if (player != null) player.setSleepTimerMinutes(minutes)
+                        else prefs.stopTimer = minutes
+                    },
                     onVoiceSelected = { voice ->
                         activeVoiceId = voice.id
                         prefs.voiceId = voice.id
@@ -134,6 +146,7 @@ class AiTtsSettingsActivity : ComponentActivity() {
                         keepScreenOn = false; prefs.keepScreenOn = false
                         volumeNormalization = true; prefs.volumeNormalization = true
                         useAiTts = false; dataCenter.useAiTts = false
+                        sleepTimerMinutes = 0L; prefs.stopTimer = 0L
                         activeVoiceId = modelManager.defaultVoiceId()
                         prefs.voiceId = activeVoiceId
                         kokoroSpeakerId = 0
@@ -153,6 +166,7 @@ class AiTtsSettingsActivity : ComponentActivity() {
         activeVoiceId = prefs.voiceId
         kokoroSpeakerId = prefs.kokoroSpeakerId
         useAiTts = dataCenter.useAiTts
+        sleepTimerMinutes = prefs.stopTimer
         // Bump the key so the screen re-evaluates isModelReady even for the same voiceId
         modelRefreshKey++
         Logs.debug("AiTtsSettings", "onResume: voiceId='$activeVoiceId' modelRefreshKey=$modelRefreshKey")

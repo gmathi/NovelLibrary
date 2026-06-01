@@ -72,6 +72,7 @@ class DataCenter(context: Context) {
         private const val LOGIN_COOKIES_STRING = "loginCookiesString"
         private const val CUSTOM_QUERY_LOOKUPS = "customQueryLookups"
         private const val SHOW_CHAPTERS_LEFT_BADGE = "showChaptersLeftBadge"
+        private const val LIBRARY_MANUAL_ORDER = "libraryManualOrder"
         private const val USER_SPECIFIED_SELECTOR_QUERIES = "userSpecifiedSelectorQueries"
         private const val AUTO_SCROLL_LENGTH = "autoScrollLength"
         private const val AUTO_SCROLL_INTERVAL = "autoScrollInterval"
@@ -145,6 +146,51 @@ class DataCenter(context: Context) {
 
     fun loadLibrarySearchHistory(): ArrayList<String> = Gson().fromJson(prefs.getString(LIBRARY_HISTORY_LIST, "[]"), object : TypeToken<ArrayList<String>>() {}.type)
     fun saveLibrarySearchHistory(history: ArrayList<String>) = prefs.edit().putString(LIBRARY_HISTORY_LIST, Gson().toJson(history)).apply()
+
+    //region Library manual order snapshot
+
+    // Stores a snapshot of the user's manual novel ordering, keyed by novel-section id.
+    // The value is the ordered list of novel ids as they appeared before the first sort.
+    // This lets the user revert a sort back to their last manual arrangement.
+    private fun loadManualOrderMap(): HashMap<Long, ArrayList<Long>> =
+        Gson().fromJson(
+            prefs.getString(LIBRARY_MANUAL_ORDER, "{}"),
+            object : TypeToken<HashMap<Long, ArrayList<Long>>>() {}.type
+        )
+
+    private fun saveManualOrderMap(map: HashMap<Long, ArrayList<Long>>) =
+        prefs.edit().putString(LIBRARY_MANUAL_ORDER, Gson().toJson(map)).apply()
+
+    /** True if a manual-order snapshot exists for the given section. */
+    fun hasManualOrderSnapshot(novelSectionId: Long): Boolean =
+        loadManualOrderMap().containsKey(novelSectionId)
+
+    /**
+     * Saves [novelIds] as the manual-order snapshot for [novelSectionId], but only if one
+     * isn't already saved. This captures the arrangement just before the first sort so that
+     * repeated sorts don't clobber the original manual order.
+     */
+    fun saveManualOrderSnapshotIfAbsent(novelSectionId: Long, novelIds: List<Long>) {
+        val map = loadManualOrderMap()
+        if (!map.containsKey(novelSectionId)) {
+            map[novelSectionId] = ArrayList(novelIds)
+            saveManualOrderMap(map)
+        }
+    }
+
+    /** Returns the saved manual-order snapshot for [novelSectionId], or null if none exists. */
+    fun getManualOrderSnapshot(novelSectionId: Long): ArrayList<Long>? =
+        loadManualOrderMap()[novelSectionId]
+
+    /** Clears the manual-order snapshot for [novelSectionId] (e.g. after reverting or a manual drag). */
+    fun clearManualOrderSnapshot(novelSectionId: Long) {
+        val map = loadManualOrderMap()
+        if (map.remove(novelSectionId) != null) {
+            saveManualOrderMap(map)
+        }
+    }
+
+    //endregion
 
 
     var lockRoyalRoad: Boolean

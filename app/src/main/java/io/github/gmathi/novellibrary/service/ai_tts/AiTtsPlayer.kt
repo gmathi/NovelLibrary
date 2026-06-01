@@ -46,6 +46,13 @@ class AiTtsPlayer(
     private val _isAudioPlaying = MutableStateFlow(false)
     val isAudioPlaying: StateFlow<Boolean> = _isAudioPlaying.asStateFlow()
 
+    /**
+     * Timestamp (epoch millis) at which the sleep timer will pause playback, or 0 when the
+     * sleep timer is inactive. The UI observes this to show a countdown.
+     */
+    private val _sleepTimerEndTime = MutableStateFlow(0L)
+    val sleepTimerEndTime: StateFlow<Long> = _sleepTimerEndTime.asStateFlow()
+
     // --- Data ---
     private val _sentences = MutableStateFlow<List<String>>(emptyList())
     val sentences: StateFlow<List<String>> = _sentences.asStateFlow()
@@ -58,6 +65,9 @@ class AiTtsPlayer(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var playbackJob: Job? = null
     private val synthesisLock = Mutex()
+
+    // --- Sleep timer ---
+    private var sleepTimerJob: Job? = null
 
     // --- Audio ---
     private var audioTrack: AudioTrack? = null
@@ -105,6 +115,7 @@ class AiTtsPlayer(
         playbackJob = scope.launch {
             playSentencesFrom(_currentSentenceIndex.value)
         }
+        startSleepTimerIfEnabled()
     }
 
     fun pause() {
@@ -118,6 +129,10 @@ class AiTtsPlayer(
         _isAudioPlaying.value = false
         _playbackState.value = AiTtsPlaybackState.Paused
         eventListener?.onPlaybackStateChanged(AiTtsPlaybackState.Paused)
+        // Note: the sleep timer is intentionally NOT cancelled here. pause() is invoked both by
+        // the timer itself and on transient audio-focus loss (e.g. a notification ping). Keeping
+        // the absolute deadline means a transient interruption near the end of the countdown does
+        // not reset it. A genuine user stop tears down the service -> destroy() -> cancelSleepTimer().
     }
 
     fun stop() {
@@ -129,6 +144,10 @@ class AiTtsPlayer(
         _playbackState.value = AiTtsPlaybackState.Stopped
         _currentSentenceIndex.value = 0
         eventListener?.onPlaybackStateChanged(AiTtsPlaybackState.Stopped)
+        // Note: the sleep timer is intentionally NOT cancelled here. stop() is also invoked
+        // internally by setData() during automatic chapter transitions, and the sleep timer
+        // must keep counting across chapters. A genuine user stop tears down the service,
+        // whose onDestroy() calls destroy() -> cancelSleepTimer().
     }
 
     fun setDownloadingModel(progress: Int = -1) {
@@ -142,14 +161,14 @@ class AiTtsPlayer(
         val next = _currentSentenceIndex.value + 1
         if (next < _sentences.value.size) {
             Logs.debug(TAG, "nextSentence: advancing to $next/${_sentences.value.size}")
-            seekToSentence(next)
+            seekToSentence(next) // resets the sleep timer
         }
     }
 
     fun prevSentence() {
         val prev = (_currentSentenceIndex.value - 1).coerceAtLeast(0)
         Logs.debug(TAG, "prevSentence: going back to $prev")
-        seekToSentence(prev)
+        seekToSentence(prev) // resets the sleep timer
     }
 
     fun seekToSentence(index: Int) {
@@ -161,24 +180,129 @@ class AiTtsPlayer(
             stopPlayerThread()
             playbackJob = scope.launch { playSentencesFrom(clamped) }
         }
+        resetSleepTimerIfActive()
     }
 
     fun nextChapter() {
         Logs.debug(TAG, "nextChapter: requesting chapter ${chapterIndex + 1}")
         eventListener?.onChapterChanged(chapterIndex + 1)
+        resetSleepTimerIfActive()
     }
 
     fun prevChapter() {
         Logs.debug(TAG, "prevChapter: requesting chapter ${chapterIndex - 1}")
         if (chapterIndex > 0) eventListener?.onChapterChanged(chapterIndex - 1)
+        resetSleepTimerIfActive()
     }
 
     fun destroy() {
         Logs.debug(TAG, "destroy: releasing resources")
+        cancelSleepTimer()
         scope.cancel()
         stopPlayerThread()
         runBlocking { synthesisLock.withLock { modelManager.unloadModel() } }
         modelManager.close()
+    }
+
+    // ── Sleep timer ──────────────────────────────────────────────────────────
+    //
+    // The sleep timer uses an absolute deadline (epoch millis in [_sleepTimerEndTime]) rather
+    // than a one-shot delay. A single monitor coroutine polls the deadline and pauses playback
+    // once it is reached. This design means:
+    //   • A transient pause/resume (e.g. an interrupting notification stealing audio focus) does
+    //     NOT reset the countdown — the deadline is fixed.
+    //   • Automatic chapter transitions (which internally stop() then start()) keep the same
+    //     deadline, and the monitor still fires even if the deadline lands in the brief
+    //     model-loading gap between chapters.
+    // The countdown is reset only on explicit user transport actions (seek / skip).
+
+    /**
+     * Arms the sleep timer if the user configured a positive duration and it isn't already armed.
+     * Called whenever playback starts. An already-armed timer is left untouched so its deadline
+     * survives pause/resume and chapter transitions.
+     */
+    private fun startSleepTimerIfEnabled() {
+        val minutes = preferences.stopTimer
+        if (minutes <= 0L) {
+            cancelSleepTimer()
+            return
+        }
+        // Already armed — keep the existing deadline rather than pushing it back.
+        if (_sleepTimerEndTime.value > 0L) {
+            ensureMonitorRunning()
+            return
+        }
+        armSleepTimer(minutes)
+    }
+
+    /** Re-arms the sleep timer from the full configured duration, but only while it is active. */
+    private fun resetSleepTimerIfActive() {
+        if (_sleepTimerEndTime.value <= 0L) return
+        val minutes = preferences.stopTimer
+        if (minutes <= 0L) {
+            cancelSleepTimer()
+            return
+        }
+        armSleepTimer(minutes)
+    }
+
+    /** Sets an absolute deadline [minutes] from now and ensures the monitor is running. */
+    private fun armSleepTimer(minutes: Long) {
+        val durationMs = java.util.concurrent.TimeUnit.MINUTES.toMillis(minutes)
+        _sleepTimerEndTime.value = System.currentTimeMillis() + durationMs
+        Logs.debug(TAG, "armSleepTimer: deadline in $minutes minute(s)")
+        ensureMonitorRunning()
+    }
+
+    /**
+     * Launches the monitor coroutine if it isn't already running. The monitor polls the absolute
+     * deadline once per second and pauses playback the moment the deadline is reached while audio
+     * is playing. If the deadline passes during a non-playing window (transient focus loss or a
+     * chapter-loading gap) it keeps watching and pauses as soon as playback resumes.
+     */
+    private fun ensureMonitorRunning() {
+        if (sleepTimerJob?.isActive == true) return
+        sleepTimerJob = scope.launch {
+            while (isActive) {
+                val end = _sleepTimerEndTime.value
+                if (end <= 0L) break
+                if (System.currentTimeMillis() >= end) {
+                    if (_playbackState.value is AiTtsPlaybackState.Playing) {
+                        Logs.debug(TAG, "sleepTimer: deadline reached, pausing playback")
+                        _sleepTimerEndTime.value = 0L
+                        pause()
+                        break
+                    }
+                    // Deadline passed but not currently playing — keep watching so we pause
+                    // as soon as playback resumes (e.g. after a chapter-loading gap).
+                }
+                delay(1000)
+            }
+        }
+    }
+
+    private fun cancelSleepTimer() {
+        sleepTimerJob?.cancel()
+        sleepTimerJob = null
+        _sleepTimerEndTime.value = 0L
+    }
+
+    /**
+     * Applies a freshly chosen sleep-timer duration (in minutes) and persists it.
+     *   • 0 turns the timer off.
+     *   • A positive value while playing arms the absolute deadline immediately.
+     *   • A positive value while not playing just clears any stale deadline; it will arm fresh on
+     *     the next start(), so a timer set while paused counts from when playback resumes rather
+     *     than expiring in the background.
+     */
+    fun setSleepTimerMinutes(minutes: Long) {
+        preferences.stopTimer = minutes
+        when {
+            minutes <= 0L -> cancelSleepTimer()
+            _playbackState.value is AiTtsPlaybackState.Playing -> armSleepTimer(minutes)
+            // Not playing — drop any stale deadline; startSleepTimerIfEnabled() arms it next play.
+            else -> cancelSleepTimer()
+        }
     }
 
     // ── Player thread management ─────────────────────────────────────────────
