@@ -516,6 +516,13 @@ open class HtmlCleaner protected constructor() {
             doc.head().getElementsByTag("link").remove()
         }
         doc.getElementById("custom-background-css")?.remove()
+        // Some sites style the root/body elements directly (e.g. freewebnovel's inline
+        // background on <html>), which would override the injected reader theme.
+        doc.selectFirst("html")?.let {
+            it.removeAttr("style")
+            it.removeAttr("class")
+        }
+        doc.body()?.removeAttr("style")
     }
 
 
