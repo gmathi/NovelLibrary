@@ -6,7 +6,7 @@ Guidance for AI assistants working on the **NovelLibrary** Android codebase.
 
 ## Project Overview
 
-NovelLibrary is an Android app (Kotlin) for reading web novels from multiple sources. It supports offline downloads, TTS playback, cloud sync via Firebase, a dynamic extension system for novel sources, and Cloudflare bypass. Current version: **2.1.0** (versionCode 210), min SDK 23, target SDK 36.
+NovelLibrary is an Android app (Kotlin) for reading web novels from multiple sources. It supports offline downloads, TTS playback, cloud sync via Firebase, a dynamic extension system for novel sources, and Cloudflare bypass. Current version: **2.1.1** (versionCode 211), min SDK 23, target SDK 36.
 
 The parent directory's `CLAUDE.md` documents the reader-mode pipeline (`HtmlCleaner` / `SelectorQuery` / "Custom Reader Mode lookups") and the extension system shared with the sibling `NovelLibrary-Extensions/` repo.
 
