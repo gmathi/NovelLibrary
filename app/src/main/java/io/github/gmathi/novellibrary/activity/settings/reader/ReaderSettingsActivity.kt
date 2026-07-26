@@ -84,6 +84,9 @@ class ReaderSettingsActivity : BaseSettingsActivity<ReaderSettingsActivity, Read
             ReaderSetting(R.string.limit_image_width, R.string.limit_image_width_description).onBind { _, view, _ ->
                 view.bindSwitch(dataCenter.limitImageWidth) { _, value -> dataCenter.limitImageWidth = value }
             },
+            ReaderSetting(R.string.hide_images, R.string.hide_images_description).onBind { _, view, _ ->
+                view.bindSwitch(dataCenter.hideImages) { _, value -> dataCenter.hideImages = value }
+            },
             ReaderSetting(R.string.linkify_text, R.string.linkify_text_description).onBind { _, view, _ ->
                 view.bindSwitch(dataCenter.linkifyText) { _, value -> dataCenter.linkifyText = value }
             },

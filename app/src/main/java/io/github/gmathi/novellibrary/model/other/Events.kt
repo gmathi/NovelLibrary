@@ -40,5 +40,6 @@ class ReaderSettingsEvent(val setting: String) {
         const val JAVA_SCRIPT = "javaScript"
         const val FONT = "font"
         const val TEXT_SIZE = "textSize"
+        const val HIDE_IMAGES = "hideImages"
     }
 }

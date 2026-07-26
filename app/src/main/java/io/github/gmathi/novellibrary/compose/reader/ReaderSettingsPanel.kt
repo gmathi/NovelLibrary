@@ -111,6 +111,14 @@ fun ReaderSettingsPanel(
                 onCheckedChange = { viewModel.setLimitImageWidth(it) }
             )
 
+            SettingToggle(
+                icon = Icons.Outlined.HideImage,
+                title = "Hide Images",
+                subtitle = "Remove images from the chapter",
+                checked = uiState.hideImages,
+                onCheckedChange = { viewModel.setHideImages(it) }
+            )
+
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)

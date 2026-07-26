@@ -27,6 +27,7 @@ data class ReaderUiState(
     val keepTextColor: Boolean = false,
     val alternativeTextColors: Boolean = false,
     val limitImageWidth: Boolean = false,
+    val hideImages: Boolean = false,
     val enableClusterPages: Boolean = false,
     val enableDirectionalLinks: Boolean = false,
     val isReaderModeButtonVisible: Boolean = false,
@@ -67,6 +68,7 @@ class ReaderViewModel : ViewModel() {
                 keepTextColor = dataCenter.keepTextColor,
                 alternativeTextColors = dataCenter.alternativeTextColors,
                 limitImageWidth = dataCenter.limitImageWidth,
+                hideImages = dataCenter.hideImages,
                 enableClusterPages = dataCenter.enableClusterPages,
                 enableDirectionalLinks = dataCenter.enableDirectionalLinks,
                 isReaderModeButtonVisible = dataCenter.isReaderModeButtonVisible,
@@ -162,6 +164,12 @@ class ReaderViewModel : ViewModel() {
         dataCenter.limitImageWidth = enabled
         _uiState.update { it.copy(limitImageWidth = enabled) }
         EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
+    }
+
+    fun setHideImages(enabled: Boolean) {
+        dataCenter.hideImages = enabled
+        _uiState.update { it.copy(hideImages = enabled) }
+        EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.HIDE_IMAGES))
     }
 
     fun setKeepTextColor(enabled: Boolean) {

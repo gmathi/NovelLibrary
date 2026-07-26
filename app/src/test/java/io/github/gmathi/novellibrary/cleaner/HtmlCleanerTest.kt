@@ -53,4 +53,76 @@ class HtmlCleanerTest {
 
         assertEquals("Chapter text.", doc.select("#article p").text())
     }
+
+    // The ad-slot placeholders freewebnovel.com injects inside its #article content
+    // container. None of them are story content, but reader mode carries them through.
+    private val pageWithAdSlotImages = """
+        <!DOCTYPE html>
+        <html>
+        <body>
+            <div id="article"><div class="txt">
+                <p>Chapter text.</p>
+                <img src="/static/freewebnovel/images/slot-state/wait-06.webp" width="300" height="250" alt="">
+                <p>More chapter text.</p>
+                <img src="/static/freewebnovel/images/slot-state/wait-03.webp" width="300" height="250" alt="">
+            </div></div>
+        </body>
+        </html>
+    """.trimIndent()
+
+    @Test
+    fun `removeImages strips img elements`() {
+        val doc = Jsoup.parse(pageWithAdSlotImages)
+
+        TestHtmlCleaner().removeImages(doc)
+
+        assertEquals(0, doc.select("img").size)
+    }
+
+    @Test
+    fun `removeImages keeps chapter text untouched`() {
+        val doc = Jsoup.parse(pageWithAdSlotImages)
+
+        TestHtmlCleaner().removeImages(doc)
+
+        assertEquals("Chapter text. More chapter text.", doc.select("#article p").text())
+    }
+
+    @Test
+    fun `removeImages strips picture elements`() {
+        val doc = Jsoup.parse("<body><p>Text.</p><picture><source srcset='a.webp'><img src='a.png'></picture></body>")
+
+        TestHtmlCleaner().removeImages(doc)
+
+        assertEquals(0, doc.select("picture").size)
+        assertEquals(0, doc.select("source").size)
+    }
+
+    @Test
+    fun `removeImages strips svg elements`() {
+        val doc = Jsoup.parse("<body><p>Text.</p><svg viewBox='0 0 10 10'><circle r='5'/></svg></body>")
+
+        TestHtmlCleaner().removeImages(doc)
+
+        assertEquals(0, doc.select("svg").size)
+    }
+
+    @Test
+    fun `removeImages drops a figure left with no text`() {
+        val doc = Jsoup.parse("<body><p>Text.</p><figure><img src='art.png'></figure></body>")
+
+        TestHtmlCleaner().removeImages(doc)
+
+        assertEquals(0, doc.select("figure").size)
+    }
+
+    @Test
+    fun `removeImages keeps a figure that still has a caption`() {
+        val doc = Jsoup.parse("<body><figure><img src='art.png'><figcaption>Sunny's dream.</figcaption></figure></body>")
+
+        TestHtmlCleaner().removeImages(doc)
+
+        assertEquals(1, doc.select("figure").size)
+        assertEquals("Sunny's dream.", doc.select("figcaption").text())
+    }
 }

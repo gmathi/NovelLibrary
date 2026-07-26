@@ -360,6 +360,7 @@ class WebPageDBFragment : BaseFragment() {
                     val htmlHelper = HtmlCleaner.getInstance(doc)
                     htmlHelper.removeJS(doc)
                     htmlHelper.additionalProcessing(doc)
+                    if (dataCenter.hideImages) htmlHelper.removeImages(doc)
                     htmlHelper.setProperHrefUrls(doc)
                     htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
 
@@ -373,6 +374,7 @@ class WebPageDBFragment : BaseFragment() {
                                 val helper = HtmlCleaner.getInstance(otherDoc)
                                 helper.removeJS(otherDoc)
                                 helper.additionalProcessing(otherDoc)
+                                if (dataCenter.hideImages) helper.removeImages(otherDoc)
                                 helper.setProperHrefUrls(otherDoc)
                                 doc.body().append(otherDoc.body().html())
                                 alreadyDownloadedLinks.add(otherDoc.location())
@@ -428,6 +430,7 @@ class WebPageDBFragment : BaseFragment() {
             val htmlHelper = HtmlCleaner.getInstance(doc)
             htmlHelper.removeJS(doc)
             htmlHelper.additionalProcessing(doc)
+            if (dataCenter.hideImages) htmlHelper.removeImages(doc)
             htmlHelper.setProperHrefUrls(doc)
             htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
 
@@ -447,6 +450,7 @@ class WebPageDBFragment : BaseFragment() {
                             val helper = HtmlCleaner.getInstance(otherDoc)
                             helper.removeJS(otherDoc)
                             helper.additionalProcessing(otherDoc)
+                            if (dataCenter.hideImages) helper.removeImages(otherDoc)
                             doc.body().append(otherDoc.body().html())
                         }
                     }
@@ -509,6 +513,11 @@ class WebPageDBFragment : BaseFragment() {
                 loadData()
             }
             ReaderSettingsEvent.FONT -> {
+                loadData()
+            }
+            // Needs a full reparse rather than applyTheme(): removeImages() mutates the
+            // cached document, so re-theming it could never bring the images back.
+            ReaderSettingsEvent.HIDE_IMAGES -> {
                 loadData()
             }
         }

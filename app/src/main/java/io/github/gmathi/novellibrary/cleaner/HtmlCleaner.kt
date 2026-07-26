@@ -587,6 +587,17 @@ open class HtmlCleaner protected constructor() {
         return file
     }
 
+    /**
+     * Strips every image out of the document so the WebView never requests them.
+     * Callers are responsible for checking [DataCenter.hideImages] first.
+     */
+    open fun removeImages(doc: Document) {
+        doc.select("img, picture, svg").remove()
+        // A figure whose only child was the image we just dropped would otherwise
+        // render as an empty gap; one that still carries a caption is kept.
+        doc.select("figure").filter { it.text().isBlank() }.forEach { it.remove() }
+    }
+
     open fun downloadImages(doc: Document, novelDir: File) {
         val elements = doc.getElementsByTag("img")
         for (element in elements) {

@@ -61,6 +61,7 @@ class DataCenter(context: Context) {
         private const val KEEP_TEXT_COLOR = "keepTextColor"
         private const val ALTERNATIVE_TEXT_COLORS = "alternativeTextColors"
         private const val LIMIT_IMAGE_WIDTH = "limitImageWidth"
+        private const val HIDE_IMAGES = "hideImages"
         private const val FONT_PATH = "fontPath"
         private const val ENABLE_CLUSTER_PAGES = "enableClusterPages"
         private const val DIRECTIONAL_LINKS = "enableDirectionalLinks"
@@ -270,6 +271,10 @@ class DataCenter(context: Context) {
     var limitImageWidth: Boolean
         get() = prefs.getBoolean(LIMIT_IMAGE_WIDTH, false)
         set(value) = prefs.edit().putBoolean(LIMIT_IMAGE_WIDTH, value).apply()
+
+    var hideImages: Boolean
+        get() = prefs.getBoolean(HIDE_IMAGES, false)
+        set(value) = prefs.edit().putBoolean(HIDE_IMAGES, value).apply()
 
     var fontPath: String
         get() {
