@@ -217,6 +217,7 @@ class ReaderDBPagerActivity :
                         }
                     },
                     onNextChapter = { if (!goToNextChapter()) jumpWithinChapter(toEnd = true) },
+                    onPageSelected = { page -> showPage(page) },
                     onFontClick = { changeFontStyle() },
                     onReadAloudClick = { handleReadAloud() },
                     onBrowserClick = { inBrowser() },
@@ -285,6 +286,11 @@ class ReaderDBPagerActivity :
         runOnUiThread {
             if (currentFragment() === fragment) readerViewModel.updatePageInfo(page, total)
         }
+    }
+
+    /** Page-mode scrubber: position the current chapter on [page] without the turn animation. */
+    private fun showPage(page: Int) {
+        currentWebView()?.evaluateJavascript("window.__nlPager && window.__nlPager.goTo($page, true);", null)
     }
 
     /**

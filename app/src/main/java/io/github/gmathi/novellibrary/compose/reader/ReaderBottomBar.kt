@@ -25,6 +25,7 @@ fun ReaderBottomBar(
     uiState: ReaderUiState,
     onPreviousChapter: () -> Unit,
     onNextChapter: () -> Unit,
+    onPageSelected: (Int) -> Unit,
     onSettingsClick: () -> Unit,
     onFontClick: () -> Unit,
     onReadAloudClick: () -> Unit,
@@ -42,6 +43,15 @@ fun ReaderBottomBar(
                 .fillMaxWidth()
                 .navigationBarsPadding()
         ) {
+            // Page mode: a slider to scrub through the chapter's pages, with the page counter.
+            if (uiState.isPageMode && uiState.totalPages > 0) {
+                PageSlider(
+                    currentPage = uiState.currentPage,
+                    totalPages = uiState.totalPages,
+                    onPageSelected = onPageSelected
+                )
+            }
+
             // Chapter navigation row
             Row(
                 modifier = Modifier
@@ -75,13 +85,6 @@ fun ReaderBottomBar(
                     if (uiState.totalChapters > 0) {
                         Text(
                             text = "Chapter ${uiState.currentChapterIndex + 1} / ${uiState.totalChapters}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    if (uiState.isPageMode && uiState.totalPages > 0) {
-                        Text(
-                            text = "Page ${uiState.currentPage + 1} / ${uiState.totalPages}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -131,6 +134,53 @@ fun ReaderBottomBar(
                 )
             }
         }
+    }
+}
+
+/**
+ * Scrubber for page mode. While the thumb is being dragged the label and thumb follow the finger
+ * and each new page is shown immediately; between drags they track the position reported by the
+ * chapter (page turns by swipe, tap or volume key).
+ */
+@Composable
+private fun PageSlider(
+    currentPage: Int,
+    totalPages: Int,
+    onPageSelected: (Int) -> Unit
+) {
+    var dragging by remember { mutableStateOf(false) }
+    var dragPage by remember { mutableIntStateOf(currentPage) }
+    val shownPage = if (dragging) dragPage else currentPage.coerceIn(0, totalPages - 1)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 16.dp, top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Page ${shownPage + 1} / $totalPages",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.widthIn(min = 88.dp)
+        )
+        Slider(
+            value = shownPage.toFloat(),
+            onValueChange = { value ->
+                val page = value.toInt().coerceIn(0, totalPages - 1)
+                dragging = true
+                if (page != dragPage || page != currentPage) {
+                    dragPage = page
+                    onPageSelected(page)
+                }
+            },
+            onValueChangeFinished = { dragging = false },
+            valueRange = 0f..(totalPages - 1).coerceAtLeast(1).toFloat(),
+            enabled = totalPages > 1,
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 8.dp)
+        )
     }
 }
 
