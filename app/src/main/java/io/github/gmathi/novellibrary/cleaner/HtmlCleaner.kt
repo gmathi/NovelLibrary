@@ -199,7 +199,7 @@ open class HtmlCleaner protected constructor() {
                                     txt.contains("hesitate to comment", ignoreCase = true) ||
                                     txt.contains("convallariaslibrary", ignoreCase = true) ||
                                     el.selectFirst("img[srcset*='/Credit']") != null ||
-                                    el.hasClass(".code-block") ||
+                                    el.hasClass("code-block") ||
                                     el.selectFirst("a[href*=patreon],a[href*=ko-fi]") != null
                         }
                         Elements(elements)
@@ -429,21 +429,25 @@ open class HtmlCleaner protected constructor() {
          * Optimized factory method with better caching
          */
         fun getInstance(doc: Document, url: String = doc.location()): HtmlCleaner {
-            // Optimized: Use when expression for cleaner code
+            // `url` may be a full URL or a bare host name (callers in the download path pass `uri.host`).
+            // Host matching must also accept sub-domains (e.g. "www.wattpad.com" for "wattpad.com").
+            val host = (url.toHttpUrlOrNull()?.host ?: url).lowercase()
+            fun hostMatches(candidate: String?): Boolean =
+                candidate != null && (host == candidate || host.endsWith(".$candidate"))
             return when {
-                url.toHttpUrlOrNull()?.host?.equals(HostNames.WATTPAD) == true -> WattPadCleaner()
-                url.toHttpUrlOrNull()?.host?.equals(HostNames.WUXIA_WORLD) == true -> WuxiaWorldCleaner()
-                url.toHttpUrlOrNull()?.host?.equals(HostNames.QIDIAN) == true -> QidianCleaner()
-                url.toHttpUrlOrNull()?.host?.equals(HostNames.GOOGLE_DOCS) == true -> GoogleDocsCleaner()
-                url.toHttpUrlOrNull()?.host?.equals(HostNames.BLUE_SILVER_TRANSLATIONS) == true -> BlueSilverTranslationsCleaner()
-                url.toHttpUrlOrNull()?.host?.equals(HostNames.BAKA_TSUKI) == true -> BakaTsukiCleaner()
-                url.toHttpUrlOrNull()?.host?.equals(HostNames.SCRIBBLE_HUB) == true -> ScribbleHubCleaner()
-                url.toHttpUrlOrNull()?.host?.equals(HostNames.NEOVEL) == true -> NeovelCleaner()
-                url.toHttpUrlOrNull()?.host?.equals(HostNames.CHRYSANTHEMUMGARDEN) == true -> ChrysanthemumgardenCleaner()
+                hostMatches(HostNames.WATTPAD) -> WattPadCleaner()
+                hostMatches(HostNames.WUXIA_WORLD) -> WuxiaWorldCleaner()
+                hostMatches(HostNames.QIDIAN) -> QidianCleaner()
+                hostMatches(HostNames.GOOGLE_DOCS) -> GoogleDocsCleaner()
+                hostMatches(HostNames.BLUE_SILVER_TRANSLATIONS) -> BlueSilverTranslationsCleaner()
+                hostMatches(HostNames.BAKA_TSUKI) -> BakaTsukiCleaner()
+                hostMatches(HostNames.SCRIBBLE_HUB) -> ScribbleHubCleaner()
+                hostMatches(HostNames.NEOVEL) -> NeovelCleaner()
+                hostMatches(HostNames.CHRYSANTHEMUMGARDEN) -> ChrysanthemumgardenCleaner()
                 else -> {
                     val body = doc.body()
                     val lookup = getSelectorQueries().firstOrNull { query ->
-                        if ((query.host == null || url.toHttpUrlOrNull()?.host?.equals(query.host) == true) && body.select(query.selector).isNotEmpty()) {
+                        if ((query.host == null || hostMatches(query.host)) && body.select(query.selector).isNotEmpty()) {
                             query.subQueries.isEmpty() || query.subQueries.all { sub ->
                                 sub.optional || body.select(sub.selector).isNotEmpty()
                             }
@@ -647,8 +651,9 @@ open class HtmlCleaner protected constructor() {
             val response = Jsoup.connect(uri.toString()).userAgent(HttpSource.DEFAULT_USER_AGENT).ignoreContentType(true).execute()
             val bytes = response.bodyAsBytes()
             val bitmap = Utils.getImage(bytes)
-            val os = FileOutputStream(file)
-            bitmap.compress(Bitmap.CompressFormat.JPEG, IMAGE_COMPRESSION_QUALITY, os)
+            FileOutputStream(file).use { os ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, IMAGE_COMPRESSION_QUALITY, os)
+            }
         } catch (e: Exception) {
             return null
         }
@@ -756,7 +761,7 @@ open class HtmlCleaner protected constructor() {
                     var radius = Math.max(t.radiusX||20, t.radiusY||20) * 2;
                     // Only accept touch zoom action when we don't scroll and we unpressed same finger that initiated the touch.
                     if (t.identifier === img._touch) {
-                        var dt = e.timeStamp = img._pressTime;
+                        var dt = e.timeStamp - img._pressTime;
                         if (dt > 600 && (dx*dx+dy*dy) < radius*radius) {
                             // Pressed for 0.6s
                             toggleZoom(e);
@@ -975,12 +980,16 @@ open class HtmlCleaner protected constructor() {
     }
 
     private fun fixStyleWhileRetainingColors(contentElement: Element) {
-        val nodeColor = getNodeColor(contentElement) ?: contentElement.removeAttr("style")
-        contentElement.attr("style", "color: $nodeColor")
+        val nodeColor = getNodeColor(contentElement)
+        if (nodeColor == null) {
+            contentElement.removeAttr("style")
+        } else {
+            contentElement.attr("style", "color: $nodeColor")
+        }
     }
 
     private fun getNodeColor(contentElement: Element): String? {
-        val colorMatch = COLOR_REGEX.matchEntire(contentElement.attr("style")) ?: return null
+        val colorMatch = COLOR_REGEX.find(contentElement.attr("style")) ?: return null
 
         if (!dataCenter.alternativeTextColors || !dataCenter.isDarkTheme) {
             return colorMatch.groupValues[1]

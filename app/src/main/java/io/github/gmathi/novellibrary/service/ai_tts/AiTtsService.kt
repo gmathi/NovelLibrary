@@ -515,15 +515,16 @@ class AiTtsService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChang
             return PendingIntent.getService(this, 0, actionIntent, pendingIntentFlags)
         }
 
-        // Use MediaButtonReceiver intents for transport controls so hardware/bluetooth
-        // media buttons route through the media session callback properly.
-        val mbrComponent = MediaButtonReceiver.getMediaButtonReceiverComponent(this)
+        // Deliver transport controls to this service as media-button intents so they go through
+        // AiTtsSessionCallback. They must NOT be broadcast to androidx MediaButtonReceiver: that
+        // receiver resolves to the one service declaring a media-browser intent-filter in the
+        // manifest, which is the legacy TTSService, not this one.
         fun mediaButtonReceiverIntent(@PlaybackStateCompat.MediaKeyAction action: Long): PendingIntent {
             val keyCode = PlaybackStateCompat.toKeyCode(action)
             val intent = Intent(Intent.ACTION_MEDIA_BUTTON)
-            intent.component = mbrComponent
+            intent.component = ComponentName(this, AiTtsService::class.java)
             intent.putExtra(Intent.EXTRA_KEY_EVENT, KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
-            return PendingIntent.getBroadcast(
+            return PendingIntent.getService(
                 this, keyCode, intent,
                 PendingIntent.FLAG_IMMUTABLE
             )

@@ -11,8 +11,8 @@ class GoogleDocsCleaner : HtmlCleaner() {
     }
 
     private fun cleanAttributes(contentElement: Element?) {
-        if (contentElement?.tagName() != "a" || contentElement.tagName() != "img")
-            contentElement?.clearAttributes()
+        if (contentElement != null && contentElement.tagName() != "a" && contentElement.tagName() != "img")
+            contentElement.clearAttributes()
         contentElement?.children()?.forEach {
             cleanAttributes(it)
         }

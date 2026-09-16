@@ -320,11 +320,9 @@ class DownloadNovelService : Service(), DownloadListener {
     }
 
     private fun notifyFirst() {
-        //Check Notification Post Permissions
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            return
-        }
-
+        // startForeground() does not require POST_NOTIFICATIONS; only the per-novel notify() below does
+        // (and notify() performs its own permission check). Skipping startForeground() here would leave
+        // the service as a background service, which Android stops shortly after the app is backgrounded.
         val first = createNotificationBuilder(
             getString(R.string.app_name), getString(R.string.group_download_notification_text), createNovelLibraryHomePendingIntent()
         )

@@ -249,16 +249,19 @@ object Utils {
 
     @Throws(IOException::class)
     fun unzip(contentResolver: ContentResolver, uri: Uri, dir: File) {
-        contentResolver.openInputStream(uri)?.let {
-            val inputStream = ZipInputStream(BufferedInputStream(it))
+        val dirPath = dir.canonicalPath + File.separator
+        contentResolver.openInputStream(uri)?.let { ZipInputStream(BufferedInputStream(it)) }?.use { inputStream ->
             var entry = inputStream.nextEntry
             while (entry != null) {
+                val target = File(dir, entry.name)
+                // Reject entries that would be written outside the destination directory ("zip slip").
+                if (!target.canonicalPath.startsWith(dirPath))
+                    throw IOException("Zip entry outside of target directory: ${entry.name}")
                 if (entry.isDirectory) {
-                    val subDir = File(dir, entry.name)
-                    if (!subDir.exists())
-                        subDir.mkdirs()
+                    if (!target.exists())
+                        target.mkdirs()
                 } else {
-                    val file = File(dir, entry.name)
+                    val file = target
                     file.createFileIfNotExists()
                     file.outputStream().use {
                         val data = ByteArray(BUFFER_SIZE)
@@ -465,7 +468,7 @@ object Utils {
     }
 
     fun copyErrorToClipboard(e: Exception, activity: AppCompatActivity) {
-        val errorMessage = e.localizedMessage ?: "Unknown Error" + "\n" + e.stackTrace.joinToString(separator = "\n") { it.toString() }
+        val errorMessage = (e.localizedMessage ?: "Unknown Error") + "\n" + e.stackTrace.joinToString(separator = "\n") { it.toString() }
         val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip: ClipData = ClipData.newPlainText("Error Message", errorMessage)
         clipboard.setPrimaryClip(clip)

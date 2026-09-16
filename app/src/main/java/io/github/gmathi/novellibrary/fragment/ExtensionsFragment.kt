@@ -109,8 +109,8 @@ class ExtensionsFragment : BaseFragment(), GenericAdapter.Listener<ExtensionItem
                 extension is Extension.Untrusted -> itemView.context.getString(R.string.ext_untrusted)
                 extension is Extension.Installed && extension.isObsolete -> "${itemView.context.getString(R.string.ext_installed)}: ${itemView.context.getString(R.string.ext_obsolete)}"
                 extension is Extension.Installed && extension.isUnofficial -> "${itemView.context.getString(R.string.ext_installed)}: ${itemView.context.getString(R.string.ext_unofficial)}"
-                extension.isNsfw && dataCenter.showNSFWSource -> itemView.context.getString(R.string.ext_nsfw_short)
                 extension.isNsfw && dataCenter.showNSFWSource && extension is Extension.Installed -> "${itemView.context.getString(R.string.ext_installed)}: ${itemView.context.getString(R.string.ext_nsfw_short)}"
+                extension.isNsfw && dataCenter.showNSFWSource -> itemView.context.getString(R.string.ext_nsfw_short)
                 else -> ""
             }.uppercase(Locale.getDefault())
 

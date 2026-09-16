@@ -324,7 +324,8 @@ class ReaderDBPagerActivity :
     fun checkUrl(url: String): Boolean {
         val webPageSettings = dbHelper.getWebPageSettingsByRedirectedUrl(url) ?: return false
         val webPage = dbHelper.getWebPage(webPageSettings.url) ?: return false
-        val index = dbHelper.getAllWebPages(novel.id, translatorSourceName).indexOf(webPage)
+        // Use the pager's own list: it is reversed when "swipe right for next chapter" is enabled.
+        val index = webPages.indexOfFirst { it.url == webPage.url }
         return if (index == -1)
             false
         else {

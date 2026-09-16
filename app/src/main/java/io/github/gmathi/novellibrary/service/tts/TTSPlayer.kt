@@ -375,7 +375,8 @@ class TTSPlayer(private val context: Context,
         if (currentState == STATE_STOP) return
         if (currentState != STATE_LOADING) currentState = STATE_STOP
 //        Log.d(TAG, "TTSPlayer.stop()")
-        if (silence.isPlaying) silence.stop()
+        // pause() rather than stop(): a stopped MediaPlayer cannot be start()ed again without prepare().
+        if (silence.isPlaying) silence.pause()
         tts.stop()
         queuedLine = lineNumber
         setPlaybackState(withState)

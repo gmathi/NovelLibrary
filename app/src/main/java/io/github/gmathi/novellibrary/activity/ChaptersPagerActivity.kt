@@ -109,7 +109,10 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
             novel = intent.getParcelableExtraCompat("novel")
         }
 
-        if (novel == null) return
+        if (novel == null) {
+            finish()
+            return
+        }
         vm.init(novel, this, this)
 
         addListeners()
@@ -471,7 +474,6 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                 } else {
                     removeFromDataSet(webPages = vm.chapters!!.filter { it.translatorSourceName == translatorSourceName })
                 }
-                removeFromDataSet(webPages = vm.chapters!!.filter { it.translatorSourceName == translatorSourceName })
                 EventBus.getDefault().post(ChapterActionModeEvent(translatorSourceName, EventType.UPDATE))
             }
 

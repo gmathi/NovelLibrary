@@ -62,6 +62,7 @@ suspend fun Call.await(): Response {
             object : Callback {
                 override fun onResponse(call: Call, response: Response) {
                     if (!response.isSuccessful) {
+                        response.close()
                         continuation.resumeWithException(Exception("HTTP error ${response.code}"))
                         return
                     }

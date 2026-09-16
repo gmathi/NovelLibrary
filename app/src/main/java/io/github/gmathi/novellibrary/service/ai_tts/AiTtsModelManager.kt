@@ -79,8 +79,7 @@ class AiTtsModelManager(private val context: Context) {
     fun deleteModel(voiceId: String) {
         getModelDir(voiceId).deleteRecursively()
         if (currentVoiceId == voiceId) {
-            currentTts = null
-            currentVoiceId = null
+            unloadModel()
         }
     }
 
@@ -252,6 +251,10 @@ class AiTtsModelManager(private val context: Context) {
     }
 
     fun unloadModel() {
+        try {
+            currentTts?.release()
+        } catch (_: Exception) {
+        }
         currentTts = null
         currentVoiceId = null
     }
