@@ -9,6 +9,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.MotionEvent
 import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import android.webkit.*
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
@@ -604,8 +606,17 @@ class WebPageDBFragment : BaseFragment() {
     private fun applyPageMode(view: WebView?) {
         val webView = view ?: return
         val savedPage = webPageSettings.metadata[Constants.MetaDataKeys.PAGE_INDEX]?.toIntOrNull() ?: 0
+        // The reader runs edge-to-edge in immersive mode, so pad the page past the display cutout
+        // (front camera) and the navigation bar; insets are in device px, the page uses CSS px.
+        val density = resources.displayMetrics.density
+        val insets = ViewCompat.getRootWindowInsets(webView)
+        val safeTop = insets?.getInsets(WindowInsetsCompat.Type.displayCutout() or WindowInsetsCompat.Type.statusBars())?.top ?: 0
+        val safeBottom = insets?.getInsets(WindowInsetsCompat.Type.navigationBars())?.bottom ?: 0
         webView.scrollTo(0, 0)
-        webView.evaluateJavascript(ReaderPagerScript.build(savedPage), null)
+        webView.evaluateJavascript(
+            ReaderPagerScript.build(savedPage, (safeTop / density).toInt(), (safeBottom / density).toInt()),
+            null
+        )
     }
 
     @JavascriptInterface

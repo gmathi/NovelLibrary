@@ -115,6 +115,15 @@ fun ReaderSettingsPanel(
             )
 
             SettingToggle(
+                icon = Icons.Outlined.SwipeRight,
+                title = "Swipe Right for Next Chapter",
+                subtitle = "Off: swipe left for the next chapter",
+                checked = uiState.japSwipe,
+                enabled = !uiState.isPageMode && uiState.chapterSwipeEnabled,
+                onCheckedChange = { viewModel.setJapSwipe(it) }
+            )
+
+            SettingToggle(
                 icon = Icons.Outlined.Code,
                 title = "JavaScript",
                 subtitle = "Enable page scripts",

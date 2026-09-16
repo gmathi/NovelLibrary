@@ -101,6 +101,9 @@ class ReaderDBPagerActivity :
     /** Compose-observable menu icon visibility state (auto-hides on scroll down, shows on scroll up / tap) */
     private val menuIconVisible = mutableStateOf(true)
 
+    /** In page mode the floating menu icon is redundant (center tap opens the menu) and covers text. */
+    private val pageModeActive = mutableStateOf(false)
+
     lateinit var binding: ActivityReaderPagerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -158,9 +161,15 @@ class ReaderDBPagerActivity :
 
         // Chapter swiping follows the user's setting and is always off in page mode, where
         // horizontal gestures turn pages inside the chapter.
+        var appliedJapSwipe = dataCenter.japSwipe
         lifecycleScope.launch {
             readerViewModel.uiState.collect { state ->
                 binding.viewPager.isSwipeEnabled = state.chapterSwipeEnabled && !state.isPageMode
+                pageModeActive.value = state.isPageMode
+                if (state.japSwipe != appliedJapSwipe) {
+                    appliedJapSwipe = state.japSwipe
+                    reversePagerOrder()
+                }
             }
         }
 
@@ -185,7 +194,7 @@ class ReaderDBPagerActivity :
                 ReaderOverlay(
                     viewModel = readerViewModel,
                     isVisible = isVisible,
-                    isMenuIconVisible = menuIconVisible.value,
+                    isMenuIconVisible = menuIconVisible.value && !pageModeActive.value,
                     novelName = novel.name ?: "",
                     onBackPress = { finish() },
                     onPreviousChapter = { goToPreviousChapter() },
@@ -242,6 +251,19 @@ class ReaderDBPagerActivity :
         if (target !in webPages.indices) return false
         binding.viewPager.currentItem = target
         return true
+    }
+
+    /**
+     * Re-orders the pager when the swipe-direction setting changes while the reader is open,
+     * keeping the current chapter in place.
+     */
+    private fun reversePagerOrder() {
+        if (webPages.isEmpty()) return
+        val current = webPages[binding.viewPager.currentItem]
+        webPages = webPages.reversed()
+        adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, webPages.size, WebPageFragmentPageListener(novel, webPages))
+        binding.viewPager.adapter = adapter
+        binding.viewPager.setCurrentItem(webPages.indexOf(current), false)
     }
 
     /** Moves to the previous chapter in reading order; see [goToNextChapter]. */

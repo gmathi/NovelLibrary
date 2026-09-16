@@ -19,8 +19,18 @@ package io.github.gmathi.novellibrary.util.view
 object ReaderPagerScript {
 
     private const val INITIAL_PAGE_TOKEN = "__INITIAL_PAGE__"
+    private const val PAD_TOP_TOKEN = "__PAD_TOP__"
+    private const val PAD_BOTTOM_TOKEN = "__PAD_BOTTOM__"
 
-    fun build(initialPage: Int): String = SCRIPT.replace(INITIAL_PAGE_TOKEN, initialPage.coerceAtLeast(0).toString())
+    /**
+     * @param initialPage page to open at (clamped by the script).
+     * @param safeTopCss extra top padding in CSS px so text clears a display cutout or status bar.
+     * @param safeBottomCss extra bottom padding in CSS px so text clears the navigation bar.
+     */
+    fun build(initialPage: Int, safeTopCss: Int = 0, safeBottomCss: Int = 0): String = SCRIPT
+        .replace(INITIAL_PAGE_TOKEN, initialPage.coerceAtLeast(0).toString())
+        .replace(PAD_TOP_TOKEN, (20 + safeTopCss.coerceAtLeast(0)).toString())
+        .replace(PAD_BOTTOM_TOKEN, (28 + safeBottomCss.coerceAtLeast(0)).toString())
 
     private val SCRIPT = """
 (function () {
@@ -43,7 +53,7 @@ object ReaderPagerScript {
       'html,body{height:100% !important;margin:0 !important;padding:0 !important;overflow:hidden !important;}' +
       'body{position:relative !important;}' +
       '#nl-pager-wrap{position:absolute;left:0;top:0;height:100vh;width:100vw;box-sizing:border-box;' +
-      'padding:20px 14px 28px 14px;column-width:calc(100vw - 28px);column-gap:28px;column-fill:auto;' +
+      'padding:__PAD_TOP__px 14px __PAD_BOTTOM__px 14px;column-width:calc(100vw - 28px);column-gap:28px;column-fill:auto;' +
       'will-change:transform;transition:transform 120ms ease-out;}' +
       '#nl-pager-wrap img{max-width:100% !important;max-height:85vh !important;object-fit:contain;}' +
       '#nl-pager-wrap pre,#nl-pager-wrap table{white-space:pre-wrap;max-width:100%;}';

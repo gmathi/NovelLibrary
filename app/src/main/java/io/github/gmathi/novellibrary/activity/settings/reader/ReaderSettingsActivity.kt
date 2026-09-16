@@ -53,9 +53,6 @@ class ReaderSettingsActivity : BaseSettingsActivity<ReaderSettingsActivity, Read
             ReaderSetting(R.string.reader_mode_scroll, R.string.reader_mode_scroll_description).bindChevron { _, _ ->
                 startScrollBehaviourSettingsActivity()
             },
-            ReaderSetting(R.string.swipe_right_for_next_chapter, R.string.swipe_right_for_next_chapter_description).onBind { _, view, _ ->
-                view.bindSwitch(dataCenter.japSwipe) { _, value -> dataCenter.japSwipe = value }
-            },
             ReaderSetting(R.string.show_comments_section, R.string.show_comments_section_description).onBind { _, view, _ ->
                 view.bindSwitch(dataCenter.showChapterComments) { _, value -> dataCenter.showChapterComments = value }
             },

@@ -111,6 +111,12 @@ class ReaderViewModel : ViewModel() {
         EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.PAGE_MODE))
     }
 
+    /** Chapter swipe direction: true means swiping right (left-to-right) goes to the next chapter. */
+    fun setJapSwipe(enabled: Boolean) {
+        dataCenter.japSwipe = enabled
+        _uiState.update { it.copy(japSwipe = enabled) }
+    }
+
     fun setChapterSwipeEnabled(enabled: Boolean) {
         dataCenter.chapterSwipeEnabled = enabled
         _uiState.update { it.copy(chapterSwipeEnabled = enabled) }
