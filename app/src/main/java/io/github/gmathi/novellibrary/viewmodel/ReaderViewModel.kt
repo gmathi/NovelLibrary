@@ -42,6 +42,9 @@ data class ReaderUiState(
     val currentChapterIndex: Int = 0,
     val totalChapters: Int = 0,
     val chapterTitle: String = "",
+    // Page mode: position within the current chapter (0-based page, 0 total = unknown)
+    val currentPage: Int = 0,
+    val totalPages: Int = 0,
 )
 
 class ReaderViewModel : ViewModel() {
@@ -115,6 +118,11 @@ class ReaderViewModel : ViewModel() {
     fun setJapSwipe(enabled: Boolean) {
         dataCenter.japSwipe = enabled
         _uiState.update { it.copy(japSwipe = enabled) }
+    }
+
+    /** Page-mode position of the chapter currently shown; drives the "Page x / y" line in the menu. */
+    fun updatePageInfo(page: Int, total: Int) {
+        _uiState.update { it.copy(currentPage = page, totalPages = total) }
     }
 
     fun setChapterSwipeEnabled(enabled: Boolean) {

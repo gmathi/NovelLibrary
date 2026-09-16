@@ -249,13 +249,25 @@ class ReaderDBPagerActivity :
     fun goToNextChapter(): Boolean {
         val target = binding.viewPager.currentItem + if (dataCenter.japSwipe) -1 else 1
         if (target !in webPages.indices) return false
+        // Entering a chapter from the previous one always starts at its first page.
+        fragmentAt(target)?.startAtPage(0)
         binding.viewPager.currentItem = target
         return true
     }
 
-    private fun currentWebView(): WebView? =
-        (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as? WebPageDBFragment)
-            ?.view?.findViewById(R.id.readerWebView)
+    private fun fragmentAt(position: Int): WebPageDBFragment? =
+        binding.viewPager.adapter?.instantiateItem(binding.viewPager, position) as? WebPageDBFragment
+
+    private fun currentFragment(): WebPageDBFragment? = fragmentAt(binding.viewPager.currentItem)
+
+    private fun currentWebView(): WebView? = currentFragment()?.view?.findViewById(R.id.readerWebView)
+
+    /** Called by chapter fragments when their page-mode position changes; only the visible one is shown. */
+    fun onFragmentPageChanged(fragment: WebPageDBFragment, page: Int, total: Int) {
+        runOnUiThread {
+            if (currentFragment() === fragment) readerViewModel.updatePageInfo(page, total)
+        }
+    }
 
     /**
      * Used by the chapter chevrons when there is no further chapter: jump to the end (last page,
@@ -285,9 +297,14 @@ class ReaderDBPagerActivity :
     }
 
     /** Moves to the previous chapter in reading order; see [goToNextChapter]. */
-    fun goToPreviousChapter(): Boolean {
+    /**
+     * @param startAtEnd open the previous chapter at its last page (backing across a chapter
+     * boundary in page mode) instead of its first page (chevron).
+     */
+    fun goToPreviousChapter(startAtEnd: Boolean = false): Boolean {
         val target = binding.viewPager.currentItem + if (dataCenter.japSwipe) 1 else -1
         if (target !in webPages.indices) return false
+        fragmentAt(target)?.startAtPage(if (startAtEnd) -1 else 0)
         binding.viewPager.currentItem = target
         return true
     }
@@ -308,6 +325,8 @@ class ReaderDBPagerActivity :
 
     override fun onPageSelected(position: Int) {
         updateBookmark(webPage = webPages[position])
+        // Show the newly visible chapter's page position in the menu.
+        fragmentAt(position)?.publishPageInfo()
         val displayIndex = if (dataCenter.japSwipe) (webPages.size - 1 - position) else position
         readerViewModel.updateChapterInfo(
             index = displayIndex,

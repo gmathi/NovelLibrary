@@ -64,6 +64,12 @@ class WebPageDBFragment : BaseFragment() {
     private var currentPageIndex = 0
     private var totalPageCount = 1
 
+    /**
+     * Page to open at instead of the remembered one, set when the reader navigates here from
+     * another chapter (0 = first page, -1 = last page). Consumed by the next page-mode layout.
+     */
+    private var pendingStartPage: Int? = null
+
     private lateinit var binding: FragmentReaderBinding
 
     companion object {
@@ -605,7 +611,10 @@ class WebPageDBFragment : BaseFragment() {
     /** Wraps the loaded chapter into screen-sized pages and restores the last read page. */
     private fun applyPageMode(view: WebView?) {
         val webView = view ?: return
-        val savedPage = webPageSettings.metadata[Constants.MetaDataKeys.PAGE_INDEX]?.toIntOrNull() ?: 0
+        val savedPage = pendingStartPage
+            ?: webPageSettings.metadata[Constants.MetaDataKeys.PAGE_INDEX]?.toIntOrNull()
+            ?: 0
+        pendingStartPage = null
         // The reader runs edge-to-edge in immersive mode, so pad the page past the display cutout
         // (front camera) and the navigation bar. Only the part of each inset that actually overlaps
         // the WebView counts: when the bars are visible and the layout already sits between them,
@@ -629,13 +638,32 @@ class WebPageDBFragment : BaseFragment() {
     fun onPageChanged(page: Int, total: Int) {
         currentPageIndex = page
         totalPageCount = total
+        publishPageInfo()
+    }
+
+    /** Reports this chapter's page position to the reader (shown in the menu when current). */
+    fun publishPageInfo() {
+        (activity as? ReaderDBPagerActivity)?.onFragmentPageChanged(this, currentPageIndex, totalPageCount)
+    }
+
+    /**
+     * Opens this chapter at [page] (0 = first, -1 = last) instead of the remembered page.
+     * Applies immediately if the chapter is already laid out, otherwise on the next layout.
+     */
+    fun startAtPage(page: Int) {
+        pendingStartPage = page
+        if (!dataCenter.pageMode || view == null) return
+        binding.readerWebView.evaluateJavascript(
+            "(window.__nlPager && (window.__nlPager.goTo($page), true)) || false"
+        ) { result -> if (result == "true") pendingStartPage = null }
     }
 
     @JavascriptInterface
     fun onChapterBoundary(direction: String) {
         val readerActivity = activity as? ReaderDBPagerActivity ?: return
         readerActivity.runOnUiThread {
-            if (direction == "next") readerActivity.goToNextChapter() else readerActivity.goToPreviousChapter()
+            if (direction == "next") readerActivity.goToNextChapter()
+            else readerActivity.goToPreviousChapter(startAtEnd = true)
         }
     }
 

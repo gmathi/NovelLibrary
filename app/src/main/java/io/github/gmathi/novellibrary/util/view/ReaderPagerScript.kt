@@ -21,10 +21,6 @@ object ReaderPagerScript {
     private const val INITIAL_PAGE_TOKEN = "__INITIAL_PAGE__"
     private const val PAD_TOP_TOKEN = "__PAD_TOP__"
     private const val PAD_BOTTOM_TOKEN = "__PAD_BOTTOM__"
-    private const val SAFE_BOTTOM_TOKEN = "__SAFE_BOTTOM__"
-
-    /** Height reserved at the bottom of every page for the "page / total" counter, in CSS px. */
-    private const val COUNTER_HEIGHT = 22
 
     /**
      * @param initialPage page to open at (clamped by the script).
@@ -34,8 +30,7 @@ object ReaderPagerScript {
     fun build(initialPage: Int, safeTopCss: Int = 0, safeBottomCss: Int = 0): String = SCRIPT
         .replace(INITIAL_PAGE_TOKEN, initialPage.coerceAtLeast(0).toString())
         .replace(PAD_TOP_TOKEN, (16 + safeTopCss.coerceAtLeast(0)).toString())
-        .replace(PAD_BOTTOM_TOKEN, (8 + COUNTER_HEIGHT + safeBottomCss.coerceAtLeast(0)).toString())
-        .replace(SAFE_BOTTOM_TOKEN, safeBottomCss.coerceAtLeast(0).toString())
+        .replace(PAD_BOTTOM_TOKEN, (12 + safeBottomCss.coerceAtLeast(0)).toString())
 
     private val SCRIPT = """
 (function () {
@@ -61,29 +56,16 @@ object ReaderPagerScript {
       'padding:__PAD_TOP__px 14px __PAD_BOTTOM__px 14px;column-width:calc(100vw - 28px);column-gap:28px;column-fill:auto;' +
       'will-change:transform;transition:transform 120ms ease-out;}' +
       '#nl-pager-wrap img{max-width:100% !important;max-height:85vh !important;object-fit:contain;}' +
-      '#nl-pager-wrap pre,#nl-pager-wrap table{white-space:pre-wrap;max-width:100%;}' +
-      '#nl-pager-count{position:fixed;left:0;right:0;bottom:__SAFE_BOTTOM__px;height:22px;line-height:22px;' +
-      'text-align:center;font-size:12px;font-family:sans-serif;opacity:0.55;pointer-events:none;' +
-      'color:inherit;z-index:2147483647;}';
+      '#nl-pager-wrap pre,#nl-pager-wrap table{white-space:pre-wrap;max-width:100%;}';
     doc.head.appendChild(style);
-  }
-
-  // "page / total" indicator for the current chapter. Lives outside the column container so it
-  // never takes part in the page flow; refreshed on every page change and relayout.
-  var counter = doc.getElementById('nl-pager-count');
-  if (!counter) {
-    counter = doc.createElement('div');
-    counter.id = 'nl-pager-count';
-    counter.setAttribute('tts-disable', 'true');
-    body.appendChild(counter);
   }
 
   var page = 0, total = 1;
 
   function pageWidth() { return html.clientWidth || window.innerWidth || 1; }
 
+  // The native side shows "page / total" in the reader menu and remembers the position.
   function notify() {
-    counter.textContent = (page + 1) + ' / ' + total;
     if (window.HTMLOUT && HTMLOUT.onPageChanged) HTMLOUT.onPageChanged(page, total);
   }
 

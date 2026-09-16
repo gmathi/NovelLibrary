@@ -79,6 +79,13 @@ fun ReaderBottomBar(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                    if (uiState.isPageMode && uiState.totalPages > 0) {
+                        Text(
+                            text = "Page ${uiState.currentPage + 1} / ${uiState.totalPages}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
                 IconButton(onClick = onNextChapter) {
