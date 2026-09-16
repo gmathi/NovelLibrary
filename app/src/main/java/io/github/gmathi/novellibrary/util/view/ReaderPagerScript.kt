@@ -163,7 +163,8 @@ object ReaderPagerScript {
     var w = pageWidth();
     // A flick is a fast release in the same direction as the drag; dt is deliberately not
     // used because the time spent holding still before moving would mask a real flick.
-    var flick = Math.abs(dx) > 30 && Math.abs(vx) > 0.5 && (vx < 0) === (dx < 0);
+    // Units are CSS px (roughly 2.5-3.5 device px each on phones), so keep thresholds small.
+    var flick = Math.abs(dx) > 15 && Math.abs(vx) > 0.2 && (vx < 0) === (dx < 0);
     var farEnough = Math.abs(dx) > w * 0.25;
     if (flick || farEnough) {
       if (dx < 0) next(); else prev();
