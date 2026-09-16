@@ -104,6 +104,15 @@ class ReaderDBPagerActivity :
     /** In page mode the floating menu icon is redundant (center tap opens the menu) and covers text. */
     private val pageModeActive = mutableStateOf(false)
 
+    /**
+     * Whether the chapter pager runs in reverse (next chapter at a lower index). That is what
+     * "swipe right for next chapter" means in scroll mode. Page mode locks chapter swiping and
+     * turns pages by sliding content left, so its chapter transitions must slide the same way:
+     * the pager keeps natural order there.
+     */
+    private val pagerReversed: Boolean
+        get() = dataCenter.japSwipe && !dataCenter.pageMode
+
     lateinit var binding: ActivityReaderPagerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -133,7 +142,7 @@ class ReaderDBPagerActivity :
 
         // Get all WebPages & set view pager
         webPages = dbHelper.getAllWebPages(novel.id, translatorSourceName)
-        if (dataCenter.japSwipe)
+        if (pagerReversed)
             webPages = webPages.reversed()
 
         adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, webPages.size, WebPageFragmentPageListener(novel, webPages))
@@ -149,7 +158,7 @@ class ReaderDBPagerActivity :
 
         // Update chapter info in ViewModel
         val initialPosition = binding.viewPager.currentItem
-        val initialDisplayIndex = if (dataCenter.japSwipe) (webPages.size - 1 - initialPosition) else initialPosition
+        val initialDisplayIndex = if (pagerReversed) (webPages.size - 1 - initialPosition) else initialPosition
         readerViewModel.updateChapterInfo(
             index = initialDisplayIndex,
             total = webPages.size,
@@ -161,13 +170,14 @@ class ReaderDBPagerActivity :
 
         // Chapter swiping follows the user's setting and is always off in page mode, where
         // horizontal gestures turn pages inside the chapter.
-        var appliedJapSwipe = dataCenter.japSwipe
+        var appliedReversed = pagerReversed
         lifecycleScope.launch {
             readerViewModel.uiState.collect { state ->
                 binding.viewPager.isSwipeEnabled = state.chapterSwipeEnabled && !state.isPageMode
                 pageModeActive.value = state.isPageMode
-                if (state.japSwipe != appliedJapSwipe) {
-                    appliedJapSwipe = state.japSwipe
+                val reversed = state.japSwipe && !state.isPageMode
+                if (reversed != appliedReversed) {
+                    appliedReversed = reversed
                     reversePagerOrder()
                 }
             }
@@ -255,7 +265,7 @@ class ReaderDBPagerActivity :
      * Returns false when already at the last chapter.
      */
     fun goToNextChapter(): Boolean {
-        val target = binding.viewPager.currentItem + if (dataCenter.japSwipe) -1 else 1
+        val target = binding.viewPager.currentItem + if (pagerReversed) -1 else 1
         if (target !in webPages.indices) return false
         // Entering a chapter from the previous one always starts at its first page.
         fragmentAt(target)?.startAtPage(0)
@@ -310,7 +320,7 @@ class ReaderDBPagerActivity :
      * boundary in page mode) instead of its first page (chevron).
      */
     fun goToPreviousChapter(startAtEnd: Boolean = false): Boolean {
-        val target = binding.viewPager.currentItem + if (dataCenter.japSwipe) 1 else -1
+        val target = binding.viewPager.currentItem + if (pagerReversed) 1 else -1
         if (target !in webPages.indices) return false
         fragmentAt(target)?.startAtPage(if (startAtEnd) -1 else 0)
         binding.viewPager.currentItem = target
@@ -335,7 +345,7 @@ class ReaderDBPagerActivity :
         updateBookmark(webPage = webPages[position])
         // Show the newly visible chapter's page position in the menu.
         fragmentAt(position)?.publishPageInfo()
-        val displayIndex = if (dataCenter.japSwipe) (webPages.size - 1 - position) else position
+        val displayIndex = if (pagerReversed) (webPages.size - 1 - position) else position
         readerViewModel.updateChapterInfo(
             index = displayIndex,
             total = webPages.size,
@@ -356,7 +366,7 @@ class ReaderDBPagerActivity :
             val webPageDBFragment = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as? WebPageDBFragment)
             val audioText = webPageDBFragment?.doc?.getFormattedText() ?: return
             val title = webPageDBFragment.doc?.title() ?: ""
-            val chapterIndex = (if (dataCenter.japSwipe) webPages.reversed() else webPages).indexOf(webPages[binding.viewPager.currentItem])
+            val chapterIndex = (if (pagerReversed) webPages.reversed() else webPages).indexOf(webPages[binding.viewPager.currentItem])
 
             if (dataCenter.useAiTts) {
                 val linkedPageUrls = ArrayList(webPageDBFragment.linkedPages.map { it.href })
