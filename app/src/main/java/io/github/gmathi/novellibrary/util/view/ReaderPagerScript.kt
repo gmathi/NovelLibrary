@@ -92,11 +92,20 @@ object ReaderPagerScript {
     else if (window.HTMLOUT && HTMLOUT.onChapterBoundary) HTMLOUT.onChapterBoundary('prev');
   }
 
-  function goTo(p) {
+  // instant: position without the page-turn animation (used when the native side places a
+  // chapter, e.g. restoring the saved page or opening the previous chapter at its last page).
+  function goTo(p, instant) {
     p = p | 0;
     if (p < 0) p = total - 1;
     page = Math.max(0, Math.min(total - 1, p));
-    apply();
+    if (instant) {
+      wrap.style.transition = 'none';
+      apply();
+      void wrap.offsetWidth; // flush so the later transition change does not animate this move
+      wrap.style.transition = '';
+    } else {
+      apply();
+    }
   }
 
   // Touch handling. A horizontal drag moves the page with the finger; releasing past a quarter
@@ -186,7 +195,7 @@ object ReaderPagerScript {
 
   window.__nlPager = { next: next, prev: prev, relayout: relayout, goTo: goTo };
   relayout();
-  goTo(INITIAL);
+  goTo(INITIAL, true);
 })();
 """.trimIndent()
 }

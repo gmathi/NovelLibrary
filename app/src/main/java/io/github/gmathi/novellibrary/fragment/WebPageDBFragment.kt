@@ -654,7 +654,7 @@ class WebPageDBFragment : BaseFragment() {
         pendingStartPage = page
         if (!dataCenter.pageMode || view == null) return
         binding.readerWebView.evaluateJavascript(
-            "(window.__nlPager && (window.__nlPager.goTo($page), true)) || false"
+            "(window.__nlPager && (window.__nlPager.goTo($page, true), true)) || false"
         ) { result -> if (result == "true") pendingStartPage = null }
     }
 
