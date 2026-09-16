@@ -141,7 +141,9 @@ private fun ReaderTopBar(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()
+                // Status-bar padding alone is zero in immersive mode, which put the bar under the
+                // display cutout (front camera); include the cutout inset explicitly.
+                .windowInsetsPadding(WindowInsets.statusBars.union(WindowInsets.displayCutout))
         ) {
             Row(
                 modifier = Modifier

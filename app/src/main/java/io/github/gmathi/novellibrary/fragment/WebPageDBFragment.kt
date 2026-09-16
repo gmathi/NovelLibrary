@@ -607,11 +607,17 @@ class WebPageDBFragment : BaseFragment() {
         val webView = view ?: return
         val savedPage = webPageSettings.metadata[Constants.MetaDataKeys.PAGE_INDEX]?.toIntOrNull() ?: 0
         // The reader runs edge-to-edge in immersive mode, so pad the page past the display cutout
-        // (front camera) and the navigation bar; insets are in device px, the page uses CSS px.
+        // (front camera) and the navigation bar. Only the part of each inset that actually overlaps
+        // the WebView counts: when the bars are visible and the layout already sits between them,
+        // the overlap is zero and no padding is added. Insets are device px, the page uses CSS px.
         val density = resources.displayMetrics.density
         val insets = ViewCompat.getRootWindowInsets(webView)
-        val safeTop = insets?.getInsets(WindowInsetsCompat.Type.displayCutout() or WindowInsetsCompat.Type.statusBars())?.top ?: 0
-        val safeBottom = insets?.getInsets(WindowInsetsCompat.Type.navigationBars())?.bottom ?: 0
+        val insetTop = insets?.getInsets(WindowInsetsCompat.Type.displayCutout() or WindowInsetsCompat.Type.statusBars())?.top ?: 0
+        val insetBottom = insets?.getInsets(WindowInsetsCompat.Type.navigationBars())?.bottom ?: 0
+        val location = IntArray(2).also { webView.getLocationOnScreen(it) }
+        val windowHeight = activity?.window?.decorView?.height ?: (location[1] + webView.height)
+        val safeTop = (insetTop - location[1]).coerceAtLeast(0)
+        val safeBottom = ((location[1] + webView.height) - (windowHeight - insetBottom)).coerceAtLeast(0)
         webView.scrollTo(0, 0)
         webView.evaluateJavascript(
             ReaderPagerScript.build(savedPage, (safeTop / density).toInt(), (safeBottom / density).toInt()),

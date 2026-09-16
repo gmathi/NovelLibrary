@@ -29,8 +29,8 @@ object ReaderPagerScript {
      */
     fun build(initialPage: Int, safeTopCss: Int = 0, safeBottomCss: Int = 0): String = SCRIPT
         .replace(INITIAL_PAGE_TOKEN, initialPage.coerceAtLeast(0).toString())
-        .replace(PAD_TOP_TOKEN, (20 + safeTopCss.coerceAtLeast(0)).toString())
-        .replace(PAD_BOTTOM_TOKEN, (28 + safeBottomCss.coerceAtLeast(0)).toString())
+        .replace(PAD_TOP_TOKEN, (16 + safeTopCss.coerceAtLeast(0)).toString())
+        .replace(PAD_BOTTOM_TOKEN, (12 + safeBottomCss.coerceAtLeast(0)).toString())
 
     private val SCRIPT = """
 (function () {
