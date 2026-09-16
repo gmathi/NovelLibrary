@@ -49,17 +49,13 @@ fun ReaderBottomBar(
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(
-                    onClick = onPreviousChapter,
-                    enabled = uiState.currentChapterIndex > 0
-                ) {
+                // Always enabled: on the first/last chapter the activity jumps to the start/end
+                // of the current chapter instead (first/last page in page mode).
+                IconButton(onClick = onPreviousChapter) {
                     Icon(
                         Icons.Filled.ChevronLeft,
                         contentDescription = "Previous chapter",
-                        tint = if (uiState.currentChapterIndex > 0)
-                            MaterialTheme.colorScheme.onSurface
-                        else
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -85,17 +81,11 @@ fun ReaderBottomBar(
                     }
                 }
 
-                IconButton(
-                    onClick = onNextChapter,
-                    enabled = uiState.currentChapterIndex < uiState.totalChapters - 1
-                ) {
+                IconButton(onClick = onNextChapter) {
                     Icon(
                         Icons.Filled.ChevronRight,
                         contentDescription = "Next chapter",
-                        tint = if (uiState.currentChapterIndex < uiState.totalChapters - 1)
-                            MaterialTheme.colorScheme.onSurface
-                        else
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
