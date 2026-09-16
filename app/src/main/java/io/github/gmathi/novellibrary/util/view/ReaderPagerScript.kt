@@ -117,30 +117,62 @@ object ReaderPagerScript {
     apply();
   }
 
-  var sx = 0, sy = 0, st = 0, moved = false, tracking = false;
+  // Touch handling. A horizontal drag moves the page with the finger; releasing past a quarter
+  // of the screen width (or a quick flick) turns the page, releasing earlier snaps it back.
+  // At the first/last page the drag has resistance and a full-threshold release hands off to
+  // the previous/next chapter. Short touches without movement are taps (edges turn, centre
+  // toggles the menu).
+  var sx = 0, sy = 0, st = 0, moved = false, tracking = false, dragging = false, dragDx = 0;
+
+  function setDragOffset(dx) {
+    wrap.style.transform = 'translateX(' + (-page * pageWidth() + dx) + 'px)';
+  }
 
   doc.addEventListener('touchstart', function (e) {
-    if (e.touches.length !== 1) { tracking = false; return; }
-    tracking = true; moved = false;
+    if (e.touches.length !== 1) { tracking = false; dragging = false; return; }
+    tracking = true; moved = false; dragging = false; dragDx = 0;
     sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now();
   }, { passive: true });
 
   doc.addEventListener('touchmove', function (e) {
     if (!tracking) return;
     var dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy;
-    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) moved = true;
+    if (!moved) {
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) { if (e.cancelable) e.preventDefault(); return; }
+      moved = true;
+      // Decide the gesture direction once: mostly horizontal means a page drag.
+      dragging = Math.abs(dx) > Math.abs(dy);
+      if (dragging) wrap.style.transition = 'none';
+    }
+    if (dragging) {
+      var atEdge = (dx > 0 && page === 0) || (dx < 0 && page === total - 1);
+      dragDx = atEdge ? dx * 0.35 : Math.max(-pageWidth(), Math.min(pageWidth(), dx));
+      setDragOffset(dragDx);
+    }
     if (e.cancelable) e.preventDefault();
   }, { passive: false });
+
+  function endDrag(dx, dt) {
+    wrap.style.transition = '';
+    var w = pageWidth();
+    var flick = Math.abs(dx) > 40 && dt < 250;
+    var farEnough = Math.abs(dx) > w * 0.25;
+    if (flick || farEnough) {
+      if (dx < 0) next(); else prev();
+      // next()/prev() re-apply the transform for a page change; at a chapter boundary they do
+      // not, so make sure the dragged page settles back into place either way.
+      apply();
+    } else {
+      apply();
+    }
+  }
 
   doc.addEventListener('touchend', function (e) {
     if (!tracking) return;
     tracking = false;
     var t = e.changedTouches[0];
     var dx = t.clientX - sx, dy = t.clientY - sy, dt = Date.now() - st;
-    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-      if (dx < 0) next(); else prev();
-      return;
-    }
+    if (dragging) { dragging = false; endDrag(dx, dt); return; }
     if (moved || dt > 400) return;
     var target = e.target;
     if (target && target.closest && target.closest('a,button,input,textarea,select,video,audio')) return;
@@ -148,6 +180,11 @@ object ReaderPagerScript {
     if (t.clientX < w / 3) prev();
     else if (t.clientX > w * 2 / 3) next();
     else if (window.HTMLOUT && HTMLOUT.onCenterTap) HTMLOUT.onCenterTap();
+  }, { passive: true });
+
+  doc.addEventListener('touchcancel', function () {
+    if (dragging) { dragging = false; wrap.style.transition = ''; apply(); }
+    tracking = false;
   }, { passive: true });
 
   window.addEventListener('resize', function () { setTimeout(relayout, 50); });
