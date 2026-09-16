@@ -246,6 +246,9 @@ class WebPageDBFragment : BaseFragment() {
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
+                // The pager destroys off-screen chapters during fast navigation; a load can finish
+                // after that, when this fragment is detached and its resources are unreachable.
+                if (!isAdded || getView() == null) return
                 val cookies = CookieManager.getInstance().getCookie(url)
                 Logs.debug("WebViewDBFragment", "${Uri.parse(url).host}: All the cookiesMap in a string: $cookies")
 
@@ -632,7 +635,8 @@ class WebPageDBFragment : BaseFragment() {
         // (front camera) and the navigation bar. Only the part of each inset that actually overlaps
         // the WebView counts: when the bars are visible and the layout already sits between them,
         // the overlap is zero and no padding is added. Insets are device px, the page uses CSS px.
-        val density = resources.displayMetrics.density
+        // Read metrics from the WebView, not the fragment, so this never depends on attachment.
+        val density = webView.resources.displayMetrics.density
         val insets = ViewCompat.getRootWindowInsets(webView)
         val insetTop = insets?.getInsets(WindowInsetsCompat.Type.displayCutout() or WindowInsetsCompat.Type.statusBars())?.top ?: 0
         val insetBottom = insets?.getInsets(WindowInsetsCompat.Type.navigationBars())?.bottom ?: 0
