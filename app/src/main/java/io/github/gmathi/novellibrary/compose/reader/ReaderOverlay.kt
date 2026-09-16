@@ -60,8 +60,11 @@ fun ReaderOverlay(
             // Floating menu icon — shown only when the overlay is hidden.
             // The "reader mode button" preference enables the feature; when enabled
             // the icon auto-hides on scroll down and reappears on scroll up / tap.
+            // Outside Reader Mode the page is the raw site, so there is no centre-tap script:
+            // the icon is the only way to the menu and is shown regardless of the preference.
             AnimatedVisibility(
-                visible = !isVisible && uiState.isReaderModeButtonVisible && isMenuIconVisible,
+                visible = !isVisible && isMenuIconVisible &&
+                    (uiState.isReaderModeButtonVisible || !uiState.isReaderMode),
                 enter = fadeIn(),
                 exit = fadeOut(),
                 modifier = Modifier

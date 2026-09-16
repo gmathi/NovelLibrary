@@ -99,8 +99,10 @@ fun ReaderSettingsPanel(
             SettingToggle(
                 icon = Icons.Outlined.ViewCarousel,
                 title = "Page Mode",
-                subtitle = "Turn pages by swiping or tapping the screen edges",
-                checked = uiState.isPageMode,
+                subtitle = if (uiState.isReaderMode) "Turn pages by swiping or tapping the screen edges"
+                else "Available in Reader Mode",
+                checked = uiState.isPageMode && uiState.isReaderMode,
+                enabled = uiState.isReaderMode,
                 onCheckedChange = { viewModel.setPageMode(it) }
             )
 
