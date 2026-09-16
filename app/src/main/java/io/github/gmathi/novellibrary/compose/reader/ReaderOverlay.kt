@@ -92,8 +92,7 @@ fun ReaderOverlay(
                 ReaderTopBar(
                     novelName = novelName,
                     chapterTitle = uiState.chapterTitle,
-                    onBackPress = onBackPress,
-                    onMoreSettingsClick = onMoreSettingsClick
+                    onBackPress = onBackPress
                 )
             }
 
@@ -132,8 +131,7 @@ fun ReaderOverlay(
 private fun ReaderTopBar(
     novelName: String,
     chapterTitle: String,
-    onBackPress: () -> Unit,
-    onMoreSettingsClick: () -> Unit
+    onBackPress: () -> Unit
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
@@ -183,13 +181,10 @@ private fun ReaderTopBar(
                     }
                 }
 
-                IconButton(onClick = onMoreSettingsClick) {
-                    Icon(
-                        Icons.Filled.MoreVert,
-                        contentDescription = "More settings",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                // Balances the back button so the title stays centred. The old "More settings"
+                // action lived here; the full settings list is reachable from the settings sheet
+                // ("More options") and from the app's Settings > Reader.
+                Spacer(modifier = Modifier.width(48.dp))
             }
         }
     }

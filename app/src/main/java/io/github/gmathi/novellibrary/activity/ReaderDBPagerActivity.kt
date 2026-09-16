@@ -197,8 +197,8 @@ class ReaderDBPagerActivity :
                     isMenuIconVisible = menuIconVisible.value && !pageModeActive.value,
                     novelName = novel.name ?: "",
                     onBackPress = { finish() },
-                    onPreviousChapter = { goToPreviousChapter() },
-                    onNextChapter = { goToNextChapter() },
+                    onPreviousChapter = { if (!goToPreviousChapter()) jumpWithinChapter(toEnd = false) },
+                    onNextChapter = { if (!goToNextChapter()) jumpWithinChapter(toEnd = true) },
                     onFontClick = { changeFontStyle() },
                     onReadAloudClick = { handleReadAloud() },
                     onBrowserClick = { inBrowser() },
@@ -251,6 +251,24 @@ class ReaderDBPagerActivity :
         if (target !in webPages.indices) return false
         binding.viewPager.currentItem = target
         return true
+    }
+
+    private fun currentWebView(): WebView? =
+        (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as? WebPageDBFragment)
+            ?.view?.findViewById(R.id.readerWebView)
+
+    /**
+     * Used by the chapter chevrons when there is no further chapter: jump to the end (last page,
+     * or bottom in scroll mode) or to the start of the current chapter instead of doing nothing.
+     */
+    private fun jumpWithinChapter(toEnd: Boolean) {
+        val webView = currentWebView() ?: return
+        if (dataCenter.pageMode) {
+            webView.evaluateJavascript("window.__nlPager && window.__nlPager.goTo(${if (toEnd) -1 else 0});", null)
+        } else {
+            val target = if (toEnd) (webView.contentHeight * webView.scale - webView.height).toInt().coerceAtLeast(0) else 0
+            ObjectAnimator.ofInt(webView, "scrollY", webView.scrollY, target).setDuration(300).start()
+        }
     }
 
     /**
