@@ -232,6 +232,19 @@ class WebPageDBFragment : BaseFragment() {
                 return false
             }
 
+            override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
+                // The WebView's renderer died (crash or low memory); if unhandled, Android kills
+                // the whole app. The WebView is unusable now, so rebuild this fragment's view,
+                // which creates a fresh WebView and reloads the chapter.
+                Logs.error("WebPageDBFragment", "WebView renderer gone (crashed=${detail?.didCrash()}, priority=${detail?.rendererPriorityAtExit()}); rebuilding chapter view")
+                if (!isAdded || isStateSaved) return true
+                parentFragmentManager.beginTransaction()
+                    .detach(this@WebPageDBFragment)
+                    .attach(this@WebPageDBFragment)
+                    .commitAllowingStateLoss()
+                return true
+            }
+
             override fun onPageFinished(view: WebView?, url: String?) {
                 val cookies = CookieManager.getInstance().getCookie(url)
                 Logs.debug("WebViewDBFragment", "${Uri.parse(url).host}: All the cookiesMap in a string: $cookies")
