@@ -74,7 +74,7 @@ fun ReaderBottomBar(
                     }
                     if (uiState.totalChapters > 0) {
                         Text(
-                            text = "${uiState.currentChapterIndex + 1} / ${uiState.totalChapters}",
+                            text = "Chapter ${uiState.currentChapterIndex + 1} / ${uiState.totalChapters}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
