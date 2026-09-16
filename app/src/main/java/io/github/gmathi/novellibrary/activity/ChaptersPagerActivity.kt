@@ -64,6 +64,13 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
     private var maxProgress: Int = 0
     private var progressMessage = "In Progress…"
     private var isSyncing = false
+
+    /** Re-fetches the chapter list from the source (toolbar sync button and pull-to-refresh). */
+    fun syncChapters() {
+        if (isSyncing) return
+        isSyncing = true
+        vm.getData(forceUpdate = true)
+    }
     private var isChaptersProcessing = false
 
     private val snackProgressBarManager by lazy { Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this) }
@@ -254,10 +261,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
         when (item.itemId) {
             android.R.id.home -> finish()
             R.id.action_sync -> {
-                if (!isSyncing) {
-                    isSyncing = true
-                    vm.getData(forceUpdate = true)
-                }
+                syncChapters()
                 devCounter++
                 if (devCounter == 40) dataCenter.isDeveloper = true
                 return true
