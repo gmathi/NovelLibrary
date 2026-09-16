@@ -257,6 +257,9 @@ class WebPageDBFragment : BaseFragment() {
 
     private fun loadData(liveFromWeb: Boolean = false) {
         doc = null
+        // Pull-to-refresh intercepts any gesture with downward drift, which breaks page-mode
+        // swipes; keep it off in page mode on every load path (file and web).
+        binding.swipeRefreshLayout.isEnabled = !dataCenter.pageMode
 
         binding.readerWebView.apply {
             stopLoading()

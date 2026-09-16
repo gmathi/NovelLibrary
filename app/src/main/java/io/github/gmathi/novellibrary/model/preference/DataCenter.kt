@@ -60,6 +60,7 @@ class DataCenter(context: Context) {
         private const val ALT_TEXT_COLORS_PER_NOVEL_PREFIX = "alt_text_colors_"
         private const val ENABLE_CLUSTER_PAGES_PER_NOVEL_PREFIX = "enable_cluster_pages_"
         private const val PAGE_MODE = "readerPageMode"
+        private const val CHAPTER_SWIPE = "readerChapterSwipe"
         private const val JAVASCRIPT = "javascript"
         private const val LANGUAGE = "language"
         private const val FOOLED = "wasFooled"
@@ -336,6 +337,11 @@ class DataCenter(context: Context) {
     var pageMode: Boolean
         get() = prefs.getBoolean(PAGE_MODE, false)
         set(value) = prefs.edit().putBoolean(PAGE_MODE, value).apply()
+
+    /** Whether swiping horizontally in the reader moves between chapters. Ignored (always off) in page mode. */
+    var chapterSwipeEnabled: Boolean
+        get() = prefs.getBoolean(CHAPTER_SWIPE, true)
+        set(value) = prefs.edit().putBoolean(CHAPTER_SWIPE, value).apply()
 
     var javascriptDisabled: Boolean
         get() = prefs.getBoolean(JAVASCRIPT, false)

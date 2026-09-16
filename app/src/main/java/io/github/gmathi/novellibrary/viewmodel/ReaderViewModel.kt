@@ -14,6 +14,7 @@ import uy.kohesive.injekt.injectLazy
 data class ReaderUiState(
     val isReaderMode: Boolean = false,
     val isPageMode: Boolean = false,
+    val chapterSwipeEnabled: Boolean = true,
     val isDarkTheme: Boolean = true,
     val isJavascriptEnabled: Boolean = true,
     val textSize: Int = 0,
@@ -58,6 +59,7 @@ class ReaderViewModel : ViewModel() {
             it.copy(
                 isReaderMode = dataCenter.getReaderModeForNovel(novelId),
                 isPageMode = dataCenter.pageMode,
+                chapterSwipeEnabled = dataCenter.chapterSwipeEnabled,
                 isDarkTheme = dataCenter.getIsDarkThemeForNovel(novelId),
                 isJavascriptEnabled = !dataCenter.javascriptDisabled || dataCenter.getReaderModeForNovel(novelId),
                 textSize = dataCenter.getTextSizeForNovel(novelId),
@@ -107,6 +109,11 @@ class ReaderViewModel : ViewModel() {
         dataCenter.pageMode = enabled
         _uiState.update { it.copy(isPageMode = enabled) }
         EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.PAGE_MODE))
+    }
+
+    fun setChapterSwipeEnabled(enabled: Boolean) {
+        dataCenter.chapterSwipeEnabled = enabled
+        _uiState.update { it.copy(chapterSwipeEnabled = enabled) }
     }
 
     fun setJavascriptEnabled(enabled: Boolean) {

@@ -21,6 +21,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.viewpager.widget.ViewPager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.WhichButton
@@ -153,6 +155,14 @@ class ReaderDBPagerActivity :
 
         // Setup Compose overlay (once — state changes drive recomposition)
         setupComposeOverlay()
+
+        // Chapter swiping follows the user's setting and is always off in page mode, where
+        // horizontal gestures turn pages inside the chapter.
+        lifecycleScope.launch {
+            readerViewModel.uiState.collect { state ->
+                binding.viewPager.isSwipeEnabled = state.chapterSwipeEnabled && !state.isPageMode
+            }
+        }
 
         onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {

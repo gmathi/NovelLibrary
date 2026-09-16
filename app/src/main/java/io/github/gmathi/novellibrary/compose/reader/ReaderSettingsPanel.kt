@@ -105,6 +105,16 @@ fun ReaderSettingsPanel(
             )
 
             SettingToggle(
+                icon = Icons.Outlined.SwipeLeft,
+                title = "Swipe Between Chapters",
+                subtitle = if (uiState.isPageMode) "Off while Page Mode is on; swipes turn pages instead"
+                else "Swipe left or right to change chapter",
+                checked = uiState.chapterSwipeEnabled && !uiState.isPageMode,
+                enabled = !uiState.isPageMode,
+                onCheckedChange = { viewModel.setChapterSwipeEnabled(it) }
+            )
+
+            SettingToggle(
                 icon = Icons.Outlined.Code,
                 title = "JavaScript",
                 subtitle = "Enable page scripts",
@@ -389,12 +399,13 @@ private fun SettingToggle(
     title: String,
     subtitle: String,
     checked: Boolean,
+    enabled: Boolean = true,
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
+            .clickable(enabled = enabled) { onCheckedChange(!checked) }
             .padding(horizontal = 24.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -409,7 +420,7 @@ private fun SettingToggle(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = subtitle,
@@ -420,6 +431,7 @@ private fun SettingToggle(
         Spacer(modifier = Modifier.width(8.dp))
         Switch(
             checked = checked,
+            enabled = enabled,
             onCheckedChange = onCheckedChange
         )
     }
