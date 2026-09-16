@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.MotionEvent
 import android.view.ViewGroup
 import android.webkit.*
 import androidx.fragment.app.FragmentActivity
@@ -32,6 +33,7 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.lang.getLinkedPagesCompat
+import io.github.gmathi.novellibrary.util.view.ReaderPagerScript
 import io.github.gmathi.novellibrary.util.view.extensions.setDefaultSettings
 import kotlinx.coroutines.*
 import okhttp3.Cookie
@@ -55,6 +57,10 @@ class WebPageDBFragment : BaseFragment() {
     var linkedPages: ArrayList<LinkedPage> = ArrayList()
     var history: ArrayList<WebPageSettings> = ArrayList()
     var job: Job? = null
+
+    /** Page mode: current page reported by the injected pager script, persisted on pause. */
+    private var currentPageIndex = 0
+    private var totalPageCount = 1
 
     private lateinit var binding: FragmentReaderBinding
 
@@ -166,8 +172,16 @@ class WebPageDBFragment : BaseFragment() {
     private fun setWebView() {
         binding.readerWebView.setDefaultSettings()
         binding.readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
-        binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.getReaderModeForNovel(novelId)
+        binding.readerWebView.settings.javaScriptEnabled = isJavascriptRequired()
         binding.readerWebView.settings.userAgentString = HostNames.USER_AGENT
+        // Page mode turns pages with horizontal gestures inside the WebView, so the chapter
+        // ViewPager must not intercept them.
+        binding.readerWebView.setOnTouchListener { view, event ->
+            if (dataCenter.pageMode && event.actionMasked == MotionEvent.ACTION_DOWN) {
+                view.parent?.requestDisallowInterceptTouchEvent(true)
+            }
+            false
+        }
         binding.readerWebView.setBackgroundColor(Color.argb(1, 0, 0, 0))
         binding.readerWebView.addJavascriptInterface(this, "HTMLOUT")
 
@@ -219,6 +233,11 @@ class WebPageDBFragment : BaseFragment() {
                         val list = cookies.split(";").mapNotNull { if (it.startsWith("cf_")) Cookie.parse(hurl, it) else null }
                         networkHelper.cookieManager.saveFromResponse(hurl, list)
                     }
+                }
+
+                if (dataCenter.pageMode) {
+                    applyPageMode(view)
+                    return
                 }
 
                 webPageSettings.let {
@@ -291,7 +310,8 @@ class WebPageDBFragment : BaseFragment() {
     }
 
     private fun loadFromWeb() {
-        binding.swipeRefreshLayout.isEnabled = true
+        // Pull-to-refresh conflicts with page-mode gestures.
+        binding.swipeRefreshLayout.isEnabled = !dataCenter.pageMode
 
         //Check Reader Mode
         if (!dataCenter.getReaderModeForNovel(novelId)) {
@@ -433,6 +453,12 @@ class WebPageDBFragment : BaseFragment() {
     private fun changeTextSize() {
         val settings = binding.readerWebView.settings
         settings.textZoom = (dataCenter.getTextSizeForNovel(novelId) + 50) * 2
+        if (dataCenter.pageMode) {
+            // The zoom change reflows the columns; re-count the pages once layout settles.
+            binding.readerWebView.postDelayed({
+                if (isAdded) binding.readerWebView.evaluateJavascript("window.__nlPager && window.__nlPager.relayout();", null)
+            }, 150)
+        }
     }
 
     fun getUrl() = webPage.url
@@ -546,6 +572,12 @@ class WebPageDBFragment : BaseFragment() {
                 binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.getReaderModeForNovel(novelId)
                 loadData()
             }
+            ReaderSettingsEvent.PAGE_MODE -> {
+                binding.readerWebView.settings.javaScriptEnabled = isJavascriptRequired()
+                binding.swipeRefreshLayout.isEnabled = !dataCenter.pageMode
+                currentPageIndex = 0
+                loadData()
+            }
             ReaderSettingsEvent.TEXT_SIZE -> {
                 changeTextSize()
             }
@@ -559,11 +591,51 @@ class WebPageDBFragment : BaseFragment() {
         }
     }
 
+    //region Page mode
+
+    /** JavaScript is needed for reader mode's injected scripts and for the page-mode pager. */
+    private fun isJavascriptRequired(): Boolean =
+        !dataCenter.javascriptDisabled || dataCenter.readerMode || dataCenter.pageMode
+
+    /** Wraps the loaded chapter into screen-sized pages and restores the last read page. */
+    private fun applyPageMode(view: WebView?) {
+        val webView = view ?: return
+        val savedPage = webPageSettings.metadata[Constants.MetaDataKeys.PAGE_INDEX]?.toIntOrNull() ?: 0
+        webView.scrollTo(0, 0)
+        webView.evaluateJavascript(ReaderPagerScript.build(savedPage), null)
+    }
+
+    @JavascriptInterface
+    fun onPageChanged(page: Int, total: Int) {
+        currentPageIndex = page
+        totalPageCount = total
+    }
+
+    @JavascriptInterface
+    fun onChapterBoundary(direction: String) {
+        val readerActivity = activity as? ReaderDBPagerActivity ?: return
+        readerActivity.runOnUiThread {
+            if (direction == "next") readerActivity.goToNextChapter() else readerActivity.goToPreviousChapter()
+        }
+    }
+
+    @JavascriptInterface
+    fun onCenterTap() {
+        val readerActivity = activity as? ReaderDBPagerActivity ?: return
+        readerActivity.runOnUiThread { readerActivity.toggleOverlay() }
+    }
+
+    //endregion
+
     override fun onPause() {
         super.onPause()
         if (this::webPageSettings.isInitialized)
             webPageSettings.let {
-                it.metadata[Constants.MetaDataKeys.SCROLL_POSITION] = binding.readerWebView.scrollY.toString()
+                if (dataCenter.pageMode) {
+                    it.metadata[Constants.MetaDataKeys.PAGE_INDEX] = currentPageIndex.toString()
+                } else {
+                    it.metadata[Constants.MetaDataKeys.SCROLL_POSITION] = binding.readerWebView.scrollY.toString()
+                }
                 dbHelper.updateWebPageSettings(it)
             }
     }

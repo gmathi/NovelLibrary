@@ -178,14 +178,8 @@ class ReaderDBPagerActivity :
                     isMenuIconVisible = menuIconVisible.value,
                     novelName = novel.name ?: "",
                     onBackPress = { finish() },
-                    onPreviousChapter = {
-                        val current = binding.viewPager.currentItem
-                        if (current > 0) binding.viewPager.currentItem = current - 1
-                    },
-                    onNextChapter = {
-                        val current = binding.viewPager.currentItem
-                        if (current < webPages.size - 1) binding.viewPager.currentItem = current + 1
-                    },
+                    onPreviousChapter = { goToPreviousChapter() },
+                    onNextChapter = { goToNextChapter() },
                     onFontClick = { changeFontStyle() },
                     onReadAloudClick = { handleReadAloud() },
                     onBrowserClick = { inBrowser() },
@@ -226,6 +220,26 @@ class ReaderDBPagerActivity :
     /** Hide the floating menu icon (called from scroll listener on scroll up). */
     fun hideMenuIcon() {
         menuIconVisible.value = false
+    }
+
+    /**
+     * Moves to the next chapter in reading order. The pager list is reversed when
+     * "swipe right for next chapter" is on, so "next" is a lower pager index in that case.
+     * Returns false when already at the last chapter.
+     */
+    fun goToNextChapter(): Boolean {
+        val target = binding.viewPager.currentItem + if (dataCenter.japSwipe) -1 else 1
+        if (target !in webPages.indices) return false
+        binding.viewPager.currentItem = target
+        return true
+    }
+
+    /** Moves to the previous chapter in reading order; see [goToNextChapter]. */
+    fun goToPreviousChapter(): Boolean {
+        val target = binding.viewPager.currentItem + if (dataCenter.japSwipe) 1 else -1
+        if (target !in webPages.indices) return false
+        binding.viewPager.currentItem = target
+        return true
     }
 
     private fun updateBookmark(webPage: WebPage) {
@@ -295,6 +309,16 @@ class ReaderDBPagerActivity :
             binding.viewPager,
             binding.viewPager.currentItem
         ) as WebPageDBFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
+        if (dataCenter.pageMode && dataCenter.enableVolumeScroll &&
+            (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
+        ) {
+            // In page mode the volume keys turn pages instead of scrolling.
+            if (action == KeyEvent.ACTION_DOWN) {
+                val call = if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) "prev" else "next"
+                webView?.evaluateJavascript("window.__nlPager && window.__nlPager.$call();", null)
+            }
+            return true
+        }
         return when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.enableVolumeScroll) {

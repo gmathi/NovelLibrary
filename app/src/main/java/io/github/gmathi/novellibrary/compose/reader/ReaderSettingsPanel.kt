@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.MergeType
+import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -96,6 +97,14 @@ fun ReaderSettingsPanel(
             )
 
             SettingToggle(
+                icon = Icons.Outlined.ViewCarousel,
+                title = "Page Mode",
+                subtitle = "Turn pages by swiping or tapping the screen edges",
+                checked = uiState.isPageMode,
+                onCheckedChange = { viewModel.setPageMode(it) }
+            )
+
+            SettingToggle(
                 icon = Icons.Outlined.Code,
                 title = "JavaScript",
                 subtitle = "Enable page scripts",
@@ -117,6 +126,14 @@ fun ReaderSettingsPanel(
             )
 
             SectionHeader("Display")
+
+            SettingToggle(
+                icon = Icons.AutoMirrored.Outlined.VolumeUp,
+                title = "Volume Keys",
+                subtitle = "Scroll, or turn pages in page mode, with the volume buttons",
+                checked = uiState.enableVolumeScroll,
+                onCheckedChange = { viewModel.setEnableVolumeScroll(it) }
+            )
 
             SettingToggle(
                 icon = Icons.Outlined.ScreenLockPortrait,

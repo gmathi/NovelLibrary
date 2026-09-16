@@ -13,6 +13,7 @@ import uy.kohesive.injekt.injectLazy
 
 data class ReaderUiState(
     val isReaderMode: Boolean = false,
+    val isPageMode: Boolean = false,
     val isDarkTheme: Boolean = true,
     val isJavascriptEnabled: Boolean = true,
     val textSize: Int = 0,
@@ -56,6 +57,7 @@ class ReaderViewModel : ViewModel() {
         _uiState.update {
             it.copy(
                 isReaderMode = dataCenter.getReaderModeForNovel(novelId),
+                isPageMode = dataCenter.pageMode,
                 isDarkTheme = dataCenter.getIsDarkThemeForNovel(novelId),
                 isJavascriptEnabled = !dataCenter.javascriptDisabled || dataCenter.getReaderModeForNovel(novelId),
                 textSize = dataCenter.getTextSizeForNovel(novelId),
@@ -99,6 +101,12 @@ class ReaderViewModel : ViewModel() {
             )
         }
         EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
+    }
+
+    fun setPageMode(enabled: Boolean) {
+        dataCenter.pageMode = enabled
+        _uiState.update { it.copy(isPageMode = enabled) }
+        EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.PAGE_MODE))
     }
 
     fun setJavascriptEnabled(enabled: Boolean) {
@@ -148,6 +156,12 @@ class ReaderViewModel : ViewModel() {
         dataCenter.setNightTextColorForNovel(novelId, color)
         _uiState.update { it.copy(nightTextColor = color) }
         EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
+    }
+
+    /** Volume buttons scroll the chapter, or turn pages in page mode. */
+    fun setEnableVolumeScroll(enabled: Boolean) {
+        dataCenter.enableVolumeScroll = enabled
+        _uiState.update { it.copy(enableVolumeScroll = enabled) }
     }
 
     fun setKeepScreenOn(enabled: Boolean) {

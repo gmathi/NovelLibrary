@@ -59,6 +59,7 @@ class DataCenter(context: Context) {
         private const val KEEP_TEXT_COLOR_PER_NOVEL_PREFIX = "keep_text_color_"
         private const val ALT_TEXT_COLORS_PER_NOVEL_PREFIX = "alt_text_colors_"
         private const val ENABLE_CLUSTER_PAGES_PER_NOVEL_PREFIX = "enable_cluster_pages_"
+        private const val PAGE_MODE = "readerPageMode"
         private const val JAVASCRIPT = "javascript"
         private const val LANGUAGE = "language"
         private const val FOOLED = "wasFooled"
@@ -330,6 +331,11 @@ class DataCenter(context: Context) {
     fun setReaderModeForNovel(novelId: Long, value: Boolean) {
         prefs.edit().putBoolean(READER_MODE_PER_NOVEL_PREFIX + novelId, value).apply()
     }
+
+    /** Paged reader: chapters are laid out as screen-sized pages turned by swiping or tapping the screen edges. */
+    var pageMode: Boolean
+        get() = prefs.getBoolean(PAGE_MODE, false)
+        set(value) = prefs.edit().putBoolean(PAGE_MODE, value).apply()
 
     var javascriptDisabled: Boolean
         get() = prefs.getBoolean(JAVASCRIPT, false)
