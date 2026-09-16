@@ -123,6 +123,8 @@ object ReaderPagerScript {
   // the previous/next chapter. Short touches without movement are taps (edges turn, centre
   // toggles the menu).
   var sx = 0, sy = 0, st = 0, moved = false, tracking = false, dragging = false, dragDx = 0;
+  // Release velocity (px/ms, smoothed over the last touch samples) for flick detection.
+  var vx = 0, lastX = 0, lastT = 0;
 
   function setDragOffset(dx) {
     wrap.style.transform = 'translateX(' + (-page * pageWidth() + dx) + 'px)';
@@ -132,11 +134,15 @@ object ReaderPagerScript {
     if (e.touches.length !== 1) { tracking = false; dragging = false; return; }
     tracking = true; moved = false; dragging = false; dragDx = 0;
     sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now();
+    vx = 0; lastX = sx; lastT = st;
   }, { passive: true });
 
   doc.addEventListener('touchmove', function (e) {
     if (!tracking) return;
-    var dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy;
+    var x = e.touches[0].clientX, now = Date.now();
+    if (now > lastT) vx = 0.5 * vx + 0.5 * ((x - lastX) / (now - lastT));
+    lastX = x; lastT = now;
+    var dx = x - sx, dy = e.touches[0].clientY - sy;
     if (!moved) {
       if (Math.abs(dx) < 10 && Math.abs(dy) < 10) { if (e.cancelable) e.preventDefault(); return; }
       moved = true;
@@ -155,7 +161,9 @@ object ReaderPagerScript {
   function endDrag(dx, dt) {
     wrap.style.transition = '';
     var w = pageWidth();
-    var flick = Math.abs(dx) > 40 && dt < 250;
+    // A flick is a fast release in the same direction as the drag; dt is deliberately not
+    // used because the time spent holding still before moving would mask a real flick.
+    var flick = Math.abs(dx) > 30 && Math.abs(vx) > 0.5 && (vx < 0) === (dx < 0);
     var farEnough = Math.abs(dx) > w * 0.25;
     if (flick || farEnough) {
       if (dx < 0) next(); else prev();
