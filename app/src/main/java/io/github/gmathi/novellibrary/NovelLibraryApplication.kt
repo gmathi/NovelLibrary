@@ -68,6 +68,8 @@ open class NovelLibraryApplication : Application(), LifecycleObserver {
 
         Injekt = InjektScope(DefaultRegistrar())
         Injekt.importModule(AppModule(this))
+        // Keep the last uncaught exception on disk so it can be shown and copied on next launch.
+        io.github.gmathi.novellibrary.util.CrashLogger.install(this)
 
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
         cleanupDatabase()
