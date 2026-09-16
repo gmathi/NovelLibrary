@@ -197,7 +197,15 @@ class ReaderDBPagerActivity :
                     isMenuIconVisible = menuIconVisible.value && !pageModeActive.value,
                     novelName = novel.name ?: "",
                     onBackPress = { finish() },
-                    onPreviousChapter = { if (!goToPreviousChapter()) jumpWithinChapter(toEnd = false) },
+                    onPreviousChapter = {
+                        val state = readerViewModel.uiState.value
+                        when {
+                            // Page mode: first return to page 1 of this chapter; from page 1 go to
+                            // page 1 of the previous chapter.
+                            state.isPageMode && state.currentPage > 0 -> jumpWithinChapter(toEnd = false)
+                            !goToPreviousChapter() -> jumpWithinChapter(toEnd = false)
+                        }
+                    },
                     onNextChapter = { if (!goToNextChapter()) jumpWithinChapter(toEnd = true) },
                     onFontClick = { changeFontStyle() },
                     onReadAloudClick = { handleReadAloud() },
