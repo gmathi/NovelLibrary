@@ -131,7 +131,9 @@ class WebPageDBFragment : BaseFragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        if (savedInstanceState == null)
+        // Register unconditionally: onDestroy() always unregisters, and restored pages
+        // (non-null savedInstanceState) still need to receive reader settings events.
+        if (!EventBus.getDefault().isRegistered(this))
             EventBus.getDefault().register(this)
 
         //Verify activity is still loaded in
