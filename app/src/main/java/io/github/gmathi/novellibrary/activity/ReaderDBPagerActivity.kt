@@ -54,6 +54,7 @@ import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.system.getParcelableExtraCompat
 import io.github.gmathi.novellibrary.util.system.intentOf
 import io.github.gmathi.novellibrary.util.system.logNovelEvent
+import io.github.gmathi.novellibrary.util.system.markChapterRead
 import io.github.gmathi.novellibrary.util.system.openInBrowser
 import io.github.gmathi.novellibrary.util.system.showAlertDialog
 import io.github.gmathi.novellibrary.util.system.startAiTtsActivity
@@ -103,6 +104,9 @@ class ReaderDBPagerActivity :
 
     /** In page mode the floating menu icon is redundant (center tap opens the menu) and covers text. */
     private val pageModeActive = mutableStateOf(false)
+
+    /** Page mode: chapters already marked read in this session, so each is written once. */
+    private val finishedChapters = HashSet<String>()
 
     /**
      * Whether the chapter pager runs in reverse (next chapter at a lower index). That is what
@@ -281,11 +285,47 @@ class ReaderDBPagerActivity :
 
     private fun currentWebView(): WebView? = currentFragment()?.view?.findViewById(R.id.readerWebView)
 
+    /** Whether [fragment] shows the chapter the pager is on, rather than an off-screen neighbour. */
+    fun isCurrentChapter(fragment: WebPageDBFragment): Boolean {
+        val url = fragment.chapterUrl ?: return false
+        return webPages.getOrNull(binding.viewPager.currentItem)?.url == url
+    }
+
     /** Called by chapter fragments when their page-mode position changes; only the visible one is shown. */
     fun onFragmentPageChanged(fragment: WebPageDBFragment, page: Int, total: Int) {
         runOnUiThread {
-            if (currentFragment() === fragment) readerViewModel.updatePageInfo(page, total)
+            if (isCurrentChapter(fragment)) readerViewModel.updatePageInfo(page, total)
         }
+    }
+
+    /**
+     * Page mode: the reader turned past the last page of [fragment]'s chapter ([forward]) or back
+     * past its first page. Only the chapter on screen may move the reader: a neighbour still sliding
+     * out of view, or a second quick swipe landing on it, would otherwise skip a chapter.
+     */
+    fun onChapterBoundary(fragment: WebPageDBFragment, forward: Boolean) {
+        if (!isCurrentChapter(fragment)) return
+        if (forward) {
+            markChapterFinished(fragment)
+            goToNextChapter()
+        } else {
+            goToPreviousChapter(startAtEnd = true)
+        }
+    }
+
+    /** Page mode: the reader turned onto the last page of [fragment]'s chapter. */
+    fun onChapterFinished(fragment: WebPageDBFragment) {
+        if (isCurrentChapter(fragment)) markChapterFinished(fragment)
+    }
+
+    /**
+     * In page mode a chapter counts as read once its last page is reached, not when it is opened;
+     * opening one only moves the bookmark (see [updateBookmark]).
+     */
+    private fun markChapterFinished(fragment: WebPageDBFragment) {
+        val url = fragment.chapterUrl ?: return
+        if (!finishedChapters.add(url)) return
+        webPages.firstOrNull { it.url == url }?.let { markChapterRead(it, true) }
     }
 
     /** Page-mode scrubber: position the current chapter on [page] without the turn animation. */
@@ -334,7 +374,9 @@ class ReaderDBPagerActivity :
     }
 
     private fun updateBookmark(webPage: WebPage) {
-        updateNovelBookmark(novel, webPage)
+        // Scroll mode keeps the long-standing behaviour of marking a chapter read when it is
+        // opened. Page mode marks it read when its last page is reached (markChapterFinished).
+        updateNovelBookmark(novel, webPage, markRead = !dataCenter.pageMode)
     }
 
     @Suppress("DEPRECATION")
@@ -446,6 +488,8 @@ class ReaderDBPagerActivity :
         return if (index == -1)
             false
         else {
+            // A link points at the start of a chapter, not at wherever it was last left.
+            if (dataCenter.pageMode) fragmentAt(index)?.startAtPage(0)
             binding.viewPager.currentItem = index
             updateBookmark(webPage)
             true

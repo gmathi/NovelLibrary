@@ -5,6 +5,8 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.MotionEvent
@@ -45,6 +47,7 @@ import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import org.jsoup.Jsoup
+import org.jsoup.nodes.DataNode
 import org.jsoup.nodes.Document
 import java.io.File
 
@@ -60,21 +63,54 @@ class WebPageDBFragment : BaseFragment() {
     var history: ArrayList<WebPageSettings> = ArrayList()
     var job: Job? = null
 
-    /** Page mode: current page reported by the injected pager script, persisted on pause. */
+    /**
+     * Page mode position: the page the pager last reported, or the remembered one until it
+     * reports. Persisted on pause and used to reopen the chapter after a reload. Written from the
+     * WebView's JavaBridge thread.
+     */
+    @Volatile
     private var currentPageIndex = 0
-    private var totalPageCount = 1
+
+    /** Page count reported by the pager; 0 until the chapter has been laid out. */
+    @Volatile
+    private var totalPageCount = 0
+
+    // Page mode pager bookkeeping (see the "Page mode" region). Each chapter document carries a
+    // generation number; calls from a document that has since been replaced are ignored.
+    private val pagerLock = Any()
+
+    @Volatile
+    private var pagerGeneration = 0
+
+    /** Generation whose pager has started, or -1 while the current document has none yet. Guarded by [pagerLock]. */
+    private var pagerReadyGeneration = -1
 
     /**
      * Page to open at instead of the remembered one, set when the reader navigates here from
-     * another chapter (0 = first page, -1 = last page). Consumed by the next page-mode layout.
+     * another chapter (0 = first page, -1 = last page) before this chapter's pager has started.
+     * Guarded by [pagerLock].
      */
     private var pendingStartPage: Int? = null
+
+    /** Room in CSS px the pages leave for the display cutout / status bar and the navigation bar. */
+    @Volatile
+    private var safeInsetTopCss = 0
+
+    @Volatile
+    private var safeInsetBottomCss = 0
+
+    /** Page mode: the current touch gesture started while this chapter was not the one on screen. */
+    private var ignoreGesture = false
+
+    /** The WebView's renderer died while the activity was stopped; rebuild the view on resume. */
+    private var rebuildOnResume = false
 
     private lateinit var binding: FragmentReaderBinding
 
     companion object {
         private const val NOVEL_ID = "novelId"
         private const val WEB_PAGE = "webPage"
+        private const val RESET_PAGE_ELEMENT_ID = "nl-reset-page"
 
         fun newInstance(novelId: Long, webPage: WebPage): WebPageDBFragment {
             val fragment = WebPageDBFragment()
@@ -120,6 +156,10 @@ class WebPageDBFragment : BaseFragment() {
             webPageSettings = argWebPageSettings
             novelId = requireArguments().getLong(NOVEL_ID)
         }
+        restorePagePosition()
+
+        // Page mode: keep the pages clear of the system bars as the layout settles or changes.
+        view?.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> refreshSafeInsets() }
 
         setOnScrollVisibleButtons()
         setWebView()
@@ -182,13 +222,18 @@ class WebPageDBFragment : BaseFragment() {
         binding.readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
         binding.readerWebView.settings.javaScriptEnabled = isJavascriptRequired()
         binding.readerWebView.settings.userAgentString = HostNames.USER_AGENT
-        // Page mode turns pages with horizontal gestures inside the WebView, so the chapter
-        // ViewPager must not intercept them.
         binding.readerWebView.setOnTouchListener { view, event ->
-            if (dataCenter.pageMode && event.actionMasked == MotionEvent.ACTION_DOWN) {
-                view.parent?.requestDisallowInterceptTouchEvent(true)
+            if (!dataCenter.pageMode) return@setOnTouchListener false
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                // Only the chapter on screen takes input. While the pager slides from one chapter
+                // to the next the outgoing one is still under the finger, and a swipe landing on it
+                // would turn its pages or hand off to yet another chapter.
+                ignoreGesture = (activity as? ReaderDBPagerActivity)?.isCurrentChapter(this) == false
+                // Page mode turns pages with horizontal gestures inside the WebView, so the
+                // chapter ViewPager must not intercept them.
+                if (!ignoreGesture) view.parent?.requestDisallowInterceptTouchEvent(true)
             }
-            false
+            ignoreGesture
         }
         binding.readerWebView.setBackgroundColor(Color.argb(1, 0, 0, 0))
         binding.readerWebView.addJavascriptInterface(this, "HTMLOUT")
@@ -202,7 +247,8 @@ class WebPageDBFragment : BaseFragment() {
                 }
 
                 if (url == "abc://reset_page") {
-                    view?.scrollTo(0, 0)
+                    if (dataCenter.pageMode) view?.evaluateJavascript("window.__nlPager && window.__nlPager.goTo(0);", null)
+                    else view?.scrollTo(0, 0)
                     return true
                 }
 
@@ -237,11 +283,8 @@ class WebPageDBFragment : BaseFragment() {
                 // the whole app. The WebView is unusable now, so rebuild this fragment's view,
                 // which creates a fresh WebView and reloads the chapter.
                 Logs.error("WebPageDBFragment", "WebView renderer gone (crashed=${detail?.didCrash()}, priority=${detail?.rendererPriorityAtExit()}); rebuilding chapter view")
-                if (!isAdded || isStateSaved) return true
-                parentFragmentManager.beginTransaction()
-                    .detach(this@WebPageDBFragment)
-                    .attach(this@WebPageDBFragment)
-                    .commitAllowingStateLoss()
+                // Posted so the fragment transactions never run inside another callback.
+                Handler(Looper.getMainLooper()).post { rebuildView() }
                 return true
             }
 
@@ -259,10 +302,8 @@ class WebPageDBFragment : BaseFragment() {
                     }
                 }
 
-                if (dataCenter.pageMode) {
-                    applyPageMode(view)
-                    return
-                }
+                // Page mode: the pager is part of the chapter document and starts on its own.
+                if (dataCenter.pageMode) return
 
                 webPageSettings.let {
                     if (it.metadata.containsKey(Constants.MetaDataKeys.SCROLL_POSITION)) {
@@ -281,6 +322,8 @@ class WebPageDBFragment : BaseFragment() {
 
     private fun loadData(liveFromWeb: Boolean = false) {
         doc = null
+        // Whatever the outgoing document still reports is stale from here on.
+        invalidatePager()
         // Pull-to-refresh intercepts any gesture with downward drift, which breaks page-mode
         // swipes; keep it off in page mode on every load path (file and web).
         binding.swipeRefreshLayout.isEnabled = !dataCenter.pageMode
@@ -353,14 +396,27 @@ class WebPageDBFragment : BaseFragment() {
     }
 
     private fun loadCreatedDocument() {
-        doc?.body()?.append("<p><a tts-disable=\"true\" href=\"abc://reset_page\">*** Go to top of page ***</a></p>")
+        val doc = doc ?: return
+        // The document is rebuilt on every theme change; replace what earlier builds appended.
+        doc.getElementById(RESET_PAGE_ELEMENT_ID)?.remove()
+        doc.body().append("<p id=\"$RESET_PAGE_ELEMENT_ID\"><a tts-disable=\"true\" href=\"abc://reset_page\">*** Go to top of page ***</a></p>")
+        doc.getElementById(ReaderPagerScript.ELEMENT_ID)?.remove()
+        if (dataCenter.pageMode) {
+            // The pager travels inside the document, so it starts as soon as the chapter is parsed
+            // whichever way it was loaded (see ReaderPagerScript).
+            updateSafeInsets()
+            doc.body().appendElement("script")
+                .attr("id", ReaderPagerScript.ELEMENT_ID)
+                .attr("tts-disable", "true")
+                .appendChild(DataNode(ReaderPagerScript.build(invalidatePager())))
+        }
         webPageSettings.let {
             binding.readerWebView.loadDataWithBaseURL(
-                if (it.filePath != null) "$FILE_PROTOCOL${it.filePath}" else doc?.location(),
-                doc?.outerHtml() ?: "",
+                if (it.filePath != null) "$FILE_PROTOCOL${it.filePath}" else doc.location(),
+                doc.outerHtml(),
                 "text/html", "UTF-8", null
             )
-            if (it.metadata.containsKey(Constants.MetaDataKeys.SCROLL_POSITION)) {
+            if (!dataCenter.pageMode && it.metadata.containsKey(Constants.MetaDataKeys.SCROLL_POSITION)) {
                 binding.readerWebView.scrollTo(
                     0, (it.metadata[Constants.MetaDataKeys.SCROLL_POSITION]
                             )!!.toInt()
@@ -483,12 +539,16 @@ class WebPageDBFragment : BaseFragment() {
         if (dataCenter.pageMode) {
             // The zoom change reflows the columns; re-count the pages once layout settles.
             binding.readerWebView.postDelayed({
-                if (isAdded) binding.readerWebView.evaluateJavascript("window.__nlPager && window.__nlPager.relayout();", null)
+                if (view != null) binding.readerWebView.evaluateJavascript("window.__nlPager && window.__nlPager.relayout();", null)
             }, 150)
         }
     }
 
     fun getUrl() = webPage.url
+
+    /** The chapter this fragment shows, or null before its arguments have been read. */
+    val chapterUrl: String?
+        get() = if (this::webPage.isInitialized) webPage.url else null
 
     private fun getUrlDomain(url: String? = getUrl()): String? {
         return url?.let { url.toHttpUrlOrNull()?.topPrivateDomain() }
@@ -497,6 +557,7 @@ class WebPageDBFragment : BaseFragment() {
     fun goBack() {
         webPageSettings = history.last()
         history.remove(webPageSettings)
+        restorePagePosition()
         loadData()
     }
 
@@ -577,6 +638,7 @@ class WebPageDBFragment : BaseFragment() {
                 if (it.href == url || (tempWebPageSettings.redirectedUrl != null && tempWebPageSettings.redirectedUrl == url)) {
                     history.add(tempWebPageSettings)
                     webPageSettings = tempWebPageSettings
+                    restorePagePosition()
                     loadData()
                     return@checkUrl true
                 }
@@ -589,6 +651,8 @@ class WebPageDBFragment : BaseFragment() {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onReaderSettingsChanged(event: ReaderSettingsEvent) {
+        // Without a view the WebView is gone; the next view loads with the new settings anyway.
+        if (view == null) return
         when (event.setting) {
             ReaderSettingsEvent.NIGHT_MODE -> {
                 applyTheme()
@@ -602,7 +666,6 @@ class WebPageDBFragment : BaseFragment() {
             ReaderSettingsEvent.PAGE_MODE -> {
                 binding.readerWebView.settings.javaScriptEnabled = isJavascriptRequired()
                 binding.swipeRefreshLayout.isEnabled = !dataCenter.pageMode
-                currentPageIndex = 0
                 loadData()
             }
             ReaderSettingsEvent.TEXT_SIZE -> {
@@ -624,35 +687,65 @@ class WebPageDBFragment : BaseFragment() {
     private fun isJavascriptRequired(): Boolean =
         !dataCenter.javascriptDisabled || dataCenter.readerMode || dataCenter.pageMode
 
-    /** Wraps the loaded chapter into screen-sized pages and restores the last read page. */
-    private fun applyPageMode(view: WebView?) {
-        val webView = view ?: return
-        val savedPage = pendingStartPage
-            ?: webPageSettings.metadata[Constants.MetaDataKeys.PAGE_INDEX]?.toIntOrNull()
-            ?: 0
-        pendingStartPage = null
-        // The reader runs edge-to-edge in immersive mode, so pad the page past the display cutout
-        // (front camera) and the navigation bar. Only the part of each inset that actually overlaps
-        // the WebView counts: when the bars are visible and the layout already sits between them,
-        // the overlap is zero and no padding is added. Insets are device px, the page uses CSS px.
-        // Read metrics from the WebView, not the fragment, so this never depends on attachment.
-        val density = webView.resources.displayMetrics.density
-        val insets = ViewCompat.getRootWindowInsets(webView)
-        val insetTop = insets?.getInsets(WindowInsetsCompat.Type.displayCutout() or WindowInsetsCompat.Type.statusBars())?.top ?: 0
-        val insetBottom = insets?.getInsets(WindowInsetsCompat.Type.navigationBars())?.bottom ?: 0
-        val location = IntArray(2).also { webView.getLocationOnScreen(it) }
-        val windowHeight = activity?.window?.decorView?.height ?: (location[1] + webView.height)
-        val safeTop = (insetTop - location[1]).coerceAtLeast(0)
-        val safeBottom = ((location[1] + webView.height) - (windowHeight - insetBottom)).coerceAtLeast(0)
-        webView.scrollTo(0, 0)
-        webView.evaluateJavascript(
-            ReaderPagerScript.build(savedPage, (safeTop / density).toInt(), (safeBottom / density).toInt()),
-            null
-        )
+    /** Reopens at the page remembered in the chapter settings now in use. */
+    private fun restorePagePosition() {
+        currentPageIndex = webPageSettings.metadata[Constants.MetaDataKeys.PAGE_INDEX]?.toIntOrNull() ?: 0
+        totalPageCount = 0
+    }
+
+    /** Starts a new document generation and returns it; calls from older documents are ignored. */
+    private fun invalidatePager(): Int = synchronized(pagerLock) {
+        pagerReadyGeneration = -1
+        ++pagerGeneration
+    }
+
+    /**
+     * The reader runs edge-to-edge in immersive mode, so the pages are padded past the display
+     * cutout (front camera) and the navigation bar. Only the part of each inset that overlaps this
+     * chapter counts: when the bars are visible and the layout already sits between them, nothing
+     * is added. Measured on the fragment's root view, which the chapter pager lays out even while
+     * the WebView is hidden behind the loading indicator. Insets are device px, pages use CSS px.
+     */
+    private fun updateSafeInsets() {
+        val root = view ?: return
+        if (root.height == 0) return
+        val insets = ViewCompat.getRootWindowInsets(root) ?: return
+        val density = root.resources.displayMetrics.density
+        val insetTop = insets.getInsets(WindowInsetsCompat.Type.displayCutout() or WindowInsetsCompat.Type.statusBars()).top
+        val insetBottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+        val location = IntArray(2).also { root.getLocationOnScreen(it) }
+        val windowHeight = activity?.window?.decorView?.height ?: (location[1] + root.height)
+        safeInsetTopCss = ((insetTop - location[1]).coerceAtLeast(0) / density).toInt()
+        safeInsetBottomCss = (((location[1] + root.height) - (windowHeight - insetBottom)).coerceAtLeast(0) / density).toInt()
+    }
+
+    /** Re-measures the insets after a layout change and moves a running pager's margins with them. */
+    private fun refreshSafeInsets() {
+        val top = safeInsetTopCss
+        val bottom = safeInsetBottomCss
+        updateSafeInsets()
+        if (!dataCenter.pageMode || view == null || (top == safeInsetTopCss && bottom == safeInsetBottomCss)) return
+        binding.readerWebView.evaluateJavascript("window.__nlPager && window.__nlPager.setInsets($safeInsetTopCss, $safeInsetBottomCss);", null)
+    }
+
+    /**
+     * Asked by the pager when it starts. Returns "page,insetTop,insetBottom": the page to open at
+     * (a page the reader asked for while the chapter was loading, else the remembered one; -1 is
+     * the last page) and the room in CSS px to leave for the system bars.
+     */
+    @JavascriptInterface
+    fun pagerInit(generation: Int): String {
+        val page = synchronized(pagerLock) {
+            if (generation != pagerGeneration) return@synchronized currentPageIndex
+            pagerReadyGeneration = generation
+            (pendingStartPage ?: currentPageIndex).also { pendingStartPage = null }
+        }
+        return "$page,$safeInsetTopCss,$safeInsetBottomCss"
     }
 
     @JavascriptInterface
-    fun onPageChanged(page: Int, total: Int) {
+    fun onPageChanged(generation: Int, page: Int, total: Int) {
+        if (generation != pagerGeneration) return
         currentPageIndex = page
         totalPageCount = total
         publishPageInfo()
@@ -664,33 +757,66 @@ class WebPageDBFragment : BaseFragment() {
     }
 
     /**
-     * Opens this chapter at [page] (0 = first, -1 = last) instead of the remembered page.
-     * Applies immediately if the chapter is already laid out, otherwise on the next layout.
+     * Opens this chapter at [page] (0 = first, -1 = last) instead of the remembered page: right
+     * away if its pager is running, otherwise as soon as the pager starts.
      */
     fun startAtPage(page: Int) {
-        pendingStartPage = page
-        if (!dataCenter.pageMode || view == null) return
-        binding.readerWebView.evaluateJavascript(
-            "(window.__nlPager && (window.__nlPager.goTo($page, true), true)) || false"
-        ) { result -> if (result == "true") pendingStartPage = null }
-    }
-
-    @JavascriptInterface
-    fun onChapterBoundary(direction: String) {
-        val readerActivity = activity as? ReaderDBPagerActivity ?: return
-        readerActivity.runOnUiThread {
-            if (direction == "next") readerActivity.goToNextChapter()
-            else readerActivity.goToPreviousChapter(startAtEnd = true)
+        val running = synchronized(pagerLock) {
+            (pagerReadyGeneration == pagerGeneration && view != null).also { if (!it) pendingStartPage = page }
         }
+        if (running) binding.readerWebView.evaluateJavascript("window.__nlPager && window.__nlPager.goTo($page, true);", null)
+    }
+
+    /** The reader turned onto the last page of this chapter. */
+    @JavascriptInterface
+    fun onLastPageReached(generation: Int) {
+        if (generation != pagerGeneration) return
+        val readerActivity = activity as? ReaderDBPagerActivity ?: return
+        readerActivity.runOnUiThread { readerActivity.onChapterFinished(this) }
     }
 
     @JavascriptInterface
-    fun onCenterTap() {
+    fun onChapterBoundary(generation: Int, direction: String) {
+        if (generation != pagerGeneration) return
         val readerActivity = activity as? ReaderDBPagerActivity ?: return
-        readerActivity.runOnUiThread { readerActivity.toggleOverlay() }
+        readerActivity.runOnUiThread { readerActivity.onChapterBoundary(this, forward = direction == "next") }
+    }
+
+    @JavascriptInterface
+    fun onCenterTap(generation: Int) {
+        if (generation != pagerGeneration) return
+        val readerActivity = activity as? ReaderDBPagerActivity ?: return
+        readerActivity.runOnUiThread { if (readerActivity.isCurrentChapter(this)) readerActivity.toggleOverlay() }
     }
 
     //endregion
+
+    /**
+     * Recreates this chapter's view, and with it a fresh WebView that reloads the chapter. Used
+     * when the WebView's renderer has died: the old WebView can no longer draw or run the pager,
+     * so it would sit frozen on screen ignoring every tap and swipe.
+     */
+    private fun rebuildView() {
+        if (!isAdded) return
+        // Renderers are often reclaimed while the app is in the background, when no transaction
+        // can run; the rebuild then waits for the reader to come back.
+        if (isStateSaved) {
+            rebuildOnResume = true
+            return
+        }
+        // Two transactions: a detach and attach in the same one cancel out and keep the dead view.
+        parentFragmentManager.beginTransaction().detach(this).commitNowAllowingStateLoss()
+        parentFragmentManager.beginTransaction().attach(this).commitNowAllowingStateLoss()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (rebuildOnResume) {
+            rebuildOnResume = false
+            // Not from inside the lifecycle dispatch that is resuming this fragment.
+            Handler(Looper.getMainLooper()).post { rebuildView() }
+        }
+    }
 
     override fun onPause() {
         super.onPause()
@@ -703,6 +829,18 @@ class WebPageDBFragment : BaseFragment() {
                 }
                 dbHelper.updateWebPageSettings(it)
             }
+    }
+
+    override fun onDestroyView() {
+        // Release the page in the WebView renderer now rather than whenever the WebView is garbage
+        // collected: every chapter paged past would otherwise stay loaded in the shared renderer.
+        if (job?.isActive == true) job?.cancel()
+        binding.readerWebView.apply {
+            stopLoading()
+            (parent as? ViewGroup)?.removeView(this)
+            destroy()
+        }
+        super.onDestroyView()
     }
 
     override fun onDestroy() {
