@@ -2,7 +2,9 @@ package io.github.gmathi.novellibrary.service.download
 
 import android.content.Context
 import android.net.Uri
+import android.widget.Toast
 import com.google.gson.Gson
+import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
 import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.model.database.Download
@@ -11,13 +13,18 @@ import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
 import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.other.EventType
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.lang.showToastWithMain
 import io.github.gmathi.novellibrary.util.network.getFileName
+import io.github.gmathi.novellibrary.util.storage.StorageLocationResolver
+import io.github.gmathi.novellibrary.util.storage.StorageMigrator
 import org.jsoup.nodes.Document
+import uy.kohesive.injekt.injectLazy
 import java.io.File
 
 
@@ -45,15 +52,29 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
     private lateinit var novelDir: File
     private val networkHelper: NetworkHelper = NetworkHelper(context)
+    private val dataCenter: DataCenter by injectLazy()
+
+    /**
+     * True when the active Download_Storage_Location was a configured SD volume that was
+     * unavailable at download time, so the download fell back to internal storage.
+     */
+    @Volatile
+    var didFallbackToInternal: Boolean = false
+        private set
 
     override fun run() {
         try {
             if (isNetworkDown()) throw InterruptedException(Constants.NO_NETWORK)
+            if (isMigrationInProgress()) throw InterruptedException(Constants.MIGRATION_IN_PROGRESS)
 
             val webPageSettings = dbHelper.getWebPageSettings(download.webPageUrl)!!
             val webPage = dbHelper.getWebPage(download.webPageUrl)!!
 
             novelDir = Utils.getNovelDir(context, download.novelName, download.novelId)
+
+            // Req 3 AC 4 / Req 7 AC 2: if the configured SD volume was unavailable, the download
+            // is silently rooted under internal storage by the resolver — surface that to the user.
+            surfaceStorageFallbackIfNeeded()
 
             dbHelper.updateDownloadStatusWebPageUrl(Download.STATUS_RUNNING, download.webPageUrl)
             download.status = Download.STATUS_RUNNING
@@ -175,6 +196,39 @@ class DownloadWebPageThread(val context: Context, val download: Download, val db
 
     private fun onNoNetwork() {
         Logs.info(TAG, Constants.NO_NETWORK)
+    }
+
+    /**
+     * True while a storage location migration is running. Downloads must not start while
+     * files are being relocated, since the active [novelDir] root could change out from
+     * under an in-flight download (Requirement 5.3).
+     */
+    private fun isMigrationInProgress(): Boolean {
+        if (StorageMigrator.isMigrationInProgress) {
+            Logs.info(TAG, Constants.MIGRATION_IN_PROGRESS)
+            return true
+        }
+        return false
+    }
+
+    /**
+     * Detects whether the active download root fell back to internal storage because the
+     * configured SD card volume was unavailable, and if so surfaces a user-visible notice.
+     *
+     * The Stored_File_Path persisted later in [downloadChapter] is the written file's absolute
+     * path under whichever root was actually used (internal on fallback) — that behavior is
+     * unchanged; this only adds the notice. (Req 3 AC 4, Req 7 AC 2.)
+     */
+    private fun surfaceStorageFallbackIfNeeded() {
+        val resolved = StorageLocationResolver.resolveWritableRoot(context, dataCenter)
+        if (resolved.didFallback) {
+            didFallbackToInternal = true
+            Logs.warning(TAG, "Configured SD storage unavailable for ${download.novelName}; saved to internal storage")
+            context.showToastWithMain(
+                context.getString(R.string.download_storage_fallback_to_internal),
+                Toast.LENGTH_LONG
+            )
+        }
     }
 
     /**

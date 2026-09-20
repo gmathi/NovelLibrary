@@ -15,6 +15,7 @@ import io.github.gmathi.novellibrary.network.PREF_DOH_CLOUDFLARE
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.DEFAULT_FONT_PATH
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
+import io.github.gmathi.novellibrary.util.storage.StorageLocation
 import io.github.gmathi.novellibrary.util.system.getJson
 import io.github.gmathi.novellibrary.util.system.putJson
 import java.io.File
@@ -78,6 +79,9 @@ class DataCenter(context: Context) {
         private const val AUTO_SCROLL_INTERVAL = "autoScrollInterval"
         private const val ENABLE_AUTO_SCROLL = "enableAutoScroll"
         private const val USE_NU_API_FETCH = "useNUAPIFetch"
+
+        //Download storage location
+        private const val DOWNLOAD_STORAGE_LOCATION = "downloadStorageLocation"
 
         //Backup
         private const val LAST_LOCAL_BACKUP_TIMESTAMP = "lastLocalBackupTimestamp"
@@ -552,6 +556,15 @@ class DataCenter(context: Context) {
     var useNUAPIFetch: Boolean
         get() = prefs.getBoolean(USE_NU_API_FETCH, true)
         set(value) = prefs.edit().putBoolean(USE_NU_API_FETCH, value).apply()
+
+    /**
+     * The user-selected root under which downloaded chapters are stored.
+     * Either [StorageLocation.INTERNAL_TOKEN] ("internal") or a serialized SD volume
+     * ("sd:<volumeId>"). Defaults to internal storage when unset.
+     */
+    var downloadStorageLocation: String
+        get() = prefs.getString(DOWNLOAD_STORAGE_LOCATION, StorageLocation.INTERNAL_TOKEN)!!
+        set(value) = prefs.edit().putString(DOWNLOAD_STORAGE_LOCATION, value).apply()
 
     var useAiTts: Boolean
         get() = prefs.getBoolean("useAiTts", false)

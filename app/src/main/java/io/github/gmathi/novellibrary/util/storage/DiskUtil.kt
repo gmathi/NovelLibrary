@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Environment
+import android.os.StatFs
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.os.EnvironmentCompat
@@ -49,6 +50,14 @@ object DiskUtil {
 
         return directories
     }
+
+    /** Usable free space in bytes for the filesystem backing [dir]. 0 on error. */
+    fun getAvailableSpace(dir: File): Long =
+        try { StatFs(dir.path).availableBytes } catch (e: Exception) { 0L }
+
+    /** Total space in bytes for the filesystem backing [dir]. 0 on error. */
+    fun getTotalSpace(dir: File): Long =
+        try { StatFs(dir.path).totalBytes } catch (e: Exception) { 0L }
 
     /**
      * Scans the given file so that it can be shown in gallery apps, for example.

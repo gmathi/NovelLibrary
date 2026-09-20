@@ -336,6 +336,7 @@ open class HtmlCleaner protected constructor() {
                 ),
 
                 // Optimized: Legacy selectors (reduced redundancy)
+                SelectorQuery("div.novel-tts-content > div p, div.novel-tts-content > div br"),
                 SelectorQuery("div.chapter-content"),
                 SelectorQuery("div.entry-content"),
                 SelectorQuery("div.elementor-widget-theme-post-content", appendTitleHeader = false),
@@ -364,7 +365,7 @@ open class HtmlCleaner protected constructor() {
                 SelectorQuery("article"),
                 SelectorQuery("div.content-inner"),
                 SelectorQuery("#article", appendTitleHeader = false),
-                SelectorQuery("#read-novel", appendTitleHeader = false),
+                SelectorQuery("#read-novel", appendTitleHeader = false)
             )
         }
 

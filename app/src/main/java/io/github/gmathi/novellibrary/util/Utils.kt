@@ -26,12 +26,14 @@ import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.database.DBHelper
+import io.github.gmathi.novellibrary.database.getAllWebPageSettings
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.CompiledTTSFilter
 import io.github.gmathi.novellibrary.model.other.TTSFilterTarget
 import io.github.gmathi.novellibrary.model.other.TTSFilterType
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.lang.writableFileName
+import io.github.gmathi.novellibrary.util.storage.StorageLocationResolver
 import io.github.gmathi.novellibrary.util.storage.createFileIfNotExists
 import io.github.gmathi.novellibrary.util.storage.getOrCreateDirectory
 import io.github.gmathi.novellibrary.util.storage.getOrCreateFile
@@ -63,14 +65,15 @@ object Utils {
     fun getImage(image: ByteArray): Bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
 
     fun getNovelDir(context: Context, novelName: String, novelId: Long): File {
-        val path = context.filesDir
+        val resolved = StorageLocationResolver.resolveWritableRoot(context, dataCenter)
+        val path = resolved.root // context.filesDir OR <sdAppDir>
         var writableNovelName = novelName.writableFileName()
         if (writableNovelName.isEmpty()) {
             writableNovelName = UUID.randomUUID().toString().writableFileName()
         }
         val dirName = "$writableNovelName-$novelId"
         val novelDir = File(path, dirName)
-        if (!novelDir.exists()) novelDir.mkdir()
+        if (!novelDir.exists()) novelDir.mkdirs()
         return novelDir
     }
 
@@ -94,14 +97,19 @@ object Utils {
     }
 
     fun deleteDownloadedChapters(context: Context, novel: Novel) {
-        //This is the old download data
-        val hostDir = getHostDir(context, novel.url)
-        val novelDir = getNovelDir(hostDir, novel.name)
-        novelDir.deleteRecursively()
+        // 1) Delete by resolved current Novel_Dir (active location, incl. SD)
+        getNovelDir(context, novel.name, novel.id).deleteRecursively()
 
-        //This is the new folder structure
-        val newNovelDir = getNovelDir(context, novel.name, novel.id)
-        newNovelDir.deleteRecursively()
+        // 2) Delete by every stored file_path (covers pre-migration locations)
+        dbHelper.getAllWebPageSettings(novel.id)
+            .mapNotNull { it.filePath }
+            .mapNotNull { File(it).parentFile } // the Novel_Dir containing the chapter
+            .toSet()
+            .forEach { it.deleteRecursively() }
+
+        // 3) Legacy layout cleanup (unchanged)
+        @Suppress("DEPRECATION")
+        getNovelDir(getHostDir(context, novel.url), novel.name).deleteRecursively()
     }
 
     fun broadcastNovelDelete(context: Context, novel: Novel) {

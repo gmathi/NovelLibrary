@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/colorBackground"
+    android:minHeight="70dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_margin="@dimen/default_padding_list_item"
+        android:baselineAligned="false"
+        android:minHeight="54dp"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="@dimen/default_margin"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:ellipsize="end"
+                android:gravity="center_vertical|start"
+                android:maxLines="2"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textIsSelectable="false"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                tools:text="Internal storage" />
+
+            <TextView
+                android:id="@+id/subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:gravity="center_vertical|start"
+                android:maxLines="2"
+                android:textIsSelectable="false"
+                android:textSize="15sp"
+                tools:text="12.3 GB free of 64.0 GB" />
+
+            <TextView
+                android:id="@+id/note"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:gravity="center_vertical|start"
+                android:maxLines="2"
+                android:textColor="@color/DarkOrange"
+                android:textIsSelectable="false"
+                android:textSize="13sp"
+                android:textStyle="italic"
+                android:visibility="gone"
+                tools:text="No removable storage detected"
+                tools:visibility="visible" />
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/activeMarker"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center_vertical|end"
+            android:contentDescription="@string/storage_location_active"
+            android:visibility="invisible"
+            app:srcCompat="@drawable/ic_check_circle_white_vector"
+            app:tint="@color/green" />
+
+        <ImageView
+            android:id="@+id/unavailableMarker"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center_vertical|end"
+            android:contentDescription="@string/storage_location_unavailable"
+            android:visibility="gone"
+            app:srcCompat="@drawable/ic_warning_white_vector"
+            app:tint="@color/OrangeRed" />
+
+    </LinearLayout>
+
+</FrameLayout>

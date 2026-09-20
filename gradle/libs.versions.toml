@@ -87,6 +87,8 @@ leakcanary = "2.14"
 
 # Testing
 junit = "4.13.2"
+junitJupiter = "5.11.4"
+jqwik = "1.9.3"
 androidxJunit = "1.2.1"
 espresso = "3.6.1"
 desugarJdkLibs = "2.1.4"
