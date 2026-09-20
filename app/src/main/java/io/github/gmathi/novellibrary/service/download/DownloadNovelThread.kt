@@ -10,6 +10,7 @@ import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.logging.Logs
+import io.github.gmathi.novellibrary.util.storage.StorageMigrator
 
 
 /**
@@ -56,6 +57,13 @@ class DownloadNovelThread(
 
                 if (!NetworkHelper(context).isConnectedToNetwork())
                     throw InterruptedException(Constants.NO_NETWORK)
+
+                // Requirement 5.3: don't start a new chapter download while a storage migration
+                // is relocating files — defer the whole queue until migration finishes.
+                if (StorageMigrator.isMigrationInProgress) {
+                    Logs.info(TAG, Constants.MIGRATION_IN_PROGRESS)
+                    throw InterruptedException(Constants.MIGRATION_IN_PROGRESS)
+                }
 
                 // Run the chapter download directly on this thread (no pool needed)
                 val webPageThread = DownloadWebPageThread(context, download, dbHelper, this@DownloadNovelThread)

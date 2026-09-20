@@ -81,6 +81,7 @@ object Constants {
     //endregion
 
     const val NO_NETWORK = "No Network"
+    const val MIGRATION_IN_PROGRESS = "Storage migration in progress"
     const val CHAPTER_PAGE_SIZE = 15
     const val DOWNLOADING = "Downloading"
 

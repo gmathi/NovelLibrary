@@ -116,6 +116,7 @@
         <item>@string/dns_over_https</item>
         <item>@string/nu_api_fetch</item>
         <item>@string/auto_app_update</item>
+        <item>@string/download_storage_location</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
@@ -130,6 +131,7 @@
         <item>@string/dns_over_https_description</item>
         <item>@string/nu_api_fetch_description</item>
         <item>@string/auto_app_update_description</item>
+        <item>@string/download_storage_location_description</item>
     </string-array>
 
     <string-array name="dns_over_https_list" translatable="false">
@@ -408,6 +410,23 @@
     <string name="novel_not_in_library_dialog_content">Novel needs to be added to library, before chapters can be downloaded individually!</string>
     <string name="download_all_chapters_dialog_content">Manage novel downloads using download manager. Download all chapters?</string>
     <string name="background_chapter_downloads">Background chapter downloads started</string>
+    <string name="download_storage_fallback_to_internal">SD card unavailable — download saved to internal storage</string>
+
+    <!-- Storage location settings -->
+    <string name="download_storage_location">Download storage location</string>
+    <string name="download_storage_location_description">Choose where downloaded chapters are stored</string>
+    <string name="storage_location_active">Active location</string>
+    <string name="storage_location_unavailable">Unavailable</string>
+    <string name="storage_location_unavailable_label">Unavailable</string>
+    <string name="storage_no_removable_storage_detected">No removable storage detected</string>
+    <string name="storage_free_of_total">%1$s free of %2$s</string>
+    <string name="storage_change_confirm_title">Change download location?</string>
+    <string name="storage_change_confirm_message">Existing downloads will be moved to %1$s. This may take a while depending on how much you have downloaded.</string>
+    <string name="storage_migration_progress_title">Moving downloads…</string>
+    <string name="storage_migration_progress_message">Moving downloads… %1$d of %2$d</string>
+    <string name="storage_migration_success">Downloads moved to %1$s</string>
+    <string name="storage_migration_insufficient_space">Not enough free space at the destination. Needed %1$s, only %2$s available.</string>
+    <string name="storage_migration_partial_failure">Some files could not be moved (%1$d moved, %2$d failed). Unmoved chapters remain accessible at the previous location.</string>
 
     <!-- v0.5 Strings -->
 

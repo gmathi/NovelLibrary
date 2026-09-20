@@ -30,6 +30,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
     private val handler = Handler(Looper.getMainLooper())
     private val networkHelper: NetworkHelper by injectLazy()
+    private val webViewFetcher = WebViewFetcher(context)
 
     // Cache for tracking bypass attempts to avoid repeated failures
     private val bypassAttempts = mutableMapOf<String, Long>()
@@ -48,6 +49,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
         Log.d(TAG, "intercept: ${originalRequest.url}")
+        Log.d(TAG, "intercept: cookies being sent: ${networkHelper.cookieManager.get(originalRequest.url).map { "${it.name}=${it.value.take(20)}" }}")
 
         if (!WebViewUtil.supportsWebView(context)) {
             launchUI {
@@ -90,7 +92,31 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
                 // Ensure the cookie is also in the AndroidCookieJar so OkHttp sends it
                 syncCloudflareCookiesToJar(originalRequest.url)
                 Log.d(TAG, "Retrying with existing clearance for $host")
-                return chain.proceed(originalRequest)
+                val retryResponse = chain.proceed(originalRequest)
+                Log.d(TAG, "Retry with existing clearance result: code=${retryResponse.code}, url=${originalRequest.url}")
+                if (isCloudflareChallenge(retryResponse)) {
+                    Log.w(TAG, "Retry with existing clearance STILL got Cloudflare challenge (TLS fingerprint mismatch likely). Falling back to WebView fetch for $host")
+                    retryResponse.close()
+                    // TLS fingerprint mismatch: the cf_clearance cookie was obtained in
+                    // the WebView (Chromium BoringSSL) but OkHttp uses Java's SSLSocket
+                    // which has a different fingerprint. Cloudflare rejects the cookie.
+                    // Solution: fetch the actual URL via WebView which shares the same
+                    // TLS fingerprint as the manual resolution WebView.
+                    try {
+                        val webViewResponse = webViewFetcher.fetch(originalRequest)
+                        Log.d(TAG, "WebView fetch succeeded for $host (${originalRequest.url})")
+                        recordBypassSuccess(host)
+                        return webViewResponse
+                    } catch (e: Exception) {
+                        Log.e(TAG, "WebView fetch also failed for $host: ${e.message}")
+                        // Clear stale cookies since neither approach worked
+                        networkHelper.cloudflareCookieManager.clearCookies(originalRequest.url)
+                        networkHelper.cookieManager.remove(originalRequest.url, COOKIE_NAMES, 0)
+                        // Fall through to attempt headless WebView bypass
+                    }
+                } else {
+                    return retryResponse
+                }
             }
 
             // For non-HTML resource requests (images, fonts, etc.), don't attempt a WebView
@@ -156,17 +182,25 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
         // Newer Cloudflare challenges return 403 with cf-mitigated: challenge
         if (response.code == 403) {
             val cfMitigated = response.header("cf-mitigated")
+            Log.d(TAG, "isCloudflareChallenge: 403 response, cf-mitigated=$cfMitigated, server=${response.header("Server")}, url=${response.request.url}")
             if (cfMitigated?.contains("challenge", ignoreCase = true) == true) return true
         }
 
-        if (response.code != 503) return false
-        
-        val server = response.header("Server")?.lowercase()
-        if (server in SERVER_CHECK) return true
+        if (response.code != 503 && response.code != 403) {
+            Log.d(TAG, "isCloudflareChallenge: response code=${response.code}, NOT a challenge")
+            return false
+        }
+
+        if (response.code == 503) {
+            val server = response.header("Server")?.lowercase()
+            Log.d(TAG, "isCloudflareChallenge: 503 response, server=$server, url=${response.request.url}")
+            if (server in SERVER_CHECK) return true
+        }
         
         // Additional checks for Cloudflare presence
         val cfRay = response.header("CF-RAY")
         val cfCacheStatus = response.header("CF-Cache-Status")
+        Log.d(TAG, "isCloudflareChallenge: CF-RAY=$cfRay, CF-Cache-Status=$cfCacheStatus")
         
         return cfRay != null || cfCacheStatus != null
     }

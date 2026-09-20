@@ -25,6 +25,7 @@ import io.github.gmathi.novellibrary.util.view.extensions.applyFont
 import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.util.system.startBackupSettingsActivity
 import io.github.gmathi.novellibrary.util.system.startLanguagesActivity
+import io.github.gmathi.novellibrary.util.system.startStorageSettingsActivity
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import java.util.*
 
@@ -43,6 +44,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         private const val POSITION_DNS_OVER_HTTPS = 7
         private const val POSITION_NU_API_FETCH = 8
         private const val POSITION_AUTO_APP_UPDATE = 9
+        private const val POSITION_DOWNLOAD_STORAGE = 10
 
     }
 
@@ -110,7 +112,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.loadLibraryScreen = value }
             }
 
-            POSITION_BACKUP_AND_RESTORE, POSITION_LANGUAGES, POSITION_DNS_OVER_HTTPS -> {
+            POSITION_BACKUP_AND_RESTORE, POSITION_LANGUAGES, POSITION_DNS_OVER_HTTPS, POSITION_DOWNLOAD_STORAGE -> {
                 itemBinding.widgetChevron.visibility = View.VISIBLE
             }
 
@@ -175,6 +177,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
             getString(R.string.backup_and_restore) -> startBackupSettingsActivity()
             getString(R.string.change_language) -> startLanguagesActivity(true)
             getString(R.string.dns_over_https) -> showDnsSelection()
+            getString(R.string.download_storage_location) -> startStorageSettingsActivity()
         }
     }
 

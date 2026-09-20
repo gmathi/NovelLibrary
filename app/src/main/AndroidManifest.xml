@@ -170,6 +170,11 @@
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
+            android:name=".activity.settings.StorageSettingsActivity"
+            android:label="@string/download_storage_location"
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide" />
+        <activity
             android:name=".activity.settings.BackupSettingsActivity"
             android:label="@string/title_activity_backup_n_restore_settings"
             android:screenOrientation="fullUser"
