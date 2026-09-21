@@ -10,7 +10,9 @@ import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.system.DataAccessor
+import io.github.gmathi.novellibrary.util.view.applyBottomSystemWindowInsetsPadding
 import io.github.gmathi.novellibrary.util.view.applyTopSystemWindowInsetsPadding
+import io.github.gmathi.novellibrary.util.view.findScrollableTarget
 import uy.kohesive.injekt.injectLazy
 
 
@@ -26,6 +28,10 @@ open class BaseFragment : Fragment(), DataAccessor {
         super.onViewCreated(view, savedInstanceState)
         // Automatically apply window insets to AppBarLayout
         applyWindowInsetsToAppBar(view)
+        // Keep content above the Android navigation bar (bottom insets).
+        // Fragments are hosted in a DrawerLayout activity that skips bottom
+        // insets, so they must apply them here.
+        applyBottomWindowInsets(view)
     }
 
     private fun applyWindowInsetsToAppBar(view: View) {
@@ -36,6 +42,14 @@ open class BaseFragment : Fragment(), DataAccessor {
                 applyWindowInsetsToAppBar(view.getChildAt(i))
             }
         }
+    }
+
+    private fun applyBottomWindowInsets(view: View) {
+        // Only pad a discovered scrollable list (with clipToPadding disabled).
+        // Padding the whole fragment root here would push non-scrolling content
+        // up unnecessarily, and Compose fragments manage their own insets.
+        val target = (view as? ViewGroup)?.findScrollableTarget()
+        target?.applyBottomSystemWindowInsetsPadding()
     }
 
 }

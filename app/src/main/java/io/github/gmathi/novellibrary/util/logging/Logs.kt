@@ -29,6 +29,7 @@ object Logs {
     fun warning(tag: String?, message: String?, throwable: Throwable) {
         if (BuildConfig.DEBUG) {
             Log.w(tag, message, throwable)
+
         } else {
             logToFirebase("W", tag, message, throwable)
         }
