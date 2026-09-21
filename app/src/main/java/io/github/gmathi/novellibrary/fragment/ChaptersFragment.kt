@@ -137,7 +137,7 @@ class ChaptersFragment : BaseFragment(),
     override fun onItemClick(item: WebPage, position: Int) {
         if (novel.id != -1L) {
             // Page mode marks a chapter read once its last page is reached, not when it is opened.
-            updateNovelBookmark(novel, item, markRead = !(dataCenter.pageMode && dataCenter.readerMode))
+            updateNovelBookmark(novel, item, markRead = !dataCenter.isPageModeActiveForNovel(novel.id))
             startReaderDBPagerActivity(novel, translatorSourceName)
         } else
             startWebViewActivity(item.url)

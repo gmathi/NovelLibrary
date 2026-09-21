@@ -222,10 +222,10 @@ class WebPageDBFragment : BaseFragment() {
     private fun setWebView() {
         binding.readerWebView.setDefaultSettings()
         binding.readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
-        binding.readerWebView.settings.javaScriptEnabled = isJavascriptRequired()
+        binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.getReaderModeForNovel(novelId)
         binding.readerWebView.settings.userAgentString = HostNames.USER_AGENT
         binding.readerWebView.setOnTouchListener { view, event ->
-            if (!dataCenter.pageMode) return@setOnTouchListener false
+            if (!pageModeActive) return@setOnTouchListener false
             if (event.actionMasked == MotionEvent.ACTION_DOWN) {
                 // Only the chapter on screen takes input. While the pager slides from one chapter
                 // to the next the outgoing one is still under the finger, and a swipe landing on it
@@ -249,7 +249,7 @@ class WebPageDBFragment : BaseFragment() {
                 }
 
                 if (url == "abc://reset_page") {
-                    if (dataCenter.pageMode) view?.evaluateJavascript("window.__nlPager && window.__nlPager.goTo(0);", null)
+                    if (pageModeActive) view?.evaluateJavascript("window.__nlPager && window.__nlPager.goTo(0);", null)
                     else view?.scrollTo(0, 0)
                     return true
                 }
@@ -305,7 +305,7 @@ class WebPageDBFragment : BaseFragment() {
                 }
 
                 // Page mode: the pager is part of the chapter document and starts on its own.
-                if (dataCenter.pageMode) return
+                if (pageModeActive) return
 
                 webPageSettings.let {
                     if (it.metadata.containsKey(Constants.MetaDataKeys.SCROLL_POSITION)) {
@@ -328,7 +328,7 @@ class WebPageDBFragment : BaseFragment() {
         invalidatePager()
         // Pull-to-refresh intercepts any gesture with downward drift, which breaks page-mode
         // swipes; keep it off in page mode on every load path (file and web).
-        binding.swipeRefreshLayout.isEnabled = !dataCenter.pageMode
+        binding.swipeRefreshLayout.isEnabled = !pageModeActive
 
         binding.readerWebView.apply {
             stopLoading()
@@ -383,7 +383,7 @@ class WebPageDBFragment : BaseFragment() {
 
     private fun loadFromWeb() {
         // Pull-to-refresh conflicts with page-mode gestures.
-        binding.swipeRefreshLayout.isEnabled = !dataCenter.pageMode
+        binding.swipeRefreshLayout.isEnabled = !pageModeActive
 
         //Check Reader Mode
         if (!dataCenter.getReaderModeForNovel(novelId)) {
@@ -403,7 +403,7 @@ class WebPageDBFragment : BaseFragment() {
         doc.getElementById(RESET_PAGE_ELEMENT_ID)?.remove()
         doc.body().append("<p id=\"$RESET_PAGE_ELEMENT_ID\"><a tts-disable=\"true\" href=\"abc://reset_page\">*** Go to top of page ***</a></p>")
         doc.getElementById(ReaderPagerScript.ELEMENT_ID)?.remove()
-        if (dataCenter.pageMode) {
+        if (pageModeActive) {
             // The pager travels inside the document, so it starts as soon as the chapter is parsed
             // whichever way it was loaded (see ReaderPagerScript).
             updateSafeInsets()
@@ -418,7 +418,7 @@ class WebPageDBFragment : BaseFragment() {
                 doc.outerHtml(),
                 "text/html", "UTF-8", null
             )
-            if (!dataCenter.pageMode && it.metadata.containsKey(Constants.MetaDataKeys.SCROLL_POSITION)) {
+            if (!pageModeActive && it.metadata.containsKey(Constants.MetaDataKeys.SCROLL_POSITION)) {
                 binding.readerWebView.scrollTo(
                     0, (it.metadata[Constants.MetaDataKeys.SCROLL_POSITION]
                             )!!.toInt()
@@ -538,7 +538,7 @@ class WebPageDBFragment : BaseFragment() {
     private fun changeTextSize() {
         val settings = binding.readerWebView.settings
         settings.textZoom = (dataCenter.getTextSizeForNovel(novelId) + 50) * 2
-        if (dataCenter.pageMode) {
+        if (pageModeActive) {
             // The zoom change reflows the columns; re-count the pages once layout settles.
             binding.readerWebView.postDelayed({
                 if (view != null) binding.readerWebView.evaluateJavascript("window.__nlPager && window.__nlPager.relayout();", null)
@@ -666,8 +666,8 @@ class WebPageDBFragment : BaseFragment() {
                 loadData()
             }
             ReaderSettingsEvent.PAGE_MODE -> {
-                binding.readerWebView.settings.javaScriptEnabled = isJavascriptRequired()
-                binding.swipeRefreshLayout.isEnabled = !dataCenter.pageMode
+                binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.getReaderModeForNovel(novelId)
+                binding.swipeRefreshLayout.isEnabled = !pageModeActive
                 loadData()
             }
             ReaderSettingsEvent.TEXT_SIZE -> {
@@ -686,8 +686,12 @@ class WebPageDBFragment : BaseFragment() {
     //region Page mode
 
     /** JavaScript is needed for reader mode's injected scripts and for the page-mode pager. */
-    private fun isJavascriptRequired(): Boolean =
-        !dataCenter.javascriptDisabled || dataCenter.readerMode || dataCenter.pageMode
+    /**
+     * Page Mode paginates the cleaned chapter, so it only applies while this novel is in Reader
+     * Mode. The preference itself is app-wide; whether it applies depends on the novel.
+     */
+    private val pageModeActive: Boolean
+        get() = dataCenter.isPageModeActiveForNovel(novelId)
 
     /** Reopens at the page remembered in the chapter settings now in use. */
     private fun restorePagePosition() {
@@ -726,7 +730,7 @@ class WebPageDBFragment : BaseFragment() {
         val top = safeInsetTopCss
         val bottom = safeInsetBottomCss
         updateSafeInsets()
-        if (!dataCenter.pageMode || view == null || (top == safeInsetTopCss && bottom == safeInsetBottomCss)) return
+        if (!pageModeActive || view == null || (top == safeInsetTopCss && bottom == safeInsetBottomCss)) return
         binding.readerWebView.evaluateJavascript("window.__nlPager && window.__nlPager.setInsets($safeInsetTopCss, $safeInsetBottomCss);", null)
     }
 
@@ -824,7 +828,7 @@ class WebPageDBFragment : BaseFragment() {
         super.onPause()
         if (this::webPageSettings.isInitialized)
             webPageSettings.let {
-                if (dataCenter.pageMode) {
+                if (pageModeActive) {
                     it.metadata[Constants.MetaDataKeys.PAGE_INDEX] = currentPageIndex.toString()
                 } else {
                     it.metadata[Constants.MetaDataKeys.SCROLL_POSITION] = binding.readerWebView.scrollY.toString()

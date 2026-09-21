@@ -115,7 +115,14 @@ class ReaderDBPagerActivity :
      * the pager keeps natural order there.
      */
     private val pagerReversed: Boolean
-        get() = dataCenter.japSwipe && !dataCenter.pageMode
+        get() = dataCenter.japSwipe && !isPageModeActive
+
+    /**
+     * Page Mode paginates the cleaned chapter, so it only applies while this novel is in Reader
+     * Mode. The preference itself is app-wide; whether it applies depends on the novel.
+     */
+    private val isPageModeActive: Boolean
+        get() = dataCenter.isPageModeActiveForNovel(novel.id)
 
     lateinit var binding: ActivityReaderPagerBinding
 
@@ -339,7 +346,7 @@ class ReaderDBPagerActivity :
      */
     private fun jumpWithinChapter(toEnd: Boolean) {
         val webView = currentWebView() ?: return
-        if (dataCenter.pageMode) {
+        if (isPageModeActive) {
             webView.evaluateJavascript("window.__nlPager && window.__nlPager.goTo(${if (toEnd) -1 else 0});", null)
         } else {
             val target = if (toEnd) (webView.contentHeight * webView.scale - webView.height).toInt().coerceAtLeast(0) else 0
@@ -376,7 +383,7 @@ class ReaderDBPagerActivity :
     private fun updateBookmark(webPage: WebPage) {
         // Scroll mode keeps the long-standing behaviour of marking a chapter read when it is
         // opened. Page mode marks it read when its last page is reached (markChapterFinished).
-        updateNovelBookmark(novel, webPage, markRead = !dataCenter.pageMode)
+        updateNovelBookmark(novel, webPage, markRead = !isPageModeActive)
     }
 
     @Suppress("DEPRECATION")
@@ -444,7 +451,7 @@ class ReaderDBPagerActivity :
             binding.viewPager,
             binding.viewPager.currentItem
         ) as WebPageDBFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
-        if (dataCenter.pageMode && dataCenter.enableVolumeScroll &&
+        if (isPageModeActive && dataCenter.enableVolumeScroll &&
             (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
         ) {
             // In page mode the volume keys turn pages instead of scrolling.
@@ -489,7 +496,7 @@ class ReaderDBPagerActivity :
             false
         else {
             // A link points at the start of a chapter, not at wherever it was last left.
-            if (dataCenter.pageMode) fragmentAt(index)?.startAtPage(0)
+            if (isPageModeActive) fragmentAt(index)?.startAtPage(0)
             binding.viewPager.currentItem = index
             updateBookmark(webPage)
             true

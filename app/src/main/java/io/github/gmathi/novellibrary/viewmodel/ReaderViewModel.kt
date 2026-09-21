@@ -99,9 +99,6 @@ class ReaderViewModel : ViewModel() {
 
     fun setReaderMode(enabled: Boolean) {
         dataCenter.setReaderModeForNovel(novelId, enabled)
-        // Page mode paginates the cleaned chapter; it has no effect on raw web pages, so leaving
-        // Reader Mode also leaves Page Mode (the fragments reload on READER_MODE and pick this up).
-        if (!enabled) dataCenter.pageMode = false
         _uiState.update {
             it.copy(
                 isReaderMode = enabled,
@@ -113,14 +110,11 @@ class ReaderViewModel : ViewModel() {
     }
 
     /** Page Mode only applies while Reader Mode is on; a stale preference is cleared here. */
-    private fun effectivePageMode(): Boolean {
-        if (dataCenter.pageMode && !dataCenter.readerMode) dataCenter.pageMode = false
-        return dataCenter.pageMode
-    }
+    private fun effectivePageMode(): Boolean = dataCenter.isPageModeActiveForNovel(novelId)
 
     fun setPageMode(enabled: Boolean) {
-        if (enabled && !dataCenter.readerMode) return
-        dataCenter.pageMode = enabled
+        if (enabled && !dataCenter.getReaderModeForNovel(novelId)) return
+        dataCenter.setPageModeForNovel(novelId, enabled)
         _uiState.update { it.copy(isPageMode = enabled) }
         EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.PAGE_MODE))
     }
@@ -144,8 +138,7 @@ class ReaderViewModel : ViewModel() {
     fun setJavascriptEnabled(enabled: Boolean) {
         dataCenter.javascriptDisabled = !enabled
         if (!enabled) dataCenter.setReaderModeForNovel(novelId, false)
-        val leavingPageMode = !enabled && dataCenter.pageMode
-        if (leavingPageMode) dataCenter.pageMode = false
+        val leavingPageMode = !enabled && _uiState.value.isPageMode
         _uiState.update {
             it.copy(
                 isJavascriptEnabled = enabled,
