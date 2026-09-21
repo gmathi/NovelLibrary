@@ -49,12 +49,15 @@ class ReaderViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ReaderUiState())
     val uiState: StateFlow<ReaderUiState> = _uiState.asStateFlow()
 
-    fun initialize() {
+    private var novelId: Long = -1L
+
+    fun initialize(novelId: Long) {
+        this.novelId = novelId
         _uiState.update {
             it.copy(
-                isReaderMode = dataCenter.readerMode,
+                isReaderMode = dataCenter.getReaderModeForNovel(novelId),
                 isDarkTheme = dataCenter.isDarkTheme,
-                isJavascriptEnabled = !dataCenter.javascriptDisabled,
+                isJavascriptEnabled = !dataCenter.javascriptDisabled || dataCenter.getReaderModeForNovel(novelId),
                 textSize = dataCenter.textSize,
                 fontPath = dataCenter.fontPath,
                 fontName = extractFontName(dataCenter.fontPath),
@@ -88,8 +91,7 @@ class ReaderViewModel : ViewModel() {
     }
 
     fun setReaderMode(enabled: Boolean) {
-        dataCenter.readerMode = enabled
-        if (enabled) dataCenter.javascriptDisabled = true
+        dataCenter.setReaderModeForNovel(novelId, enabled)
         _uiState.update {
             it.copy(
                 isReaderMode = enabled,
@@ -101,7 +103,7 @@ class ReaderViewModel : ViewModel() {
 
     fun setJavascriptEnabled(enabled: Boolean) {
         dataCenter.javascriptDisabled = !enabled
-        if (!enabled) dataCenter.readerMode = false
+        if (!enabled) dataCenter.setReaderModeForNovel(novelId, false)
         _uiState.update {
             it.copy(
                 isJavascriptEnabled = enabled,

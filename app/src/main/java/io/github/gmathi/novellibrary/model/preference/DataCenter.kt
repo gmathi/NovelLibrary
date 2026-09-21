@@ -47,6 +47,7 @@ class DataCenter(context: Context) {
         private const val APP_VERSION_CODE = "appVersionCode"
         private const val TEXT_SIZE = "textSize"
         private const val READER_MODE = "cleanPages"
+        private const val READER_MODE_PER_NOVEL_PREFIX = "reader_mode_"
         private const val JAVASCRIPT = "javascript"
         private const val LANGUAGE = "language"
         private const val FOOLED = "wasFooled"
@@ -257,9 +258,29 @@ class DataCenter(context: Context) {
         get() = prefs.getInt(APP_VERSION_CODE, 0)
         set(value) = prefs.edit().putInt(APP_VERSION_CODE, value).apply()
 
+    /**
+     * The default Reader Mode value applied to novels that have no per-novel
+     * Reader_Mode_Preference stored yet (see [getReaderModeForNovel]). Configured via the
+     * "Reader Mode" toggle in ReaderSettingsActivity.
+     */
     var readerMode: Boolean
         get() = prefs.getBoolean(READER_MODE, false)
         set(value) = prefs.edit().putBoolean(READER_MODE, value).apply()
+
+    /**
+     * Returns the Reader Mode preference for the novel identified by [novelId]. Falls back to
+     * the app-wide default ([readerMode]) when no per-novel value has been stored yet.
+     */
+    fun getReaderModeForNovel(novelId: Long): Boolean =
+        prefs.getBoolean(READER_MODE_PER_NOVEL_PREFIX + novelId, readerMode)
+
+    /**
+     * Persists the Reader Mode preference for the novel identified by [novelId]. Does not
+     * affect the app-wide default ([readerMode]) or any other novel's stored preference.
+     */
+    fun setReaderModeForNovel(novelId: Long, value: Boolean) {
+        prefs.edit().putBoolean(READER_MODE_PER_NOVEL_PREFIX + novelId, value).apply()
+    }
 
     var javascriptDisabled: Boolean
         get() = prefs.getBoolean(JAVASCRIPT, false)

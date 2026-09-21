@@ -108,7 +108,6 @@ class ReaderDBPagerActivity :
         setContentView(binding.root)
 
         readerViewModel = ViewModelProvider(this)[ReaderViewModel::class.java]
-        readerViewModel.initialize()
 
         if (dataCenter.keepScreenOn)
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -124,6 +123,8 @@ class ReaderDBPagerActivity :
             return
         } else
             novel = tempNovel
+
+        readerViewModel.initialize(novel.id)
 
         // Get all WebPages & set view pager
         webPages = dbHelper.getAllWebPages(novel.id, translatorSourceName)
@@ -260,7 +261,7 @@ class ReaderDBPagerActivity :
     }
 
     private fun handleReadAloud() {
-        if (dataCenter.readerMode) {
+        if (dataCenter.getReaderModeForNovel(novel.id)) {
             val webPageDBFragment = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as? WebPageDBFragment)
             val audioText = webPageDBFragment?.doc?.getFormattedText() ?: return
             val title = webPageDBFragment.doc?.title() ?: ""
@@ -445,7 +446,7 @@ class ReaderDBPagerActivity :
         ActivityResultContracts.StartActivityForResult()
     ) {
         Handler(Looper.getMainLooper()).post {
-            readerViewModel.initialize() // Refresh state from DataCenter
+            readerViewModel.initialize(novel.id) // Refresh state from DataCenter
             EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
         }
     }

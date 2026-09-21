@@ -27,6 +27,8 @@ class ReaderSettingsActivity : BaseSettingsActivity<ReaderSettingsActivity, Read
 
     companion object {
         private val OPTIONS = listOf(
+            // "Reader Mode" toggle now controls the app-wide default applied to novels that have
+            // no per-novel Reader_Mode_Preference stored yet (see DataCenter.getReaderModeForNovel).
             ReaderSetting(R.string.reader_mode, R.string.reader_mode_description).onBind { _, view, _ ->
                 view.bindSwitch(dataCenter.readerMode) { _, value ->
                     dataCenter.readerMode = value
