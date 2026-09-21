@@ -49,6 +49,7 @@ class WebPageDBFragment : BaseFragment() {
 
     private lateinit var webPage: WebPage
     private lateinit var webPageSettings: WebPageSettings
+    private var novelId: Long = -1L
 
     var doc: Document? = null
     var linkedPages: ArrayList<LinkedPage> = ArrayList()
@@ -86,15 +87,13 @@ class WebPageDBFragment : BaseFragment() {
         //Verify activity is still loaded in
         val activity = activity as? ReaderDBPagerActivity ?: return
 
-        setOnScrollVisibleButtons()
-        setWebView()
-
         // Get data from args or savedInstance in case of device rotation
         @Suppress("UNCHECKED_CAST")
         if (savedInstanceState != null && savedInstanceState.containsKey("webPage")) {
             webPage = savedInstanceState.getSerializable("webPage") as WebPage
             webPageSettings = savedInstanceState.getSerializable("webPageSettings") as WebPageSettings
             history = savedInstanceState.getSerializable("history") as ArrayList<WebPageSettings>
+            novelId = savedInstanceState.getLong("novelId")
         } else {
 
             val argWebPage = requireArguments().getSerializable(WEB_PAGE) as? WebPage
@@ -105,7 +104,11 @@ class WebPageDBFragment : BaseFragment() {
             }
             webPage = argWebPage
             webPageSettings = argWebPageSettings
+            novelId = requireArguments().getLong(NOVEL_ID)
         }
+
+        setOnScrollVisibleButtons()
+        setWebView()
 
         // Load data from webPage into webView
         loadData()
@@ -163,7 +166,7 @@ class WebPageDBFragment : BaseFragment() {
     private fun setWebView() {
         binding.readerWebView.setDefaultSettings()
         binding.readerWebView.isVerticalScrollBarEnabled = dataCenter.showReaderScroll
-        binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
+        binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.getReaderModeForNovel(novelId)
         binding.readerWebView.settings.userAgentString = HostNames.USER_AGENT
         binding.readerWebView.setBackgroundColor(Color.argb(1, 0, 0, 0))
         binding.readerWebView.addJavascriptInterface(this, "HTMLOUT")
@@ -191,7 +194,7 @@ class WebPageDBFragment : BaseFragment() {
                 //Handle the known links like next and previous chapter if downloaded
                 if (checkUrl(url)) return true
 
-                if (dataCenter.readerMode)
+                if (dataCenter.getReaderModeForNovel(novelId))
                     url?.let {
 
                         //If url is an image
@@ -211,7 +214,7 @@ class WebPageDBFragment : BaseFragment() {
                 val cookies = CookieManager.getInstance().getCookie(url)
                 Logs.debug("WebViewDBFragment", "${Uri.parse(url).host}: All the cookiesMap in a string: $cookies")
 
-                if (!dataCenter.readerMode && url != null && url != "about:blank" && cookies?.contains("cf_clearance") == true) {
+                if (!dataCenter.getReaderModeForNovel(novelId) && url != null && url != "about:blank" && cookies?.contains("cf_clearance") == true) {
                     url.toHttpUrlOrNull()?.let { hurl ->
                         val list = cookies.split(";").mapNotNull { if (it.startsWith("cf_")) Cookie.parse(hurl, it) else null }
                         networkHelper.cookieManager.saveFromResponse(hurl, list)
@@ -265,7 +268,7 @@ class WebPageDBFragment : BaseFragment() {
 
         doc = Jsoup.parse(input, "UTF-8", url)
         doc?.let { doc ->
-            if (dataCenter.readerMode) {
+            if (dataCenter.getReaderModeForNovel(novelId)) {
                 cleanDocument(doc)
             }
             loadCreatedDocument()
@@ -276,7 +279,7 @@ class WebPageDBFragment : BaseFragment() {
         binding.swipeRefreshLayout.isEnabled = true
 
         //Check Reader Mode
-        if (!dataCenter.readerMode) {
+        if (!dataCenter.getReaderModeForNovel(novelId)) {
             binding.swipeRefreshLayout.isRefreshing = false
             binding.readerWebView.loadUrl(webPage.url)
 
@@ -498,14 +501,14 @@ class WebPageDBFragment : BaseFragment() {
             ReaderSettingsEvent.READER_MODE -> {
                 binding.readerWebView.loadUrl("about:blank")
                 binding.readerWebView.clearHistory()
-                binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
+                binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.getReaderModeForNovel(novelId)
                 loadData()
             }
             ReaderSettingsEvent.TEXT_SIZE -> {
                 changeTextSize()
             }
             ReaderSettingsEvent.JAVA_SCRIPT -> {
-                binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.readerMode
+                binding.readerWebView.settings.javaScriptEnabled = !dataCenter.javascriptDisabled || dataCenter.getReaderModeForNovel(novelId)
                 loadData()
             }
             ReaderSettingsEvent.FONT -> {
@@ -534,5 +537,6 @@ class WebPageDBFragment : BaseFragment() {
         outState.putSerializable("webPage", webPage)
         outState.putSerializable("webPageSettings", webPageSettings)
         outState.putSerializable("history", history)
+        outState.putLong("novelId", novelId)
     }
 }
