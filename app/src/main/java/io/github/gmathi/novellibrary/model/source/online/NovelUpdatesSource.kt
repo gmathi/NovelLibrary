@@ -170,7 +170,10 @@ class NovelUpdatesSource : ParsedHttpSource() {
     //region Novel Details
     override fun novelDetailsParse(novel: Novel, document: Document): Novel {
         document.selectFirst(".seriestitlenu")?.text()?.let { novel.name = it }
-        novel.imageUrl = document.selectFirst(".seriesimg > img[src],.serieseditimg > img[src]")?.attr("abs:src")
+        // Only replace the cover when the page actually yields one. The search result that led
+        // here already carries a working cover URL; overwriting it with null (because the series
+        // page markup changed) is what made covers disappear from the library and details screen.
+        parseCoverUrl(document)?.let { novel.imageUrl = it }
         novel.longDescription = document.body().selectFirst("#editdescription")?.text()
         novel.rating = document.body().selectFirst("span.uvotes")?.text()?.substring(1, 4)
         novel.genres = document.body().selectFirst("#seriesgenre")?.children()?.map { it.text() }
@@ -619,5 +622,44 @@ class NovelUpdatesSource : ParsedHttpSource() {
 
     companion object {
         private const val TAG = "NovelUpdatesSource"
+
+        private val COVER_SELECTORS = listOf(
+            ".seriesimg img",
+            ".serieseditimg img",
+            "img.seriesimg",
+            "img.serieseditimg",
+        )
+        private val COVER_ATTRIBUTES = listOf("src", "data-src", "data-lazy-src", "data-original")
+
+        /**
+         * Finds the cover image URL on a NovelUpdates series page.
+         *
+         * Tolerant on purpose: the cover may be a direct child of `.seriesimg`, nested inside a
+         * link or `<picture>`, lazy-loaded through a `data-*` attribute with a placeholder `src`,
+         * or absent from the markup altogether (in which case the Open Graph image is used).
+         * Returns null when nothing usable is found so callers can keep a previously known cover.
+         */
+        internal fun parseCoverUrl(document: Document): String? {
+            for (selector in COVER_SELECTORS) {
+                for (img in document.select(selector)) {
+                    for (attribute in COVER_ATTRIBUTES) {
+                        usableCoverUrl(img, attribute)?.let { return it }
+                    }
+                }
+            }
+            return document.selectFirst("meta[property=og:image]")?.let { usableCoverUrl(it, "content") }
+        }
+
+        /**
+         * Resolves [attribute] on [element] to an absolute http(s) URL, or null when the attribute
+         * is missing, blank or a data: URI. The blank check must happen on the raw value: Jsoup
+         * resolves an empty attribute to the page URL itself, which is not a cover.
+         */
+        private fun usableCoverUrl(element: Element, attribute: String): String? {
+            val raw = element.attr(attribute).trim()
+            if (raw.isEmpty() || raw.startsWith("data:", ignoreCase = true)) return null
+            val absolute = element.absUrl(attribute).trim()
+            return absolute.takeIf { it.startsWith("http", ignoreCase = true) }
+        }
     }
 }

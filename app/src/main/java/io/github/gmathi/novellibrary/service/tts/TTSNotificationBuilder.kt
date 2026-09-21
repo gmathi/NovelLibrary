@@ -72,6 +72,11 @@ class TTSNotificationBuilder(private val context: Context, private val pendingIn
     )
     private val stopPendingIntent =
         pendingIntents[TTSService.ACTION_STOP]
+    private val stopAction = NotificationCompat.Action(
+        R.drawable.ic_stop_white_vector,
+        context.getString(R.string.stop),
+        stopPendingIntent
+    )
 
     fun buildNotification(sessionToken: MediaSessionCompat.Token): Notification {
         if (shouldCreateNowPlayingChannel()) {
@@ -91,6 +96,9 @@ class TTSNotificationBuilder(private val context: Context, private val pendingIn
         }
         builder.addAction(skipToNextAction)
         builder.addAction(openControlsAction)
+        // An explicit Stop action: the media-style "cancel button" below is ignored on modern
+        // Android, which left the user with no way to end playback from the notification.
+        builder.addAction(stopAction)
 
         val drawable = AppCompatResources.getDrawable(context, R.mipmap.ic_launcher)
         if (drawable is BitmapDrawable) {
@@ -100,10 +108,12 @@ class TTSNotificationBuilder(private val context: Context, private val pendingIn
         val mediaStyle = androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
             .setCancelButtonIntent(stopPendingIntent)
             .setMediaSession(sessionToken)
-            .setShowActionsInCompactView(1)
+            .setShowActionsInCompactView(1, 2, 4)
             .setShowCancelButton(true)
 
         builder.setContentIntent(controller.sessionActivity)
+            // Swiping the notification away (possible while paused) also stops the service.
+            .setDeleteIntent(stopPendingIntent)
             .setStyle(mediaStyle)
             .setSmallIcon(R.drawable.ic_queue_music_white_vector)
 

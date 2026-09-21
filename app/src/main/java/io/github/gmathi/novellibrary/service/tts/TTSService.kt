@@ -136,6 +136,9 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
                     // Stop, Play, Pause, Play/Pause, Skip to next/prev, forward/rewind, seek, play from media ID
                     0x77F
                 )
+                // On Android 13+ System UI renders media notifications from the session and shows
+                // these custom actions (not the notification's own actions), so Stop must be here.
+                .addCustomAction(ACTION_STOP, getString(R.string.stop), R.drawable.ic_stop_white_vector)
                 .addCustomAction(ACTION_OPEN_SETTINGS, "Open Settings", R.drawable.ic_settings_white_vector)
                 .addCustomAction(ACTION_OPEN_READER, "Open Reader", R.drawable.ic_chrome_reader_mode_white_vector)
                 .addCustomAction(ACTION_OPEN_CONTROLS, "Open Controls", R.drawable.ic_queue_music_white_vector)
@@ -389,6 +392,17 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
             Log.d(TAG, "onStop")
             if (unhookSystem()) {
                 player.destroy()
+            }
+        }
+
+        override fun onCustomAction(action: String?, extras: Bundle?) {
+            Log.d(TAG, "onCustomAction: $action")
+            when (action) {
+                ACTION_STOP -> onStop()
+                ACTION_OPEN_SETTINGS, ACTION_OPEN_READER, ACTION_OPEN_CONTROLS ->
+                    // Same handling as the notification pending intents (see onStartCommand).
+                    startService(Intent(this@TTSService, TTSService::class.java).setAction(action))
+                else -> super.onCustomAction(action, extras)
             }
         }
 

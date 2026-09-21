@@ -165,6 +165,7 @@ dependencies {
     implementation libs.coil.compose
     implementation libs.landscapist.core
     ksp libs.glide.ksp
+    implementation libs.glide.okhttp
     
     // UI Components
     implementation libs.lottie
