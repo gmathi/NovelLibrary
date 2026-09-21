@@ -49,6 +49,7 @@ import io.github.gmathi.novellibrary.util.Utils.getFormattedText
 import io.github.gmathi.novellibrary.util.analytics.FAC
 import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.logging.Logs
+import io.github.gmathi.novellibrary.util.system.getParcelableExtraCompat
 import io.github.gmathi.novellibrary.util.system.intentOf
 import io.github.gmathi.novellibrary.util.system.logNovelEvent
 import io.github.gmathi.novellibrary.util.system.openInBrowser
@@ -59,7 +60,6 @@ import io.github.gmathi.novellibrary.util.system.startTTSActivity
 import io.github.gmathi.novellibrary.util.system.startTTSService
 import io.github.gmathi.novellibrary.util.system.updateNovelBookmark
 import io.github.gmathi.novellibrary.util.system.updateNovelLastRead
-import io.github.gmathi.novellibrary.util.system.getParcelableExtraCompat
 import io.github.gmathi.novellibrary.viewmodel.ReaderViewModel
 import org.greenrobot.eventbus.EventBus
 import java.io.File

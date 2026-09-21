@@ -64,19 +64,20 @@ fun ReaderOverlay(
                 enter = fadeIn(),
                 exit = fadeOut(),
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 40.dp)
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 16.dp)
             ) {
-                SmallFloatingActionButton(
+                FloatingActionButton(
                     onClick = onCenterTap,
                     shape = CircleShape,
+                    modifier = Modifier.size(56.dp),
                     containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.85f),
                     contentColor = MaterialTheme.colorScheme.onSurface
                 ) {
                     Icon(
                         Icons.Filled.Menu,
                         contentDescription = "Open reader menu",
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(28.dp)
                     )
                 }
             }
