@@ -56,28 +56,28 @@ class ReaderViewModel : ViewModel() {
         _uiState.update {
             it.copy(
                 isReaderMode = dataCenter.getReaderModeForNovel(novelId),
-                isDarkTheme = dataCenter.isDarkTheme,
+                isDarkTheme = dataCenter.getIsDarkThemeForNovel(novelId),
                 isJavascriptEnabled = !dataCenter.javascriptDisabled || dataCenter.getReaderModeForNovel(novelId),
-                textSize = dataCenter.textSize,
-                fontPath = dataCenter.fontPath,
-                fontName = extractFontName(dataCenter.fontPath),
+                textSize = dataCenter.getTextSizeForNovel(novelId),
+                fontPath = dataCenter.getFontPathForNovel(novelId),
+                fontName = extractFontName(dataCenter.getFontPathForNovel(novelId)),
                 keepScreenOn = dataCenter.keepScreenOn,
                 immersiveMode = dataCenter.enableImmersiveMode,
                 japSwipe = dataCenter.japSwipe,
                 showChapterComments = dataCenter.showChapterComments,
                 enableVolumeScroll = dataCenter.enableVolumeScroll,
                 showReaderScroll = dataCenter.showReaderScroll,
-                keepTextColor = dataCenter.keepTextColor,
-                alternativeTextColors = dataCenter.alternativeTextColors,
-                limitImageWidth = dataCenter.limitImageWidth,
-                enableClusterPages = dataCenter.enableClusterPages,
+                keepTextColor = dataCenter.getKeepTextColorForNovel(novelId),
+                alternativeTextColors = dataCenter.getAlternativeTextColorsForNovel(novelId),
+                limitImageWidth = dataCenter.getLimitImageWidthForNovel(novelId),
+                enableClusterPages = dataCenter.getEnableClusterPagesForNovel(novelId),
                 enableDirectionalLinks = dataCenter.enableDirectionalLinks,
                 isReaderModeButtonVisible = dataCenter.isReaderModeButtonVisible,
                 showNavbarAtChapterEnd = dataCenter.showNavbarAtChapterEnd,
-                dayBackgroundColor = dataCenter.dayModeBackgroundColor,
-                dayTextColor = dataCenter.dayModeTextColor,
-                nightBackgroundColor = dataCenter.nightModeBackgroundColor,
-                nightTextColor = dataCenter.nightModeTextColor,
+                dayBackgroundColor = dataCenter.getDayBackgroundColorForNovel(novelId),
+                dayTextColor = dataCenter.getDayTextColorForNovel(novelId),
+                nightBackgroundColor = dataCenter.getNightBackgroundColorForNovel(novelId),
+                nightTextColor = dataCenter.getNightTextColorForNovel(novelId),
             )
         }
     }
@@ -114,38 +114,38 @@ class ReaderViewModel : ViewModel() {
     }
 
     fun setTextSize(size: Int) {
-        dataCenter.textSize = size
+        dataCenter.setTextSizeForNovel(novelId, size)
         _uiState.update { it.copy(textSize = size) }
         EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.TEXT_SIZE))
     }
 
     fun toggleDarkTheme() {
-        val newValue = !dataCenter.isDarkTheme
-        dataCenter.isDarkTheme = newValue
+        val newValue = !dataCenter.getIsDarkThemeForNovel(novelId)
+        dataCenter.setIsDarkThemeForNovel(novelId, newValue)
         _uiState.update { it.copy(isDarkTheme = newValue) }
         EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
     }
 
     fun setDayBackgroundColor(color: Int) {
-        dataCenter.dayModeBackgroundColor = color
+        dataCenter.setDayBackgroundColorForNovel(novelId, color)
         _uiState.update { it.copy(dayBackgroundColor = color) }
         EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
     }
 
     fun setDayTextColor(color: Int) {
-        dataCenter.dayModeTextColor = color
+        dataCenter.setDayTextColorForNovel(novelId, color)
         _uiState.update { it.copy(dayTextColor = color) }
         EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
     }
 
     fun setNightBackgroundColor(color: Int) {
-        dataCenter.nightModeBackgroundColor = color
+        dataCenter.setNightBackgroundColorForNovel(novelId, color)
         _uiState.update { it.copy(nightBackgroundColor = color) }
         EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
     }
 
     fun setNightTextColor(color: Int) {
-        dataCenter.nightModeTextColor = color
+        dataCenter.setNightTextColorForNovel(novelId, color)
         _uiState.update { it.copy(nightTextColor = color) }
         EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
     }
@@ -161,23 +161,23 @@ class ReaderViewModel : ViewModel() {
     }
 
     fun setLimitImageWidth(enabled: Boolean) {
-        dataCenter.limitImageWidth = enabled
+        dataCenter.setLimitImageWidthForNovel(novelId, enabled)
         _uiState.update { it.copy(limitImageWidth = enabled) }
         EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
     }
 
     fun setKeepTextColor(enabled: Boolean) {
-        dataCenter.keepTextColor = enabled
+        dataCenter.setKeepTextColorForNovel(novelId, enabled)
         _uiState.update { it.copy(keepTextColor = enabled) }
     }
 
     fun setAlternativeTextColors(enabled: Boolean) {
-        dataCenter.alternativeTextColors = enabled
+        dataCenter.setAlternativeTextColorsForNovel(novelId, enabled)
         _uiState.update { it.copy(alternativeTextColors = enabled) }
     }
 
     fun setEnableClusterPages(enabled: Boolean) {
-        dataCenter.enableClusterPages = enabled
+        dataCenter.setEnableClusterPagesForNovel(novelId, enabled)
         _uiState.update { it.copy(enableClusterPages = enabled) }
     }
 
@@ -193,7 +193,7 @@ class ReaderViewModel : ViewModel() {
     }
 
     fun onFontChanged(path: String) {
-        dataCenter.fontPath = path
+        dataCenter.setFontPathForNovel(novelId, path)
         _uiState.update { it.copy(fontPath = path, fontName = extractFontName(path)) }
         EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.FONT))
     }

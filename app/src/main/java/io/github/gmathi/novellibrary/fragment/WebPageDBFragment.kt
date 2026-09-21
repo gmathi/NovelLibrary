@@ -364,9 +364,18 @@ class WebPageDBFragment : BaseFragment() {
                     htmlHelper.removeJS(doc)
                     htmlHelper.additionalProcessing(doc)
                     htmlHelper.setProperHrefUrls(doc)
-                    htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
+                    htmlHelper.toggleTheme(
+                        dataCenter.getIsDarkThemeForNovel(novelId),
+                        doc,
+                        fontPath = dataCenter.getFontPathForNovel(novelId),
+                        dayBackgroundColor = dataCenter.getDayBackgroundColorForNovel(novelId),
+                        dayTextColor = dataCenter.getDayTextColorForNovel(novelId),
+                        nightBackgroundColor = dataCenter.getNightBackgroundColorForNovel(novelId),
+                        nightTextColor = dataCenter.getNightTextColorForNovel(novelId),
+                        limitImageWidth = dataCenter.getLimitImageWidthForNovel(novelId),
+                    )
 
-                    if (dataCenter.enableClusterPages) {
+                    if (dataCenter.getEnableClusterPagesForNovel(novelId)) {
                         val alreadyDownloadedLinks = ArrayList<String>()
                         alreadyDownloadedLinks.add(doc.location())
                         htmlHelper.getLinkedChapters(doc).forEach { linkedUrl ->
@@ -408,7 +417,7 @@ class WebPageDBFragment : BaseFragment() {
 
     private fun changeTextSize() {
         val settings = binding.readerWebView.settings
-        settings.textZoom = (dataCenter.textSize + 50) * 2
+        settings.textZoom = (dataCenter.getTextSizeForNovel(novelId) + 50) * 2
     }
 
     fun getUrl() = webPage.url
@@ -432,9 +441,18 @@ class WebPageDBFragment : BaseFragment() {
             htmlHelper.removeJS(doc)
             htmlHelper.additionalProcessing(doc)
             htmlHelper.setProperHrefUrls(doc)
-            htmlHelper.toggleTheme(dataCenter.isDarkTheme, doc)
+            htmlHelper.toggleTheme(
+                dataCenter.getIsDarkThemeForNovel(novelId),
+                doc,
+                fontPath = dataCenter.getFontPathForNovel(novelId),
+                dayBackgroundColor = dataCenter.getDayBackgroundColorForNovel(novelId),
+                dayTextColor = dataCenter.getDayTextColorForNovel(novelId),
+                nightBackgroundColor = dataCenter.getNightBackgroundColorForNovel(novelId),
+                nightTextColor = dataCenter.getNightTextColorForNovel(novelId),
+                limitImageWidth = dataCenter.getLimitImageWidthForNovel(novelId),
+            )
 
-            if (dataCenter.enableClusterPages) {
+            if (dataCenter.getEnableClusterPagesForNovel(novelId)) {
                 // Add the content of the links to the doc
                 if (webPageSettings.metadata.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
                     val links = webPageSettings.getLinkedPagesCompat()
@@ -468,7 +486,16 @@ class WebPageDBFragment : BaseFragment() {
 
     private fun applyTheme() {
         doc?.let {
-            HtmlCleaner.getInstance(it).toggleTheme(dataCenter.isDarkTheme, it)
+            HtmlCleaner.getInstance(it).toggleTheme(
+                dataCenter.getIsDarkThemeForNovel(novelId),
+                it,
+                fontPath = dataCenter.getFontPathForNovel(novelId),
+                dayBackgroundColor = dataCenter.getDayBackgroundColorForNovel(novelId),
+                dayTextColor = dataCenter.getDayTextColorForNovel(novelId),
+                nightBackgroundColor = dataCenter.getNightBackgroundColorForNovel(novelId),
+                nightTextColor = dataCenter.getNightTextColorForNovel(novelId),
+                limitImageWidth = dataCenter.getLimitImageWidthForNovel(novelId),
+            )
             loadCreatedDocument()
         }
     }

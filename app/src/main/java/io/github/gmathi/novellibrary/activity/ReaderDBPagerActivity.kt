@@ -347,11 +347,11 @@ class ReaderDBPagerActivity :
         if (AVAILABLE_FONTS.isEmpty())
             getAvailableFonts()
 
-        var selectedFont = dataCenter.fontPath.substringAfterLast('/')
+        var selectedFont = dataCenter.getFontPathForNovel(novel.id).substringAfterLast('/')
             .substringBeforeLast('.')
             .replace('_', ' ')
 
-        var typeFace = createTypeface()
+        var typeFace = createTypeface(dataCenter.getFontPathForNovel(novel.id))
 
         MaterialDialog(this).show {
             title(R.string.title_fonts)
@@ -386,7 +386,6 @@ class ReaderDBPagerActivity :
                 }
             }
             positiveButton(R.string.okay) { _ ->
-                dataCenter.fontPath = AVAILABLE_FONTS[selectedFont] ?: ""
                 readerViewModel.onFontChanged(AVAILABLE_FONTS[selectedFont] ?: "")
             }
             negativeButton(R.string.cancel)
