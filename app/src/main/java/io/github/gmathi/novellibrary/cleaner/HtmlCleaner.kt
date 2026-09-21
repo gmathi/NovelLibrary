@@ -17,7 +17,6 @@ import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
-import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.lang.writableFileName
 import io.github.gmathi.novellibrary.util.logging.Logs
@@ -678,6 +677,30 @@ open class HtmlCleaner protected constructor() {
         limitImageWidth: Boolean = dataCenter.limitImageWidth,
     ): Document = toggleThemeDefault(isDark, doc, fontPath, dayBackgroundColor, dayTextColor, nightBackgroundColor, nightTextColor, limitImageWidth)
 
+    /**
+     * Reads the font at [fontPath] (either the "/android_asset/fonts/<file>" sentinel used by
+     * built-in fonts, or a real absolute filesystem path for user-imported fonts) and returns it
+     * as a base64 `data:` URI suitable for a CSS `@font-face src`. Falls back to an empty string
+     * (which yields an unresolvable src, i.e. the font silently fails to apply, same as before)
+     * if the font can't be read.
+     */
+    private fun getFontDataUri(fontPath: String): String {
+        return try {
+            val fontBytes = if (fontPath.startsWith("/android_asset/")) {
+                val app: android.app.Application by injectLazy()
+                val assetPath = fontPath.removePrefix("/android_asset/")
+                app.assets.open(assetPath).use { it.readBytes() }
+            } else {
+                File(fontPath).readBytes()
+            }
+            val base64 = android.util.Base64.encodeToString(fontBytes, android.util.Base64.NO_WRAP)
+            "data:font/ttf;base64,$base64"
+        } catch (e: Exception) {
+            Logs.debug(TAG, "Failed to load font for data URI: $fontPath (${e.message})")
+            ""
+        }
+    }
+
     private fun toggleThemeDefault(
         isDark: Boolean,
         doc: Document,
@@ -690,6 +713,14 @@ open class HtmlCleaner protected constructor() {
     ): Document {
         val fontFile = File(fontPath)
         val fontFamily = fontFile.name.substringBeforeLast(".")
+        // Custom reader fonts are embedded directly as a base64 data URI rather than
+        // referenced via a file:// URL. WebView applies strict cross-origin rules to file://
+        // subresources (especially for built-in fonts under the "/android_asset/fonts/"
+        // sentinel path, which isn't a real file on disk), so @font-face src: url("file://...")
+        // silently fails to load depending on WebView file-access settings/Android version.
+        // A data URI has no such restriction and always resolves regardless of the page's base
+        // URL or WebView file-access configuration.
+        val fontSrcUrl = getFontDataUri(fontPath)
 
         val dayBackgroundColorTransparency = BigDecimal(dayBackgroundColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
         val dayTextColorTransparency = BigDecimal(dayTextColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
@@ -703,7 +734,7 @@ open class HtmlCleaner protected constructor() {
             <style id="darkTheme">
                 @font-face {
                     font-family: $fontFamily;
-                    src: url("$FILE_PROTOCOL${fontFile.path}");
+                    src: url("$fontSrcUrl");
                 }
                 html {
                     scroll-behavior: smooth;
@@ -728,10 +759,17 @@ open class HtmlCleaner protected constructor() {
                 else
                     "rgba(${dayTextColor.red}, ${dayTextColor.green}, ${dayTextColor.blue}, $dayTextColorTransparency)"
             };
-                    font-family: '$fontFamily';
+                    font-family: '$fontFamily' !important;
                     line-height: 1.5;
                     padding: 20px;
                     text-align: left;
+                }
+                /* Some source sites inline a font-family directly on a content wrapper
+                   (e.g. <div style="font-family:Arial, ...">), which otherwise overrides the
+                   body rule above via CSS specificity. Force the selected reader font on every
+                   element so those inline styles don't win. */
+                * {
+                    font-family: '$fontFamily' !important;
                 }
                 a {
                     color: rgba(${if (isDark) "135, 206, 250, .$nightTextColorTransparency" else "0, 0, 238, $dayTextColorTransparency"});

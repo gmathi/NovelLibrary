@@ -270,6 +270,21 @@ class WebPageDBFragment : BaseFragment() {
         doc?.let { doc ->
             if (dataCenter.getReaderModeForNovel(novelId)) {
                 cleanDocument(doc)
+            } else {
+                // cleanDocument() already applies the theme/font internally when reader mode is
+                // on. When reader mode is off, apply it here so a freshly opened chapter reflects
+                // the user's chosen font/colors immediately, instead of only after the user next
+                // changes a display setting (which is what triggers applyTheme() reactively).
+                HtmlCleaner.getInstance(doc).toggleTheme(
+                    dataCenter.getIsDarkThemeForNovel(novelId),
+                    doc,
+                    fontPath = dataCenter.getFontPathForNovel(novelId),
+                    dayBackgroundColor = dataCenter.getDayBackgroundColorForNovel(novelId),
+                    dayTextColor = dataCenter.getDayTextColorForNovel(novelId),
+                    nightBackgroundColor = dataCenter.getNightBackgroundColorForNovel(novelId),
+                    nightTextColor = dataCenter.getNightTextColorForNovel(novelId),
+                    limitImageWidth = dataCenter.getLimitImageWidthForNovel(novelId),
+                )
             }
             loadCreatedDocument()
         }
@@ -539,7 +554,7 @@ class WebPageDBFragment : BaseFragment() {
                 loadData()
             }
             ReaderSettingsEvent.FONT -> {
-                loadData()
+                applyTheme()
             }
         }
     }
