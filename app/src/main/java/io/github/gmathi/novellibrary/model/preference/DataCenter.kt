@@ -48,6 +48,17 @@ class DataCenter(context: Context) {
         private const val TEXT_SIZE = "textSize"
         private const val READER_MODE = "cleanPages"
         private const val READER_MODE_PER_NOVEL_PREFIX = "reader_mode_"
+        private const val IS_DARK_THEME_PER_NOVEL_PREFIX = "is_dark_theme_"
+        private const val FONT_PATH_PER_NOVEL_PREFIX = "font_path_"
+        private const val TEXT_SIZE_PER_NOVEL_PREFIX = "text_size_"
+        private const val DAY_BG_COLOR_PER_NOVEL_PREFIX = "day_bg_color_"
+        private const val NIGHT_BG_COLOR_PER_NOVEL_PREFIX = "night_bg_color_"
+        private const val DAY_TEXT_COLOR_PER_NOVEL_PREFIX = "day_text_color_"
+        private const val NIGHT_TEXT_COLOR_PER_NOVEL_PREFIX = "night_text_color_"
+        private const val LIMIT_IMAGE_WIDTH_PER_NOVEL_PREFIX = "limit_image_width_"
+        private const val KEEP_TEXT_COLOR_PER_NOVEL_PREFIX = "keep_text_color_"
+        private const val ALT_TEXT_COLORS_PER_NOVEL_PREFIX = "alt_text_colors_"
+        private const val ENABLE_CLUSTER_PAGES_PER_NOVEL_PREFIX = "enable_cluster_pages_"
         private const val JAVASCRIPT = "javascript"
         private const val LANGUAGE = "language"
         private const val FOOLED = "wasFooled"
@@ -210,9 +221,28 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(LOCK_SCRIBBLE, true)
         set(value) = prefs.edit().putBoolean(LOCK_SCRIBBLE, value).apply()
 
+    /**
+     * The default reader theme (dark vs light) applied to novels that have no per-novel
+     * value stored yet (see [getIsDarkThemeForNovel]).
+     */
     var isDarkTheme: Boolean
         get() = prefs.getBoolean(IS_DARK_THEME, true)
         set(value) = prefs.edit().putBoolean(IS_DARK_THEME, value).apply()
+
+    /**
+     * Returns the dark-theme preference for the novel identified by [novelId]. Falls back to
+     * the app-wide default ([isDarkTheme]) when no per-novel value has been stored yet.
+     */
+    fun getIsDarkThemeForNovel(novelId: Long): Boolean =
+        prefs.getBoolean(IS_DARK_THEME_PER_NOVEL_PREFIX + novelId, isDarkTheme)
+
+    /**
+     * Persists the dark-theme preference for the novel identified by [novelId]. Does not
+     * affect the app-wide default ([isDarkTheme]) or any other novel's stored preference.
+     */
+    fun setIsDarkThemeForNovel(novelId: Long, value: Boolean) {
+        prefs.edit().putBoolean(IS_DARK_THEME_PER_NOVEL_PREFIX + novelId, value).apply()
+    }
 
     var isDeveloper: Boolean
         get() = prefs.getBoolean(DEVELOPER, false)
@@ -246,9 +276,28 @@ class DataCenter(context: Context) {
         get() = prefs.getLong(LAST_BACKUP_MILLISECONDS, 0)
         set(value) = prefs.edit().putLong(LAST_BACKUP_MILLISECONDS, value).apply()
 
+    /**
+     * The default reader text size applied to novels that have no per-novel value stored yet
+     * (see [getTextSizeForNovel]).
+     */
     var textSize: Int
         get() = prefs.getInt(TEXT_SIZE, 0)
         set(value) = prefs.edit().putInt(TEXT_SIZE, value).apply()
+
+    /**
+     * Returns the text-size preference for the novel identified by [novelId]. Falls back to
+     * the app-wide default ([textSize]) when no per-novel value has been stored yet.
+     */
+    fun getTextSizeForNovel(novelId: Long): Int =
+        prefs.getInt(TEXT_SIZE_PER_NOVEL_PREFIX + novelId, textSize)
+
+    /**
+     * Persists the text-size preference for the novel identified by [novelId]. Does not
+     * affect the app-wide default ([textSize]) or any other novel's stored preference.
+     */
+    fun setTextSizeForNovel(novelId: Long, value: Int) {
+        prefs.edit().putInt(TEXT_SIZE_PER_NOVEL_PREFIX + novelId, value).apply()
+    }
 
     var loadLibraryScreen: Boolean
         get() = prefs.getBoolean(LOAD_LIBRARY_SCREEN, false)
@@ -330,18 +379,81 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(SHOW_NAVBAR_AT_CHAPTER_END, true)
         set(value) = prefs.edit().putBoolean(SHOW_NAVBAR_AT_CHAPTER_END, value).apply()
 
+    /**
+     * The default "keep text color" preference applied to novels that have no per-novel value
+     * stored yet (see [getKeepTextColorForNovel]).
+     */
     var keepTextColor: Boolean
         get() = prefs.getBoolean(KEEP_TEXT_COLOR, false)
         set(value) = prefs.edit().putBoolean(KEEP_TEXT_COLOR, value).apply()
 
+    /**
+     * Returns the "keep text color" preference for the novel identified by [novelId]. Falls
+     * back to the app-wide default ([keepTextColor]) when no per-novel value has been stored yet.
+     */
+    fun getKeepTextColorForNovel(novelId: Long): Boolean =
+        prefs.getBoolean(KEEP_TEXT_COLOR_PER_NOVEL_PREFIX + novelId, keepTextColor)
+
+    /**
+     * Persists the "keep text color" preference for the novel identified by [novelId]. Does
+     * not affect the app-wide default ([keepTextColor]) or any other novel's stored preference.
+     */
+    fun setKeepTextColorForNovel(novelId: Long, value: Boolean) {
+        prefs.edit().putBoolean(KEEP_TEXT_COLOR_PER_NOVEL_PREFIX + novelId, value).apply()
+    }
+
+    /**
+     * The default "alternative text colors" preference applied to novels that have no
+     * per-novel value stored yet (see [getAlternativeTextColorsForNovel]).
+     */
     var alternativeTextColors: Boolean
         get() = prefs.getBoolean(ALTERNATIVE_TEXT_COLORS, false)
         set(value) = prefs.edit().putBoolean(ALTERNATIVE_TEXT_COLORS, value).apply()
 
+    /**
+     * Returns the "alternative text colors" preference for the novel identified by [novelId].
+     * Falls back to the app-wide default ([alternativeTextColors]) when no per-novel value has
+     * been stored yet.
+     */
+    fun getAlternativeTextColorsForNovel(novelId: Long): Boolean =
+        prefs.getBoolean(ALT_TEXT_COLORS_PER_NOVEL_PREFIX + novelId, alternativeTextColors)
+
+    /**
+     * Persists the "alternative text colors" preference for the novel identified by [novelId].
+     * Does not affect the app-wide default ([alternativeTextColors]) or any other novel's
+     * stored preference.
+     */
+    fun setAlternativeTextColorsForNovel(novelId: Long, value: Boolean) {
+        prefs.edit().putBoolean(ALT_TEXT_COLORS_PER_NOVEL_PREFIX + novelId, value).apply()
+    }
+
+    /**
+     * The default "limit image width" preference applied to novels that have no per-novel
+     * value stored yet (see [getLimitImageWidthForNovel]).
+     */
     var limitImageWidth: Boolean
         get() = prefs.getBoolean(LIMIT_IMAGE_WIDTH, false)
         set(value) = prefs.edit().putBoolean(LIMIT_IMAGE_WIDTH, value).apply()
 
+    /**
+     * Returns the "limit image width" preference for the novel identified by [novelId]. Falls
+     * back to the app-wide default ([limitImageWidth]) when no per-novel value has been stored yet.
+     */
+    fun getLimitImageWidthForNovel(novelId: Long): Boolean =
+        prefs.getBoolean(LIMIT_IMAGE_WIDTH_PER_NOVEL_PREFIX + novelId, limitImageWidth)
+
+    /**
+     * Persists the "limit image width" preference for the novel identified by [novelId]. Does
+     * not affect the app-wide default ([limitImageWidth]) or any other novel's stored preference.
+     */
+    fun setLimitImageWidthForNovel(novelId: Long, value: Boolean) {
+        prefs.edit().putBoolean(LIMIT_IMAGE_WIDTH_PER_NOVEL_PREFIX + novelId, value).apply()
+    }
+
+    /**
+     * The default reader font path applied to novels that have no per-novel value stored yet
+     * (see [getFontPathForNovel]).
+     */
     var fontPath: String
         get() {
             var path = prefs.getString(FONT_PATH, DEFAULT_FONT_PATH)!!
@@ -353,9 +465,43 @@ class DataCenter(context: Context) {
         }
         set(value) = prefs.edit().putString(FONT_PATH, if (value.isBlank()) DEFAULT_FONT_PATH else value).apply()
 
+    /**
+     * Returns the font-path preference for the novel identified by [novelId]. Falls back to
+     * the app-wide default ([fontPath]) when no per-novel value has been stored yet.
+     */
+    fun getFontPathForNovel(novelId: Long): String =
+        prefs.getString(FONT_PATH_PER_NOVEL_PREFIX + novelId, null) ?: fontPath
+
+    /**
+     * Persists the font-path preference for the novel identified by [novelId]. Does not
+     * affect the app-wide default ([fontPath]) or any other novel's stored preference.
+     */
+    fun setFontPathForNovel(novelId: Long, value: String) {
+        prefs.edit().putString(FONT_PATH_PER_NOVEL_PREFIX + novelId, value).apply()
+    }
+
+    /**
+     * The default "merge pages" preference applied to novels that have no per-novel value
+     * stored yet (see [getEnableClusterPagesForNovel]).
+     */
     var enableClusterPages: Boolean
         get() = prefs.getBoolean(ENABLE_CLUSTER_PAGES, false)
         set(value) = prefs.edit().putBoolean(ENABLE_CLUSTER_PAGES, value).apply()
+
+    /**
+     * Returns the "merge pages" preference for the novel identified by [novelId]. Falls back to
+     * the app-wide default ([enableClusterPages]) when no per-novel value has been stored yet.
+     */
+    fun getEnableClusterPagesForNovel(novelId: Long): Boolean =
+        prefs.getBoolean(ENABLE_CLUSTER_PAGES_PER_NOVEL_PREFIX + novelId, enableClusterPages)
+
+    /**
+     * Persists the "merge pages" preference for the novel identified by [novelId]. Does not
+     * affect the app-wide default ([enableClusterPages]) or any other novel's stored preference.
+     */
+    fun setEnableClusterPagesForNovel(novelId: Long, value: Boolean) {
+        prefs.edit().putBoolean(ENABLE_CLUSTER_PAGES_PER_NOVEL_PREFIX + novelId, value).apply()
+    }
 
     var enableDirectionalLinks: Boolean
         get() = prefs.getBoolean(DIRECTIONAL_LINKS, false)
@@ -503,21 +649,97 @@ class DataCenter(context: Context) {
 
     //endregion
 
+    /**
+     * The default day-mode background color applied to novels that have no per-novel value
+     * stored yet (see [getDayBackgroundColorForNovel]).
+     */
     var dayModeBackgroundColor: Int
         get() = prefs.getInt(DAY_MODE_BACKGROUND_COLOR, Color.WHITE)
         set(value) = prefs.edit().putInt(DAY_MODE_BACKGROUND_COLOR, value).apply()
 
+    /**
+     * Returns the day-mode background color for the novel identified by [novelId]. Falls back
+     * to the app-wide default ([dayModeBackgroundColor]) when no per-novel value has been stored yet.
+     */
+    fun getDayBackgroundColorForNovel(novelId: Long): Int =
+        prefs.getInt(DAY_BG_COLOR_PER_NOVEL_PREFIX + novelId, dayModeBackgroundColor)
+
+    /**
+     * Persists the day-mode background color for the novel identified by [novelId]. Does not
+     * affect the app-wide default ([dayModeBackgroundColor]) or any other novel's stored preference.
+     */
+    fun setDayBackgroundColorForNovel(novelId: Long, value: Int) {
+        prefs.edit().putInt(DAY_BG_COLOR_PER_NOVEL_PREFIX + novelId, value).apply()
+    }
+
+    /**
+     * The default night-mode background color applied to novels that have no per-novel value
+     * stored yet (see [getNightBackgroundColorForNovel]).
+     */
     var nightModeBackgroundColor: Int
         get() = prefs.getInt(NIGHT_MODE_BACKGROUND_COLOR, Color.BLACK)
         set(value) = prefs.edit().putInt(NIGHT_MODE_BACKGROUND_COLOR, value).apply()
 
+    /**
+     * Returns the night-mode background color for the novel identified by [novelId]. Falls back
+     * to the app-wide default ([nightModeBackgroundColor]) when no per-novel value has been stored yet.
+     */
+    fun getNightBackgroundColorForNovel(novelId: Long): Int =
+        prefs.getInt(NIGHT_BG_COLOR_PER_NOVEL_PREFIX + novelId, nightModeBackgroundColor)
+
+    /**
+     * Persists the night-mode background color for the novel identified by [novelId]. Does not
+     * affect the app-wide default ([nightModeBackgroundColor]) or any other novel's stored preference.
+     */
+    fun setNightBackgroundColorForNovel(novelId: Long, value: Int) {
+        prefs.edit().putInt(NIGHT_BG_COLOR_PER_NOVEL_PREFIX + novelId, value).apply()
+    }
+
+    /**
+     * The default day-mode text color applied to novels that have no per-novel value stored
+     * yet (see [getDayTextColorForNovel]).
+     */
     var dayModeTextColor: Int
         get() = prefs.getInt(DAY_MODE_TEXT_COLOR, Color.BLACK)
         set(value) = prefs.edit().putInt(DAY_MODE_TEXT_COLOR, value).apply()
 
+    /**
+     * Returns the day-mode text color for the novel identified by [novelId]. Falls back to the
+     * app-wide default ([dayModeTextColor]) when no per-novel value has been stored yet.
+     */
+    fun getDayTextColorForNovel(novelId: Long): Int =
+        prefs.getInt(DAY_TEXT_COLOR_PER_NOVEL_PREFIX + novelId, dayModeTextColor)
+
+    /**
+     * Persists the day-mode text color for the novel identified by [novelId]. Does not affect
+     * the app-wide default ([dayModeTextColor]) or any other novel's stored preference.
+     */
+    fun setDayTextColorForNovel(novelId: Long, value: Int) {
+        prefs.edit().putInt(DAY_TEXT_COLOR_PER_NOVEL_PREFIX + novelId, value).apply()
+    }
+
+    /**
+     * The default night-mode text color applied to novels that have no per-novel value stored
+     * yet (see [getNightTextColorForNovel]).
+     */
     var nightModeTextColor: Int
         get() = prefs.getInt(NIGHT_MODE_TEXT_COLOR, Color.WHITE)
         set(value) = prefs.edit().putInt(NIGHT_MODE_TEXT_COLOR, value).apply()
+
+    /**
+     * Returns the night-mode text color for the novel identified by [novelId]. Falls back to
+     * the app-wide default ([nightModeTextColor]) when no per-novel value has been stored yet.
+     */
+    fun getNightTextColorForNovel(novelId: Long): Int =
+        prefs.getInt(NIGHT_TEXT_COLOR_PER_NOVEL_PREFIX + novelId, nightModeTextColor)
+
+    /**
+     * Persists the night-mode text color for the novel identified by [novelId]. Does not
+     * affect the app-wide default ([nightModeTextColor]) or any other novel's stored preference.
+     */
+    fun setNightTextColorForNovel(novelId: Long, value: Int) {
+        prefs.edit().putInt(NIGHT_TEXT_COLOR_PER_NOVEL_PREFIX + novelId, value).apply()
+    }
 
     var readAloudNextChapter: Boolean
         get() = prefs.getBoolean(READ_ALOUD_NEXT_CHAPTER, true)

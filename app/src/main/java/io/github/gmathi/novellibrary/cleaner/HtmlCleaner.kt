@@ -364,6 +364,7 @@ open class HtmlCleaner protected constructor() {
                 SelectorQuery("article.entry-content"),
                 SelectorQuery("article"),
                 SelectorQuery("div.content-inner"),
+                SelectorQuery("div.txt", appendTitleHeader = false),
                 SelectorQuery("#article", appendTitleHeader = false),
                 SelectorQuery("#read-novel", appendTitleHeader = false)
             )
@@ -517,6 +518,14 @@ open class HtmlCleaner protected constructor() {
             doc.head().getElementsByTag("link").remove()
         }
         doc.getElementById("custom-background-css")?.remove()
+        // Some sites (e.g. freewebnovel.com) set an inline background-color/style and a
+        // custom class directly on <html>. Since our injected dark/light theme CSS only
+        // targets <body>, that inline style on <html> survives and shows through as a
+        // light/dark sliver on the sides. Strip it so our theme fully controls the page background.
+        doc.getElementsByTag("html").forEach {
+            it.removeAttr("style")
+            it.classNames().toList().forEach { className -> it.removeClass(className) }
+        }
     }
 
 
@@ -658,20 +667,34 @@ open class HtmlCleaner protected constructor() {
 
     open fun getTitle(doc: Document): String? = doc.head().getElementsByTag("title").text()
 
-    open fun toggleTheme(isDark: Boolean, doc: Document): Document = toggleThemeDefault(isDark, doc)
+    open fun toggleTheme(
+        isDark: Boolean,
+        doc: Document,
+        fontPath: String = dataCenter.fontPath,
+        dayBackgroundColor: Int = dataCenter.dayModeBackgroundColor,
+        dayTextColor: Int = dataCenter.dayModeTextColor,
+        nightBackgroundColor: Int = dataCenter.nightModeBackgroundColor,
+        nightTextColor: Int = dataCenter.nightModeTextColor,
+        limitImageWidth: Boolean = dataCenter.limitImageWidth,
+    ): Document = toggleThemeDefault(isDark, doc, fontPath, dayBackgroundColor, dayTextColor, nightBackgroundColor, nightTextColor, limitImageWidth)
 
-    private fun toggleThemeDefault(isDark: Boolean, doc: Document): Document {
-        val fontFile = File(dataCenter.fontPath)
+    private fun toggleThemeDefault(
+        isDark: Boolean,
+        doc: Document,
+        fontPath: String,
+        dayBackgroundColor: Int,
+        dayTextColor: Int,
+        nightBackgroundColor: Int,
+        nightTextColor: Int,
+        limitImageWidth: Boolean,
+    ): Document {
+        val fontFile = File(fontPath)
         val fontFamily = fontFile.name.substringBeforeLast(".")
 
-        val dayBackgroundColor = dataCenter.dayModeBackgroundColor
         val dayBackgroundColorTransparency = BigDecimal(dayBackgroundColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
-        val dayTextColor = dataCenter.dayModeTextColor
         val dayTextColorTransparency = BigDecimal(dayTextColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
 
-        val nightBackgroundColor = dataCenter.nightModeBackgroundColor
         val nightBackgroundColorTransparency = BigDecimal(nightBackgroundColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
-        val nightTextColor = dataCenter.nightModeTextColor
         val nightTextColorTransparency = BigDecimal(nightTextColor.alpha.toDouble() / 255).setScale(2, RoundingMode.HALF_EVEN)
 
         doc.head().getElementById("darkTheme")?.remove()
@@ -685,6 +708,12 @@ open class HtmlCleaner protected constructor() {
                 html {
                     scroll-behavior: smooth;
                     overflow-wrap: break-word;
+                    background-color: ${
+                if (isDark)
+                    "rgba(${nightBackgroundColor.red}, ${nightBackgroundColor.green}, ${nightBackgroundColor.blue}, $nightBackgroundColorTransparency) !important"
+                else
+                    "rgba(${dayBackgroundColor.red}, ${dayBackgroundColor.green}, ${dayBackgroundColor.blue}, $dayBackgroundColorTransparency) !important"
+            };
                 }
                 body {
                     background-color: ${
@@ -719,7 +748,7 @@ open class HtmlCleaner protected constructor() {
                 p  {
                     text-align: left;
                 }
-                ${if (dataCenter.limitImageWidth) "img { max-width: 100%; height: initial !important; }" else ""}
+                ${if (limitImageWidth) "img { max-width: 100%; height: initial !important; }" else ""}
                 img.full-size-image {
                     max-width: initial !important;
                     max-height: initial !important;
