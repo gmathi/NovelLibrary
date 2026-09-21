@@ -194,7 +194,11 @@ object StorageLocationResolver {
      * after `/storage/`. Returns null when the path is not an external-volume path.
      */
     fun extractVolumeId(dir: File): String? {
-        val path = dir.absolutePath
+        // Normalize to forward slashes first: java.io.File renders platform-native separators in
+        // absolutePath (backslashes on Windows), but getExternalFilesDirs entries are always
+        // "/storage/..." paths on-device. Normalizing keeps this matchable under Windows JVM unit
+        // tests as well as on-device.
+        val path = dir.absolutePath.replace('\\', '/')
         if (!path.contains("/storage/")) return null
         val id = path.substringAfter("/storage/").substringBefore("/")
         return id.ifEmpty { null }

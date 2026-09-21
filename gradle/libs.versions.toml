@@ -88,6 +88,7 @@ leakcanary = "2.14"
 # Testing
 junit = "4.13.2"
 junitJupiter = "5.11.4"
+junitPlatformLauncher = "1.11.4"
 jqwik = "1.9.3"
 androidxJunit = "1.2.1"
 espresso = "3.6.1"
@@ -216,8 +217,13 @@ leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.re
 
 # Testing
 junit = { module = "junit:junit", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junitJupiter" }
+junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junitPlatformLauncher" }
+jqwik = { module = "net.jqwik:jqwik", version.ref = "jqwik" }
 androidx-junit = { module = "androidx.test.ext:junit", version.ref = "androidxJunit" }
 androidx-espresso = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
+androidx-espresso-contrib = { module = "androidx.test.espresso:espresso-contrib", version.ref = "espresso" }
 desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 
 [plugins]
