@@ -242,6 +242,12 @@ app/release/output.json
 app/mirror/release/output.json
 
 # ===========================
+# jqwik (property-based testing DB)
+# ===========================
+.jqwik-database
+**/.jqwik-database
+
+# ===========================
 # Gradle Wrapper (Keep These!)
 # ===========================
 !gradle/wrapper/gradle-wrapper.jar

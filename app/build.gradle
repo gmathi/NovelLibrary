@@ -105,6 +105,12 @@ android {
             useLegacyPackaging = false
         }
     }
+
+    testOptions {
+        unitTests.all {
+            useJUnitPlatform()
+        }
+    }
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
@@ -212,8 +218,15 @@ dependencies {
     
     // Testing
     testImplementation libs.junit
+    testImplementation libs.junit.jupiter
+    testRuntimeOnly libs.junit.vintage.engine
+    testRuntimeOnly libs.junit.platform.launcher
+    testImplementation libs.jqwik
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso
+    androidTestImplementation(libs.androidx.espresso.contrib) {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    }
 }
 
 tasks.register('countTranslations') {

@@ -66,13 +66,24 @@ object Utils {
 
     fun getNovelDir(context: Context, novelName: String, novelId: Long): File {
         val resolved = StorageLocationResolver.resolveWritableRoot(context, dataCenter)
-        val path = resolved.root // context.filesDir OR <sdAppDir>
+        return buildNovelDir(resolved.root, novelName, novelId)
+    }
+
+    /**
+     * Pure novel-directory naming + rooting logic used by [getNovelDir].
+     *
+     * Builds `"<writableNovelName>-<novelId>"` under [root] (substituting a generated UUID-based
+     * name when [novelName] has no writable characters) and ensures it exists on disk. Extracted
+     * as its own overload so the naming/rooting convention can be tested without an Android
+     * [Context] (see Property 3: Novel directory is rooted under the active location).
+     */
+    fun buildNovelDir(root: File, novelName: String, novelId: Long): File {
         var writableNovelName = novelName.writableFileName()
         if (writableNovelName.isEmpty()) {
             writableNovelName = UUID.randomUUID().toString().writableFileName()
         }
         val dirName = "$writableNovelName-$novelId"
-        val novelDir = File(path, dirName)
+        val novelDir = File(root, dirName)
         if (!novelDir.exists()) novelDir.mkdirs()
         return novelDir
     }
