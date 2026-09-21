@@ -31,12 +31,10 @@ fun DBHelper.getGenres(novelId: Long): List<String>? {
             " FROM novel_genre ng, genre g" +
             " WHERE ng.genre_id = g.id AND ng.novel_id = $novelId" +
             " GROUP BY ng.novel_id"
-    val cursor = this.readableDatabase.rawQuery(selectQuery, null)
-    if (cursor != null) {
+    this.readableDatabase.rawQuery(selectQuery, null)?.use { cursor ->
         if (cursor.moveToFirst()) {
-            return listOf(*cursor.getString(cursor.getColumnIndex("Genres")).split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray())
+            return cursor.getString(cursor.getColumnIndex("Genres")).split(",").dropLastWhile { it.isEmpty() }
         }
-        cursor.close()
     }
     return null
 }

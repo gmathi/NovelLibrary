@@ -1,6 +1,5 @@
 package io.github.gmathi.novellibrary.model.source.online
 
-import android.os.Build
 import androidx.core.net.toUri
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.TranslatorSource
@@ -225,24 +224,13 @@ class NovelUpdatesSource : ParsedHttpSource() {
             .flatMap { task -> task.observeOn(Schedulers.io()) }
             .toList().awaitSingle()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            translatorSourceListOfChapterList.parallelStream().forEach { translatorSourceOnlyChapterList ->
-                translatorSourcesMap.putAll(createTranslatorSourceMap(translatorSourceOnlyChapterList))
-            }
-        } else {
-            translatorSourceListOfChapterList.forEach { translatorSourceOnlyChapterList ->
-                translatorSourcesMap.putAll(createTranslatorSourceMap(translatorSourceOnlyChapterList))
-            }
+        // Sequential on purpose: HashMap is not thread-safe and the per-element work is trivial.
+        translatorSourceListOfChapterList.forEach { translatorSourceOnlyChapterList ->
+            translatorSourcesMap.putAll(createTranslatorSourceMap(translatorSourceOnlyChapterList))
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            allChapters.parallelStream().forEach {
-                it.translatorSourceName = translatorSourcesMap[it.url]
-            }
-        } else {
-            allChapters.forEach {
-                it.translatorSourceName = translatorSourcesMap[it.url]
-            }
+        allChapters.forEach {
+            it.translatorSourceName = translatorSourcesMap[it.url]
         }
 
         return allChapters
@@ -253,14 +241,8 @@ class NovelUpdatesSource : ParsedHttpSource() {
         val translatorSourceName = translatorSourceOnlyChapterList.first().translatorSourceName
             ?: return HashMap()
         val map = HashMap<String, String>()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            translatorSourceOnlyChapterList.parallelStream().forEach {
-                map[it.url] = translatorSourceName
-            }
-        } else {
-            translatorSourceOnlyChapterList.forEach {
-                map[it.url] = translatorSourceName
-            }
+        translatorSourceOnlyChapterList.forEach {
+            map[it.url] = translatorSourceName
         }
         return map
     }
@@ -505,7 +487,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
                 null
             }
         }
-        val hasNextPage = document.select(popularNovelNextPageSelector()) != null
+        val hasNextPage = document.selectFirst(popularNovelNextPageSelector()) != null
 
         Logs.info(TAG, "SearchUrl result: ${novels.size} novels, hasNextPage=$hasNextPage")
         return NovelsPage(novels, hasNextPage)
@@ -600,20 +582,6 @@ class NovelUpdatesSource : ParsedHttpSource() {
         return pageUrls
     }
 
-    private fun getMaxPageNum(doc: Document): Int {
-        val pageElements = doc.body().select("div.digg_pagination > a[href]")
-        var maxPageNum = 1
-        pageElements.forEach {
-            try {
-                val pageNum = it.attr("abs:href").toUri().getQueryParameter("pg")?.toIntOrNull() ?: return@forEach
-                if (maxPageNum < pageNum)
-                    maxPageNum = pageNum
-            } catch (_: Exception) {
-                //Do Nothing
-            }
-        }
-        return maxPageNum
-    }
     //endregion
 
 

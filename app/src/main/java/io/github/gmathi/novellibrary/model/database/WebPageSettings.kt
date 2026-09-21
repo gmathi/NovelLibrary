@@ -87,13 +87,9 @@ data class WebPageSettings(
     }
 
     override fun hashCode(): Int {
+        // Must only use the fields compared in equals(), otherwise equal objects hash differently.
         var result = url.hashCode()
         result = 31 * result + novelId.hashCode()
-        result = 31 * result + (title?.hashCode() ?: 0)
-        result = 31 * result + isRead.hashCode()
-        result = 31 * result + (filePath?.hashCode() ?: 0)
-        result = 31 * result + (redirectedUrl?.hashCode() ?: 0)
-        result = 31 * result + metadata.hashCode()
         return result
     }
 

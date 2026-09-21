@@ -49,7 +49,12 @@ private fun getDownload(cursor: Cursor): Download {
     )
     download.status = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_STATUS))
     download.orderId = cursor.getInt(cursor.getColumnIndex(DBKeys.KEY_ORDER_ID))
-    download.metadata = Gson().fromJson(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<java.util.HashMap<String, String>>() {}.type)
+    download.metadata = try {
+        Gson().fromJson<java.util.HashMap<String, String>>(cursor.getString(cursor.getColumnIndex(DBKeys.KEY_METADATA)), object : TypeToken<java.util.HashMap<String, String>>() {}.type)
+            ?: java.util.HashMap()
+    } catch (e: Exception) {
+        java.util.HashMap()
+    }
     return download
 }
 

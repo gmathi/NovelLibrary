@@ -211,18 +211,16 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                     R.id.action_reset_novel -> {
                         if (networkHelper.isConnectedToNetwork()) {
                             val novel: Novel = adapter.items[position]
-                            // We cannot block the main thread since we end up using Network methods later in dbHelper.resetNovel()
-                            // Instead of using async{} which is deprecated, we can use GlobalScope.Launch {} which uses the Kotlin Coroutines
-                            // We run resetNovel in GlobalScope, wait for it with .join() (which is why we need runBlocking{})
-                            // then we syncNovels() so that it shows in Library
-                            runBlocking {
-                                GlobalScope.launch {
-                                    try {
+                            // resetNovel() hits the network, so run it off the main thread and refresh the
+                            // library once it completes (runBlocking here would freeze the UI for the whole call).
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                try {
+                                    withContext(Dispatchers.IO) {
                                         this@LibraryFragment.resetNovel(novel)
-                                    } catch (e: Exception) {
-                                        Logs.error("LibraryFragment", "resetNovel: $novel", e)
                                     }
-                                }.join()
+                                } catch (e: Exception) {
+                                    Logs.error(TAG, "resetNovel: $novel", e)
+                                }
                                 setData()
                             }
                         } else {

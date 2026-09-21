@@ -7,6 +7,7 @@ This directory contains technical documentation for the NovelLibrary Android app
 ### Project Information
 - [Contributors](contributors.md) - List of all contributors to the project
 - [Library Cleanup Analysis](library-cleanup-analysis.md) - Analysis of third-party libraries and cleanup recommendations
+- [Code Review Findings](code-review-findings.md) - Static review findings: applied fixes and remaining issues
 
 ### Architecture & Design
 - [Recent Novels Architecture](recent-novels-architecture.md) - Architecture overview of the Recent Novels feature

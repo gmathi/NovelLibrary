@@ -81,7 +81,9 @@ class WebPageDBFragment : BaseFragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        if (savedInstanceState == null)
+        // Register unconditionally: onDestroy() always unregisters, and restored pages
+        // (non-null savedInstanceState) still need to receive reader settings events.
+        if (!EventBus.getDefault().isRegistered(this))
             EventBus.getDefault().register(this)
 
         //Verify activity is still loaded in
@@ -472,7 +474,7 @@ class WebPageDBFragment : BaseFragment() {
                 if (webPageSettings.metadata.containsKey(Constants.MetaDataKeys.OTHER_LINKED_WEB_PAGES)) {
                     val links = webPageSettings.getLinkedPagesCompat()
                     links.forEach {
-                        val tempWebPageSettings = dbHelper.getWebPageSettings(it.href)!!
+                        val tempWebPageSettings = dbHelper.getWebPageSettings(it.href) ?: return@forEach
                         val internalFilePath = "$FILE_PROTOCOL${tempWebPageSettings.filePath}"
                         val input = File(internalFilePath.substring(7))
 

@@ -110,7 +110,8 @@ internal object ExtensionLoader {
         }
 
         //Validate lib version
-        val libVersion = versionName.substringBeforeLast('.').toDouble()
+        val libVersion = versionName.substringBeforeLast('.').toDoubleOrNull()
+            ?: return LoadResult.Error("Invalid versionName \"$versionName\" for extension $extName")
 
         if (libVersion < LIB_VERSION_MIN || libVersion > LIB_VERSION_MAX) {
             val exception = Exception(
@@ -129,14 +130,19 @@ internal object ExtensionLoader {
             return LoadResult.Untrusted(extension)
         }
 
-        val isNsfw = appInfo.metaData.getInt(METADATA_NSFW) == 1
+        val metaData = appInfo.metaData
+            ?: return LoadResult.Error("Missing manifest meta-data for extension $extName")
+
+        val isNsfw = metaData.getInt(METADATA_NSFW) == 1
         if (!loadNsfwSource && isNsfw) {
             return LoadResult.Error("NSFW extension $pkgName not allowed")
         }
 
         val classLoader = PathClassLoader(appInfo.sourceDir, null, context.classLoader)
 
-        val sources = appInfo.metaData.getString(METADATA_SOURCE_CLASS)!!
+        val sourceClasses = metaData.getString(METADATA_SOURCE_CLASS)
+            ?: return LoadResult.Error("Missing $METADATA_SOURCE_CLASS meta-data for extension $extName")
+        val sources = sourceClasses
             .split(";")
             .map {
                 val sourceClass = it.trim()

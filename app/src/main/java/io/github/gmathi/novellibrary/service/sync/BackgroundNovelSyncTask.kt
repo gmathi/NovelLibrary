@@ -26,15 +26,18 @@ import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.Utils
-import io.github.gmathi.novellibrary.util.lang.launchUI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
 class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
-    Worker(context, params) {
+    CoroutineWorker(context, params) {
 
-    override fun doWork(): Result {
+    // CoroutineWorker so that the sync runs to completion inside doWork(). The previous
+    // Worker implementation launched the sync in GlobalScope and returned success immediately,
+    // which let WorkManager consider the job finished before any work had happened, ran all
+    // database access on the main thread and made the retry path unreachable.
+    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val dbHelper = DBHelper.getInstance(context)
 
         // Enable the below line only in debug mode for triggering breakpoints
@@ -44,19 +47,20 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
             if (NetworkHelper(context).isConnectedToNetwork())
                 startNovelsSync(dbHelper)
         } catch (e: Exception) {
-            return Result.retry()
+            Logs.error(TAG, "novel sync failed", e)
+            return@withContext Result.retry()
         }
-        return Result.success()
+        Result.success()
     }
 
     @SuppressLint("UnspecifiedImmutableFlag")
-    private fun startNovelsSync(dbHelper: DBHelper) {
+    private suspend fun startNovelsSync(dbHelper: DBHelper) {
         //For Testing - get a Novel and delete 5 chapters
         //dbHelper.getAllNovels().forEach { novel ->
         //            dbHelper.updateChaptersCount(novel.id, novel.chaptersCount - 5)
         //        }
 
-        launchUI {
+        run {
             Logs.debug(TAG, "start novel sync")
             val totalCountMap: HashMap<Novel, Int> = HashMap()
             val totalChaptersMap: HashMap<Novel, ArrayList<WebPage>> = HashMap()
@@ -80,7 +84,7 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
                 }
             }
 
-            if (totalCountMap.isEmpty()) return@launchUI
+            if (totalCountMap.isEmpty()) return@run
 
             //Update DB with new chapters
             totalChaptersMap.forEach {

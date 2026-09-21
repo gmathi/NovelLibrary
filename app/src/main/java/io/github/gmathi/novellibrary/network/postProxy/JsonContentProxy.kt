@@ -10,7 +10,6 @@ abstract class JsonContentProxy<T> : BasePostProxyHelper() {
 
     override fun document(response: Response): Document {
         val doc = response.asJsoup()
-        val jdoc = extractJson(doc)
         return extractJson(doc) ?: doc
     }
 

@@ -63,7 +63,7 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
         if (formatArgs.isEmpty())
             applicationContext.getString(resId)
         else
-            applicationContext.getString(resId, formatArgs)
+            applicationContext.getString(resId, *formatArgs)
 
     private fun sendBroadcast(intent: Intent) =
         applicationContext.sendBroadcast(intent)

@@ -34,7 +34,8 @@ class FoxTellerProxy : BaseProxyHelper() {
     @ExperimentalStdlibApi
     override fun document(response: Response): Document {
         val doc = response.asJsoup()
-        val cookiesList = response.headers.values("Set-Cookie")[0].split(";".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val cookiesList = response.headers.values("Set-Cookie").firstOrNull()
+            ?.split(";".toRegex())?.dropLastWhile { it.isEmpty() }?.toTypedArray() ?: emptyArray()
         val cookieMap = HashMap<String, String>()
         cookiesList.forEach {
             val keyValueSplit = it.split("=")
@@ -83,13 +84,14 @@ class FoxTellerProxy : BaseProxyHelper() {
         }
 
         if (chapterResponse.code != 200) {
+            chapterResponse.close()
             val content = doc.getElementById("chapter-content")
             content?.children()?.remove()
             content?.append("<p><b>ERROR: Could not load chapter content (${chapterResponse.code}).</b></p>")
             return doc
         }
 
-        var chapter = JsonParser.parseString(chapterResponse.body?.string())?.asJsonObject?.get("aux")?.asString ?: return doc
+        var chapter = chapterResponse.use { JsonParser.parseString(it.body?.string())?.asJsonObject?.get("aux")?.asString } ?: return doc
 
         chapter = chapter.replace(decode_regex) { match ->
             charmap.getValue(match.groups[1]?.value ?: "").toString()

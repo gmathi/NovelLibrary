@@ -52,7 +52,7 @@ abstract class CompiledTTSFilter {
 
     protected fun substitute(lookup: String, doc: Document?, escape: Boolean = false): String {
         if (doc == null) return lookup
-        val url = doc.location()?.toHttpUrlOrNull(); Regex("""(?:asd)""")
+        val url = doc.location()?.toHttpUrlOrNull()
         return Regex("""\$\{\w+\}""").replace(lookup) { match ->
             val text = when (match.value) {
                 "\${host}" -> url?.host ?: match.value

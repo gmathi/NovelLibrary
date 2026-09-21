@@ -7,6 +7,7 @@ import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.model.source.online.NovelUpdatesSource
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,6 +44,7 @@ class SearchUrlViewModel : ViewModel() {
     
     private var currentPage = 1
     private var isLoadingMore = false
+    private var loadJob: Job? = null
     private var rank: String? = null
     private var url: String? = null
 
@@ -73,6 +75,10 @@ class SearchUrlViewModel : ViewModel() {
 
     fun loadNovels(reset: Boolean = false) {
         if (reset) {
+            // A reset (new tab / new URL) supersedes any in-flight load; otherwise the old
+            // request would either block this one or overwrite its results when it finishes.
+            loadJob?.cancel()
+            isLoadingMore = false
             currentPage = 1
             _novels.value = emptyList()
         }
@@ -80,7 +86,7 @@ class SearchUrlViewModel : ViewModel() {
         if (isLoadingMore) return
         isLoadingMore = true
         
-        viewModelScope.launch {
+        loadJob = viewModelScope.launch {
             try {
                 if (!networkHelper.isConnectedToNetwork()) {
                     _uiState.value = SearchUrlUiState.NoInternet

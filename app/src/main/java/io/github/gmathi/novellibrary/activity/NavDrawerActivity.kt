@@ -301,7 +301,8 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         if (intent.extras != null && intent.extras!!.containsKey("novel")) {
             val novel = intent.extras!!.getSerializable("novel") as? Novel
             novel?.let {
-                intent.extras!!.remove("novel")
+                // intent.extras returns a copy; removing from it does nothing.
+                intent.removeExtra("novel")
                 startChaptersActivity(novel)
             }
         }

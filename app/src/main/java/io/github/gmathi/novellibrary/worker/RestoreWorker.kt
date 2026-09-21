@@ -67,7 +67,7 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
         if (formatArgs.isEmpty())
             applicationContext.getString(resId)
         else
-            applicationContext.getString(resId, formatArgs)
+            applicationContext.getString(resId, *formatArgs)
 
     private fun sendBroadcast(intent: Intent) =
         applicationContext.sendBroadcast(intent)
@@ -139,8 +139,7 @@ internal class RestoreWorker(context: Context, workerParameters: WorkerParameter
                 // Restore From Text File
                 val simpleTextFile = File(cacheDir, SIMPLE_NOVEL_BACKUP_FILE_NAME)
                 if (shouldSimpleTextRestore && simpleTextFile.exists() && simpleTextFile.canRead()) {
-                    val reader = BufferedReader(InputStreamReader(FileInputStream(simpleTextFile)))
-                    val jsonString = reader.readLine()
+                    val jsonString = BufferedReader(InputStreamReader(FileInputStream(simpleTextFile))).use { it.readLine() }
                     val jsonObject = JSONObject(jsonString)
                     nm.updateProgress(1)
                     val novelsArray = jsonObject.getJSONArray("novels")

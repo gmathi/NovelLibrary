@@ -47,7 +47,7 @@ object Logs {
         if (BuildConfig.DEBUG) {
             Log.e(tag, message, throwable)
         } else {
-            logToFirebase("E", tag, message)
+            logToFirebase("E", tag, message, throwable)
         }
     }
 

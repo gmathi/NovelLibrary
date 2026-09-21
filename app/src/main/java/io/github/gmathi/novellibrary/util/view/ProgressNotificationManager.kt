@@ -12,6 +12,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.util.Utils
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
@@ -111,9 +112,13 @@ class ProgressNotificationManager(context: Context,
     init {
         createNotificationChannel()
         GlobalScope.launch {
-            while (!notificationQueue.isClosed()) {
-                updateNotification(notificationQueue.take())
-                delay(updateRate * NotificationQueue.globalChannelCount.get())
+            try {
+                while (!notificationQueue.isClosed()) {
+                    updateNotification(notificationQueue.take())
+                    delay(updateRate * NotificationQueue.globalChannelCount.get())
+                }
+            } catch (_: ClosedReceiveChannelException) {
+                // Queue was closed while waiting for the next notification: normal shutdown.
             }
         }
     }
@@ -219,6 +224,10 @@ class ProgressNotificationManager(context: Context,
                 globalQueueSize.getAndAdd(-queueSize)
                 globalChannelCount.getAndDecrement()
                 queueSize = 0
+                // Close the channels so the consumer loop in ProgressNotificationManager terminates
+                // instead of staying parked in receive() for the life of the process.
+                updateChannel.close()
+                emptyCallbackChannel.close()
             }
 
             @ExperimentalCoroutinesApi
