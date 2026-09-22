@@ -36,6 +36,7 @@ class ChapterActionModeEvent(val translatorSourceName: String = ALL_TRANSLATOR_S
 class ReaderSettingsEvent(val setting: String) {
     companion object {
         const val READER_MODE = "readerMode"
+        const val PAGE_MODE = "pageMode"
         const val NIGHT_MODE = "nightMode"
         const val JAVA_SCRIPT = "javaScript"
         const val FONT = "font"

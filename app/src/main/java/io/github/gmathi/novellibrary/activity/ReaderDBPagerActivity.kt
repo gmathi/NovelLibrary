@@ -21,6 +21,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.viewpager.widget.ViewPager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.WhichButton
@@ -52,6 +54,7 @@ import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.system.getParcelableExtraCompat
 import io.github.gmathi.novellibrary.util.system.intentOf
 import io.github.gmathi.novellibrary.util.system.logNovelEvent
+import io.github.gmathi.novellibrary.util.system.markChapterRead
 import io.github.gmathi.novellibrary.util.system.openInBrowser
 import io.github.gmathi.novellibrary.util.system.showAlertDialog
 import io.github.gmathi.novellibrary.util.system.startAiTtsActivity
@@ -99,6 +102,28 @@ class ReaderDBPagerActivity :
     /** Compose-observable menu icon visibility state (auto-hides on scroll down, shows on scroll up / tap) */
     private val menuIconVisible = mutableStateOf(true)
 
+    /** In page mode the floating menu icon is redundant (center tap opens the menu) and covers text. */
+    private val pageModeActive = mutableStateOf(false)
+
+    /** Page mode: chapters already marked read in this session, so each is written once. */
+    private val finishedChapters = HashSet<String>()
+
+    /**
+     * Whether the chapter pager runs in reverse (next chapter at a lower index). That is what
+     * "swipe right for next chapter" means in scroll mode. Page mode locks chapter swiping and
+     * turns pages by sliding content left, so its chapter transitions must slide the same way:
+     * the pager keeps natural order there.
+     */
+    private val pagerReversed: Boolean
+        get() = dataCenter.japSwipe && !isPageModeActive
+
+    /**
+     * Page Mode paginates the cleaned chapter, so it only applies while this novel is in Reader
+     * Mode. The preference itself is app-wide; whether it applies depends on the novel.
+     */
+    private val isPageModeActive: Boolean
+        get() = dataCenter.isPageModeActiveForNovel(novel.id)
+
     lateinit var binding: ActivityReaderPagerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -128,7 +153,7 @@ class ReaderDBPagerActivity :
 
         // Get all WebPages & set view pager
         webPages = dbHelper.getAllWebPages(novel.id, translatorSourceName)
-        if (dataCenter.japSwipe)
+        if (pagerReversed)
             webPages = webPages.reversed()
 
         adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, webPages.size, WebPageFragmentPageListener(novel, webPages))
@@ -144,7 +169,7 @@ class ReaderDBPagerActivity :
 
         // Update chapter info in ViewModel
         val initialPosition = binding.viewPager.currentItem
-        val initialDisplayIndex = if (dataCenter.japSwipe) (webPages.size - 1 - initialPosition) else initialPosition
+        val initialDisplayIndex = if (pagerReversed) (webPages.size - 1 - initialPosition) else initialPosition
         readerViewModel.updateChapterInfo(
             index = initialDisplayIndex,
             total = webPages.size,
@@ -153,6 +178,21 @@ class ReaderDBPagerActivity :
 
         // Setup Compose overlay (once — state changes drive recomposition)
         setupComposeOverlay()
+
+        // Chapter swiping follows the user's setting and is always off in page mode, where
+        // horizontal gestures turn pages inside the chapter.
+        var appliedReversed = pagerReversed
+        lifecycleScope.launch {
+            readerViewModel.uiState.collect { state ->
+                binding.viewPager.isSwipeEnabled = state.chapterSwipeEnabled && !state.isPageMode
+                pageModeActive.value = state.isPageMode
+                val reversed = state.japSwipe && !state.isPageMode
+                if (reversed != appliedReversed) {
+                    appliedReversed = reversed
+                    reversePagerOrder()
+                }
+            }
+        }
 
         onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -175,17 +215,20 @@ class ReaderDBPagerActivity :
                 ReaderOverlay(
                     viewModel = readerViewModel,
                     isVisible = isVisible,
-                    isMenuIconVisible = menuIconVisible.value,
+                    isMenuIconVisible = menuIconVisible.value && !pageModeActive.value,
                     novelName = novel.name ?: "",
                     onBackPress = { finish() },
                     onPreviousChapter = {
-                        val current = binding.viewPager.currentItem
-                        if (current > 0) binding.viewPager.currentItem = current - 1
+                        val state = readerViewModel.uiState.value
+                        when {
+                            // Page mode: first return to page 1 of this chapter; from page 1 go to
+                            // page 1 of the previous chapter.
+                            state.isPageMode && state.currentPage > 0 -> jumpWithinChapter(toEnd = false)
+                            !goToPreviousChapter() -> jumpWithinChapter(toEnd = false)
+                        }
                     },
-                    onNextChapter = {
-                        val current = binding.viewPager.currentItem
-                        if (current < webPages.size - 1) binding.viewPager.currentItem = current + 1
-                    },
+                    onNextChapter = { if (!goToNextChapter()) jumpWithinChapter(toEnd = true) },
+                    onPageSelected = { page -> showPage(page) },
                     onFontClick = { changeFontStyle() },
                     onReadAloudClick = { handleReadAloud() },
                     onBrowserClick = { inBrowser() },
@@ -228,8 +271,119 @@ class ReaderDBPagerActivity :
         menuIconVisible.value = false
     }
 
+    /**
+     * Moves to the next chapter in reading order. The pager list is reversed when
+     * "swipe right for next chapter" is on, so "next" is a lower pager index in that case.
+     * Returns false when already at the last chapter.
+     */
+    fun goToNextChapter(): Boolean {
+        val target = binding.viewPager.currentItem + if (pagerReversed) -1 else 1
+        if (target !in webPages.indices) return false
+        // Entering a chapter from the previous one always starts at its first page.
+        fragmentAt(target)?.startAtPage(0)
+        binding.viewPager.currentItem = target
+        return true
+    }
+
+    private fun fragmentAt(position: Int): WebPageDBFragment? =
+        binding.viewPager.adapter?.instantiateItem(binding.viewPager, position) as? WebPageDBFragment
+
+    private fun currentFragment(): WebPageDBFragment? = fragmentAt(binding.viewPager.currentItem)
+
+    private fun currentWebView(): WebView? = currentFragment()?.view?.findViewById(R.id.readerWebView)
+
+    /** Whether [fragment] shows the chapter the pager is on, rather than an off-screen neighbour. */
+    fun isCurrentChapter(fragment: WebPageDBFragment): Boolean {
+        val url = fragment.chapterUrl ?: return false
+        return webPages.getOrNull(binding.viewPager.currentItem)?.url == url
+    }
+
+    /** Called by chapter fragments when their page-mode position changes; only the visible one is shown. */
+    fun onFragmentPageChanged(fragment: WebPageDBFragment, page: Int, total: Int) {
+        runOnUiThread {
+            if (isCurrentChapter(fragment)) readerViewModel.updatePageInfo(page, total)
+        }
+    }
+
+    /**
+     * Page mode: the reader turned past the last page of [fragment]'s chapter ([forward]) or back
+     * past its first page. Only the chapter on screen may move the reader: a neighbour still sliding
+     * out of view, or a second quick swipe landing on it, would otherwise skip a chapter.
+     */
+    fun onChapterBoundary(fragment: WebPageDBFragment, forward: Boolean) {
+        if (!isCurrentChapter(fragment)) return
+        if (forward) {
+            markChapterFinished(fragment)
+            goToNextChapter()
+        } else {
+            goToPreviousChapter(startAtEnd = true)
+        }
+    }
+
+    /** Page mode: the reader turned onto the last page of [fragment]'s chapter. */
+    fun onChapterFinished(fragment: WebPageDBFragment) {
+        if (isCurrentChapter(fragment)) markChapterFinished(fragment)
+    }
+
+    /**
+     * In page mode a chapter counts as read once its last page is reached, not when it is opened;
+     * opening one only moves the bookmark (see [updateBookmark]).
+     */
+    private fun markChapterFinished(fragment: WebPageDBFragment) {
+        val url = fragment.chapterUrl ?: return
+        if (!finishedChapters.add(url)) return
+        webPages.firstOrNull { it.url == url }?.let { markChapterRead(it, true) }
+    }
+
+    /** Page-mode scrubber: position the current chapter on [page] without the turn animation. */
+    private fun showPage(page: Int) {
+        currentWebView()?.evaluateJavascript("window.__nlPager && window.__nlPager.goTo($page, true);", null)
+    }
+
+    /**
+     * Used by the chapter chevrons when there is no further chapter: jump to the end (last page,
+     * or bottom in scroll mode) or to the start of the current chapter instead of doing nothing.
+     */
+    private fun jumpWithinChapter(toEnd: Boolean) {
+        val webView = currentWebView() ?: return
+        if (isPageModeActive) {
+            webView.evaluateJavascript("window.__nlPager && window.__nlPager.goTo(${if (toEnd) -1 else 0});", null)
+        } else {
+            val target = if (toEnd) (webView.contentHeight * webView.scale - webView.height).toInt().coerceAtLeast(0) else 0
+            ObjectAnimator.ofInt(webView, "scrollY", webView.scrollY, target).setDuration(300).start()
+        }
+    }
+
+    /**
+     * Re-orders the pager when the swipe-direction setting changes while the reader is open,
+     * keeping the current chapter in place.
+     */
+    private fun reversePagerOrder() {
+        if (webPages.isEmpty()) return
+        val current = webPages[binding.viewPager.currentItem]
+        webPages = webPages.reversed()
+        adapter = GenericFragmentStatePagerAdapter(supportFragmentManager, null, webPages.size, WebPageFragmentPageListener(novel, webPages))
+        binding.viewPager.adapter = adapter
+        binding.viewPager.setCurrentItem(webPages.indexOf(current), false)
+    }
+
+    /** Moves to the previous chapter in reading order; see [goToNextChapter]. */
+    /**
+     * @param startAtEnd open the previous chapter at its last page (backing across a chapter
+     * boundary in page mode) instead of its first page (chevron).
+     */
+    fun goToPreviousChapter(startAtEnd: Boolean = false): Boolean {
+        val target = binding.viewPager.currentItem + if (pagerReversed) 1 else -1
+        if (target !in webPages.indices) return false
+        fragmentAt(target)?.startAtPage(if (startAtEnd) -1 else 0)
+        binding.viewPager.currentItem = target
+        return true
+    }
+
     private fun updateBookmark(webPage: WebPage) {
-        updateNovelBookmark(novel, webPage)
+        // Scroll mode keeps the long-standing behaviour of marking a chapter read when it is
+        // opened. Page mode marks it read when its last page is reached (markChapterFinished).
+        updateNovelBookmark(novel, webPage, markRead = !isPageModeActive)
     }
 
     @Suppress("DEPRECATION")
@@ -244,7 +398,9 @@ class ReaderDBPagerActivity :
 
     override fun onPageSelected(position: Int) {
         updateBookmark(webPage = webPages[position])
-        val displayIndex = if (dataCenter.japSwipe) (webPages.size - 1 - position) else position
+        // Show the newly visible chapter's page position in the menu.
+        fragmentAt(position)?.publishPageInfo()
+        val displayIndex = if (pagerReversed) (webPages.size - 1 - position) else position
         readerViewModel.updateChapterInfo(
             index = displayIndex,
             total = webPages.size,
@@ -265,7 +421,7 @@ class ReaderDBPagerActivity :
             val webPageDBFragment = (binding.viewPager.adapter?.instantiateItem(binding.viewPager, binding.viewPager.currentItem) as? WebPageDBFragment)
             val audioText = webPageDBFragment?.doc?.getFormattedText() ?: return
             val title = webPageDBFragment.doc?.title() ?: ""
-            val chapterIndex = (if (dataCenter.japSwipe) webPages.reversed() else webPages).indexOf(webPages[binding.viewPager.currentItem])
+            val chapterIndex = (if (pagerReversed) webPages.reversed() else webPages).indexOf(webPages[binding.viewPager.currentItem])
 
             if (dataCenter.useAiTts) {
                 val linkedPageUrls = ArrayList(webPageDBFragment.linkedPages.map { it.href })
@@ -295,6 +451,16 @@ class ReaderDBPagerActivity :
             binding.viewPager,
             binding.viewPager.currentItem
         ) as WebPageDBFragment?)?.view?.findViewById<WebView>(R.id.readerWebView)
+        if (isPageModeActive && dataCenter.enableVolumeScroll &&
+            (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
+        ) {
+            // In page mode the volume keys turn pages instead of scrolling.
+            if (action == KeyEvent.ACTION_DOWN) {
+                val call = if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) "prev" else "next"
+                webView?.evaluateJavascript("window.__nlPager && window.__nlPager.$call();", null)
+            }
+            return true
+        }
         return when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.enableVolumeScroll) {
@@ -329,6 +495,8 @@ class ReaderDBPagerActivity :
         return if (index == -1)
             false
         else {
+            // A link points at the start of a chapter, not at wherever it was last left.
+            if (isPageModeActive) fragmentAt(index)?.startAtPage(0)
             binding.viewPager.currentItem = index
             updateBookmark(webPage)
             true

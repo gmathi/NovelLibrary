@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.MergeType
+import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -96,6 +97,35 @@ fun ReaderSettingsPanel(
             )
 
             SettingToggle(
+                icon = Icons.Outlined.ViewCarousel,
+                title = "Page Mode",
+                subtitle = if (uiState.isReaderMode) "Turn pages by swiping or tapping the screen edges"
+                else "Available in Reader Mode",
+                checked = uiState.isPageMode && uiState.isReaderMode,
+                enabled = uiState.isReaderMode,
+                onCheckedChange = { viewModel.setPageMode(it) }
+            )
+
+            SettingToggle(
+                icon = Icons.Outlined.SwipeLeft,
+                title = "Swipe Between Chapters",
+                subtitle = if (uiState.isPageMode) "Off while Page Mode is on; swipes turn pages instead"
+                else "Swipe left or right to change chapter",
+                checked = uiState.chapterSwipeEnabled && !uiState.isPageMode,
+                enabled = !uiState.isPageMode,
+                onCheckedChange = { viewModel.setChapterSwipeEnabled(it) }
+            )
+
+            SettingToggle(
+                icon = Icons.Outlined.SwipeRight,
+                title = "Swipe Right for Next Chapter",
+                subtitle = "Off: swipe left for the next chapter",
+                checked = uiState.japSwipe,
+                enabled = !uiState.isPageMode && uiState.chapterSwipeEnabled,
+                onCheckedChange = { viewModel.setJapSwipe(it) }
+            )
+
+            SettingToggle(
                 icon = Icons.Outlined.Code,
                 title = "JavaScript",
                 subtitle = "Enable page scripts",
@@ -117,6 +147,14 @@ fun ReaderSettingsPanel(
             )
 
             SectionHeader("Display")
+
+            SettingToggle(
+                icon = Icons.AutoMirrored.Outlined.VolumeUp,
+                title = "Volume Keys",
+                subtitle = "Scroll, or turn pages in page mode, with the volume buttons",
+                checked = uiState.enableVolumeScroll,
+                onCheckedChange = { viewModel.setEnableVolumeScroll(it) }
+            )
 
             SettingToggle(
                 icon = Icons.Outlined.ScreenLockPortrait,
@@ -372,12 +410,13 @@ private fun SettingToggle(
     title: String,
     subtitle: String,
     checked: Boolean,
+    enabled: Boolean = true,
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
+            .clickable(enabled = enabled) { onCheckedChange(!checked) }
             .padding(horizontal = 24.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -392,7 +431,7 @@ private fun SettingToggle(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = subtitle,
@@ -403,6 +442,7 @@ private fun SettingToggle(
         Spacer(modifier = Modifier.width(8.dp))
         Switch(
             checked = checked,
+            enabled = enabled,
             onCheckedChange = onCheckedChange
         )
     }

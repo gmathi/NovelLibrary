@@ -13,6 +13,8 @@ import uy.kohesive.injekt.injectLazy
 
 data class ReaderUiState(
     val isReaderMode: Boolean = false,
+    val isPageMode: Boolean = false,
+    val chapterSwipeEnabled: Boolean = true,
     val isDarkTheme: Boolean = true,
     val isJavascriptEnabled: Boolean = true,
     val textSize: Int = 0,
@@ -40,6 +42,9 @@ data class ReaderUiState(
     val currentChapterIndex: Int = 0,
     val totalChapters: Int = 0,
     val chapterTitle: String = "",
+    // Page mode: position within the current chapter (0-based page, 0 total = unknown)
+    val currentPage: Int = 0,
+    val totalPages: Int = 0,
 )
 
 class ReaderViewModel : ViewModel() {
@@ -56,6 +61,8 @@ class ReaderViewModel : ViewModel() {
         _uiState.update {
             it.copy(
                 isReaderMode = dataCenter.getReaderModeForNovel(novelId),
+                isPageMode = effectivePageMode(),
+                chapterSwipeEnabled = dataCenter.chapterSwipeEnabled,
                 isDarkTheme = dataCenter.getIsDarkThemeForNovel(novelId),
                 isJavascriptEnabled = !dataCenter.javascriptDisabled || dataCenter.getReaderModeForNovel(novelId),
                 textSize = dataCenter.getTextSizeForNovel(novelId),
@@ -95,22 +102,52 @@ class ReaderViewModel : ViewModel() {
         _uiState.update {
             it.copy(
                 isReaderMode = enabled,
+                isPageMode = effectivePageMode(),
                 isJavascriptEnabled = if (enabled) false else it.isJavascriptEnabled
             )
         }
         EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.READER_MODE))
     }
 
+    /** Page Mode only applies while Reader Mode is on; a stale preference is cleared here. */
+    private fun effectivePageMode(): Boolean = dataCenter.isPageModeActiveForNovel(novelId)
+
+    fun setPageMode(enabled: Boolean) {
+        if (enabled && !dataCenter.getReaderModeForNovel(novelId)) return
+        dataCenter.setPageModeForNovel(novelId, enabled)
+        _uiState.update { it.copy(isPageMode = enabled) }
+        EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.PAGE_MODE))
+    }
+
+    /** Chapter swipe direction: true means swiping right (left-to-right) goes to the next chapter. */
+    fun setJapSwipe(enabled: Boolean) {
+        dataCenter.japSwipe = enabled
+        _uiState.update { it.copy(japSwipe = enabled) }
+    }
+
+    /** Page-mode position of the chapter currently shown; drives the "Page x / y" line in the menu. */
+    fun updatePageInfo(page: Int, total: Int) {
+        _uiState.update { it.copy(currentPage = page, totalPages = total) }
+    }
+
+    fun setChapterSwipeEnabled(enabled: Boolean) {
+        dataCenter.chapterSwipeEnabled = enabled
+        _uiState.update { it.copy(chapterSwipeEnabled = enabled) }
+    }
+
     fun setJavascriptEnabled(enabled: Boolean) {
         dataCenter.javascriptDisabled = !enabled
         if (!enabled) dataCenter.setReaderModeForNovel(novelId, false)
+        val leavingPageMode = !enabled && _uiState.value.isPageMode
         _uiState.update {
             it.copy(
                 isJavascriptEnabled = enabled,
-                isReaderMode = if (!enabled) false else it.isReaderMode
+                isReaderMode = if (!enabled) false else it.isReaderMode,
+                isPageMode = if (leavingPageMode) false else it.isPageMode
             )
         }
         EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.JAVA_SCRIPT))
+        if (leavingPageMode) EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.PAGE_MODE))
     }
 
     fun setTextSize(size: Int) {
@@ -148,6 +185,12 @@ class ReaderViewModel : ViewModel() {
         dataCenter.setNightTextColorForNovel(novelId, color)
         _uiState.update { it.copy(nightTextColor = color) }
         EventBus.getDefault().post(ReaderSettingsEvent(ReaderSettingsEvent.NIGHT_MODE))
+    }
+
+    /** Volume buttons scroll the chapter, or turn pages in page mode. */
+    fun setEnableVolumeScroll(enabled: Boolean) {
+        dataCenter.enableVolumeScroll = enabled
+        _uiState.update { it.copy(enableVolumeScroll = enabled) }
     }
 
     fun setKeepScreenOn(enabled: Boolean) {

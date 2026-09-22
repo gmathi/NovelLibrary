@@ -34,6 +34,7 @@ fun ReaderOverlay(
     onBackPress: () -> Unit,
     onPreviousChapter: () -> Unit,
     onNextChapter: () -> Unit,
+    onPageSelected: (Int) -> Unit,
     onFontClick: () -> Unit,
     onReadAloudClick: () -> Unit,
     onBrowserClick: () -> Unit,
@@ -59,8 +60,11 @@ fun ReaderOverlay(
             // Floating menu icon — shown only when the overlay is hidden.
             // The "reader mode button" preference enables the feature; when enabled
             // the icon auto-hides on scroll down and reappears on scroll up / tap.
+            // Outside Reader Mode the page is the raw site, so there is no centre-tap script:
+            // the icon is the only way to the menu and is shown regardless of the preference.
             AnimatedVisibility(
-                visible = !isVisible && uiState.isReaderModeButtonVisible && isMenuIconVisible,
+                visible = !isVisible && isMenuIconVisible &&
+                    (uiState.isReaderModeButtonVisible || !uiState.isReaderMode),
                 enter = fadeIn(),
                 exit = fadeOut(),
                 modifier = Modifier
@@ -92,8 +96,7 @@ fun ReaderOverlay(
                 ReaderTopBar(
                     novelName = novelName,
                     chapterTitle = uiState.chapterTitle,
-                    onBackPress = onBackPress,
-                    onMoreSettingsClick = onMoreSettingsClick
+                    onBackPress = onBackPress
                 )
             }
 
@@ -108,6 +111,7 @@ fun ReaderOverlay(
                     uiState = uiState,
                     onPreviousChapter = onPreviousChapter,
                     onNextChapter = onNextChapter,
+                    onPageSelected = onPageSelected,
                     onSettingsClick = { viewModel.toggleSettingsPanel() },
                     onFontClick = onFontClick,
                     onReadAloudClick = onReadAloudClick,
@@ -132,8 +136,7 @@ fun ReaderOverlay(
 private fun ReaderTopBar(
     novelName: String,
     chapterTitle: String,
-    onBackPress: () -> Unit,
-    onMoreSettingsClick: () -> Unit
+    onBackPress: () -> Unit
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
@@ -143,7 +146,9 @@ private fun ReaderTopBar(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()
+                // Status-bar padding alone is zero in immersive mode, which put the bar under the
+                // display cutout (front camera); include the cutout inset explicitly.
+                .windowInsetsPadding(WindowInsets.statusBars.union(WindowInsets.displayCutout))
         ) {
             Row(
                 modifier = Modifier
@@ -183,13 +188,10 @@ private fun ReaderTopBar(
                     }
                 }
 
-                IconButton(onClick = onMoreSettingsClick) {
-                    Icon(
-                        Icons.Filled.MoreVert,
-                        contentDescription = "More settings",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                // Balances the back button so the title stays centred. The old "More settings"
+                // action lived here; the full settings list is reachable from the settings sheet
+                // ("More options") and from the app's Settings > Reader.
+                Spacer(modifier = Modifier.width(48.dp))
             }
         }
     }

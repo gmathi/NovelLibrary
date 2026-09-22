@@ -59,6 +59,9 @@ class DataCenter(context: Context) {
         private const val KEEP_TEXT_COLOR_PER_NOVEL_PREFIX = "keep_text_color_"
         private const val ALT_TEXT_COLORS_PER_NOVEL_PREFIX = "alt_text_colors_"
         private const val ENABLE_CLUSTER_PAGES_PER_NOVEL_PREFIX = "enable_cluster_pages_"
+        private const val PAGE_MODE = "readerPageMode"
+        private const val PAGE_MODE_PER_NOVEL_PREFIX = "page_mode_"
+        private const val CHAPTER_SWIPE = "readerChapterSwipe"
         private const val JAVASCRIPT = "javascript"
         private const val LANGUAGE = "language"
         private const val FOOLED = "wasFooled"
@@ -330,6 +333,38 @@ class DataCenter(context: Context) {
     fun setReaderModeForNovel(novelId: Long, value: Boolean) {
         prefs.edit().putBoolean(READER_MODE_PER_NOVEL_PREFIX + novelId, value).apply()
     }
+
+    /**
+     * Returns the Page Mode preference for the novel identified by [novelId]. Falls back to
+     * the app-wide default ([pageMode]) when no per-novel value has been stored yet.
+     */
+    fun getPageModeForNovel(novelId: Long): Boolean =
+        prefs.getBoolean(PAGE_MODE_PER_NOVEL_PREFIX + novelId, pageMode)
+
+    /**
+     * Persists the Page Mode preference for the novel identified by [novelId]. Does not
+     * affect the app-wide default ([pageMode]) or any other novel's stored preference.
+     */
+    fun setPageModeForNovel(novelId: Long, value: Boolean) {
+        prefs.edit().putBoolean(PAGE_MODE_PER_NOVEL_PREFIX + novelId, value).apply()
+    }
+
+    /**
+     * Whether Page Mode is in effect for the novel identified by [novelId]. Page Mode paginates
+     * the cleaned chapter, so it applies only while that novel is also in Reader Mode.
+     */
+    fun isPageModeActiveForNovel(novelId: Long): Boolean =
+        getPageModeForNovel(novelId) && getReaderModeForNovel(novelId)
+
+    /** Paged reader: chapters are laid out as screen-sized pages turned by swiping or tapping the screen edges. */
+    var pageMode: Boolean
+        get() = prefs.getBoolean(PAGE_MODE, false)
+        set(value) = prefs.edit().putBoolean(PAGE_MODE, value).apply()
+
+    /** Whether swiping horizontally in the reader moves between chapters. Ignored (always off) in page mode. */
+    var chapterSwipeEnabled: Boolean
+        get() = prefs.getBoolean(CHAPTER_SWIPE, true)
+        set(value) = prefs.edit().putBoolean(CHAPTER_SWIPE, value).apply()
 
     var javascriptDisabled: Boolean
         get() = prefs.getBoolean(JAVASCRIPT, false)
