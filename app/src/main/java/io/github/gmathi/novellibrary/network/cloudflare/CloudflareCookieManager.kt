@@ -29,12 +29,35 @@ class CloudflareCookieManager {
     }
     
     /**
-     * Get all valid cookies for a host
+     * Get all valid cookies for a host.
+     *
+     * Cloudflare issues cf_clearance for a specific host, but the challenge is often
+     * solved on a redirected variant (e.g. the request targets `novelupdates.com` but
+     * Cloudflare redirects to `www.novelupdates.com` and binds the cookie there). To make
+     * a cookie solved on one variant usable by requests to the other, we look up the exact
+     * host first and then fall back to the registrable-domain variants (bare / www / m).
      */
     fun getCookies(url: HttpUrl): List<Cookie> {
         val host = url.host
         cleanExpiredCookies(host)
-        return cookieStore[host]?.toList() ?: emptyList()
+        cookieStore[host]?.let { if (it.isNotEmpty()) return it.toList() }
+
+        // Fall back to sibling host variants that share the same registrable domain.
+        for (variant in hostVariants(host)) {
+            if (variant == host) continue
+            cleanExpiredCookies(variant)
+            cookieStore[variant]?.let { if (it.isNotEmpty()) return it.toList() }
+        }
+        return emptyList()
+    }
+
+    /**
+     * Build the set of host variants that should share Cloudflare clearance, e.g.
+     * `www.novelupdates.com` -> [novelupdates.com, www.novelupdates.com, m.novelupdates.com].
+     */
+    private fun hostVariants(host: String): List<String> {
+        val bare = host.removePrefix("www.").removePrefix("m.")
+        return listOf(bare, "www.$bare", "m.$bare")
     }
     
     /**
@@ -51,12 +74,34 @@ class CloudflareCookieManager {
         val clearance = getClearanceCookie(url)
         return clearance != null && !isCookieExpired(clearance)
     }
+
+    /**
+     * Remove Cloudflare cookies for a host and all of its sibling variants (bare / www / m),
+     * so a stale clearance solved on one variant is fully cleared.
+     */
+    fun clearCookiesAllVariants(url: HttpUrl) {
+        hostVariants(url.host).forEach { cookieStore.remove(it) }
+    }
     
     /**
      * Remove all cookies for a specific host
      */
     fun clearCookies(url: HttpUrl) {
         cookieStore.remove(url.host)
+    }
+
+    /**
+     * All hosts currently tracked in the in-memory store. Used to also clear the matching
+     * cookies from the underlying WebView/OkHttp cookie jar when wiping everything.
+     */
+    fun knownHosts(): List<String> = cookieStore.keys.toList()
+
+    /**
+     * Remove every tracked Cloudflare cookie for every host, used by the "Clear Cloudflare
+     * cookies" setting.
+     */
+    fun clearAllCookies() {
+        cookieStore.clear()
     }
     
     /**

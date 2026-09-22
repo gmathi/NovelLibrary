@@ -9,6 +9,7 @@ import io.github.gmathi.novellibrary.model.source.getPreferenceKey
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.model.other.NovelsPage
 import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.network.cloudflare.CloudflareInterceptor
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.online.NovelUpdatesSource
 import kotlinx.coroutines.Dispatchers
@@ -170,12 +171,15 @@ class SearchTermViewModel : ViewModel() {
                         val isCloudflare = e.localizedMessage?.contains("503") == true ||
                                 e.localizedMessage?.contains("403") == true ||
                                 e.localizedMessage?.contains("cloudflare", ignoreCase = true) == true
-                        val sourceBaseUrl = source.baseUrl
+                        // Prefer the exact URL that was actually gated (embedded in the
+                        // exception by CloudflareInterceptor) over the source's bare base URL,
+                        // which is a different request that may not even require a challenge.
+                        val gatedUrl = CloudflareInterceptor.extractGatedUrl(e) ?: source.baseUrl
                         state.copy(
                             uiState = SearchTermUiState.Error(
                                 message = e.localizedMessage ?: "Search failed",
                                 isCloudflare = isCloudflare,
-                                cloudflareUrl = if (isCloudflare) sourceBaseUrl else null
+                                cloudflareUrl = if (isCloudflare) gatedUrl else null
                             ),
                             isLoadingMore = false
                         )

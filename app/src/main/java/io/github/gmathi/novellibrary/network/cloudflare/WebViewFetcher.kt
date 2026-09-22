@@ -36,7 +36,9 @@ class WebViewFetcher(private val context: Context) {
 
     companion object {
         private const val TAG = "WebViewFetcher"
-        private const val TIMEOUT_SECONDS = 30L
+        private const val TIMEOUT_SECONDS = 5L
+        private const val CHALLENGE_POLL_INTERVAL_MS = 1000L
+        private const val CHALLENGE_MAX_WAIT_MS = 4_000L
     }
 
     /**
@@ -56,6 +58,59 @@ class WebViewFetcher(private val context: Context) {
         var pageUrl: String? = null
         var webView: WebView? = null
         var loadError: String? = null
+
+        // Extracts HTML from the page once we're confident it's no longer a Cloudflare
+        // challenge interstitial.
+        fun extractHtml(view: WebView) {
+            view.evaluateJavascript(
+                "(function() { return document.documentElement.outerHTML; })()"
+            ) { result ->
+                if (result != null && result != "null") {
+                    htmlContent = unescapeJsString(result)
+                    Log.d(TAG, "fetch: got HTML content, length=${htmlContent!!.length}")
+                } else {
+                    Log.w(TAG, "fetch: evaluateJavascript returned null")
+                    loadError = "Failed to extract page content"
+                }
+                latch.countDown()
+            }
+        }
+
+        // Cloudflare's "managed" challenge page (title "Just a moment...") never triggers
+        // a further onPageFinished once loaded — it resolves asynchronously in the
+        // background (an orchestration script talks to challenges.cloudflare.com and only
+        // then sets cf_clearance). A single check right after onPageFinished can catch the
+        // interstitial before that finishes. Poll the page title/cookie state instead of
+        // giving up (or extracting the interstitial HTML) immediately.
+        val pollRunnable = object : Runnable {
+            var elapsedMs = 0L
+            override fun run() {
+                val view = webView ?: return
+                view.evaluateJavascript(
+                    "(function() { return document.title; })()"
+                ) { title ->
+                    val pageTitle = title?.trim('"') ?: ""
+                    val isChallengePage = pageTitle.contains("Just a moment", ignoreCase = true) ||
+                            pageTitle.contains("Attention Required", ignoreCase = true) ||
+                            pageTitle.contains("Checking your browser", ignoreCase = true)
+                    Log.d(TAG, "pollRunnable: title='$pageTitle', isChallengePage=$isChallengePage, elapsedMs=$elapsedMs")
+
+                    if (!isChallengePage) {
+                        extractHtml(view)
+                        return@evaluateJavascript
+                    }
+
+                    elapsedMs += CHALLENGE_POLL_INTERVAL_MS
+                    if (elapsedMs >= CHALLENGE_MAX_WAIT_MS) {
+                        Log.w(TAG, "fetch: still on challenge page after ${elapsedMs}ms, giving up")
+                        loadError = "Still on Cloudflare challenge page after waiting"
+                        latch.countDown()
+                        return@evaluateJavascript
+                    }
+                    handler.postDelayed(this, CHALLENGE_POLL_INTERVAL_MS)
+                }
+            }
+        }
 
         handler.post {
             val wv = WebView(context)
@@ -81,36 +136,9 @@ class WebViewFetcher(private val context: Context) {
                     val hasClearance = cookies?.contains("cf_clearance") == true
                     Log.d(TAG, "onPageFinished: hasClearance=$hasClearance")
 
-                    // Check page title to detect if we landed on a challenge page
-                    view.evaluateJavascript(
-                        "(function() { return document.title; })()"
-                    ) { title ->
-                        val pageTitle = title?.trim('"') ?: ""
-                        val isChallengePage = pageTitle.contains("Just a moment", ignoreCase = true) ||
-                                pageTitle.contains("Attention Required", ignoreCase = true) ||
-                                pageTitle.contains("Checking your browser", ignoreCase = true)
-                        Log.d(TAG, "onPageFinished: title='$pageTitle', isChallengePage=$isChallengePage")
-
-                        if (isChallengePage) {
-                            // Still on a challenge page, wait for it to resolve
-                            Log.d(TAG, "Still on challenge page, waiting for resolution...")
-                            return@evaluateJavascript
-                        }
-
-                        // Extract HTML content via JavaScript
-                        view.evaluateJavascript(
-                            "(function() { return document.documentElement.outerHTML; })()"
-                        ) { result ->
-                            if (result != null && result != "null") {
-                                htmlContent = unescapeJsString(result)
-                                Log.d(TAG, "fetch: got HTML content, length=${htmlContent!!.length}")
-                            } else {
-                                Log.w(TAG, "fetch: evaluateJavascript returned null")
-                                loadError = "Failed to extract page content"
-                            }
-                            latch.countDown()
-                        }
-                    }
+                    handler.removeCallbacks(pollRunnable)
+                    pollRunnable.elapsedMs = 0L
+                    pollRunnable.run()
                 }
 
                 @Deprecated("Deprecated in Java")
@@ -122,6 +150,7 @@ class WebViewFetcher(private val context: Context) {
                 ) {
                     Log.e(TAG, "onReceivedError: code=$errorCode, desc=$description, url=$failingUrl")
                     loadError = "WebView error $errorCode: $description"
+                    handler.removeCallbacks(pollRunnable)
                     latch.countDown()
                 }
             }
@@ -139,6 +168,7 @@ class WebViewFetcher(private val context: Context) {
 
         // Clean up WebView
         handler.post {
+            handler.removeCallbacks(pollRunnable)
             webView?.stopLoading()
             webView?.destroy()
             webView = null
