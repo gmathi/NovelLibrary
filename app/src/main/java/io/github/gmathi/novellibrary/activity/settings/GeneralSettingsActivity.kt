@@ -19,6 +19,7 @@ import io.github.gmathi.novellibrary.activity.BaseActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapter
 import io.github.gmathi.novellibrary.databinding.ActivitySettingsBinding
 import io.github.gmathi.novellibrary.databinding.ListitemTitleSubtitleWidgetBinding
+import io.github.gmathi.novellibrary.network.cloudflare.CloudflareCookieManager
 import io.github.gmathi.novellibrary.service.sync.BackgroundNovelSyncTask
 import io.github.gmathi.novellibrary.util.Constants.SYSTEM_DEFAULT
 import io.github.gmathi.novellibrary.util.view.extensions.applyFont
@@ -27,6 +28,7 @@ import io.github.gmathi.novellibrary.util.system.startBackupSettingsActivity
 import io.github.gmathi.novellibrary.util.system.startLanguagesActivity
 import io.github.gmathi.novellibrary.util.system.startStorageSettingsActivity
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.util.*
 
 class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
@@ -45,6 +47,8 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         private const val POSITION_NU_API_FETCH = 8
         private const val POSITION_AUTO_APP_UPDATE = 9
         private const val POSITION_DOWNLOAD_STORAGE = 10
+        private const val POSITION_USE_WEBVIEW_FETCHER_FOR_CLOUDFLARE = 11
+        private const val POSITION_CLEAR_CLOUDFLARE_COOKIES = 12
 
     }
 
@@ -112,7 +116,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.loadLibraryScreen = value }
             }
 
-            POSITION_BACKUP_AND_RESTORE, POSITION_LANGUAGES, POSITION_DNS_OVER_HTTPS, POSITION_DOWNLOAD_STORAGE -> {
+            POSITION_BACKUP_AND_RESTORE, POSITION_LANGUAGES, POSITION_DNS_OVER_HTTPS, POSITION_DOWNLOAD_STORAGE, POSITION_CLEAR_CLOUDFLARE_COOKIES -> {
                 itemBinding.widgetChevron.visibility = View.VISIBLE
             }
 
@@ -164,6 +168,12 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableAutoAppUpdate = value }
             }
 
+            POSITION_USE_WEBVIEW_FETCHER_FOR_CLOUDFLARE -> {
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.useWebViewFetcherForCloudflare
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.useWebViewFetcherForCloudflare = value }
+            }
+
         }
 
         itemView.setBackgroundColor(
@@ -178,6 +188,31 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
             getString(R.string.change_language) -> startLanguagesActivity(true)
             getString(R.string.dns_over_https) -> showDnsSelection()
             getString(R.string.download_storage_location) -> startStorageSettingsActivity()
+            getString(R.string.clear_cloudflare_cookies) -> confirmClearCloudflareCookies()
+        }
+    }
+
+    private fun confirmClearCloudflareCookies() {
+        MaterialDialog(this).show {
+            title(R.string.clear_cloudflare_cookies)
+            message(R.string.clear_cloudflare_cookies_description)
+            positiveButton(R.string.clear) {
+                // Remove the Cloudflare cookies for every host we know about (from the
+                // in-memory tracker) out of the underlying WebView/OkHttp cookie store...
+                networkHelper.cloudflareCookieManager.knownHosts().forEach { host ->
+                    "https://$host/".toHttpUrlOrNull()?.let { httpUrl ->
+                        networkHelper.cookieManager.remove(httpUrl, CloudflareCookieManager.CLOUDFLARE_COOKIE_NAMES, 0)
+                    }
+                }
+                // ...and forget them in the in-memory tracker itself.
+                networkHelper.cloudflareCookieManager.clearAllCookies()
+                android.widget.Toast.makeText(
+                    this@GeneralSettingsActivity,
+                    R.string.clear_cloudflare_cookies_success,
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            }
+            negativeButton(R.string.cancel)
         }
     }
 

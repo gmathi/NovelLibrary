@@ -117,6 +117,8 @@
         <item>@string/nu_api_fetch</item>
         <item>@string/auto_app_update</item>
         <item>@string/download_storage_location</item>
+        <item>@string/use_webview_fetcher_for_cloudflare</item>
+        <item>@string/clear_cloudflare_cookies</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
@@ -132,6 +134,8 @@
         <item>@string/nu_api_fetch_description</item>
         <item>@string/auto_app_update_description</item>
         <item>@string/download_storage_location_description</item>
+        <item>@string/use_webview_fetcher_for_cloudflare_description</item>
+        <item>@string/clear_cloudflare_cookies_description</item>
     </string-array>
 
     <string-array name="dns_over_https_list" translatable="false">
@@ -724,6 +728,12 @@
     <string name="dns_cloudflare">CloudFlare 1.1.1.1</string>
     <string name="dns_google">Google DNS</string>
     <string name="dns_none">None (use your network DNS)</string>
+
+    <string name="use_webview_fetcher_for_cloudflare">Use WebView fetcher for Cloudflare</string>
+    <string name="use_webview_fetcher_for_cloudflare_description">Fetch pages via WebView once verified, instead of replaying the cookie through the network client. More reliable, slightly slower.</string>
+    <string name="clear_cloudflare_cookies">Clear Cloudflare cookies</string>
+    <string name="clear_cloudflare_cookies_description">Remove all saved Cloudflare verification cookies for every site</string>
+    <string name="clear_cloudflare_cookies_success">Cloudflare cookies cleared</string>
 
     <string name="sync_done_fetching_chapters">Remaining Novels to check: %2$d\nCompleted checking: %1$s</string>
     <string name="sync_done_updating_chapters">Remaining Novels to update: %2$d\nCompleted updating: %1$s</string>

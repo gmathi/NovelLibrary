@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.network.cloudflare.CloudflareInterceptor
 import io.github.gmathi.novellibrary.model.source.online.NovelUpdatesSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -116,10 +117,16 @@ class SearchUrlViewModel : ViewModel() {
                 val isCloudflare = e.localizedMessage?.contains("503") == true || 
                                   e.localizedMessage?.contains("403") == true ||
                                   e.localizedMessage?.contains("cloudflare", ignoreCase = true) == true
+                // Prefer the exact URL that was actually gated (embedded in the exception by
+                // CloudflareInterceptor) over the browse/rank URL, which may differ from the
+                // precise request that was challenged (e.g. after a redirect).
+                val gatedUrl = CloudflareInterceptor.extractGatedUrl(e)
+                    ?: url
+                    ?: "https://${HostNames.NOVEL_UPDATES}"
                 _uiState.value = SearchUrlUiState.Error(
                     message = e.localizedMessage ?: "Connection error",
                     isCloudflare = isCloudflare,
-                    cloudflareUrl = if (isCloudflare) url ?: "https://${HostNames.NOVEL_UPDATES}" else null
+                    cloudflareUrl = if (isCloudflare) gatedUrl else null
                 )
                 isLoadingMore = false
             }

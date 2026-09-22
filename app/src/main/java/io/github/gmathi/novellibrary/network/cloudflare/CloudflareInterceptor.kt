@@ -9,6 +9,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.Toast
 import io.github.gmathi.novellibrary.R
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.lang.launchUI
@@ -30,6 +31,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
     private val handler = Handler(Looper.getMainLooper())
     private val networkHelper: NetworkHelper by injectLazy()
+    private val dataCenter: DataCenter by injectLazy()
     private val webViewFetcher = WebViewFetcher(context)
 
     // Cache for tracking bypass attempts to avoid repeated failures
@@ -61,6 +63,33 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
         initWebView
 
         try {
+            // When the "use WebView fetcher" setting is on, route every GET request straight
+            // through the WebView instead of OkHttp. This keeps every request on the same
+            // TLS/JS fingerprint the WebView presents (and whatever cf_clearance cookies it
+            // already holds), rather than only switching to the WebView after OkHttp hits a
+            // challenge. Resource requests (images, fonts, etc.) are excluded since
+            // WebViewFetcher always returns HTML (via document.documentElement.outerHTML) and
+            // can't serve binary content.
+            val requestPath = originalRequest.url.encodedPath.lowercase()
+            val isDirectFetchResourceRequest = RESOURCE_EXTENSIONS.any { requestPath.endsWith(it) }
+            if (dataCenter.useWebViewFetcherForCloudflare &&
+                originalRequest.method == "GET" &&
+                !isDirectFetchResourceRequest
+            ) {
+                try {
+                    Log.d(TAG, "useWebViewFetcherForCloudflare enabled, fetching directly via WebView: ${originalRequest.url}")
+                    val webViewResponse = webViewFetcher.fetch(originalRequest)
+                    if (!isCloudflareChallenge(webViewResponse)) {
+                        recordBypassSuccess(originalRequest.url.host)
+                        return webViewResponse
+                    }
+                    Log.w(TAG, "WebView fetch returned a Cloudflare challenge for ${originalRequest.url}, falling back to bypass flow")
+                    webViewResponse.close()
+                } catch (e: Exception) {
+                    Log.w(TAG, "Direct WebView fetch failed for ${originalRequest.url}: ${e.message}, falling back to OkHttp/bypass flow")
+                }
+            }
+
             val response: Response
             try {
                 response = chain.proceed(originalRequest)
@@ -91,31 +120,48 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
             if (existingClearance != null) {
                 // Ensure the cookie is also in the AndroidCookieJar so OkHttp sends it
                 syncCloudflareCookiesToJar(originalRequest.url)
-                Log.d(TAG, "Retrying with existing clearance for $host")
-                val retryResponse = chain.proceed(originalRequest)
-                Log.d(TAG, "Retry with existing clearance result: code=${retryResponse.code}, url=${originalRequest.url}")
-                if (isCloudflareChallenge(retryResponse)) {
-                    Log.w(TAG, "Retry with existing clearance STILL got Cloudflare challenge (TLS fingerprint mismatch likely). Falling back to WebView fetch for $host")
-                    retryResponse.close()
-                    // TLS fingerprint mismatch: the cf_clearance cookie was obtained in
-                    // the WebView (Chromium BoringSSL) but OkHttp uses Java's SSLSocket
-                    // which has a different fingerprint. Cloudflare rejects the cookie.
-                    // Solution: fetch the actual URL via WebView which shares the same
-                    // TLS fingerprint as the manual resolution WebView.
+
+                if (dataCenter.useWebViewFetcherForCloudflare) {
+                    // TLS fingerprint mismatch: the cf_clearance cookie was obtained in a
+                    // WebView (Chromium BoringSSL) but OkHttp uses Java's SSLSocket, which has
+                    // a different fingerprint. Cloudflare frequently rejects the cookie when
+                    // OkHttp replays it, so go straight to the WebView fetch (same fingerprint
+                    // as whatever solved the challenge) instead of wasting a doomed retry.
+                    Log.d(TAG, "Existing clearance found for $host, fetching via WebView (skip OkHttp replay)")
                     try {
                         val webViewResponse = webViewFetcher.fetch(originalRequest)
                         Log.d(TAG, "WebView fetch succeeded for $host (${originalRequest.url})")
                         recordBypassSuccess(host)
                         return webViewResponse
                     } catch (e: Exception) {
-                        Log.e(TAG, "WebView fetch also failed for $host: ${e.message}")
-                        // Clear stale cookies since neither approach worked
-                        networkHelper.cloudflareCookieManager.clearCookies(originalRequest.url)
+                        Log.e(TAG, "WebView fetch failed for $host: ${e.message}")
+                        // Clear stale cookies since the cached clearance didn't help
+                        networkHelper.cloudflareCookieManager.clearCookiesAllVariants(originalRequest.url)
                         networkHelper.cookieManager.remove(originalRequest.url, COOKIE_NAMES, 0)
                         // Fall through to attempt headless WebView bypass
                     }
                 } else {
-                    return retryResponse
+                    Log.d(TAG, "Retrying with existing clearance for $host")
+                    val retryResponse = chain.proceed(originalRequest)
+                    Log.d(TAG, "Retry with existing clearance result: code=${retryResponse.code}, url=${originalRequest.url}")
+                    if (isCloudflareChallenge(retryResponse)) {
+                        Log.w(TAG, "Retry with existing clearance STILL got Cloudflare challenge (TLS fingerprint mismatch likely). Falling back to WebView fetch for $host")
+                        retryResponse.close()
+                        try {
+                            val webViewResponse = webViewFetcher.fetch(originalRequest)
+                            Log.d(TAG, "WebView fetch succeeded for $host (${originalRequest.url})")
+                            recordBypassSuccess(host)
+                            return webViewResponse
+                        } catch (e: Exception) {
+                            Log.e(TAG, "WebView fetch also failed for $host: ${e.message}")
+                            // Clear stale cookies since neither approach worked
+                            networkHelper.cloudflareCookieManager.clearCookiesAllVariants(originalRequest.url)
+                            networkHelper.cookieManager.remove(originalRequest.url, COOKIE_NAMES, 0)
+                            // Fall through to attempt headless WebView bypass
+                        }
+                    } else {
+                        return retryResponse
+                    }
                 }
             }
 
@@ -170,7 +216,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
             // we don't crash the entire app.
             // Re-throw as IOException so callers (like DownloadWebPageThread) can detect the
             // failure instead of silently receiving a Cloudflare challenge page.
-            throw java.io.IOException("Cloudflare bypass failed for ${originalRequest.url}: ${e.message}", e)
+            throw java.io.IOException("$BYPASS_FAILED_PREFIX${originalRequest.url}: ${e.message}", e)
         }
     }
 
@@ -244,6 +290,33 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
         val headers = request.headers.toMultimap().mapValues { it.value.getOrNull(0) ?: "" }.toMutableMap()
         headers["X-Requested-With"] = WebViewUtil.REQUESTED_WITH
 
+        fun isCloudFlareBypassed(): Boolean {
+            return networkHelper.cookieManager.get(origRequestUrl.toHttpUrl())
+                .firstOrNull { it.name == "cf_clearance" }
+                .let { it != null && it != oldCookie }
+        }
+
+        // Cloudflare "managed" challenges (the "Just a moment..." interstitial) don't
+        // navigate away or re-trigger onPageFinished once loaded. Instead, they run an
+        // orchestration script (loaded from /cdn-cgi/challenge-platform/.../orchestrate/chl_page)
+        // that asynchronously talks to challenges.cloudflare.com, scores the client, and
+        // only *then* sets cf_clearance via a background request — all without any further
+        // page navigation. A single one-shot check a couple seconds after onPageFinished
+        // (the previous approach) frequently fires before that orchestration completes.
+        // Poll periodically for the cookie instead, for the full duration of the timeout.
+        val pollIntervalMs = 1000L
+        val pollRunnable = object : Runnable {
+            override fun run() {
+                if (cloudflareBypassed) return
+                if (isCloudFlareBypassed()) {
+                    cloudflareBypassed = true
+                    latch.countDown()
+                    return
+                }
+                handler.postDelayed(this, pollIntervalMs)
+            }
+        }
+
         handler.post {
             val webview = WebView(context)
             webView = webview
@@ -264,30 +337,15 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
             webview.webViewClient = object : WebViewClientCompat() {
                 override fun onPageFinished(view: WebView, url: String) {
-                    fun isCloudFlareBypassed(): Boolean {
-                        return networkHelper.cookieManager.get(origRequestUrl.toHttpUrl())
-                            .firstOrNull { it.name == "cf_clearance" }
-                            .let { it != null && it != oldCookie }
-                    }
-
                     if (isCloudFlareBypassed()) {
                         cloudflareBypassed = true
                         latch.countDown()
+                        return
                     }
-
-                    // If the page finished loading and no challenge was found, abort.
-                    // Don't compare URLs strictly — Cloudflare may redirect.
-                    if (!challengeFound && !cloudflareBypassed) {
-                        // Give it a moment for JS to execute before giving up
-                        view.postDelayed({
-                            if (!cloudflareBypassed && isCloudFlareBypassed()) {
-                                cloudflareBypassed = true
-                            }
-                            if (!cloudflareBypassed && !challengeFound) {
-                                latch.countDown()
-                            }
-                        }, 2000)
-                    }
+                    // Start (or keep) polling for the clearance cookie while the challenge
+                    // orchestration script runs in the background.
+                    handler.removeCallbacks(pollRunnable)
+                    handler.postDelayed(pollRunnable, pollIntervalMs)
                 }
 
                 override fun onReceivedErrorCompat(
@@ -299,7 +357,8 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
                 ) {
                     if (isMainFrame) {
                         if (errorCode in CLOUDFLARE_ERROR_CODES) {
-                            // Found the Cloudflare challenge page.
+                            // Found the Cloudflare challenge page. Keep waiting/polling rather
+                            // than giving up immediately — the challenge may still resolve.
                             challengeFound = true
                         } else {
                             // Unlock thread, the challenge wasn't found.
@@ -312,12 +371,14 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
             webView?.loadUrl(origRequestUrl, headers)
         }
 
-        // Wait a reasonable amount of time to retrieve the solution. The minimum should be
-        // around 4 seconds but it can take more due to slow networks or server issues.
-        // Increased timeout for more complex challenges
-        latch.await(15, TimeUnit.SECONDS)
+        // Wait a short amount of time to retrieve the solution before giving up and falling
+        // back to the manual "Resolve Cloudflare" flow.
+        latch.await(5, TimeUnit.SECONDS)
 
         handler.post {
+            // Stop the cookie-polling loop before tearing down the WebView.
+            handler.removeCallbacks(pollRunnable)
+
             if (!cloudflareBypassed) {
                 isWebViewOutdated = webView?.isOutdated() == true
             }
@@ -370,5 +431,28 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
             ".css", ".js", ".woff", ".woff2", ".ttf", ".eot", ".otf",
             ".mp3", ".mp4", ".webm", ".ogg", ".pdf"
         )
+
+        /**
+         * Prefix used when wrapping a Cloudflare bypass failure into an IOException, followed
+         * immediately by the exact request URL that was gated. Kept as a shared constant so
+         * callers can reliably recover the real gated URL (e.g. a NovelUpdates search-finder
+         * URL) instead of falling back to a source's bare base URL, which is a different
+         * request that may never have needed a challenge at all.
+         */
+        const val BYPASS_FAILED_PREFIX = "Cloudflare bypass failed for "
+
+        /**
+         * Extracts the gated request URL from a [Throwable] thrown by this interceptor, if
+         * present. Returns null if [error]'s message doesn't match the expected format (e.g.
+         * it originated elsewhere).
+         */
+        fun extractGatedUrl(error: Throwable?): String? {
+            val message = error?.message ?: return null
+            if (!message.startsWith(BYPASS_FAILED_PREFIX)) return null
+            val remainder = message.removePrefix(BYPASS_FAILED_PREFIX)
+            val urlEnd = remainder.indexOf(": ")
+            val url = if (urlEnd >= 0) remainder.substring(0, urlEnd) else remainder
+            return url.trim().takeIf { it.isNotEmpty() }
+        }
     }
 }

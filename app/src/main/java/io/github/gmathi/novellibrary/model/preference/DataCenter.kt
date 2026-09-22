@@ -129,6 +129,9 @@ class DataCenter(context: Context) {
         const val ENABLE_DOH = "enable_doh"
         const val DOH_PROVIDER = "doh_provider"
 
+        //Cloudflare
+        const val USE_WEBVIEW_FETCHER_FOR_CLOUDFLARE = "use_webview_fetcher_for_cloudflare"
+
         //Content Selectors List
         const val SELECTOR_QUERIES = "selectorsQueries"
 
@@ -756,6 +759,17 @@ class DataCenter(context: Context) {
     var dohProvider: Int
         get() = prefs.getInt(DOH_PROVIDER, PREF_DOH_CLOUDFLARE)
         set(value) = prefs.edit().putInt(DOH_PROVIDER, value).apply()
+
+    /**
+     * When true, once a cf_clearance cookie exists for a host, Cloudflare-gated requests are
+     * fetched via a WebView instead of being replayed through OkHttp. This avoids the TLS
+     * fingerprint mismatch between OkHttp (Java SSLSocket) and WebView (Chromium BoringSSL)
+     * that otherwise causes Cloudflare to reject a cookie obtained via manual verification.
+     * Slower per-request, but far more likely to succeed. Defaults to on.
+     */
+    var useWebViewFetcherForCloudflare: Boolean
+        get() = prefs.getBoolean(USE_WEBVIEW_FETCHER_FOR_CLOUDFLARE, true)
+        set(value) = prefs.edit().putBoolean(USE_WEBVIEW_FETCHER_FOR_CLOUDFLARE, value).apply()
 
     var htmlCleanerSelectorQueries: ArrayList<SelectorQuery>
         get() = Gson().fromJson(prefs.getString(SELECTOR_QUERIES, "[]"), object : TypeToken<ArrayList<SelectorQuery>>() {}.type)
