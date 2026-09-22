@@ -24,10 +24,19 @@ android {
         minSdk 26
         targetSdk 36
         multiDexEnabled true
-        versionCode 220
-        versionName "2.2.0"
+        // Test builds can stamp themselves so testers can tell builds apart, e.g.
+        //   ./gradlew assembleNormalDebug -PbuildVersionCode=221 -PbuildVersionSuffix=-test.abc1234 -PbuildAbi=arm64-v8a
+        // Without these properties the release values below apply unchanged.
+        def buildVersionCode = (project.findProperty("buildVersionCode") ?: "220").toString().toInteger()
+        def buildVersionSuffix = (project.findProperty("buildVersionSuffix") ?: "").toString()
+        def buildAbi = project.findProperty("buildAbi")?.toString()
+        versionCode buildVersionCode
+        versionName "2.2.0" + buildVersionSuffix
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        if (buildAbi) {
+            ndk { abiFilters.addAll(buildAbi.split(",").toList()) }
+        }
     }
 
     signingConfigs {

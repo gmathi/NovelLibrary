@@ -93,6 +93,7 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
             loadFragment(currentNavId)
         }
         showWhatsNewDialog()
+        showLastCrashDialog()
         checkForAppUpdate()
         maybePromptDatabaseRecovery()
 
@@ -105,6 +106,19 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         newIconsImageView.setOnClickListener { setNewImageInNavigationHeaderView() }
 
         onBackPress()
+    }
+
+    /** If the previous run ended in an uncaught exception, show the trace with a Copy button. */
+    private fun showLastCrashDialog() {
+        val report = io.github.gmathi.novellibrary.util.CrashLogger.consumeLastReport(this) ?: return
+        MaterialDialog(this).show {
+            title(text = "The app crashed last time")
+            message(text = report.lineSequence().take(40).joinToString("\n"))
+            positiveButton(text = "Copy report") {
+                io.github.gmathi.novellibrary.util.CrashLogger.copyToClipboard(this@NavDrawerActivity, report)
+            }
+            negativeButton(text = "Dismiss")
+        }
     }
 
     private fun showWhatsNewDialog() {
