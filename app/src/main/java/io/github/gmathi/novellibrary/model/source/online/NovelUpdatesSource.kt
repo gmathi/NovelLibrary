@@ -216,36 +216,10 @@ class NovelUpdatesSource : ParsedHttpSource() {
     }
 
     private suspend fun getChaptersFromAPI(novel: Novel): List<WebPage> {
-        val translatorSources = getTranslatorSourcesList(novel)
-        val allChapters = getChapterListForSource(novel, null)
-        val translatorSourcesMap = HashMap<String, String>()
-        val observableList = translatorSources.map { fetchChapterListWithSources(novel, it) }
-        val translatorSourceListOfChapterList = Observable
-            .from(observableList)
-            .flatMap { task -> task.observeOn(Schedulers.io()) }
-            .toList().awaitSingle()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            translatorSourceListOfChapterList.parallelStream().forEach { translatorSourceOnlyChapterList ->
-                translatorSourcesMap.putAll(createTranslatorSourceMap(translatorSourceOnlyChapterList))
-            }
-        } else {
-            translatorSourceListOfChapterList.forEach { translatorSourceOnlyChapterList ->
-                translatorSourcesMap.putAll(createTranslatorSourceMap(translatorSourceOnlyChapterList))
-            }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            allChapters.parallelStream().forEach {
-                it.translatorSourceName = translatorSourcesMap[it.url]
-            }
-        } else {
-            allChapters.forEach {
-                it.translatorSourceName = translatorSourcesMap[it.url]
-            }
-        }
-
-        return allChapters
+        // Translator-group tagging is skipped: NU's nd_getgroupnovel action now returns "0"
+        // (no server-side handler), so the group fetch + per-source fan-out add nothing but
+        // failing round-trips. The plain chapter list is unaffected.
+        return getChapterListForSource(novel, null)
     }
 
     private fun createTranslatorSourceMap(translatorSourceOnlyChapterList: List<WebPage>): HashMap<String, String> {
