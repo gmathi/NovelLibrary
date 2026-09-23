@@ -63,22 +63,27 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
         initWebView
 
         try {
-            // When the "use WebView fetcher" setting is on, route every GET request straight
-            // through the WebView instead of OkHttp. This keeps every request on the same
-            // TLS/JS fingerprint the WebView presents (and whatever cf_clearance cookies it
-            // already holds), rather than only switching to the WebView after OkHttp hits a
+            // When the "use WebView fetcher" setting is on, route every GET/POST request
+            // straight through the WebView instead of OkHttp. This keeps every request on the
+            // same TLS/JS fingerprint the WebView presents (and whatever cf_clearance cookies
+            // it already holds), rather than only switching to the WebView after OkHttp hits a
             // challenge. Resource requests (images, fonts, etc.) are excluded since
             // WebViewFetcher always returns HTML (via document.documentElement.outerHTML) and
             // can't serve binary content.
             val requestPath = originalRequest.url.encodedPath.lowercase()
             val isDirectFetchResourceRequest = RESOURCE_EXTENSIONS.any { requestPath.endsWith(it) }
+            val isDirectFetchableMethod = originalRequest.method == "GET" || originalRequest.method == "POST"
             if (dataCenter.useWebViewFetcherForCloudflare &&
-                originalRequest.method == "GET" &&
+                isDirectFetchableMethod &&
                 !isDirectFetchResourceRequest
             ) {
                 try {
-                    Log.d(TAG, "useWebViewFetcherForCloudflare enabled, fetching directly via WebView: ${originalRequest.url}")
-                    val webViewResponse = webViewFetcher.fetch(originalRequest)
+                    Log.d(TAG, "useWebViewFetcherForCloudflare enabled, fetching directly via WebView (${originalRequest.method}): ${originalRequest.url}")
+                    val webViewResponse = if (originalRequest.method == "POST") {
+                        webViewFetcher.fetchPost(originalRequest)
+                    } else {
+                        webViewFetcher.fetch(originalRequest)
+                    }
                     if (!isCloudflareChallenge(webViewResponse)) {
                         recordBypassSuccess(originalRequest.url.host)
                         return webViewResponse

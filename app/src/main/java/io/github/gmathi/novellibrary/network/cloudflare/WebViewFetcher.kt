@@ -16,6 +16,7 @@ import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
+import okio.Buffer
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -51,11 +52,53 @@ class WebViewFetcher(private val context: Context) {
     @SuppressLint("SetJavaScriptEnabled")
     fun fetch(request: Request): Response {
         val url = request.url.toString()
-        Log.d(TAG, "fetch: loading $url via WebView")
+        return load(request, "fetch") { wv, headers ->
+            wv.loadUrl(url, headers)
+        }
+    }
+
+    /**
+     * Fetch the given OkHttp POST [Request] using a WebView via [WebView.postUrl], returning
+     * a synthetic [Response] containing the page HTML.
+     *
+     * Note: unlike [fetch], [WebView.postUrl] has no way to attach custom per-request headers
+     * (e.g. Referer) — only the User-Agent set globally on the WebView's settings applies.
+     * The request body is sent as-is; this is only correct for form-urlencoded bodies (like
+     * OkHttp's [okhttp3.FormBody]), which is what every current POST call site in this app uses.
+     *
+     * Must NOT be called from the main thread.
+     */
+    @SuppressLint("SetJavaScriptEnabled")
+    fun fetchPost(request: Request): Response {
+        val url = request.url.toString()
+        val postData = try {
+            val buffer = Buffer()
+            request.body?.writeTo(buffer)
+            buffer.readByteArray()
+        } catch (e: Exception) {
+            throw java.io.IOException("Failed to read POST body for $url: ${e.message}", e)
+        }
+        return load(request, "fetchPost") { wv, _ ->
+            wv.postUrl(url, postData)
+        }
+    }
+
+    /**
+     * Shared WebView load/poll/extract flow used by both [fetch] and [fetchPost]. [startLoad]
+     * is called on the main thread with the configured [WebView] and the request's headers
+     * (as a map, for callers that can use them) and is responsible for kicking off the
+     * navigation (via `loadUrl` or `postUrl`).
+     */
+    private fun load(
+        request: Request,
+        logLabel: String,
+        startLoad: (WebView, Map<String, String>) -> Unit
+    ): Response {
+        val url = request.url.toString()
+        Log.d(TAG, "$logLabel: loading $url via WebView")
 
         val latch = CountDownLatch(1)
         var htmlContent: String? = null
-        var pageUrl: String? = null
         var webView: WebView? = null
         var loadError: String? = null
 
@@ -67,9 +110,9 @@ class WebViewFetcher(private val context: Context) {
             ) { result ->
                 if (result != null && result != "null") {
                     htmlContent = unescapeJsString(result)
-                    Log.d(TAG, "fetch: got HTML content, length=${htmlContent!!.length}")
+                    Log.d(TAG, "$logLabel: got HTML content, length=${htmlContent!!.length}")
                 } else {
-                    Log.w(TAG, "fetch: evaluateJavascript returned null")
+                    Log.w(TAG, "$logLabel: evaluateJavascript returned null")
                     loadError = "Failed to extract page content"
                 }
                 latch.countDown()
@@ -102,7 +145,7 @@ class WebViewFetcher(private val context: Context) {
 
                     elapsedMs += CHALLENGE_POLL_INTERVAL_MS
                     if (elapsedMs >= CHALLENGE_MAX_WAIT_MS) {
-                        Log.w(TAG, "fetch: still on challenge page after ${elapsedMs}ms, giving up")
+                        Log.w(TAG, "$logLabel: still on challenge page after ${elapsedMs}ms, giving up")
                         loadError = "Still on Cloudflare challenge page after waiting"
                         latch.countDown()
                         return@evaluateJavascript
@@ -123,13 +166,12 @@ class WebViewFetcher(private val context: Context) {
                 databaseEnabled = true
                 useWideViewPort = true
                 loadWithOverviewMode = true
-                userAgentString = HttpSource.DEFAULT_USER_AGENT
+                userAgentString = request.header("User-Agent") ?: HttpSource.DEFAULT_USER_AGENT
             }
 
             wv.webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView, finishedUrl: String) {
                     Log.d(TAG, "onPageFinished: $finishedUrl")
-                    pageUrl = finishedUrl
 
                     // Check if this is still a Cloudflare challenge page
                     val cookies = CookieManager.getInstance().getCookie(finishedUrl)
@@ -155,12 +197,9 @@ class WebViewFetcher(private val context: Context) {
                 }
             }
 
-            // Set request headers if provided
             val headers = mutableMapOf<String, String>()
-            request.headers.forEach { (name, value) ->
-                headers[name] = value
-            }
-            wv.loadUrl(url, headers)
+            request.headers.forEach { (name, value) -> headers[name] = value }
+            startLoad(wv, headers)
         }
 
         // Wait for the page to load
@@ -175,7 +214,7 @@ class WebViewFetcher(private val context: Context) {
         }
 
         if (!completed) {
-            Log.e(TAG, "fetch: timeout after ${TIMEOUT_SECONDS}s for $url")
+            Log.e(TAG, "$logLabel: timeout after ${TIMEOUT_SECONDS}s for $url")
             throw java.io.IOException("WebView fetch timed out for $url")
         }
 
