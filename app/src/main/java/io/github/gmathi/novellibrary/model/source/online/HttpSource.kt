@@ -305,5 +305,12 @@ abstract class HttpSource : CatalogueSource {
 
     companion object {
         const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Linux; Android 10; HD1913) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.46 Mobile Safari/537.36 EdgA/144.0.3719.115"
+
+        /**
+         * Single source of truth for the app-wide fingerprint User-Agent. Every OkHttp request
+         * and every WebView (challenge solve, fetch, manual resolver) must present this exact
+         * string so the cf_clearance cookie is minted and spent under one identity.
+         */
+        fun userAgent(): String = DEFAULT_USER_AGENT
     }
 }

@@ -78,9 +78,7 @@ fun CloudflareResolverScreen(
                             javaScriptEnabled = true
                             domStorageEnabled = true
                             databaseEnabled = true
-                            // Must match the UA used by OkHttp requests so Cloudflare
-                            // accepts the cf_clearance cookie on the retry.
-                            userAgentString = HttpSource.DEFAULT_USER_AGENT
+                            userAgentString = HttpSource.userAgent()
                             useWideViewPort = true
                             loadWithOverviewMode = true
                         }

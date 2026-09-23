@@ -166,7 +166,7 @@ class WebViewFetcher(private val context: Context) {
                 databaseEnabled = true
                 useWideViewPort = true
                 loadWithOverviewMode = true
-                userAgentString = request.header("User-Agent") ?: HttpSource.DEFAULT_USER_AGENT
+                userAgentString = HttpSource.userAgent()
             }
 
             wv.webViewClient = object : WebViewClient() {
