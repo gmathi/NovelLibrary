@@ -40,6 +40,7 @@ class WebViewFetcher(private val context: Context) {
         private const val TIMEOUT_SECONDS = 5L
         private const val CHALLENGE_POLL_INTERVAL_MS = 1000L
         private const val CHALLENGE_MAX_WAIT_MS = 4_000L
+        private const val JS_BRIDGE = "AndroidFetch"
     }
 
     /**
@@ -58,29 +59,208 @@ class WebViewFetcher(private val context: Context) {
     }
 
     /**
-     * Fetch the given OkHttp POST [Request] using a WebView via [WebView.postUrl], returning
-     * a synthetic [Response] containing the page HTML.
-     *
-     * Note: unlike [fetch], [WebView.postUrl] has no way to attach custom per-request headers
-     * (e.g. Referer) — only the User-Agent set globally on the WebView's settings applies.
-     * The request body is sent as-is; this is only correct for form-urlencoded bodies (like
-     * OkHttp's [okhttp3.FormBody]), which is what every current POST call site in this app uses.
+     * Fetch the given OkHttp POST [Request] using a WebView, returning a synthetic [Response]
+     * with the response body. Runs a same-origin `fetch()` inside the WebView's JS context
+     * (after navigating to the target's own origin) so the request rides the WebView's TLS
+     * fingerprint and cf_clearance cookie while honoring the real method, headers and body —
+     * unlike [WebView.postUrl], which hardcodes application/x-www-form-urlencoded and drops
+     * all per-request headers. Same-origin means no CORS preflight.
      *
      * Must NOT be called from the main thread.
      */
     @SuppressLint("SetJavaScriptEnabled")
     fun fetchPost(request: Request): Response {
-        val url = request.url.toString()
-        val postData = try {
+        val bodyString = try {
             val buffer = Buffer()
             request.body?.writeTo(buffer)
-            buffer.readByteArray()
+            buffer.readUtf8()
         } catch (e: Exception) {
-            throw java.io.IOException("Failed to read POST body for $url: ${e.message}", e)
+            throw java.io.IOException("Failed to read POST body for ${request.url}: ${e.message}", e)
         }
-        return load(request, "fetchPost") { wv, _ ->
-            wv.postUrl(url, postData)
+        val contentType = request.body?.contentType()?.toString()
+        return loadWithJsFetch(request, bodyString, contentType)
+    }
+
+    /**
+     * Navigate to the request's origin, then run a same-origin `fetch()` for the actual
+     * request (method/headers/body) and return the response text. Forbidden request headers
+     * (Cookie, Origin, Host, Content-Length, Connection, TE) are dropped — the browser sets
+     * those itself; attempting to set them from fetch is a no-op or an error.
+     */
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun loadWithJsFetch(
+        request: Request,
+        body: String?,
+        contentType: String?
+    ): Response {
+        val url = request.url.toString()
+        val origin = "${request.url.scheme}://${request.url.host}/"
+        Log.d(TAG, "fetchPost: navigating to origin $origin then fetching $url")
+
+        val headersJson = buildFetchHeadersJson(request, contentType)
+        val fetchScript = buildFetchScript(url, request.method, headersJson, body)
+
+        val latch = CountDownLatch(1)
+        var responseBody: String? = null
+        var responseStatus = 0
+        var loadError: String? = null
+        var webView: WebView? = null
+        var fetchStarted = false
+
+        val bridge = object {
+            @android.webkit.JavascriptInterface
+            fun onResult(status: Int, body: String) {
+                responseStatus = status
+                responseBody = body
+                Log.d(TAG, "fetchPost: status=$status, length=${body.length}")
+                latch.countDown()
+            }
+
+            @android.webkit.JavascriptInterface
+            fun onError(message: String) {
+                loadError = message
+                latch.countDown()
+            }
         }
+
+        fun runFetch(view: WebView) {
+            if (fetchStarted) return
+            fetchStarted = true
+            view.evaluateJavascript(fetchScript, null)
+        }
+
+        handler.post {
+            val wv = WebView(context)
+            webView = wv
+            wv.setDefaultSettings()
+            wv.settings.apply {
+                javaScriptEnabled = true
+                domStorageEnabled = true
+                @Suppress("DEPRECATION")
+                databaseEnabled = true
+                useWideViewPort = true
+                loadWithOverviewMode = true
+                userAgentString = HttpSource.userAgent()
+            }
+            wv.addJavascriptInterface(bridge, JS_BRIDGE)
+            wv.webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView, finishedUrl: String) {
+                    Log.d(TAG, "fetchPost onPageFinished: $finishedUrl")
+                    runFetch(view)
+                }
+
+                @Deprecated("Deprecated in Java")
+                override fun onReceivedError(
+                    view: WebView,
+                    errorCode: Int,
+                    description: String?,
+                    failingUrl: String?
+                ) {
+                    // Only abort on the main-frame origin document failing to load; ignore
+                    // benign subresource errors (ads, trackers) on the same origin.
+                    if (failingUrl == origin) {
+                        Log.e(TAG, "fetchPost onReceivedError: code=$errorCode, desc=$description, url=$failingUrl")
+                        loadError = "WebView error $errorCode: $description"
+                        latch.countDown()
+                    }
+                }
+            }
+            wv.loadUrl(origin)
+        }
+
+        val completed = latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+
+        handler.post {
+            webView?.removeJavascriptInterface(JS_BRIDGE)
+            webView?.stopLoading()
+            webView?.destroy()
+            webView = null
+        }
+
+        if (!completed) {
+            Log.e(TAG, "fetchPost: timeout after ${TIMEOUT_SECONDS}s for $url")
+            throw java.io.IOException("WebView POST timed out for $url")
+        }
+        if (loadError != null) {
+            throw java.io.IOException("WebView POST failed for $url: $loadError")
+        }
+        val respBody = responseBody
+            ?: throw java.io.IOException("WebView POST returned no content for $url")
+
+        return Response.Builder()
+            .request(request)
+            .protocol(Protocol.HTTP_1_1)
+            .code(if (responseStatus in 100..599) responseStatus else 200)
+            .message("OK")
+            .headers(Headers.Builder().add("Content-Type", contentType ?: "text/html; charset=utf-8").build())
+            .body(respBody.toResponseBody((contentType ?: "text/html; charset=utf-8").toMediaType()))
+            .build()
+    }
+
+    /**
+     * Build a JSON object literal of allowed request headers for the JS fetch init. Forbidden
+     * header names (set by the browser itself) are skipped.
+     */
+    private fun buildFetchHeadersJson(request: Request, contentType: String?): String {
+        val forbidden = setOf(
+            "cookie", "origin", "host", "content-length", "connection",
+            "te", "referer", "user-agent", "accept-encoding"
+        )
+        val entries = mutableListOf<String>()
+        request.headers.forEach { (name, value) ->
+            if (name.lowercase() !in forbidden) {
+                entries += "${jsString(name)}:${jsString(value)}"
+            }
+        }
+        if (contentType != null && request.header("Content-Type") == null) {
+            entries += "${jsString("Content-Type")}:${jsString(contentType)}"
+        }
+        return entries.joinToString(",", "{", "}")
+    }
+
+    /**
+     * Build the async fetch script. The result is pushed to the Kotlin side through the
+     * [JS_BRIDGE] JavascriptInterface as typed args (status + body), so there is no string
+     * sentinel to encode and no large HTML body to unescape — [WebView.evaluateJavascript]
+     * cannot await a Promise, and a stringified result corrupts on big/quoted bodies.
+     */
+    private fun buildFetchScript(url: String, method: String, headersJson: String, body: String?): String {
+        val bodyLiteral = if (body == null) "null" else jsString(body)
+        return """
+            (function() {
+                (async function() {
+                    try {
+                        var resp = await fetch(${jsString(url)}, {
+                            method: ${jsString(method)},
+                            headers: $headersJson,
+                            body: $bodyLiteral,
+                            credentials: 'include'
+                        });
+                        var text = await resp.text();
+                        $JS_BRIDGE.onResult(resp.status, text);
+                    } catch (e) {
+                        $JS_BRIDGE.onError(e && e.message ? e.message : String(e));
+                    }
+                })();
+            })();
+        """.trimIndent()
+    }
+
+    /** JSON-encode a string for safe inlining into a JS literal. */
+    private fun jsString(s: String): String {
+        val sb = StringBuilder("\"")
+        for (c in s) {
+            when (c) {
+                '\\' -> sb.append("\\\\")
+                '"' -> sb.append("\\\"")
+                '\n' -> sb.append("\\n")
+                '\r' -> sb.append("\\r")
+                '\t' -> sb.append("\\t")
+                '\u0001' -> sb.append("\\u0001")
+                else -> if (c < ' ') sb.append("\\u%04x".format(c.code)) else sb.append(c)
+            }
+        }
+        return sb.append("\"").toString()
     }
 
     /**
