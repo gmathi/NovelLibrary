@@ -312,8 +312,13 @@ class NovelUpdatesSource : ParsedHttpSource() {
         val formBodyBuilder = FormBody.Builder()
             .add("action", "nd_getchapters")
             .add("mypostid", novelUpdatesNovelId)
-            .add("mygrr", "0")
-        translatorSource?.let { formBodyBuilder.add("mygrpfilter", it.id.toString()) }
+        // Only send group filters when a translator source is actually selected. Sending
+        // mygrr=0 for the unfiltered list makes NU's endpoint return "0" (empty); the plain
+        // request (no mygrr) returns the full chapter list.
+        translatorSource?.let {
+            formBodyBuilder.add("mygrr", "0")
+            formBodyBuilder.add("mygrpfilter", it.id.toString())
+        }
         return POST(url, body = formBodyBuilder.build())
     }
 
