@@ -316,7 +316,7 @@ class DataCenter(context: Context) {
      * "Reader Mode" toggle in ReaderSettingsActivity.
      */
     var readerMode: Boolean
-        get() = prefs.getBoolean(READER_MODE, false)
+        get() = prefs.getBoolean(READER_MODE, true)
         set(value) = prefs.edit().putBoolean(READER_MODE, value).apply()
 
     /**
@@ -335,7 +335,7 @@ class DataCenter(context: Context) {
     }
 
     var javascriptDisabled: Boolean
-        get() = prefs.getBoolean(JAVASCRIPT, false)
+        get() = prefs.getBoolean(JAVASCRIPT, true)
         set(value) = prefs.edit().putBoolean(JAVASCRIPT, value).apply()
 
     var language: String
