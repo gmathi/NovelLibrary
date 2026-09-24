@@ -23,6 +23,7 @@ import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.database.getNovel
 import io.github.gmathi.novellibrary.database.getRemainingDownloadsCountForNovel
 import io.github.gmathi.novellibrary.database.updateDownloadStatusForRunning
+import io.github.gmathi.novellibrary.database.updateNovelMetaData
 import io.github.gmathi.novellibrary.model.database.Download
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.DownloadNovelEvent
@@ -207,6 +208,15 @@ class DownloadNovelService : Service(), DownloadListener {
     override fun handleEvent(downloadNovelEvent: DownloadNovelEvent) {
         when (downloadNovelEvent.type) {
             EventType.COMPLETE, EventType.DELETE -> {
+                // Stamp the per-novel "last downloaded" date on completion so the library can offer
+                // a "Recently Downloaded" sort. Existing downloads from before this feature have no
+                // stamp and sort as oldest. (DELETE carries no completion meaning, so skip it.)
+                if (downloadNovelEvent.type == EventType.COMPLETE) {
+                    dbHelper.getNovel(downloadNovelEvent.novelId)?.let { novel ->
+                        novel.metadata[Constants.MetaDataKeys.LAST_DOWNLOAD_DATE] = Utils.getCurrentFormattedDate()
+                        dbHelper.updateNovelMetaData(novel)
+                    }
+                }
                 threadListMap.remove(downloadNovelEvent.novelId)
                 if (threadListMap.isNotEmpty()) notify(downloadNovelEvent = downloadNovelEvent)
                 else stopService()

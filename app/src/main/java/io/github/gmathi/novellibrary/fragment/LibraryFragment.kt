@@ -371,6 +371,8 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 SortOption.LAST_UPDATED_OLDEST -> sortNovelsByDate(Constants.MetaDataKeys.LAST_UPDATED_DATE, ascending = true)
                 SortOption.RECENTLY_ADDED_NEWEST -> sortNovels(compareByDescending { it.id })
                 SortOption.RECENTLY_ADDED_OLDEST -> sortNovels(compareBy { it.id })
+                SortOption.RECENTLY_DOWNLOADED_NEWEST -> sortNovelsByDate(Constants.MetaDataKeys.LAST_DOWNLOAD_DATE, ascending = false)
+                SortOption.RECENTLY_DOWNLOADED_OLDEST -> sortNovelsByDate(Constants.MetaDataKeys.LAST_DOWNLOAD_DATE, ascending = true)
                 SortOption.REVERT_TO_MANUAL -> revertToManualOrder()
             }
         }
