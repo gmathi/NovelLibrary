@@ -43,7 +43,8 @@ fun LibrarySearchScreen(
     onBackClick: () -> Unit,
     onNovelClick: (Novel) -> Unit,
     onNovelDetailsClick: (Novel) -> Unit,
-    onNovelReadClick: (Novel) -> Unit
+    onNovelReadClick: (Novel) -> Unit,
+    onNovelAssignSection: (Novel) -> Unit
 ) {
     var searchResults by remember(allNovels) { mutableStateOf(allNovels) }
     val searchState = rememberPersistentSearchState()
@@ -92,7 +93,8 @@ fun LibrarySearchScreen(
                                 novel = novel,
                                 onClick = { onNovelClick(novel) },
                                 onDetails = { onNovelDetailsClick(novel) },
-                                onRead = { onNovelReadClick(novel) }
+                                onRead = { onNovelReadClick(novel) },
+                                onAssignSection = { onNovelAssignSection(novel) }
                             )
                         }
                     }
@@ -114,7 +116,8 @@ private fun LibraryNovelCard(
     novel: Novel,
     onClick: () -> Unit,
     onDetails: () -> Unit,
-    onRead: () -> Unit
+    onRead: () -> Unit,
+    onAssignSection: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
@@ -234,6 +237,13 @@ private fun LibraryNovelCard(
                                     onClick = {
                                         showMenu = false
                                         onRead()
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.assign_novel_section)) },
+                                    onClick = {
+                                        showMenu = false
+                                        onAssignSection()
                                     }
                                 )
                             }
