@@ -29,7 +29,7 @@ class DataCenterReaderModeTest {
     /** Mirrors the exact get/set implementation of `DataCenter.readerMode`/`getReaderModeForNovel`/`setReaderModeForNovel`. */
     private class FakeReaderModeHolder(private val prefs: SharedPreferences) {
         var readerMode: Boolean
-            get() = prefs.getBoolean(READER_MODE, false)
+            get() = prefs.getBoolean(READER_MODE, true)
             set(value) = prefs.edit().putBoolean(READER_MODE, value).apply()
 
         fun getReaderModeForNovel(novelId: Long): Boolean =
@@ -44,11 +44,12 @@ class DataCenterReaderModeTest {
     fun `getReaderModeForNovel returns readerMode default when unset`() {
         val holder = FakeReaderModeHolder(FakeSharedPreferences())
 
-        assertFalse(holder.getReaderModeForNovel(1L))
-
-        holder.readerMode = true
-
+        // New global default is Reader Mode ON.
         assertTrue(holder.getReaderModeForNovel(1L))
+
+        holder.readerMode = false
+
+        assertFalse(holder.getReaderModeForNovel(1L))
     }
 
     @Test
