@@ -130,10 +130,12 @@ class WebPageDBFragment : BaseFragment() {
             }
 
             if (activity is ReaderDBPagerActivity) {
-                // Auto-hide while scrolling down, reveal while scrolling up.
+                // Any downward scroll hides the floating menu icon immediately (easy hide);
+                // a meaningful upward scroll reveals it. A small threshold on the up direction
+                // avoids the icon flickering back on tiny scroll jitter.
                 when {
-                    scrollY > oldScrollY && scrollY - oldScrollY > Constants.SCROLL_LENGTH -> activity.hideMenuIcon()
-                    oldScrollY > scrollY -> activity.showMenuIcon()
+                    scrollY > oldScrollY -> activity.hideMenuIcon()
+                    oldScrollY - scrollY > Constants.SCROLL_LENGTH -> activity.showMenuIcon()
                 }
             }
             if (dataCenter.enableImmersiveMode && dataCenter.showNavbarAtChapterEnd) {
