@@ -75,6 +75,9 @@ class ReaderDBPagerActivity :
     companion object {
         private const val TAG = "ReaderDBPagerActivity"
 
+        /** Delay before the floating reader-menu icon auto-hides after being shown. */
+        private const val MENU_ICON_AUTO_HIDE_MS = 5000L
+
         private val FONT_MIME_TYPES = arrayOf(
             MimeTypeMap.getSingleton().getMimeTypeFromExtension("ttf") ?: "application/x-font-ttf",
             "fonts/ttf",
@@ -98,6 +101,10 @@ class ReaderDBPagerActivity :
 
     /** Compose-observable menu icon visibility state (auto-hides on scroll down, shows on scroll up / tap) */
     private val menuIconVisible = mutableStateOf(true)
+
+    /** Auto-hide timer for the floating menu icon: hides it a few seconds after it is shown. */
+    private val menuIconAutoHideHandler = Handler(Looper.getMainLooper())
+    private val menuIconAutoHideRunnable = Runnable { menuIconVisible.value = false }
 
     lateinit var binding: ActivityReaderPagerBinding
 
@@ -188,6 +195,9 @@ class ReaderDBPagerActivity :
                     },
                     onFontClick = { changeFontStyle() },
                     onReadAloudClick = { handleReadAloud() },
+                    onReaderModeClick = {
+                        readerViewModel.setReaderMode(!readerViewModel.uiState.value.isReaderMode)
+                    },
                     onBrowserClick = { inBrowser() },
                     onMoreSettingsClick = {
                         readerSettingsActivityContract.launch(intentOf<ReaderSettingsActivity>())
@@ -204,27 +214,39 @@ class ReaderDBPagerActivity :
         overlayVisible.value = !overlayVisible.value
         // Hide the icon while the full bars are open; reveal it again when they close (screen tapped).
         menuIconVisible.value = !overlayVisible.value
+        menuIconAutoHideHandler.removeCallbacks(menuIconAutoHideRunnable)
+        if (menuIconVisible.value) {
+            menuIconAutoHideHandler.postDelayed(menuIconAutoHideRunnable, MENU_ICON_AUTO_HIDE_MS)
+        }
     }
 
     fun showOverlay() {
         overlayVisible.value = true
         menuIconVisible.value = false // Hide icon when overlay is shown
+        menuIconAutoHideHandler.removeCallbacks(menuIconAutoHideRunnable)
     }
 
     fun hideOverlay() {
         overlayVisible.value = false
         menuIconVisible.value = true // Reveal icon when bars close
+        // Auto-hide the revealed icon after a few seconds.
+        menuIconAutoHideHandler.removeCallbacks(menuIconAutoHideRunnable)
+        menuIconAutoHideHandler.postDelayed(menuIconAutoHideRunnable, MENU_ICON_AUTO_HIDE_MS)
     }
 
     /** Show the floating menu icon (called from scroll listener on scroll down). */
     fun showMenuIcon() {
         if (!overlayVisible.value) {
             menuIconVisible.value = true
+            // (Re)arm the auto-hide timer so the icon disappears on its own after a few seconds.
+            menuIconAutoHideHandler.removeCallbacks(menuIconAutoHideRunnable)
+            menuIconAutoHideHandler.postDelayed(menuIconAutoHideRunnable, MENU_ICON_AUTO_HIDE_MS)
         }
     }
 
     /** Hide the floating menu icon (called from scroll listener on scroll up). */
     fun hideMenuIcon() {
+        menuIconAutoHideHandler.removeCallbacks(menuIconAutoHideRunnable)
         menuIconVisible.value = false
     }
 
@@ -453,5 +475,16 @@ class ReaderDBPagerActivity :
     override fun onResume() {
         super.onResume()
         updateNovelLastRead(novel)
+        // The menu icon starts visible when the reader opens; auto-hide it after a few seconds
+        // if the user doesn't interact, so it doesn't linger over the page.
+        if (menuIconVisible.value && !overlayVisible.value) {
+            menuIconAutoHideHandler.removeCallbacks(menuIconAutoHideRunnable)
+            menuIconAutoHideHandler.postDelayed(menuIconAutoHideRunnable, MENU_ICON_AUTO_HIDE_MS)
+        }
+    }
+
+    override fun onPause() {
+        menuIconAutoHideHandler.removeCallbacks(menuIconAutoHideRunnable)
+        super.onPause()
     }
 }

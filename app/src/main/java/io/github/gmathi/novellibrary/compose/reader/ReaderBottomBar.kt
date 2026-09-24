@@ -28,7 +28,7 @@ fun ReaderBottomBar(
     onSettingsClick: () -> Unit,
     onFontClick: () -> Unit,
     onReadAloudClick: () -> Unit,
-    onBrowserClick: () -> Unit,
+    onReaderModeClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -128,9 +128,11 @@ fun ReaderBottomBar(
                     onClick = onReadAloudClick
                 )
                 BottomBarAction(
-                    icon = Icons.Outlined.OpenInBrowser,
-                    label = "Browser",
-                    onClick = onBrowserClick
+                    icon = if (uiState.isReaderMode) Icons.Filled.ChromeReaderMode
+                           else Icons.Outlined.ChromeReaderMode,
+                    label = "Reader Mode",
+                    onClick = onReaderModeClick,
+                    active = uiState.isReaderMode
                 )
             }
         }
@@ -142,8 +144,11 @@ private fun BottomBarAction(
     icon: ImageVector,
     label: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    active: Boolean = false
 ) {
+    val tint = if (active) MaterialTheme.colorScheme.primary
+               else MaterialTheme.colorScheme.onSurfaceVariant
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
@@ -155,13 +160,13 @@ private fun BottomBarAction(
             imageVector = icon,
             contentDescription = label,
             modifier = Modifier.size(22.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+            tint = tint
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = tint,
             textAlign = TextAlign.Center
         )
     }
