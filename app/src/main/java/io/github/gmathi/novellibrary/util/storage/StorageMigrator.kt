@@ -83,12 +83,16 @@ class StorageMigrator(
                         val webPageSettingsList = dbHelper.getAllWebPageSettings(novelId)
                         for (webPageSettings in webPageSettingsList) {
                             val oldPath = webPageSettings.filePath ?: continue
-                            val newPath = computeDestinationPath(from.root, to.root, oldPath) ?: continue
-                            if (File(newPath).exists()) {
+                            val newPath = resolveMovedChapterPath(from.root, to.root, destNovelDir, oldPath)
+                            if (newPath != null && File(newPath).exists()) {
                                 webPageSettings.filePath = newPath
                                 dbHelper.updateWebPageSettings(webPageSettings)
                                 movedFiles++
                             } else {
+                                // The file was physically relocated with its Novel_Dir but its stored
+                                // path could not be rewritten to a file that now exists — leaving the
+                                // DB pointing at a location the reader can no longer open. Count it as
+                                // a failure so migrate() never reports Success while orphaning chapters.
                                 failedFiles++
                             }
                         }
@@ -181,6 +185,37 @@ class StorageMigrator(
             if (!absoluteFilePath.startsWith(oldRootWithSeparator)) return null
             val suffix = absoluteFilePath.substring(oldRootWithSeparator.length)
             return File(newRoot, suffix).absolutePath
+        }
+
+        /**
+         * Resolve where a chapter file lives after its Novel_Dir was moved to [destNovelDir].
+         *
+         * The whole Novel_Dir was relocated to [destNovelDir] (see [migrate]), so the file's new
+         * location is deterministic regardless of how its OLD [filePath] was rooted. This is what
+         * makes migration correct for chapters that were downloaded BEFORE the storage-location
+         * feature existed, whose stored paths do not string-prefix-match the current [oldRoot]
+         * (legacy host-based layout, or `/data/data` vs `/data/user/0` filesDir drift). For those,
+         * the fragile prefix swap in [computeDestinationPath] returns null and the DB row would be
+         * left pointing at the now-empty old location.
+         *
+         * Strategy, first hit wins:
+         *  1. `<destNovelDir>/<fileName>` when it exists — the file moved with its dir.
+         *  2. The prefix-swap result of [computeDestinationPath] when it exists — same-root moves
+         *     where the file sits in a subdirectory of the Novel_Dir.
+         *  3. `<destNovelDir>/<fileName>` unconditionally — best-effort commit so the DB tracks the
+         *     new root even if the existence probe raced; the caller still verifies existence.
+         */
+        fun resolveMovedChapterPath(oldRoot: File, newRoot: File, destNovelDir: File, filePath: String): String? {
+            val fileName = File(filePath).name
+            if (fileName.isEmpty()) return null
+
+            val byMovedDir = File(destNovelDir, fileName)
+            if (byMovedDir.exists()) return byMovedDir.absolutePath
+
+            val byPrefixSwap = computeDestinationPath(oldRoot, newRoot, filePath)
+            if (byPrefixSwap != null && File(byPrefixSwap).exists()) return byPrefixSwap
+
+            return byMovedDir.absolutePath
         }
     }
 }
