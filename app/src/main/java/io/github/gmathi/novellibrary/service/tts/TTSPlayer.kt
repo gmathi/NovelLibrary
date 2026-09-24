@@ -378,12 +378,17 @@ class TTSPlayer(private val context: Context,
         if (silence.isPlaying) silence.stop()
         tts.stop()
         queuedLine = lineNumber
+        // Persist the within-chapter position so resuming this chapter continues from here.
+        // Cleared automatically when the chapter finishes (see onLastLine).
+        saveLinePosition()
         setPlaybackState(withState)
     }
 
     fun destroy() {
         if (isDisposed) return
         Log.d(TAG, "Disposing TTSPlayer instance")
+        // Persist the within-chapter position so resuming this chapter continues from here.
+        saveLinePosition()
         if (silence.isPlaying) silence.stop()
         silence.release()
 
@@ -564,6 +569,8 @@ class TTSPlayer(private val context: Context,
             stop()
             return
         }
+        // Chapter fully read: clear the saved resume position so a replay starts from the beginning.
+        clearLinePosition(chapterIndex)
         if (dataCenter.ttsPreferences.markChaptersRead) {
             dbHelper.getWebPage(novel.id, translatorSourceName, chapterIndex)?.let {
                 markChapterRead(it, true)
@@ -609,6 +616,7 @@ class TTSPlayer(private val context: Context,
 //                Log.d(TAG, "Already cached chapter $index")
                 updateChapterIndex(index)
                 setData(it.text, it.title, it.bufferLinks)
+                lineNumber = getSavedLinePosition(index).coerceIn(0, (lines.size - 1).coerceAtLeast(0))
                 //start()
             }
             return@loadChapter TTSLoadStatus.Cached
@@ -626,6 +634,7 @@ class TTSPlayer(private val context: Context,
                 if (!forCaching) {
                     updateChapterIndex(index)
                     setData(clean.text, clean.title, clean.bufferLinks)
+                    lineNumber = getSavedLinePosition(index).coerceIn(0, (lines.size - 1).coerceAtLeast(0))
                     //start()
                     return TTSLoadStatus.Loaded
                 }
@@ -643,7 +652,54 @@ class TTSPlayer(private val context: Context,
         }
     }
 
+    /**
+     * Persists the current sentence position ([lineNumber]) for the currently playing chapter so
+     * that resuming the same chapter continues from where playback stopped. Stored per-chapter in
+     * [WebPageSettings.metadata] under [Constants.MetaDataKeys.TTS_LINE_POSITION], which survives
+     * app restarts. A position of 0 (chapter start) is stored as a cleared key rather than a value.
+     */
+    private fun saveLinePosition() {
+        if (!::novel.isInitialized) return
+        val webPage = dbHelper.getWebPage(novel.id, translatorSourceName, chapterIndex) ?: return
+        val settings = dbHelper.getWebPageSettings(webPage.url) ?: return
+        if (lineNumber > 0 && lineNumber < lines.size) {
+            settings.metadata[Constants.MetaDataKeys.TTS_LINE_POSITION] = lineNumber.toString()
+        } else {
+            settings.metadata.remove(Constants.MetaDataKeys.TTS_LINE_POSITION)
+        }
+        dbHelper.updateWebPageSettings(settings)
+    }
+
+    /**
+     * Clears any saved sentence position for the given chapter. Called when a chapter finishes so
+     * that replaying it starts from the beginning.
+     */
+    private fun clearLinePosition(index: Int) {
+        if (!::novel.isInitialized) return
+        val webPage = dbHelper.getWebPage(novel.id, translatorSourceName, index) ?: return
+        val settings = dbHelper.getWebPageSettings(webPage.url) ?: return
+        if (settings.metadata.containsKey(Constants.MetaDataKeys.TTS_LINE_POSITION)) {
+            settings.metadata.remove(Constants.MetaDataKeys.TTS_LINE_POSITION)
+            dbHelper.updateWebPageSettings(settings)
+        }
+    }
+
+    /**
+     * Reads the saved sentence position for the given chapter, or 0 when none is stored.
+     */
+    private fun getSavedLinePosition(index: Int): Int {
+        if (!::novel.isInitialized) return 0
+        val webPage = dbHelper.getWebPage(novel.id, translatorSourceName, index) ?: return 0
+        val settings = dbHelper.getWebPageSettings(webPage.url) ?: return 0
+        return settings.metadata[Constants.MetaDataKeys.TTS_LINE_POSITION]?.toIntOrNull() ?: 0
+    }
+
     private fun updateChapterIndex(index: Int) {
+        // Switching to a different chapter: persist the outgoing chapter's resume position first,
+        // while `chapterIndex` and `lines` still refer to it.
+        if (index != chapterIndex) {
+            saveLinePosition()
+        }
         metadata.trackNumber = (index+1).toLong()
         metadata.putLong(TTSService.CHAPTER_INDEX, index.toLong())
         dataCenter.internalPut {
@@ -776,6 +832,7 @@ class TTSPlayer(private val context: Context,
                     // In theory it should have an interface for user to click and load, but right now
                     // we don't have any handling of linkedPages outside of merge option
                     setData(text, doc.title(), clean.bufferLinks)
+                    lineNumber = getSavedLinePosition(index).coerceIn(0, (lines.size - 1).coerceAtLeast(0))
                     start()
                 } // else -> loaded for caching
             } catch (e: Exception) {
