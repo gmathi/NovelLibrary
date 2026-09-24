@@ -102,8 +102,11 @@ object Constants {
     object MetaDataKeys {
         const val LAST_READ_DATE = "lastReadDate"
         const val LAST_UPDATED_DATE = "lastUpdatedDate"
+        const val LAST_DOWNLOAD_DATE = "lastDownloadDate"
         const val SHOW_SOURCES = "showSources"
         const val SCROLL_POSITION = "scrollY"
+        const val SCROLL_RATIO = "scrollRatio"
+        const val TTS_LINE_POSITION = "ttsLine"
         const val OTHER_LINKED_WEB_PAGES = "otherWebPages"
         const val IS_FAVORITE = "isFavorite"
         const val HASH_CODE = "hashCode"
