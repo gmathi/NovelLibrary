@@ -331,6 +331,9 @@
     <string name="sort_by_last_updated_oldest">Last Updated (oldest first)</string>
     <string name="sort_by_recently_added_newest">Recently Added (newest first)</string>
     <string name="sort_by_recently_added_oldest">Recently Added (oldest first)</string>
+    <string name="sort_by_recently_downloaded_newest">Recently Downloaded (newest first)</string>
+    <string name="sort_by_recently_downloaded_oldest">Recently Downloaded (oldest first)</string>
+    <string name="sort_section_recently_downloaded">Recently Downloaded</string>
     <string name="sort_section_alphabetical">Alphabetical</string>
     <string name="sort_section_last_read">Last Read</string>
     <string name="sort_section_last_updated">Last Updated</string>

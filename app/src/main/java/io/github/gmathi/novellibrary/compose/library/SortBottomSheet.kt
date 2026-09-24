@@ -27,6 +27,8 @@ enum class SortOption {
     LAST_UPDATED_OLDEST,
     RECENTLY_ADDED_NEWEST,
     RECENTLY_ADDED_OLDEST,
+    RECENTLY_DOWNLOADED_NEWEST,
+    RECENTLY_DOWNLOADED_OLDEST,
     REVERT_TO_MANUAL
 }
 
@@ -133,6 +135,21 @@ fun SortBottomSheetContent(
             label = stringResource(R.string.sort_by_recently_added_oldest),
             icon = Icons.Outlined.NewReleases,
             onClick = { onSortSelected(SortOption.RECENTLY_ADDED_OLDEST) }
+        )
+
+        SortDivider()
+
+        // Recently Downloaded section
+        SortSectionHeader(title = stringResource(R.string.sort_section_recently_downloaded))
+        SortOptionItem(
+            label = stringResource(R.string.sort_by_recently_downloaded_newest),
+            icon = Icons.Outlined.Download,
+            onClick = { onSortSelected(SortOption.RECENTLY_DOWNLOADED_NEWEST) }
+        )
+        SortOptionItem(
+            label = stringResource(R.string.sort_by_recently_downloaded_oldest),
+            icon = Icons.Outlined.Download,
+            onClick = { onSortSelected(SortOption.RECENTLY_DOWNLOADED_OLDEST) }
         )
     }
 }
