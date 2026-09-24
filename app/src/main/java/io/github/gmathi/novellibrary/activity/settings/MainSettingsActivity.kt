@@ -1,9 +1,11 @@
 package io.github.gmathi.novellibrary.activity.settings
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -14,6 +16,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import android.util.TypedValue
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -32,6 +35,7 @@ import io.github.gmathi.novellibrary.util.view.setDefaults
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.CustomDividerItemDecoration
 import io.github.gmathi.novellibrary.network.AppUpdateChecker
+import io.github.gmathi.novellibrary.network.UpdateCheckResult
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import nl.dionsegijn.konfetti.models.Shape
@@ -55,6 +59,11 @@ class MainSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     private val remoteConfig = FirebaseRemoteConfig.getInstance()
 
     private lateinit var binding: ActivitySettingsBinding
+
+    // The update download reports through notifications, which Android 13+ blocks until the user
+    // allows them: ask first, then check either way.
+    private val notificationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { checkForUpdatesNow() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -241,10 +250,33 @@ class MainSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     }
 
     private fun checkForUpdates() {
-        Toast.makeText(this, "Checking for updates…", Toast.LENGTH_SHORT).show()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            checkForUpdatesNow()
+        }
+    }
+
+    private fun checkForUpdatesNow() {
+        toast(R.string.app_update_checking)
         lifecycleScope.launch {
-            val checker = AppUpdateChecker(applicationContext)
-            checker.checkAndPromptUpdate(force = true)
+            when (val result = AppUpdateChecker(applicationContext).checkAndPromptUpdate(force = true)) {
+                UpdateCheckResult.UpToDate -> toast(getString(R.string.app_update_up_to_date, BuildConfig.VERSION_NAME), Toast.LENGTH_LONG)
+                is UpdateCheckResult.Downloading -> toast(getString(R.string.app_update_download_started, result.versionName), Toast.LENGTH_LONG)
+                UpdateCheckResult.AlreadyDownloading -> toast(R.string.app_update_already_downloading)
+                is UpdateCheckResult.NotificationsOff ->
+                    MaterialDialog(this@MainSettingsActivity).show {
+                        title(text = getString(R.string.app_update_available, result.versionName))
+                        message(R.string.app_update_notifications_off)
+                        positiveButton(R.string.app_update_download_in_browser) { this@MainSettingsActivity.openInBrowser(result.apkUrl) }
+                        negativeButton(R.string.cancel)
+                    }
+                UpdateCheckResult.Offline -> toast(R.string.no_internet)
+                is UpdateCheckResult.Failed -> toast(R.string.app_update_check_failed, Toast.LENGTH_LONG)
+                UpdateCheckResult.Disabled -> Unit
+            }
         }
     }
 }

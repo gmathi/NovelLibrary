@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
 import io.github.gmathi.novellibrary.BuildConfig
 import io.github.gmathi.novellibrary.R
@@ -13,10 +14,41 @@ import io.github.gmathi.novellibrary.util.lang.withIOContext
 import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.notification.Notifications
 import io.github.gmathi.novellibrary.util.system.notificationManager
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import okhttp3.Request
 import uy.kohesive.injekt.injectLazy
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
+
+/** What a check for an app update came to. */
+sealed class UpdateCheckResult {
+    /** Automatic update checks are turned off. */
+    object Disabled : UpdateCheckResult()
+
+    object Offline : UpdateCheckResult()
+
+    /** This is the latest version. */
+    object UpToDate : UpdateCheckResult()
+
+    /** A newer version is downloading; a notification will offer to install it. */
+    data class Downloading(val versionName: String) : UpdateCheckResult()
+
+    /** A download started earlier is still running. */
+    object AlreadyDownloading : UpdateCheckResult()
+
+    /**
+     * A newer version is out but was not downloaded: notifications are off, so the download could
+     * neither show its progress nor offer to install it. [apkUrl] can be opened in a browser instead.
+     */
+    data class NotificationsOff(val versionName: String, val apkUrl: String) : UpdateCheckResult()
+
+    data class Failed(val error: Exception) : UpdateCheckResult()
+}
 
 /**
  * Checks for app updates from the GitHub releases branch,
@@ -26,27 +58,53 @@ class AppUpdateChecker(private val context: Context) {
 
     companion object {
         private const val TAG = "AppUpdateChecker"
+
+        // The APK is around 150 MB: its download outlives the screen that started it, and a check
+        // made while it runs does not start a second download into the same file.
+        private val downloadScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        private val downloading = AtomicBoolean(false)
     }
 
     private val networkHelper: NetworkHelper by injectLazy()
     private val dataCenter: DataCenter by injectLazy()
     private val updateApi = AppUpdateGithubApi()
 
+    /**
+     * Checks for a newer version and, if there is one, starts downloading it; a notification offers
+     * to install it once it is in. Returns what the check came to, for a check the user asked for.
+     */
     @OptIn(ExperimentalSerializationApi::class)
-    suspend fun checkAndPromptUpdate(force: Boolean = false) {
-        if (!force && !dataCenter.enableAutoAppUpdate) return
-        if (!networkHelper.isConnectedToNetwork()) return
+    suspend fun checkAndPromptUpdate(force: Boolean = false): UpdateCheckResult {
+        if (!force && !dataCenter.enableAutoAppUpdate) return UpdateCheckResult.Disabled
+        if (!networkHelper.isConnectedToNetwork()) return UpdateCheckResult.Offline
 
-        try {
-            val latestUpdate = updateApi.checkForUpdates(context)
-            if (!latestUpdate.hasUpdate) return
+        val latestUpdate =
+            try {
+                updateApi.checkForUpdates(context)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Logs.error(TAG, "Failed to check for updates: ${e.localizedMessage}", e)
+                return UpdateCheckResult.Failed(e)
+            }
+        if (!latestUpdate.hasUpdate) return UpdateCheckResult.UpToDate
 
-            Logs.info(TAG, "Update available: ${latestUpdate.versionName} (${latestUpdate.versionCode})")
-            val apkUrl = updateApi.getApkUrl(latestUpdate)
-            downloadAndNotify(apkUrl, latestUpdate.versionName)
-        } catch (e: Exception) {
-            Logs.error(TAG, "Failed to check for updates: ${e.localizedMessage}", e)
+        Logs.info(TAG, "Update available: ${latestUpdate.versionName} (${latestUpdate.versionCode})")
+        val apkUrl = updateApi.getApkUrl(latestUpdate)
+        // The download reports only through notifications. Without them (Android 13+ blocks them
+        // until the user allows them) it would finish unseen, with no way to install it.
+        if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+            return UpdateCheckResult.NotificationsOff(latestUpdate.versionName, apkUrl)
         }
+        if (!downloading.compareAndSet(false, true)) return UpdateCheckResult.AlreadyDownloading
+        downloadScope.launch {
+            try {
+                downloadAndNotify(apkUrl, latestUpdate.versionName)
+            } finally {
+                downloading.set(false)
+            }
+        }
+        return UpdateCheckResult.Downloading(latestUpdate.versionName)
     }
 
     private suspend fun downloadAndNotify(apkUrl: String, versionName: String) {
