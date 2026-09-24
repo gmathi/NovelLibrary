@@ -36,6 +36,7 @@ fun ReaderOverlay(
     onNextChapter: () -> Unit,
     onFontClick: () -> Unit,
     onReadAloudClick: () -> Unit,
+    onReaderModeClick: () -> Unit,
     onBrowserClick: () -> Unit,
     onMoreSettingsClick: () -> Unit,
     onCenterTap: () -> Unit,
@@ -64,20 +65,21 @@ fun ReaderOverlay(
                 enter = fadeIn(),
                 exit = fadeOut(),
                 modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 16.dp)
+                    .align(Alignment.BottomEnd)
+                    .navigationBarsPadding()
+                    .padding(end = 16.dp, bottom = 16.dp)
             ) {
                 FloatingActionButton(
                     onClick = onCenterTap,
                     shape = CircleShape,
-                    modifier = Modifier.size(56.dp),
+                    modifier = Modifier.size(48.dp),
                     containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.85f),
                     contentColor = MaterialTheme.colorScheme.onSurface
                 ) {
                     Icon(
                         Icons.Filled.Menu,
                         contentDescription = "Open reader menu",
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
@@ -111,7 +113,7 @@ fun ReaderOverlay(
                     onSettingsClick = { viewModel.toggleSettingsPanel() },
                     onFontClick = onFontClick,
                     onReadAloudClick = onReadAloudClick,
-                    onBrowserClick = onBrowserClick
+                    onReaderModeClick = onReaderModeClick
                 )
             }
 
@@ -121,7 +123,8 @@ fun ReaderOverlay(
                     uiState = uiState,
                     viewModel = viewModel,
                     onDismiss = { viewModel.hideSettingsPanel() },
-                    onMoreSettings = onMoreSettingsClick
+                    onMoreSettings = onMoreSettingsClick,
+                    onOpenInBrowser = onBrowserClick
                 )
             }
         }
