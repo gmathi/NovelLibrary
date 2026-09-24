@@ -224,12 +224,7 @@ class WebPageDBFragment : BaseFragment() {
                 }
 
                 webPageSettings.let {
-                    if (it.metadata.containsKey(Constants.MetaDataKeys.SCROLL_POSITION)) {
-                        view?.scrollTo(
-                            0, (it.metadata[Constants.MetaDataKeys.SCROLL_POSITION]
-                                ?: "0").toInt()
-                        )
-                    }
+                    restoreReadingPosition(view)
                 }
 
             }
@@ -315,12 +310,8 @@ class WebPageDBFragment : BaseFragment() {
                 doc?.outerHtml() ?: "",
                 "text/html", "UTF-8", null
             )
-            if (it.metadata.containsKey(Constants.MetaDataKeys.SCROLL_POSITION)) {
-                binding.readerWebView.scrollTo(
-                    0, (it.metadata[Constants.MetaDataKeys.SCROLL_POSITION]
-                            )!!.toInt()
-                )
-            }
+            // Actual restore happens in onPageFinished (via restoreReadingPosition) once the
+            // reflowed content has been laid out and contentHeight is populated.
         }
     }
 
@@ -565,9 +556,59 @@ class WebPageDBFragment : BaseFragment() {
         super.onPause()
         if (this::webPageSettings.isInitialized)
             webPageSettings.let {
-                it.metadata[Constants.MetaDataKeys.SCROLL_POSITION] = binding.readerWebView.scrollY.toString()
+                val scrollY = binding.readerWebView.scrollY
+                it.metadata[Constants.MetaDataKeys.SCROLL_POSITION] = scrollY.toString()
+                // Also store the scroll position as a fraction of the total scrollable height.
+                // On orientation change the activity is recreated and the document reflows at a
+                // different width/height, so an absolute pixel offset lands on different content.
+                // The ratio keeps the SAME content near the top of the viewport across the reflow.
+                val range = webViewScrollRange()
+                if (range > 0) {
+                    it.metadata[Constants.MetaDataKeys.SCROLL_RATIO] = (scrollY.toFloat() / range).toString()
+                }
                 dbHelper.updateWebPageSettings(it)
             }
+    }
+
+    /**
+     * The WebView's total scrollable content height in pixels, or 0 when it can't be determined.
+     * Uses the public `contentHeight * scale` (as elsewhere in this fragment) rather than the
+     * protected `computeVerticalScrollRange()`.
+     */
+    private fun webViewScrollRange(): Int {
+        val range = (binding.readerWebView.contentHeight * binding.readerWebView.scale).toInt()
+        return (range - binding.readerWebView.height).coerceAtLeast(0)
+    }
+
+    /**
+     * Restore the reading position after a (re)load. Prefers the stored scroll RATIO so the same
+     * content stays at the top across an orientation change; falls back to the absolute pixel
+     * offset when no ratio is stored (e.g. chapters saved before this fix). Posted so it runs after
+     * the WebView has laid out its reflowed content and `contentHeight` is populated.
+     */
+    private fun restoreReadingPosition(view: WebView?) {
+        val target = view ?: binding.readerWebView
+        val settings = if (this::webPageSettings.isInitialized) webPageSettings else return
+        val ratioStr = settings.metadata[Constants.MetaDataKeys.SCROLL_RATIO]
+        val absStr = settings.metadata[Constants.MetaDataKeys.SCROLL_POSITION]
+        if (ratioStr == null && absStr == null) return
+
+        val ratio = ratioStr?.toFloatOrNull()
+        val absPos = absStr?.toIntOrNull()
+
+        // The reflowed content may not be laid out immediately after onPageFinished, so
+        // contentHeight can briefly read 0. Retry a few times until the scroll range is known,
+        // then apply the ratio; fall back to the absolute offset if the range never resolves.
+        fun attempt(remaining: Int) {
+            if (!isAdded) return
+            val range = webViewScrollRange()
+            when {
+                ratio != null && range > 0 -> target.scrollTo(0, (ratio * range).toInt())
+                remaining > 0 && ratio != null -> target.postDelayed({ attempt(remaining - 1) }, 50)
+                absPos != null -> target.scrollTo(0, absPos)
+            }
+        }
+        target.post { attempt(5) }
     }
 
     override fun onDestroy() {
