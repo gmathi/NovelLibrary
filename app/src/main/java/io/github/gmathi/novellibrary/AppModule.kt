@@ -8,11 +8,15 @@ import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 import io.github.gmathi.novellibrary.database.DBHelper
 import io.github.gmathi.novellibrary.extension.ExtensionManager
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
-import io.github.gmathi.novellibrary.model.preference.DataCenter
 import kotlinx.serialization.json.Json
-import uy.kohesive.injekt.api.*
+import uy.kohesive.injekt.api.InjektModule
+import uy.kohesive.injekt.api.InjektRegistrar
+import uy.kohesive.injekt.api.addSingleton
+import uy.kohesive.injekt.api.addSingletonFactory
+import uy.kohesive.injekt.api.get
 
 class AppModule(val app: Application) : InjektModule {
 
