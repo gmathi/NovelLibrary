@@ -32,6 +32,7 @@ fun ReaderSettingsPanel(
     onDismiss: () -> Unit,
     onMoreSettings: () -> Unit,
     onOpenInBrowser: () -> Unit,
+    onFontClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
@@ -97,14 +98,6 @@ fun ReaderSettingsPanel(
             )
 
             SettingToggle(
-                icon = Icons.Outlined.Code,
-                title = "JavaScript",
-                subtitle = "Enable page scripts",
-                checked = uiState.isJavascriptEnabled,
-                onCheckedChange = { viewModel.setJavascriptEnabled(it) }
-            )
-
-            SettingToggle(
                 icon = Icons.Outlined.PhotoSizeSelectLarge,
                 title = "Limit Image Width",
                 subtitle = "Fit images to screen width",
@@ -155,6 +148,38 @@ fun ReaderSettingsPanel(
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
             )
+
+            // Font — opens the font picker for the current novel
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        onDismiss()
+                        onFontClick()
+                    }
+                    .padding(horizontal = 24.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.TextFields,
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = "Font",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Icon(
+                    imageVector = Icons.Filled.ChevronRight,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
             // Open in browser — opens the current chapter in an external browser
             Row(

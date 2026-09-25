@@ -37,6 +37,7 @@ fun ReaderOverlay(
     onFontClick: () -> Unit,
     onReadAloudClick: () -> Unit,
     onReaderModeClick: () -> Unit,
+    onJavascriptClick: () -> Unit,
     onBrowserClick: () -> Unit,
     onMoreSettingsClick: () -> Unit,
     onCenterTap: () -> Unit,
@@ -65,9 +66,7 @@ fun ReaderOverlay(
                 enter = fadeIn(),
                 exit = fadeOut(),
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .navigationBarsPadding()
-                    .padding(end = 16.dp, bottom = 16.dp)
+                    .align(Alignment.Center)
             ) {
                 FloatingActionButton(
                     onClick = onCenterTap,
@@ -111,7 +110,7 @@ fun ReaderOverlay(
                     onPreviousChapter = onPreviousChapter,
                     onNextChapter = onNextChapter,
                     onSettingsClick = { viewModel.toggleSettingsPanel() },
-                    onFontClick = onFontClick,
+                    onJavascriptClick = onJavascriptClick,
                     onReadAloudClick = onReadAloudClick,
                     onReaderModeClick = onReaderModeClick
                 )
@@ -124,7 +123,8 @@ fun ReaderOverlay(
                     viewModel = viewModel,
                     onDismiss = { viewModel.hideSettingsPanel() },
                     onMoreSettings = onMoreSettingsClick,
-                    onOpenInBrowser = onBrowserClick
+                    onOpenInBrowser = onBrowserClick,
+                    onFontClick = onFontClick
                 )
             }
         }

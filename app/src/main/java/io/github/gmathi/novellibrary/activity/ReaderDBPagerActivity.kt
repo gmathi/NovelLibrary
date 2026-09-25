@@ -198,6 +198,9 @@ class ReaderDBPagerActivity :
                     onReaderModeClick = {
                         readerViewModel.setReaderMode(!readerViewModel.uiState.value.isReaderMode)
                     },
+                    onJavascriptClick = {
+                        readerViewModel.setJavascriptEnabled(!readerViewModel.uiState.value.isJavascriptEnabled)
+                    },
                     onBrowserClick = { inBrowser() },
                     onMoreSettingsClick = {
                         readerSettingsActivityContract.launch(intentOf<ReaderSettingsActivity>())
