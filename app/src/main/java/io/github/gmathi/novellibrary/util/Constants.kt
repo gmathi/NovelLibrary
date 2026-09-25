@@ -135,6 +135,7 @@ object Constants {
         const val EMPTY_DATA = "emptyData"
         const val START = "Loading…"
         const val DONE = "done"
+        const val CLOUDFLARE = "cloudflare"
     }
 
     object RemoteConfig {

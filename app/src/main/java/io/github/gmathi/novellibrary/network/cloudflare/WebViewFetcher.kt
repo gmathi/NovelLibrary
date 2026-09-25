@@ -100,25 +100,32 @@ class WebViewFetcher(private val context: Context) {
         val headersJson = buildFetchHeadersJson(request, contentType)
         val fetchScript = buildFetchScript(url, request.method, headersJson, body)
 
+        Log.d(TAG, "fetchPost: DEBUG body=[$body] contentType=$contentType headers=$headersJson")
+
         val latch = CountDownLatch(1)
         var responseBody: String? = null
         var responseStatus = 0
+        var responseHeaders: String = ""
         var loadError: String? = null
         var webView: WebView? = null
         var fetchStarted = false
 
         val bridge = object {
             @android.webkit.JavascriptInterface
-            fun onResult(status: Int, body: String) {
+            fun onResult(status: Int, finalUrl: String, respHeaders: String, body: String) {
                 responseStatus = status
                 responseBody = body
-                Log.d(TAG, "fetchPost: status=$status, length=${body.length}")
+                responseHeaders = respHeaders
+                Log.d(TAG, "fetchPost: status=$status finalUrl=$finalUrl len=${body.length}")
+                Log.d(TAG, "fetchPost: respHeaders=$respHeaders")
+                Log.d(TAG, "fetchPost: body=[${body.take(500)}]")
                 latch.countDown()
             }
 
             @android.webkit.JavascriptInterface
             fun onError(message: String) {
                 loadError = message
+                Log.e(TAG, "fetchPost: JS fetch FAILED: $message")
                 latch.countDown()
             }
         }
@@ -126,6 +133,7 @@ class WebViewFetcher(private val context: Context) {
         fun runFetch(view: WebView) {
             if (fetchStarted) return
             fetchStarted = true
+            Log.d(TAG, "fetchPost: dispatching JS fetch to $url")
             view.evaluateJavascript(fetchScript, null)
         }
 
@@ -145,7 +153,9 @@ class WebViewFetcher(private val context: Context) {
             wv.addJavascriptInterface(bridge, JS_BRIDGE)
             wv.webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView, finishedUrl: String) {
-                    Log.d(TAG, "fetchPost onPageFinished: $finishedUrl")
+                    val cookies = CookieManager.getInstance().getCookie(finishedUrl)
+                    val hasClearance = cookies?.contains("cf_clearance") == true
+                    Log.d(TAG, "fetchPost onPageFinished: $finishedUrl hasClearance=$hasClearance")
                     runFetch(view)
                 }
 
@@ -178,21 +188,44 @@ class WebViewFetcher(private val context: Context) {
         }
 
         if (!completed) {
-            Log.e(TAG, "fetchPost: timeout after ${TIMEOUT_SECONDS}s for $url")
+            Log.e(TAG, "fetchPost: TIMEOUT after ${TIMEOUT_SECONDS}s for $url (fetchStarted=$fetchStarted, status=$responseStatus)")
             throw java.io.IOException("WebView POST timed out for $url")
         }
         if (loadError != null) {
+            Log.e(TAG, "fetchPost: FAILED for $url: $loadError")
             throw java.io.IOException("WebView POST failed for $url: $loadError")
         }
         val respBody = responseBody
-            ?: throw java.io.IOException("WebView POST returned no content for $url")
+            ?: run {
+                Log.e(TAG, "fetchPost: NO CONTENT for $url (status=$responseStatus)")
+                throw java.io.IOException("WebView POST returned no content for $url")
+            }
+
+        val headersBuilder = Headers.Builder()
+        // Reconstruct the real response headers the JS fetch saw (serialized as
+        // "name: value; name: value; ") so callers — notably CloudflareInterceptor's
+        // isCloudflareChallenge, which inspects CF-RAY / cf-mitigated / Server — can detect a
+        // Cloudflare challenge returned to the POST and route it to the resolve/retry flow.
+        responseHeaders.split("; ").forEach { pair ->
+            val idx = pair.indexOf(": ")
+            if (idx > 0) {
+                val name = pair.substring(0, idx).trim()
+                val value = pair.substring(idx + 2).trim()
+                if (name.isNotEmpty()) {
+                    try { headersBuilder.add(name, value) } catch (_: Exception) { /* skip malformed */ }
+                }
+            }
+        }
+        if (headersBuilder.get("Content-Type") == null) {
+            headersBuilder.add("Content-Type", contentType ?: "text/html; charset=utf-8")
+        }
 
         return Response.Builder()
             .request(request)
             .protocol(Protocol.HTTP_1_1)
             .code(if (responseStatus in 100..599) responseStatus else 200)
             .message("OK")
-            .headers(Headers.Builder().add("Content-Type", contentType ?: "text/html; charset=utf-8").build())
+            .headers(headersBuilder.build())
             .body(respBody.toResponseBody((contentType ?: "text/html; charset=utf-8").toMediaType()))
             .build()
     }
@@ -237,7 +270,11 @@ class WebViewFetcher(private val context: Context) {
                             credentials: 'include'
                         });
                         var text = await resp.text();
-                        $JS_BRIDGE.onResult(resp.status, text);
+                        var hdrs = '';
+                        try {
+                            resp.headers.forEach(function(v, k) { hdrs += k + ': ' + v + '; '; });
+                        } catch (he) { hdrs = '<headers unavailable: ' + he + '>'; }
+                        $JS_BRIDGE.onResult(resp.status, resp.url || '', hdrs, text);
                     } catch (e) {
                         $JS_BRIDGE.onError(e && e.message ? e.message : String(e));
                     }
