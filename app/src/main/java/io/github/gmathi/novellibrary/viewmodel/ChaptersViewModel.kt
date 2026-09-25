@@ -13,6 +13,7 @@ import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.network.cloudflare.CloudflareInterceptor
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.lang.getLinkedPagesCompat
@@ -61,6 +62,11 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
     var actionModeProgress = MutableLiveData<String>()
     var showSources: Boolean = false
 
+    /** Set when the last chapter fetch failed on a Cloudflare challenge; holds the gated URL
+     *  (or the source base URL) so the Activity can open the interactive resolver. */
+    var cloudflareGatedUrl: String? = null
+        private set
+
     fun init(novel: Novel, lifecycleOwner: LifecycleOwner, context: Context) {
         setNovel(novel)
         this._ctx = WeakReference(context)
@@ -72,6 +78,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
     fun getData(forceUpdate: Boolean = false) {
         viewModelScope.launch {
             loadingStatus.value = Constants.Status.START
+            cloudflareGatedUrl = null
             withContext(Dispatchers.IO) {
                 if (novel.id != -1L) {
                     dbHelper.getNovel(novel.id)?.let { setNovel(it) }
@@ -82,6 +89,13 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
 
             if (chapters == null && !networkHelper.isConnectedToNetwork()) {
                 loadingStatus.postValue(Constants.Status.NO_INTERNET)
+                return@launch
+            }
+
+            // A Cloudflare challenge on the chapter fetch — show the interactive resolver
+            // instead of a generic network error.
+            if (chapters == null && cloudflareGatedUrl != null) {
+                loadingStatus.value = Constants.Status.CLOUDFLARE
                 return@launch
             }
 
@@ -151,6 +165,12 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
 
         } catch (e: Exception) {
             Logs.error(TAG, "getChapters - isRemote:$forceUpdate", e)
+            // A Cloudflare challenge on the chapter fetch (403 / bypass-failed) should surface
+            // to the user as the interactive resolver rather than a generic network error.
+            val gated = CloudflareInterceptor.extractGatedUrl(e)
+            if (gated != null || (e.message?.contains("cloudflare", ignoreCase = true) == true)) {
+                cloudflareGatedUrl = gated ?: novel.url
+            }
         }
     }
 

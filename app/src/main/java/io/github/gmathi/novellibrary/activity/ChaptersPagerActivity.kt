@@ -9,6 +9,7 @@ import android.os.IBinder
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.view.ActionMode
 import com.afollestad.materialdialogs.DialogCallback
 import com.afollestad.materialdialogs.MaterialDialog
@@ -51,6 +52,14 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
     }
 
     val vm: ChaptersViewModel by viewModels()
+
+    private val cloudflareResolverLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            vm.getData(forceUpdate = true)
+        }
+    }
 
     var dataSet: HashSet<WebPage> = HashSet()
     private val translatorSourceNames: ArrayList<String> = ArrayList()
@@ -151,6 +160,17 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                             buttonText = getString(R.string.try_again)
                         ) {
                             vm.getData()
+                        }
+                    }
+
+                    Constants.Status.CLOUDFLARE -> {
+                        binding.activityChaptersPager.progressLayout.showError(
+                            errorText = getString(R.string.cloudflare_verification_message),
+                            buttonText = getString(R.string.resolve_manually)
+                        ) {
+                            val url = vm.cloudflareGatedUrl ?: vm.novel.url
+                            val intent = CloudflareResolverActivity.createIntent(this, url)
+                            cloudflareResolverLauncher.launch(intent)
                         }
                     }
 

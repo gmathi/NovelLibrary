@@ -88,8 +88,39 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
                         recordBypassSuccess(originalRequest.url.host)
                         return webViewResponse
                     }
-                    Log.w(TAG, "WebView fetch returned a Cloudflare challenge for ${originalRequest.url}, falling back to bypass flow")
+                    Log.w(TAG, "WebView fetch returned a Cloudflare challenge for ${originalRequest.url}, attempting resolve + retry")
                     webViewResponse.close()
+
+                    // A real Cloudflare challenge came back on the direct WebView fetch. Solve
+                    // it (headless auto-solve; if that fails the interceptor throws
+                    // BYPASS_FAILED_PREFIX and the UI layer opens the manual CloudflareResolver),
+                    // then retry the ORIGINAL request — re-running fetchPost for a POST so the
+                    // method/body are preserved, not degraded to a GET.
+                    val challengeHost = originalRequest.url.host
+                    if (!shouldSkipBypass(challengeHost)) {
+                        val baseUrl = "${originalRequest.url.scheme}://${originalRequest.url.host}/"
+                        val bypassRequest = originalRequest.newBuilder().url(baseUrl).build()
+                        val oldCookie = networkHelper.cookieManager.get(baseUrl.toHttpUrl())
+                            .firstOrNull { it.name == "cf_clearance" }
+                        Log.d(TAG, "Resolving Cloudflare for $challengeHost then retrying ${originalRequest.method}")
+                        if (resolveWithWebView(bypassRequest, oldCookie)) {
+                            recordBypassSuccess(challengeHost)
+                            storeCloudflareCookies(originalRequest.url)
+                            val retry = if (originalRequest.method == "POST") {
+                                webViewFetcher.fetchPost(originalRequest)
+                            } else {
+                                webViewFetcher.fetch(originalRequest)
+                            }
+                            if (!isCloudflareChallenge(retry)) {
+                                return retry
+                            }
+                            Log.w(TAG, "Retry after resolve STILL got a challenge for $challengeHost")
+                            retry.close()
+                        } else {
+                            recordBypassFailure(challengeHost)
+                        }
+                    }
+                    // Resolve or retry didn't clear it — fall through to the OkHttp/bypass flow.
                 } catch (e: Exception) {
                     Log.w(TAG, "Direct WebView fetch failed for ${originalRequest.url}: ${e.message}, falling back to OkHttp/bypass flow")
                 }
