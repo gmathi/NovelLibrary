@@ -66,7 +66,9 @@ fun ReaderOverlay(
                 enter = fadeIn(),
                 exit = fadeOut(),
                 modifier = Modifier
-                    .align(Alignment.Center)
+                    .align(Alignment.BottomEnd)
+                    .navigationBarsPadding()
+                    .padding(end = 16.dp, bottom = 16.dp)
             ) {
                 FloatingActionButton(
                     onClick = onCenterTap,
