@@ -61,6 +61,14 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
         }
     }
 
+    private val nuLoginLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        // SyncLoginActivity finishes without a result code; retry the fetch regardless — the
+        // ViewModel re-checks loggedIn() and only proceeds if cookies are now present.
+        vm.getData(forceUpdate = true)
+    }
+
     var dataSet: HashSet<WebPage> = HashSet()
     private val translatorSourceNames: ArrayList<String> = ArrayList()
     private var actionMode: ActionMode? = null
@@ -171,6 +179,19 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                             val url = vm.cloudflareGatedUrl ?: vm.novel.url
                             val intent = CloudflareResolverActivity.createIntent(this, url)
                             cloudflareResolverLauncher.launch(intent)
+                        }
+                    }
+
+                    Constants.Status.NU_LOGIN -> {
+                        binding.activityChaptersPager.progressLayout.showError(
+                            errorText = getString(R.string.nu_login_required_message),
+                            buttonText = getString(R.string.nu_login)
+                        ) {
+                            val (loginUrl, lookup) = vm.nuLoginRequest ?: return@showError
+                            val intent = Intent(this, io.github.gmathi.novellibrary.activity.settings.SyncLoginActivity::class.java)
+                            intent.putExtra("url", loginUrl)
+                            intent.putExtra("lookup", lookup)
+                            nuLoginLauncher.launch(intent)
                         }
                     }
 

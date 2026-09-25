@@ -13,7 +13,10 @@ import io.github.gmathi.novellibrary.model.database.WebPageSettings
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.cloudflare.CloudflareInterceptor
+import io.github.gmathi.novellibrary.network.sync.NovelSync
+import io.github.gmathi.novellibrary.util.lang.containsCaseInsensitive
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.lang.getLinkedPagesCompat
@@ -67,6 +70,11 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
     var cloudflareGatedUrl: String? = null
         private set
 
+    /** Set when a NovelUpdates chapter fetch was blocked because we have no NU login cookies.
+     *  Holds the login URL + cookie lookup regex so the Activity can open the login fetcher. */
+    var nuLoginRequest: Pair<String, String>? = null
+        private set
+
     fun init(novel: Novel, lifecycleOwner: LifecycleOwner, context: Context) {
         setNovel(novel)
         this._ctx = WeakReference(context)
@@ -79,6 +87,7 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
         viewModelScope.launch {
             loadingStatus.value = Constants.Status.START
             cloudflareGatedUrl = null
+            nuLoginRequest = null
             withContext(Dispatchers.IO) {
                 if (novel.id != -1L) {
                     dbHelper.getNovel(novel.id)?.let { setNovel(it) }
@@ -86,6 +95,13 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
                 }
             }
             getChapters(forceUpdate = forceUpdate)
+
+            // NovelUpdates requires login cookies to fetch the chapter list — send the user
+            // to the login fetcher rather than failing with a generic error.
+            if (chapters == null && nuLoginRequest != null) {
+                loadingStatus.value = Constants.Status.NU_LOGIN
+                return@launch
+            }
 
             if (chapters == null && !networkHelper.isConnectedToNetwork()) {
                 loadingStatus.postValue(Constants.Status.NO_INTERNET)
@@ -155,6 +171,17 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
                 loadingStatus.postValue("Downloading Chapters by Source…")
             else
                 loadingStatus.postValue("Downloading Chapters…")
+
+            // NovelUpdates now requires an authenticated session to return the chapter list.
+            // If we have no NU login cookies, don't bother hitting the network — signal the
+            // Activity to open the login fetcher, then bail (chapters stays null).
+            if (novel.url.containsCaseInsensitive(HostNames.NOVEL_UPDATES)) {
+                val sync = NovelSync.getInstance(novel.url, ignoreEnabled = true)
+                if (sync != null && !sync.loggedIn()) {
+                    nuLoginRequest = sync.getLoginURL() to sync.getCookieLookupRegex()
+                    return@withContext
+                }
+            }
 
             val source = sourceManager.get(novel.sourceId) ?: throw Exception(MISSING_SOURCE_ID)
             val fetchedChapters = source.getChapterList(novel)
