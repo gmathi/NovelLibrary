@@ -136,6 +136,7 @@ object Constants {
         const val START = "Loading…"
         const val DONE = "done"
         const val CLOUDFLARE = "cloudflare"
+        const val NU_LOGIN = "nuLogin"
     }
 
     object RemoteConfig {

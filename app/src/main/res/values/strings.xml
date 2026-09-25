@@ -960,6 +960,8 @@
     <string name="cloudflare_verification_required">Cloudflare Verification Required</string>
     <string name="cloudflare_verification_message">The server requires Cloudflare verification. You can solve it manually in a browser, then we\'ll retry automatically.</string>
     <string name="resolve_manually">Resolve Manually</string>
+    <string name="nu_login_required_message">NovelUpdates requires you to be logged in to fetch the chapter list. Please log in to continue.</string>
+    <string name="nu_login">Log in to NovelUpdates</string>
     <string name="retry">Retry</string>
 
     <!-- Downloads screen -->
