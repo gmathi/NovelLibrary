@@ -2,7 +2,12 @@ package io.github.gmathi.novellibrary.util.changelog
 
 object WhatsChanged {
 
-    const val LATEST = "🎉 v2.2.0 Release!\n" +
+    const val LATEST = "🎉 v2.2.1 Release!\n" +
+            "🛡️ Cloudflare fix - Check General Settings for WebFetcher (Wont work for extensions) Better fix coming soon\n" +
+            "📖 Reader mode fixes - Bunch of stuff === rework\n" +
+            "🐛 Stability fixes - General bug fixes and stability improvements.\n"
+
+    const val V2_2_0 = "🎉 v2.2.0 Release!\n" +
             "\n" +
             "✨ MAJOR: Per-novel Reader Mode - Reader mode, font, size, and theme are now remembered per novel, so each novel keeps its own reading setup. New novels start from your default reader settings.\n" +
             "\n" +
