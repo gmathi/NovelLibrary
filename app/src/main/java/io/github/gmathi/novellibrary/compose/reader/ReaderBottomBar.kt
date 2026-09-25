@@ -26,7 +26,7 @@ fun ReaderBottomBar(
     onPreviousChapter: () -> Unit,
     onNextChapter: () -> Unit,
     onSettingsClick: () -> Unit,
-    onFontClick: () -> Unit,
+    onJavascriptClick: () -> Unit,
     onReadAloudClick: () -> Unit,
     onReaderModeClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -118,9 +118,11 @@ fun ReaderBottomBar(
                     onClick = onSettingsClick
                 )
                 BottomBarAction(
-                    icon = Icons.Outlined.TextFields,
-                    label = "Font",
-                    onClick = onFontClick
+                    icon = if (uiState.isJavascriptEnabled) Icons.Filled.Code
+                           else Icons.Outlined.Code,
+                    label = "JavaScript",
+                    onClick = onJavascriptClick,
+                    active = uiState.isJavascriptEnabled
                 )
                 BottomBarAction(
                     icon = Icons.Outlined.RecordVoiceOver,
