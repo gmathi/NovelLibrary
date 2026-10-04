@@ -90,7 +90,15 @@ class DataCenter(context: Context) {
         private const val AUTO_SCROLL_LENGTH = "autoScrollLength"
         private const val AUTO_SCROLL_INTERVAL = "autoScrollInterval"
         private const val ENABLE_AUTO_SCROLL = "enableAutoScroll"
-        private const val USE_NU_API_FETCH = "useNUAPIFetch"
+
+        // Per-domain forced-WebView-fetcher flags: host -> epoch-millis the flag was set.
+        // A domain is forced onto CloudflareWebViewFetcher after the API path fails twice;
+        // the flag self-heals (is auto-cleared) after FORCE_WEBVIEW_EXPIRY_MS.
+        private const val FORCE_WEBVIEW_FETCHER_DOMAINS = "forceWebViewFetcherDomains"
+
+        // Self-heal window: a forced-WebView flag older than 15 days is cleared on read so
+        // the API path is retried for that domain.
+        const val FORCE_WEBVIEW_EXPIRY_MS = 15L * 24 * 60 * 60 * 1000
 
         //Download storage location
         private const val DOWNLOAD_STORAGE_LOCATION = "downloadStorageLocation"
@@ -128,9 +136,6 @@ class DataCenter(context: Context) {
         //DNS over HTTPS
         const val ENABLE_DOH = "enable_doh"
         const val DOH_PROVIDER = "doh_provider"
-
-        //Cloudflare
-        const val USE_WEBVIEW_FETCHER_FOR_CLOUDFLARE = "use_webview_fetcher_for_cloudflare"
 
         //Content Selectors List
         const val SELECTOR_QUERIES = "selectorsQueries"
@@ -760,17 +765,6 @@ class DataCenter(context: Context) {
         get() = prefs.getInt(DOH_PROVIDER, PREF_DOH_CLOUDFLARE)
         set(value) = prefs.edit().putInt(DOH_PROVIDER, value).apply()
 
-    /**
-     * When true, once a cf_clearance cookie exists for a host, Cloudflare-gated requests are
-     * fetched via a WebView instead of being replayed through OkHttp. This avoids the TLS
-     * fingerprint mismatch between OkHttp (Java SSLSocket) and WebView (Chromium BoringSSL)
-     * that otherwise causes Cloudflare to reject a cookie obtained via manual verification.
-     * Slower per-request, but far more likely to succeed. Defaults to on.
-     */
-    var useWebViewFetcherForCloudflare: Boolean
-        get() = prefs.getBoolean(USE_WEBVIEW_FETCHER_FOR_CLOUDFLARE, true)
-        set(value) = prefs.edit().putBoolean(USE_WEBVIEW_FETCHER_FOR_CLOUDFLARE, value).apply()
-
     var htmlCleanerSelectorQueries: ArrayList<SelectorQuery>
         get() = Gson().fromJson(prefs.getString(SELECTOR_QUERIES, "[]"), object : TypeToken<ArrayList<SelectorQuery>>() {}.type)
         set(value) = prefs.edit().putString(SELECTOR_QUERIES, Gson().toJson(value)).apply()
@@ -810,9 +804,72 @@ class DataCenter(context: Context) {
         get() = prefs.getInt(AUTO_SCROLL_INTERVAL, Constants.AUTO_SCROLL_INTERVAL_DEFAULT)
         set(value) = prefs.edit().putInt(AUTO_SCROLL_INTERVAL, value).apply()
 
-    var useNUAPIFetch: Boolean
-        get() = prefs.getBoolean(USE_NU_API_FETCH, true)
-        set(value) = prefs.edit().putBoolean(USE_NU_API_FETCH, value).apply()
+    //region Forced-WebView-fetcher per-domain flags
+
+    /**
+     * Raw map of host -> epoch-millis the forced-WebView flag was set for that host.
+     * Persisted as JSON. Prefer the helpers below over touching this directly.
+     */
+    private fun loadForceWebViewDomains(): HashMap<String, Long> =
+        Gson().fromJson(
+            prefs.getString(FORCE_WEBVIEW_FETCHER_DOMAINS, "{}"),
+            object : TypeToken<HashMap<String, Long>>() {}.type
+        ) ?: HashMap()
+
+    private fun saveForceWebViewDomains(map: Map<String, Long>) =
+        prefs.edit().putString(FORCE_WEBVIEW_FETCHER_DOMAINS, Gson().toJson(map)).apply()
+
+    /**
+     * Snapshot of currently-forced domains (host -> flaggedAtMillis), with any entries past
+     * the [FORCE_WEBVIEW_EXPIRY_MS] self-heal window already pruned. Used by the settings
+     * screen to list toggleable domains.
+     */
+    fun getForceWebViewDomains(): Map<String, Long> {
+        val map = loadForceWebViewDomains()
+        val now = System.currentTimeMillis()
+        val pruned = map.filterValues { now - it <= FORCE_WEBVIEW_EXPIRY_MS }
+        if (pruned.size != map.size) saveForceWebViewDomains(pruned)
+        return pruned
+    }
+
+    /**
+     * Whether [host] should bypass the API path and go straight to CloudflareWebViewFetcher.
+     * Self-healing: a flag older than [FORCE_WEBVIEW_EXPIRY_MS] is cleared on read and
+     * returns false, so the API path is retried for that domain.
+     */
+    @Synchronized
+    fun isWebViewForced(host: String): Boolean {
+        if (host.isBlank()) return false
+        val map = loadForceWebViewDomains()
+        val flaggedAt = map[host] ?: return false
+        return if (System.currentTimeMillis() - flaggedAt > FORCE_WEBVIEW_EXPIRY_MS) {
+            // Expired — self-heal.
+            map.remove(host)
+            saveForceWebViewDomains(map)
+            false
+        } else {
+            true
+        }
+    }
+
+    /** Force [host] onto the WebView fetcher, stamping now as the flag time. */
+    @Synchronized
+    fun flagWebViewForced(host: String) {
+        if (host.isBlank()) return
+        val map = loadForceWebViewDomains()
+        map[host] = System.currentTimeMillis()
+        saveForceWebViewDomains(map)
+    }
+
+    /** Clear the forced-WebView flag for [host], re-enabling the API path for it. */
+    @Synchronized
+    fun clearWebViewForced(host: String) {
+        if (host.isBlank()) return
+        val map = loadForceWebViewDomains()
+        if (map.remove(host) != null) saveForceWebViewDomains(map)
+    }
+
+    //endregion
 
     /**
      * The user-selected root under which downloaded chapters are stored.

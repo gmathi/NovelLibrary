@@ -41,6 +41,10 @@ class WebViewFetcher(private val context: Context) {
         private const val CHALLENGE_POLL_INTERVAL_MS = 1000L
         private const val CHALLENGE_MAX_WAIT_MS = 4_000L
         private const val JS_BRIDGE = "AndroidFetch"
+
+        // Internal marker used to distinguish "still stuck on the Cloudflare interstitial"
+        // from a generic WebView load error, so load() can throw the typed challenge exception.
+        private const val CHALLENGE_SENTINEL = "__cf_challenge__"
     }
 
     /**
@@ -363,7 +367,7 @@ class WebViewFetcher(private val context: Context) {
                     elapsedMs += CHALLENGE_POLL_INTERVAL_MS
                     if (elapsedMs >= CHALLENGE_MAX_WAIT_MS) {
                         Log.w(TAG, "$logLabel: still on challenge page after ${elapsedMs}ms, giving up")
-                        loadError = "Still on Cloudflare challenge page after waiting"
+                        loadError = CHALLENGE_SENTINEL
                         latch.countDown()
                         return@evaluateJavascript
                     }
@@ -436,6 +440,9 @@ class WebViewFetcher(private val context: Context) {
         }
 
         if (loadError != null) {
+            if (loadError == CHALLENGE_SENTINEL) {
+                throw CloudflareWebViewChallengeException(url)
+            }
             throw java.io.IOException("WebView fetch failed for $url: $loadError")
         }
 

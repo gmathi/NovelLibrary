@@ -22,6 +22,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import io.github.gmathi.novellibrary.activity.CloudflareResolverActivity
+import io.github.gmathi.novellibrary.network.cloudflare.CloudflareInterceptor
 import io.github.gmathi.novellibrary.util.system.startNovelDetailsActivity
 import io.github.gmathi.novellibrary.viewmodel.SearchUrlViewModel
 import io.github.gmathi.novellibrary.viewmodel.SearchUrlUiState
@@ -82,6 +83,13 @@ fun SearchScreen(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
+            // Post-verify step 1: clear the domain's forced-WebView flag so the API path is
+            // retried. Steps 2–3 (retry API; re-flag + WebView on failure) happen inside the
+            // interceptor when retry() re-issues the request.
+            val cookiesSaved = result.data?.getBooleanExtra(
+                CloudflareResolverActivity.RESULT_COOKIES_SAVED, false
+            ) ?: false
+            CloudflareInterceptor.onManualVerificationComplete(cloudflareUrl, cookiesSaved)
             when {
                 cloudflareRetrySource == "browse" -> popularMonthViewModel.retry()
                 cloudflareRetrySource?.startsWith("search:") == true -> {

@@ -44,11 +44,10 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         private const val POSITION_ENABLE_SCROLLING_TEXT = 5
         private const val POSITION_SHOW_CHAPTERS_LEFT_BADGE = 6
         private const val POSITION_DNS_OVER_HTTPS = 7
-        private const val POSITION_NU_API_FETCH = 8
+        private const val POSITION_FORCED_WEBVIEW_DOMAINS = 8
         private const val POSITION_AUTO_APP_UPDATE = 9
         private const val POSITION_DOWNLOAD_STORAGE = 10
-        private const val POSITION_USE_WEBVIEW_FETCHER_FOR_CLOUDFLARE = 11
-        private const val POSITION_CLEAR_CLOUDFLARE_COOKIES = 12
+        private const val POSITION_CLEAR_CLOUDFLARE_COOKIES = 11
 
     }
 
@@ -116,7 +115,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.loadLibraryScreen = value }
             }
 
-            POSITION_BACKUP_AND_RESTORE, POSITION_LANGUAGES, POSITION_DNS_OVER_HTTPS, POSITION_DOWNLOAD_STORAGE, POSITION_CLEAR_CLOUDFLARE_COOKIES -> {
+            POSITION_BACKUP_AND_RESTORE, POSITION_LANGUAGES, POSITION_DNS_OVER_HTTPS, POSITION_DOWNLOAD_STORAGE, POSITION_CLEAR_CLOUDFLARE_COOKIES, POSITION_FORCED_WEBVIEW_DOMAINS -> {
                 itemBinding.widgetChevron.visibility = View.VISIBLE
             }
 
@@ -156,22 +155,10 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemBinding.widgetSwitch.setOnCheckedChangeListener { _, isChecked -> dataCenter.showChaptersLeftBadge = isChecked }
             }
 
-            POSITION_NU_API_FETCH -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.useNUAPIFetch
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.useNUAPIFetch = value }
-            }
-
             POSITION_AUTO_APP_UPDATE -> {
                 itemBinding.widgetSwitch.visibility = View.VISIBLE
                 itemBinding.widgetSwitch.isChecked = dataCenter.enableAutoAppUpdate
                 itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableAutoAppUpdate = value }
-            }
-
-            POSITION_USE_WEBVIEW_FETCHER_FOR_CLOUDFLARE -> {
-                itemBinding.widgetSwitch.visibility = View.VISIBLE
-                itemBinding.widgetSwitch.isChecked = dataCenter.useWebViewFetcherForCloudflare
-                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.useWebViewFetcherForCloudflare = value }
             }
 
         }
@@ -189,6 +176,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
             getString(R.string.dns_over_https) -> showDnsSelection()
             getString(R.string.download_storage_location) -> startStorageSettingsActivity()
             getString(R.string.clear_cloudflare_cookies) -> confirmClearCloudflareCookies()
+            getString(R.string.forced_webview_domains) -> startActivity(android.content.Intent(this, ForcedWebViewDomainsActivity::class.java))
         }
     }
 
