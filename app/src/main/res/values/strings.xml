@@ -102,6 +102,7 @@
         <item>@string/libraries_used</item>
         <item>@string/contributions</item>
         <item>@string/copyright_notice</item>
+        <item>@string/whats_changed</item>
     </string-array>
 
     <string-array name="general_titles_list" translatable="false">
@@ -359,6 +360,8 @@
     <string name="cloud_flare_check">CloudFlare Check</string>
     <string name="libraries_used">Libraries Used</string>
     <string name="contributions">Contributions</string>
+    <string name="whats_changed">What\'s Changed</string>
+    <string name="whats_changed_version">Version %1$s</string>
     <string name="donate">Donate</string>
     <string name="donation_email_body">Thanks for all the work. I would like to see this in the next version and here is my donation.</string>
     <string name="content_restricted">Content Restricted!</string>
