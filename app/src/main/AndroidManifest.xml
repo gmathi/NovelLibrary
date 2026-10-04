@@ -136,6 +136,11 @@
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
+            android:name=".activity.settings.NewSettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide" />
+        <activity
             android:name=".activity.MetaDataActivity"
             android:label="@string/title_activity_meta_data"
             android:screenOrientation="fullUser"

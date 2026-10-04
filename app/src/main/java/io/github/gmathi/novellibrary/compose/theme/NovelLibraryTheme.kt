@@ -114,7 +114,10 @@ fun NovelLibraryTheme(
                 if (context is Activity) {
                     val window = context.window
                     window.statusBarColor = colorScheme.surface.toArgb()
-                    WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !useDarkTheme
+                    window.navigationBarColor = colorScheme.surface.toArgb()
+                    val insetsController = WindowCompat.getInsetsController(window, view)
+                    insetsController.isAppearanceLightStatusBars = !useDarkTheme
+                    insetsController.isAppearanceLightNavigationBars = !useDarkTheme
                 }
             } catch (e: Exception) {
                 // Ignore status bar color errors
