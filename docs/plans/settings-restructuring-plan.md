@@ -148,9 +148,12 @@ Each phase is independently buildable and testable (`.\gradlew.bat assembleNorma
 
 ---
 
-## 7. Open decisions (need owner input before implementing)
+## 7. Resolved decisions (owner-approved — implement as stated)
 
-1. **Enable Notifications** — General is being deleted. Put it in Appearance, or create a tiny "App" screen, or fold into About & Help?
-2. **General screen** — delete entirely, or keep as a thin "App basics" (Notifications + Load-Library-on-start)?
-3. **TTS stores** — confirm we are NOT merging `ttsPreferences`/`aiTtsPreferences` in this effort (plan assumes not).
-4. **"Mentions" class** — rename the class file (`MentionSettingsActivity` → `AboutHelpActivity`) or keep the class name and only change title/contents?
+1. **Enable Notifications** → lands in **Appearance & Theme**, under a small **General** header alongside *Load Library screen on start*. Rationale: a single toggle doesn't justify its own screen; grouping the two global-app toggles under a labeled header on the first screen keeps them one tap from the top level without reviving the junk drawer.
+2. **General screen** → **deleted entirely**. No thin "App basics" vestige — that would reintroduce the "where does this live" ambiguity the restructure exists to kill. Its two remaining orphans (Notifications, Load-Library-on-start) move per decision #1.
+3. **TTS stores** → **NOT merged** in this effort. `ttsPreferences` and `aiTtsPreferences` stay independent backends; the parent **Text-to-Speech** screen gets an engine selector and shared-looking rows, but each engine keeps reading/writing its own store. Merging the two `SharedPreferences` backends is a separate data-migration ticket (silent setting-loss risk on upgrade) and orthogonal to this navigation reorg.
+4. **"Mentions" class** → **rename** `MentionSettingsActivity` → `AboutHelpActivity`, together with its manifest entry and `start*Activity` extension in `StartIntentExt.kt`. Mechanical IDE refactor; keeping the old class name under an "About & Help" title is the exact misnomer this restructure removes.
+
+### Resulting top level (6 screens)
+Appearance & Theme (incl. General header: Notifications + Load-Library) · Reader · Text-to-Speech (Classic + AI sub-screens) · Network & Privacy · Storage & Backup · Sync · About & Help.
