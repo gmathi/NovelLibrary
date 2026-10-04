@@ -17,6 +17,7 @@ import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.other.NovelsPage
 import io.github.gmathi.novellibrary.model.source.CatalogueSource
 import io.github.gmathi.novellibrary.network.*
+import io.github.gmathi.novellibrary.network.cloudflare.CloudflareProgress
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.error.Exceptions.MISSING_SOURCE_ID
@@ -38,6 +39,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
     override val isPageLoading: AtomicBoolean = AtomicBoolean(false)
     private lateinit var searchTerm: String
     private var sourceId: Long = 0L
+    private var isSearching = false
 
     private lateinit var binding: ContentRecyclerViewBinding
 
@@ -75,6 +77,13 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
         setRecyclerView()
 
+        // Live Cloudflare/verification progress from the network interceptor during a search.
+        CloudflareProgress.status.observe(viewLifecycleOwner) { msg ->
+            if (isSearching && !msg.isNullOrBlank() && isFragmentActive()) {
+                binding.progressLayout.updateLoadingStatus(msg)
+            }
+        }
+
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey("results")) {
                 @Suppress("UNCHECKED_CAST")
@@ -98,7 +107,9 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
         lifecycleScope.launch search@{
 
+            isSearching = true
             if (!networkHelper.isConnectedToNetwork()) {
+                isSearching = false
                 binding.swipeRefreshLayout.isRefreshing = false
                 binding.progressLayout.noInternetError {
                     binding.progressLayout.showLoading()
@@ -112,6 +123,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
                 val source = sourceManager.get(sourceId) as? CatalogueSource ?: throw Exception("$MISSING_SOURCE_ID: $sourceId")
                 val novelsPage = withContext(Dispatchers.IO) { source.getSearchNovels(currentPageNumber, searchTerm) }
                 if (isFragmentActive()) {
+                    isSearching = false
                     loadSearchResults(novelsPage)
                     isPageLoading.lazySet(false)
                 }
@@ -119,6 +131,7 @@ class SearchTermFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Gener
 
             } catch (e: Exception) {
                 if (isFragmentActive()) {
+                    isSearching = false
                     binding.progressLayout.showError(errorText = getString(R.string.connection_error), buttonText = getString(R.string.try_again)) {
                         binding.progressLayout.showLoading()
                         currentPageNumber = 1
