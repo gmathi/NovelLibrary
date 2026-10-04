@@ -1,5 +1,6 @@
 package io.github.gmathi.novellibrary.model.source.online
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.core.net.toUri
 import io.github.gmathi.novellibrary.model.database.Novel
@@ -213,10 +214,24 @@ class NovelUpdatesSource : ParsedHttpSource() {
     }
 
     private suspend fun getChaptersFromAPI(novel: Novel): List<WebPage> {
-        // Translator-group tagging is skipped: NU's nd_getgroupnovel action now returns "0"
-        // (no server-side handler), so the group fetch + per-source fan-out add nothing but
-        // failing round-trips. The plain chapter list is unaffected.
-        return getChapterListForSource(novel, null)
+        val translatorSources = getTranslatorSourcesList(novel)
+        val allChapters = getChapterListForSource(novel, null)
+        val translatorSourcesMap = HashMap<String, String>()
+        val observableList = translatorSources.map { fetchChapterListWithSources(novel, it) }
+        val translatorSourceListOfChapterList = Observable
+            .from(observableList)
+            .flatMap { task -> task.observeOn(Schedulers.io()) }
+            .toList().awaitSingle()
+
+        translatorSourceListOfChapterList.parallelStream().forEach { translatorSourceOnlyChapterList ->
+            translatorSourcesMap.putAll(createTranslatorSourceMap(translatorSourceOnlyChapterList))
+        }
+
+        allChapters.parallelStream().forEach {
+            it.translatorSourceName = translatorSourcesMap[it.url]
+        }
+
+        return allChapters
     }
 
     private fun createTranslatorSourceMap(translatorSourceOnlyChapterList: List<WebPage>): HashMap<String, String> {
@@ -224,14 +239,8 @@ class NovelUpdatesSource : ParsedHttpSource() {
         val translatorSourceName = translatorSourceOnlyChapterList.first().translatorSourceName
             ?: return HashMap()
         val map = HashMap<String, String>()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            translatorSourceOnlyChapterList.parallelStream().forEach {
-                map[it.url] = translatorSourceName
-            }
-        } else {
-            translatorSourceOnlyChapterList.forEach {
-                map[it.url] = translatorSourceName
-            }
+        translatorSourceOnlyChapterList.parallelStream().forEach {
+            map[it.url] = translatorSourceName
         }
         return map
     }
@@ -309,13 +318,16 @@ class NovelUpdatesSource : ParsedHttpSource() {
         val formBodyBuilder = FormBody.Builder()
             .add("action", "nd_getchapters")
             .add("mypostid", novelUpdatesNovelId)
-        // Only send group filters when a translator source is actually selected. Sending
-        // mygrr=0 for the unfiltered list makes NU's endpoint return "0" (empty); the plain
-        // request (no mygrr) returns the full chapter list.
-        translatorSource?.let {
-            formBodyBuilder.add("mygrr", "0")
-            formBodyBuilder.add("mygrpfilter", it.id.toString())
-        }
+            .add("mygrr", "0")
+        translatorSource?.let { formBodyBuilder.add("mygrpfilter", it.id.toString()) }
+
+//        // Only send group filters when a translator source is actually selected. Sending
+//        // mygrr=0 for the unfiltered list makes NU's endpoint return "0" (empty); the plain
+//        // request (no mygrr) returns the full chapter list.
+//        translatorSource?.let {
+//            formBodyBuilder.add("mygrr", "0")
+//            formBodyBuilder.add("mygrpfilter", it.id.toString())
+//        }
         return POST(url, body = formBodyBuilder.build())
     }
 
@@ -361,6 +373,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
 
     override fun popularNovelsSelector(): String = "div.search_main_box_nu"
 
+    @SuppressLint("DefaultLocale")
     override fun popularNovelsFromElement(element: Element): Novel {
         val novelUrl = element.selectFirst("div.search_title > a")?.attr("abs:href") ?: throw Exception(INVALID_NOVEL)
         val novel = Novel(novelUrl, id)
@@ -481,7 +494,8 @@ class NovelUpdatesSource : ParsedHttpSource() {
                 null
             }
         }
-        val hasNextPage = document.select(popularNovelNextPageSelector()) != null
+        val hasNextPageElements = document.select(popularNovelNextPageSelector())
+        val hasNextPage =  !(hasNextPageElements.isNullOrEmpty())
 
         Logs.info(TAG, "SearchUrl result: ${novels.size} novels, hasNextPage=$hasNextPage")
         return NovelsPage(novels, hasNextPage)
