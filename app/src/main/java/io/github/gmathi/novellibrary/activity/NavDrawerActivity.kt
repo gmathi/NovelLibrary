@@ -32,6 +32,7 @@ import io.github.gmathi.novellibrary.util.system.openInBrowser
 import io.github.gmathi.novellibrary.util.system.startChaptersActivity
 import io.github.gmathi.novellibrary.util.system.startExtensionsPagerActivity
 import io.github.gmathi.novellibrary.util.system.startNovelDownloadsActivity
+import io.github.gmathi.novellibrary.util.system.startNewSettingsActivity
 import io.github.gmathi.novellibrary.util.system.startRecentNovelsPagerActivity
 import io.github.gmathi.novellibrary.util.system.startSettingsActivity
 import io.github.gmathi.novellibrary.util.system.toast
@@ -239,8 +240,9 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
                 //replaceFragment(DownloadFragment(), DownloadFragment::class.toString())
             }
 
-            R.id.nav_settings -> {
-                startSettingsActivity()
+            R.id.nav_new_settings -> {
+                dataCenter.useNewSettingsUi = true
+                startNewSettingsActivity()
             }
 
             R.id.nav_recent_novels -> {

@@ -148,7 +148,16 @@ fun AppCompatActivity.startMetadataActivity(novel: Novel) = startActivityForResu
 
 fun AppCompatActivity.startExtensionsPagerActivity() = startActivityForResult<ExtensionsPagerActivity>(Constants.RECENT_NOVELS_PAGER_ACT_REQ_CODE)
 
-fun AppCompatActivity.startSettingsActivity() = startActivityForResult<MainSettingsActivity>(Constants.SETTINGS_ACT_REQ_CODE)
+fun AppCompatActivity.startSettingsActivity() {
+    val dataCenter: io.github.gmathi.novellibrary.model.preference.DataCenter by uy.kohesive.injekt.injectLazy()
+    if (dataCenter.useNewSettingsUi)
+        startActivityForResult<NewSettingsActivity>(Constants.SETTINGS_ACT_REQ_CODE)
+    else
+        startActivityForResult<MainSettingsActivity>(Constants.SETTINGS_ACT_REQ_CODE)
+}
+
+/** Launch the NEW Compose-based settings tree (parallel to [MainSettingsActivity]). */
+fun AppCompatActivity.startNewSettingsActivity() = startActivity<NewSettingsActivity>()
 
 fun AppCompatActivity.startLanguagesActivity(changeLanguage: Boolean = false) =
     startActivityForResult(intentOf<LanguageActivity>().putExtra("changeLanguage", changeLanguage), Constants.LANG_ACT_REQ_CODE)

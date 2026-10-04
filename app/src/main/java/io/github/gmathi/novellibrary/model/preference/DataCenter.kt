@@ -884,6 +884,11 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean("useAiTts", false)
         set(value) = prefs.edit().putBoolean("useAiTts", value).apply()
 
+    /** When true, the Settings entry opens the new Compose settings tree instead of the legacy one. Defaults to the new UI. */
+    var useNewSettingsUi: Boolean
+        get() = prefs.getBoolean("useNewSettingsUi", true)
+        set(value) = prefs.edit().putBoolean("useNewSettingsUi", value).apply()
+
     var enableAutoAppUpdate: Boolean
         get() = prefs.getBoolean(ENABLE_AUTO_APP_UPDATE, true)
         set(value) = prefs.edit().putBoolean(ENABLE_AUTO_APP_UPDATE, value).apply()
