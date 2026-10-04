@@ -151,6 +151,11 @@
             android:screenOrientation="fullUser"
             android:theme="@style/DarkTheme_DarkSide" />
         <activity
+            android:name=".activity.settings.WhatsChangedActivity"
+            android:label="@string/whats_changed"
+            android:screenOrientation="fullUser"
+            android:theme="@style/DarkTheme_DarkSide" />
+        <activity
             android:name=".activity.settings.CopyrightActivity"
             android:label="@string/title_activity_copyright"
             android:screenOrientation="fullUser"

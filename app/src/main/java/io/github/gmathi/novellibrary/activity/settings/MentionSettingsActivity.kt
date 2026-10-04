@@ -55,6 +55,7 @@ class MentionSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         when (item) {
             getString(R.string.languages_supported) -> startLanguagesActivity()
             getString(R.string.copyright_notice) -> startCopyrightActivity()
+            getString(R.string.whats_changed) -> startActivity(android.content.Intent(this, WhatsChangedActivity::class.java))
             getString(R.string.libraries_used) -> startLibrariesUsedActivity()
             getString(R.string.contributions) -> startContributionsActivity()
         }
