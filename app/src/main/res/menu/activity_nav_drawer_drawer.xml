@@ -58,7 +58,7 @@
     <item android:title="@string/other">
         <menu>
             <item
-                android:id="@+id/nav_settings"
+                android:id="@+id/nav_new_settings"
                 android:icon="@drawable/ic_settings_white_vector"
                 android:title="@string/title_activity_settings" />
 
