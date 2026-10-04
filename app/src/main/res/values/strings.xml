@@ -266,7 +266,6 @@
 
     <string name="title_activity_novel_details">Novel Details</string>
     <string name="title_activity_settings">Settings</string>
-    <string name="title_new_settings">Settings (New UI)</string>
     <string name="switch_to_classic_settings">Switch to classic settings</string>
     <string name="title_activity_chapters">Chapters</string>
     <string name="title_activity_meta_data">More Information</string>
