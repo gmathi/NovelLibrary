@@ -28,6 +28,7 @@ import io.github.gmathi.novellibrary.model.other.LinkedPage
 import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
+import io.github.gmathi.novellibrary.network.cloudflare.CloudflareProgress
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
 import io.github.gmathi.novellibrary.util.logging.Logs
@@ -55,6 +56,8 @@ class WebPageDBFragment : BaseFragment() {
     var linkedPages: ArrayList<LinkedPage> = ArrayList()
     var history: ArrayList<WebPageSettings> = ArrayList()
     var job: Job? = null
+
+    private var isLoadingPage: Boolean = false
 
     private lateinit var binding: FragmentReaderBinding
 
@@ -109,6 +112,13 @@ class WebPageDBFragment : BaseFragment() {
 
         setOnScrollVisibleButtons()
         setWebView()
+
+        // Reflect Cloudflare interceptor progress on the loading label while a page is loading.
+        CloudflareProgress.status.observe(viewLifecycleOwner) { msg ->
+            if (isLoadingPage && !msg.isNullOrBlank()) {
+                binding.progressLayout.updateLoadingStatus(msg)
+            }
+        }
 
         // Load data from webPage into webView
         loadData()
@@ -319,10 +329,12 @@ class WebPageDBFragment : BaseFragment() {
     private fun downloadWebPage(url: String?) {
         if (url == null) return
 
+        isLoadingPage = true
         binding.progressLayout.showLoading()
 
         //If no network
         if (!networkHelper.isConnectedToNetwork()) {
+            isLoadingPage = false
             binding.progressLayout.noInternetError {
                 downloadWebPage(url)
             }
@@ -346,6 +358,7 @@ class WebPageDBFragment : BaseFragment() {
 
                 //If document fails to load and the fragment is still alive
                 if (doc == null) {
+                    isLoadingPage = false
                     if (isResumed && !isRemoving && !isDetached)
                         binding.progressLayout.dataFetchError {
                             downloadWebPage(url)
@@ -411,10 +424,12 @@ class WebPageDBFragment : BaseFragment() {
 
                 binding.progressLayout.showContent()
                 binding.swipeRefreshLayout.isRefreshing = false
+                isLoadingPage = false
 
             } catch (e: Exception) {
 
                 e.printStackTrace()
+                isLoadingPage = false
                 if (isResumed && !isRemoving && !isDetached)
                     binding.progressLayout.dataFetchError {
                         downloadWebPage(url)

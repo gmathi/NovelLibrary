@@ -15,6 +15,7 @@ import io.github.gmathi.novellibrary.databinding.ListitemNovelBinding
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.source.online.NovelUpdatesSource
+import io.github.gmathi.novellibrary.network.cloudflare.CloudflareProgress
 import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.view.setDefaults
@@ -34,6 +35,7 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
 
     private var rank: String? = null
     private var url: String? = null
+    private var isSearching = false
 
     private lateinit var binding: ContentRecyclerViewBinding
 
@@ -71,6 +73,13 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
 
         setRecyclerView()
 
+        // Live Cloudflare/verification progress from the network interceptor during a search.
+        CloudflareProgress.status.observe(viewLifecycleOwner) { msg ->
+            if (isSearching && !msg.isNullOrBlank() && isFragmentActive()) {
+                binding.progressLayout.updateLoadingStatus(msg)
+            }
+        }
+
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey("results")) {
                 @Suppress("UNCHECKED_CAST")
@@ -93,10 +102,12 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
 
         lifecycleScope.launch search@{
 
+            isSearching = true
             try {
                 if (!networkHelper.isConnectedToNetwork()) {
                     // Only show full-screen error if we have no data yet
                     if (adapter.items.isEmpty()) {
+                        isSearching = false
                         binding.progressLayout.noInternetError {
                             binding.progressLayout.showLoading()
                             currentPageNumber = 1
@@ -108,12 +119,14 @@ class SearchUrlFragment : BaseFragment(), GenericAdapter.Listener<Novel>, Generi
                 
                 val novelsPage = withContext(Dispatchers.IO) { NovelUpdatesSource().getPopularNovels(rank, url, currentPageNumber) }
                 if (isFragmentActive()) {
+                    isSearching = false
                     loadSearchResults(ArrayList(novelsPage.novels))
                     isPageLoading.lazySet(false)
                     binding.swipeRefreshLayout.isRefreshing = false
                 }
             } catch (e: Exception) {
                 if (isFragmentActive()) {
+                    isSearching = false
                     // Only show full-screen error if we have no data loaded yet.
                     // If we already have data (e.g. page 1 loaded), don't replace it with an error.
                     if (adapter.items.isEmpty()) {
