@@ -596,7 +596,9 @@
     <string name="volume_scroll_length_template" translatable="false">%1$s %2$d</string>
     <string name="reverse">Reverse</string>
     <string name="about_us_content">This project is an open-source project being developed with love for the novel reading community. If you would like to help out you can get in touch with us in discord!</string>
-    <string name="bug_report_content">Please use discord to report a bug.%1$s</string>
+    <string name="bug_report_content">To report a bug, please post the details below in our Discord #bugs channel. Tap \"Copy &amp; open Discord\" to copy this info and jump straight there.%1$s</string>
+    <string name="bug_report_copy_and_post">Copy &amp; open Discord</string>
+    <string name="bug_report_copied_toast">Debug info copied. Paste it in the Discord #bugs channel.</string>
     <string name="copy_to_clipboard">Copy to clipboard</string>
     <string name="add_font">Add Font</string>
     <string name="dont_show_again">Don\'t show again</string>

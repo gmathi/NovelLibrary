@@ -44,6 +44,7 @@ class MainSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
         const val TAG = "SettingsActivity"
         const val DEFAULT_CODE = "defaultCode"
         const val CODE_NAME_WW = "code_unlock_wwd"
+        const val DISCORD_INVITE_URL = "https://discord.gg/cPMxEVn"
     }
 
     lateinit var adapter: GenericAdapter<String>
@@ -132,24 +133,34 @@ class MainSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) finish()
         if (item.itemId == R.id.action_report_page) {
-            val systemInfo = systemInfo()
-            MaterialDialog(this).show {
-                message(R.string.bug_report_content, "\n\n" + systemInfo)
-                positiveButton(R.string.okay) {
-                    it.dismiss()
-                }
-                negativeButton(R.string.copy_to_clipboard) {
-                    val clipboard: ClipboardManager =
-                        getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    val clip = ClipData.newPlainText("Debug-info", systemInfo)
-                    clipboard.setPrimaryClip(clip)
-                    Toast.makeText(this@MainSettingsActivity, "Debug-info copied to clipboard!", Toast.LENGTH_SHORT)
-                        .show()
-                }
-                cancelable(false)
-            }
+            showBugReportDialog()
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun showBugReportDialog() {
+        val systemInfo = systemInfo()
+
+        fun copyDebugInfo() {
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("Debug-info", systemInfo))
+            Toast.makeText(this, R.string.bug_report_copied_toast, Toast.LENGTH_LONG).show()
+        }
+
+        MaterialDialog(this).show {
+            message(text = getString(R.string.bug_report_content, "\n\n" + systemInfo))
+            positiveButton(R.string.bug_report_copy_and_post) {
+                copyDebugInfo()
+                openInBrowser(DISCORD_INVITE_URL)
+                it.dismiss()
+            }
+            neutralButton(R.string.copy_to_clipboard) {
+                copyDebugInfo()
+            }
+            negativeButton(R.string.close) {
+                it.dismiss()
+            }
+        }
     }
     //endregion
 
